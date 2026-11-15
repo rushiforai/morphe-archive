@@ -186,7 +186,7 @@ final class SiteBoardProtocol {
         for(Element row:root.select("td.rtd"))out.add(futabaEntry(board,row));
         Set<String> seen=new HashSet<>();for(Entry e:out)if(!seen.add(e.original))throw new IOException("ふたばのレス番号が重複しています");
         Element sub=main.selectFirst(".csb");String title=sub==null?"":sub.text();
-        if(title.isEmpty()||title.equals("無題")){Element body=main.selectFirst("blockquote");title=body==null?"No."+id:body.text();}
+        if(title.isEmpty()||title.equals("無題")||title.equals("無念")){Element body=main.selectFirst("blockquote");title=body==null?"No."+id:body.text();}
         if(title.length()>120)title=title.substring(0,120);return new ThreadPage(title,out);
     }
     private static Entry futabaEntry(Board board,Element row)throws IOException{

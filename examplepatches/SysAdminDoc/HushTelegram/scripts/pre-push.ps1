@@ -10,11 +10,18 @@
     Called by .git/hooks/pre-push with the remote name and URL, reading the pushed refs from
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
-    Only what changed is checked: runtime tests when extension or patch sources, or the root files
-    those tests read, move, and the release facts when a published file moves. A move counts at
-    both ends, the path it left and the one it took. The one check every push gets is a scan of
-    every commit it publishes for tracked files that name the maintainer's machine or a phone.
-    Set HUSHTELEGRAM_SKIP_PRE_PUSH=1 to push anyway.
+    Every push gets the quick checks: a scan of every commit it publishes for tracked files that
+    name the maintainer's machine or a phone, and of the files it changes for an unresolved merge
+    conflict. Gates are for releases, so an everyday push stops there, in seconds, and builds and
+    tests nothing.
+
+    The rest runs only for a release push (a tag, patches-bundle.json changed on main, a pushed
+    "chore(release): prepare" commit, or a push made at release priority, which
+    scripts/release/release.ps1 sets), for a push made with HUSHTELEGRAM_FULL_GATE=1, or for a run
+    by hand with -ChangedPaths or -PushedRefs. Then only what changed is checked: runtime tests
+    when extension or patch sources, or the root files those tests read, move, and the release
+    facts when a published file moves. A move counts at both ends, the path it left and the one it
+    took. Set HUSHTELEGRAM_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
 param(
@@ -660,6 +667,22 @@ try {
 
     if ($paths.Count -eq 0) {
         Write-Step 'nothing to check'
+        exit 0
+    }
+
+    # Gates are for releases. An everyday push ends here; the suites, the release facts and the
+    # clean-worktree build run for a release push (a tag, the index on main, a release prep commit
+    # or a push at release priority), with HUSHTELEGRAM_FULL_GATE=1, or for a run by hand with
+    # -ChangedPaths or -PushedRefs, which the routing contracts use.
+    $fullGateWanted = $script:rewritesIndex -or $env:HUSHTELEGRAM_FULL_GATE -eq '1' -or $env:BUILD_QUEUE_PRIORITY -eq 'release' -or
+        $PSBoundParameters.ContainsKey('ChangedPaths') -or $PSBoundParameters.ContainsKey('PushedRefs') -or
+        "$refs" -match '(?m)^\s*\S+\s+(?!0{40})[0-9a-f]{40}\s+refs/tags/'
+    if (-not $fullGateWanted -and $script:publishedCommits.Count -gt 0) {
+        $pushedSubjects = @(Invoke-GitQuietly (@('show', '-s', '--format=%s') + @($script:publishedCommits)))
+        $fullGateWanted = @($pushedSubjects | Where-Object { ([string]$_).StartsWith('chore(release): prepare ') }).Count -gt 0
+    }
+    if (-not $fullGateWanted) {
+        Write-Step 'everyday push: commit checks passed; builds, suites and release facts run for a release push or with HUSHTELEGRAM_FULL_GATE=1'
         exit 0
     }
 

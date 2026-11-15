@@ -12,6 +12,7 @@ import java.util.*;
 /** Read-only popular-response popup. Never sends native navigation/read-count actions. */
 public final class PopularReplies {
     private static final String PREFS = "io.github.areteruhiro.chmate.haiagaru.ui-config";
+    static final String CUSTOM_THRESHOLD = "popularReplyCustomThreshold";
     private static final ArrayList<WeakReference<Object>> FRAGMENTS = new ArrayList<>();
     private static final ThreadLocal<Boolean> RESETTING = new ThreadLocal<>();
     private static final java.util.concurrent.ExecutorService WORKER=java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -34,17 +35,27 @@ public final class PopularReplies {
     static boolean enabledFor(Context c){return prefs(c).getBoolean("popularReplyPopup",false);}
     static void initialize(Context c){
         SharedPreferences p=prefs(c);
-        if(!p.contains("popularReplyDirect"))p.edit().putBoolean("popularReplyDirect",p.getBoolean("popularReplyPopup",false)).apply();
+        // One-time mitigation requested for existing installs. Later user opt-in survives.
+        if(!p.getBoolean("popularReplyDirectOffV1",false))
+            p.edit().putBoolean("popularReplyDirect",false).putBoolean("popularReplyDirectOffV1",true).apply();
     }
     static boolean directFor(Context c){
         SharedPreferences p=prefs(c);
-        return p.getBoolean("popularReplyDirect",p.getBoolean("popularReplyPopup",false));
+        return p.getBoolean("popularReplyDirect",false);
+    }
+    private static int savedThreshold(SharedPreferences p,boolean direct,int fallback){
+        return Math.max(1,Math.min(9999,p.getInt(direct?"popularReplyThreshold":"popularReplyStandardThreshold",fallback)));
     }
     static int thresholdValue(Context c,int nativeDefault){
-        return Math.max(1,Math.min(9999,prefs(c).getInt(directFor(c)?"popularReplyThreshold":"popularReplyStandardThreshold",directFor(c)?3:nativeDefault)));
+        SharedPreferences p=prefs(c);
+        boolean direct=directFor(c);
+        int fallback=direct?3:nativeDefault;
+        return p.getBoolean(CUSTOM_THRESHOLD,false)?savedThreshold(p,direct,fallback):fallback;
     }
     public static int selectThreshold(int nativeValue){
-        Context c=Haiagaru.applicationContextForExtension();return c==null?nativeValue:thresholdValue(c,nativeValue);
+        Context c=Haiagaru.applicationContextForExtension();
+        if(c==null||!prefs(c).getBoolean(CUSTOM_THRESHOLD,false))return nativeValue;
+        return thresholdValue(c,nativeValue);
     }
     static boolean openModel(Object model) {
         if(!enabled())return false;
@@ -232,8 +243,20 @@ public final class PopularReplies {
             prefs(a).edit().putBoolean("popularReplyPopup",on).apply();
             if(on)ExtraQuickFilters.refreshPopularity();
         });layout.addView(toggle);
+        Switch custom=new Switch(a);custom.setText("人気レスの閾値をカスタマイズする");
+        custom.setTag(SettingLinkEntry.KEY_TAG,CUSTOM_THRESHOLD);
+        custom.setChecked(prefs(a).getBoolean(CUSTOM_THRESHOLD,false));layout.addView(custom);
+        TextView thresholdHelp=new TextView(a);
+        thresholdHelp.setText("オフでは、標準方式はChMateの閾値、直接返信方式は3件を使います。保存した値はオンにすると再び使われます。");
+        layout.addView(thresholdHelp);
         Button threshold=new Button(a);threshold.setText("人気レスの閾値を変更");
+        threshold.setEnabled(custom.isChecked());
         threshold.setOnClickListener(v->threshold(a,thresholdValue(a,3),null));layout.addView(threshold);
+        custom.setOnCheckedChangeListener((v,on)->{
+            prefs(a).edit().putBoolean(CUSTOM_THRESHOLD,on).apply();
+            threshold.setEnabled(on);
+            ExtraQuickFilters.refreshPopularity();
+        });
     }
     private PopularReplies() { }
 }

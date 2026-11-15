@@ -52,6 +52,7 @@ tasks.test {
     inputs.dir(rootProject.file("scripts/profiles")).withPropertyName("stockProfiles")
     inputs.files(rootProject.files("README.md", "patches-bundle.json", "scripts/CompatReport.java"))
         .withPropertyName("compatibilitySources")
+    inputs.dir(rootProject.file("scripts/compat")).withPropertyName("compatReportSources")
 }
 
 tasks.named<Jar>("jar") {

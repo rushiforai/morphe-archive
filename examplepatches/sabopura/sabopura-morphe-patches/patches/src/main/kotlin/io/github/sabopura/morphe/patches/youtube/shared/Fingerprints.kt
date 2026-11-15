@@ -77,10 +77,15 @@ internal object StableControlsOverlayFingerprint : Fingerprint(
         checkCast(
             "Lcom/google/android/apps/youtube/app/player/overlay/SizeAdjustableOverlayWrapperLayout;",
         ),
+        // The wrapper's no-argument setup call is obfuscated (i() in 21.44, k() in
+        // 21.45), so match it by owner and shape. Exactly zero parameters keeps it apart
+        // from the one-boolean call made on the other wrapper in the same method.
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            smali = "Lcom/google/android/apps/youtube/app/player/overlay/" +
-                "SizeAdjustableOverlayWrapperLayout;->i()V",
+            definingClass = "Lcom/google/android/apps/youtube/app/player/overlay/" +
+                "SizeAdjustableOverlayWrapperLayout;",
+            parameters = listOf(),
+            returnType = "V",
         ),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,

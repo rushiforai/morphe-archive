@@ -232,13 +232,14 @@
     },
     {
       "paths": [
-        "extensions/tumblr/src/main/java/app/hushtumblr/extension/tumblr/settings/SettingsFeedback.java"
+        "extensions/tumblr/src/main/java/app/hushtumblr/extension/tumblr/settings/SettingsFeedback.java",
+        "extensions/tumblr/src/main/java/app/hushtumblr/extension/tumblr/settings/SpokenLine.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushTumblr",
       "via": [],
       "license": "GPL-3.0-only",
-      "changes": "Persistent feedback for settings actions, with exact link copying and one polite update for each result."
+      "changes": "Persistent feedback for settings actions, with exact link copying and one polite update for each result. SpokenLine is the status line a screen reader reads once per answer."
     }
   ]
 }

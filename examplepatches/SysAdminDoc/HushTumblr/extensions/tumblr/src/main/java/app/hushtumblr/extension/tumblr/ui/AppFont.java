@@ -92,6 +92,17 @@ public final class AppFont {
         }
     }
 
+    /** The chosen file read fine, and the copy couldn't be written here: a full disk, or no font folder. */
+    public static final class Unwritable extends IOException {
+        Unwritable(String message) {
+            super(message);
+        }
+
+        Unwritable(IOException cause) {
+            super(cause);
+        }
+    }
+
     /**
      * Placed first in the method every font resource loads through. Answers the face to use in place
      * of font [id], or null to let Tumblr load its own. Never throws.
@@ -195,19 +206,49 @@ public final class AppFont {
     }
 
     static String install(Context context, InputStream source, @Nullable String name, long mostBytes) throws IOException, Refused {
+        try {
+            String value = stage(context, source, name, mostBytes);
+            place(context);
+            return value;
+        } finally {
+            discard(context);
+        }
+    }
+
+    /**
+     * Copies a chosen font next to the one in use and checks it, answering what to save for it as
+     * {@link #install} does. Nothing changes for Tumblr until {@link #place}, and a file that
+     * fails here is gone again. A staged file that won't be placed goes with {@link #discard}.
+     */
+    public static String stage(Context context, InputStream source, @Nullable String name) throws IOException, Refused {
+        return stage(context, source, name, MOST_BYTES);
+    }
+
+    private static String stage(Context context, InputStream source, @Nullable String name, long mostBytes) throws IOException, Refused {
         File folder = new File(context.getFilesDir(), FOLDER);
-        if (!folder.mkdirs() && !folder.isDirectory()) throw new IOException("no font folder");
+        if (!folder.mkdirs() && !folder.isDirectory()) throw new Unwritable("no font folder");
         File incoming = new File(folder, INCOMING);
+        boolean staged = false;
         try {
             String hash = copy(source, incoming, mostBytes);
             if (!isFont(incoming)) throw new Refused(L10n.t("That isn't a font file. Nothing changed."));
-            Files.move(incoming.toPath(), new File(folder, FILE).toPath(), StandardCopyOption.ATOMIC_MOVE);
+            staged = true;
             return hash + " " + tidyName(name);
         } finally {
-            // Already gone once it's in place.
-            //noinspection ResultOfMethodCallIgnored
-            incoming.delete();
+            if (!staged) discard(context);
         }
+    }
+
+    /** Puts the staged file in place of the one in use, in one step. */
+    public static void place(Context context) throws IOException {
+        File folder = new File(context.getFilesDir(), FOLDER);
+        Files.move(new File(folder, INCOMING).toPath(), new File(folder, FILE).toPath(), StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    /** Deletes a staged file. Does nothing once it's in place. */
+    public static void discard(Context context) {
+        //noinspection ResultOfMethodCallIgnored
+        new File(new File(context.getFilesDir(), FOLDER), INCOMING).delete();
     }
 
     /** Deletes the chosen file. A leftover one does nothing, as an empty saved value stops it being read. */
@@ -231,18 +272,46 @@ public final class AppFont {
         }
         long total = 0;
         byte[] buffer = new byte[64 * 1024];
-        try (OutputStream out = new FileOutputStream(target)) {
+        OutputStream out;
+        try {
+            out = new FileOutputStream(target);
+        } catch (IOException unwritable) {
+            throw new Unwritable(unwritable);
+        }
+        try {
+            // A failed read throws as it is, and a failed write as Unwritable.
             for (int read = source.read(buffer); read != -1; read = source.read(buffer)) {
                 total += read;
                 if (total > mostBytes) throw new Refused(L10n.t("That file is too big to be a font."));
                 digest.update(buffer, 0, read);
-                out.write(buffer, 0, read);
+                try {
+                    out.write(buffer, 0, read);
+                } catch (IOException unwritable) {
+                    throw new Unwritable(unwritable);
+                }
             }
+            try {
+                out.close();
+            } catch (IOException unwritable) {
+                throw new Unwritable(unwritable);
+            }
+        } finally {
+            // Closed already when the copy got this far. A second close does nothing.
+            closeQuietly(out);
         }
         byte[] hash = digest.digest();
         StringBuilder hex = new StringBuilder();
         for (int at = 0; at < HASH_BYTES; at++) hex.append(String.format("%02x", hash[at]));
         return hex.toString();
+    }
+
+    /** Closes the copy's file once the copy has failed. That failure is the one to report. */
+    private static void closeQuietly(OutputStream out) {
+        try {
+            out.close();
+        } catch (IOException afterTheFailure) {
+            // The copy already threw, or closed the file itself.
+        }
     }
 
     /**

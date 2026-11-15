@@ -7,9 +7,9 @@ import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.matchSingle
 
 /**
- * Throwing "as1" from the IMA loader is caught by the Pigeon handler, which
- * sends a PlatformException back to Dart. The ad repository treats it as a
- * failed ad request and lets playback continue.
+ * Throwing the Flutter PlatformException ("yr1") from the IMA loader is caught
+ * by the Pigeon handler, which sends it back to Dart. The ad repository treats
+ * it as a failed ad request and lets playback continue.
  */
 private fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.disableImaRequest() {
     val provider = getFreeRegisterProvider(0, 4)
@@ -21,11 +21,11 @@ private fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.disableImaR
     addInstructions(
         0,
         """
-            new-instance v$exception, Las1;
+            new-instance v$exception, Lyr1;
             const-string v$code, "ad-disabled"
             const-string v$message, "Ads are disabled by patch"
             const-string v$details, ""
-            invoke-direct {v$exception, v$code, v$message, v$details}, Las1;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+            invoke-direct {v$exception, v$code, v$message, v$details}, Lyr1;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
             throw v$exception
         """.trimIndent()
     )

@@ -12,6 +12,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
@@ -35,8 +36,12 @@ public final class GoogleSignInReadiness implements LogBufferManager.ReportSecti
     static final GoogleSignInReadiness REPORT = new GoogleSignInReadiness();
     private static final String SIGN_IN_SERVICE = PushReadiness.GMS_CORE + ".auth.api.identity.service.signin.START";
     private static final String SPOOF_METADATA = PushReadiness.GMS_CORE + ".SPOOFED_PACKAGE_SIGNATURE";
+    private static final String SPOOF_PACKAGE_METADATA = PushReadiness.GMS_CORE + ".SPOOFED_PACKAGE_NAME";
+    private static final String PINTEREST_PACKAGE = "com.pinterest";
     private static final int STATUS_CANCELED = 16;
     private static final String NO_REQUEST = "none this launch";
+    /** The credential type of Sign in with Google's options, both the ID token and the button's. */
+    static final String GOOGLE_ID_TOKEN = "com.google.android.libraries.identity.googleid.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL";
 
     /** What the last failed request came to since launch. Tests put it back through this field. */
     static volatile String lastRequest = NO_REQUEST;
@@ -59,6 +64,55 @@ public final class GoogleSignInReadiness implements LogBufferManager.ReportSecti
             Utils.showToastLong(message(context == null ? MicroG.UNKNOWN : microG(context)));
         } catch (Throwable problem) {
             HookStatus.threw(FamilyNames.GMS_CORE_SUPPORT, "sign-in failure", problem);
+        }
+    }
+
+    /**
+     * Placed first in androidx Credential Manager's framework provider, which answers unavailable
+     * when this is true. While microG-RE is installed the provider steps aside, because Android
+     * hands Google's requests to Google's own Play services, and androidx falls back to the Play
+     * services provider the patch points at microG-RE. Without microG-RE the provider answers for
+     * itself, so a password manager can still offer a saved login. A request that asks only for a
+     * Google ID token never gets this far: {@link #isGoogleIdOption} sends it to microG-RE first. One
+     * that mixes a Google ID option with a password, Pinterest's offer on the login screen, still
+     * comes here, so its Google half goes to the phone's own Play services, which turns a re-signed
+     * build away. Before the settings are ready, or when Android can't say, it steps aside as the
+     * patch always had it. A build without GmsCore support leaves the provider alone.
+     */
+    public static boolean signsInThroughMicroG() {
+        HookStatus.invoked(FamilyNames.GMS_CORE_SUPPORT);
+        try {
+            if (!PushReadiness.gmsCore()) return false;
+            if (!Utils.settingsReady()) return true;
+            Context context = Utils.getContext();
+            if (context == null || microG(context) != MicroG.MISSING) return true;
+            HookStatus.counted(FamilyNames.GMS_CORE_SUPPORT, "Android's credential provider kept without microG-RE");
+            return false;
+        } catch (Throwable problem) {
+            HookStatus.threw(FamilyNames.GMS_CORE_SUPPORT, "credential provider", problem);
+            return true;
+        }
+    }
+
+    /**
+     * Placed in androidx Credential Manager's provider choice, once for each option of a request,
+     * with the option's credential type. When every option asks for a Google ID token, androidx
+     * sends the request straight to the Play services provider, which the patch points at
+     * microG-RE: Continue with Google signs in there, and without microG-RE it fails into
+     * {@link #requestFailed}, which says to install it. Anything else, a password or a passkey
+     * among them, keeps Android's own provider. A build without GmsCore support answers false.
+     */
+    public static boolean isGoogleIdOption(@Nullable String type) {
+        HookStatus.invoked(FamilyNames.GMS_CORE_SUPPORT);
+        try {
+            if (!PushReadiness.gmsCore() || !GOOGLE_ID_TOKEN.equals(type)) return false;
+            // Counted per option: a later option that isn't Google's still keeps the request on
+            // Android's own provider, so this counts what the choice saw, not where it went.
+            HookStatus.counted(FamilyNames.GMS_CORE_SUPPORT, "Google sign-in option in a credential request");
+            return true;
+        } catch (Throwable problem) {
+            HookStatus.threw(FamilyNames.GMS_CORE_SUPPORT, "credential option", problem);
+            return false;
         }
     }
 
@@ -129,7 +183,9 @@ public final class GoogleSignInReadiness implements LogBufferManager.ReportSecti
         lines.add("provider_path: " + (gmsCore ? "microg-re" : "play services"));
         Context context = Utils.getContext();
         if (context == null) return Collections.unmodifiableList(lines);
-        lines.add("spoof_metadata: " + spoofMetadata(context));
+        Bundle metaData = ownMetaData(context);
+        lines.add("spoof_metadata: " + spoofMetadata(metaData));
+        lines.add("spoof_package: " + spoofPackage(metaData));
         if (gmsCore) {
             lines.add("microg_re: " + microGLine(context));
             lines.add("signin_service: " + signInService(context));
@@ -139,14 +195,31 @@ public final class GoogleSignInReadiness implements LogBufferManager.ReportSecti
         return lines;
     }
 
-    private static String spoofMetadata(Context context) {
+    /** The running app's own meta-data, an empty bundle when it has none, or null when it can't be read. */
+    private static Bundle ownMetaData(Context context) {
         try {
             ApplicationInfo app = context.getPackageManager().getApplicationInfo(
                     context.getPackageName(), PackageManager.GET_META_DATA);
-            return app.metaData != null && app.metaData.containsKey(SPOOF_METADATA) ? "present" : "missing";
+            return app.metaData != null ? app.metaData : new Bundle();
         } catch (PackageManager.NameNotFoundException | RuntimeException unavailable) {
-            return "unknown";
+            return null;
         }
+    }
+
+    private static String spoofMetadata(Bundle metaData) {
+        if (metaData == null) return "unknown";
+        return metaData.containsKey(SPOOF_METADATA) ? "present" : "missing";
+    }
+
+    /**
+     * Whether microG-RE gets Pinterest's own package to show Google: "pinterest", "other" for any
+     * other value (which isn't printed, a copy's custom package included), or "missing". A renamed
+     * copy without it shows Google its own package beside Pinterest's certificate (#28).
+     */
+    private static String spoofPackage(Bundle metaData) {
+        if (metaData == null) return "unknown";
+        if (!metaData.containsKey(SPOOF_PACKAGE_METADATA)) return "missing";
+        return PINTEREST_PACKAGE.equals(metaData.getString(SPOOF_PACKAGE_METADATA)) ? "pinterest" : "other";
     }
 
     private static String microGLine(Context context) {

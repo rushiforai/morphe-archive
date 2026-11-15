@@ -51,13 +51,16 @@ final class ChatNotifications {
         /** What Messenger attached to the line, a photo's preview say, and its type. Null when it attached nothing. */
         final android.net.Uri data;
         final String type;
+        /** When the line's message was sent, in epoch milliseconds. 0 when the notification doesn't say. */
+        final long time;
 
-        Line(StatusBarNotification shown, String text, String sender, android.net.Uri data, String type) {
+        Line(StatusBarNotification shown, String text, String sender, android.net.Uri data, String type, long time) {
             this.shown = shown;
             this.text = text;
             this.sender = sender;
             this.data = data;
             this.type = type;
+            this.time = time;
         }
     }
 
@@ -86,7 +89,7 @@ final class ChatNotifications {
             if (found == null && notificationId != null && id.equals(String.valueOf(notificationId))) {
                 if (newest == null) {
                     CharSequence text = extras.getCharSequence(Notification.EXTRA_TEXT);
-                    if (text != null) return new Line(shown, text.toString(), null, null, null);
+                    if (text != null) return new Line(shown, text.toString(), null, null, null, 0);
                     continue;
                 }
                 found = newest;
@@ -97,7 +100,7 @@ final class ChatNotifications {
             if (sender != null && sender.equals(selfName(extras))) sender = null;
             Object data = found.getParcelable("uri");
             return new Line(shown, text == null ? null : text.toString(), sender,
-                data instanceof android.net.Uri ? (android.net.Uri) data : null, found.getString("type"));
+                data instanceof android.net.Uri ? (android.net.Uri) data : null, found.getString("type"), found.getLong("time"));
         }
         return null;
     }

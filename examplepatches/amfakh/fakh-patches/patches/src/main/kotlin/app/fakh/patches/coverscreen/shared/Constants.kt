@@ -10,7 +10,7 @@ object Constants {
         packageName = "apps.ijp.coverscreenos",
         apkFileType = ApkFileType.APKM,
         targets = listOf(
-            AppTarget(version = "CSOS_9.0.1_BETA", versionCode = 244),
+            AppTarget(version = "CSOS_9.0.2_BETA", versionCode = 245),
         ),
     )
 }

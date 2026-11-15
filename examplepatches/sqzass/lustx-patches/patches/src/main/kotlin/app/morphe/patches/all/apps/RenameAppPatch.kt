@@ -9,14 +9,16 @@ import org.w3c.dom.Node
 private fun children(parent: Element, tag: String): List<Element> {
     val out = mutableListOf<Element>()
     var n: Node? = parent.firstChild
-    while (n != null) { if (n is Element && n.tagName == tag) out.add(n); n = n.nextSibling }
+    while (n != null) {
+        if (n is Element && n.tagName == tag) out.add(n)
+        n = n.nextSibling
+    }
     return out
 }
 
-private fun hasLauncherCategory(activity: Element): Boolean =
-    children(activity, "intent-filter").any { filter ->
-        children(filter, "category").any { it.getAttribute("android:name") == "android.intent.category.LAUNCHER" }
-    }
+private fun hasLauncherCategory(activity: Element): Boolean = children(activity, "intent-filter").any { filter ->
+    children(filter, "category").any { it.getAttribute("android:name") == "android.intent.category.LAUNCHER" }
+}
 
 @Suppress("unused")
 val renameAppLabelPatch = resourcePatch(
@@ -26,9 +28,11 @@ val renameAppLabelPatch = resourcePatch(
     default = false,
 ) {
     val labelOption = stringOption(
-        key = "appLabel", default = "Current",
+        key = "appLabel",
+        default = "Current",
         values = mapOf("Current" to "Current"),
-        title = "App label", description = "New display name shown in the launcher, or 'Current'.",
+        title = "App label",
+        description = "New display name shown in the launcher, or 'Current'.",
         required = true,
     ) { it == "Current" || !it.isNullOrBlank() }
 

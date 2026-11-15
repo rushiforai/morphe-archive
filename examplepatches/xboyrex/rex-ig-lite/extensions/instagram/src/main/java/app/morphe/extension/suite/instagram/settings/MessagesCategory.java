@@ -1,0 +1,266 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/rex-ig-lite
+ *
+ * Modified for xboyrex (Instagram), 2026.
+ */
+package app.morphe.extension.suite.instagram.settings;
+
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.callBlockAccountsRow;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.callBlockModeRow;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.category;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.changePinRow;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.lockDelayRow;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.lockToggle;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.toggle;
+import static app.morphe.extension.suite.instagram.settings.xboyrexPreferenceFragment.unlockWithRow;
+
+import android.content.Context;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceScreen;
+
+import java.util.Set;
+
+import app.morphe.extension.suite.shared.L10n;
+
+/** Builds the Messages category of xboyrex settings. */
+final class MessagesCategory {
+    private MessagesCategory() { }
+
+    static void add(xboyrexPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
+        if (build.contains(PatchFamily.NOTES_ROW) || build.contains(PatchFamily.SPLIT_NOTES_ROW)
+                || build.contains(PatchFamily.INBOX_SEARCH)
+                || build.contains(PatchFamily.INBOX_SUGGESTIONS) || build.contains(PatchFamily.INSTANTS)
+                || build.contains(PatchFamily.THREAD_SEEN) || build.contains(PatchFamily.TYPING)
+                || build.contains(PatchFamily.DM_MEDIA_SEEN)
+                || build.contains(PatchFamily.ACTIVE_STATUS)
+                || build.contains(PatchFamily.LAST_ACTIVE)
+                || build.contains(PatchFamily.MESSAGES_LOCK)
+                || build.contains(PatchFamily.SCREENSHOT_REPORTS)
+                || build.contains(PatchFamily.BLEND_VISITS)
+                || build.contains(PatchFamily.SCREENSHOT_BLOCK)
+                || build.contains(PatchFamily.KEEP_IN_CHAT)
+                || build.contains(PatchFamily.VIEW_ONCE_MARK)
+                || build.contains(PatchFamily.CHAT_REELS)
+                || build.contains(PatchFamily.CHAT_MEDIA_WALK)
+                || build.contains(PatchFamily.CHAT_HISTORY)
+                || build.contains(PatchFamily.PREVIEW_CHATS)
+                || build.contains(PatchFamily.ASK_BEFORE_CALL)
+                || build.contains(PatchFamily.CALL_BLOCKER)
+                || build.contains(PatchFamily.KINDNESS_REMINDER)
+                || build.contains(PatchFamily.MESSAGE_BOX)
+                || build.contains(PatchFamily.PLUS_MENU)
+                || build.contains(PatchFamily.GLASS_CHAT)
+                || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
+            PreferenceCategory messages = category(screen, L10n.t("Messages"), SettingsIcons.CHATS,
+                    L10n.t("Privacy and controls for your chats."));
+            if (build.contains(PatchFamily.NOTES_ROW)) {
+                messages.addPreference(toggle(context, Settings.HIDE_NOTES_ROW, L10n.t("Hide the notes row"),
+                        L10n.t("Takes the row of notes off the top of your messages, the Map bubble in it too. "
+                                + "Your chats, search and requests stay.")));
+                messages.addPreference(toggle(context, Settings.HIDE_NOTES_MAP, L10n.t("Hide the Map bubble"),
+                        L10n.t("Takes only the Map bubble out of the row of notes. Your notes stay.")));
+            }
+            if (build.contains(PatchFamily.SPLIT_NOTES_ROW)) {
+                messages.addPreference(toggle(context, Settings.SPLIT_NOTES_ROW, L10n.t("Split the notes row"),
+                        L10n.t("Splits the row of notes into three stacks, Instants, Notes and Stories, the layout "
+                                + "Instagram is trying out. Restart Instagram to see the change.")));
+            }
+            if (build.contains(PatchFamily.INBOX_SEARCH)) {
+                messages.addPreference(toggle(context, Settings.HIDE_INBOX_SEARCH,
+                        L10n.t("Hide the search bar in Messages"),
+                        L10n.t("Takes the search bar and its Filter button off the top of your messages, the "
+                                + "Meta AI bar too. Your chats, notes and requests stay.")));
+            }
+            if (build.contains(PatchFamily.INBOX_SUGGESTIONS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_INBOX_SUGGESTIONS,
+                        L10n.t("Hide suggested accounts in Messages"),
+                        L10n.t("Takes the accounts Instagram suggests off the bottom of your messages. Your chats "
+                                + "and follow requests stay. Restart Instagram to see the change.")));
+            }
+            if (build.contains(PatchFamily.INSTANTS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_INSTANTS, L10n.t("Hide Instants"),
+                        L10n.t("Removes the stack of Instants (quick photos from friends) from your messages. "
+                                + "Restart Instagram to see the change.")));
+            }
+            if (build.contains(PatchFamily.THREAD_SEEN)) {
+                messages.addPreference(toggle(context, Settings.READ_WITHOUT_SEEN_RECEIPT,
+                        L10n.t("Read messages without the seen receipt"),
+                        L10n.t("Opening a chat doesn't tell people you've seen their messages, and you still see "
+                                + "when they've seen yours. To let one chat know, long press it in your messages and "
+                                + "tap Mark as read.")));
+                messages.addPreference(toggle(context, Settings.KEEP_CHATS_UNREAD, L10n.t("Keep chats unread here"),
+                        L10n.t("A chat you open stays unread in your messages on this phone until you long press it "
+                                + "and tap Mark as read. A newer message in it stays unread too. Turned off, a chat you "
+                                + "open stays read on this phone until a newer message comes in, even after your "
+                                + "messages refresh.")));
+                messages.addPreference(toggle(context, Settings.MARK_SEEN_ON_REPLY,
+                        L10n.t("Mark a chat seen when you reply"),
+                        L10n.t("Sending a message in a chat lets the other person see that you've read what they "
+                                + "sent before it. Chats you don't answer stay unseen to them.")));
+                if (build.contains(PatchFamily.MESSAGES_LOCK)) {
+                    // Both buttons learn which chat is open from the lock patch's ChatLocks, the only
+                    // hook that reads a chat's thread, so a build without it would show two dead rows.
+                    messages.addPreference(toggle(context, Settings.MARK_READ_IN_CHAT,
+                            L10n.t("Mark as read button in chats"),
+                            L10n.t("A check mark shows at the top of a chat while it hasn't told the other person "
+                                    + "you've seen it. Tap it and they see Seen.")));
+                    messages.addPreference(toggle(context, Settings.SEEN_PER_CHAT,
+                            L10n.t("Choose Seen in each chat"),
+                            L10n.t("An eye at the top of each chat holds or sends Seen in that chat alone, whatever "
+                                    + "Read messages without the seen receipt says. Changing it doesn't send anything "
+                                    + "by itself.")));
+                }
+            }
+            if (build.contains(PatchFamily.PREVIEW_CHATS)) {
+                messages.addPreference(toggle(context, Settings.PREVIEW_CHATS, L10n.t("Preview chats"),
+                        L10n.t("Long press a chat in your messages and tap Preview to read its newest messages without "
+                                + "opening it, so nobody sees Seen. You can reply from there too.")));
+            }
+            if (build.contains(PatchFamily.TYPING)) {
+                messages.addPreference(toggle(context, Settings.HIDE_TYPING, L10n.t("Hide that you're typing"),
+                        L10n.t("People you're chatting with don't see the typing dots while you write, and you "
+                                + "still see theirs.")));
+            }
+            // Under Ads and privacy until 2026-10-26, and a search for that still finds it.
+            if (build.contains(PatchFamily.DM_MEDIA_SEEN)) {
+                messages.addPreference(toggle(context, Settings.VIEW_DM_MEDIA_ANONYMOUSLY,
+                        L10n.t("View DM photos and videos anonymously"),
+                        L10n.t("Stops people seeing that you opened their view once photos and videos. They still "
+                                + "disappear after you view them. This is a test feature and starts off.")));
+            }
+            if (build.contains(PatchFamily.ACTIVE_STATUS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_ACTIVE_STATUS, L10n.t("Hide your active status"),
+                        L10n.t("People don't see Active now for you while you use Instagram, and you still see when "
+                                + "they're active. It takes effect the next time you come back to Instagram.")));
+            }
+            if (build.contains(PatchFamily.LAST_ACTIVE)) {
+                messages.addPreference(toggle(context, Settings.SHOW_LAST_ACTIVE,
+                        L10n.t("Show when someone was last active"),
+                        L10n.t("Under a name in your messages and in a chat, the exact time they were last on, like "
+                                + "Active at 3:42 PM, replaces Active 3h ago. Active now stays as it is.")));
+            }
+            if (build.contains(PatchFamily.SCREENSHOT_REPORTS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_SCREENSHOTS, L10n.t("Don't report screenshots"),
+                        L10n.t("Instagram doesn't notice when you take a screenshot, so whoever sent you a disappearing photo or video isn't told. Your screenshots save as usual.")));
+            }
+            if (build.contains(PatchFamily.BLEND_VISITS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_BLEND_VISITS, L10n.t("Don't report Blend visits"),
+                        L10n.t("Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend "
+                                + "and its reels open as usual.")));
+            }
+            if (build.contains(PatchFamily.SCREENSHOT_BLOCK)) {
+                messages.addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS, L10n.t("Allow screenshots"),
+                        L10n.t("Screenshots and screen recordings work wherever Instagram blocks them, like disappearing photos and videos. Turn on Don't report screenshots too if the sender shouldn't hear about it.")));
+            }
+            if (build.contains(PatchFamily.KEEP_IN_CHAT)) {
+                messages.addPreference(toggle(context, Settings.KEEP_IN_CHAT, L10n.t("Keep in chat"),
+                        L10n.t("Photos and videos sent as view once or replayable stay in the chat so you can open "
+                                + "them again. Open the chat again to update ones already loaded.")));
+            }
+            if (build.contains(PatchFamily.VIEW_ONCE_MARK)) {
+                messages.addPreference(toggle(context, Settings.MARK_VIEW_ONCE, L10n.t("Mark one-time photos and videos"),
+                        L10n.t("Puts a border and Instagram's view once icon on a one-time photo or video in a chat, "
+                                + "so you can tell it from the rest before you open it. Only how the chat looks changes.")));
+            }
+            if (build.contains(PatchFamily.CHAT_REELS)) {
+                messages.addPreference(toggle(context, Settings.SWIPE_CHAT_REELS, L10n.t("Swipe through a chat's reels"),
+                        L10n.t("Swiping up on a reel you opened from a chat goes through the other reels shared in that "
+                                + "chat before any suggested reels. Back takes you to the chat.")));
+                messages.addPreference(toggle(context, Settings.STOP_AFTER_CHAT_REELS, L10n.t("Stop after the chat's reels"),
+                        L10n.t("Reels you opened from a chat end after the last one shared in that chat, with no "
+                                + "suggested reels after it. Works with Swipe through a chat's reels on.")));
+                messages.addPreference(toggle(context, Settings.ONLY_RECEIVED_CHAT_REELS, L10n.t("Only received reels"),
+                        L10n.t("Swiping through a chat's reels skips the ones you sent there, so it only goes through "
+                                + "the reels the other person shared. Works with Swipe through a chat's reels on.")));
+                messages.addPreference(toggle(context, Settings.MESSAGES_AFTER_CHAT_REELS, L10n.t("Messages after a reel"),
+                        L10n.t("While you swipe through a chat's reels, a banner says when the other person sent a message "
+                                + "after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe "
+                                + "through a chat's reels on.")));
+            }
+            if (build.contains(PatchFamily.CHAT_MEDIA_WALK)) {
+                messages.addPreference(toggle(context, Settings.SWIPE_CHAT_MEDIA, L10n.t("Swipe through a chat's photos and posts"),
+                        L10n.t("Open a photo or video from a chat and swipe up for the next photo, video or shared post in "
+                                + "that chat, in chat order. Swipe down to go back one. Back takes you to the chat.")));
+            }
+            if (build.contains(PatchFamily.CHAT_HISTORY)) {
+                messages.addPreference(toggle(context, Settings.JUMP_IN_CHAT, L10n.t("Jump to the first message or a date"),
+                        L10n.t("Open a chat, tap the clock button next to the call buttons at the top, or long press "
+                                + "the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its "
+                                + "older messages on its own, with a count and a Cancel button.")));
+                messages.addPreference(toggle(context, Settings.EXPORT_CHAT, L10n.t("Export a chat as text"),
+                        L10n.t("Open a chat, tap the clock button next to the call buttons at the top, or long press "
+                                + "the chat's name, and pick Export chat. The whole chat is saved as a text file in "
+                                + "Downloads, xboyrex folder, one line per message.")));
+            }
+            if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
+                messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),
+                        L10n.t("Tapping a call button in a chat asks first, so a stray tap doesn't ring anyone. "
+                                + "Call starts it, Cancel doesn't.")));
+                messages.addPreference(toggle(context, Settings.HIDE_CALL_BUTTONS, L10n.t("Hide the call buttons in chats"),
+                        L10n.t("Takes the voice and video call buttons off the top of a chat. The name keeps its room. "
+                                + "Turn it off and they're back the next time a chat opens.")));
+            }
+            if (build.contains(PatchFamily.CALL_BLOCKER)) {
+                messages.addPreference(callBlockModeRow(context));
+                messages.addPreference(callBlockAccountsRow(context));
+            }
+            if (build.contains(PatchFamily.KINDNESS_REMINDER)) {
+                messages.addPreference(toggle(context, Settings.HIDE_KINDNESS_REMINDER, L10n.t("Hide the Community Standards reminder"),
+                        L10n.t("Takes the banner reminding you to be respectful off the bottom of a chat.")));
+            }
+            if (build.contains(PatchFamily.MESSAGE_BOX)) {
+                messages.addPreference(page.messageBoxRow(context));
+            }
+            if (build.contains(PatchFamily.PLUS_MENU)) {
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_SAVED, L10n.t("Hide Saved in the plus menu"),
+                        L10n.t("Takes Saved off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_AI_IMAGES, L10n.t("Hide AI images in the plus menu"),
+                        L10n.t("Takes AI images off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_DRAW, L10n.t("Hide Draw in the plus menu"),
+                        L10n.t("Takes Draw off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.MOVE_TO_PLUS_MENU, L10n.t("Gallery and microphone in the plus menu"),
+                        L10n.t("Moves the gallery and microphone buttons off the message bar and into the plus menu. "
+                                + "They work as before. Turn it off and they're back the next time a chat opens.")));
+            }
+            if (build.contains(PatchFamily.GLASS_CHAT)) {
+                messages.addPreference(toggle(context, Settings.GLASS_CHAT, L10n.t("Glass in chats"),
+                        L10n.t("Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons "
+                                + "on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.")));
+                messages.addPreference(toggle(context, Settings.GLASS_CHAT_TOP_BAR, L10n.t("Glass top bar in chats"),
+                        L10n.t("Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. "
+                                + "The round glass buttons and the glass message bar stay.")));
+            }
+            if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
+                messages.addPreference(toggle(context, Settings.FULL_SCREEN_MESSAGES, L10n.t("Full screen Messages"),
+                        L10n.t("Hides the status bar and the navigation bar while your messages or a chat shows. Swipe "
+                                + "in from the edge to bring them back for a moment. Back and the keyboard work as usual.")));
+            }
+            if (build.contains(PatchFamily.MESSAGES_LOCK)) {
+                messages.addPreference(lockToggle(context, Settings.LOCK_MESSAGES, L10n.t("Lock your messages"),
+                        L10n.t("Your inbox and chats stay covered until your fingerprint, face or screen lock says it's "
+                                + "you. Message notifications say only that a message came.")));
+                messages.addPreference(lockToggle(context, Settings.LOCK_APP, L10n.t("Lock all of Instagram"),
+                        L10n.t("All of Instagram stays covered until your fingerprint, face or screen lock says it's "
+                                + "you, your messages too.")));
+                messages.addPreference(lockToggle(context, Settings.LOCK_SAVED, L10n.t("Lock Saved"),
+                        L10n.t("Saved and everything in it stay covered until your fingerprint, face or screen lock "
+                                + "says it's you.")));
+                messages.addPreference(lockToggle(context, Settings.LOCK_EACH_CHAT, L10n.t("Ask for each chat"),
+                        L10n.t("Every chat you open asks again, and so does your inbox when you go back to it. Off, "
+                                + "one unlock opens everything until you leave Instagram.")));
+                messages.addPreference(lockDelayRow(context));
+                messages.addPreference(unlockWithRow(context));
+                messages.addPreference(changePinRow(context));
+                messages.addPreference(page.lockedChatsRow(context));
+                messages.addPreference(page.hiddenChatsRow(context));
+                messages.addPreference(toggle(context, Settings.DOUBLE_TAP_HIDDEN_CHATS,
+                        L10n.t("Double-tap Messages for hidden chats"),
+                        L10n.t("Two quick taps on the Messages button, on the tab bar or at the top of Home, show "
+                                + "your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them "
+                                + "again. Long press a chat to hide or unhide it. One tap opens Messages as usual.")));
+                messages.addPreference(page.pinnedChatsRow(context));
+            }
+        }
+    }
+}

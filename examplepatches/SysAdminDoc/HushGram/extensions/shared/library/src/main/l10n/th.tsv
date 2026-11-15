@@ -316,6 +316,8 @@ Stop swipe to create	หยุดการปัดเพื่อสร้า�
 Full resolution photos	รูปภาพความละเอียดเต็ม
 Loads photos in your feed, carousels and opened posts at the largest size Instagram offers. This can use more data.	โหลดรูปภาพในฟีดของคุณ, โพสต์แบบเลื่อนดูหลายรูป (Carousel) และโพสต์ที่เปิดดูด้วยขนาดที่ใหญ่ที่สุดที่ Instagram มีให้อยู่ ซึ่งอาจใช้อินเทอร์เน็ตมากขึ้น
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	การปัดหน้าจอไปด้านข้างในหน้าหลักจะไม่เปิดกล้องอีกต่อไป โดยปุ่ม + และวิธีอื่นๆ ในการเข้าถึงกล้องจะยังคงใช้งานได้ตามปกติ
+Swipe left for Messages	ปัดซ้ายเพื่อเปิดข้อความ
+Swiping left on Home opens Messages, like Instagram used to. Carousels and the stories row still slide as before.	การปัดซ้ายในหน้าหลักจะเปิดข้อความ เหมือน Instagram แบบเดิม โพสต์แบบเลื่อนดูหลายรูปและแถวสตอรี่ยังคงปัดได้ตามปกติ
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	ซ่อน Meta AI ในการค้นหาและแถบหน้าหลัก
 Gives Search and your messages a plain search bar and removes Meta AI's buttons, follow-up bar and inbox row. Restart Instagram to see the change.	เปลี่ยนแถบค้นหาในการค้นหาและข้อความของคุณให้เป็นแถบค้นหาแบบธรรมดา และลบปุ่ม, แถบคำถามต่อเนื่อง และแถวในกล่องข้อความเข้าของ Meta AI ออก รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
@@ -893,6 +895,8 @@ Solid story rings	วงแหวนสตอรี่สีทึบ
 Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	วงแหวนสตอรี่จะเป็นสีเดียวทึบตามสีที่คุณเลือกแทนที่จะไล่ระดับจากสว่างไปมืด โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Backgrounds in the accent color	พื้นหลังเป็นสีเน้น
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	หน้าจอ แผงควบคุม การ์ด และเมนูจะเปลี่ยนเป็นโทนสีเข้มหรือสว่างของสีที่คุณเลือก ส่วนหน้าจอแสดงสตอรี่และรีลส์จะยังคงใช้พื้นหลังเดิม มีผลเหนือกว่า "โหมดมืดสีดำสนิท" โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
+Classic colors	สีแบบคลาสสิก
+Dark mode turns navy blue with charcoal gray panels, and light mode turns off-white. Story and reel viewers keep their own background. Wins over Pure black dark mode and Backgrounds in the accent color. Restart Instagram to see the change.	โหมดมืดจะเปลี่ยนเป็นสีกรมท่าพร้อมแผงสีเทาถ่าน ส่วนโหมดสว่างจะเปลี่ยนเป็นสีขาวนวล หน้าจอแสดงสตอรี่และรีลส์จะยังคงใช้พื้นหลังเดิม มีผลเหนือกว่า "โหมดมืดสีดำสนิท" และ "พื้นหลังเป็นสีเน้น" โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	สี
 Instagram blue	สีน้ำเงิน Instagram

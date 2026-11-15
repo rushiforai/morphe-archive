@@ -31,6 +31,12 @@
     finding stops the run.
     Their reports stay in -WorkDir.
 
+    Its native libraries are held to the APK it was patched from for 16 KB page devices
+    (native-alignment.ps1): ELF load alignment, zipalign -c -P 16 on both APKs, and every library
+    unchanged and where it was. Damage from patching stops the run, and so does a zipalign that
+    can't run. What Pinterest ships unaligned is recorded as a host finding. A check on a real 16 KB
+    device isn't part of the run, so the receipt records it as pending.
+
     The patched APKs are working files and are deleted on the way out, including after a failure.
 
     -AppliedDir names the store verify-all-patches.ps1 -KeepIn wrote to; the release push gate
@@ -91,6 +97,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'native-alignment.ps1')
 . (Join-Path $PSScriptRoot 'release-advisories.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
 
@@ -416,6 +423,18 @@ foreach ($apk in $Fixture) {
             -ApprovedManifestDelta $approved
         if (-not $manifestCheck.Valid) { throw "${label}: $($manifestCheck.Reason)" }
         $delta = $manifestCheck.Delta
+        # The native libraries against the same baseline, for 16 KB page devices. A release needs
+        # zipalign's verdict on both APKs, so a missing zipalign stops it like damage does.
+        $nativeAlignment = Measure-ApkNativeAlignment -StockApk $patchInput -PatchedApk $out `
+            -StockManifest $baseline -PatchedManifest $patched -Aapt2 $Aapt2
+        if ($nativeAlignment.verdict -ceq 'damaged') {
+            throw "${label}: patching damaged the native libraries: $(@($nativeAlignment.damage) -join '; ')"
+        }
+        foreach ($side in @('stock', 'patched')) {
+            if ($nativeAlignment.zipalign.$side -ceq 'not run') {
+                throw "${label}: zipalign -c -P 16 4 couldn't run on the $side APK ($($nativeAlignment.zipalignDetail.$side))."
+            }
+        }
 
         if ($recorded) {
             Write-Host "[receipt] ${label}: the resource table, DexDiff and host reference checks passed on these bytes in the kept run"
@@ -454,6 +473,10 @@ foreach ($apk in $Fixture) {
         Write-Host ("[receipt] $label" + ": $(@($verdicts | Where-Object { $_.applied }).Count)/" +
             "$($patchNames.Count) applied, binary minSdk $($baseline.minSdk) -> $($patched.minSdk), $($changes.Count) manifest changes")
         foreach ($change in $changes) { Write-Host "[receipt]   $change" }
+        Write-Host ("[receipt] ${label}: native libraries $($nativeAlignment.verdict), $($nativeAlignment.identical) of " +
+            "$($nativeAlignment.libraries) unchanged, $($nativeAlignment.sixtyFourBitAligned) of $($nativeAlignment.sixtyFourBit) " +
+            "64-bit ones 16 KB aligned, zipalign -c -P 16 $($nativeAlignment.zipalign.stock) stock and $($nativeAlignment.zipalign.patched) patched")
+        foreach ($finding in @($nativeAlignment.hostFindings)) { Write-Host "[receipt]   as Pinterest ships it: $finding" }
 
         $targets.Add([ordered]@{
             source        = [ordered]@{
@@ -468,6 +491,7 @@ foreach ($apk in $Fixture) {
             sdk           = [ordered]@{ stockMinSdk = $baseline.minSdk; patchedMinSdk = $patched.minSdk }
             manifest      = [ordered]@{ stock = $baseline; patched = $patched }
             manifestDelta = $delta
+            nativeAlignment = $nativeAlignment
         })
     } finally {
         if ($runDir.StartsWith($workRoot, [System.StringComparison]::OrdinalIgnoreCase) -and

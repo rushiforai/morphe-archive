@@ -50,6 +50,13 @@ import app.morphe.extension.shared.Utils;
  * Auto (time) ignores the lights: night colors from the set night start to the set day start (default 18:00 to 06:00,
  * local time; the night may cross midnight). The clock is checked on the main thread just after each minute starts,
  * while Auto (time) is chosen, and a change applies the same way; that check also catches a clock set after a start.
+ * <p>
+ * System gives Maps' own value, for head units whose system night mode follows the car's day/night setting.
+ * <p>
+ * The controller also turns night on when the car maker's instrument cluster settings ask for it. Without such
+ * settings (BYD sends none) Maps falls back to a map style value, which on some cars says night all day for the
+ * cluster map. That fallback passes through {@link #oemNight}: "not night" while Color scheme is on, so the cluster map
+ * and the main map follow the same value.
  */
 @SuppressWarnings("unused")
 public final class ColorScheme {
@@ -76,9 +83,11 @@ public final class ColorScheme {
     static final int MINUTES_PER_DAY = 24 * 60;
     /** Auto (time) checks the clock this long after each minute starts. */
     static final long CLOCK_MARGIN_MS = 250;
-    static final String AUTO = "auto", TIME = "time", DAY = "day", NIGHT = "night";
+    /** SYSTEM follows the head unit's day/night (Maps' own value), for cars whose system mode follows the car's
+     *  day/night setting; Auto follows the low beam, which on some models is the only reliable signal. */
+    static final String AUTO = "auto", TIME = "time", SYSTEM = "system", DAY = "day", NIGHT = "night";
     /** In the chooser's order. */
-    private static final String[] CHOICES = {AUTO, TIME, DAY, NIGHT};
+    private static final String[] CHOICES = {AUTO, TIME, SYSTEM, DAY, NIGHT};
     /** Where the night value comes from (report and log). */
     static final String FROM_LIGHTS = "lights", FROM_TIME = "time", FROM_WAITING = "waiting", FROM_MAPS = "maps",
             FROM_CHOICE = "choice", FROM_OFF = "off";
@@ -133,8 +142,29 @@ public final class ColorScheme {
     private static boolean systemWatchStarted;
     /** The Settings row whose subtitle the chooser set in place, null before a choice (main thread). */
     private static SubtitleRow subtitleRow;
+    /** Maps' car maker night fallback at its last use, null before Maps used it. */
+    private static volatile Boolean oemFallback;
 
     private ColorScheme() {
+    }
+
+    /**
+     * Injection point: Maps' fallback for the car maker's two night flags (screens and map) when the car maker sends no
+     * instrument cluster settings, at each use, on any thread. "Not night" while Color scheme is on; Maps' value when
+     * it is switched off.
+     */
+    public static boolean oemNight(boolean mapsValue) {
+        try {
+            boolean on = on();
+            if (!Objects.equals(oemFallback, mapsValue)) {
+                oemFallback = mapsValue;
+                ReportLog.i(TAG, "Maps' car maker night fallback " + (mapsValue ? "night" : "day")
+                        + (on ? ", not used (Color scheme on)" : ", used (switched off)"));
+            }
+            return !on && mapsValue;
+        } catch (Throwable error) {
+            return mapsValue;
+        }
     }
 
     /**
@@ -204,11 +234,11 @@ public final class ColorScheme {
     }
 
     /**
-     * The night value: Maps' value when switched off; Day false, Night true; Auto (time) [clockNight]; Auto the low beam,
-     * else [held] (the value given last, while waiting for the first reading), else Maps' value.
+     * The night value: Maps' value when switched off or System; Day false, Night true; Auto (time) [clockNight]; Auto the
+     * low beam, else [held] (the value given last, while waiting for the first reading), else Maps' value.
      */
     static boolean decide(boolean on, String choice, boolean mapsValue, Boolean lowBeamOn, Boolean held, boolean clockNight) {
-        if (!on) return mapsValue;
+        if (!on || SYSTEM.equals(choice)) return mapsValue;
         if (DAY.equals(choice)) return false;
         if (NIGHT.equals(choice)) return true;
         if (TIME.equals(choice)) return clockNight;
@@ -219,6 +249,7 @@ public final class ColorScheme {
     /** Where {@link #decide}'s value comes from. */
     static String source(boolean on, String choice, Boolean lowBeamOn, boolean waiting) {
         if (!on) return FROM_OFF;
+        if (SYSTEM.equals(choice)) return FROM_MAPS;
         if (DAY.equals(choice) || NIGHT.equals(choice)) return FROM_CHOICE;
         if (TIME.equals(choice)) return FROM_TIME;
         if (lowBeamOn != null) return FROM_LIGHTS;
@@ -646,7 +677,8 @@ public final class ColorScheme {
                 .put("low_beam_stable", orNull(lowBeamState.stable()))
                 .put("side_lights", orNull(readingName(sideLights)))
                 .put("side_lights_raw", rawOrNull(sideLightsRaw))
-                .put("light_status", lightStatus);
+                .put("light_status", lightStatus)
+                .put("oem_night_fallback", orNull(oemFallback));
     }
 
     private static String readingName(int reading) {
@@ -908,6 +940,7 @@ public final class ColorScheme {
     static String choiceLabel(String chosen, boolean thai, int[] window) {
         if (DAY.equals(chosen)) return thai ? "กลางวัน" : "Day";
         if (NIGHT.equals(chosen)) return thai ? "กลางคืน" : "Night";
+        if (SYSTEM.equals(chosen)) return thai ? "ตามระบบ (กลางวัน/กลางคืนของจอ)" : "System (head unit day/night)";
         if (TIME.equals(chosen)) {
             return thai ? "อัตโนมัติ (ตามเวลา) · กลางคืน " + span(window) : "Auto (time) · night " + span(window);
         }

@@ -311,6 +311,8 @@ Hide comment and reaction previews	Ocultar las vistas previas de comentarios y r
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	El comentario que Facebook muestra como vista previa debajo de un reel y las burbujas de los amigos que reaccionaron. Abre los comentarios para verlos todos.
 Hide Threads cards between reels	Ocultar las tarjetas de Threads entre reels
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Oculta la tarjeta «Threads que quizá te gusten» entre reels. Apagado por defecto, porque aún no se ha probado en una cuenta real.
+Hide post cards between reels	Ocultar las tarjetas de publicaciones entre reels
+Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	Oculta los carruseles de publicaciones que Facebook pone entre reels, como «Ponte al día con las conversaciones» de tus grupos. Apagado por defecto.
 Only reels from accounts I follow	Solo reels de cuentas que sigo
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	La pestaña Reels solo muestra reels de personas y páginas que sigues, a partir del próximo lote que cargue Facebook. La pestaña puede tardar más en llenarse. Apagado por defecto.
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook no tiene más reels que tus filtros conservarían, así que por ahora estos reels no se filtran.
@@ -865,12 +867,26 @@ Like or unlike this post?	¿Dar o quitar Me gusta a esta publicación?
 Like or unlike this reel?	¿Dar o quitar Me gusta a este reel?
 # context: the same question for a comment
 Like or unlike this comment?	¿Dar o quitar Me gusta a este comentario?
+# context: switch title on the News feed page, under Ask before liking a post; on, a tap on Follow in a post asks first
+Ask before following from a post	Preguntar antes de seguir desde una publicación
+# context: summary of that switch; Follow is Facebook's own button as Facebook shows it in this language, here the link beside the name of whoever posted and the Follow button on a shared Page or profile; Continue is the question's button
+A tap on Follow in a post, beside the poster's name or on its Follow button, asks first, and only Continue follows or unfollows.	Tocar Seguir en una publicación, junto al nombre de quien la publicó o en su botón Seguir, pregunta primero, y solo Continuar sigue o deja de seguir.
+# context: switch title under Reels and Watch, under Ask before liking a reel; on, a tap on Follow beside a reel's author asks first
+Ask before following from a reel	Preguntar antes de seguir desde un reel
+# context: summary of that switch
+A tap on Follow beside a reel's author asks first, and only Continue follows or unfollows.	Tocar Seguir junto al autor de un reel pregunta primero, y solo Continuar sigue o deja de seguir.
+# context: the question shown after a tap on Follow in a post or beside a reel; Continue goes ahead with the follow or unfollow, Cancel leaves it
+Follow or unfollow this account?	¿Seguir o dejar de seguir esta cuenta?
 # context: the question's button that goes ahead
 Continue	Continuar
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	Tocar dos veces para saltar
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
 A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	Tocar dos veces el borde izquierdo o derecho de un reel o un vídeo retrocede o avanza 10 segundos, o 5 si dura menos de 30 segundos. Tocar dos veces en el centro funciona como antes.
+# context: switch title under Reels and Watch, right under Double tap to skip; on, the "+5s" or "-10s" Facebook shows over the player when a double tap skips stays hidden
+Hide the skip seconds	Ocultar los segundos del salto
+# context: description of that switch; keep +5s and -10s as written, they're what Facebook shows on screen; Facebook can give an account the skip on its own, without the switch above
+A double tap on the edge still skips, but the +5s or -10s over the reel or video stays hidden. It also works when Facebook turned the skip on for you.	Tocar dos veces el borde sigue saltando, pero el +5s o -10s sobre el reel o el vídeo queda oculto. También funciona si Facebook activó el salto por su cuenta.
 # context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
 Tap shows the controls	Tocar muestra los controles
 # context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
@@ -1003,9 +1019,13 @@ Hide post prompts	Ocultar las preguntas bajo las publicaciones
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	Oculta la franja de algunas publicaciones, como «¿Te interesa esta publicación?» o quién comentó hace poco, además de las sugerencias de seguir y de chatear. La publicación se queda.
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow and Subscribe links on posts	Ocultar los enlaces Seguir y Suscribirse en las publicaciones
+Hide the Follow link on posts	Ocultar el enlace Seguir en las publicaciones
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Oculta el enlace «Seguir» o «Suscribirse» junto al nombre en las publicaciones y vídeos de páginas y personas a las que no sigues. Al tocar el nombre se sigue abriendo el perfil. Un cambio se ve en las publicaciones que se carguen después.
+Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Oculta el enlace «Seguir» junto al nombre en las publicaciones de páginas y personas a las que no sigues. Al tocar el nombre se sigue abriendo el perfil. Un cambio se ve en las publicaciones que se carguen después.
+# context: switch title under News feed, right under Hide the Follow link on posts; the Subscribe link is the small "Subscribe" text after a creator's name in a post's header, use Facebook's own word for it
+Hide the Subscribe link on posts	Ocultar el enlace Suscribirse en las publicaciones
+# context: description of that switch; "Subscribe" is Facebook's own word for the link
+Hides the "Subscribe" link next to a creator's name on posts and videos. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Oculta el enlace «Suscribirse» junto al nombre de un creador en las publicaciones y vídeos. Al tocar el nombre se sigue abriendo el perfil. Un cambio se ve en las publicaciones que se carguen después.
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	Ocultar las preguntas de Meta AI bajo las publicaciones
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1038,6 +1058,8 @@ Long captions on reels show all of their text right away. Tap the caption to fol
 Dark box behind open captions	Fondo oscuro detrás de las descripciones abiertas
 # context: summary of that switch
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Una descripción de reel abierta aparece sobre un recuadro oscuro, como los subtítulos, para que se lea bien sobre un video claro. El cambio se aplica desde el siguiente reel.
+Dark box behind folded captions	Fondo oscuro detrás de las descripciones plegadas
+A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Una descripción de reel plegada, la corta con más al final, aparece sobre el mismo recuadro oscuro. Activa ambos para que todas las descripciones tengan recuadro. El cambio se aplica desde el siguiente reel.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quién compartió
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Añade Ver quién compartió al menú de una publicación. Abre la lista de Facebook de las personas que la compartieron.
@@ -2009,7 +2031,11 @@ A video you tap in Saved plays in the video player instead of Reels, where the n
 # context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
 Play saved videos in a row	Reproducir los videos guardados uno tras otro
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
-A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Un video que abres desde Guardado pasa al siguiente de Guardado cuando termina o cuando deslizas hacia arriba, en lugar de a un reel sugerido.
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Un video que abres desde Guardado pasa al siguiente de Guardado cuando termina o cuando deslizas hacia arriba, en lugar de a un reel sugerido. Desliza hacia abajo para volver al anterior.
+# context: switch title under Play saved videos in a row; on, a saved video that ends stays where it is instead of moving on to the next saved one
+Stay on a saved video when it ends	Quedarse en un video guardado cuando termina
+# context: summary of that switch
+A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	Un video guardado que termina se queda en pantalla en lugar de abrir el siguiente. Desliza hacia arriba cuando quieras el siguiente.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Omitir «¿Sigues viendo?»
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2324,8 +2350,10 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Mantiene el botón Comentar en los reels con los comentarios desactivados, para que puedas seguir leyendo los que ya hay. El cambio se ve desde el siguiente reel.
 Select part of a post's text	Seleccionar parte del texto de una publicación
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Mantener pulsado el texto de una publicación lo abre en un cuadro donde puedes seleccionar solo la parte que quieras y copiarla, o copiarlo todo. Mantenerlo pulsado ya no copia nada por sí solo.
-Hold a post to react	Mantener una publicación para reaccionar
-Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	Mantener pulsada la foto o el video de una publicación abre sus reacciones, como al mantener pulsado Me gusta. En una publicación del feed va antes que Mantener pulsado abre los comentarios.
+Hold a feed photo to react	Mantener una foto del feed para reaccionar
+Hold a feed video to react	Mantener un video del feed para reaccionar
+Holding a post's photo opens its reactions, as holding Like does. It comes before Long press opens comments.	Mantener pulsada la foto de una publicación abre sus reacciones, como al mantener pulsado Me gusta. Va antes que Mantener pulsado abre los comentarios.
+Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Mantener pulsado el video de una publicación también abre sus reacciones. Va antes que Mantener pulsado abre los comentarios. Con Mantener pulsado un vídeo del feed para 2x activado, ese gana y el video se reproduce rápido.
 Reaction	Reacción
 Pick one each time	Elegir cada vez
 Like	Me gusta
@@ -2337,8 +2365,8 @@ Sad	Me entristece
 Angry	Me enoja
 Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Elegir cada vez. Las reacciones se abren sobre la publicación, así que desliza hasta una y suelta, o suelta y toca una.
 %1$s. Holding a post gives it straight away.	%1$s. Mantener pulsada una publicación la da al instante.
-Hold a post to react will open the reactions to pick from.	Mantener una publicación para reaccionar abrirá las reacciones para elegir.
-Hold a post to react will give %1$s.	Mantener una publicación para reaccionar dará %1$s.
+Holding a post to react will open the reactions to pick from.	Mantener pulsada una publicación para reaccionar abrirá las reacciones para elegir.
+Holding a post to react will give %1$s.	Mantener pulsada una publicación para reaccionar dará %1$s.
 Select text	Seleccionar texto
 Done	Listo
 Copy all	Copiar todo
@@ -2626,6 +2654,7 @@ Pick Custom color again to change it.	Elige Color personalizado otra vez para ca
 Switches that are on	Interruptores activados
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Todos los interruptores que tienes activados, en una lista. Si apagas uno aquí, queda apagado en todas partes.
 No switches are on yet.	Todavía no hay interruptores activados.
+Turned off lately	Desactivados hace poco
 Emoji after the logo	Emoji tras el logotipo
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Un emoji justo después del logotipo de Facebook en la parte superior de Inicio, con sus propios colores. Déjalo en blanco si no quieres ninguno.
 No emoji after the logo. Type one to show it there.	No hay emoji tras el logotipo. Escribe uno para mostrarlo ahí.
@@ -2687,6 +2716,10 @@ Open chats in Messenger	Abrir los chats en Messenger
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	Abre los chats en la app Messenger en lugar de dentro de Facebook, también desde el botón Mensaje de un perfil, mientras Messenger esté instalado y activado. Sin Messenger, los chats siguen en Facebook. Reinicia Facebook después de cambiarlo.
 Hide the Fullscreen button	Ocultar el botón Pantalla completa
 Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	Quita el botón Pantalla completa del espacio debajo de un video ancho en Reels. El cambio se aplica a partir del siguiente video.
+# context: switch title under Reels and Watch, right under Hide the Fullscreen button; on, a video playing in the feed or in search results loses its full-screen arrows and its picture-in-picture (PiP) button
+Hide the full-screen and PiP buttons	Ocultar los botones Pantalla completa e imagen en imagen
+# context: description of that switch; "a live video that has ended" is a past Facebook Live shown as a video; the video still plays, only the two buttons go
+Takes the full-screen and picture-in-picture buttons off videos that play in the feed and in search results, like a live video that has ended. A change shows from the next video.	Quita los botones de pantalla completa e imagen en imagen de los videos que se reproducen en el feed y en los resultados de búsqueda, como un video en vivo que ya terminó. El cambio se aplica a partir del siguiente video.
 Hide rings in the feed	Ocultar anillos en el feed
 Hide rings in comments	Ocultar anillos en comentarios
 Hide rings on profiles	Ocultar anillos en perfiles
@@ -2789,3 +2822,54 @@ Use the Hushfacebook logo	Usar el logo de Hushfacebook
 Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	Muestra el logo de Hushfacebook en la parte superior de Inicio en lugar de tus palabras y el logo de Facebook. Reinicia Facebook para verlo.
 # context: the name Home header picture shows once the logo is picked
 Hushfacebook logo	logo de Hushfacebook
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for more posts like this one
+Interested	Me interesa
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
+Not interested	No me interesa
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
+Manage your Feed	Administrar tu feed
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
+Report	Reportar
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
+Cast	Transmitir
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that adds the poster to Favorites
+Add to Favorites	Agregar a Favoritos
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Why am I seeing this post?	¿Por qué veo esta publicación?
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Turn on notifications for this post	Activar notificaciones de esta publicación
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Hide post	Ocultar publicación
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that hides a poster for 30 days
+Snooze	Posponer
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Unfollow	Dejar de seguir
+# context: switch title under Playback speed in the post menu
+Playback speed on the menu's first page	Velocidad de reproducción en la primera página del menú
+# context: summary of that switch; Playback speed, Save, Report and More options are rows of the menu
+Puts Playback speed on the menu's first page, with Save and Report, so it's one tap away. Off, it stays under More options.	Pone Velocidad de reproducción en la primera página del menú, junto a Guardar y Reportar, a un solo toque. Apagado, sigue en Más opciones.
+# context: row title in News feed settings: the rows of a post's 3-dot menu the user picks to hide
+3-dot menu items to hide	Opciones del menú de tres puntos que ocultar
+# context: title of that row's list of checkboxes
+Hide from the 3-dot menus of posts and reels	Ocultar de los menús de tres puntos de publicaciones y reels
+# context: import preview and toast, no 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will be empty.	Tu lista de opciones del menú de tres puntos que ocultar quedará vacía.
+# context: import preview and toast, one 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d item.	Tu lista de opciones del menú de tres puntos que ocultar tendrá %1$d opción.
+# context: import preview and toast, several 3-dot menu rows will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d items.	Tu lista de opciones del menú de tres puntos que ocultar tendrá %1$d opciones.
+Refresh rate	Frecuencia de actualización
+Highest your screen offers	La más alta de tu pantalla
+Facebook runs at whatever refresh rate your phone picks for it.	Facebook va a la frecuencia de actualización que tu teléfono elija para él.
+Facebook asks for your screen's highest refresh rate, so scrolling and reels look smoother. It uses a bit more battery, and your phone's own refresh rate setting still caps it.	Facebook pide la frecuencia de actualización más alta de tu pantalla, para que el desplazamiento y los reels se vean más fluidos. Gasta un poco más de batería, y el ajuste de frecuencia de tu teléfono sigue poniendo el límite.
+Facebook asks your screen for %1$s. Your phone's own refresh rate setting still caps it.	Facebook le pide %1$s a tu pantalla. El ajuste de frecuencia de tu teléfono sigue poniendo el límite.
+Facebook will run at the refresh rate your phone picks for it.	Facebook irá a la frecuencia de actualización que tu teléfono elija para él.
+Facebook will ask for your screen's highest refresh rate.	Facebook pedirá la frecuencia de actualización más alta de tu pantalla.
+Facebook will ask your screen for %1$s.	Facebook le pedirá %1$s a tu pantalla.
+Hide the comment box	Ocultar el cuadro de comentarios
+The Write a comment box under a post's comments goes away. You can still read every comment.	Desaparece el cuadro Escribe un comentario debajo de los comentarios de una publicación. Puedes seguir leyendo todos los comentarios.
+Captions	Subtítulos
+Clear mode	Modo despejado
+Scroll to next reel automatically	Pasar al siguiente reel automáticamente
+Transcript	Transcripción
+Audio and language	Audio e idioma

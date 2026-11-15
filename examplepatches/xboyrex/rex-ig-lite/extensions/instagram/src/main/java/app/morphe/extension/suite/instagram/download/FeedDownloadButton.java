@@ -1,0 +1,806 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.download;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.os.LocaleList;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+
+import kotlin.jvm.functions.Function1;
+
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.instagram.settings.Settings;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.DiagnosticCategory;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+
+/**
+ * A Download icon in the action row of a feed post, just left of Save, for "Download button on feed
+ * posts" (#97).
+ *
+ * <p>Instagram binds each post's action row in one method that holds the row's holder, the post's
+ * feed state and the post. The patch calls {@link #bind} first thing in it with the holder's Save
+ * button, the post, the feed state that knows which carousel page is showing, and the activity.
+ * Save's parent is the row that holds it, so the icon is added there beside it: before it in a
+ * linear row, to its start in a relative one, and shifted in by Save's width in any other. It takes
+ * Save's size, padding and scale type, and the row's primary icon color, so it reads as one of
+ * Instagram's own. Nothing sits in the way of the row's other buttons, so hiding Repost or Comments
+ * moves nothing of it.
+ *
+ * <p>A tap saves through {@link VideoDownload#save}, so the file name, the account folder, the
+ * quality and the Send downloads to another app switch are the ones the post's menu uses. A carousel
+ * asks first: Download saves the page on screen, as its menu row does, and Save all saves every
+ * page, as its other row does. With Choose carousel pages on, it also offers Choose pages, the
+ * menu's list of pages to tick ({@link CarouselPages}). With Save every page without asking on, a
+ * carousel skips the question and saves every page (#190).
+ *
+ * <p>Most of Home draws the same row as components instead: a Litho host that only Instagram's
+ * own mounting may add children to (addView on it throws), whose Save button is a component spec
+ * built each time the row is composed. There the patch calls {@link #litho} right after Save's
+ * spec is made, with the list of buttons Save is about to join, the spec and the row's state. A
+ * spec for the Download icon is made from Save's, its modifier keeping Save's size, padding and
+ * placement but none of Save's binders or common props ({@link #iconModifier}), with a new id,
+ * description and tap, and put in the list ahead of Save, so Instagram lays it out, mounts it and
+ * recycles it like its own buttons. The first hook above stays for the rows still bound the old
+ * way (#97).
+ *
+ * <p>The icon goes only on a post a tap would save with the download switches as they are, the
+ * check the post's menu makes for its Download and Save all rows ({@link VideoDownload#saves}): a
+ * photo with Download feed photos off gets none, in either row (#97). A tap that still finds nothing
+ * to save, once a switch has changed since, says so.
+ *
+ * <p>Every part fails open. With the switch off, or while paused, the icon is hidden, and a row
+ * that can't take it is left as it was.
+ */
+public final class FeedDownloadButton {
+    private static final String SOURCE = "FeedDownloadButton";
+    private static final String COUNT_PLACED = "feed button placed";
+    private static final String COUNT_REFUSED = "feed button not placed";
+    private static final String COUNT_LITHO_PLACED = "feed button placed (litho row)";
+    private static final String COUNT_LITHO_REFUSED = "feed button not placed (litho row)";
+    private static final String COUNT_TYPE_OFF = "feed button left off a post whose type is switched off";
+    /** Instagram's download glyphs, by resource name since the numbers change; the first one found is used. */
+    private static final String[] ICON_NAMES = {"instagram_download_outline_24", "instagram_download_pano_outline_24"};
+    /** The theme attribute Instagram colors its action-row icons with; looked up by name since the numbers change. */
+    private static final String ICON_COLOR_ATTR = "igds_color_primary_icon";
+    private static final int ICON_DP = 24;
+    private static final int GAP_DP = 4;
+
+    private static volatile boolean logged;
+    private static volatile boolean lithoLogged;
+    private static volatile int lithoId;
+    /** What notes a post that came up on screen. Tests stand in. */
+    static java.util.function.Consumer<Object> seen = ViewingHistory::post;
+    /**
+     * Instagram's download glyph, found once since its id can't change while the app runs: 0 until
+     * it's looked up, -1 when this build has none. A row composes on every scroll, and the lookup by
+     * name is a search through the app's resource table.
+     */
+    static volatile int glyph;
+    /** The icon's description, with the languages it was written for. */
+    static volatile Label label;
+
+    /** A description and the languages Instagram ran in when it was written. */
+    static final class Label {
+        final LocaleList locales;
+        final String text;
+
+        Label(LocaleList locales, String text) {
+            this.locales = locales;
+            this.text = text;
+        }
+    }
+
+    /** What a tap saves, and what shows the carousel choice. Replaced by tests. */
+    interface Actions {
+        /** Whether a tap could save anything of [post] with the download switches as they are. */
+        boolean saves(Object post);
+
+        List<?> pages(Object post);
+
+        boolean save(Object post, Object itemState, Activity activity);
+
+        void saveAll(Object post, Activity activity);
+
+        void choose(View anchor, Runnable page, Runnable all);
+
+        /** The same question with a third answer, Choose pages, when [some] isn't null. */
+        default void choose(View anchor, Runnable page, Runnable all, @Nullable Runnable some) {
+            choose(anchor, page, all);
+        }
+
+        /** Opens the list of [post]'s carousel pages over [activity]. */
+        default void choosePages(Object post, @Nullable Activity activity) {
+            VideoDownload.choosePages(post, activity);
+        }
+
+        void nothing(Context context);
+    }
+
+    static Actions actions = new Actions() {
+        @Override public boolean saves(Object post) {
+            return VideoDownload.saves(post);
+        }
+
+        @Override public List<?> pages(Object post) {
+            return post == null ? null : InstagramMedia.carouselMedia(post);
+        }
+
+        @Override public boolean save(Object post, Object itemState, Activity activity) {
+            return VideoDownload.save(post, itemState, activity);
+        }
+
+        @Override public void saveAll(Object post, Activity activity) {
+            VideoDownload.saveAll(post, activity);
+        }
+
+        @Override public void choose(View anchor, Runnable page, Runnable all) {
+            choose(anchor, page, all, null);
+        }
+
+        @Override public void choose(View anchor, Runnable page, Runnable all, @Nullable Runnable some) {
+            PopupMenu menu = new PopupMenu(anchor.getContext(), anchor);
+            menu.getMenu().add(0, 0, 0, L10n.t("Download"));
+            menu.getMenu().add(0, 1, 1, L10n.t("Save all"));
+            if (some != null) menu.getMenu().add(0, 2, 2, L10n.t("Choose pages"));
+            menu.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                (id == 0 ? page : id == 1 || some == null ? all : some).run();
+                return true;
+            });
+            menu.show();
+        }
+
+        @Override public void nothing(Context context) {
+            Feedback.show(context.getApplicationContext(), L10n.t(context, "Nothing to download on this post"), false);
+        }
+    };
+
+    /**
+     * What the component-backed row needs from Instagram's own classes, which the patch writes in
+     * as bridges. Replaced by tests.
+     */
+    interface Litho {
+        Object post(Object state);
+
+        Object item(Object state);
+
+        int drawable(Context context);
+
+        /** The parts of Save's modifier in the order they apply, or null when they can't be read. */
+        @Nullable
+        List<Object> parts(Object save);
+
+        /** Whether a part belongs to Save alone: a binder, or a common prop such as its id, tap or selected state. */
+        boolean saveOnly(Object part);
+
+        /** A modifier made of [parts], in order. */
+        @Nullable
+        Object modifier(List<Object> parts);
+
+        Object icon(Object save, Object modifier, Function1<Object, Object> click, Function1<Object, Object> consume, int id,
+                    CharSequence description, int drawable);
+    }
+
+    static Litho litho = new Litho() {
+        @Override public Object post(Object state) {
+            return lithoPost(state);
+        }
+
+        @Override public Object item(Object state) {
+            return lithoItem(state);
+        }
+
+        @Override public int drawable(Context context) {
+            int known = glyph;
+            if (known != 0) return Math.max(known, 0);
+            Resources resources = context.getResources();
+            int found = 0;
+            for (String name : ICON_NAMES) {
+                found = resources.getIdentifier(name, "drawable", Utils.resourcePackage(context));
+                if (found != 0) break;
+            }
+            glyph = found != 0 ? found : -1;
+            return found;
+        }
+
+        @Override public List<Object> parts(Object save) {
+            Object modifier = lithoModifier(save);
+            if (modifier == null) return null;
+            List<Object> parts = new ArrayList<>();
+            lithoParts(modifier, new Collect(parts));
+            return parts;
+        }
+
+        @Override public boolean saveOnly(Object part) {
+            return lithoSaveOnly(part) != 0;
+        }
+
+        @Override public Object modifier(List<Object> parts) {
+            Object modifier = lithoEmpty();
+            if (modifier == null) return null;
+            for (Object part : parts) modifier = lithoJoin(modifier, part);
+            return modifier;
+        }
+
+        @Override public Object icon(Object save, Object modifier, Function1<Object, Object> click, Function1<Object, Object> consume,
+                                     int id, CharSequence description, int drawable) {
+            return lithoIcon(save, modifier, click, consume, id, description, drawable);
+        }
+    };
+
+    /** The post a row's state keeps. The patch replaces this body. */
+    public static Object lithoPost(Object state) {
+        return null;
+    }
+
+    /** The feed state a row's state keeps, which knows the carousel page on screen. The patch replaces this body. */
+    public static Object lithoItem(Object state) {
+        return null;
+    }
+
+    /** The modifier Instagram's spec for Save keeps. The patch replaces this body. */
+    public static Object lithoModifier(Object save) {
+        return null;
+    }
+
+    /** Hands each part of [modifier] to [visit] in the order they apply. The patch replaces this body. */
+    public static void lithoParts(Object modifier, Object visit) {
+    }
+
+    /** The modifier with no parts. The patch replaces this body. */
+    public static Object lithoEmpty() {
+        return null;
+    }
+
+    /** [modifier] with [part] added at its end. The patch replaces this body. */
+    public static Object lithoJoin(Object modifier, Object part) {
+        return null;
+    }
+
+    /** 1 when [part] is of one of the two kinds Save's id is made in (binders and common props), else 0. The patch replaces this body. */
+    public static int lithoSaveOnly(Object part) {
+        return 0;
+    }
+
+    /**
+     * A spec for the Download icon made from [save], Instagram's spec for Save: its scale type,
+     * color and flag, with [modifier] given the id [id], the tap [click], a long press that does
+     * nothing and the description, and [drawable]. The patch replaces this body.
+     */
+    public static Object lithoIcon(Object save, Object modifier, Object click, Object consume, int id,
+                                   CharSequence description, int drawable) {
+        return null;
+    }
+
+    /**
+     * Called right after Instagram makes the component spec for Save, before it joins [row], the
+     * list of the right-hand buttons: [save] is that spec and [state] the row's state. Puts the
+     * Download icon's spec in [row] ahead of it. Never throws.
+     */
+    public static void litho(@Nullable List<Object> row, @Nullable Object save, @Nullable Object state) {
+        try {
+            if (row == null || save == null || state == null) return;
+            // Home and the post viewer draw their rows here, so bind() never sees those posts (#228).
+            seen.accept(litho.post(state));
+            if (!enabled()) return;
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (!actions.saves(litho.post(state))) {
+                HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_TYPE_OFF);
+                return;
+            }
+            Object icon = lithoSpec(save, state);
+            if (icon == null) {
+                HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_LITHO_REFUSED);
+                return;
+            }
+            row.add(icon);
+            HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_LITHO_PLACED);
+            if (!lithoLogged) {
+                lithoLogged = true;
+                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "feed download button added to a component row");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed download button (litho row)", failure);
+        }
+    }
+
+    @Nullable
+    private static Object lithoSpec(Object save, Object state) {
+        Context context = Utils.getContext();
+        if (context == null) return null;
+        int drawable = litho.drawable(context);
+        if (drawable == 0) return null;
+        Object modifier = iconModifier(save);
+        if (modifier == null) return null;
+        Click click = new Click(litho.post(state), litho.item(state));
+        if (lithoId == 0) lithoId = View.generateViewId();
+        return litho.icon(save, modifier, click, Consume.INSTANCE, lithoId, description(context), drawable);
+    }
+
+    /**
+     * "Download" in Instagram's language, written again only when the languages change. L10n reads
+     * them from the application's configuration, so the same list is the key here. Burn-in guard
+     * knows the reel's Download button by it.
+     */
+    public static String description(Context context) {
+        Context application = context.getApplicationContext();
+        LocaleList locales = (application != null ? application : context).getResources().getConfiguration().getLocales();
+        Label known = label;
+        if (known != null && known.locales.equals(locales)) return known.text;
+        String text = L10n.t(context, "Download");
+        label = new Label(locales, text);
+        return text;
+    }
+
+    /** Back to how a fresh start finds it. */
+    static void resetForTests() {
+        glyph = 0;
+        label = null;
+    }
+
+    /**
+     * Save's modifier without what belongs to Save alone, so the icon keeps Save's size, padding and
+     * placement and nothing else: not its binders (one registers the view with Instagram's
+     * view-interaction tracker as the post's Save, so taps and impressions on Download would be
+     * reported as Save), and not its id, tap, long press or selected state (TalkBack would call
+     * Download selected on a saved post). Null when Save's parts can't be read, or when none of them
+     * reads as Save's own, since then a binder can't be told apart and the row is better left as it is.
+     */
+    @Nullable
+    static Object iconModifier(Object save) {
+        List<Object> parts = litho.parts(save);
+        if (parts == null) return null;
+        List<Object> kept = new ArrayList<>(parts.size());
+        for (Object part : parts) {
+            if (!litho.saveOnly(part)) kept.add(part);
+        }
+        if (kept.size() == parts.size()) return null;
+        return litho.modifier(kept);
+    }
+
+    /** Collects the parts a modifier walk hands out, in order. */
+    static final class Collect implements Function1<Object, Object> {
+        final List<Object> into;
+
+        Collect(List<Object> into) {
+            this.into = into;
+        }
+
+        @Override public Object invoke(Object part) {
+            into.add(part);
+            return null;
+        }
+    }
+
+    /** A tap on the component icon: what the bound icon's tap does, with the view the tap came from as the anchor. */
+    static final class Click implements Function1<Object, Object> {
+        final Object post;
+        final Object itemState;
+
+        Click(Object post, Object itemState) {
+            this.post = post;
+            this.itemState = itemState;
+        }
+
+        @Override public Object invoke(Object event) {
+            try {
+                View anchor = viewOf(event);
+                Activity activity = activityOf(anchor);
+                if (anchor == null && activity != null) anchor = activity.getWindow().getDecorView();
+                if (anchor == null) return null;
+                tap(anchor, post, itemState, activity);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed download button tap (litho row)", failure);
+            }
+            return null;
+        }
+    }
+
+    /** The long press on the icon: taken, so Save's own menu doesn't open from it. */
+    static final class Consume implements Function1<Object, Object> {
+        static final Consume INSTANCE = new Consume();
+
+        @Override public Object invoke(Object event) {
+            return Boolean.TRUE;
+        }
+    }
+
+    /** The view a click event came from: the event itself, or the first view one of its fields holds. */
+    @Nullable
+    static View viewOf(@Nullable Object event) {
+        if (event == null) return null;
+        if (event instanceof View) return (View) event;
+        for (Class<?> type = event.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || !View.class.isAssignableFrom(field.getType())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(event);
+                    if (value instanceof View) return (View) value;
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    // The next field.
+                }
+            }
+        }
+        return null;
+    }
+
+    /** The activity [view] belongs to, else the one xboyrex last saw. */
+    @Nullable
+    static Activity activityOf(@Nullable View view) {
+        if (view != null) {
+            Context context = view.getContext();
+            while (context instanceof ContextWrapper) {
+                if (context instanceof Activity) return (Activity) context;
+                context = ((ContextWrapper) context).getBaseContext();
+            }
+        }
+        return Utils.getActivity();
+    }
+
+    private FeedDownloadButton() {
+    }
+
+    /** The button's tag, and what a tap saves: replaced on every bind, since Instagram reuses a row for another post. */
+    private static final class Target {
+        Object post;
+        Object itemState;
+        WeakReference<Activity> activity = new WeakReference<>(null);
+    }
+
+    /**
+     * Called first thing where Instagram binds a post's action row, with [save], the row's Save
+     * button, [post], [itemState], the feed state that holds the carousel page on screen, and the
+     * [activity] the row belongs to. Never throws.
+     */
+    public static void bind(@Nullable View save, @Nullable Object post, @Nullable Object itemState, @Nullable Activity activity) {
+        seen.accept(post);
+        try {
+            if (save == null) return;
+            ViewParent parent = save.getParent();
+            if (!(parent instanceof ViewGroup)) return;
+            ViewGroup row = (ViewGroup) parent;
+            ImageView button = existing(row);
+            if (!enabled()) {
+                if (button != null && button.getVisibility() != View.GONE) button.setVisibility(View.GONE);
+                return;
+            }
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (!actions.saves(post)) {
+                // A row Instagram reuses for this post can hold the icon from a post that had one.
+                if (button != null && button.getVisibility() != View.GONE) button.setVisibility(View.GONE);
+                HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_TYPE_OFF);
+                return;
+            }
+            if (button == null) {
+                button = make(save);
+                if (!place(row, save, button)) {
+                    HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_REFUSED);
+                    return;
+                }
+                HookStatus.counted(FamilyNames.VIDEO_DOWNLOAD, COUNT_PLACED);
+                if (!logged) {
+                    logged = true;
+                    final String where = row.getClass().getName();
+                    Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "feed download button placed in " + where);
+                }
+            }
+            Target target = (Target) button.getTag();
+            target.post = post;
+            target.itemState = itemState;
+            target.activity = new WeakReference<>(activity);
+            ((Glyph) button.getDrawable()).color = iconColor(button.getContext());
+            button.setVisibility(View.VISIBLE);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed download button", failure);
+        }
+    }
+
+    /** Whether the button shows: its switch, and something a tap could save. Paused answers no. */
+    static boolean enabled() {
+        return Utils.settingsReady() && Settings.FEED_DOWNLOAD_BUTTON.get()
+                && (Settings.DOWNLOAD_VIDEOS.get() || Settings.DOWNLOAD_PHOTOS.get());
+    }
+
+    /** Whether the button's own switch is on, whatever the download switches say. Paused answers no. */
+    private static boolean switchedOn() {
+        return Utils.settingsReady() && Settings.FEED_DOWNLOAD_BUTTON.get();
+    }
+
+    @Nullable
+    static ImageView existing(ViewGroup row) {
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (child instanceof ImageView && child.getTag() instanceof Target) return (ImageView) child;
+        }
+        return null;
+    }
+
+    private static ImageView make(View save) {
+        Context context = save.getContext();
+        ImageView button = new ImageView(context);
+        button.setImageDrawable(new Glyph(dp(context, ICON_DP)));
+        button.setScaleType(save instanceof ImageView ? ((ImageView) save).getScaleType() : ImageView.ScaleType.CENTER);
+        button.setPaddingRelative(save.getPaddingStart(), save.getPaddingTop(), save.getPaddingEnd(), save.getPaddingBottom());
+        button.setContentDescription(L10n.t(context, "Download"));
+        button.setClickable(true);
+        button.setFocusable(true);
+        button.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        TypedValue ripple = new TypedValue();
+        if (context.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, ripple, true)
+                && ripple.resourceId != 0) {
+            button.setBackgroundResource(ripple.resourceId);
+        }
+        button.setTag(new Target());
+        button.setOnClickListener(FeedDownloadButton::tap);
+        return button;
+    }
+
+    /**
+     * Adds [button] to [row] just before [save], in the way the row lays its children out. Answers
+     * whether it went in; a row of a kind that isn't known gets the icon shifted in from the end by
+     * Save's width, which holds for a frame or a constraint row anchored at its end.
+     */
+    static boolean place(ViewGroup row, View save, ImageView button) {
+        Context context = save.getContext();
+        ViewGroup.LayoutParams base = save.getLayoutParams();
+        int width = sized(base == null ? 0 : base.width);
+        int height = sized(base == null ? 0 : base.height);
+        if (row instanceof LinearLayout) {
+            LinearLayout.LayoutParams made = new LinearLayout.LayoutParams(width, height);
+            if (base instanceof LinearLayout.LayoutParams) {
+                LinearLayout.LayoutParams from = (LinearLayout.LayoutParams) base;
+                made.gravity = from.gravity;
+                made.topMargin = from.topMargin;
+                made.bottomMargin = from.bottomMargin;
+            } else {
+                made.gravity = Gravity.CENTER_VERTICAL;
+            }
+            row.addView(button, row.indexOfChild(save), made);
+            return true;
+        }
+        if (row instanceof RelativeLayout) {
+            RelativeLayout.LayoutParams made = new RelativeLayout.LayoutParams(width, height);
+            if (base instanceof RelativeLayout.LayoutParams) {
+                RelativeLayout.LayoutParams from = (RelativeLayout.LayoutParams) base;
+                // Only the rules that place it up and down: the horizontal ones are Save's own.
+                int[] rules = from.getRules();
+                for (int verb : new int[]{RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.ALIGN_PARENT_BOTTOM,
+                        RelativeLayout.CENTER_VERTICAL, RelativeLayout.ALIGN_TOP, RelativeLayout.ALIGN_BOTTOM,
+                        RelativeLayout.ALIGN_BASELINE, RelativeLayout.ABOVE, RelativeLayout.BELOW}) {
+                    if (rules[verb] != 0) made.addRule(verb, rules[verb]);
+                }
+                made.topMargin = from.topMargin;
+                made.bottomMargin = from.bottomMargin;
+            } else {
+                made.addRule(RelativeLayout.CENTER_VERTICAL);
+            }
+            if (save.getId() == View.NO_ID) save.setId(View.generateViewId());
+            made.addRule(RelativeLayout.START_OF, save.getId());
+            row.addView(button, made);
+            return true;
+        }
+        if (row instanceof FrameLayout || base instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams from = base instanceof ViewGroup.MarginLayoutParams
+                    ? (ViewGroup.MarginLayoutParams) base : null;
+            ViewGroup.LayoutParams made = shifted(row, base, width, height, from, dp(context, GAP_DP));
+            if (made == null) return false;
+            row.addView(button, made);
+            return true;
+        }
+        return false;
+    }
+
+    /** A copy of Save's params, moved in from the end by Save's own width, its end margin and a gap. */
+    @Nullable
+    private static ViewGroup.LayoutParams shifted(ViewGroup row, ViewGroup.LayoutParams base, int width, int height,
+                                                  @Nullable ViewGroup.MarginLayoutParams from, int gap) {
+        try {
+            ViewGroup.LayoutParams made;
+            try {
+                made = base.getClass().getConstructor(base.getClass()).newInstance(base);
+            } catch (ReflectiveOperationException copyless) {
+                made = new ViewGroup.MarginLayoutParams(width, height);
+            }
+            made.width = width;
+            made.height = height;
+            if (!(made instanceof ViewGroup.MarginLayoutParams)) return null;
+            ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) made;
+            int saved = width == ViewGroup.LayoutParams.WRAP_CONTENT ? dp(row.getContext(), ICON_DP) : width;
+            margins.setMarginEnd((from == null ? 0 : from.getMarginEnd()) + saved + gap);
+            return made;
+        } catch (Throwable failure) {
+            return null;
+        }
+    }
+
+    /** A size Save asked for, or wrap content for a stretch or a weight, which this icon doesn't take. */
+    private static int sized(int size) {
+        return size > 0 ? size : ViewGroup.LayoutParams.WRAP_CONTENT;
+    }
+
+    private static void tap(View button) {
+        try {
+            if (!(button.getTag() instanceof Target)) return;
+            Target target = (Target) button.getTag();
+            tap(button, target.post, target.itemState, target.activity.get());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed download button tap", failure);
+        }
+    }
+
+    /**
+     * What a tap does with [post]: save it, or on a carousel ask which, or save every page when Save
+     * every page without asking is on. A post the switches no longer let a tap save, since the icon
+     * went on, gets a short note instead. Off or paused, nothing. Never throws.
+     */
+    static void tap(View anchor, Object post, Object itemState, @Nullable Activity activity) {
+        try {
+            if (!enabled() || !actions.saves(post)) {
+                if (switchedOn()) actions.nothing(contextOf(anchor, activity));
+                return;
+            }
+            List<?> pages = actions.pages(post);
+            if (pages != null && pages.size() > 1) {
+                if (Settings.FEED_DOWNLOAD_ALL_PAGES.get()) {
+                    saveEvery(anchor, post, activity);
+                    return;
+                }
+                Runnable some = VideoDownload.chooses() ? () -> pickPages(anchor, post, activity) : null;
+                actions.choose(anchor, () -> saveOne(anchor, post, itemState, activity), () -> saveEvery(anchor, post, activity), some);
+                return;
+            }
+            saveOne(anchor, post, itemState, activity);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed download button tap", failure);
+        }
+    }
+
+    private static void saveOne(View anchor, Object post, Object itemState, @Nullable Activity activity) {
+        if (post == null || !actions.save(post, itemState, activity)) actions.nothing(contextOf(anchor, activity));
+    }
+
+    private static void saveEvery(View anchor, Object post, @Nullable Activity activity) {
+        if (post == null) {
+            actions.nothing(contextOf(anchor, activity));
+            return;
+        }
+        actions.saveAll(post, activity);
+    }
+
+    /** Choose pages from the icon's question: the list opens over [activity], or the anchor's own. */
+    private static void pickPages(View anchor, Object post, @Nullable Activity activity) {
+        if (post == null) {
+            actions.nothing(contextOf(anchor, activity));
+            return;
+        }
+        actions.choosePages(post, activity != null ? activity : activityOf(anchor));
+    }
+
+    private static Context contextOf(View anchor, @Nullable Activity activity) {
+        return activity != null ? activity : anchor.getContext();
+    }
+
+    private static int dp(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
+    }
+
+    /** Instagram's primary icon color for [context]'s theme, then the theme's own text color, then black or white by mode. */
+    public static int iconColor(Context context) {
+        Resources resources = context.getResources();
+        int attr = resources.getIdentifier(ICON_COLOR_ATTR, "attr", Utils.resourcePackage(context));
+        Integer found = attr == 0 ? null : themeColor(context, attr);
+        if (found == null) found = themeColor(context, android.R.attr.textColorPrimary);
+        if (found != null) return found;
+        boolean night = (resources.getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        return night ? 0xFFFFFFFF : 0xFF262626;
+    }
+
+    @Nullable
+    private static Integer themeColor(Context context, int attr) {
+        TypedValue value = new TypedValue();
+        if (!context.getTheme().resolveAttribute(attr, value, true)) return null;
+        if (value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT) return value.data;
+        if (value.resourceId == 0) return null;
+        try {
+            return context.getResources().getColorStateList(value.resourceId, context.getTheme()).getDefaultColor();
+        } catch (Resources.NotFoundException notAColor) {
+            return null;
+        }
+    }
+
+    /** A line-style download glyph, an arrow into a tray, drawn on a 24 unit grid like Instagram's own icons. */
+    static final class Glyph extends Drawable {
+        private final int size;
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path path = new Path();
+        int color = 0xFF262626;
+
+        Glyph(int size) {
+            this.size = size;
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+        }
+
+        @Override public void draw(@NonNull Canvas canvas) {
+            Rect bounds = getBounds();
+            float unit = Math.min(bounds.width(), bounds.height()) / 24f;
+            if (unit <= 0) return;
+            paint.setColor(color);
+            paint.setStrokeWidth(2f * unit);
+            path.rewind();
+            path.moveTo(12f * unit, 4f * unit);
+            path.lineTo(12f * unit, 15f * unit);
+            path.moveTo(7.5f * unit, 10.5f * unit);
+            path.lineTo(12f * unit, 15f * unit);
+            path.lineTo(16.5f * unit, 10.5f * unit);
+            path.moveTo(4.5f * unit, 15.5f * unit);
+            path.lineTo(4.5f * unit, 19.5f * unit);
+            path.lineTo(19.5f * unit, 19.5f * unit);
+            path.lineTo(19.5f * unit, 15.5f * unit);
+            int save = canvas.save();
+            canvas.translate(bounds.left + (bounds.width() - 24f * unit) / 2f, bounds.top + (bounds.height() - 24f * unit) / 2f);
+            canvas.drawPath(path, paint);
+            canvas.restoreToCount(save);
+        }
+
+        @Override public int getIntrinsicWidth() {
+            return size;
+        }
+
+        @Override public int getIntrinsicHeight() {
+            return size;
+        }
+
+        @Override public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+        @Override public void setColorFilter(@Nullable ColorFilter filter) {
+            paint.setColorFilter(filter);
+        }
+
+        @Override public ColorFilter getColorFilter() {
+            return paint.getColorFilter();
+        }
+
+        @Override public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+}

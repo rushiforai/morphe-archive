@@ -35,6 +35,7 @@ public final class Seyttings {
             "app.morphe.extension.twitch.adblock.AdBlockSection",
             "app.morphe.extension.twitch.emotes.EmoteSection",
             "app.morphe.extension.twitch.expandchat.ExpandChatSection",
+            "app.morphe.extension.twitch.hometab.HomeTabSection",
             "app.morphe.extension.twitch.maturewarning.MatureWarningSection",
             "app.morphe.extension.twitch.hidepinned.PinnedChatSection",
     };
@@ -47,24 +48,14 @@ public final class Seyttings {
         if (activity == null || activity.isFinishing()) {
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                showInternal(activity);
-            }
-        });
+        activity.runOnUiThread(() -> showInternal(activity));
     }
 
     public static void show(final Activity activity) {
         if (activity == null || activity.isFinishing()) {
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                showInternal(activity);
-            }
-        });
+        activity.runOnUiThread(() -> showInternal(activity));
     }
 
     private static Activity findActivity(Context context) {
@@ -164,12 +155,7 @@ public final class Seyttings {
         close.setTextColor(MorpheTheme.COLOR_ACCENT);
         close.setTextSize(18);
         MorpheTheme.makeFocusable(activity, close);
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        close.setOnClickListener(v -> dialog.dismiss());
         root.addView(close, MorpheTheme.matchWidth());
 
         // Measure the natural dialog height, then cap the scrolling area so the

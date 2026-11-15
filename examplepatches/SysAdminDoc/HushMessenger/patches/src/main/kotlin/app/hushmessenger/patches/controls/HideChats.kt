@@ -234,9 +234,14 @@ internal fun MutableMethod.injectHiddenChatTap() {
  * The menu's class for the chat list's long press: the class its plugin builds once the plugin's name is "MenuItems",
  * with one row list and one tap. Empty when there isn't exactly one such class.
  */
+internal val menuItemsBuilders = methodCheck { _, method ->
+    val code = method.implementation?.instructions?.toList().orEmpty()
+    code.indices.any { code.menuBuiltAt(it) != null }
+}
+
 internal fun findHiddenChats(classes: Iterable<ClassDef>): Map<String, List<Method>> {
     val byType = classes.associateBy { it.type }
-    val menus = classes.flatMap { it.methods }.flatMap { method ->
+    val menus = menuItemsBuilders.methods(classes).flatMap { method ->
         val code = method.implementation?.instructions?.toList().orEmpty()
         code.indices.mapNotNull { i -> code.menuBuiltAt(i) }
     }.distinct().mapNotNull { byType[it] }.filter { menu ->

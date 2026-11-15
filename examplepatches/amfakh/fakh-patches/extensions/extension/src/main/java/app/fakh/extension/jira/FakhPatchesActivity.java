@@ -18,8 +18,6 @@ import android.widget.TextView;
 
 import androidx.activity.ComponentActivity;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -43,15 +41,10 @@ public final class FakhPatchesActivity extends ComponentActivity {
 
     /**
      * Jira's activities create themselves in onMAMCreate, because the Intune wrapper above ComponentActivity makes
-     * onCreate final; the call to the superclass's own is a special call by method handle, as its stub has no such method.
+     * onCreate final. The compile-time ComponentActivity has no such method, so the patch puts the call to the
+     * superclass's own at the start of this one.
      */
     public void onMAMCreate(Bundle savedInstanceState) {
-        try {
-            MethodHandles.lookup().findSpecial(ComponentActivity.class, "onMAMCreate",
-                    MethodType.methodType(void.class, Bundle.class), FakhPatchesActivity.class).invoke(this, savedInstanceState);
-        } catch (Throwable error) {
-            throw new IllegalStateException(error);
-        }
         FakhSettings.remember(this);
         density = getResources().getDisplayMetrics().density;
         boolean night = app.fakh.extension.shared.MaterialYou.night(this);

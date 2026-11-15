@@ -2,12 +2,17 @@ package app.morphe.extension.tiktok.playback;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Looper;
 import android.util.Rational;
 import android.view.TextureView;
@@ -15,10 +20,16 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+
+import com.ss.android.ugc.aweme.common.widget.VerticalViewPager;
+
+import java.lang.ref.WeakReference;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -84,9 +95,11 @@ public class PictureInPictureTest {
 
     @Test public void onlyTheWindowsOwnButtonCanPauseOrPlay() {
         Activity activity = owner.get();
-        Intent sent = Shadows.shadowOf(
-                PictureInPicture.actions(activity, true).get(0).getActionIntent()).getSavedIntent();
+        Intent sent = sentBy(PictureInPicture.actions(activity, true, false, false, false, 1).get(0));
         assertTrue(PictureInPicture.fromTheButton(sent));
+        for (RemoteAction arrow : PictureInPicture.actions(activity, true, true, true, true, 3)) {
+            assertTrue("every button carries the token", PictureInPicture.fromTheButton(sentBy(arrow)));
+        }
 
         // Another app sending the action, before Android 13 let a receiver refuse it.
         Intent bare = new Intent(PictureInPicture.ACTION_TOGGLE)
@@ -95,6 +108,148 @@ public class PictureInPictureTest {
         assertFalse(PictureInPicture.fromTheButton(
                 new Intent(bare).putExtra(PictureInPicture.EXTRA_TOKEN, "guess")));
         assertFalse(PictureInPicture.fromTheButton(null));
+    }
+
+    /** #413: TikTok's LIVE window switch goes on with this one, and back off only if Hushfeed turned it on. */
+    @Test public void tiktoksLiveWindowSwitchFollowsThisOne() {
+        SharedPreferences state = Utils.getContext()
+                .getSharedPreferences(PictureInPicture.STATE, Context.MODE_PRIVATE);
+        state.edit().clear().commit();
+
+        Settings.PICTURE_IN_PICTURE.save(false);
+        assertNull("never turned on here, so TikTok's own choice stands", PictureInPicture.liveWindowSwitch());
+
+        Settings.PICTURE_IN_PICTURE.save(true);
+        assertEquals(Boolean.TRUE, PictureInPicture.liveWindowSwitch());
+        assertTrue(state.getBoolean(PictureInPicture.LIVE_WINDOW_OURS, false));
+
+        Settings.PICTURE_IN_PICTURE.save(false);
+        assertEquals(Boolean.FALSE, PictureInPicture.liveWindowSwitch());
+        assertFalse(state.getBoolean(PictureInPicture.LIVE_WINDOW_OURS, true));
+        assertNull("turned back off once, then left to TikTok", PictureInPicture.liveWindowSwitch());
+
+        // Left out of the patch: the room page never asks, and the answer leaves TikTok's switch alone.
+        SettingsStatus.pictureInPictureEnabled = false;
+        Settings.PICTURE_IN_PICTURE.save(true);
+        assertNull(PictureInPicture.liveWindowSwitch());
+    }
+
+    /** #413: with this switch on, TikTok's LIVE window stops refusing screens it files as tablets. */
+    @Test public void theLiveWindowOpensOnScreensTikTokCallsLarge() {
+        Settings.PICTURE_IN_PICTURE.save(false);
+        assertEquals("off, TikTok's answer stands", 1, PictureInPicture.liveWindowLargeScreen(1));
+        assertEquals(0, PictureInPicture.liveWindowLargeScreen(0));
+
+        Settings.PICTURE_IN_PICTURE.save(true);
+        assertEquals(0, PictureInPicture.liveWindowLargeScreen(1));
+        assertEquals(0, PictureInPicture.liveWindowLargeScreen(0));
+
+        SettingsStatus.pictureInPictureEnabled = false;
+        assertEquals("left out of the patch, TikTok's answer stands", 1, PictureInPicture.liveWindowLargeScreen(1));
+    }
+
+    /**
+     * #413: in the window the feed's activity is paused, and TikTok's page select starts the next
+     * video only for a resumed one, so the window's arrows answered "not paused" to it.
+     */
+    @Test public void thePageSelectPlaysOnOnlyWhileTheWindowIsUp() {
+        assertTrue(PictureInPicture.pageSelectPaused(true, false));
+        assertFalse(PictureInPicture.pageSelectPaused(true, true));
+        assertFalse(PictureInPicture.pageSelectPaused(false, false));
+        assertFalse(PictureInPicture.pageSelectPaused(false, true));
+
+        Activity activity = owner.get();
+        assertEquals("no window, TikTok's answer stands", 1, PictureInPicture.pageSelectPaused(1));
+        assertEquals(0, PictureInPicture.pageSelectPaused(0));
+        try {
+            ReflectionHelpers.setStaticField(PictureInPicture.class, "opened", new WeakReference<>(activity));
+            assertEquals("opened, but not in the window yet", 1, PictureInPicture.pageSelectPaused(1));
+            activity.enterPictureInPictureMode(new PictureInPictureParams.Builder().build());
+            assertEquals(0, PictureInPicture.pageSelectPaused(1));
+            assertEquals(0, PictureInPicture.pageSelectPaused(0));
+        } finally {
+            ReflectionHelpers.setStaticField(PictureInPicture.class, "opened", new WeakReference<Activity>(null));
+        }
+        assertEquals(1, PictureInPicture.pageSelectPaused(1));
+    }
+
+    /** #413: previous, play or pause, then next, when the video is in a pager and the window has room. */
+    @Test public void theArrowsSitEitherSideOfPlayAndPause() {
+        Activity activity = owner.get();
+        List<RemoteAction> buttons = PictureInPicture.actions(activity, true, true, false, true, 3);
+        assertEquals(3, buttons.size());
+        assertEquals(PictureInPicture.ACTION_PREVIOUS, sentBy(buttons.get(0)).getAction());
+        assertEquals(PictureInPicture.ACTION_TOGGLE, sentBy(buttons.get(1)).getAction());
+        assertEquals(PictureInPicture.ACTION_NEXT, sentBy(buttons.get(2)).getAction());
+        assertEquals("Previous video", buttons.get(0).getTitle().toString());
+        assertEquals("Pause", buttons.get(1).getTitle().toString());
+        assertEquals("Next video", buttons.get(2).getTitle().toString());
+        assertFalse("nothing before the first video, so the arrow is dimmed", buttons.get(0).isEnabled());
+        assertTrue(buttons.get(1).isEnabled());
+        assertTrue(buttons.get(2).isEnabled());
+        assertEquals("Play", PictureInPicture.actions(activity, false, true, true, true, 3)
+                .get(1).getTitle().toString());
+
+        // Each button needs its own PendingIntent, or Android hands every one the last intent.
+        assertNotSame(buttons.get(0).getActionIntent(), buttons.get(2).getActionIntent());
+    }
+
+    @Test public void withoutAPagerOnlyPlayAndPauseShow() {
+        Activity activity = owner.get();
+        List<RemoteAction> alone = PictureInPicture.actions(activity, true, false, true, true, 3);
+        assertEquals(1, alone.size());
+        assertEquals(PictureInPicture.ACTION_TOGGLE, sentBy(alone.get(0)).getAction());
+        List<RemoteAction> one = PictureInPicture.actions(activity, true, true, true, true, 1);
+        assertEquals(1, one.size());
+        assertEquals(PictureInPicture.ACTION_TOGGLE, sentBy(one.get(0)).getAction());
+    }
+
+    /**
+     * #413: a tall video's window opens about 108dp wide, and Android cut the next arrow off the
+     * end of three. A window that holds two shows play or pause and next, and three come back
+     * once the window is wide enough.
+     */
+    @Test public void aNarrowWindowKeepsPlayAndNext() {
+        Activity activity = owner.get();
+        List<RemoteAction> narrow = PictureInPicture.actions(activity, true, true, true, false, 2);
+        assertEquals(2, narrow.size());
+        assertEquals(PictureInPicture.ACTION_TOGGLE, sentBy(narrow.get(0)).getAction());
+        assertEquals(PictureInPicture.ACTION_NEXT, sentBy(narrow.get(1)).getAction());
+        assertFalse("nothing after the last video, so next is dimmed", narrow.get(1).isEnabled());
+
+        assertEquals("the emulator's 110dp window", 2, PictureInPicture.room(3, 110f));
+        assertEquals(2, PictureInPicture.room(3, 137f));
+        assertEquals("a wide video's 197dp window", 3, PictureInPicture.room(3, 197f));
+        assertEquals("a window not up yet", 3, PictureInPicture.room(3, 0f));
+        assertEquals("never more than Android allows", 1, PictureInPicture.room(1, 110f));
+    }
+
+    @Test public void theVideosPagerIsItsNearestVerticalPager() {
+        Activity activity = owner.get();
+        VerticalViewPager outer = new VerticalViewPager(activity);
+        VerticalViewPager inner = new VerticalViewPager(activity);
+        FrameLayout pagerCell = new FrameLayout(activity);
+        TextureView paged = new TextureView(activity);
+        outer.addView(inner);
+        inner.addView(pagerCell);
+        pagerCell.addView(paged);
+        assertSame(inner, PictureInPicture.pagerOf(paged));
+        assertNull("the feed setup above has no pager", PictureInPicture.pagerOf(video));
+        assertNull(PictureInPicture.pagerOf(null));
+    }
+
+    @Test public void anArrowMovesOnlyAnIdlePagerThatHasAVideoThatWay() {
+        VerticalViewPager pager = new VerticalViewPager(owner.get());
+        assertTrue(PictureInPicture.canMove(pager, 1));
+        assertFalse("the first video has nothing before it", PictureInPicture.canMove(pager, -1));
+        pager.hasPrevious = true;
+        assertTrue(PictureInPicture.canMove(pager, -1));
+        pager.hasNext = false;
+        assertFalse(PictureInPicture.canMove(pager, 1));
+        pager.hasNext = true;
+        pager.scrollState = 2;
+        assertFalse("mid-slide, a second move would skip a video", PictureInPicture.canMove(pager, 1));
+        assertFalse(PictureInPicture.canMove(null, 1));
     }
 
     @Test public void offByDefault() {
@@ -210,6 +365,10 @@ public class PictureInPictureTest {
         assertEquals(View.VISIBLE, caption.getVisibility());
         assertEquals(View.VISIBLE, tabs.getVisibility());
         PictureInPicture.onModeChanged(null, true);
+    }
+
+    private static Intent sentBy(RemoteAction button) {
+        return Shadows.shadowOf(button.getActionIntent()).getSavedIntent();
     }
 
     private static void setPaused(boolean value) {

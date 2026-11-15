@@ -1,0 +1,1 @@
+package android.content; public class SharedPreferences { public boolean getBoolean(String k,boolean d){return k.equals("popularReplyPopup");} }

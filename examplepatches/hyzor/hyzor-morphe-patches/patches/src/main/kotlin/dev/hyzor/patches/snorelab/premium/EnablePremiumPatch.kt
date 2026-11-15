@@ -12,7 +12,7 @@ import dev.hyzor.patches.util.returnEarly
  *            \                       /
  *             `pl.c.flowPremiumState()` -> `Premium` / `Expired` / `Free`
  *                                  |
- *                `vp.h.q()`  `remotePremiumActive` (boolean pref)
+ *                `up.h.q()`  `remotePremiumActive` (boolean pref)
  *                `mp.d.p()`  `remotePremiumExpirationDate > now`
  *
  * The local source is the one the server writes through the user-data repository, so it is
@@ -21,7 +21,9 @@ import dev.hyzor.patches.util.returnEarly
  * returns nothing. `pl.c.isPremium()` and `pl.a0.isPremium()` then report `true`, and every
  * feature that asks the premium repository is unlocked.
  *
- * This is the same hook set as hoo-dles' 2.27.3.6291 patch, re-resolved for 2.33.5.7814.
+ * This is the same hook set as hoo-dles' 2.27.3.6291 patch, re-resolved for 2.33.7.7953.
+ * The 2.33.7 build only moved the prefs holder (`vp.h` → `up.h`) and kept both hook
+ * methods, so the fingerprints carry over unchanged.
  */
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(

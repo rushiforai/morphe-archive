@@ -283,6 +283,7 @@ final class BarPreview {
     static android.widget.ScrollView options(Activity activity, View content) {
         android.widget.ScrollView scroll = new android.widget.ScrollView(activity);
         scroll.setFillViewport(true);
+        scroll.setNestedScrollingEnabled(true);
         scroll.addView(content, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         float density = activity.getResources().getDisplayMetrics().density;

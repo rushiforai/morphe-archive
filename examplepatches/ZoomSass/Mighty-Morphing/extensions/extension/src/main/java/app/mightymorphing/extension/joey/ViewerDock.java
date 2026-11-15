@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SearchEvent;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -35,11 +36,49 @@ import java.util.WeakHashMap;
  */
 public final class ViewerDock {
     private static final String DOCK = "morphe_viewer_dock";
-    /** One dock per icon row. An album keeps a row on every page. */
-    private static final WeakHashMap<View, Dock> PAGES = new WeakHashMap<>();
+    /**
+     * One dock per icon row; an album keeps a row on every page. Each dock is kept on its row
+     * (DOCK_TAG) and listed on the window (DOCKS), so all of it goes away with the screen. A
+     * weak map keyed by the row leaked: the dock points back at its row, so it never cleared.
+     */
+    private static final int DOCK_TAG = 0x4d4f0044;
+    private static final int DOCKS = 0x4d4f0045;
     private static final WeakHashMap<Activity, Boolean> ATTACHED = new WeakHashMap<>();
+    private static final java.util.Map<String, Integer> IDS = new java.util.HashMap<>();
+    private static final java.util.Map<String, Object> METHODS = new java.util.HashMap<>();
+    private static final java.util.Map<Class<?>, Boolean> ALBUMS = new java.util.HashMap<>();
+    private static final Object MISSING = new Object();
+    private static final int BARS = 0x4d4f0043;
+
+    /** The viewer's control rows, found again only after a layout pass, not on every frame. */
+    private static final class Bars {
+        boolean dirty = true;
+        final List<View> views = new ArrayList<>();
+    }
+
+    private static final int BASE_PAD = 0x4d4f0048;
 
     private ViewerDock() {
+    }
+
+    public static boolean owns(Activity activity) {
+        return activity != null && ATTACHED.containsKey(activity);
+    }
+
+    /** The icon row keeps clear of the gesture bar from inside the page, over Joey's black. */
+    private static void clearGestures(Activity activity, View actions) {
+        Object base = actions.getTag(BASE_PAD);
+        int start;
+        if (base instanceof Integer) {
+            start = (Integer) base;
+        } else {
+            start = actions.getPaddingBottom();
+            actions.setTag(BASE_PAD, start);
+        }
+        int want = start + ModernUi.viewerGestureInset(activity);
+        if (actions.getPaddingBottom() != want) {
+            actions.setPadding(actions.getPaddingLeft(), actions.getPaddingTop(), actions.getPaddingRight(), want);
+        }
     }
 
     public static void attach(Activity activity) {
@@ -48,8 +87,12 @@ public final class ViewerDock {
         ATTACHED.put(activity, Boolean.TRUE);
         try {
             View decor = activity.getWindow().getDecorView();
+            Bars bars = new Bars();
+            // Kept on the window's own view, so it goes away with the screen.
+            decor.setTag(BARS, bars);
             decor.post(() -> watch(activity));
-            decor.getViewTreeObserver().addOnPreDrawListener(() -> adopt(activity));
+            decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> bars.dirty = true);
+            decor.getViewTreeObserver().addOnPreDrawListener(() -> adopt(activity, bars));
         } catch (Throwable ignored) {
         }
     }
@@ -58,18 +101,60 @@ public final class ViewerDock {
      * Paint the controls where Joey already put them. Moving the player row is what
      * dropped it down the screen and brought the volume slider onto pictures.
      */
-    private static boolean adopt(Activity activity) {
+    private static boolean adopt(Activity activity, Bars bars) {
         if (activity.isFinishing()) return true;
-        int id = activity.getResources().getIdentifier(
-                "media_viewer_controls_container", "id", activity.getPackageName());
+        int id = resId(activity, "media_viewer_controls_container");
         if (id == 0) return true;
-        List<View> bars = new ArrayList<>();
-        collect(activity.getWindow().getDecorView(), id, bars);
+        // This runs before every frame, including every frame of a playing video. The search
+        // through the whole window only runs again after a layout pass, when a page may be new.
+        if (bars.dirty) {
+            bars.dirty = false;
+            bars.views.clear();
+            collect(activity.getWindow().getDecorView(), id, bars.views);
+        }
         boolean cancel = false;
-        for (View actions : bars) {
+        for (int i = 0; i < bars.views.size(); i++) {
+            View actions = bars.views.get(i);
+            if (!actions.isAttachedToWindow()) continue;
             if (style(activity, actions)) cancel = true;
         }
         return !cancel;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Dock> docks(Activity activity) {
+        View decor = activity.getWindow().getDecorView();
+        Object list = decor.getTag(DOCKS);
+        if (list instanceof List) return (List<Dock>) list;
+        List<Dock> made = new ArrayList<>();
+        decor.setTag(DOCKS, made);
+        return made;
+    }
+
+    private static int resId(android.content.Context context, String name) {
+        Integer cached = IDS.get(name);
+        if (cached != null) return cached;
+        int found = context.getResources().getIdentifier(name, "id", context.getPackageName());
+        IDS.put(name, found);
+        return found;
+    }
+
+    /** Player and zoom lookups run on every frame, so each method is found once per class. */
+    private static Method method(Class<?> type, String name, Class<?>... params) throws NoSuchMethodException {
+        StringBuilder key = new StringBuilder(type.getName()).append('#').append(name);
+        for (Class<?> param : params) key.append(',').append(param.getName());
+        String id = key.toString();
+        Object cached = METHODS.get(id);
+        if (cached instanceof Method) return (Method) cached;
+        if (cached == MISSING) throw new NoSuchMethodException(id);
+        try {
+            Method found = type.getMethod(name, params);
+            METHODS.put(id, found);
+            return found;
+        } catch (NoSuchMethodException e) {
+            METHODS.put(id, MISSING);
+            throw e;
+        }
     }
 
     private static void collect(View view, int id, List<View> out) {
@@ -84,14 +169,22 @@ public final class ViewerDock {
         View page = actions.getParent() instanceof View ? (View) actions.getParent() : actions;
         View video = find(page, "videoView");
         boolean videoOpen = video instanceof ViewGroup && video.getVisibility() == View.VISIBLE;
-        Dock dock = PAGES.get(actions);
+        Dock dock = actions.getTag(DOCK_TAG) instanceof Dock ? (Dock) actions.getTag(DOCK_TAG) : null;
         if (!DOCK.equals(actions.getTag())) {
             actions.setTag(DOCK);
             grow(actions, activity.getResources().getDisplayMetrics().density);
             dock = new Dock(activity, actions, video);
-            PAGES.put(actions, dock);
+            actions.setTag(DOCK_TAG, dock);
+            docks(activity).add(dock);
+            // A single picture, GIF or video can open with its controls hidden. Albums cannot:
+            // Joey runs their top bar, so the two would start out of step.
+            if (!album(activity) && ModernUi.viewerOpensClean(activity)) {
+                dock.shown = false;
+                dock.fading = false;
+            }
         }
         if (dock == null) return false;
+        clearGestures(activity, actions);
         View playback = videoOpen ? find(page, "exo_controls_container") : null;
         if (playback != null && dock.playback != playback) {
             dock.playback = playback;
@@ -106,10 +199,20 @@ public final class ViewerDock {
         plant(dock.playback);
         plant(shell(dock.playback, video));
         if (album(activity)) follow(dock);
-        if (dock.shown && !dock.fading && (hold(actions) || hold(shell(dock.playback, video)) || hold(dock.shade))) {
-            return true;
+        // Joey hides its controls on its own timer. They are shown again in place; the frame is
+        // still drawn, so a back-and-forth with Joey cannot drop frames during playback.
+        if (dock.shown && !dock.fading) {
+            hold(actions);
+            hold(shell(dock.playback, video));
+            hold(dock.shade);
         }
         if (!album(activity) && !dock.waiting) dock.schedule();
+        // Hidden and settled: a row that arrives late, such as a clip's seek row, starts hidden too.
+        if (!dock.shown && !dock.fading) {
+            conceal(actions);
+            conceal(dock.playback);
+            conceal(dock.shade);
+        }
         return moved;
     }
 
@@ -137,6 +240,16 @@ public final class ViewerDock {
     private static void settle(View playback) {
         plant(find(playback, "exo_progress"));
         plant(find(playback, "exo_more"));
+        // The seek row always stays, so Joey's button that collapses it does nothing useful.
+        View collapse = find(playback, "exo_collapse");
+        if (collapse != null && collapse.getVisibility() != View.GONE) collapse.setVisibility(View.GONE);
+    }
+
+    private static void conceal(View view) {
+        if (view == null || view.getAlpha() == 0f) return;
+        view.animate().cancel();
+        view.setAlpha(0f);
+        quiet(view, true);
     }
 
     /** Gone removes a row from the layout. Visible with alpha is what the fade uses. */
@@ -213,7 +326,7 @@ public final class ViewerDock {
     }
 
     private static View find(View root, String name) {
-        int id = root.getResources().getIdentifier(name, "id", root.getContext().getPackageName());
+        int id = resId(root.getContext(), name);
         return id == 0 ? null : root.findViewById(id);
     }
 
@@ -228,12 +341,14 @@ public final class ViewerDock {
     }
 
     private static boolean album(Activity activity) {
-        Class<?> type = activity.getClass();
-        while (type != null) {
-            if (type.getName().endsWith("BaseAlbumActivity")) return true;
-            type = type.getSuperclass();
+        Boolean cached = ALBUMS.get(activity.getClass());
+        if (cached != null) return cached;
+        boolean found = false;
+        for (Class<?> type = activity.getClass(); type != null && !found; type = type.getSuperclass()) {
+            if (type.getName().endsWith("BaseAlbumActivity")) found = true;
         }
-        return false;
+        ALBUMS.put(activity.getClass(), found);
+        return found;
     }
 
     /** Joey's own minimum swipe, as a fraction of the screen width. */
@@ -251,8 +366,8 @@ public final class ViewerDock {
             Rect visible = new Rect();
             if (view.getGlobalVisibleRect(visible) && visible.height() > view.getHeight() / 2) {
                 try {
-                    float scale = (Float) view.getClass().getMethod("getScale").invoke(view);
-                    float min = (Float) view.getClass().getMethod("getMinScale").invoke(view);
+                    float scale = (Float) method(view.getClass(), "getScale").invoke(view);
+                    float min = (Float) method(view.getClass(), "getMinScale").invoke(view);
                     if (scale > min * 1.05f) return true;
                 } catch (Throwable ignored) {
                 }
@@ -276,13 +391,13 @@ public final class ViewerDock {
         Object player = player(video);
         if (player == null) return false;
         try {
-            Object state = player.getClass().getMethod("isPlaying").invoke(player);
+            Object state = method(player.getClass(), "isPlaying").invoke(player);
             return Boolean.TRUE.equals(state);
         } catch (Throwable ignored) {
         }
         try {
-            Object ready = player.getClass().getMethod("getPlayWhenReady").invoke(player);
-            Object state = player.getClass().getMethod("getPlaybackState").invoke(player);
+            Object ready = method(player.getClass(), "getPlayWhenReady").invoke(player);
+            Object state = method(player.getClass(), "getPlaybackState").invoke(player);
             return Boolean.TRUE.equals(ready) && Integer.valueOf(3).equals(state);
         } catch (Throwable ignored) {
             return false;
@@ -292,14 +407,14 @@ public final class ViewerDock {
     private static Object player(View video) {
         if (video == null || video.getVisibility() != View.VISIBLE) return null;
         try {
-            return video.getClass().getMethod("getPlayer").invoke(video);
+            return method(video.getClass(), "getPlayer").invoke(video);
         } catch (Throwable ignored) {
             return null;
         }
     }
 
     private static View find(Activity activity, String name) {
-        int id = activity.getResources().getIdentifier(name, "id", activity.getPackageName());
+        int id = resId(activity, name);
         return id == 0 ? null : activity.findViewById(id);
     }
 
@@ -425,6 +540,8 @@ public final class ViewerDock {
         long sampleTime;
         boolean dragging;
         boolean blocked;
+        /** Past the point where letting go closes the album. */
+        boolean past;
         boolean windowClear;
         View sheet;
         ColorDrawable wash;
@@ -448,8 +565,8 @@ public final class ViewerDock {
         Dock dock() {
             Dock best = null;
             int bestArea = -1;
-            for (Dock dock : PAGES.values()) {
-                if (dock.activity != activity || dock.actions == null) continue;
+            for (Dock dock : docks(activity)) {
+                if (dock.actions == null || !dock.actions.isAttachedToWindow()) continue;
                 Rect visible = new Rect();
                 if (!dock.actions.getGlobalVisibleRect(visible)) continue;
                 int area = visible.width() * visible.height();
@@ -502,6 +619,7 @@ public final class ViewerDock {
                 velocityY = 0f;
                 sampleTime = event.getEventTime();
                 dragging = false;
+                past = false;
                 sheet = albumSheet();
                 blocked = sheet == null || zoomed(activity.getWindow().getDecorView());
                 Dock dock = dock();
@@ -532,7 +650,9 @@ public final class ViewerDock {
                     float ax = Math.abs(dx);
                     float ay = Math.abs(dy);
                     if (Math.max(ax, ay) < slop) return false;
-                    if (ax < ay * 0.42f) {
+                    // The start decides the gesture. Mostly up or down is paging and can never
+                    // close; only a clearly diagonal or sideways start can.
+                    if (ax < ay * 0.75f) {
                         blocked = true;
                         return false;
                     }
@@ -546,6 +666,11 @@ public final class ViewerDock {
                     cancel.recycle();
                 }
                 follow(dx, dy);
+                boolean beyond = beyond(dx, dy);
+                if (beyond != past) {
+                    past = beyond;
+                    if (beyond) sheet.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                }
                 return true;
             }
             if ((action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) && dragging) {
@@ -632,7 +757,18 @@ public final class ViewerDock {
             }
             float width = Math.max(1, sheet.getWidth());
             float height = Math.max(1, sheet.getHeight());
-            return Math.min(1f, Math.max(Math.abs(dx) / width, Math.abs(dy) / height));
+            float progress = Math.min(1f, Math.max(Math.abs(dx) / width, Math.abs(dy) / height));
+            // The picture shrinks as it is pulled away, so a close is visible before it happens.
+            float scale = 1f - 0.18f * Math.min(1f, progress / limit());
+            if (sheet instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) sheet;
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    View child = group.getChildAt(i);
+                    child.setScaleX(scale);
+                    child.setScaleY(scale);
+                }
+            }
+            return progress;
         }
 
         private void park() {
@@ -642,20 +778,37 @@ public final class ViewerDock {
                 View child = group.getChildAt(i);
                 child.setTranslationX(0f);
                 child.setTranslationY(0f);
+                child.setScaleX(1f);
+                child.setScaleY(1f);
             }
             lift(false);
             if (wash != null) wash.setAlpha(255);
             else sheet.setBackgroundColor(Color.BLACK);
         }
 
-        /** Same distances Joey uses to let go of a picture. A fast flick needs less travel. */
-        private boolean farEnough(float dx, float dy) {
-            int fling = ViewConfiguration.get(activity).getScaledMinimumFlingVelocity();
-            boolean fast = Math.max(Math.abs(velocityX), Math.abs(velocityY)) > fling;
-            float fraction = fast ? minDrag() / 2f : minDrag();
+        /** An album asks for more than a single picture: half as far again as Joey's swipe. */
+        private float limit() {
+            return Math.max(minDrag() * 1.5f, 0.22f);
+        }
+
+        /** The point of no return. Letting go before it springs the album back. */
+        private boolean beyond(float dx, float dy) {
             float width = Math.max(1, sheet.getWidth());
             float height = Math.max(1, sheet.getHeight());
-            return Math.abs(dx) > width * fraction || Math.abs(dy) > height * fraction;
+            return Math.abs(dx) > width * limit() || Math.abs(dy) > height * limit();
+        }
+
+        /** Past the point, or a fast outward flick most of the way there. */
+        private boolean farEnough(float dx, float dy) {
+            if (beyond(dx, dy)) return true;
+            int fling = ViewConfiguration.get(activity).getScaledMinimumFlingVelocity() * 3;
+            boolean outward = Math.abs(dx) >= Math.abs(dy)
+                    ? Math.abs(velocityX) > fling && Math.signum(velocityX) == Math.signum(dx)
+                    : Math.abs(velocityY) > fling && Math.signum(velocityY) == Math.signum(dy);
+            float width = Math.max(1, sheet.getWidth());
+            float height = Math.max(1, sheet.getHeight());
+            float most = limit() * 0.6f;
+            return outward && (Math.abs(dx) > width * most || Math.abs(dy) > height * most);
         }
 
         private void glide(boolean close) {

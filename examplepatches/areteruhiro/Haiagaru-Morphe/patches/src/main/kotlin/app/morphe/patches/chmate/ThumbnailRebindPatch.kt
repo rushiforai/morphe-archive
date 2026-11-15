@@ -256,3 +256,46 @@ private fun BytecodePatchContext.patchLegacyThumbnailBinding(version: String) {
         "${site.value.opcode.name.lowercase().replace('_', '-')} {${registers.joinToString(", ") { "v$it" }}}, $bridge")
     row.methods.add(bridge)
 }
+
+/** Draw effects only at the native response thumbnail bitmap calls. */
+internal fun BytecodePatchContext.patchThumbnailAppearance(version: String) {
+    val owner=when(version){
+        "0.8.10.191 dev"->"Lo/qaf;"
+        "0.8.10.226 dev"->"Lo/TTRewardExpressVideoActivity;"
+        "0.8.10.242 dev"->"Lo/zzbes;"
+        else->return
+    }
+    val method=mutableClassDefBy(owner).methods.single { it.name=="onDraw"&&it.parameterTypes==listOf("Landroid/graphics/Canvas;") }
+    val sites=method.implementation!!.instructions.withIndex().filter { (_, insn)->
+        val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass=="Landroid/graphics/Canvas;"&&ref.name=="drawBitmap"&&
+            ref.parameterTypes==listOf("Landroid/graphics/Bitmap;","Landroid/graphics/Matrix;","Landroid/graphics/Paint;")
+    }
+    check(sites.size==2) { "$version thumbnail draw inputs changed" }
+    // The first call is manual NG; the second covers auto-NG and other dimming.
+    // v0 is the thumbnail owner (also used by the native auto-NG check below it).
+    val (index,insn)=sites.last()
+    check(insn.opcode==Opcode.INVOKE_VIRTUAL)
+    val call=insn as FiveRegisterInstruction
+    val autoFlag=when(version){"0.8.10.191 dev"->"D";"0.8.10.226 dev"->"A";else->"mIsNgAuto"}
+    check(method.implementation!!.instructions.drop(index+1).take(3).any {
+        val field=(it as? ReferenceInstruction)?.reference as? FieldReference
+        it.opcode==Opcode.IGET_BOOLEAN&&field?.definingClass==owner&&field.name==autoFlag&&
+            (it as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerB==0
+    })
+    method.replaceInstruction(index,"invoke-static {v${call.registerC}, v${call.registerD}, v${call.registerE}, v${call.registerF}, v0}, Lapp/morphe/extension/chmate/ThumbnailAppearance;->drawDetected(Landroid/graphics/Canvas;Landroid/graphics/Bitmap;Landroid/graphics/Matrix;Landroid/graphics/Paint;Ljava/lang/Object;)V")
+    val bindings=mutableClassDefBy(owner).methods.flatMap { binding ->
+        val code=binding.implementation?.instructions?.toList().orEmpty()
+        code.mapIndexedNotNull { i, current ->
+            val k=current as? com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+            if(current.opcode==Opcode.CONST_WIDE_HIGH16&&k?.wideLiteral==java.lang.Double.doubleToRawLongBits(0.5)&&code.getOrNull(i+1)?.opcode==Opcode.CMPL_DOUBLE&&
+                code.drop(i+2).take(8).any { val f=(it as? ReferenceInstruction)?.reference as? FieldReference;it.opcode==Opcode.IPUT_BOOLEAN&&f?.definingClass==owner&&f.name==autoFlag })
+                Triple(binding,i,(current as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA)
+            else null
+        }
+    }
+    check(bindings.size==1) { "$version auto Image NG score comparison changed" }
+    val (binding, at, output)=bindings.single()
+    binding.replaceInstruction(at,"invoke-static {}, Lapp/morphe/extension/chmate/ThumbnailAppearance;->threshold()D")
+    binding.addInstructions(at+1,"move-result-wide v$output")
+}

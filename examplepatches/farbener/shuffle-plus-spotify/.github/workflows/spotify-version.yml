@@ -1,0 +1,47 @@
+name: Spotify version check
+# Weekly: compares the newest Spotify on Uptodown with the version the patch supports, and opens an
+# issue when there is a newer one, because the patch then needs checking and probably a port.
+# The workflow downloads nothing from Spotify; it only reads a version number.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          supported=$(grep -oP 'version = "\K[0-9.]+' patches/src/main/kotlin/app/spicetify/patches/spotify/Compatibility.kt | head -1)
+          latest=$(curl -fsS -A "Mozilla/5.0" "https://spotify.en.uptodown.com/android/versions" \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]{2,5}' | sort -uV | tail -1)
+          echo "supported=$supported latest=$latest"
+          if [ -z "$supported" ] || [ -z "$latest" ]; then
+            echo "::error::Could not read a version (supported='$supported', latest='$latest'); the source page may have changed"
+            exit 1
+          fi
+          newest=$(printf '%s\n%s\n' "$supported" "$latest" | sort -V | tail -1)
+          if [ "$newest" = "$supported" ]; then
+            echo "Up to date."
+            exit 0
+          fi
+          title="Spotify $latest is out (patch supports $supported)"
+          if [ -n "$(gh issue list --state open --search "\"$latest\" in:title" --json number -q '.[].number')" ]; then
+            echo "Issue for $latest already open."
+            exit 0
+          fi
+          gh issue create --title "$title" --body "A newer Spotify exists: **$latest**. The patch supports **$supported** only.
+
+          1. Get the new APKM (arm64) and run \`build-and-patch.ps1\` on it.
+          2. If a hook or protobuf check fails, port it (see README, 'Updating to a new Spotify version').
+          3. Add the version to \`Compatibility.kt\`, test on a device, and tag a new release.
+
+          Source: https://spotify.en.uptodown.com/android/versions"

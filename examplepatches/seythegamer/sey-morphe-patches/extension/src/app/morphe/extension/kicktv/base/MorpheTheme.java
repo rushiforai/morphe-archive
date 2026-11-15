@@ -50,11 +50,6 @@ public final class MorpheTheme {
                 dp(activity, 10),
                 dp(activity, 10),
                 dp(activity, 10));
-        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                v.setBackgroundColor(hasFocus ? COLOR_FOCUS : Color.TRANSPARENT);
-            }
-        });
+        view.setOnFocusChangeListener((v, hasFocus) -> v.setBackgroundColor(hasFocus ? COLOR_FOCUS : Color.TRANSPARENT));
     }
 }

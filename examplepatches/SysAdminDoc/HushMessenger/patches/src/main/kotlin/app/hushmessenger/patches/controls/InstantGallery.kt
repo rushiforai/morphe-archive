@@ -95,8 +95,9 @@ internal fun Method.instantFrameReads(): List<InstantFrameRead> {
     return reads
 }
 
-internal fun findInstantGallery(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { it.isInstantCapture() }
+internal fun findInstantGallery(classes: Iterable<ClassDef>): List<Method> = instantCaptures.methods(classes)
+
+internal val instantCaptures = methodCheck { _, method -> method.isInstantCapture() }
 
 /**
  * The callback, its frame reads, and that each read sits in a try block whose handler takes an Exception: a gallery

@@ -16,6 +16,8 @@ Every HushGram release, newest first.
 * `Glass top bar in chats`, new under `Glass in chats` in Messages, takes the frosted band off a chat's top bar while the round glass buttons and message bar keep theirs. It starts on. Asked for in #670.
 * `Auto scroll in Home` under Feed moves Home to the next post by itself, when a video ends or after the time you pick for photos and carousels. Touching the screen holds it. Asked for in #660.
 * A new switch, `Control the reel above comments` under Reels, lets you tap the reel above open comments to pause or play it, or hold it for 2x. The comments stay open. Starts off. Asked for in #665.
+* A new switch, `Classic colors` under Layout, turns dark mode navy blue with charcoal gray panels and light mode off-white, the Messages list included, like Instagram's older look. Story and reel viewers keep their own. Asked for in #639.
+* `Swipe left for Messages`, new under Feed, opens Messages when you swipe left across Home, the way Instagram used to. Carousels and the stories row still slide as before. It starts off. Asked for in #639.
 * `Hide links`, new with the other profile banner switches under Profiles, takes the row of links (a website or a business's links) from under the bio on other people's profiles. Yours keeps it. Asked for in #627.
 * `Send saved GIFs as GIFs`, new under Comments, posts a GIF you saved with `Save comment photo` as a GIF when you pick it from your gallery in a comment. Instagram sent it as a still. Asked for in #402.
 
@@ -26,11 +28,22 @@ Every HushGram release, newest first.
 * With `Accent color` and `Icons in the accent color` on, the tab bar icons keep the picked color on Reels and after you leave it. They turned white on Reels and stayed white back on Home. Reported in #663.
 * Tapping a comment someone shared with you in a chat opens the reel it was on, not another reel that loaded first. It's part of `Open reel links on that reel`. Reported in #662.
 * When Instagram itself lets you swipe through the reels a chat shared, with `Swipe through a chat's reels` off, a reply or reaction now goes to the reel you're watching, not the one you tapped. Reported in #662.
-* With `Glass tab bar` off and `Slide across the tabs` on, dragging along the lower edge of a reel's seek bar seeks again. That edge sits over the tab bar, so the drag used to slide across the tabs instead. Reported in #526.
+* With `Glass tab bar` off, dragging along the lower edge of a reel's seek bar seeks again. That edge sits over the tab bar, so the drag used to press a tab or slide across the tabs instead. Reported in #526.
+* With a `Seek bar shape` picked, a reel's seek bar shows the whole shape. The wave and the tall handle got cut off at the top and bottom, and so did the bar while you held it. Reported in #450.
+* With `See-through top bar` on, the frosted strip behind the status bar fades out into Home's feed once the top bar slides away. It ended in a hard line. Reported in #450.
+* With `Page dots on a pill` and `Peek at the next carousel page` on, the pill stays at one height under a square or tall carousel's pages. It jumped up whenever you swiped to a video. Reported in #450.
+* With `Glass tab bar` on, tapping a reel's More button or audio square right above the seek bar opens it again instead of seeking. Only a press on the bar itself goes to the seek bar now.
+* With `Keep playing in the background` on, a video story that ends while Instagram is in the background moves on to the next story and plays it. It used to stop there with nothing playing. Only one story plays at a time, and a story you paused stays paused. Reported in #497.
+* `Hide lives in Reels` also catches the lives Instagram adds to the Reels tab after a page has loaded, so they stop turning up between reels. Reported in #566.
+* Tapping Stop on the background playback notification lets the video's player go once. If Instagram let it go during Stop's pause, HushGram let it go a second time.
+* With `Keep playing in the background` on, a reel that hands over to the next one while Instagram is hidden lets go of the old player right away. The new one keeps playing.
 * The glass tab bar costs less on Reels. It stopped asking for frames of its own between the reel's, and on Android 14 and newer copying the reel behind the pill no longer holds up the screen. Reported in #672.
 * With `Badges in the accent color` on, the unread dot on the Primary and Requests chips at the top of Messages takes your accent color too. It kept Instagram's own color there. Reported in #671.
 * With `Burn-in guard` set to `Dim when idle and shift`, the thin strip the screen leaves when it moves a step is black now. In light mode it showed as a white line along an edge. Reported in #669.
 * `Swipe left to open the profile` works on reels opened outside the Reels tab, like from someone's profile, so hiding the Reels tab doesn't turn it off. A right swipe closes the profile. Reported in #596.
+* With a floating `Glass tab bar` and three-button navigation, the pill stays above the buttons when you come back to Instagram from another screen. It could sink down into the navigation bar and stay there.
+* Opening `Pause and diagnostics` on its own page no longer freezes Instagram. It hung whenever HushGram wasn't paused or locked.
+* With `Pure black` and `Classic colors` or `Backgrounds in the accent color` both on in dark mode, the rows in a post's Likes list match the sheet behind them. They stayed black. Reported in #639.
 
 ## 0.0.20 (2026-11-12)
 

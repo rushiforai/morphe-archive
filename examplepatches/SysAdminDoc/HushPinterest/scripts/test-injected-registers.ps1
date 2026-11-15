@@ -627,17 +627,17 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
-    Assert-True ($families.Count -eq 34) 'Every one of the 34 installed families needs a compiled contract.'
-    # A family with no capability changes only the manifest, and only these two may.
+    Assert-True ($families.Count -eq 37) 'Every one of the 37 installed families needs a compiled contract.'
+    # A family with no capability is applied whole when patching or fails the patch, and only these three are.
     $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
-    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in have no capability, not: $($manifestOnly -join ', ')"
+    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature,changePackageName') "Only Remove ad tracking permissions, Spoof signature for Google sign-in and Change package name have no capability, not: $($manifestOnly -join ', ')"
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
         ForEach-Object { $_.Groups[1].Value } | Sort-Object)
     Assert-True (($declaredFlags -join "`n") -ceq ($sourceFlags -join "`n")) 'Compiled contracts and production installed/capability flags differ.'
     $mutationCaps = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('mutation|') } |
-        ForEach-Object { ($_ -split '\|')[1] -split ',' } | Where-Object { $_ -ne 'settings' } | Sort-Object)
+        ForEach-Object { ($_ -split '\|')[1] -split ',' } | Where-Object { $_ -ne 'settings' -and $manifestOnly -cnotcontains $_ } | Sort-Object)
     $familyCaps = @($families | ForEach-Object { $_.Caps } | Sort-Object)
     Assert-True (($mutationCaps -join "`n") -ceq ($familyCaps -join "`n")) 'A capability has no mutation rule or has duplicated ownership.'
     Invoke-Checked -Program $Java -Arguments @('-cp', $classPath, 'FeatureDexFixture', $dexDir, $featureContracts) `

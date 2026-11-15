@@ -21,9 +21,11 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 
@@ -88,8 +90,11 @@ private const val GMS_CORE_MAX_APK_VERSION = 252400000
 /** Google Play services availability checks, which verify the signature of the Play services package. */
 private const val PLAY_SERVICES_UTIL = "Lcom/google/android/gms/common/GooglePlayServicesUtilLight;"
 
-/** Sends every Google Play services call of the app to GmsCore and makes GmsCore pass the availability checks. */
-fun BytecodePatchContext.redirectToGmsCore() {
+/**
+ * Sends every Google Play services call of the app to GmsCore and makes GmsCore pass the availability checks.
+ * [signature] is the SHA-1 of the app's own signing certificate, which Firebase gets in place of the patched app's.
+ */
+fun BytecodePatchContext.redirectToGmsCore(signature: String) {
     val replacements = buildMap {
         put("com.google", GMS_CORE_VENDOR)
         put("com.google.android.gms", "$GMS_CORE_VENDOR.android.gms")
@@ -128,6 +133,46 @@ fun BytecodePatchContext.redirectToGmsCore() {
             "ensurePlayServicesAvailable" -> method.addInstructions(0, "return-void")
         }
     }
+
+    spoofFirebaseCertificate(signature.uppercase())
+}
+
+/**
+ * Push needs a Firebase installation first, and Google only issues one when the request names the certificate the
+ * app's API key is bound to. The patched app is signed with another key, so the request is refused with 403, the
+ * FCM token is never fetched and no notification arrives. The "X-Android-Cert" header gets the app's own certificate
+ * [sha1] instead. Firebase names the header with a string constant and passes it straight to URLConnection, so the
+ * value register is found from that call, whatever the obfuscated class around it is called.
+ */
+private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
+    val holders = mutableListOf<ClassDef>()
+    classDefForEach { classDef ->
+        if (classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.stringConstant() == "X-Android-Cert" } == true
+            }) holders += classDef
+    }
+    var spoofed = 0
+    holders.forEach { classDef ->
+        mutableClassDefBy(classDef).methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            code.indices.reversed().forEach { index ->
+                if (code[index].stringConstant() != "X-Android-Cert") return@forEach
+                val name = (code[index] as OneRegisterInstruction).registerA
+                val call = (index + 1 until minOf(index + 6, code.size)).firstOrNull { at ->
+                    val instruction = code[at]
+                    val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    instruction is FiveRegisterInstruction && instruction.registerCount == 3 &&
+                        instruction.registerD == name &&
+                        target?.definingClass == "Ljava/net/URLConnection;" &&
+                        target.name.endsWith("RequestProperty")
+                } ?: return@forEach
+                val value = (code[call] as FiveRegisterInstruction).registerE
+                method.addInstructions(call, "const-string v$value, \"$sha1\"")
+                spoofed++
+            }
+        }
+    }
+    if (spoofed == 0) throw PatchException("Firebase certificate header not found")
 }
 
 /**

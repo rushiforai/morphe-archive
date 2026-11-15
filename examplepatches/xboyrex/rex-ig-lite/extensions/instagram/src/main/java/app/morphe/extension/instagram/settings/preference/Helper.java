@@ -2,24 +2,30 @@
  * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
- */
+*/
+
 
 package app.morphe.extension.instagram.settings.preference;
 
 import android.app.Activity;
 import android.content.Context;
 import android.preference.Preference;
+import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BooleanSupplier;
 
+import app.morphe.extension.instagram.patches.ReelsPlayback;
 import app.morphe.extension.instagram.patches.dm.InboxLock;
+
 import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
 import app.morphe.extension.instagram.settings.preference.widgets.ListPref;
 import app.morphe.extension.instagram.settings.preference.widgets.LikeAnimationPreference;
 import app.morphe.extension.instagram.settings.preference.widgets.ButtonPref;
 import app.morphe.extension.instagram.settings.preference.widgets.EditTextPref;
 import app.morphe.extension.instagram.settings.preference.widgets.DownloadFileNameTemplatePref;
-import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
 import app.morphe.extension.instagram.settings.preference.widgets.MultiSelectListPref;
 import app.morphe.extension.instagram.settings.preference.widgets.NavigationBarPreference;
 import app.morphe.extension.instagram.settings.preference.widgets.NavigationStartupPreference;
@@ -30,15 +36,43 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.Logger;
 
 import app.morphe.extension.rex.sharedPreference.SharedPref;
-import app.morphe.extension.rex.settings.BooleanSetting;
-import app.morphe.extension.rex.settings.StringSetting;
-import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
+import app.morphe.extension.instagram.settings.BooleanSetting;
+import app.morphe.extension.instagram.settings.StringSetting;
+
+import  app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
 
 public class Helper {
     private final Context context;
+    private final Map<Preference, BooleanSupplier> availabilityConditions = new LinkedHashMap<>();
 
     public Helper(Context context) {
         this.context = context;
+    }
+
+    public Preference availableWhen(Preference preference, BooleanSupplier condition) {
+        availabilityConditions.put(preference, condition);
+        updateAvailability(preference, condition.getAsBoolean());
+        return preference;
+    }
+
+    public void updateDependencies(PreferenceScreen screen) {
+        if (screen == null) return;
+
+        for (Map.Entry<Preference, BooleanSupplier> entry : availabilityConditions.entrySet()) {
+            Preference preference = entry.getKey();
+            if (screen.findPreference(preference.getKey()) == preference) {
+                updateAvailability(preference, entry.getValue().getAsBoolean());
+            }
+        }
+    }
+
+    private static void updateAvailability(Preference preference, boolean enabled) {
+        // Only presentation changes; the saved child value returns when its parent is enabled.
+        if (preference instanceof SwitchPref) {
+            ((SwitchPref) preference).setSwitchInteractionEnabled(enabled);
+        } else {
+            preference.setEnabled(enabled);
+        }
     }
 
     public Preference switchPreference(String title, String summary, BooleanSetting setting) {
@@ -47,20 +81,17 @@ public class Helper {
         preference.setSummary(summary);
         preference.setKey(setting.key);
         preference.setDefaultValue(setting.defaultValue);
-        if (Settings.AMOLED_THEME.key.equals(setting.key)) {
-            preference.setSwitchInteractionEnabled(
-                    MaterialYouTheme.canEnableAmoled(context)
-            );
-        }
         return preference;
     }
 
-    public Preference switchPreference(String title, String summary, BooleanSetting setting, String svgIconPath) {
-        Preference pref = switchPreference(title, summary, setting);
-        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
-        return pref;
-    }
-
+    /**
+     * A switch whose value is currently forced on by another feature.
+     *
+     * When {@code forced} the switch is shown checked and non-interactive with
+     * {@code forcedSummary}, without writing to the stored value, so the user's own choice
+     * returns once the feature releases it.
+     * Not specific to any patch: any feature that overrides a setting can use it.
+     */
     public Preference forcedSwitchPreference(
             String title,
             String summary,
@@ -72,24 +103,13 @@ public class Helper {
         if (forced && preference instanceof SwitchPref) {
             SwitchPref switchPreference = (SwitchPref) preference;
             switchPreference.setPersistent(false);
+            // Attaching the preference initializes it from the default value, which would undo
+            // setChecked(true), so the default has to be true as well while it is forced.
             switchPreference.setDefaultValue(Boolean.TRUE);
             switchPreference.setChecked(true);
             switchPreference.setSwitchInteractionEnabled(false);
         }
         return preference;
-    }
-
-    public Preference forcedSwitchPreference(
-            String title,
-            String summary,
-            BooleanSetting setting,
-            boolean forced,
-            String forcedSummary,
-            String svgIconPath
-    ) {
-        Preference pref = forcedSwitchPreference(title, summary, setting, forced, forcedSummary);
-        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
-        return pref;
     }
 
     public Preference listPreference(String title, String summary, StringSetting setting) {
@@ -104,12 +124,6 @@ public class Helper {
         return preference;
     }
 
-    public Preference listPreference(String title, String summary, StringSetting setting, String svgIconPath) {
-        Preference pref = listPreference(title, summary, setting);
-        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
-        return pref;
-    }
-
     public ButtonPref buttonPreference(String title, String summary, String setting) {
         ButtonPref preference = new ButtonPref(context);
         preference.setTitle(title);
@@ -118,45 +132,18 @@ public class Helper {
         return preference;
     }
 
-    public ButtonPref buttonPreference(String title, String summary, String setting, String svgIconPath) {
-        ButtonPref pref = buttonPreference(title, summary, setting);
-        pref.setLeftVectorIcon(svgIconPath);
-        return pref;
-    }
-
-    public ButtonPref actionButtonPreference(String title, String summary, String svgIconPath, Runnable action) {
-        ButtonPref pref = new ButtonPref(context);
-        pref.setTitle(title);
-        pref.setSummary(summary);
-        pref.setLeftVectorIcon(svgIconPath);
-        if (action != null) {
-            pref.setCustomClickAction(action);
-        }
-        return pref;
-    }
-
-    public ButtonPref linkButtonPreference(String title, String summary, String leftSvgPath, String rightSvgPath, Runnable action) {
-        ButtonPref pref = actionButtonPreference(title, summary, leftSvgPath, action);
-        if (rightSvgPath != null) {
-            pref.setRightVectorIcon(rightSvgPath);
-        }
-        return pref;
-    }
-
     public Preference categoryPreference(String title, String summary, String setting) {
         ButtonPref preference = buttonPreference(title, summary, setting);
-        preference.setPressedHighlightEnabled(true);
-        return preference;
-    }
-
-    public Preference categoryPreference(String title, String summary, String setting, String svgIconPath) {
-        ButtonPref preference = buttonPreference(title, summary, setting, svgIconPath);
+        // Among rows with a chevron (>), only top-level xboyrex categories get a pressed highlight.
+        // Other chevron rows keep the chevron without a pressed highlight.
         preference.setPressedHighlightEnabled(true);
         return preference;
     }
 
     public Preference navigationBarPreference(String title, String summary) {
         NavigationBarPreference preference = new NavigationBarPreference(context);
+        preference.setPersistent(false);
+        preference.setKey("rex_navigation_tabs");
         preference.setTitle(title);
         preference.setSummary(summary);
         preference.setSingleLineTitle(false);
@@ -165,6 +152,7 @@ public class Helper {
 
     public Preference navigationStartupPreference(String title, String summary) {
         NavigationStartupPreference preference = new NavigationStartupPreference(context);
+        preference.setKey("rex_navigation_startup_tab");
         preference.setTitle(title);
         preference.setDialogTitle(title);
         preference.setSummary(summary);
@@ -182,22 +170,10 @@ public class Helper {
         return preference;
     }
 
-    public Preference editTextPreference(String title, String summary, StringSetting setting, String svgIconPath) {
-        Preference pref = editTextPreference(title, summary, setting);
-        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
-        return pref;
-    }
-
     public Preference editTextNumPreference(String title, String summary, StringSetting setting) {
-        EditTextPref preference = (EditTextPref) editTextPreference(title, summary, setting);
+        EditTextPref preference = (EditTextPref)editTextPreference(title,summary,setting);
         preference.setNumericOnly(true);
         return preference;
-    }
-
-    public Preference editTextNumPreference(String title, String summary, StringSetting setting, String svgIconPath) {
-        Preference pref = editTextNumPreference(title, summary, setting);
-        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
-        return pref;
     }
 
     public Preference downloadFileNameTemplatePreference(
@@ -241,9 +217,11 @@ public class Helper {
                     if (Settings.MATERIAL_YOU_THEME.key.equals(key)) {
                         return MaterialYouTheme.requestMaterialYouChange(context, val);
                     }
-                    boolean inboxLockKey = Settings.INBOX_LOCK.key.equals(key)
-                            || Settings.INBOX_LOCK_NOTIFICATIONS.key.equals(key);
-                    if (inboxLockKey && !val && InboxLock.mustConfirmToDisable() && context instanceof Activity) {
+                    boolean lockedKey = Settings.INBOX_LOCK.key.equals(key)
+                            || Settings.INBOX_LOCK_NOTIFICATIONS.key.equals(key)
+                            || Settings.HIDDEN_CHATS.key.equals(key);
+                    if (lockedKey && !val && InboxLock.mustConfirmToDisable() && context instanceof Activity) {
+                        // Reject for now; the switch turns off once the device lock confirms it, so cancelling can't bypass the lock.
                         InboxLock.confirm((Activity) context, () -> {
                             if (setValue(preference, newValue)) ((SwitchPreference) preference).setChecked(false);
                         });
@@ -252,9 +230,9 @@ public class Helper {
                     saved = SharedPref.setBooleanPref(key, val);
                 } else if (newValClass.equals("String")) {
                     String val = (String) newValue;
-                    if (key.contains("_")) {
+                    if(key.contains("_")) {
                         saved = SharedPref.setStringPref(key, val);
-                    } else {
+                    }else{
                         saved = FlagsSharedPref.setStringPref(key, val);
                     }
                 } else if (newValClass.equals("HashSet")) {
@@ -262,7 +240,10 @@ public class Helper {
                 }
 
                 if (saved) {
-                    SettingsRestart.markChanged(previousValue, newValue);
+                    if (Settings.RESUME_REELS_AFTER_SCROLLING.key.equals(key)) {
+                        ReelsPlayback.onSettingChanged();
+                    }
+                    SettingsRestart.markChanged(key, previousValue, newValue);
                 }
                 return saved;
             }

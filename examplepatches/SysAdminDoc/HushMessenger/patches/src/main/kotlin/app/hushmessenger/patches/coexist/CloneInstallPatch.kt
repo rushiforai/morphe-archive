@@ -50,6 +50,11 @@ import org.w3c.dom.Element
 internal const val CLONE_PATCH_NAME = "Clone install under another package name"
 internal const val CLONE_DEFAULT_PACKAGE = "com.facebook.orca.hush"
 internal const val CLONE_DEFAULT_LABEL = "Messenger Clone"
+/**
+ * Morphe Manager treats a patched app as a clone (its Clone chip, its own card and repatch target) only when a selected
+ * patch has an option keyed exactly this (PatchRunTargeting.kt `producesClone`, `PACKAGE_NAME_OPTION_KEY`).
+ */
+internal const val CLONE_PACKAGE_OPTION = "packageName"
 /** The string resource the clone's app name and launcher icons point at. */
 internal const val CLONE_LABEL = "hush_clone_label"
 private const val ORIGINAL = MessengerTarget.PACKAGE
@@ -598,7 +603,7 @@ val cloneInstallPatch = bytecodePatch(
     dependsOn(installBesideMetaAppsPatch, cloneResources)
 
     val packageName by stringOption(
-        key = "clonePackageName",
+        key = CLONE_PACKAGE_OPTION,
         default = CLONE_DEFAULT_PACKAGE,
         title = "Package name",
         description = "The copy's unique app ID, like com.facebook.orca.hush. Use words joined by dots, each starting with a letter. It can't match Messenger or another Meta app.",

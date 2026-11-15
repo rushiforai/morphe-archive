@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/toidicakhia/morphe-app-patches/compare/v1.7.0...v1.7.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* **vtvgo:** update patches for VTVGo 12.11.13 ([5d60f23](https://github.com/toidicakhia/morphe-app-patches/commit/5d60f23ce6e991d2b67b6218214fa5f029db0c4a))
+
 ## [1.7.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.6.0...v1.7.0) (2026-11-13)
 
 ### 🐛 Bug Fixes

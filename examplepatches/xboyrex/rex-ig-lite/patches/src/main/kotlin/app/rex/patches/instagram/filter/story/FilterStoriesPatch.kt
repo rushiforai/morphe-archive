@@ -13,14 +13,14 @@ import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.Constants.PATCHES_DESCRIPTOR
 import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 // Heavily based on @brosssh work.
 // https://github.com/brosssh/instagram-morphe-patches-library/blob/dev/patch-library/src/main/kotlin/app/morphe/library/instagram/patches/FilterStoriesListPatch.kt
 
 @Suppress("unused")
 val filterStoriesPatch =
-    bytecodePatch(
+    patch(
         name = "Filter stories",
         description = "Filter stories to hide based on different categories",
         default = true,
@@ -28,8 +28,9 @@ val filterStoriesPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(settingsPatch, reelResponseItemEntity, userDataEntity)
         execute {
+            runCatching {
 
-            PopulateStoryTrayFingerprint.matchAll(1..1).single().method.apply {
+            PopulateStoryTrayFingerprint.method.apply {
                 // The JSON parser is shared with profile highlights. Filter only the story tray
                 // after decoding, including cached responses, tail loads and the Following tray.
                 addInstructions(
@@ -40,6 +41,8 @@ val filterStoriesPatch =
                     """.trimIndent(),
                 )
                 enableSettings("storyFilters")
+            }
+        
             }
         }
     }

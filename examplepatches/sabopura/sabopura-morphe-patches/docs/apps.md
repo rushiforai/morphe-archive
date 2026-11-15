@@ -214,6 +214,19 @@ a logged-out launch on the API 36 emulator; the patched DEX has the same ten cal
 2026.43.0 for 2026.44.0, and twelve for 2026.40.0 (six post). The patch now fails when the
 post, comment or post-detail path matches nothing, instead of only when all paths miss.
 
+`2026.45.0[2645001]` applied without changes and passed the same logged-out launch on the API 36
+emulator; its patched DEX has the same ten call sites as 2026.44.0 (four post, two comment, one
+accessibility comment, two post detail and the extension's own queue), with the post-detail hooks
+in the same named composable. The official Morphe patches then moved their newest target to
+2026.45.0, so 2026.44.0 is no longer supported (its anchors stay in the patch).
+
+`2026.46.0[2646001]`, the newest store version, applied without changes and passed the same
+logged-out launch on the API 36 emulator (sign-in screen, no fatal log). Its patched DEX has the
+same ten call sites as 2026.45.0, and each hooked class has the same constructor signatures and
+size as its 2026.45.0 counterpart (two post callbacks, two comment callbacks and the
+accessibility comment callback; the post-detail hooks stay in the same named composable).
+2026.45.0 stays supported as the official Morphe patches' newest target.
+
 Reddit fingerprints use stable translation state/event descriptors. Obfuscated
 callback classes, model classes, field names, and synthetic-lambda selector
 numbers are derived from each target APK at patch time. Missing UI variants are
@@ -317,15 +330,30 @@ While it is turned on (and its player button shows comments), Danmaku leaves liv
 neither fetches nor draws the chat a second time; with "Live chat and timestamped comments" it
 still adds the timestamped regular comments. Regular videos are unaffected.
 
+Danmaku also applies together with the official patches' default selection, as Morphe Manager
+applies them. The official patches insert one video id hook per feature right after YouTube reads
+the id (twelve in 2.2.0), so Danmaku follows the id from the player-map write back to that read
+instead of expecting the write within a few instructions. Before 1.18.3 this combination stopped
+the whole patching run. Verified with the official patches 2.2.0 on 21.30.216 and 21.45.82 on the
+API 36 emulator (all default patches except GmsCore support, which needs MicroG): comments were
+fetched and drawn, and every official id hook still receives the same id.
+
 Rendering records each comment once into a hardware display list (RenderNode) and only moves
 it per frame, draws only the comments currently on screen, and stops its frame loop while the
 video is paused or buffering and between sparse comments.
 
 Verification: for every added YouTube version a public replay is opened on the API 36
 emulator and the danmaku overlay must attach, fetch comments and draw them. 21.40.165,
-21.40.166, 21.41.526, 21.41.529, 21.42.243, 21.43.523, 21.44.528, and the official Morphe targets
-21.20.405, 21.30.216 and 21.42.241 passed this check (21.20.405 and 21.42.241 are no longer
-supported), 21.30.216, 21.43.523 and 21.44.528 also with the watch page tinted by ambient light.
+21.40.166, 21.41.526, 21.41.529, 21.42.243, 21.43.523, 21.44.528, 21.44.534, 21.44.535, 21.45.82,
+21.45.88, 21.45.90, and the official Morphe targets 21.20.405, 21.30.216 and 21.42.241 passed this
+check, 21.30.216, 21.43.523, 21.44.528, 21.44.534, 21.44.535, 21.45.82, 21.45.88 and 21.45.90 also
+with the watch page tinted by ambient light. 21.44.528 was checked again when the official Morphe
+patches made it their newest target.
+21.45.82 renamed the player overlay wrapper's no-argument setup call (`i()` to `k()`), so the overlay
+hook now matches that call by owner and shape instead of by name. The official Morphe patches 2.2.0
+made 21.45.82 their newest target, so 21.44.528 was retired. 21.45.88 and 21.45.90 applied without
+changes; 21.45.90 replaced 21.45.88 as the newest store version. Of these, only 21.30.216, 21.45.82
+and 21.45.90 are still supported.
 The check starts from cleared app data, because a danmaku switch left off by an earlier run hides
 the patch, and it skips pre-roll ads and waits until comments are drawn. The emulator build needs a test-only startup shim that is applied
 after patching and never enters the MPP. On the emulator, YouTube's stream protection rejects the
@@ -359,8 +387,8 @@ the patched methods were also checked by decompiling the output (in 14.40.0 the
 `is_promoted` getter returns `false`). 14.41.0 applied without changes; it launched to the
 sign-in screen without crashes, and the output DEX has the `is_promoted` getter returning
 `false`, Bugsnag's release stage check returning `true` and the 14 startup task tags
-skipped. 14.42.0 applied without changes and passed the same launch and DEX checks. Feed
-behaviour after login was not verified.
+skipped. 14.42.0, 14.43.0 and 14.44.0 applied without changes and passed the same launch and DEX
+checks (14.41.0 and 14.42.0 are no longer supported). Feed behaviour after login was not verified.
 
 ## pixiv
 
@@ -387,8 +415,17 @@ checked in the output, and on the API 36 emulator the unpatched app logged AppLo
 Pangle at launch while the patched app logged none, with no fatal errors. 6.202.1 also
 applied without changes, with the same result: only the four intended methods changed,
 and the unpatched app logged AppLovin and Pangle at launch while the patched app logged
-none, with no fatal errors. 6.200.0 was retired once 6.202.1 was verified. Ad slots
-after login were not verified.
+none, with no fatal errors. 6.200.0 was retired once 6.202.1 was verified. 6.203.0 also
+applied without changes: only the four intended methods changed, and the patched app reached
+the welcome screen without fatal errors. Once, on a slow emulator start, AppLovin logged that it
+could not read the advertising ID: `com.applovin.sdk.AppLovinInitProvider` (a manifest provider
+inside the SDK, unchanged since 6.202.1) starts a data collector at process start even though the
+SDK is never initialized; the patched 6.202.1 behaves the same, and neither logs postbacks or the
+SDK thread pool as the unpatched app does. 6.203.0 also adds a second interstitial path (opening a
+work from a list) that reads its own copy of the `!isPremium` check; it is currently switched off by
+two constant flags in the app, and with `Disable pixiv ad SDKs` AppLovin is never initialized, so it
+cannot load an ad. If a later version turns it on, `Hide pixiv ads` alone will need to cover it.
+6.201.0 was retired once 6.203.0 was verified. Ad slots after login were not verified.
 
 ## Google News
 
@@ -442,6 +479,12 @@ output. On API 36 the patched app (with and without `GmsCore support`) launched 
 fatal errors in airplane mode; online the build without `GmsCore support` reached its home
 screen and the emulator then exited as with 5.168, also with the stock 5.170 and with 5.168.
 
+5.171 applied without changes; only the four intended methods changed (both browser pickers
+return the extension's choice, both device-account methods return an empty list). On API 36 the
+patched app (`Enable CustomTabs` and `Disable device account notification sync`) reached its home
+screen online without fatal errors, and this time the emulator kept running. 5.168 was retired once
+5.171 was verified.
+
 ## Sankaku App
 
 Rewrite of "Disable Infinite Upgrade Popup" from HellveticaPatches 1.1.3
@@ -471,4 +514,8 @@ entries and the footer changed, the hermes-dec disassembly of the patched
 functions is as intended, and the patched native method returns the asset URL.
 4.27 and 4.28 were installed and launched on the API 36 emulator without fatal errors
 (4.28 also past the welcome screen to Browse); the popup timing itself was not exercised.
+4.29 (rc103, Hermes bytecode 98) was checked the same way: the byte diff shows only the three
+function entries and the footer (recomputed correctly), the native method returns
+`assets://index.android.bundle`, and the app launched to Browse without fatal errors. 4.27 was
+retired once 4.29 was verified.
 

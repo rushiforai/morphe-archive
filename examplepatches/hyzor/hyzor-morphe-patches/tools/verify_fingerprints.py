@@ -27,13 +27,16 @@ MARKERS = {
     "NYT Games": "Lcom/nytimes/games/",
     "Duolingo": "Lcom/duolingo/",
     "Nova Launcher": "Lcom/teslacoilsw/launcher/",
+    "FolderSync": "Ldk/tacit/",
+    "Projectivy Launcher": "Lcom/spocky/projengmenu/",
+    "Solid Explorer": "Lpl/solidexplorer/licensing/",
 }
 
 # App -> (class descriptor, method name) -> (return type, required, patch, description)
 TARGETS = {
     "Sleep as Android": {
         ("Lcom/urbandroid/sleep/TrialFilter;", "isTrial"):
-            ("Z", True, "Enable Premium", "the paywall; 58 call sites and isTrialExpired()"),
+            ("Z", True, "Enable Premium", "the paywall; 64 external call sites and isTrialExpired()"),
         ("Lcom/urbandroid/sleep/TrialFilter;", "hasUnlock"):
             ("Z", True, "Enable Premium", "drawer / unlock UI"),
         ("Lcom/urbandroid/common/util/PreferencesUtils;", "isUnlockAcked"):
@@ -47,46 +50,48 @@ TARGETS = {
         ("Lcom/urbandroid/common/util/PreferencesUtils;", "isCloudPremiumStatusUnknown"):
             ("Z", False, "Enable Cloud Premium", "cloud state unresolved sentinel"),
     },
-    # SnoreLab 2.33.5.7814:
-    #   vp.h.q()          remotePremiumActive getter (the class has three ()Z getters,
-    #                     so the patch pins the obfuscated method name too)
-    #   mp.d.p(Lh80/g;)   premium expiration-date check in the local premium source
+    # SnoreLab 2.33.7.7953:
+    #   up.h.q()          remotePremiumActive getter (the class has three ()Z getters,
+    #                     so the patch pins the obfuscated method name too). Moved from
+    #                     vp.h in 2.33.5.7814; the fingerprint's string anchors do not care.
+    #   mp.d.p(Lg80/g;)   premium expiration-date check in the local premium source
     "SnoreLab": {
-        ("Lvp/h;", "q"):
+        ("Lup/h;", "q"):
             ("Z", True, "Enable Premium", "remotePremiumActive getter"),
         ("Lmp/d;", "p"):
             ("Z", True, "Enable Premium", "premium expiry check"),
     },
-    # NYT Games 6.48.0:
+    # NYT Games 6.50.0:
     #   SubauthEntitlementClientImpl  the subauth bridge; class is not obfuscated but all of
     #                                 its members are one letter. P() = isSubscribedForGames,
-    #                                 E() = isSubscribedAndLinked, K() = isSubscribedViaGooglePlay,
+    #                                 D() = isSubscribedAndLinked, J() = isSubscribedViaGooglePlay,
     #                                 R() = hasUnlinkedSubscription (see the in-app dev settings).
-    #                                 Only P() reads NYTUserState.f, which the patch's
-    #                                 IGET_BOOLEAN filter relies on.
+    #                                 Only P() executes an iget-boolean (of NYTUserState.f),
+    #                                 which the patch's IGET_BOOLEAN filter relies on. The
+    #                                 letters move: 6.48.0 had E()/K() for the linked/Play checks.
     "NYT Games": {
         ("Lcom/nytimes/games/integrations/subauth/library/SubauthEntitlementClientImpl;", "P"):
-            ("Z", True, "Unlock Subscription", "isSubscribedForGames; only boolean read of NYTUserState.f"),
+            ("Z", True, "Unlock Subscription", "isSubscribedForGames; only iget-boolean of NYTUserState.f"),
         ("Lcom/nytimes/games/designsystem/theme/ExtendedColorsKt;", "<clinit>"):
             ("V", True, "AMOLED Black", "static light/dark palette; dark greys rewritten to #000000"),
     },
-    # Nova Launcher 8.9.6 (versionName "89600 (8.9.6)"):
-    #   qx.b1.b()                    the static "is Prime or Prime APK" gate (17 callers);
+    # Nova Launcher 8.9.7 (versionName "89700 (8.9.7)"):
+    #   ix.i1.b()                    the static "is Prime or Prime APK" gate (17 callers);
     #                                the patch replaces its body with return true
-    #   j10.h2.a(SharedPreferences)  derives Prime (j10.h2.h) from the persisted "1" value;
+    #   b10.k2.a(SharedPreferences)  derives Prime (b10.k2.h) from the persisted "1" value;
     #                                the patch overwrites the getInt() result with 0x200
-    #   gy.d0.w(Context)             active-subscription check, which also gates the Play
+    #   xx.b0.w(Context)             active-subscription check, which also gates the Play
     #                                licence revocation path; the patch returns true
     # The class and method names are obfuscated and change with every release. They are pinned
     # here only as a fast exact-name pre-check; the fingerprints themselves match instruction
     # shapes (field access, literal sequence, string + opcode). Re-resolve all three when
     # bumping the supported version.
     "Nova Launcher": {
-        ("Lqx/b1;", "b"):
+        ("Lix/i1;", "b"):
             ("Z", True, "Enable Prime", "static isPrime gate"),
-        ("Lj10/h2;", "a"):
+        ("Lb10/k2;", "a"):
             ("V", True, "Enable Prime", "prime state initialiser"),
-        ("Lgy/d0;", "w"):
+        ("Lxx/b0;", "w"):
             ("Z", True, "Enable Prime", "active-subscription check"),
     },
     # Duolingo 6.104.3:
@@ -105,6 +110,48 @@ TARGETS = {
             ("V", True, "Unlimited RampUp time", "timer state keeps the remaining seconds"),
         ("Lcom/duolingo/data/session/state/RampupTimerState$Tick;", "<init>"):
             ("V", True, "Unlimited RampUp time", "per-second tick state"),
+    },
+    # FolderSync 4.14.0:
+    #   VersionFeaturesConfig(...Z...)  the data class whose second field is isPaidVersion;
+    #                                   every premium/ad consumer reads it, and the billing
+    #                                   flow rebuilds it, so the patch forces the constructor
+    #                                   argument instead of the preference
+    #   getPremiumVersionPurchased()Z   the "premium_version" preference read; seeds the initial
+    #                                   config and backs the direct readers (ads, About screen)
+    "FolderSync": {
+        ("Ldk/tacit/foldersync/services/VersionFeaturesConfig;", "<init>"):
+            ("V", True, "Unlock Premium", "isPaidVersion store; single 4-arg constructor"),
+        ("Ldk/tacit/foldersync/services/AppPreferenceManager;", "getPremiumVersionPurchased"):
+            ("Z", True, "Unlock Premium", "the \"premium_version\" preference"),
+    },
+    # Projectivy Launcher 4.73:
+    #   PTApplication.<init>   seeds the Boolean StateFlow with Boolean.TRUE ("locked");
+    #                          the patch swaps that one constant for FALSE
+    #   PTApplication.d(Z)     the only later writer (billing + startup re-check); the patch
+    #                          makes it return immediately. The name is obfuscated and moves
+    #                          with the release, so it is pinned here only as a fast exact-name
+    #                          pre-check; the real fingerprint matches the (Z)V shape plus the
+    #                          cj3.l / PTApplication.x / ze4.h accesses.
+    "Projectivy Launcher": {
+        ("Lcom/spocky/projengmenu/PTApplication;", "<init>"):
+            ("V", True, "Unlock Premium", "premium StateFlow seed (Boolean.TRUE)"),
+        ("Lcom/spocky/projengmenu/PTApplication;", "d"):
+            ("V", True, "Unlock Premium", "licence re-check writer"),
+    },
+    # Solid Explorer 3.6.4:
+    #   LicenseDetails.<init>(LicenseState, String, Long, Long, String)V
+    #                          the immutable licence record and the one place the state is
+    #                          written; the patch rewrites it to PREMIUM_PRO while
+    #                          adsEnabled() reports the free tier. The state field is named
+    #                          `a` (R8), so the patch reads the name from that iput instead of
+    #                          hard-coding it.
+    #   LicenseDetails.adsEnabled()Z
+    #                          the free-tier anchor the hook branches on.
+    "Solid Explorer": {
+        ("Lpl/solidexplorer/licensing/LicenseDetails;", "<init>"):
+            ("V", True, "Enable Pro", "licence record; state field rewritten"),
+        ("Lpl/solidexplorer/licensing/LicenseDetails;", "adsEnabled"):
+            ("Z", True, "Enable Pro", "free-tier check used as the hook's condition"),
     },
 }
 
@@ -130,6 +177,30 @@ REQUIRED_PARAMS = {
         ("Lcom/duolingo/data/session/state/RampupTimerState$Tick;", "<init>"): [
             ["I"],
         ],
+    },
+    "FolderSync": {
+        ("Ldk/tacit/foldersync/services/VersionFeaturesConfig;", "<init>"): [
+            ["Ldk/tacit/foldersync/services/VersionIdentifier;", "Z", "I", "I"],
+        ],
+        ("Ldk/tacit/foldersync/services/AppPreferenceManager;", "getPremiumVersionPurchased"): [
+            [],
+        ],
+    },
+    "Projectivy Launcher": {
+        ("Lcom/spocky/projengmenu/PTApplication;", "<init>"): [[]],
+        ("Lcom/spocky/projengmenu/PTApplication;", "d"): [["Z"]],
+    },
+    "Solid Explorer": {
+        ("Lpl/solidexplorer/licensing/LicenseDetails;", "<init>"): [
+            [
+                "Lpl/solidexplorer/licensing/LicenseState;",
+                "Ljava/lang/String;",
+                "Ljava/lang/Long;",
+                "Ljava/lang/Long;",
+                "Ljava/lang/String;",
+            ],
+        ],
+        ("Lpl/solidexplorer/licensing/LicenseDetails;", "adsEnabled"): [[]],
     },
 }
 

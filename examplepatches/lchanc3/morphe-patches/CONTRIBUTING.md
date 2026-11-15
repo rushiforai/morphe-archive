@@ -37,7 +37,7 @@
 所以改完一定要跑：
 
 ```bash
-./gradlew verifyAgainstApk -Papk=JPTT_3.9.4.apk
+./gradlew verifyAgainstApk -Papk=JPTT_3.9.6.apk
 ```
 
 它會像 Manager 一樣把 bundle 套到 APK 上（不簽章、不安裝），每個 patch 印 ok 或 FAILED，
@@ -58,20 +58,25 @@
 
 ### 支援哪些版本
 
-每個 app 都只支援最新版。舊版不會再有新功能和修正，列著只會讓使用者回頭去找舊的 patch release，
-所以 app 一出新版、patch 都驗證過，就直接換過去，舊版從清單拿掉。
+新功能和修正一律只對最新版寫。舊版能不能繼續列，看 app 而定：
 
-- **JPTT：** 版本寫在 `jptt/shared/Constants.kt` 的 `LATEST_TARGET`，所有 patch 共用
-  `COMPATIBILITY_JPTT`。出新版時先對新版跑 `verifyAgainstApk`，全部 ok 就把 `LATEST_TARGET`
-  換成新版。
+- **JPTT：** 盡力支援。版本寫在 `jptt/shared/Constants.kt` 的 `VERIFIED_TARGETS`（新的在前），
+  所有 patch 共用 `COMPATIBILITY_JPTT`。出新版時先對新版跑 `verifyAgainstApk`，全部 ok 就把新版
+  加到最前面，舊版留著，也要對舊版各跑一次。舊版只要還套得上就繼續列，但不會為了舊版另外修；
+  某個 patch 套不上舊版時，給那個 patch 一個不含該版的 `Compatibility`。
+  3.9.2 以前的版本不列，PTT 十月改版後那些版本本身就不能用。
 - **Local Dream：** 有混淆，每版都要重新驗證，版本寫在 `localdream/shared/Constants.kt`。
+- **DMM VR動画プレイヤー：** Unity IL2CPP，Hand tracking 是把 ARM64 機器碼寫進 `libil2cpp.so` 的固定位置，
+  版本寫在 `dmmvr/shared/Constants.kt`。新版的位址全部會變，要重新找 hook 點，改
+  `scripts/dmmvr-hand-tracking/patch_handtrack.py` 後重新產生 `NativeCode.kt`（需要 capstone）。
+  patch 會比對原檔的 SHA-256，版本不對只會套用失敗。
 
 ## 取得 APK
 
 APK 不進版控（`*.apk`、`*.apks`、`*.xapk` 都已被 ignore）。從裝了 JPTT 的手機撈：
 
 ```bash
-adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.4.apk
+adb pull "$(adb shell pm path com.joshua.jptt | grep base.apk | sed 's/package://' | tr -d '\r')" JPTT_3.9.6.apk
 ```
 
 只需要 `base.apk`，其他 split 只有 native library、圖片資源和語系，patch 用不到。

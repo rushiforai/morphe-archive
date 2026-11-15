@@ -1,248 +1,255 @@
 <div align="center">
 
-<img src="assets/rex-banner.svg" alt="xboyrex Banner" width="100%" />
+# ⚡ `xboyrex` (`rex-ig-lite`) — v3.13.0
 
-<br/>
+**Unified Liquid Glass Instagram & X (Twitter) Morphe Patch Suite**  
+*Engineered by **ㅤᏞᴀᴢʏㅤᎷꫝʏᴀɴк まやんく** (`@xboyrex`)*
 
-# xboyrex (`rex-ig-lite`)
+[![Add to Morphe](assets/add-to-morphe.svg)](https://morphe.software/add-source?github=xboyrex/rex-ig-lite)
 
-**The Complete Unified Morphe Patch Suite for Instagram & X (Twitter)**  
-*Crafted with ❤️ by **Mayank** ([@xboyrex](https://github.com/xboyrex)) • Zero Bloat • Custom Vector UI/UX • Self-Contained `.mpp` Build*
-
-[![Build xboyrex .mpp](https://github.com/xboyrex/rex-ig-lite/actions/workflows/build.yml/badge.svg)](https://github.com/xboyrex/rex-ig-lite/actions/workflows/build.yml)
-[![Release xboyrex](https://github.com/xboyrex/rex-ig-lite/actions/workflows/release.yml/badge.svg)](https://github.com/xboyrex/rex-ig-lite/releases)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-EB4B64.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Telegram Channel](https://img.shields.io/badge/Telegram-@MayankDroid7-2CA5E0?logo=telegram)](https://t.me/MayankDroid7)
-[![Telegram Group](https://img.shields.io/badge/Support-@OnyxHub7-2CA5E0?logo=telegram)](https://t.me/OnyxHub7)
-
-<br/>
-
-<p align="center">
-  <a href="https://morphe.software/add-source?github=xboyrex/rex-ig-lite">
-    <img src="assets/add-to-morphe.svg" alt="Add to Morphe" height="48" />
-  </a>
-</p>
-
-[**➕ Add xboyrex to Morphe Manager**](https://morphe.software/add-source?github=xboyrex/rex-ig-lite)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-MayankDroid7-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/MayankDroid7)
+[![Telegram Group](https://img.shields.io/badge/Telegram-OnyxHub7-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/OnyxHub7)
+[![YouTube](https://img.shields.io/badge/YouTube-MayankDroid-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@mayankdroid?si=slX8DDU0dpLSIYyY)
+[![YouTube 2](https://img.shields.io/badge/YouTube-OnyxDroid89-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@onyxdroid89?si=9gxpZfa3bpI9PKku)
+[![Instagram](https://img.shields.io/badge/Instagram-@mayank.zx7-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/mayank.zx7)
+[![GitHub](https://img.shields.io/badge/GitHub-@xboyrex-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/xboyrex)
 
 </div>
 
 ---
 
-## 🕹️ Quick Setup in Morphe Manager
+## 🚀 One-Click Setup in Morphe Manager (`v2.5.0+`)
 
-1. Tap [**➕ Add xboyrex to Morphe Manager**](https://morphe.software/add-source?github=xboyrex/rex-ig-lite) above (or in Morphe Manager go to **Sources → `+` → Remote** and paste `https://github.com/xboyrex/rex-ig-lite` or `https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json`).
-2. Or download `patches-3.11.0.mpp` from [**Releases**](https://github.com/xboyrex/rex-ig-lite/releases/latest) and add it under **Sources → `+` → Local**.
-3. Select **Instagram** or **X (Twitter)** in Morphe Manager, patch the original APK/APKM from APKMirror, and install.
+### Method 1 — Direct Universal Deep Link (Recommended)
+Tap the **`Add to Morphe`** button above or open this link on your Android device:
+- **[`https://morphe.software/add-source?github=xboyrex/rex-ig-lite`](https://morphe.software/add-source?github=xboyrex/rex-ig-lite)**
 
----
+### Method 2 — Remote Bundle URL (`Sources` → `+`)
+Copy and paste either of these into **Morphe Manager → Sources → `+` → Source URL**:
+```text
+xboyrex/rex-ig-lite
+```
+or the direct JSON bundle URL:
+```text
+https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json
+```
 
-## ✨ Highlights & xboyrex UI/UX Architecture
-
-- **Two-Tone `xboyrex` Hero Header**: Clean dark header with white `Rex` + coral-pink `Prime` (`#EB4B64`), `Made with ❤️ By Mayank (@xboyrex)` subtitle, centered screen titles, and top-right instant Translator (`文A`) selector.
-- **60+ Custom Android Vector Outline Icons (`RexVectorIcons`)**: Crisp 24×24 anti-aliased vector icons rendered natively on every settings category, toggle row, popup item, and action bar button.
-- **Floating Quick Action Menu**: Tap the top-right Hexagon Nut icon (`rex_ic_settings`) on the feed or profile to open the floating Quick Action Menu (*xboyrex Settings*, *Ghost Mode*, *Long Video Splitter*, *Dark Mode*, *Developer Options*, *Restart App*, *DND Mode*, *Watch History*, *Saved Profiles*, and *Deleted Messages*).
-- **12 Organized xboyrex Categories + Info**:
-  1. **Premium**: Lifetime xboyrex status, Plus benefits unlock, and quick links to pro tools.
-  2. **View Blocked Profiles Secretly 👑**: Anonymously inspect accounts that blocked you.
-  3. **Ghost Mode**: Hide Story View, Hide Live View, Hide Screenshot Taken, Hide Typing Status, Hide Message Seen, Mark Chat as Read, Hide Story Replies, Hide Call Buttons, Ghost Instants, Unlimited Replays on Ephemeral Media, and Inbox Lock.
-  4. **Notification**: Save Deleted Messages (Realtime Anti-Revoke DB Vault), Deleted Messages Viewer, Clear Saved Messages, and Share/Screenshot/Story Download alerts.
-  5. **Privacy**: Disable Ads (Feed, Stories, Reels, Explore), Hide Suggested Content, Open Links Externally, Sanitize Share Links, Custom Sharing Domain, and Disable Analytics.
-  6. **Gestures**: Disable Double-Tap Like (Post, Reel, Comment, Message), Swipe Camera Gesture toggle, Reels Tap & Hold 2x Speed, Reels Lock Controls, Story Auto-Pause, Long-Press Fast-Forward, Swipe Navigation, Volume Key Scroll, Triple-Tap Download, Shake to Clear Cache, and Double-Tap Profile Picture to Copy Bio.
-  7. **Feed and Stories**: Follow Back Indicator, Colored Follow Indicator, Non-Follower Badge in Lists, Disable Video Autoplay, Disable Story Auto-Flip, Force High Quality Images (4096px), View Story Mentions, Story Timestamp Format, Loop Stories, Story Ring Scale, Force HD Stories, Max Upload Quality, Reel Ring Captions, Sound Button Overlay, and Show Exact Follower Count.
-  8. **UI Tweaks**: Pure Black AMOLED & Material You themes, Navigation Bar Reorder/Hide, Action Bar Buttons, Custom Font & System Emoji manager, Like Animation previewer, Extended Post Options, and button visibility toggles.
-  9. **Focus Mode**: Focus Lock with countdown timer & enforced distraction locks, Story Content Filters, Disable Stories/Explore/Comments/Highlights/Reels Scrolling/Swipe to Camera.
-  10. **Miscellaneous**: Local vaults for *Saved Bios*, *Saved Captions*, *Saved Profiles*, and *Watch History*, plus *Message Translator*, *Voice Message Speed Control*, *Split Video for Stories*, *WhatsApp Share Integration*, and *Screenshot Blocker*.
-  11. **Downloads**: In-feed, Reel, Story, and Instant download buttons, Direct Download, Split by Username subfolders, Embed Metadata, Custom Filename Template builder, and External Downloader integration.
-  12. **Developer Options**: Protected by a safety warning modal; unlocks MetaConfig, Employee Options, User SSL/TLS Certificates, Recommended Flags, Experiment Decompiler, and ID Mappings.
+### Method 3 — Local `.mpp` Bundle File (`Sources` → `+` → `Select patch source files`)
+Download **`patches-3.13.0.mpp`** from **[GitHub Releases](https://github.com/xboyrex/rex-ig-lite/releases/tag/v3.13.0)** (compiled with `:patches:buildAndroid` so `classes.dex` and all `.mpe` extensions are embedded inside) and select it in Morphe Manager.
 
 ---
 
-## ⚙️ Patch Details
+## ✨ Key Highlights & Architecture (`v3.13.0`)
 
-<!-- PATCHES_START -->
-> **[v3.12.0](https://github.com/xboyrex/rex-ig-lite/releases/tag/v3.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;138 patches total
-<details>
-<summary>📦 Twitter&nbsp;&nbsp;•&nbsp;&nbsp;75 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 12.19.1-release.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add ability to copy media link](#add-ability-to-copy-media-link) |  |  |
-| [Block redirecting to X Lite](#block-redirecting-to-x-lite) | Blocks redirecting to the new X Android UI on launch |  |
-| [Block update screen](#block-update-screen) | Blocks the 'This app is out of date' update screen from being shown on launch |  |
-| [Bring back twitter](#bring-back-twitter) | Bring back old twitter logo and name |  |
-| [Change app icon](#change-app-icon) |  |  |
-| [Change version code](#change-version-code) | Changes the version code of the app. This will turn off app store updates and allows downgrading an existing app install to an older app version. | • Version code |
-| [Clear tracking params](#clear-tracking-params) | Removes tracking parameters when sharing links |  |
-| [Control video auto scroll](#control-video-auto-scroll) | Control video auto scroll in immersive view |  |
-| [Custom download folder](#custom-download-folder) | Change the download directory for video downloads |  |
-| [Custom emoji font](#custom-emoji-font) | Customise emoji font style |  |
-| [Custom font](#custom-font) | Customise font style |  |
-| [Custom share menu](#custom-share-menu) | Overrides existing share menu and adds a new one |  |
-| [Custom sharing domain](#custom-sharing-domain) | Allows for using domains like fxtwitter when sharing tweets/posts. |  |
-| [Customise post font size](#customise-post-font-size) |  |  |
-| [Customize Inline action Bar items](#customize-inline-action-bar-items) |  |  |
-| [Customize Navigation Bar items](#customize-navigation-bar-items) |  |  |
-| [Customize default reply sorting](#customize-default-reply-sorting) |  |  |
-| [Customize explore tabs](#customize-explore-tabs) |  |  |
-| [Customize notification tabs](#customize-notification-tabs) |  |  |
-| [Customize profile tabs](#customize-profile-tabs) |  |  |
-| [Customize search suggestions](#customize-search-suggestions) |  |  |
-| [Customize search tab items](#customize-search-tab-items) |  |  |
-| [Customize side bar items](#customize-side-bar-items) |  |  |
-| [Customize timeline top bar](#customize-timeline-top-bar) |  |  |
-| [Delete from database](#delete-from-database) | Delete entries from database(cache) |  |
-| [Disable auto timeline scroll on launch](#disable-auto-timeline-scroll-on-launch) |  |  |
-| [Disable chirp font](#disable-chirp-font) |  |  |
-| [Download patch](#download-patch) | Unlocks the ability to download videos and gifs from Twitter/X |  |
-| [Dynamic color](#dynamic-color) | Replaces the default Twitter Blue with the user's Material You palette. |  |
-| [Enable PiP mode automatically](#enable-pip-mode-automatically) | Enables PiP mode when you close the app |  |
-| [Enable Undo Posts](#enable-undo-posts) | Enables ability to undo posts before posting |  |
-| [Enable debug menu for posts](#enable-debug-menu-for-posts) |  |  |
-| [Enable force HD videos](#enable-force-hd-videos) | Videos will be played in highest quality always |  |
-| [Export all activities](#export-all-activities) | Makes all app activities exportable. |  |
-| [Force enable translate](#force-enable-translate) | Get translate option for all posts |  |
-| [Handle custom twitter links](#handle-custom-twitter-links) | Adds support for opening custom twitter links such as vxtwitter, fxtwitter, and fixupx within the app. These will have to be manually enabled under the "Open by default" section in the app info! | • Custom sharing domains<br>• Include unofficial vxtwitter/fxtwitter instance links |
-| [Hide Banner](#hide-banner) | Hide new post banner |  |
-| [Hide Community Notes](#hide-community-notes) |  |  |
-| [Hide FAB](#hide-fab) | Adds an option to hide Floating action button |  |
-| [Hide FAB Menu Buttons](#hide-fab-menu-buttons) |  |  |
-| [Hide Live Threads](#hide-live-threads) |  |  |
-| [Hide Recommended Users](#hide-recommended-users) | Hide recommended users that pops up when you follow someone |  |
-| [Hide badges from navigation bar icons](#hide-badges-from-navigation-bar-icons) | Hides notification nudges & counts from navigation bar icons |  |
-| [Hide bookmark icon in timeline](#hide-bookmark-icon-in-timeline) |  |  |
-| [Hide community badges](#hide-community-badges) |  |  |
-| [Hide followed by context](#hide-followed-by-context) | Hides followed by context under profile |  |
-| [Hide hidden replies](#hide-hidden-replies) |  |  |
-| [Hide immersive player](#hide-immersive-player) | Removes swipe up for more videos in video player |  |
-| [Hide nudge button](#hide-nudge-button) | Hides follow/subscribe/follow back buttons on posts |  |
-| [Hide post metrics](#hide-post-metrics) | Hides like, reposts etc counts. |  |
-| [Hide promote button](#hide-promote-button) | Hides promote button under self posts |  |
-| [Hide recommendation items](#hide-recommendation-items) | Adds options to hide recommendation items such as "Who to follow" and "Today's news" in timeline, search, and replies. |  |
-| [Hook feature flag](#hook-feature-flag) |  |  |
-| [Import/Export login token](#import-export-login-token) | Adds an feature to export and import the token of accounts. This is useful when logging in on your second device or when re-installing rex. |  |
-| [Legacy share links](#legacy-share-links) | Brings back username on post share links. Works post 11.4x.xx |  |
-| [Log server response](#log-server-response) | Log json responses received from server |  |
-| [More information on profile](#more-information-on-profile) | Adds more details on the profile page |  |
-| [Native downloader](#native-downloader) | Requires X 11.0.0-release.0 or higher. |  |
-| [Native reader mode](#native-reader-mode) | Requires X 11.0.0-release.0 or higher. |  |
-| [Native translator](#native-translator) | Requires X 11.0.0-release.0 or higher. |  |
-| [No shortened URL](#no-shortened-url) | Get rid of t.co short urls. |  |
-| [Pause search suggestions](#pause-search-suggestions) | Search suggestions will not be saved locally |  |
-| [Remove Ads](#remove-ads) | Removed promoted posts, trends and google ads |  |
-| [Remove premium upsell](#remove-premium-upsell) | Removes premium upsells |  |
-| [Remove search suggestions](#remove-search-suggestions) | Hide/Remove search suggestion in explore section |  |
-| [Remove view count](#remove-view-count) | Removes the view count from the bottom of tweets |  |
-| [Restore legacy follower lists](#restore-legacy-follower-lists) | Restores the legacy follower and following list screen. |  |
-| [Round off numbers](#round-off-numbers) | Enable or disable rounding off numbers |  |
-| [Selectable Text](#selectable-text) | Makes bio and username selectable |  |
-| [Share Tweet as Image](#share-tweet-as-image) | Share tweets as rendered image. Requires X 11.0.0-release.0 or higher. |  |
-| [Show changelogs](#show-changelogs) | Shows changelogs when new a patch is installed. |  |
-| [Show poll results](#show-poll-results) | Adds an option to show poll results without voting |  |
-| [Show post source label](#show-post-source-label) | Source label will be shown only on public posts |  |
-| [Show sensitive media](#show-sensitive-media) |  |  |
-| [Support external downloader](#support-external-downloader) |  |  |
-
-</details>
-
-<details>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;63 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 453.0.0.57.79 | 451.0.0.53.80 | 447.0.0.55.81 |
-| :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add settings](#add-settings) | Adds settings to control preferences are patching |  |
-| [Allow user network certificate](#allow-user-network-certificate) | Allows user network certificate for whitehat testing |  |
-| [Change like animation](#change-like-animation) | Change the animation to one from existing Rings like animations |  |
-| [Change version code](#change-version-code) | Changes the version code of the app. This will turn off app store updates and allows downgrading an existing app install to an older app version. | • Version code |
-| [Clone](#clone) | Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.<br>Caution: Do not select the official Morphe's "Change package name" universal patch. | • Package name<br>• App name |
-| [Copy comment](#copy-comment) | Adds a button to copy comments on posts and reels. |  |
-| [Custom font](#custom-font) | Adds an option to replace the app font with a font file from the device storage. |  |
-| [Custom sharing domain](#custom-sharing-domain) | Allows for using custom domains when sharing posts, reels and stories. |  |
-| [Customise story ring size](#customise-story-ring-size) |  |  |
-| [Customise story timestamp](#customise-story-timestamp) | Customise the timestamp that shows when the story was posted |  |
-| [Customize navigation bar](#customize-navigation-bar) | Choose which tabs appear in the bottom navigation bar and reorder them |  |
-| [Disable Reels scrolling](#disable-reels-scrolling) | Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. |  |
-| [Disable ads](#disable-ads) |  |  |
-| [Disable analytics](#disable-analytics) | Block analytics that are sent to Instagram/Facebook servers. |  |
-| [Disable comments](#disable-comments) | Disables comments and hides comment buttons and counts on posts and reels. |  |
-| [Disable discover people](#disable-discover-people) | Hides suggested accounts |  |
-| [Disable double tap like](#disable-double-tap-like) | Disable double tap like on post, reel, comment and message |  |
-| [Disable explore](#disable-explore) |  |  |
-| [Disable highlights](#disable-highlights) |  |  |
-| [Disable screenshot detection](#disable-screenshot-detection) | Disables screenshots detection in DM |  |
-| [Disable stories](#disable-stories) |  |  |
-| [Disable story flipping](#disable-story-flipping) | Disable automatic flipping/moving to next story |  |
-| [Disable swipe to create](#disable-swipe-to-create) | Prevents opening the creation screen by swiping right on the home tab. |  |
-| [Disable typing status](#disable-typing-status) |  |  |
-| [Disable video autoplay](#disable-video-autoplay) |  |  |
-| [Download media](#download-media) | Adds ability to download posts, reels, stories and highlights |  |
-| [Download voice message](#download-voice-message) | Enables ability to download voice messages |  |
-| [External downloader](#external-downloader) | Adds support to share post links directly to external downloader |  |
-| [Filter stories](#filter-stories) | Filter stories to hide based on different categories |  |
-| [Focus Lock](#focus-lock) | Commitment mode for cutting down on Instagram. Pick what to block (Reels, Explore) and a duration; once locked those protections are forced on and cannot be switched off. Reels shared with you still open. Unlocking early requires a 24 hour cooling-off period, and resetting or importing settings is blocked while locked. |  |
-| [Friendship status indicator](#friendship-status-indicator) | Adds a follows you back status label on the profile page andshows a detailed friendship status breakdown on click |  |
-| [Hide Instants view](#hide-instants-view) | Stops Instagram from marking Instants you watch as seen. |  |
-| [Hide Reels follow button](#hide-reels-follow-button) | Removes the follow button from Reels. |  |
-| [Hide group creation button on sharesheet](#hide-group-creation-button-on-sharesheet) |  |  |
-| [Hide notes tray](#hide-notes-tray) | Hides notes tray in DM section |  |
-| [Hide reshare button](#hide-reshare-button) | Hides the reshare button from both posts and reels. |  |
-| [Hide save buttons](#hide-save-buttons) | Hides save buttons on posts and reels |  |
-| [Hide share button](#hide-share-button) | Hides the share button on posts and reels |  |
-| [Hide stories tray](#hide-stories-tray) | Hides stories tray from main feed. |  |
-| [Hide suggested content](#hide-suggested-content) | Hides suggested stories, reels, threads (Suggested posts will still be shown). |  |
-| [Improve image viewing](#improve-image-viewing) | Fetches max resolution images from server. |  |
-| [Inbox lock](#inbox-lock) | Asks for your fingerprint, face or screen lock before the inbox is shown. |  |
-| [Limit feed to following profiles](#limit-feed-to-following-profiles) | Filters the home feed to display only content from profiles you follow. |  |
-| [Loop story](#loop-story) | Replay the current story when it ends |  |
-| [Make ephemeral media permanent](#make-ephemeral-media-permanent) | Changes unexpired view once, view twice media to permanent view. |  |
-| [Mark chat as read manually](#mark-chat-as-read-manually) | Adds option to mark a thread aka message as read manually |  |
-| [More options on post](#more-options-on-post) | Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc |  |
-| [More options on profile](#more-options-on-profile) | Adds a new button to handle user related data like copy handle, download profile picture etc |  |
-| [Open links externally](#open-links-externally) | Changes links to always open in your external browser, instead of the in-app browser. |  |
-| [Recommended flags](#recommended-flags) | Developer flags suggested by the community |  |
-| [Remove empty bottom space](#remove-empty-bottom-space) | Removes empty space below bottom navigation bar |  |
-| [Sanitize share links](#sanitize-share-links) |  |  |
-| [Save Instants](#save-instants) | Captures view-once Instants as you view them so you can re-view and download them later. |  |
-| [Save deleted messages](#save-deleted-messages) | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |  |
-| [Save media comment](#save-media-comment) | Adds a button to save media comments on posts and reels. |  |
-| [Theme](#theme) | Adds Material You and AMOLED controls to xboyrex settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme. | • Pure-black AMOLED theme for Android 8–11 |
-| [Unlock Plus benefits](#unlock-plus-benefits) | Unlocks 'Plus' subscription benefits that are checked locally. USE IT AT YOUR OWN RISK |  |
-| [Unlock developer options](#unlock-developer-options) | Unlocks developer option by long pressing home icon |  |
-| [Unlock employee options](#unlock-employee-options) | Unlocks all options using by employee for debugging |  |
-| [View DMs anonymously](#view-dms-anonymously) |  |  |
-| [View live anonymously](#view-live-anonymously) |  |  |
-| [View stories anonymously](#view-stories-anonymously) |  |  |
-| [View story mentions](#view-story-mentions) | Add option to view visible and hidden story mentions. |  |
-
-</details>
-
-<!-- PATCHES_END -->
+| Feature Area | Implementation Details |
+| :--- | :--- |
+| **🎨 Two-Tone `xboyrex` Liquid Glass Dashboard** | Pure AMOLED `#050708` background with `#121619` charcoal surface cards, `22dp` rounded corners, two-tone **`xboy`** (`#FFFFFF`) + **`rex`** (`#88C2CE`) Hero Header, subtitle `Made with ⚡ By ㅤᏞᴀᴢʏㅤᎷꫝʏᴀɴк まやんく`, live instant Search bar, and top-right `文A` 46-language translator icon. |
+| **🌸 SakuraTunes-Style `About` Screen (`RexAboutView.java`)** | Frosted Dark Teal Hero Card (`#1A282B`) with dual scalloped **Sakura Music Flower (`#FF6B9E`)** + **Matte-Black Instagram Camera (`#0C0E10`)** badges side-by-side, `v3.13.0+xboyrex` & `UNIVERSAL` pills, Developer Card (`#111517`) with anime avatar, 2×2 Social Pill Grid (`Telegram`, `xboyrex`, `Instagram`, `YouTube`), `♥ Star xboyrex on GitHub` CTA (`#88C2CE`), and `COMMUNITY & INFO` cards. |
+| **🌫️ Real-Time Gaussian Background Blur (`RexDialogs.java`)** | Hardware-accelerated `RenderEffect.createBlurEffect(26f, 26f, Shader.TileMode.CLAMP)` on the host Activity decor view + `WindowManager.LayoutParams.FLAG_BLUR_BEHIND` (`blurBehindRadius = 42`) on every dialog, bottom sheet, post/reel/story download menu, and profile popup. |
+| **📥 Redmi / HyperOS Zero-Prompt Direct Download (`StorageUtils.java`)** | Saves directly to `MediaStore.Downloads.EXTERNAL_CONTENT_URI` (`Download/xboyrex/<subfolder>`) on Android 10+ (API 29+) without triggering MIUI/HyperOS SAF folder picker loops when no custom SAF URI is configured. |
+| **🛡️ Resilient Multi-Version Bytecode Engine (`453.0.0.57.79` & `452.1.0.53.64`)** | Supports Instagram `453.0.0.57.79` (`385914517`), `452.1.0.53.64` (`385811006`), `454.0.0.54.77`, and `455.0.0.51.72` with dual-shape resolvers and per-hook `runCatching` guards so patching never aborts on minor version shifts. |
+| **🔓 100% Unlocked (`Zero Premium Locks`)** | All features, themes, ghost modes, batch downloads, and developer flags are 100% unlocked out of the box with zero crown (`👑`) icons or paywalls. |
 
 ---
 
-## 🌐 Connect with Mayank (`@xboyrex`)
+## 📱 Instagram Patches (`88` Patches)
 
-- **GitHub**: [@xboyrex](https://github.com/xboyrex)
-- **Instagram**: [@mayank.zx7](https://www.instagram.com/mayank.zx7)
-- **YouTube**: [@mayankdroid](https://youtube.com/@mayankdroid?si=slX8DDU0dpLSIYyY) • [@onyxdroid89](https://youtube.com/@onyxdroid89?si=9gxpZfa3bpI9PKku)
-- **Telegram Channel**: [t.me/MayankDroid7](https://t.me/MayankDroid7)
-- **Telegram Discussion Group**: [t.me/OnyxHub7](https://t.me/OnyxHub7)
-- **Email**: [xboyrex496@gmail.com](mailto:xboyrex496@gmail.com)
+| # & Patch Name | Description | Status |
+| :--- | :--- | :--- |
+| **1. `<init>`** | Instagram bytecode & runtime patch | ✅ Default |
+| **2. `Add settings`** | Adds settings to control preferences are patching | ✅ Default |
+| **3. `Ask before a call`** | Asks for confirmation before starting an audio or video call in Direct Messages. | ✅ Default |
+| **4. `Ask before a follow`** | Asks for confirmation before following or requesting to follow an account. | ✅ Default |
+| **5. `Ask before a like`** | Asks for confirmation before liking or unliking a post, reel, or comment. | ✅ Default |
+| **6. `Change like animation`** | Change the animation to one from existing Rings like animations | ✅ Default |
+| **7. `Clone`** | Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app. | ⚙️ Optional |
+| **8. `Copy comment`** | Adds buttons to copy comments and their authors' usernames on posts and reels. | ✅ Default |
+| **9. `Custom font`** | Adds an option to replace the app font with a font file from the device storage. | ✅ Default |
+| **10. `Custom sharing domain`** | Allows for using custom domains when sharing posts, reels and stories. | ✅ Default |
+| **11. `Customise story ring size`** | Instagram bytecode & runtime patch | ✅ Default |
+| **12. `Customise story timestamp`** | Customise the timestamp that shows when the story was posted | ✅ Default |
+| **13. `Customize navigation bar`** | Choose which tabs appear in the bottom navigation bar and reorder them | ✅ Default |
+| **14. `Disable Play Store updates`** | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting | ✅ Default |
+| **15. `Disable Reels scrolling`** | Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. | ✅ Default |
+| **16. `Disable ads`** | Instagram bytecode & runtime patch | ✅ Default |
+| **17. `Disable comments`** | Disables comments and hides comment buttons on posts, reels and stories | ✅ Default |
+| **18. `Disable disappearing messages swipe`** | Prevents swiping up in a chat from enabling disappearing messages | ✅ Default |
+| **19. `Disable discover people`** | Hides suggested accounts | ✅ Default |
+| **20. `Disable double tap like`** | Disable double tap like on post, reel, comment and message | ✅ Default |
+| **21. `Disable explore`** | Instagram bytecode & runtime patch | ✅ Default |
+| **22. `Disable highlights`** | Instagram bytecode & runtime patch | ✅ Default |
+| **23. `Disable screenshot detection`** | Disables screenshots detection in DM | ✅ Default |
+| **24. `Disable stories`** | Instagram bytecode & runtime patch | ✅ Default |
+| **25. `Disable story flipping`** | Disable automatic flipping/moving to next story | ✅ Default |
+| **26. `Disable swipe to create`** | Prevents opening the creation screen by swiping right on the home tab. | ✅ Default |
+| **27. `Disable typing status`** | Instagram bytecode & runtime patch | ✅ Default |
+| **28. `Disable video autoplay`** | Instagram bytecode & runtime patch | ✅ Default |
+| **29. `Download media`** | Adds ability to download posts, reels, stories and highlights | ✅ Default |
+| **30. `Download voice message`** | Enables ability to download voice messages | ✅ Default |
+| **31. `External downloader`** | Adds support to share post links directly to external downloader | ✅ Default |
+| **32. `Filter stories`** | Filter stories to hide based on different categories | ✅ Default |
+| **33. `Focus Lock`** | Commitment mode for cutting down on Instagram. Pick what to block (Reels, Explore) and a duration; once locked those protections are forced on and cannot be switched off. Reels shared with you still open. Unlocking early requires a 24 hour cooling-off period, and resetting or importing settings is blocked while locked. | ✅ Default |
+| **34. `Force SDR display`** | Reroutes Instagram's window colour-mode changes so the app can be pinned to SDR, keeping the dark UI's blacks deep instead of the washed-out look HDR forces. | ✅ Default |
+| **35. `Friendship status indicator`** | Adds a follows you back status label on the profile page and shows a detailed friendship status breakdown on click | ✅ Default |
+| **36. `Hidden Home in Back history`** | Leaves the app on Back from the first tab shown when the Home icon is hidden, instead of walking back onto the hidden feed. | ✅ Default |
+| **37. `Hidden chats`** | Adds an option to the chat menu that moves the chat to a private inbox, opened by tapping the messages button several times. | ✅ Default |
+| **38. `Hide Meta AI`** | Removes Meta AI and Muse from the share sheet, quick-promotion cards and the "About this reel" summary with its Ask Meta AI box; its feed units (Vibes, Meta AI chats, Imagine) are dropped by the feed item filter. Gated on the Meta AI and Muse toggle. | ✅ Default |
+| **39. `Hide Reels follow button`** | Removes the follow button from Reels. | ✅ Default |
+| **40. `Hide feed posts`** | Hides posts from the home feed | ✅ Default |
+| **41. `Hide group creation button on sharesheet`** | Instagram bytecode & runtime patch | ✅ Default |
+| **42. `Hide hidden requests`** | Hides the hidden requests (spam) button in the message requests page | ✅ Default |
+| **43. `Hide like buttons`** | Hides like buttons on posts, reels and stories | ✅ Default |
+| **44. `Hide notes tray`** | Hides notes tray in DM section | ✅ Default |
+| **45. `Hide reels and stories ad pods`** | Stops Instagram's ad injection engine from inserting ad pods into Reels, Stories, and Explore. | ✅ Default |
+| **46. `Hide reshare button`** | Hides the reshare button from both posts and reels. | ✅ Default |
+| **47. `Hide save buttons`** | Hides save buttons on posts and reels | ✅ Default |
+| **48. `Hide share button`** | Hides the share button on posts, reels and stories | ✅ Default |
+| **49. `Hide stories tray`** | Hides stories tray from main feed. | ✅ Default |
+| **50. `Hide story follow button`** | Hides the follow button at the top of stories. | ✅ Default |
+| **51. `Hide suggested content`** | Hides suggested stories, reels, threads (Suggested posts will still be shown). | ✅ Default |
+| **52. `Improve image viewing`** | Fetches max resolution images from server. | ✅ Default |
+| **53. `Inbox lock`** | Asks for your fingerprint, face or screen lock before the inbox is shown. | ✅ Default |
+| **54. `Install-packages permission`** | Declares REQUEST_INSTALL_PACKAGES so the update dialog can download and install a new release directly instead of opening the browser. | ✅ Default |
+| **55. `Limit feed to following profiles`** | Filters the home feed to display only content from profiles you follow. | ✅ Default |
+| **56. `Liquid Glass UI & Navigation`** | Enables Liquid Glass floating navigation bar, rounded post corners, and real-time Gaussian blur dialogs. | ✅ Default |
+| **57. `Long press to zoom`** | Allows pressing and holding a feed photo or video to zoom or open xboyrex options. | ✅ Default |
+| **58. `Loop story`** | Replay the current story when it ends | ✅ Default |
+| **59. `Make ephemeral media permanent`** | Changes unexpired view once, view twice media to permanent view. | ✅ Default |
+| **60. `Mark as read after reply`** | Adds an option to mark chats as read after replying while viewing DMs anonymously. | ✅ Default |
+| **61. `Mark chat as read manually`** | Adds option to mark a thread aka message as read manually | ✅ Default |
+| **62. `More options on post`** | Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc | ✅ Default |
+| **63. `More options on profile`** | Adds a new button to handle user related data like copy handle, download profile picture etc | ✅ Default |
+| **64. `Open links externally`** | Changes links to always open in your external browser, instead of the in-app browser. | ✅ Default |
+| **65. `Pinch to zoom on Reels`** | Allows two-finger pinch-to-zoom on playing Reels. | ✅ Default |
+| **66. `Popup hiding`** | Drops Instagram's popups ("Couldn't refresh feed"), which a blocked surface raises on every failed request. Gated on the Instagram popups toggle. | ✅ Default |
+| **67. `Preserve post caption`** | Saves caption edits directly to the current post draft before opening music or story options. | ✅ Default |
+| **68. `Private screen dimmer & notification filter`** | Adds runtime privacy screen dimmer overlay with adjustable opacity and keyword/type notification filtering. | ✅ Default |
+| **69. `Recommended flags`** | Developer flags suggested by the community | ✅ Default |
+| **70. `Remove empty bottom space`** | Removes empty space below bottom navigation bar | ✅ Default |
+| **71. `Restart relay`** | Declares the one-shot activity xboyrex runs in its own process to bring Instagram back after the cache-clear restart. | ✅ Default |
+| **72. `Restore trust on re-signed builds`** | Lets Instagram's own checks of who signed the app pass on a patched build, so login and local trust checks keep working. | ✅ Default |
+| **73. `Resume Reels after scrolling`** | Resumes videos from where you left off when you scroll back to them in Reels | ✅ Default |
+| **74. `Sanitize share links`** | Instagram bytecode & runtime patch | ✅ Default |
+| **75. `Save Instants`** | Captures view-once Instants as you view them so you can re-view and download them later. | ✅ Default |
+| **76. `Save deleted messages`** | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. | ✅ Default |
+| **77. `Save media comment`** | Adds a button to save media comments on posts and reels. | ✅ Default |
+| **78. `Signature check bypass`** | Forces Instagram's signing-certificate trust checks to always pass, so a re-signed APK is treated as an official Meta build and deep links route to their content instead of falling back to the home feed. | ✅ Default |
+| **79. `Start videos, reels and stories with sound`** | Adds runtime controls to start feed videos, reels, and stories with audio enabled. | ✅ Default |
+| **80. `Story like history`** | Keeps a local history of the stories you liked in the last 24 hours and shows it in a native grid, opened from the story menu or xboyrex settings. | ✅ Default |
+| **81. `Story mention indicator`** | Shows an interactive '@N mentions' pill in the story header when the story mentions someone, with 5 customizable pill styles and 3 popup styles. | ✅ Default |
+| **82. `Theme`** | Adds Material You and AMOLED controls to xboyrex Settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme. | ✅ Default |
+| **83. `Unlock developer options`** | Unlocks developer option by long pressing home icon | ✅ Default |
+| **84. `View DMs anonymously`** | Instagram bytecode & runtime patch | ✅ Default |
+| **85. `View Instants anonymously`** | Stops Instagram from marking Instants (QuickSnaps) you watch as seen. | ✅ Default |
+| **86. `View live anonymously`** | Instagram bytecode & runtime patch | ✅ Default |
+| **87. `View stories anonymously`** | Instagram bytecode & runtime patch | ✅ Default |
+| **88. `View story mentions`** | Add option to view visible and hidden story mentions. | ✅ Default |
 
 ---
 
-## 📄 License
+## 🐦 X / Twitter Patches (`74` Patches)
 
-Licensed under the **GNU General Public License v3.0 (GPLv3)**. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.
+| # & Patch Name | Description | Status |
+| :--- | :--- | :--- |
+| **1. `Add ability to copy media link`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **2. `Block redirecting to X Lite`** | Blocks redirecting to the new X Android UI on launch | ✅ Default |
+| **3. `Block update screen`** | Blocks the 'This app is out of date' update screen from being shown on launch | ✅ Default |
+| **4. `Bring back twitter`** | Bring back old twitter logo and name | ⚙️ Optional |
+| **5. `Change app icon`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **6. `Clear tracking params`** | Removes tracking parameters when sharing links | ✅ Default |
+| **7. `Control video auto scroll`** | Control video auto scroll in immersive view | ✅ Default |
+| **8. `Custom download folder`** | Change the download directory for video downloads | ✅ Default |
+| **9. `Custom emoji font`** | Customise emoji font style | ✅ Default |
+| **10. `Custom font`** | Customise font style | ✅ Default |
+| **11. `Custom share menu`** | Overrides existing share menu and adds a new one | ✅ Default |
+| **12. `Custom sharing domain`** | Allows for using domains like fxtwitter when sharing tweets/posts. | ✅ Default |
+| **13. `Customise post font size`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **14. `Customize Inline action Bar items`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **15. `Customize Navigation Bar items`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **16. `Customize default reply sorting`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **17. `Customize explore tabs`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **18. `Customize notification tabs`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **19. `Customize profile tabs`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **20. `Customize search suggestions`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **21. `Customize search tab items`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **22. `Customize side bar items`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **23. `Customize timeline top bar`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **24. `Delete from database`** | Delete entries from database(cache) | ✅ Default |
+| **25. `Disable auto timeline scroll on launch`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **26. `Disable chirp font`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **27. `Download patch`** | Unlocks the ability to download videos and gifs from Twitter/X | ✅ Default |
+| **28. `Dynamic color`** | Replaces the default Twitter Blue with the user's Material You palette. | ⚙️ Optional |
+| **29. `Enable PiP mode automatically`** | Enables PiP mode when you close the app | ✅ Default |
+| **30. `Enable Undo Posts`** | Enables ability to undo posts before posting | ✅ Default |
+| **31. `Enable debug menu for posts`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **32. `Enable force HD videos`** | Videos will be played in highest quality always | ✅ Default |
+| **33. `Export all activities`** | Makes all app activities exportable. | ⚙️ Optional |
+| **34. `Force enable translate`** | Get translate option for all posts | ✅ Default |
+| **35. `Handle custom twitter links`** | Adds support for opening custom twitter links such as vxtwitter, fxtwitter, and fixupx within the app. These will have to be manually enabled under the "Open by default" section in the app info! | ✅ Default |
+| **36. `Hide Banner`** | Hide new post banner | ✅ Default |
+| **37. `Hide Community Notes`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **38. `Hide FAB`** | Adds an option to hide Floating action button | ✅ Default |
+| **39. `Hide FAB Menu Buttons`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **40. `Hide Live Threads`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **41. `Hide Recommended Users`** | Hide recommended users that pops up when you follow someone | ✅ Default |
+| **42. `Hide badges from navigation bar icons`** | Hides notification nudges & counts from navigation bar icons | ✅ Default |
+| **43. `Hide bookmark icon in timeline`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **44. `Hide community badges`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **45. `Hide followed by context`** | Hides followed by context under profile | ✅ Default |
+| **46. `Hide hidden replies`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **47. `Hide immersive player`** | Removes swipe up for more videos in video player | ✅ Default |
+| **48. `Hide nudge button`** | Hides follow/subscribe/follow back buttons on posts | ✅ Default |
+| **49. `Hide post metrics`** | Hides like, reposts etc counts. | ✅ Default |
+| **50. `Hide promote button`** | Hides promote button under self posts | ✅ Default |
+| **51. `Hide recommendation items`** | Adds options to hide recommendation items such as "Who to follow" and "Today's news" in timeline, search, and replies. | ✅ Default |
+| **52. `Hook feature flag`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **53. `Import/Export login token`** | Adds an feature to export and import the token of accounts. This is useful when logging in on your second device or when re-installing rex. | ✅ Default |
+| **54. `Legacy share links`** | Brings back username on post share links. Works post 11.4x.xx | ✅ Default |
+| **55. `Log server response`** | Log json responses received from server | ✅ Default |
+| **56. `More information on profile`** | Adds more details on the profile page | ✅ Default |
+| **57. `Native downloader`** | Requires X 11.0.0-release.0 or higher. | ✅ Default |
+| **58. `Native reader mode`** | Requires X 11.0.0-release.0 or higher. | ✅ Default |
+| **59. `Native translator`** | Requires X 11.0.0-release.0 or higher. | ✅ Default |
+| **60. `No shortened URL`** | Get rid of t.co short urls. | ✅ Default |
+| **61. `Pause search suggestions`** | Search suggestions will not be saved locally | ✅ Default |
+| **62. `Remove Ads`** | Removed promoted posts, trends and google ads | ✅ Default |
+| **63. `Remove premium upsell`** | Removes premium upsells | ✅ Default |
+| **64. `Remove search suggestions`** | Hide/Remove search suggestion in explore section | ✅ Default |
+| **65. `Remove view count`** | Removes the view count from the bottom of tweets | ✅ Default |
+| **66. `Restore legacy follower lists`** | Restores the legacy follower and following list screen. | ✅ Default |
+| **67. `Round off numbers`** | Enable or disable rounding off numbers | ✅ Default |
+| **68. `Selectable Text`** | Makes bio and username selectable | ✅ Default |
+| **69. `Share Tweet as Image`** | Share tweets as rendered image. Requires X 11.0.0-release.0 or higher. | ✅ Default |
+| **70. `Show changelogs`** | Shows changelogs when new a patch is installed. | ✅ Default |
+| **71. `Show poll results`** | Adds an option to show poll results without voting | ✅ Default |
+| **72. `Show post source label`** | Source label will be shown only on public posts | ✅ Default |
+| **73. `Show sensitive media`** | X / Twitter bytecode & runtime patch | ✅ Default |
+| **74. `Support external downloader`** | X / Twitter bytecode & runtime patch | ✅ Default |
+
+---
+
+## 🛠️ Building Locally & CI/CD Pipeline
+
+The Morphe Android Patcher requires `classes.dex` inside the `.mpp` archive. Always run **`:patches:buildAndroid`** after generating the patch list:
+
+```bash
+./gradlew build :patches:generatePatchesList --no-daemon
+./gradlew :patches:buildAndroid --rerun-tasks --no-daemon
+```
+
+The compiled Android DEX bundle is output to:
+```text
+patches/build/libs/patches-3.13.0.mpp
+```
+
+---
+
+## 👤 Developer & Community Links
+
+- **Developer**: **ㅤᏞᴀᴢʏㅤᎷꫝʏᴀɴк まやんく** (`Roshan Kumar Gupta` / `@xboyrex`)
+- **GitHub**: [`https://github.com/xboyrex`](https://github.com/xboyrex)
+- **Repository**: [`https://github.com/xboyrex/rex-ig-lite`](https://github.com/xboyrex/rex-ig-lite)
+- **Telegram Channel**: [`https://t.me/MayankDroid7`](https://t.me/MayankDroid7)
+- **Telegram Group**: [`https://t.me/OnyxHub7`](https://t.me/OnyxHub7)
+- **Instagram**: [`https://www.instagram.com/mayank.zx7`](https://www.instagram.com/mayank.zx7)
+- **YouTube**: [`@mayankdroid`](https://youtube.com/@mayankdroid?si=slX8DDU0dpLSIYyY) · [`@onyxdroid89`](https://youtube.com/@onyxdroid89?si=9gxpZfa3bpI9PKku)

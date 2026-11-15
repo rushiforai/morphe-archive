@@ -1,33 +1,25 @@
 /*
  * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
+
 package app.morphe.extension.instagram.patches;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 
-import app.morphe.extension.instagram.ui.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.shared.Logger;
 
 @SuppressWarnings("unused")
 public class WelcomeMessage {
 
-    private static boolean shownThisSession = false;
-
     public static void openWelcomeMessage(Context context) {
         try {
-            if (!shownThisSession && Pref.firstTimeRex()) {
-                shownThisSession = true;
+            if (Pref.firstTimeRex()) {
                 Pref.setFirstTimeRex(false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    try {
-                        RexDialogs.showChangelogsDialog(context);
-                    } catch (Exception e) {
-                        Logger.printException(() -> "Deferred welcome dialog failure", e);
-                    }
-                }, 600L);
+                RexDialogs.showChangelogDialog(context);
             }
         } catch (Exception ex) {
             Logger.printException(() -> "openWelcomeMessage failure", ex);

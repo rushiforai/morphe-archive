@@ -919,6 +919,9 @@ public final class DownloadLedger {
         }
     }
 
+    /** Android's column for the destination a request asked for (DownloadManager's hidden COLUMN_FILE_NAME_HINT). */
+    static final String DESTINATION_HINT = "hint";
+
     /** One file name Android was given for a pin, the only kind HushPinterest asks for. */
     private static final Pattern FILE_NAME = Pattern.compile("Pinterest_[0-9]{1,30}_[0-9]{1,20}\\.(?:jpg|png|webp|gif|mp4)");
 
@@ -949,6 +952,7 @@ public final class DownloadLedger {
                 int sourceColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_URI);
                 int mimeColumn = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
                 int localColumn = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                int hintColumn = cursor.getColumnIndex(DESTINATION_HINT);
                 Map<Long, Stalled> found = new HashMap<>();
                 while (cursor.moveToNext()) {
                     Job job = asked.get(cursor.getLong(idColumn));
@@ -966,6 +970,8 @@ public final class DownloadLedger {
                     if (source == null) source = PinMedia.sourceUrl(url, true);
                     if (source == null || !source.mime.equalsIgnoreCase(mime)) continue;
                     String local = localColumn < 0 ? null : cursor.getString(localColumn);
+                    // A request Android never started has no local file yet, only the destination it was given.
+                    if (local == null && hintColumn >= 0) local = cursor.getString(hintColumn);
                     String name = local == null ? null : Uri.decode(local.substring(local.lastIndexOf('/') + 1));
                     if (name == null || !FILE_NAME.matcher(name).matches() || !name.endsWith(source.suffix)) {
                         name = "Pinterest_" + job.pinId + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;

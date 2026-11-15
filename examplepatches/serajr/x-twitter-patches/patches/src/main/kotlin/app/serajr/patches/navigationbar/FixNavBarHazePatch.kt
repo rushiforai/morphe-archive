@@ -1,6 +1,8 @@
 package app.serajr.patches.navigationbar
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
@@ -116,7 +118,7 @@ private fun Method.refAt(index: Int): String? =
 @Suppress("unused")
 val fixNavigationBarHazePatch = bytecodePatch(
     name = "Fix Navigation Bar Haze",
-    description = "D3-K1A.11-T6: native Navigation Bar Haze with scoped reactivation diagnostics.",
+    description = "D3-K1A.11-T7-R1: native Navigation Bar Haze with alpha visibility and scoped diagnostics.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -559,6 +561,76 @@ val fixNavigationBarHazePatch = bytecodePatch(
             method.addInstructions(0, body.trimIndent())
             mutableClass.methods.add(method)
         }
+
+        // T7: two stable alpha-only configuration objects.
+        val alphaType = "Lcom/x/compose/core/p0;"
+        val alphaClass = mutableClassDefBy(alphaType)
+        require(alphaClass.superclass == "Ljava/lang/Object;")
+        require("Lkotlin/jvm/functions/Function1;" in alphaClass.interfaces)
+        require(alphaClass.fields.none { it.name in setOf("serajrAlphaOnly", "serajrAlpha") })
+        require(alphaClass.methods.none { it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } == listOf("F") })
+        val alphaInvoke = alphaClass.methods.single {
+            it.name == "invoke" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/Object;") && it.returnType == "Ljava/lang/Object;"
+        }
+        val ai = alphaInvoke.implementation ?: error("T7: missing alpha invoke")
+        require(ai.registerCount in 3..16)
+        require(ai.instructions[0].opcode == Opcode.CHECK_CAST &&
+            alphaInvoke.refAt(0) == "Ldev/chrisbanes/haze/blur/l;" &&
+            (ai.instructions[0] as? OneRegisterInstruction)?.registerA == ai.registerCount - 1 &&
+            ai.instructions[1].opcode == Opcode.SGET_OBJECT &&
+            alphaInvoke.refAt(1) == "Lcom/x/compose/core/s0;->b:Landroidx/compose/ui/graphics/t0;" &&
+            (ai.instructions[1] as? OneRegisterInstruction)?.registerA == 0) { "T7: unexpected alpha invoke anchor" }
+        require(mutableClass.fields.none { it.name in setOf("serajrNavHazeAlphaZero", "serajrNavHazeAlphaOne") })
+        require(mutableClass.methods.none { it.name == "serajrGetNavHazeAlpha" })
+        for ((name, type) in listOf("serajrAlphaOnly" to "Z", "serajrAlpha" to "F")) {
+            alphaClass.fields.add(ImmutableField(alphaType, name, type,
+                AccessFlags.PRIVATE.value, null, null, null).toMutable())
+        }
+        val alphaConstructor = ImmutableMethod(alphaType, "<init>",
+            listOf(ImmutableMethodParameter("F", null, null)), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value,
+            null, null, MutableMethodImplementation(3)).toMutable()
+        alphaConstructor.addInstructions(0, """
+            invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+            iput p1, p0, ${alphaType}->serajrAlpha:F
+            const/4 v0, 0x1
+            iput-boolean v0, p0, ${alphaType}->serajrAlphaOnly:Z
+            return-void
+        """.trimIndent())
+        alphaClass.methods.add(alphaConstructor)
+        alphaInvoke.addInstructionsWithLabels(1, """
+            iget-boolean v0, p0, ${alphaType}->serajrAlphaOnly:Z
+            if-eqz v0, :serajr_alpha_normal
+            iget v0, p0, ${alphaType}->serajrAlpha:F
+            invoke-interface {p1, v0}, Ldev/chrisbanes/haze/blur/l;->j(F)V
+            sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+            return-object v0
+        """.trimIndent(), ExternalLabel("serajr_alpha_normal", 1))
+        addStaticField("serajrNavHazeAlphaZero", alphaType)
+        addStaticField("serajrNavHazeAlphaOne", alphaType)
+        addStaticMethod(
+            name = "serajrGetNavHazeAlpha",
+            parameters = listOf("Z"), returnType = alphaType, registers = 3,
+            body = """
+                if-eqz p0, :zero
+                sget-object v0, ${MAIN_ACTIVITY}->serajrNavHazeAlphaOne:$alphaType
+                if-nez v0, :done
+                const/high16 v1, 0x3f800000
+                new-instance v0, $alphaType
+                invoke-direct {v0, v1}, ${alphaType}-><init>(F)V
+                sput-object v0, ${MAIN_ACTIVITY}->serajrNavHazeAlphaOne:$alphaType
+                goto :done
+                :zero
+                sget-object v0, ${MAIN_ACTIVITY}->serajrNavHazeAlphaZero:$alphaType
+                if-nez v0, :done
+                const/4 v1, 0x0
+                new-instance v0, $alphaType
+                invoke-direct {v0, v1}, ${alphaType}-><init>(F)V
+                sput-object v0, ${MAIN_ACTIVITY}->serajrNavHazeAlphaZero:$alphaType
+                :done
+                return-object v0
+            """
+        )
 
         // Temporary diagnostic fields.
         // Zero means uninitialized for the encoded state fields.
@@ -1003,9 +1075,11 @@ val fixNavigationBarHazePatch = bytecodePatch(
 
                 invoke-static {v10, v11, v6}, $DIAG_HOOK
 
+                invoke-static {v6}, ${MAIN_ACTIVITY}->serajrGetNavHazeAlpha(Z)$alphaType
+                move-result-object v9
+                const/4 v6, 0x1
                 const v7, 0x3d4ccccd
                 const/4 v8, 0x0
-                const/4 v9, 0x0
 
                 move-object/from16 v10, p2
 
@@ -1271,7 +1345,7 @@ val fixNavigationBarHazePatch = bytecodePatch(
                 sput-boolean v0, $versionLoggedField
 
                 const-string v0, "$DIAG_TAG"
-                const-string v1, "D3-K1A.11-T6 ACTIVE"
+                const-string v1, "D3-K1A.11-T7-R1 ACTIVE"
 
                 invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
@@ -1601,12 +1675,26 @@ val fixNavigationBarHazePatch = bytecodePatch(
 
                 iget-boolean v2, p1, Ldev/chrisbanes/haze/blur/d0;->a:Z
                 iget-boolean v3, p2, Ldev/chrisbanes/haze/blur/d0;->a:Z
-                if-eq v2, v3, :done
-
-                sput v3, Lcom/x/android/main/MainActivity;->serajrNavHazeAwaitingBlur:I
-
-                iget v4, p2, Ldev/chrisbanes/haze/blur/d0;->b:F
+                iget v4, p1, Ldev/chrisbanes/haze/blur/d0;->g:F
                 iget v5, p2, Ldev/chrisbanes/haze/blur/d0;->g:F
+                cmpl-float v0, v4, v5
+                if-nez v0, :changed
+                if-eq v2, v3, :done
+                :changed
+                const/4 v0, 0x0
+                cmpl-float v1, v5, v0
+                if-lez v1, :clear
+                if-eqz v3, :clear
+                cmpl-float v1, v4, v0
+                if-lez v1, :arm
+                goto :log
+                :clear
+                sput v0, Lcom/x/android/main/MainActivity;->serajrNavHazeAwaitingBlur:I
+                goto :log
+                :arm
+                const/4 v0, 0x1
+                sput v0, Lcom/x/android/main/MainActivity;->serajrNavHazeAwaitingBlur:I
+                :log
 
                 new-instance v0, Ljava/lang/StringBuilder;
                 invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
@@ -1617,12 +1705,18 @@ val fixNavigationBarHazePatch = bytecodePatch(
                 const-string v1, "->"
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                 invoke-virtual {v0, v3}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-                const-string v1, " radius="
-                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v0, v4}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
                 const-string v1, " alpha="
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v0, v4}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+                const-string v1, "->"
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                 invoke-virtual {v0, v5}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+                const-string v1, " rendererBefore="
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                iget-object v1, p0, Ldev/chrisbanes/haze/blur/d;->h:Ldev/chrisbanes/haze/blur/c;
+                invoke-static {v1}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+                move-result v1
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
                 invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v0
@@ -1679,6 +1773,12 @@ val fixNavigationBarHazePatch = bytecodePatch(
                 invoke-virtual {v0, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                 iget v1, v1, Ldev/chrisbanes/haze/blur/d0;->g:F
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+                const-string v1, " renderer="
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                iget-object v1, p0, Ldev/chrisbanes/haze/blur/d;->h:Ldev/chrisbanes/haze/blur/c;
+                invoke-static {v1}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+                move-result v1
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
 
                 invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v0

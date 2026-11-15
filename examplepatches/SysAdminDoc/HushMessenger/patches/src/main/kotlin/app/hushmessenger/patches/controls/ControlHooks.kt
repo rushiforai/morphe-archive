@@ -112,11 +112,36 @@ private val facebookPlugins = setOf(
 internal var messageTextGetterName: String = ""
 internal var messageIdGetterName: String = ""
 internal var messageIsUnsentGetterName: String = ""
+internal var messageOtidGetterName: String = ""
+internal var messageTimestampGetterName: String = ""
+internal var messageSenderGetterName: String = ""
+internal var messageContentTypeGetterName: String = ""
+internal var messageContentSubtypeGetterName: String = ""
+internal var messageRowInterface: String = ""
 
 internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
+/**
+ * The finders' per-method checks that one shared walk answers, so a method's code is decoded once for all of them
+ * instead of once per finder. A finder called outside [findControls] walks on its own and finds the same methods.
+ */
+private fun sharedChecks(): List<WalkCheck> = listOf(
+    chatPreviewBuilders, chatPreviewReaders, storyFinishedLoggers, blockedListBuilders, phoneIdRequesters, phoneIdSenders,
+    nearbyScanSites, wifiIdentitySites, markReadBars, markIconSetters, voiceDownloads, menuTaps, saveVideoRows, moreSheets,
+    audioCasters, trayInsertBuilders, trayPluginClasses, landscapeFlagReaders, mediaOrientationClasses, fontSites,
+    searchBarBuilders, searchScreenHintShapes, carBundleWriters, carExtensionSteps, ringDeciders, menuItemsBuilders,
+    callButtonShapes, summaryPillHandlers, homeHeaders, composerResults, cameraLaunches, chatCameraFactories,
+    captureLaunchers, launcherStarts, cameraUriChecks, internalFileOpens, galleryItemsShapes, galleryHandlerShapes,
+    inboundCopies, tempFolderChecks, configHolders, playoutSwitches, playoutWriters, recordHandovers, recentMediaDetectors,
+    attributionUploads, instantCaptures, pinLimitLoaders, sharedFlagReaders, aiMentionShapes, headerRenders, logBars,
+    ringMountClasses, roundingPrinterClasses, legacyRoundings, tileShapeFlags, messageDebugStrings,
+)
+
 /** Match semantics first, then require the exact set the build's profile records. */
-internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInboxContract? = findCommunityInbox(classes)): Map<String, List<Method>> {
+internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInboxContract? = findCommunityInbox(classes)): Map<String, List<Method>> =
+    withSharedWalk(classes, sharedChecks()) { findControlsIn(classes, community) }
+
+private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInboxContract?): Map<String, List<Method>> {
     // Every build lists the base profile's controls (ControlProfileTest), so these keys are the active build's too. Only
     // the hook ids differ by build, and validateControls compares what's found here with the active build's.
     val found = BASE_PROFILE.hooks.keys.associateWith { mutableListOf<Method>() }
@@ -141,7 +166,10 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
         .firstOrNull { it.returnType == "V" && it.parameterTypes.size == 2 && it.parameterTypes[1] == "I" }
         ?.definingClass
     if (gridBinderType != null) {
-        for (cls in classes) {
+        var last: ClassDef? = null
+        for ((cls, _) in codeReferrers(classes, types = listOf(gridBinderType))) {
+            if (cls === last) continue
+            last = cls
             val instantiates = cls.methods.any { m ->
                 m.implementation?.instructions?.any { insn ->
                     insn.opcode == Opcode.NEW_INSTANCE &&
@@ -232,7 +260,9 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
     found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
     found.getValue(CHAT_HEAD_VIDEO).addAll(findChatHeadVideo(classes))
-    found.getValue(CALL_BUTTON_BUILT).addAll(findCallButtonBuilt(classes, stringTables))
+    val callButtonBuilders = findCallButtonBuilt(classes, stringTables)
+    found.getValue(CALL_BUTTON_BUILT).addAll(callButtonBuilders)
+    found.getValue(HIDE_CALL_LISTS).addAll(findCallButtonLists(classes, callButtonBuilders))
     autoReplyPictureRecipe = resolveAutoReplyPictureRecipe(classes)
     messageLogContract = resolveMessageLogContract(classes)
     quietChatContract = resolveQuietChatContract(classes, messageLogContract)
@@ -274,42 +304,62 @@ private fun findStoryCardKeys(classes: Iterable<ClassDef>): Set<String> = classe
             .map { (it as ReferenceInstruction).reference.toString() }
 }.toSet()
 
+/** The methods that write a message row's debug string, with its text, id and unsent fields. */
+internal val messageDebugStrings = MethodCheck {
+    val fields = listOf("text=", "message_id=", "is_unsent=").map(::StringMatch)
+    val test: MethodTest = { _, m -> fields.all { it.inCode(m) } }
+    test
+}
+
 /** The getters the unsent hooks call on a message row, named by the row's debug string and the wrapper that serves it. */
 private fun resolveMessageGetterNames(classes: Iterable<ClassDef>) {
     messageTextGetterName = ""
     messageIdGetterName = ""
     messageIsUnsentGetterName = ""
+    messageOtidGetterName = ""
+    messageTimestampGetterName = ""
+    messageSenderGetterName = ""
+    messageContentTypeGetterName = ""
+    messageContentSubtypeGetterName = ""
+    messageRowInterface = ""
     var rawText = ""
     var rawId = ""
     var rawUnsent = ""
-    val debugText = StringMatch("text=")
-    for (cls in classes) {
+    var rawOtid = ""
+    var rawTimestamp = ""
+    var rawSender = ""
+    var rawContentType = ""
+    var rawContentSubtype = ""
+    var debugClass: ClassDef? = null
+    for ((cls, m) in messageDebugStrings.sites(classes)) {
+        // A class's first debug string is the only one read, and none once the text getter is named.
+        if (cls === debugClass) continue
         if (rawText.isNotEmpty()) break
-        for (m in cls.methods) {
-            val debugCode = m.implementation?.instructions?.toList() ?: continue
-            if (debugCode.none { debugText.matches((it as? ReferenceInstruction)?.reference) }) continue
-            val debugStrs = debugCode.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
-            if ("text=" !in debugStrs || "message_id=" !in debugStrs || "is_unsent=" !in debugStrs) continue
-            var lastRef: DexMethodReference? = null
-            for (insn in debugCode) {
-                val ref = (insn as? ReferenceInstruction)?.reference ?: continue
-                if (insn.opcode == Opcode.INVOKE_INTERFACE && ref is DexMethodReference) {
-                    lastRef = ref
-                } else if (ref is StringReference && lastRef != null) {
-                    when (ref.string) {
-                        "text=" -> if (lastRef.returnType == "Ljava/lang/String;") { rawText = lastRef.name; lastRef = null }
-                        "message_id=" -> if (lastRef.returnType == "Ljava/lang/String;") { rawId = lastRef.name; lastRef = null }
-                        "is_unsent=" -> if (lastRef.returnType == "Z") { rawUnsent = lastRef.name; lastRef = null }
-                    }
+        debugClass = cls
+        var lastRef: DexMethodReference? = null
+        for (insn in m.implementation!!.instructions) {
+            val ref = (insn as? ReferenceInstruction)?.reference ?: continue
+            if (insn.opcode == Opcode.INVOKE_INTERFACE && ref is DexMethodReference) {
+                lastRef = ref
+            } else if (ref is StringReference && lastRef != null) {
+                when (ref.string) {
+                    "text=" -> if (lastRef.returnType == "Ljava/lang/String;") { rawText = lastRef.name; lastRef = null }
+                    "message_id=" -> if (lastRef.returnType == "Ljava/lang/String;") { rawId = lastRef.name; lastRef = null }
+                    "is_unsent=" -> if (lastRef.returnType == "Z") { rawUnsent = lastRef.name; lastRef = null }
+                    "offline_threading_id=" -> if (lastRef.returnType == "Ljava/lang/String;") { rawOtid = lastRef.name; lastRef = null }
+                    "timestamp_ms=" -> if (lastRef.returnType == "J") { rawTimestamp = lastRef.name; lastRef = null }
+                    "sender_id=" -> if (lastRef.returnType == "J") { rawSender = lastRef.name; lastRef = null }
+                    "message_content_type=" -> if (lastRef.returnType == "I") { rawContentType = lastRef.name; lastRef = null }
+                    "message_content_subtype=" -> if (lastRef.returnType == "I") { rawContentSubtype = lastRef.name; lastRef = null }
                 }
             }
-            break
         }
     }
     if (rawText.isNotEmpty()) {
         messageTextGetterName = rawText
         messageIdGetterName = rawId
         messageIsUnsentGetterName = rawUnsent
+        messageOtidGetterName = rawOtid
         for (wrapperCls in classes) {
             if (!wrapperCls.isRowWrapper()) continue
             fun resolve(raw: String, ret: String): String {
@@ -325,6 +375,13 @@ private fun resolveMessageGetterNames(classes: Iterable<ClassDef>) {
             messageTextGetterName = resolve(rawText, "Ljava/lang/String;")
             messageIdGetterName = resolve(rawId, "Ljava/lang/String;")
             messageIsUnsentGetterName = resolve(rawUnsent, "Z")
+            if (rawOtid.isNotEmpty()) messageOtidGetterName = resolve(rawOtid, "Ljava/lang/String;")
+            if (rawTimestamp.isNotEmpty()) messageTimestampGetterName = resolve(rawTimestamp, "J")
+            if (rawSender.isNotEmpty()) messageSenderGetterName = resolve(rawSender, "J")
+            if (rawContentType.isNotEmpty()) messageContentTypeGetterName = resolve(rawContentType, "I")
+            if (rawContentSubtype.isNotEmpty()) messageContentSubtypeGetterName = resolve(rawContentSubtype, "I")
+            // The debug writer reads each item, while encrypted chats' CQL rows serve the row interface the wrapper does.
+            messageRowInterface = wrapperCls.interfaces.single().toString()
             break
         }
     }
@@ -473,12 +530,13 @@ private class ControlScan(
         }
         if (ret == "V" && method.isKeepUnsentShape() && strings.any { "ACTION_REVOKE_MESSAGE" in it }) add("keep_unsent")
         // Both unsent hooks call the wrapper's own message id getter, so the wrapper that holds them has to have one.
+        // Encrypted chats read their rows straight from a CQL result set, so those row classes get the same hooks.
         if (messageTextGetterName.isNotEmpty() && method.name == messageTextGetterName &&
             ret == "Ljava/lang/String;" && params == listOf("I") &&
-            cls.isRowWrapper() && cls.hasMessageIdGetter()) add("unsent_indicator")
+            (cls.isRowWrapper() || cls.isCqlRowWrapper()) && cls.hasMessageIdGetter()) add("unsent_indicator")
         if (messageIsUnsentGetterName.isNotEmpty() && method.name == messageIsUnsentGetterName &&
             ret == "Z" && params == listOf("I") &&
-            cls.isRowWrapper() && cls.hasMessageIdGetter()) add("delta_unsent")
+            (cls.isRowWrapper() || cls.isCqlRowWrapper()) && cls.hasMessageIdGetter()) add("delta_unsent")
         // The gates are private instance methods with no parameter.
         if (ret == "Z" && params.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) &&
             strings.any { "SearchAiagentImplementationsKillSwitch" in it }) add("ai_search")
@@ -933,6 +991,26 @@ internal fun ClassDef.isRowWrapper(): Boolean =
     AccessFlags.ABSTRACT.isSet(accessFlags) && interfaces.size == 1 &&
         fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.let { it.size == 1 && it[0].type == "Ljava/util/List;" } &&
         methods.any { it.name == "getCount" && it.returnType == "I" && it.parameterTypes.isEmpty() }
+
+internal const val CQL_RESULT_SET = "Lcom/facebook/msys/mci/CQLResultSet;"
+
+/** The getters an encrypted chat's text hook reads besides the message id, by name and return type. */
+private fun cqlRowGetters() = listOf(messageOtidGetterName to "Ljava/lang/String;", messageTimestampGetterName to "J",
+    messageSenderGetterName to "J", messageContentTypeGetterName to "I", messageContentSubtypeGetterName to "I")
+
+/**
+ * A row class built on a CQL result set that serves the message row interface itself, the way encrypted chats get their
+ * rows. Its text hook also asks for the row's offline threading id, time, sender, content type and subtype, so a class
+ * without those getters is left alone.
+ */
+internal fun ClassDef.isCqlRowWrapper(): Boolean =
+    messageRowInterface.isNotEmpty() && cqlRowGetters().all { (name, _) -> name.isNotEmpty() } &&
+        !AccessFlags.ABSTRACT.isSet(accessFlags) && !AccessFlags.INTERFACE.isSet(accessFlags) &&
+        interfaces.map { it.toString() } == listOf(messageRowInterface) &&
+        methods.any { it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } == listOf(CQL_RESULT_SET) } &&
+        cqlRowGetters().all { (name, ret) ->
+            methods.any { it.name == name && it.returnType == ret && it.parameterTypes.map { p -> p.toString() } == listOf("I") }
+        }
 
 /** The unsent hooks are assembled with the message id getter's name, so an empty or missing one stops discovery. */
 internal fun ClassDef.hasMessageIdGetter(): Boolean = messageIdGetterName.isNotEmpty() &&
@@ -1439,9 +1517,33 @@ internal fun MutableMethod.injectKeepUnsent() {
     """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
 }
 
-internal fun MutableMethod.validateUnsentIndicator() {
+/**
+ * Whether the getter reads one column straight from its row's CQL result set into v0 and returns it, the way encrypted
+ * chats' row classes do: `iget-object v1, p0, resultSet; const/16 v0, column; invoke-interface {v1, p1, v0}, get(II);
+ * move-result v0; return v0`, in a four-register instance method, so v1 is free once the column is read.
+ */
+private fun MutableMethod.readsOneCqlColumn(getter: String, moveResult: Opcode, ret: Opcode): Boolean {
+    val code = implementation!!.instructions.toList()
+    if (code.map { it.opcode } != listOf(Opcode.IGET_OBJECT, Opcode.CONST_16, Opcode.INVOKE_INTERFACE, moveResult, ret)) return false
+    val read = (code[2] as ReferenceInstruction).reference as? DexMethodReference ?: return false
+    // Only v0 and v1 are written, so p0 and p1 still hold the row and its index for the hook's own calls.
+    val writes = listOf(1, 0, -1, 0, 0)
+    return read.definingClass == CQL_RESULT_SET && "${read.name}(${read.parameterTypes.joinToString("")})${read.returnType}" == getter &&
+        code.indices.all { writes[it] < 0 || (code[it] as OneRegisterInstruction).registerA == writes[it] } &&
+        implementation!!.registerCount == 4 && !AccessFlags.STATIC.isSet(accessFlags)
+}
+
+/** Whether the text hook sits in an encrypted chat's CQL row class (true) or the list wrapper other chats use (false). */
+internal fun MutableMethod.validateUnsentIndicator(): Boolean {
     if (returnType != "Ljava/lang/String;") throw PatchException("Messenger controls: unsent_indicator hook must return String")
     if (parameterTypes != listOf("I")) throw PatchException("Messenger controls: unsent_indicator hook must take one int param")
+    if (readsOneCqlColumn("getString(II)Ljava/lang/String;", Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT)) {
+        if (messageOtidGetterName.isEmpty()) throw PatchException("Messenger controls: unsent_indicator hook needs the row's threading id getter")
+        if (messageTimestampGetterName.isEmpty() || messageSenderGetterName.isEmpty() || messageContentTypeGetterName.isEmpty() ||
+            messageContentSubtypeGetterName.isEmpty())
+            throw PatchException("Messenger controls: unsent_indicator hook needs the row's time, sender, content type and subtype getters")
+        return true
+    }
     val code = implementation!!.instructions.toList()
     // 584 takes the row from the wrapper's list, casts it and asks it for its text, ending in v0.
     val shape = listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST,
@@ -1450,12 +1552,25 @@ internal fun MutableMethod.validateUnsentIndicator() {
     if (code.map { it.opcode } != shape || (code.last() as OneRegisterInstruction).registerA != 0 || implementation!!.registerCount != 3 ||
         AccessFlags.STATIC.isSet(accessFlags))
         throw PatchException("Messenger controls: unsent_indicator hook no longer reads the row's text from its list")
+    return false
 }
 
 internal fun MutableMethod.injectUnsentIndicator() {
-    validateUnsentIndicator()
+    val cql = validateUnsentIndicator()
     val code = implementation!!.instructions.toList()
     val returnIndex = code.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
+    if (cql) {
+        // The row's ids, time, sender and type don't fit in the getter's four registers, so the class's helper
+        // (unsentRowHelper) reads them. Nothing is read when Keep unsent messages is off.
+        addInstructionsWithLabels(returnIndex, """
+            invoke-static {}, $SETTINGS->watchesUnsentRows()Z
+            move-result v1
+            if-eqz v1, :keep_text
+            invoke-static {p0, v0, p1}, $definingClass->$UNSENT_ROW_HELPER(${definingClass}Ljava/lang/String;I)Ljava/lang/String;
+            move-result-object v0
+        """.trimIndent(), ExternalLabel("keep_text", getInstruction(returnIndex)))
+        return
+    }
     addInstructions(returnIndex, """
         invoke-virtual {p0, p1}, $definingClass->$messageIdGetterName(I)Ljava/lang/String;
         move-result-object p1
@@ -1464,9 +1579,65 @@ internal fun MutableMethod.injectUnsentIndicator() {
     """.trimIndent())
 }
 
+internal const val UNSENT_ROW_HELPER = "hushUnsentRowText"
+
+/**
+ * The static helper an encrypted chat's text hook calls with the row, its text and its index. It reads the row's ids,
+ * time, sender, content type and subtype and asks the extension what to show. An unsent message's row comes back with
+ * no text, or, on 587, is hidden behind a "deleted a message" row with the same time and sender, so those come along to
+ * find the words it had.
+ */
+internal fun unsentRowHelper(row: String): MutableMethod {
+    val parameters = listOf(row, "Ljava/lang/String;", "I").map { ImmutableMethodParameter(it, null, null) }
+    // v0 to v8 hold the extension's arguments in order. p0 is the row, p1 its text, p2 its index.
+    return MutableMethod(ImmutableMethod(row, UNSENT_ROW_HELPER, parameters, "Ljava/lang/String;",
+        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, ImmutableMethodImplementation(12, emptyList(), null, null)))
+        .apply {
+            addInstructions(0, """
+                move-object v0, p1
+                invoke-virtual {p0, p2}, $row->$messageIdGetterName(I)Ljava/lang/String;
+                move-result-object v1
+                invoke-virtual {p0, p2}, $row->$messageOtidGetterName(I)Ljava/lang/String;
+                move-result-object v2
+                invoke-virtual {p0, p2}, $row->$messageTimestampGetterName(I)J
+                move-result-wide v3
+                invoke-virtual {p0, p2}, $row->$messageSenderGetterName(I)J
+                move-result-wide v5
+                invoke-virtual {p0, p2}, $row->$messageContentTypeGetterName(I)I
+                move-result v7
+                invoke-virtual {p0, p2}, $row->$messageContentSubtypeGetterName(I)I
+                move-result v8
+                invoke-static/range {v0 .. v8}, $SETTINGS->labelKeptUnsentRow(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JJII)Ljava/lang/String;
+                move-result-object v0
+                return-object v0
+            """.trimIndent())
+        }
+}
+
+/** Whether an encrypted chat's row class can take [unsentRowHelper]: it serves every getter the helper calls. */
+internal fun ClassDef.checkUnsentRowHelper() {
+    if (methods.any { it.name == UNSENT_ROW_HELPER }) throw PatchException("Messenger controls: $type already has $UNSENT_ROW_HELPER")
+    val wanted = listOf(messageIdGetterName to "Ljava/lang/String;", messageOtidGetterName to "Ljava/lang/String;",
+        messageTimestampGetterName to "J", messageSenderGetterName to "J", messageContentTypeGetterName to "I",
+        messageContentSubtypeGetterName to "I")
+    for ((name, ret) in wanted) {
+        if (methods.none { it.name == name && it.returnType == ret && it.parameterTypes == listOf("I") && !AccessFlags.STATIC.isSet(it.accessFlags) })
+            throw PatchException("Messenger controls: $type has no $name(I)$ret for the unsent text helper")
+    }
+}
+
+/** Adds [unsentRowHelper] to an encrypted chat's row class once [checkUnsentRowHelper] passed. */
+internal fun MutableClass.addUnsentRowHelper(helper: MutableMethod) {
+    checkUnsentRowHelper()
+    methods.add(helper)
+    directMethods.add(helper)
+}
+
 internal fun MutableMethod.validateDeltaUnsent() {
     if (returnType != "Z") throw PatchException("Messenger controls: delta_unsent hook must return boolean")
     if (parameterTypes != listOf("I")) throw PatchException("Messenger controls: delta_unsent hook must take one int param")
+    // An encrypted chat's row reads the flag from its result set into v0, with p0 and p1 in v2 and v3.
+    if (readsOneCqlColumn("getBoolean(II)Z", Opcode.MOVE_RESULT, Opcode.RETURN)) return
     val code = implementation!!.instructions.toList()
     if (code.size != 5) throw PatchException("Messenger controls: delta_unsent hook has ${code.size} instructions, expected 5")
     if (code[4].opcode != Opcode.RETURN) throw PatchException("Messenger controls: delta_unsent hook must end with return")

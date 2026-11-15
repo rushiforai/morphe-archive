@@ -69,6 +69,7 @@ object Constants {
     )
 
     const val LIDL_PLUS_17_13_6 = "17.13.6"
+    const val LIDL_PLUS_17_14_6 = "17.14.6"
 
     /**
      * Lidl Plus is a single APK from APKMirror (arm64-v8a, nodpi). The patches pin obfuscated names
@@ -83,6 +84,10 @@ object Constants {
             AppTarget(
                 version = LIDL_PLUS_17_13_6,
                 versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1470410212),
+            ),
+            AppTarget(
+                version = LIDL_PLUS_17_14_6,
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1470410272),
             ),
         ),
     )

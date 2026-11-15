@@ -70,14 +70,15 @@ The catalog below is generated from `patches-list.json`. Expand an app to see it
 compatible versions, patches and options.
 
 <!-- PATCHES_START -->
-> **[v2.3.0](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;187 patches total
+> **[v2.3.1](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;229 patches total
 
 ### Supported apps
 
 | App | Compatible versions | Patches |
 | :--- | :--- | ---: |
-| [Amazon India](#app-in-amazon-mshop-android-shopping) | 32.18.0.300 · 32.19.0.300 | 9 |
-| [Amazon Shopping](#app-com-amazon-mshop-android-shopping) | 32.18.0.100 | 9 |
+| [Amazon Business](#app-com-amazon-mshop-android-business-shopping) | 32.19.0.451 · 32.20.0.451 | 10 |
+| [Amazon India](#app-in-amazon-mshop-android-shopping) | 32.18.0.300 · 32.19.0.300 | 10 |
+| [Amazon Shopping](#app-com-amazon-mshop-android-shopping) | 32.18.0.100 · 32.19.0.100 | 10 |
 | [Brave Browser](#app-com-brave-browser) | 1.98.63 | 14 |
 | [ChatGPT](#app-com-openai-chatgpt) | 1.2026.293 | 3 |
 | [Claude](#app-com-anthropic-claude) | 1.261023.20 | 1 |
@@ -88,13 +89,15 @@ compatible versions, patches and options.
 | [Gboard](#app-com-google-android-inputmethod-latin) | 18.5.4.993608717-release-arm64-v8a · 18.5.4.993608717-release-armeabi-v7a | 2 |
 | [Google Photos](#app-com-google-android-apps-photos) | 7.97.0.997578476 | 7 |
 | [Hindustan Times](#app-com-ht-news) | 4.9.16 | 3 |
+| [Instagram](#app-com-instagram-android) | 439.0.0.37.89 | 23 |
 | [Inure App Manager](#app-app-simple-inure-play) | build107.2.1 | 1 |
 | [Inure App Manager (GitHub)](#app-app-simple-inure) | build107.2.4 | 1 |
 | [Malwarebytes Mobile Security](#app-org-malwarebytes-antimalware) | 5.27.0+564 | 1 |
-| [Meesho](#app-com-meesho-shopping) | 29.9 · 29.8 · 29.7 · +2 more | 3 |
+| [Meesho](#app-com-meesho-supply) | 29.9 · 29.8 · 29.7 · +2 more | 3 |
 | [Mereframe](#app-app-unnamed-rawrecording) | 0.8.4 | 4 |
 | [Mint](#app-com-htmedia-mint) | 5.7.5 · 5.8.4 | 3 |
 | [MUBI](#app-com-mubi) | 100.0 · 99.1 | 16 |
+| [Netflix (Android TV)](#app-com-netflix-ninja) | 13.0.1 build 25028 · 13.2.1 build 27207 · 13.2.2 build 27250 | 6 |
 | [Pinterest](#app-com-pinterest) | 14.41.0 | 4 |
 | [Proton Pass](#app-proton-android-pass) | 1.41.3 | 5 |
 | [Proton Pass (F-Droid)](#app-proton-android-pass-fdroid) | 1.41.3 | 5 |
@@ -102,6 +105,7 @@ compatible versions, patches and options.
 | [Proxyman](#app-com-proxyman-proxymanandroid) | 1.21.0 | 1 |
 | [Reddit](#app-com-reddit-frontpage) | 2026.42.0 · 2026.41.0 · 2026.40.0 · +3 more | 14 |
 | [Strava](#app-com-strava) | 480.15 · 486.9 | 3 |
+| [Table Notes](#app-vivekagarwal-playwithdb) | 20261111 | 1 |
 | [Telegram](#app-org-telegram-messenger) | 12.10.1 | 14 |
 | [Telegram Plus](#app-org-telegram-plus) | 12.10.1.1 | 15 |
 | [Telegram Web](#app-org-telegram-messenger-web) | 12.10.1 | 14 |
@@ -110,9 +114,34 @@ compatible versions, patches and options.
 | [Yatri](#app-com-yatrirailways-yatri) | 5.0.6 | 1 |
 | [Universal patches](#universal-patches) | Any app | 23 |
 
+<a id="app-com-amazon-mshop-android-business-shopping"></a>
+<details>
+<summary><strong>Amazon Business</strong> · 10 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 32.19.0.451 | 32.20.0.451 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
+| [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
+| [Disable screenshot detection](#disable-screenshot-detection) | Prevents the app from detecting screenshots and displaying the share popup on Android 14+. |  |
+| [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
+| [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
+| [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
+| [Hide Rufus tab](#hide-rufus-tab) | Removes the Rufus AI assistant tab from Amazon's bottom navigation bar. |  |
+| [Open links in browser](#open-links-in-browser) | Opens non-Amazon URLs in the default browser instead of the in-app WebView. |  |
+| [Price history charts](#price-history-charts) | Injects Keepa and CamelCamelCamel price history charts on Amazon product pages. | • Chart period<br>• Show period toggle<br>• Toggle periods<br>• Keepa price lines<br>• CamelCamelCamel chart<br>• Hide zero-price gaps<br>• Chart size<br>• Start collapsed |
+| [Remove ads](#remove-ads) | Hides sponsored and ad content in Amazon Shopping via CSS injection. |  |
+
+</details>
+
 <a id="app-in-amazon-mshop-android-shopping"></a>
 <details>
-<summary><strong>Amazon India</strong> · 9 patches</summary>
+<summary><strong>Amazon India</strong> · 10 patches</summary>
 <br>
 
 **Compatible versions**
@@ -124,6 +153,7 @@ compatible versions, patches and options.
 | :--- | :--- | :--- |
 | [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
 | [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
+| [Disable screenshot detection](#disable-screenshot-detection) | Prevents the app from detecting screenshots and displaying the share popup on Android 14+. |  |
 | [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
 | [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
 | [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
@@ -136,18 +166,19 @@ compatible versions, patches and options.
 
 <a id="app-com-amazon-mshop-android-shopping"></a>
 <details>
-<summary><strong>Amazon Shopping</strong> · 9 patches</summary>
+<summary><strong>Amazon Shopping</strong> · 10 patches</summary>
 <br>
 
 **Compatible versions**
 
-| 32.18.0.100 |
-| :---: |
+| 32.18.0.100 | 32.19.0.100 |
+| :---: | :---: |
 
 | Patch | Description | Options |
 | :--- | :--- | :--- |
 | [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
 | [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
+| [Disable screenshot detection](#disable-screenshot-detection) | Prevents the app from detecting screenshots and displaying the share popup on Android 14+. |  |
 | [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
 | [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
 | [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
@@ -346,6 +377,44 @@ compatible versions, patches and options.
 
 </details>
 
+<a id="app-com-instagram-android"></a>
+<details>
+<summary><strong>Instagram</strong> · 23 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 439.0.0.37.89 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Bypass signature check](#bypass-signature-check) | Bypasses Instagram's internal provider signature verification after patching. |  |
+| [Change like animation](#change-like-animation) | Lets you choose one of Instagram's built-in double-tap like animations, or pick a random one per session, from the Proteus settings dialog. Experimental on builds where Instagram renamed the animation classes. |  |
+| [Clone](#clone) | Changes the package name and the app name so you can install the patched app alongside the official Instagram app. Caution: Do not combine with the universal "Change package name" patch. | • Package name<br>• App name |
+| [Disable Reels scrolling](#disable-reels-scrolling) | Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. |  |
+| [Disable story auto flipping](#disable-story-auto-flipping) | Disable stories automatically flipping/skipping after some seconds. |  |
+| [Disable video autoplay](#disable-video-autoplay) | Disable video autoplay from feed. |  |
+| [Ghost mode](#ghost-mode) | Hides typing indicators, prevents DM read receipts, and best-effort blocks story view receipts. Controlled at runtime from the Proteus settings button. |  |
+| [Hide Instants](#hide-instants) | Hides Instants from DMs page. |  |
+| [Hide Reels save button](#hide-reels-save-button) | Hides the save button from Reels. |  |
+| [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
+| [Hide ads](#hide-ads) | Removes ads from the Instagram feed and stories. |  |
+| [Hide all stories](#hide-all-stories) | Hides all stories from the tray in the feed page. You may need to clean app data after the initial use of this patch to see its effects. |  |
+| [Hide explore feed](#hide-explore-feed) | Hides posts and reels from the explore/search page. |  |
+| [Hide feed content](#hide-feed-content) | Hide the feed content, leaving only stories in the home page. |  |
+| [Hide navigation buttons](#hide-navigation-buttons) | Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch options. | • Hide Home<br>• Hide Reels<br>• Hide Direct<br>• Hide Search<br>• Hide Profile<br>• Hide Create |
+| [Hide notes tray](#hide-notes-tray) | Hides the notes tray from the direct tab. |  |
+| [Hide reshare button](#hide-reshare-button) | Hides the reshare button from both posts and reels. |  |
+| [Hide suggested content](#hide-suggested-content) | Choose the suggested content to hide using the patch options. | • Hide suggested reels<br>• Hide suggested stories<br>• Hide highlights in stories<br>• Hide suggested accounts |
+| [Limit feed to following profiles](#limit-feed-to-following-profiles) | Filters the home feed to display only chronological content from profiles you follow. |  |
+| [Proteus settings](#proteus-settings) | Adds settings and Ghost Mode buttons to the Instagram feed action bar. The dialog controls the runtime options of the other Instagram patches. |  |
+| [Reels double-tap seek](#reels-double-tap-seek) | Enables double-tap skip/rewind controls in Reels. The controls can be disabled at runtime from the Proteus settings button. |  |
+| [Reels playback speed menu](#reels-playback-speed-menu) | Adds Instagram's playback-speed menu to the Reels overflow menu. The speed can be changed at runtime from the Proteus settings button. |  |
+| [Remove build expired popup](#remove-build-expired-popup) | Removes the popup that appears after a while when the app version ages. |  |
+
+</details>
+
 <a id="app-app-simple-inure-play"></a>
 <details>
 <summary><strong>Inure App Manager</strong> · 1 patch</summary>
@@ -394,7 +463,7 @@ compatible versions, patches and options.
 
 </details>
 
-<a id="app-com-meesho-shopping"></a>
+<a id="app-com-meesho-supply"></a>
 <details>
 <summary><strong>Meesho</strong> · 3 patches</summary>
 <br>
@@ -406,9 +475,9 @@ compatible versions, patches and options.
 
 | Patch | Description | Options |
 | :--- | :--- | :--- |
-| [Meesho: Block analytics & tracking SDKs](#meesho-block-analytics-tracking-sdks) | Blocks Meesho's analytics & tracking SDKs (Firebase Analytics, AppsFlyer,<br>Adjust, Facebook AppEvents, WebEngage, CleverTap and similar) using the<br>same universal heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.meesho.shopping only. Heuristic; obfuscated or<br>reflection-based reporting is not covered. Unverified on device. |  |
-| [Meesho: Disable video autoplay (ExoPlayer)](#meesho-disable-video-autoplay-exoplayer) | Stops video autoplay in the Meesho feed and product videos (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.meesho.shopping only. Heuristic; see the universal entry<br>for limitations. Unverified on device. |  |
-| [Meesho: Prefer external browser over Custom Tabs](#meesho-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.meesho.shopping only. Covers Custom Tabs /<br>CustomTabsIntent call sites only. Unverified on device. |  |
+| [Meesho: Block analytics & tracking SDKs](#meesho-block-analytics-tracking-sdks) | Blocks Meesho's analytics & tracking SDKs (Firebase Analytics, AppsFlyer,<br>Adjust, Facebook AppEvents, WebEngage, CleverTap and similar) using the<br>same universal heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.meesho.supply only. Heuristic; obfuscated or<br>reflection-based reporting is not covered. Unverified on device. |  |
+| [Meesho: Disable video autoplay (ExoPlayer)](#meesho-disable-video-autoplay-exoplayer) | Stops video autoplay in the Meesho feed and product videos (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.meesho.supply only. Heuristic; see the universal entry<br>for limitations. Unverified on device. |  |
+| [Meesho: Prefer external browser over Custom Tabs](#meesho-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.meesho.supply only. Covers Custom Tabs /<br>CustomTabsIntent call sites only. Unverified on device. |  |
 
 </details>
 
@@ -425,9 +494,9 @@ compatible versions, patches and options.
 | Patch | Description | Options |
 | :--- | :--- | :--- |
 | [Allow re-signed/sideloaded installs](#allow-re-signed-sideloaded-installs) | Neutralizes Mereframe's install-integrity checks so patched (re-signed) builds start normally instead of showing the installation-refused screen. Required for any other patch here to be usable. |  |
-| [Bypass native integrity checks](#bypass-native-integrity-checks) | libunnamed_raw.so JNI-throws 'app integrity check failed' on re-signed builds, killing camera session start (preview) - observed via diagnostic crash log. This patch calls the session-opening wrapper inside a real JVM try/catch (extension) and substitutes a well-formed session result on failure. Required together with 'Allow re-signed/sideloaded installs'. |  |
+| [Bypass native integrity checks](#bypass-native-integrity-checks) | Neutralizes libunnamed_raw.so's five ARM64 self-integrity gates (BTI/PAC-safe) and wraps the session-opening plus every other native-calling bridge wrapper in a real JVM try/catch that fails open on integrity errors. Required together with 'Allow re-signed/sideloaded installs'. |  |
 | [Diagnostic crash log](#diagnostic-crash-log) | DIAGNOSTIC ONLY - writes the full stack trace to Downloads/mereframe-crash-*.txt when the app crashes, for remote diagnosis. Off by default; enable when asked to produce a crash log. Chain-forwards to the original crash handler. |  |
-| [Unlock Pro features](#unlock-pro-features) | Returns every registered feature from the entitlement accessor (Qu.k) so all Pro gates resolve unlocked. LOCAL client-side effect only. WARNING (kept off by default): on at least one device (realme/Android 16) enabling the single registered Pro feature crashes capture - the Pro pipeline path is gated by this flag and we cannot verify its safety side. Enable only if you specifically want the Pro toolset; the app works fully (RAW capture incl.) with just 'Allow re-signed installs'. |  |
+| [Unlock Pro features](#unlock-pro-features) | Unlocks all Mereframe Pro features locally across both the Kotlin entitlement resolver (Qu.k/m) and the native license/session verifier (Bf1c089 + libunnamed_raw.so), eliminating paywall popups and capture/editor SecurityException crashes. Pair with 'Allow re-signed/sideloaded installs' and 'Bypass native integrity checks'. |  |
 
 </details>
 
@@ -477,6 +546,27 @@ compatible versions, patches and options.
 | [Skip pre-roll promos](#skip-pre-roll-promos) | Disables MUBI's app-side pre-roll gate when it is a boolean check. Pre-roll injected by the server or embedded in the stream is unaffected. |  |
 | [Spoof Widevine level for MUBI](#spoof-widevine-level-for-mubi) | Reports L1 / HDCP 2.2 to MUBI's local DRM checks. Server-side licensing still decides the resolution, so HD may remain unavailable. |  |
 | [Suppress subscription paywall](#suppress-subscription-paywall) | Closes MUBI's upgrade screen immediately instead of showing it. Does not unlock playback or grant a subscription; only hides the upsell screen. |  |
+
+</details>
+
+<a id="app-com-netflix-ninja"></a>
+<details>
+<summary><strong>Netflix (Android TV)</strong> · 6 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 13.0.1 build 25028 | 13.2.1 build 27207 (experimental) | 13.2.2 build 27250 (experimental) |
+| :---: | :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Clone Netflix](#clone-netflix) | Installs the patched Netflix as a separate app alongside the stock one (package suffix .clone), instead of replacing it. Required on devices where Netflix is a preinstalled system app that can't be uninstalled (most Android TV boxes, Google TV, Fire TV). Keep the stock Netflix installed + enabled — the clone borrows its signature to pass Netflix's native tamper check (stock auto-updating is fine). You just launch the clone instead. Recommended: leave ON. |  |
+| [Disable Netflix CertCheck](#disable-netflix-certcheck) | Neutralises Netflix's DexGuard signing-certificate anti-tamper check so a re-signed build doesn't self-crash on launch. Required for every Netflix patch. |  |
+| [Minimize Network Fingerprint](#minimize-network-fingerprint) | Blanks the local IP / MAC / Wi-Fi SSID the Netflix app reports about your network (keeps interface name/type) and stops the app from reporting your advertising ID (GAID) in its ad-collection telemetry. Reduces network + ad fingerprinting. Does NOT stop the server-side "I'm traveling"/household check (that's driven by your public IP — use a VPN for that). Opt-in / experimental; test on-device. |  |
+| [Remove Netflix ads (bundle engine)](#remove-netflix-ads-bundle-engine) | Bundles the in-process ad-kill script (killads.js) and its loader into the app. This is the ad remover: at launch the app runs the script itself (script mode — no PC, no root, no frida server) and empties Netflix's ad breaks (pre-roll, mid-roll) and the pause-screen ad overlay. Pairs with the loader patch. Default ON. |  |
+| [Remove Netflix ads (loader)](#remove-netflix-ads-loader) | Arms the ad remover: injects the startup call that loads the in-process ad-kill engine (bundled by the companion patch) as early as possible, so ads are emptied before playback. Requires the bundle-engine patch. Default ON. |  |
+| [Suppress Household Prompt](#suppress-household-prompt) | Hides the Netflix "you're traveling" / update-your-household prompt by keeping the client from activating the misdetection challenge session. Does NOT change what Netflix's servers detect (that's driven by your public IP — use a VPN for that); it only suppresses the on-screen prompt. Opt-in / experimental; only takes visible effect when the account would otherwise be prompted. |  |
 
 </details>
 
@@ -615,6 +705,22 @@ compatible versions, patches and options.
 | [Block analytics and data collection](#block-analytics-and-data-collection) | Stops Strava's Braze telemetry bootstrap (session + engagement tracking, endpoint sdk.iad-07.braze.com) before it is configured. Firebase Analytics collection and Facebook auto event logging are already off in Strava's own manifest; this removes the one tracker pipe that is actually live. Push, GPS, and recording keep working. |  |
 | [Force password login (OTP bypass)](#force-password-login-otp-bypass) | Always shows the password login field instead of the OTP code flow. OFF by default: breaks log-in AND sign-up for OTP-only accounts. Enable only if your Strava account has an actual password. |  |
 | [Unlock Premium](#unlock-premium) | Unlocks Strava Premium features. |  |
+
+</details>
+
+<a id="app-vivekagarwal-playwithdb"></a>
+<details>
+<summary><strong>Table Notes</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 20261111 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Table Notes: Unlock premium](#table-notes-unlock-premium) | Unlocks Table Notes premium: PDF / Word / Excel export, publishing and<br>the paid feature set, and removes the premium-tier ad slots (banner and<br>interstitial). Also suppresses the paywall.<br><br>Verified against 20261111. Does not touch Firebase sync of your own<br>tables; the app simply believes every entitlement is owned. |  |
 
 </details>
 

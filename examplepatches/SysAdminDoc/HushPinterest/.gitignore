@@ -16,8 +16,6 @@ captures/
 .cxx/
 *.aab
 *.apk
-# The AppInventory contract's two tiny real-dex fixtures (scripts/checks/build-inventory-fixtures.ps1).
-!scripts/checks/inventory-fixture/*.apk
 *.apkm
 *.apks
 *.xapk
@@ -33,6 +31,10 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+
+# The bundle signing key's private half lives outside the tree. morphe-signing.pub is its public half.
+morphe-signing.key
+*.signing.key
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

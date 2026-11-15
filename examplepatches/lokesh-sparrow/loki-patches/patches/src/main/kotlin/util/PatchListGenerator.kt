@@ -26,7 +26,10 @@ private fun builtBundle(): File {
         file.name.endsWith(".mpp") && !file.name.contains("javadoc") && !file.name.contains("sources")
     }!!
     require(bundles.isNotEmpty()) { "No .mpp in build/libs" }
-    return bundles.first()
+    // Local builds accumulate old bundles next to the new one, so take the newest rather than
+    // whichever the directory happens to list first: otherwise the list is generated from a
+    // previous release and silently drops the patches added since.
+    return bundles.maxBy { it.lastModified() }
 }
 
 fun main() {

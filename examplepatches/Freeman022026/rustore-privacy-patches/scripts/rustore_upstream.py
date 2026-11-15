@@ -98,11 +98,19 @@ DISABLED_COMPONENT_PREFIXES = {
 }
 
 DEVICE_IDENTIFIER_STUBS = {
-    "ty2.g": "a()Ljava/lang/String;",
-    "b61.r1": "a()Ljava/lang/String;",
-    "y20.b": "a(Landroid/content/Context;)Ljava/lang/String;",
+    "fz2.o": "a()Ljava/lang/String;",
+    "a61.r1": "a()Ljava/lang/String;",
+    "x20.c": "a(Landroid/content/Context;)Ljava/lang/String;",
 }
 
+AUTO_UPDATE_CONTROLLER = (
+    "ru.vk.store.feature.installedapp.update.mobile.impl.presentation.l"
+)
+AUTO_UPDATE_CONTROLLER_DESCRIPTOR = "L" + AUTO_UPDATE_CONTROLLER.replace(".", "/") + ";"
+# Entry instructions that the stubs insert; the unit, empty-list and empty-map objects are R8 names.
+FALSE_STUB = ["sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;", "return-object v0"]
+EMPTY_MAP_STUB = ["sget-object v0, Lsu0/z;->a:Lsu0/z;", "return-object v0"]
+WEB_GAME_REMOTE_CONFIG = "ru.vk.store.feature.games.webgame.api.domain.WebGameRemoteConfig"
 INVALID_COMPONENT_PREFIXES = ("xav.", "xid.", "xo.", "xom.", "xu.")
 WORK_MANAGER_RESCHEDULE_RECEIVER = (
     "androidx.work.impl.background.systemalarm.RescheduleReceiver"
@@ -333,17 +341,21 @@ def audit_patched(args: argparse.Namespace) -> None:
         str(args.apk),
     )
     verify_google_ad_id_stub(ad_code)
-    unit_stub = ["sget-object v0, Lsu0/e0;->a:Lsu0/e0;", "return-object v0"]
-    false_stub = ["sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;", "return-object v0"]
-    empty_list_stub = ["sget-object v0, Ltu0/x;->a:Ltu0/x;", "return-object v0"]
+    unit_stub = ["sget-object v0, Lru0/e0;->a:Lru0/e0;", "return-object v0"]
+    false_stub = FALSE_STUB
+    empty_map_stub = EMPTY_MAP_STUB
+    empty_list_stub = ["sget-object v0, Lsu0/y;->a:Lsu0/y;", "return-object v0"]
     telemetry_stubs = {
-        "z51.p0": ("invoke()Ljava/lang/Object;", unit_stub),
-        "z51.w0": ("a(Ljava/util/List;)V", ["return-void"]),
-        "ip1.d": ("a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        "nt2.j": ("b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        "yb0.g": ("a(Lsb0/c;)V", ["return-void"]),
-        "yc0.b": ("a(Ljava/util/List;)V", ["return-void"]),
-        "w12.i": ("a(Ljava/lang/String;Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        "y51.z0": ("invoke()Ljava/lang/Object;", unit_stub),
+        "y51.g1": ("a(Ljava/util/List;)V", ["return-void"]),
+        "fp1.d": ("a(Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        "zt2.j": ("b(Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        "xb0.h": ("a(Lrb0/c;)V", ["return-void"]),
+        "xc0.b": ("a(Ljava/util/List;)V", ["return-void"]),
+        "h22.j": ("a(Ljava/lang/String;Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        # AltCraft sender and the analytics dispatcher (event path).
+        "lx2.a": ("b(ZLjava/lang/String;Ljava/lang/String;Ljava/util/Map;)V", ["return-void"]),
+        "gx2.e": ("d(Ljava/lang/String;Ljava/util/Map;Z)V", ["return-void"]),
     }
     for class_name, (method, expected) in telemetry_stubs.items():
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
@@ -355,85 +367,104 @@ def audit_patched(args: argparse.Namespace) -> None:
         verify_device_identifier_stub(code, class_name)
     # Both the download and cached/legacy policy restoration must be blocked.
     policy_code = run(
-        str(args.apkanalyzer), "dex", "code", "--class", "zp0.k",
+        str(args.apkanalyzer), "dex", "code", "--class", "yp0.j",
         "--method", "a(Landroid/content/Context;)Ljava/lang/String;", str(args.apk),
     )
     verify_instruction_prefix(policy_code, ["const/4 v0, 0x0", "return-object v0"],
                               "Remote network policy loader")
-    policy_class = run(str(args.apkanalyzer), "dex", "code", "--class", "zp0.l", str(args.apk))
+    policy_class = run(str(args.apkanalyzer), "dex", "code", "--class", "yp0.l", str(args.apk))
     constructor = re.search(
-        r"(?ms)^\.method [^\n]* <init>\(Landroid/content/Context;Lzp0/c;Z\)V\n.*?^\.end method",
+        r"(?ms)^\.method [^\n]* <init>\(Landroid/content/Context;Lyp0/c;Z\)V\n.*?^\.end method",
         policy_class,
     )
     if constructor is None:
         raise RuntimeError("Network policy constructor not found")
     verify_instruction_prefix(constructor.group(), [
-        "invoke-static {}, Lzp0/m;->a()Lzp0/c;", "move-result-object p2",
+        "invoke-static {}, Lyp0/m;->a()Lyp0/c;", "move-result-object p2",
     ], "Embedded network policy")
-    guard_code = run(str(args.apkanalyzer), "dex", "code", "--class", "wl1.l",
-                     "--method", "b(Lvl1/c;)Z", str(args.apk))
+    guard_code = run(str(args.apkanalyzer), "dex", "code", "--class", AUTO_UPDATE_CONTROLLER,
+                     "--method", "b(Lrl1/c;)Z", str(args.apk))
     verify_auto_update_guard(guard_code)
     entry_stubs = {
-        "j91.u0": (
-            "a(Ljava/util/List;Le91/c;Ljava/util/List;Lb91/d;Ljava/util/Set;Ljava/util/UUID;ZZLyu0/d;)Ljava/lang/Object;",
+        "j91.v0": (
+            "a(Ljava/util/List;Le91/c;Ljava/util/List;Lb91/d;Ljava/util/Set;Ljava/util/UUID;ZZLjava/lang/Boolean;Lxu0/c;)Ljava/lang/Object;",
             empty_list_stub,
         ),
-        "t41.b": ("b(Lj41/c;Lt41/a;Ll41/d;)Lt41/e;",
-                  ["sget-object v0, Lt41/e;->ERROR:Lt41/e;", "return-object v0"]),
+        "s41.b": ("b(Li41/d;Ls41/a;Lk41/c;)Ls41/e;",
+                  ["sget-object v0, Ls41/e;->ERROR:Ls41/e;", "return-object v0"]),
         "ru.ok.tracer.disk.usage.DiskUsage": (
             "initialize$tracer_disk_usage_release(Landroid/content/Context;)V", ["return-void"],
         ),
-        "yn1.k": ("b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        "ru.vk.store.feature.install.identifier.impl.presentation.a": (
-            "a(Lyu0/d;)Ljava/lang/Object;", unit_stub,
+        "vn1.k": ("b(Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        "ru.vk.store.feature.install.identifier.impl.presentation.b": (
+            "a(Lxu0/c;)Ljava/lang/Object;", unit_stub,
         ),
         "ru.vk.store.feature.storeapp.analytics.remote.impl.presentation.b": (
-            "b(Lyu0/d;)Ljava/lang/Object;", unit_stub,
+            "b(Lxu0/c;)Ljava/lang/Object;", unit_stub,
         ),
         "ru.vk.store.lib.analytics.system.altcraft.presentation.AltCraftFlushEventsWorker$a": (
-            "b(Lub/i0;)V",
+            "b(Ltb/k0;)V",
             ['const-string v0, "AltCraftFlushEventsWorker"',
-             "invoke-virtual {p0, v0}, Lub/i0;->a(Ljava/lang/String;)Lub/z;", "return-void"],
+             "invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/b0;", "return-void"],
         ),
-        "yq1.b5": ("K0()V", ["return-void"]),
-        "bj1.j": (
-            "d(Lkotlin/jvm/functions/Function0;Lk2/j;Lbj1/m;Landroidx/compose/runtime/a;I)V",
+        "ar1.a6": ("Z0()V", ["return-void"]),
+        "ui1.k": (
+            "d(Lkotlin/jvm/functions/Function0;Lk2/j;Lui1/n;Landroidx/compose/runtime/a;I)V",
             ["return-void"],
         ),
         "ru.vk.store.feature.storeapp.review.prompt.impl.domain.ReviewPromptRemoteConfig": (
-            "placements(Lwu0/e;)Ljava/lang/Object;", empty_list_stub,
+            "placements(Lvu0/e;)Ljava/lang/Object;", empty_list_stub,
         ),
         "ru.vk.store.feature.storeapp.details.direct.impl.domain.StoreAppDetailsDirectRemoteConfig": (
-            "isAutoInstallEnabled(Lwu0/e;)Ljava/lang/Object;", false_stub,
+            "isAutoInstallEnabled(Lvu0/e;)Ljava/lang/Object;", false_stub,
         ),
-        "ru.vk.store.feature.rustore.tv.install.impl.domain.RemoteTvInstallConfig": (
-            "featureEnabled(Lwu0/e;)Ljava/lang/Object;", false_stub,
+        "ru.vk.store.feature.rustore.tv.install.api.RemoteTvInstallRemoteConfig": (
+            "featureEnabled(Lvu0/e;)Ljava/lang/Object;", false_stub,
         ),
-        "h52.j": ("P7()V", ["return-void"]),
+        "q52.o": ("U8()V", ["return-void"]),
+        # Post-view ad requests (installed-app list and device IDs) and the VPN state in ad requests.
+        "v91.f": ("a(Ljava/lang/String;Ljava/util/UUID;Lxu0/c;)Ljava/io/Serializable;", empty_map_stub),
+        "v91.m": ("a(Ljava/lang/String;Ljava/lang/String;Ljava/util/UUID;Lxu0/c;)Ljava/io/Serializable;",
+                  empty_map_stub),
+        "ru.vk.store.feature.advertisement.api.domain.AdvertisementRemoteConfig": (
+            "isTunnelStateSendingEnabled(Lvu0/e;)Ljava/lang/Object;", false_stub,
+        ),
+        # Web game installed-apps upload.
+        "dj1.f": ("a(Lxu0/c;)Ljava/lang/Object;", unit_stub),
     }
     for class_name, (method, expected) in entry_stubs.items():
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
                    "--method", method, str(args.apk))
         verify_instruction_prefix(code, expected, class_name)
+    web_game_flags = [
+        (WEB_GAME_REMOTE_CONFIG, "isEnabled(Lvu0/e;)Ljava/lang/Object;", false_stub),
+        (WEB_GAME_REMOTE_CONFIG, "isWebGameBannerEnabled(Lvu0/e;)Ljava/lang/Object;", false_stub),
+    ]
+    for class_name, method, expected in web_game_flags:
+        code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
+                   "--method", method, str(args.apk))
+        verify_instruction_prefix(code, expected, f"{class_name}.{method}")
     altcraft = "ru.vk.store.lib.analytics.system.altcraft.presentation.AltCraftFlushEventsWorker$a"
     radar = "ru.vk.store.lib.analytics.system.radar.presentation.RadarFlushSnapshotWorker$a"
     remote_analytics = "ru.vk.store.feature.storeapp.analytics.remote.impl.presentation.b"
-    cancel_stub = "invoke-virtual {p0, v0}, Lub/i0;->a(Ljava/lang/String;)Lub/z;"
+    cancel_stub = "invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/b0;"
     scheduler_stubs = [
-        ("ru.vk.store.feature.usagestats.impl.presentation.a", "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        ("ru.vk.store.feature.usagestats.impl.presentation.a", "a(Lxu0/c;)Ljava/lang/Object;", unit_stub),
         ("ru.vk.store.feature.payments.subscription.update.impl.presentation.a",
-         "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        (remote_analytics, "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        ("j82.f", "a(JLby0/c;Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        ("p82.i", "b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+         "a(Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        (remote_analytics, "a(Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        ("s82.f", "a(JLay0/c;Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        ("y82.i", "b(Lxu0/c;)Ljava/lang/Object;", unit_stub),
         ("ru.vk.store.feature.storeapp.recommendation.start.trackingUrl.impl.data.a",
-         "b(Ljava/lang/String;Ljava/lang/String;Lyu0/d;)Ljava/lang/Object;", unit_stub),
-        (altcraft, "a(Lub/i0;J)V",
+         "b(Ljava/lang/String;Ljava/lang/String;Lxu0/c;)Ljava/lang/Object;", unit_stub),
+        (altcraft, "a(Ltb/k0;J)V",
          ['const-string v0, "AltCraftFlushEventsWorker"', cancel_stub, "return-void"]),
-        (radar, "a(Lub/i0;J)V",
+        (radar, "a(Ltb/k0;J)V",
          ['const-string v0, "RadarFlushSnapshotsWorker"', cancel_stub, "return-void"]),
-        ("zd0.e", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
-        ("ib0.k", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
+        ("yd0.f", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
+        ("hb0.k", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
+        # Analytics dispatcher user-id path (the event path is audited with the telemetry stubs).
+        ("gx2.e", "b(J)V", ["return-void"]),
     ]
     for class_name, method, expected in scheduler_stubs:
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
@@ -539,6 +570,9 @@ def audit_patched(args: argparse.Namespace) -> None:
                 "remote_and_cached_network_policy_blocked": True,
                 "auto_update_status_checks_preserved": True,
                 "additional_entry_points_audited": sorted(entry_stubs),
+                "web_game_flags_stubbed": sorted(
+                    f"{class_name}.{method.split('(')[0]}" for class_name, method, _ in web_game_flags
+                ),
                 "schedulers_and_initializers_audited": sorted(
                     f"{class_name}.{method.split('(')[0]}" for class_name, method, _ in scheduler_stubs
                 ),
@@ -587,14 +621,14 @@ def verify_auto_update_guard(code: str) -> None:
         raise RuntimeError("Auto-update status branches changed")
     code = code.replace(targets[0], ":blocked")
     verify_instruction_prefix(code, [
-        "invoke-static {p1}, Lwl1/l;->a(Lvl1/c;)Z",
+        f"invoke-static {{p1}}, {AUTO_UPDATE_CONTROLLER_DESCRIPTOR}->a(Lrl1/c;)Z",
         "move-result v0",
         "if-eqz v0, :blocked",
-        "iget-boolean v0, p1, Lvl1/c;->f:Z",
+        "iget-boolean v0, p1, Lrl1/c;->f:Z",
         "if-eqz v0, :blocked",
-        "iget-boolean p1, p1, Lvl1/c;->g:Z",
+        "iget-boolean p1, p1, Lrl1/c;->g:Z",
         "if-eqz p1, :blocked",
-        "iget-object p1, p0, Lwl1/l;->v:Lsx2/b;",
+        f"iget-object p1, p0, {AUTO_UPDATE_CONTROLLER_DESCRIPTOR}->v:Ley2/b;",
         "const/4 p1, 0x0",
         "if-nez p1, :blocked",
         "const/4 p1, 0x1",
@@ -625,6 +659,7 @@ def push_service_cleanup_prefix() -> list[str]:
 
 CANCELLED_UNIQUE_WORK_NAMES = (
     "InstallIdentifierSyncWorker",
+    "InstallIdentifierSyncWorkerImmediate",
     "tracer.disk.usage.worker",
     "UsageStatsCollectorWorker",
     "CancelSubscriptionSyncWorker",
@@ -634,17 +669,17 @@ CANCELLED_UNIQUE_WORK_NAMES = (
     "PeriodicUpdateStartDestination",
     "NavigationTabsOrderUpdate",
 )
-APPLICATION_SUPER_ON_CREATE = "invoke-super {p0}, Lz71/n;->onCreate()V"
+APPLICATION_SUPER_ON_CREATE = "invoke-super {p0}, Ly71/m;->onCreate()V"
 APP_OPEN_REPORT = "Lio/appmetrica/analytics/AppMetrica;->reportAppOpen("
 PUSH_METRICS_JOB_ID_HEX = "0x546aab5"
 
 
 def startup_cancellation_blocks() -> list[list[str]]:
-    work = ["invoke-static {p0}, Lvb/u0;->l(Landroid/content/Context;)Lvb/u0;", "move-result-object v0"]
+    work = ["invoke-static {p0}, Lub/r0;->l(Landroid/content/Context;)Lub/r0;", "move-result-object v0"]
     for name in CANCELLED_UNIQUE_WORK_NAMES:
         work.extend([
             f'const-string v1, "{name}"',
-            "invoke-virtual {v0, v1}, Lub/i0;->a(Ljava/lang/String;)Lub/z;",
+            "invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/b0;",
         ])
     push_metrics_job = [
         'const-string v1, "jobscheduler"',

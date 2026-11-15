@@ -28,6 +28,8 @@ for the feature patches of both apps.
 | **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
 | **HIDE PINNED** | feature | Removes the pinned message card (and the ad banner attached to it) from the top of the chat. Toggle in SEYTTINGS. |
 | **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. Toggle in SEYTTINGS. |
+| **STOP ON MINIMIZE** | feature | Stops playback (audio/video) when the app is minimized or exited, so nothing keeps playing in the background. Open a stream again to resume. Toggle in SEYTTINGS. |
+| **DEFAULT HOME DESTINATION** | feature | Opens the chosen tab (Home, Categories, Live, Following or Settings) automatically when KICK starts. Pick it in SEYTTINGS. |
 
 ### Twitch (Android TV)
 
@@ -43,6 +45,7 @@ instead of replacing native Compose screens.
 | **EXPAND CHAT** | feature | Hides the **Join the conversation** footer button and lets the chat fill the full panel height. One toggle in SEYTTINGS. |
 | **HIDE PINNED** | feature | Hides the pinned message card above the chat, its **Pinned by** label, the pin badge and any pinned highlight in the message list. One toggle in SEYTTINGS, off by default. |
 | **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. One toggle in SEYTTINGS, on by default. |
+| **DEFAULT HOME TAB** | feature | Twitch TV opens the chosen tab (Home, Following, Browse or Search) automatically on every launch instead of the stock start tab. Toggle it in SEYTTINGS, off by default. |
 
 ### AMOLED theme on Twitch TV
 
@@ -99,7 +102,7 @@ A Morphe bundle can carry patches for several packages. This repository keeps:
 - one `patches-list.json` with a `compatiblePackages` entry per app.
 
 Morphe Manager groups the entries by package, so after selecting a KICK APK you
-see the seven KICK patches, and after selecting a Twitch APK you see the seven
+see the eight KICK patches, and after selecting a Twitch APK you see the eight
 Twitch patches. Dependency resolution keeps **SEYTTINGS** selected whenever a
 feature patch needs it.
 
@@ -140,7 +143,7 @@ fetches `CHANGELOG.md` from the repository root. The raw
 `patches-bundle.json` URL works for patching and updates, but it does not carry
 release notes.
 
-You can also import `SeyMorphe-1.2.4.mpp` manually as a local source.
+You can also import `SeyMorphe-1.2.6.mpp` manually as a local source.
 
 ## How to use
 
@@ -164,7 +167,7 @@ newest version in the file and shows every entry in between.
 
 Morphe parses the file with these rules, so keep the format:
 
-- one version heading per release, newest first: `## 1.2.4 (2026-11-11)` (the
+- one version heading per release, newest first: `## 1.2.6 (2026-11-15)` (the
   date is required),
 - section headings such as `### ✨ New Features`, `### 🐛 Bug Fixes`,
   `### ⚡ Performance` or `### 📝 Other`,
@@ -180,7 +183,7 @@ the feature, as in the examples.
 Add a new section at the top before publishing a version:
 
 ```markdown
-## 1.2.5 (2026-11-20)
+## 1.2.6 (2026-11-20)
 
 ### ✨ New Features
 
@@ -207,7 +210,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.2.4.mpp`.
+Output: `dist\SeyMorphe-1.2.6.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -234,9 +237,9 @@ token is read from `git credential fill` and is never printed.
 2. Build the bundle and pass the same version everywhere:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.4
+   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.6
    powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.4
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.6
    ```
 
 3. Commit and push `CHANGELOG.md` together with `patches-bundle.json`,
@@ -246,7 +249,7 @@ token is read from `git credential fill` and is never printed.
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\publish-release.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.4
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.6
    ```
 
    The script reads the `## <version> (YYYY-MM-DD)` section from `CHANGELOG.md`
@@ -280,6 +283,8 @@ patches/src/main/kotlin/app/morphe/patches/
   kicktv/chatexpand/                KICK EXPAND CHAT patch
   kicktv/hidepinned/                KICK HIDE PINNED patch
   kicktv/maturewarning/             KICK SKIP 18+ WARNING patch
+  kicktv/stoponminimize/            KICK STOP ON MINIMIZE patch
+  kicktv/homedestination/           KICK DEFAULT HOME DESTINATION patch
   twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
   twitch/settings/                  Twitch SEYTTINGS base patch
   twitch/amoled/                    Twitch AMOLED patch
@@ -288,9 +293,11 @@ patches/src/main/kotlin/app/morphe/patches/
   twitch/expandchat/                Twitch EXPAND CHAT patch
   twitch/maturewarning/             Twitch SKIP 18+ WARNING patch
   twitch/hidepinned/                Twitch HIDE PINNED patch
+  twitch/hometab/                   Twitch DEFAULT HOME TAB patch
 extension/js/
   twitch-adblock.js                 readable source of the injected HLS ad filter
   twitch-amoled.js                  readable source of the injected black theme
+  twitch-hometab.js                 readable source of the injected default tab router
   twitch-maturewarning.js           readable source of the mature warning auto-accept
   twitch-hidepinned.js              readable source of the pinned message hider
 extension/src/app/morphe/extension/
@@ -301,6 +308,8 @@ extension/src/app/morphe/extension/
   kicktv/chatexpand/                KICK footer helper
   kicktv/hidepinned/                KICK pinned card helper
   kicktv/maturewarning/             KICK mature warning helper
+  kicktv/stoponminimize/            KICK stop-on-minimize player helper
+  kicktv/homedestination/           KICK home-destination player helper
   twitch/base/                      Twitch red themed dialog, bridge and injector
   twitch/amoled/                    Twitch AMOLED injector, preference and section
   twitch/adblock/                   Twitch AD BLOCK injector, preference and section
@@ -308,12 +317,13 @@ extension/src/app/morphe/extension/
   twitch/expandchat/                Twitch footer helper
   twitch/maturewarning/             Twitch mature warning injector, preference and section
   twitch/hidepinned/                Twitch pinned message hider, preference and section
+  twitch/hometab/                   Twitch default home tab router, preference and section
 scripts/                            build and release scripts
 patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
 CHANGELOG.md                        release notes read by Morphe Manager
-SeyMorphe-1.2.4.mpp                 published bundle (repository root)
+SeyMorphe-1.2.6.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation
@@ -324,6 +334,13 @@ README.md                          this documentation
 - The KICK patches declare compatibility with **1.9.0 / versionCode 208** only.
   The Twitch patches declare **13.0.0.2 / versionCode 1100000018** only. Newer
   app versions need fresh fingerprints before they can be patched.
+- **Do not mix patch sources for the same app.** Other sources (for example
+  Lurk) also declare `com.kick.mobile` / `tv.twitch.android.app`, but they
+  target the *mobile* builds. Morphe Manager applies every ticked patch and
+  aborts the whole job when one throws, so a mobile patch such as "AMOLED
+  black" fails on the TV `1.9.0` APKM with
+  `expected exactly one MainApplication.onCreate`. Tick only the entries from
+  **Sey Morphe Patches** when patching the TV APKMs.
 - A patched app cannot be updated from the store (signature mismatch). Patch the
   newer APK and install it over the old one.
 - Runtime behaviour was verified on a real Android TV box (Android 11): KICK

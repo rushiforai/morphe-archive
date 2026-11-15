@@ -201,6 +201,8 @@ function New-WalkReceipt {
         [Parameter(Mandatory = $true)][string]$Device,
         # ro.build.version.sdk, 0 when it didn't read. Decides whether a secure window may stand in for a screenshot.
         [int]$Sdk,
+        # settings get system font_scale as the device answered it ('1.0', 'null' when never changed), '' when unread.
+        [AllowEmptyString()][string]$FontScale = '',
         [AllowEmptyString()][string]$AppVersion,
         [Parameter(Mandatory = $true)][string]$BundleSha256,
         # The APK patched from that bundle, and the one the device ran. '' when unknown.
@@ -217,7 +219,7 @@ function New-WalkReceipt {
     )
     return [ordered]@{
         schema = $WalkReceiptSchema; result = $Result; full = $Full
-        serial = $Serial; device = $Device; emulator = $Serial.StartsWith('emulator-', [StringComparison]::Ordinal); sdk = $Sdk
+        serial = $Serial; device = $Device; emulator = $Serial.StartsWith('emulator-', [StringComparison]::Ordinal); sdk = $Sdk; fontScale = $FontScale
         appVersion = $AppVersion; bundleSha256 = $BundleSha256.ToLowerInvariant()
         patchedApkSha256 = $PatchedApkSha256; installedApkSha256 = $InstalledApkSha256
         started = $Started.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ'); finished = $Finished.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')

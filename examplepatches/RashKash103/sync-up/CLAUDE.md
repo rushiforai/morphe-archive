@@ -232,6 +232,50 @@ java -jar morphe-desktop.jar patch \
 gets past it. The result is not a usable app, but patch application is what is being tested.
 Grep the output for `Applied:` and `FAILED`.
 
+### Building a copy to test
+
+**A change is tried in a build of the whole thing before a prerelease goes out**, unless asked
+otherwise. A patch that applies cleanly is not a patch that works, and the only thing that
+settles it is the app running on a device. The emulator here is a phone, and half of what this
+bundle touches behaves differently in tablet mode, so it does not answer everything on its own.
+
+Build it as a **clone**, so it installs beside an existing copy rather than asking to replace
+it. `Clone Sync app` with `.testing` and the name `Sync Testing` is what that means here: the
+package becomes `com.laurencedawson.reddit_sync.testing`, the home screen says *Sync Testing*,
+and the two sit side by side with their own settings and their own account. That also sidesteps
+the signing key: an install can only replace a copy signed with the same key as the build, so a
+copy built anywhere else is refused however the package is named.
+
+Options go in a **file**, not on the command line. `-O` binds to the `-e` that follows it and
+silently reaches nothing where no `-e` follows, which reads exactly like an option that was
+ignored: a run died on `The option clone-package-name requires a value` with the value plainly
+given. Generate the file, fill it in, and pass it:
+
+```sh
+java -jar morphe-desktop.jar options-create -p patches/build/libs/patches-*.mpp \
+  -f com.laurencedawson.reddit_sync -o opts.json
+# set client-id, enable "Clone Sync app", and give it
+#   packageName=com.laurencedawson.reddit_sync.testing, appName=Sync Testing
+java -jar morphe-desktop.jar patch -p patches/build/libs/patches-*.mpp \
+  --options-file opts.json --keystore=$HOME/.android/sync-up/morphe.keystore \
+  -o sync-testing.apk <the Sync APK>
+```
+
+The options file carries the client id, so **keep it outside the repository** — scratch
+directory only, and never committed.
+
+Two things to check before handing the build over, both of which have been wrong here:
+
+- **The patch list.** `grep -c '^INFO: Applied'` and compare against what `list-patches` says is
+  on by default, rather than trusting the run to be silent about a failure.
+- **What is in the dex.** A diagnostic left in, or a stale bundle patched by name, is invisible
+  in the log. `unzip -p out.apk classes*.dex | strings | grep` for the class the change added and
+  for whatever the diagnostic printed.
+
+Where the change is one whose effect can be reasoned about but not seen, compare the dex against
+a build already measured: two builds whose `classes*.dex` hash alike behave alike, which is what
+carried a device measurement across a patch being rewritten.
+
 ### Inspecting the APK
 
 Fingerprints have to be written against real bytecode, never guessed. `androguard` via
@@ -497,6 +541,34 @@ list lands rather than racing a restore) and `g2()` findFirstVisibleItemPosition
 `LinearLayoutManager$SavedState` keeps its name too, with `a`/`b`/`c` for the anchor position,
 offset and from-end flag. Sync's own `PostsRecyclerView.h2()` already answers
 findFirstVisibleItemPosition across all three of its `Custom*LayoutManager`s.
+
+**The video viewer's position bar is animated, and the animation is what makes it stall.**
+`ImageViewerFragment.L4()` is the one place the clock and the bar are written, driven by a
+runnable that reposts itself every 30ms and never stops while the viewer is open — Sync's own
+`isVideoPlaying()` answers whether there is a player at all, so the loop's own guard is always
+true. `L4` writes the clock with `setText` and then, from API 24, moves the bar with
+`SeekBar.setProgress(int, true)`; below 24 it calls the plain `setProgress(int)` a few
+instructions further down. The animated form hands the move to an 80ms `ObjectAnimator` with
+`setAutoCancel(true)`, so each of the thirty asks a second replaces the animator the one before
+it started. Where they are replaced faster than they are given a frame to run in, none of them
+ever writes anything: the bar sits still while the clock counts on, then jumps the whole way
+when one survives. Measured here on a 2:35 video — the thumb's centroid held at exactly 367.00
+for 2.0s and then moved 13px in one step, which is precisely the motion it had missed.
+
+Two things about diagnosing it. **The clock advancing while the bar does not is not enough to
+blame `D0`**, the fragment's "the reader is dragging the bar" flag and `L4`'s only gate: a real
+stuck drag freezes the clock too, because `onStartTrackingTouch` pauses the video, and that was
+measured before it was ruled out. And **`adb shell input` cancels whatever stream is already in
+flight**, so a drag left deliberately unfinished cannot be held across a later injected tap —
+which is also why a touch anywhere repairs the bar on a device.
+
+What answers it is the thumb's **centroid**, read sub-pixel from `screenrecord` frames rather
+than from screenshots: `screencap` costs 5-10s a go here, far too coarse for a stall of a
+second or two, while `ffmpeg -vf "fps=5,crop=..."` over a recording gives both the bar and the
+clock on the same timeline for the price of one run. The rightmost bright pixel quantises
+badly; the intensity-weighted centroid of the thumb's own row does not. Do not try to settle
+it by turning `animator_duration_scale` down — a scale of 0 still waits for one animation
+frame, so the stall survives it and only the catch-up changes.
 
 **The floating button's place jumps about on its own, and anything standing in for it inherits
 that.** On a refresh, on a jump to the top and on taking the *Restore position* offer, Sync lays
@@ -989,6 +1061,39 @@ rather than by tapping switches. `run-as` cannot read `/sdcard`, so the file goe
 `/data/local/tmp` with `chmod 644`. Tapping a `SyncCheckBoxPreference`'s switch directly often
 does not register on this emulator; tapping the row's words does.
 
+**YouTube's embedded player refuses a page that has no origin of its own, and that is the whole
+of why it would not play.** Sync's own YouTube player is the retired Android Player API, which
+binds to a service the YouTube app no longer has, so it never starts and a stand-in has to put
+the embed up itself. Four ways of doing that were measured against the same video, and three of
+them answer *This video is unavailable, error 152 - 4*:
+
+| how the page holding the embed is loaded | plays |
+| --- | --- |
+| `loadDataWithBaseURL`, whatever base URL is named | no |
+| the embed itself as the whole document, with or without a `Referer` | no |
+| served by `shouldInterceptRequest` at an address on `youtube.com` | no |
+| served by `shouldInterceptRequest` at an address on any other host | **yes** |
+
+So it is the *origin* that decides, not the host the embed is asked of —
+`youtube-nocookie.com` fails from an opaque origin and the ordinary host plays from a real one.
+A base URL does not give a document an origin: content handed to a WebView is opaque whatever is
+named beside it. Being framed by `youtube.com` itself is refused too, since an embed is built to
+be framed by a third party. The only way to be one in a WebView is to answer for an address
+rather than to hand over a document, and the address needs no owner: `sync-up.invalid` is a
+reserved name that can never resolve, nothing is ever asked of it, and it plays.
+
+`m.youtube.com/watch` plays as well and needs none of this, but it is the whole mobile site —
+masthead, comments, Shorts, recommendations — so it is a fallback rather than a player.
+
+**A WebView draws its own poster over a video that has not started, and it is stretched.** Before
+the first frame arrives the view puts a grey play button over the `<video>` element, scaled to
+whatever shape that element is, so on a full width player it is a wide grey band with a smeared
+ellipse in it — which reads as something being broken rather than as something loading. It cannot
+be turned off, but what is drawn is whatever `WebChromeClient.getDefaultVideoPoster()` hands
+back, so handing back a single transparent pixel takes it away. Measured by capturing thirty
+frames across a cold start, twice each way: ten of thirty frames carried the grey box without the
+override and none did with it — the one grey frame left was the film's own title card.
+
 **Dead endpoints Sync still calls.** Worth knowing before diagnosing a media bug:
 
 - `api.gfycat.com` and `gfycat.com` — DNS no longer resolves at all.
@@ -1185,6 +1290,36 @@ is in [NOTICE](NOTICE). Two things constrain the code:
   release that would ship it. A `chore:` commit publishes nothing, so a diagnostic that has to
   reach a device goes on `build(Needs bump):`, which releases a prerelease and is hidden from
   the notes — the scope has to be exactly that for `.releaserc` to match it.
+- **Every patch names a category, and a new one joins an existing group rather than starting
+  its own.** `category("...")` in the patch builder is what the manager groups the list by, and
+  a bundle where some patches are grouped and others are loose reads as a mistake. The eight in
+  use, with what belongs in each:
+
+  | Category | What goes in it |
+  | --- | --- |
+  | `1. Essentials` | Without it the app is broken or cannot reach Reddit at all |
+  | `2. Media` | Pictures and video: loading them, playing them, drawing them |
+  | `3. Archives` | Recovers what Reddit or Imgur no longer serves, by asking a third-party archive |
+  | `4. Feed` | The list of posts itself — what it shows and where it sits |
+  | `5. Interface` | Sync's own controls: the bars, the buttons, the gestures |
+  | `6. Text` | The words of a post or comment, and what is done to them |
+  | `7. Privacy` | Keeps something from being seen or handed out |
+  | `8. Advanced` | Changes the build rather than the app: cloning, debugging |
+
+  **The number is load bearing and is shown to the reader.** The manager sorts the groups by
+  the category string itself — `byCategory.keys.filterNotNull().sortedBy { it.lowercase() }` in
+  `PatchesListShared.kt`, with `title = category` drawn raw — and there is no ordering field, so
+  without the number the groups come out alphabetically and `Advanced` leads the list. A ninth
+  category takes the next number; renumbering to insert one in the middle means touching every
+  patch in the groups below it, so add at the end unless the order really matters.
+
+  A patch takes exactly one, so file it under what it is *for* rather than everything it
+  touches — *Unblock Imgur* goes in `Media` though it routes through proxies, because what it
+  does for the reader is make a picture appear. Add a ninth category only where a patch fits
+  none of these, never to give one patch a group of its own. The *What the patches do* section
+  of `README.md` carries the same eight headings, so a patch moved between groups moves in both
+  places.
+
 - **Patch descriptions are one or two sentences of what the patch does.** They are read in the
   manager by someone choosing patches, not by someone maintaining them: no reasoning about why
   the patch exists, no account of what was learnt writing it. The detail — what a patch changes

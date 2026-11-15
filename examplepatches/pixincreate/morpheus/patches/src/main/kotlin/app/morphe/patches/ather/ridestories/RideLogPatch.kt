@@ -23,16 +23,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 private const val RIDE_STATS = "Lapp/morphe/ather/RideStats;"
 
 private const val MONTH_ROW = "Lcom/ather/ridestories/ui/allHighlights/composables/a;"
-private const val MONTH_ROW_DATA = "Lcom/ather/ridestories/ui/allHighlights/d;"
-private const val MONTH_ROW_FLAG = "$MONTH_ROW_DATA->d:Z"
+private const val MONTH_ROW_DATA_1350 = "Lcom/ather/ridestories/ui/allHighlights/d;"
+private const val MONTH_ROW_DATA_1360 = "Lcom/ather/ridestories/ui/allHighlights/b;"
+private const val MONTH_ROW_FLAG_1350 = "$MONTH_ROW_DATA_1350->d:Z"
+private const val MONTH_ROW_FLAG_1360 = "$MONTH_ROW_DATA_1360->d:Z"
 
+// Ather 13.5.1 ships the loader and click handler under l; 13.5.0 uses k.
 private const val PREVIOUS_RIDES = "Lcom/ather/ridestories/ui/previousRides/l;"
-// Ather 13.5.0 ships the same loader and click handler under the k name.
 private const val PREVIOUS_RIDES_1350 = "Lcom/ather/ridestories/ui/previousRides/k;"
 private const val PREVIOUS_RIDES_DATA =
     "Lcom/ather/connectedplatformlib/dataModels/responseModels/PreviousRidesData;" // keywatch:ignore
 private const val COROUTINE_CONTINUATION = "Lkotlin/coroutines/jvm/internal/c;"
+private const val COROUTINE_CONTINUATION_1360 = "Lkotlin/coroutines/jvm/internal/d;"
 private const val RIDE_CLICK_EVENT = "Lcom/ather/base/c;"
+private const val RIDE_CLICK_EVENT_1360 = "Lcom/ather/base/d;"
 
 private const val JAVA_LIST = "Ljava/util/List;"
 
@@ -104,6 +108,37 @@ internal object PreviousRideClickFp1350 : Fingerprint(
 )
 
 /**
+ * Matches the 13.6.0 loader, which moved back to `previousRides/k` and uses the `d`
+ * continuation type.
+ *
+ * ```
+ * public static final i(k, PreviousRidesData, d): Object
+ * ```
+ */
+internal object PreviousRides1360Fingerprint : Fingerprint(
+    definingClass = PREVIOUS_RIDES_1350,
+    name = "i",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(PREVIOUS_RIDES_1350, PREVIOUS_RIDES_DATA, COROUTINE_CONTINUATION_1360),
+)
+
+/**
+ * Matches the 13.6.0 click handler.
+ *
+ * ```
+ * public final a(com.ather.base.d): void
+ * ```
+ */
+internal object PreviousRideClick1360Fingerprint : Fingerprint( // keywatch:ignore
+    definingClass = PREVIOUS_RIDES_1350,
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(RIDE_CLICK_EVENT_1360),
+)
+
+/**
  * Shows the rides recorded on this phone in the ride story screens.
  *
  * Ather keeps no rides for an incognito scooter, so the server reports a monthly total of zero
@@ -159,6 +194,13 @@ val rideLogPatch = bytecodePatch(
     execute {
         MonthSummaryFingerprint.method.applyMonthOverrides()
 
+        val rides1360 = PreviousRides1360Fingerprint.matchOrNull()
+        if (rides1360 != null) {
+            rides1360.method.applyLocalRides()
+            PreviousRideClick1360Fingerprint.method.interceptRideClick() // keywatch:ignore
+            return@execute
+        }
+
         val rides = PreviousRidesFingerprint.matchOrNull()
         if (rides != null) {
             rides.method.applyLocalRides()
@@ -178,20 +220,27 @@ private fun MutableMethod.applyMonthOverrides() {
         "Monthly ride summary has no body to patch.",
     )
 
-    val monthRowIndex = body.instructions.indexOfFirst { instruction ->
+    val monthRow = body.instructions.withIndex().firstOrNull { (_, instruction) ->
         instruction.opcode == Opcode.IGET_BOOLEAN &&
-            (instruction as? ReferenceInstruction)?.reference?.toString() == MONTH_ROW_FLAG
-    }
-    if (monthRowIndex < 0) {
-        throw IllegalStateException("Monthly ride summary does not read its row data.")
-    }
+            (instruction as? ReferenceInstruction)?.reference?.toString()
+                ?.let { it == MONTH_ROW_FLAG_1350 || it == MONTH_ROW_FLAG_1360 } == true
+    } ?: throw IllegalStateException("Monthly ride summary does not read its row data.")
+    val monthRowIndex = monthRow.index
+
+    val modern = (monthRow.value as? ReferenceInstruction)?.reference?.toString() == MONTH_ROW_FLAG_1360
+    val chartRegister = if (modern) "v1" else "v11"
+    val monthRegister = if (modern) "v2" else "v12"
+    val monthNumberRegister = if (modern) "v3" else "v13"
+    val resultRegister = if (modern) "v31" else "v18"
+    val indexRegister = if (modern) "v33" else "v19"
+    val flagRegister = if (modern) "v4" else "v14"
 
     // Insert the chart override first, so it becomes the target of the branch below.
     addInstructions(
         monthRowIndex + 1,
         """
-            invoke-static {v11}, $RIDE_STATS->adjustChart(Ljava/util/List;)Ljava/util/List;
-            move-result-object v11
+            invoke-static {$chartRegister}, $RIDE_STATS->adjustChart(Ljava/util/List;)Ljava/util/List;
+            move-result-object $chartRegister
         """.trimIndent(),
     )
 
@@ -201,16 +250,16 @@ private fun MutableMethod.applyMonthOverrides() {
     addInstructionsWithLabels(
         monthRowIndex + 1,
         """
-            invoke-static {v12, v13}, $RIDE_STATS->adjustMonth(Ljava/lang/String;Ljava/lang/Integer;)[Ljava/lang/Object;
-            move-result-object v18
-            if-eqz v18, :morphe_month_unchanged
-            const/16 v19, 0x0
-            aget-object v12, v18, v19
-            check-cast v12, Ljava/lang/String;
-            const/16 v19, 0x1
-            aget-object v13, v18, v19
-            check-cast v13, Ljava/lang/Integer;
-            const/4 v14, 0x0
+            invoke-static {$monthRegister, $monthNumberRegister}, $RIDE_STATS->adjustMonth(Ljava/lang/String;Ljava/lang/Integer;)[Ljava/lang/Object;
+            move-result-object $resultRegister
+            if-eqz $resultRegister, :morphe_month_unchanged
+            const/16 $indexRegister, 0x0
+            aget-object $monthRegister, $resultRegister, $indexRegister
+            check-cast $monthRegister, Ljava/lang/String;
+            const/16 $indexRegister, 0x1
+            aget-object $monthNumberRegister, $resultRegister, $indexRegister
+            check-cast $monthNumberRegister, Ljava/lang/Integer;
+            const/4 $flagRegister, 0x0
         """.trimIndent(),
         ExternalLabel("morphe_month_unchanged", getInstruction(monthRowIndex + 1)),
     )

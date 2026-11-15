@@ -144,6 +144,7 @@ val materialYouPatch = bytecodePatch(
         var surfaceCount = 0
         var colorCount = 0
         val fdsShapes = mutableListOf<ClassDef>()
+        val colorCalls = MemberTable(materialYouColorCalls)
         classDefForEach { cls ->
             if (cls.type.startsWith("Lapp/hushmessenger/extension/")) return@classDefForEach
             if (isFdsColorsShape(cls)) fdsShapes += cls
@@ -160,8 +161,9 @@ val materialYouPatch = bytecodePatch(
                         }
                     } else if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_VIRTUAL ||
                         instruction.opcode == Opcode.INVOKE_STATIC_RANGE || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
-                        val reference = (instruction as ReferenceInstruction).reference.toString()
-                        val replacement = materialYouColorCalls[reference] ?: continue
+                        val target = (instruction as ReferenceInstruction).reference
+                        val replacement = colorCalls[target] ?: continue
+                        val reference = target.toString()
                         val contextCall = reference.startsWith("Landroid/content/Context;")
                         val range = instruction as? RegisterRangeInstruction
                         val invoke = instruction as? FiveRegisterInstruction

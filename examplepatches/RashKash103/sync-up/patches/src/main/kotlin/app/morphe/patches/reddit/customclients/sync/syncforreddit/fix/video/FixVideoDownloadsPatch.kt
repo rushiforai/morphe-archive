@@ -17,6 +17,8 @@ val fixVideoDownloadsPatch = bytecodePatch(
     description = "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved.",
     default = true
 ) {
+    category("2. Media")
+
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*SyncForRedditCompatible)

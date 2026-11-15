@@ -36,8 +36,8 @@ import javax.crypto.spec.GCMParameterSpec;
 
 /**
  * A local log of the messages that reached a notification, kept so an unsend can't take them back. It's the only way to
- * keep an end-to-end encrypted chat's message past the notification, which is as far as "Keep unsent messages" reaches
- * there. The file and its key stay on the phone, and the key lives in the Android keystore, so nothing here leaves the
+ * keep an end-to-end encrypted chat's message past a Messenger restart, since "Keep unsent messages" holds the words of
+ * an encrypted chat's rows in memory only. The file and its key stay on the phone, and the key lives in the Android keystore, so nothing here leaves the
  * device and clearing the log throws the key away with it. Writing happens off Messenger's notification thread, and any failure is swallowed into the control's
  * hook-error record the way the other controls handle theirs. When the sender unsends a logged message, its entry is
  * marked Unsent, found by Messenger's id for it or by the notification that showed it.

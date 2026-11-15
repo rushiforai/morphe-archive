@@ -1,0 +1,1582 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.stories;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Application;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Outline;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.text.Layout;
+import android.text.TextUtils;
+import android.util.LruCache;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
+import android.view.ViewParent;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.Consumer;
+
+import app.morphe.extension.suite.instagram.download.InstagramMedia;
+import app.morphe.extension.suite.instagram.download.PictureFetch;
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.instagram.settings.ScreenColors;
+import app.morphe.extension.suite.instagram.settings.Settings;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+import app.morphe.extension.suite.shared.ui.Dim;
+
+/**
+ * Helper for the "See who a story mentions" patch.
+ *
+ * <p>Instagram's story viewer gives each of its pages the story it shows in one place, its item
+ * binder's bindMedia step. The patch calls {@link #bind} right after that, with the page and the
+ * story. Once Instagram has bound the page's header, a pill goes after the name and time in it
+ * (right under the header when the name has no row of its own, as on Instagram 453, or when the
+ * row would cut the name short, and under the name when there's no column to put it in), or with
+ * {@link StoryMentionsLook} saying so at the start of the top bar's buttons (#468), saying
+ * how many accounts the story mentions, from the
+ * story's own list of mentions, so a mention sticker
+ * that's hidden, shrunk or dragged off screen still counts. A story with none gets no pill.
+ * Tapping the pill lists the accounts with their pictures, names and usernames, and tapping one
+ * opens that profile through Instagram's own handling of a link to it. The story viewer takes every
+ * touch on a story for its own taps and swipes before the header's views see it, so the patch also
+ * hands each touch on the screen to {@link #touch} first, which catches a tap on the pill.
+ *
+ * <p>The hook fails open: with the switch off, xboyrex paused, the settings not ready or anything
+ * thrown, the header is Instagram's own.
+ */
+public final class StoryMentions {
+    /** The id of the header's column with the name in it, which the pill goes at the end of. */
+    static final String HEADER = "reel_viewer_text_container";
+
+    /** How far up from the story's media view the header is looked for. */
+    private static final int MAX_DEPTH = 8;
+    /** How far into 453's Compose name row the name's text starts, measured on the S22. */
+    static final int COMPOSE_NAME_INSET_DP = 12;
+
+    /**
+     * When a page's header is looked for, in milliseconds after the bind, while Instagram hasn't
+     * built it yet. The header starts as a stub Instagram fills in when it first binds it.
+     */
+    static final long[] TRIES = {0, 250, 750};
+
+    /** The id of the header's name, whose row the pill goes at the end of when it has one. */
+    static final String TITLE = "reel_viewer_title";
+
+    /** Set by tests that have no Instagram resources: the header column's id. */
+    static int headerIdForTests;
+    /** The header column's id in this app, or -1 before the first lookup. */
+    private static volatile int headerId = -1;
+    /** Set by tests that have no Instagram resources: the name's id. */
+    static int titleIdForTests;
+    /** The name's id in this app, or -1 before the first lookup. */
+    private static volatile int titleId = -1;
+
+    /**
+     * The id of the header's row of buttons at the right of the top bar (Follow, the menu, close),
+     * which the pill goes at the start of when the mention look puts it in the top bar (#468).
+     */
+    static final String TOP_BAR = "reel_header_extras_container";
+    /** Set by tests that have no Instagram resources: the top bar row's id. */
+    static int topBarIdForTests;
+    /** The top bar row's id in this app, or -1 before the first lookup. */
+    private static volatile int topBarId = -1;
+
+    /** Set by tests: fetches a profile picture instead of the network. */
+    @Nullable static PictureSource picturesForTests;
+
+    /** The latest bind of each page's media view, so an older bind's late look doesn't undo it. */
+    private static final Map<View, Object> LATEST = new WeakHashMap<>();
+
+    /** Profile pictures fetched for the list, so opening it again doesn't fetch them again. */
+    private static final LruCache<String, Bitmap> PICTURES = new LruCache<>(48);
+
+    /** Whether any pill was made, so a bind with nothing to show skips the header until one was. */
+    private static boolean anyPill;
+
+    /** Every pill made, so a touch can find the one under it. Weak, so a closed story lets its pills go. */
+    private static final Set<Pill> PILLS = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /** The activity the last touch went down in, for a pill whose context doesn't lead to one (#125). */
+    private static WeakReference<Activity> touched = new WeakReference<>(null);
+
+    /**
+     * The pill a finger went down on and hasn't come up from yet, where it went down, and whether it
+     * moved since. Weak, so a story closed in the middle of a touch lets its pill and activity go.
+     */
+    private static WeakReference<Pill> pressed = new WeakReference<>(null);
+    private static float downX;
+    private static float downY;
+    private static boolean moved;
+
+    /** What the diagnostics report counts, so a pill that shows but never opens its list can be told apart. */
+    static final String PILL_SHOWN = "pill shown";
+    static final String HEADER_NOT_FOUND = "header not found";
+    static final String PILL_TAPPED = "pill tapped";
+    static final String LIST_SHOWN = "list shown";
+    static final String LIST_NO_ACTIVITY = "list not shown, no activity";
+
+    private StoryMentions() {
+    }
+
+    /** How long a list left open for a profile still comes back with the story (#403). */
+    static final long BACK_TO_LIST_MS = 10 * 60 * 1000L;
+
+    /**
+     * The list a tap on an account left for that profile. When the story's pill shows again after
+     * the pill went away, or the story's activity comes back to the front after it went behind the
+     * profile, the same list opens again, until Close, Back or a different story ends it.
+     */
+    private static final class BackToList {
+        final List<String> usernames = new ArrayList<>();
+        final long at = SystemClock.uptimeMillis();
+        /** The activity the story and its list show in. */
+        final WeakReference<Activity> story;
+        /** The viewer whose story the list held, held on until the list opens again or stays away. */
+        final WeakReference<Object> viewer;
+        boolean away;
+        /** The story's activity is behind the profile right now. */
+        boolean behind;
+        /** The story still waits for the list, and a resume Instagram made was skipped for it. */
+        boolean holding;
+        boolean skipped;
+
+        BackToList(List<Mention> people, Activity story, @Nullable Object viewer) {
+            for (Mention person : people) usernames.add(person.username);
+            this.story = new WeakReference<>(story);
+            this.viewer = new WeakReference<>(viewer);
+            holding = viewer != null;
+        }
+
+        boolean matches(List<Mention> people) {
+            if (people.size() != usernames.size()) return false;
+            for (int i = 0; i < people.size(); i++) if (!usernames.get(i).equals(people.get(i).username)) return false;
+            return true;
+        }
+
+        boolean stale() {
+            return SystemClock.uptimeMillis() - at > BACK_TO_LIST_MS;
+        }
+    }
+
+    @Nullable private static BackToList backToList;
+
+    /**
+     * Watches the activity a list was left from for a profile (#403). Instagram 453 opens a profile
+     * link in an activity you can see through, so the story stays laid out under it and its pill
+     * never leaves the screen. The story's activity going behind the profile and coming back to
+     * the front is then the only sign the profile came and went.
+     */
+    private static final Application.ActivityLifecycleCallbacks COMEBACK = new Application.ActivityLifecycleCallbacks() {
+        @Override
+        public void onActivityPaused(Activity activity) {
+            BackToList waiting = backToList;
+            if (waiting == null || waiting.story.get() != activity) return;
+            waiting.away = true;
+            waiting.behind = true;
+            Logger.printDebug(() -> "Story mentions: the story went behind the profile");
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+            BackToList waiting = backToList;
+            if (waiting == null || waiting.story.get() != activity) return;
+            waiting.behind = false;
+            if (!waiting.away) return;
+            Window window = activity.getWindow();
+            View decor = window == null ? null : window.peekDecorView();
+            if (decor == null) return;
+            decor.post(() -> {
+                try {
+                    Logger.printDebug(() -> "Story mentions: the story is back in front, " + PILLS.size() + " pills");
+                    for (Pill pill : new ArrayList<>(PILLS)) if (pill.getRootView() == decor) settleShown(pill);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+                }
+            });
+        }
+
+        @Override
+        public void onActivityCreated(Activity activity, @Nullable Bundle state) {
+        }
+
+        @Override
+        public void onActivityStarted(Activity activity) {
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle state) {
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+        }
+    };
+
+    /** The app {@link #COMEBACK} is registered with, so it's registered once. */
+    private static WeakReference<Application> watching = new WeakReference<>(null);
+
+    private static void watch(Activity activity) {
+        Application app = activity.getApplication();
+        if (app == null || watching.get() == app) return;
+        app.registerActivityLifecycleCallbacks(COMEBACK);
+        watching = new WeakReference<>(app);
+    }
+
+    /** The story viewer that last came to the front, so a list opened over its story can hold it. */
+    private static WeakReference<Object> viewer = new WeakReference<>(null);
+    /** The viewer whose story a showing list holds, and that list. */
+    private static WeakReference<Object> heldViewer = new WeakReference<>(null);
+    private static WeakReference<Dialog> heldList = new WeakReference<>(null);
+
+    /** Called first thing in the story viewer's onResume: [shown] is the viewer on the screen now. */
+    public static void viewerShown(Object shown) {
+        viewer = new WeakReference<>(shown);
+    }
+
+    /** How long a story back from a profile waits for its list to open again before it plays on. */
+    static final long COMEBACK_HOLD_MS = 1000L;
+
+    /**
+     * Called first thing in the story viewer's resume, which plays its story again. True while a
+     * list opened over [resuming]'s story shows, so the story waits under it the way Instagram's
+     * own resume waits for its sheets and keyboard, a trip to Home and back included. Before, a
+     * photo ran out its time under the list and the story moved on, so the list named the story
+     * before, and a visit to a profile and back then ended it (#403).
+     *
+     * Also true while a list left for a profile waits to open again over that story. Instagram
+     * resumes the story as it comes back, before the list can open, and a pause right after that
+     * resume didn't stop a video: it played on under the list and ran the story out. If the list
+     * hasn't opened again [COMEBACK_HOLD_MS] after the story is back in front, the story plays.
+     */
+    public static boolean holdsStory(Object resuming) {
+        try {
+            if (resuming == null) return false;
+            Dialog list = heldList.get();
+            if (heldViewer.get() == resuming && list != null && list.isShowing()) return true;
+            BackToList waiting = backToList;
+            if (waiting == null || !waiting.holding || waiting.stale() || waiting.viewer.get() != resuming) return false;
+            waiting.skipped = true;
+            Logger.printDebug(() -> "Story mentions: the story waits for its list");
+            new Handler(Looper.getMainLooper()).postDelayed(() -> playIfTheListStaysAway(waiting), COMEBACK_HOLD_MS);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+            return false;
+        }
+    }
+
+    /** The story [waiting] held is back in front and its list didn't open again, so it plays on. */
+    private static void playIfTheListStaysAway(BackToList waiting) {
+        if (!waiting.holding || !waiting.skipped || waiting.behind) return;
+        waiting.holding = false;
+        Object held = waiting.viewer.get();
+        if (held == null) return;
+        Logger.printDebug(() -> "Story mentions: the list didn't come back, so the story plays");
+        try {
+            playback().play(held);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+        }
+    }
+
+    /** [list] shows over the story of the viewer last shown, and holds it until it closes. */
+    private static void hold(Dialog list) {
+        Object shown = viewer.get();
+        if (shown == null) return;
+        heldViewer = new WeakReference<>(shown);
+        heldList = new WeakReference<>(list);
+        try {
+            playback().hold(shown);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+        }
+    }
+
+    /**
+     * [list] closed, so the story it held may play again. It plays now when Close or Back ended
+     * the list. When a tap opened a profile, the list waiting to come back holds it instead.
+     */
+    private static void release(DialogInterface list, boolean play) {
+        if (heldList.get() != list) return;
+        Object held = heldViewer.get();
+        heldList = new WeakReference<>(null);
+        heldViewer = new WeakReference<>(null);
+        if (!play || held == null) return;
+        try {
+            playback().play(held);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+        }
+    }
+
+    /** [pill] went off screen: if a profile is open over its story, the list waits for it to return. */
+    private static void pillLeft(Pill pill) {
+        BackToList waiting = backToList;
+        if (waiting != null && waiting.matches(pill.people)) {
+            waiting.away = true;
+            Logger.printDebug(() -> "Story mentions: the pill left the screen");
+        }
+    }
+
+    /**
+     * [pill] shows: once Instagram has laid it out, the list opens again if it went away for a
+     * profile and the pill left and came back. The story viewer keeps the pages either side of the
+     * story built, and their pills come back with it, so only a pill on the screen counts. Before,
+     * a page beside the story mentioning other accounts ended the wait as the viewer came back.
+     */
+    private static void pillShown(Pill pill) {
+        if (backToList == null || pill.people.isEmpty()) return;
+        pill.post(() -> {
+            try {
+                settleShown(pill);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+            }
+        });
+    }
+
+    private static void settleShown(Pill pill) {
+        BackToList waiting = backToList;
+        if (waiting == null || pill.people.isEmpty()) return;
+        if (waiting.stale()) {
+            backToList = null;
+            Logger.printDebug(() -> "Story mentions: the list waited too long to come back");
+        } else if (!onScreen(pill)) {
+            Logger.printDebug(() -> "Story mentions: a pill showed off the screen");
+            return;
+        } else if (!waiting.matches(pill.people)) {
+            // Only a story moving on in the viewer the list was left from ends it. A story opened from
+            // the profile is another viewer, and its mentions left the list closed when you came back (#403).
+            if (waiting.away && viewer.get() == waiting.viewer.get()) {
+                backToList = null;
+                Logger.printDebug(() -> "Story mentions: the story moved on, so the list stays closed");
+            }
+        } else if (waiting.away) {
+            backToList = null;
+            waiting.holding = false;
+            Logger.printDebug(() -> "Story mentions: the list opens again");
+            // The last touch may have gone down on the profile, a post opened from it say, so the pill
+            // whose context doesn't lead to its activity is looked for in the story's (#403).
+            Activity activity = activityOf(pill);
+            if (activity == null) activity = showsIn(pill, waiting.story.get());
+            list(activity != null ? activity : pill.getContext(), pill.people);
+        }
+    }
+
+    /** Whether [view] shows on the screen, not only in a page laid out beside the story. */
+    static boolean onScreen(View view) {
+        return view.isShown() && view.getGlobalVisibleRect(new Rect());
+    }
+
+    /** One account a story mentions, as the list shows it. */
+    static final class Mention {
+        final String username;
+        @Nullable final String fullName;
+        @Nullable final String picture;
+
+        Mention(String username, @Nullable String fullName, @Nullable String picture) {
+            this.username = username;
+            this.fullName = fullName;
+            this.picture = picture;
+        }
+    }
+
+    /** Where the list's profile pictures come from. */
+    interface PictureSource {
+        @Nullable Bitmap fetch(Context context, String url, int size);
+    }
+
+    /** What the hook reads of Instagram's objects: the stubs the patch fills, or a test's stand-ins. */
+    interface Reads {
+        @Nullable View itemView(Object page);
+
+        @Nullable Object media(Object item);
+
+        @Nullable List<?> mentions(Object media);
+
+        @Nullable Object mentionUser(Object mention);
+
+        @Nullable String username(Object user);
+
+        @Nullable String fullName(Object user);
+
+        /** The address of the account's picture as its profile shows it, or null. */
+        @Nullable String picture(Object user);
+    }
+
+    /** The stubs below, and InstagramMedia's bridges for an account. */
+    static final Reads PATCHED = new Reads() {
+        @Override public View itemView(Object page) {
+            return StoryMentions.itemView(page);
+        }
+
+        @Override public Object media(Object item) {
+            return StoryMentions.media(item);
+        }
+
+        @Override public List<?> mentions(Object media) {
+            return StoryMentions.mentions(media);
+        }
+
+        @Override public Object mentionUser(Object mention) {
+            return StoryMentions.mentionUser(mention);
+        }
+
+        @Override public String username(Object user) {
+            return InstagramMedia.username(user);
+        }
+
+        @Override public String fullName(Object user) {
+            return StoryMentions.fullName(user);
+        }
+
+        @Override public String picture(Object user) {
+            Object shown = InstagramMedia.profilePicture(user);
+            return shown == null ? null : InstagramMedia.candidateUrl(shown);
+        }
+    };
+
+    /** Set by tests: what to read in place of the patched stubs. */
+    @Nullable static Reads readsForTests;
+
+    private static Reads reads() {
+        Reads forTests = readsForTests;
+        return forTests != null ? forTests : PATCHED;
+    }
+
+    /** How a list holds the story under it and plays it again: the stubs the patch fills, or a test's stand-in. */
+    interface Playback {
+        void hold(Object viewer);
+
+        void play(Object viewer);
+    }
+
+    static final Playback PATCHED_PLAYBACK = new Playback() {
+        @Override public void hold(Object viewer) {
+            holdStory(viewer, null);
+        }
+
+        @Override public void play(Object viewer) {
+            playStory(viewer, null, null);
+        }
+    };
+
+    /** Set by tests: what holds and plays the story in place of the patched stubs. */
+    @Nullable static Playback playbackForTests;
+
+    private static Playback playback() {
+        Playback forTests = playbackForTests;
+        return forTests != null ? forTests : PATCHED_PLAYBACK;
+    }
+
+    /** The pill under the name, a view of xboyrex's own so a later bind finds it again. */
+    static final class Pill extends TextView {
+        List<Mention> people = Collections.emptyList();
+        /** The header's column while the pill sits in the name's row, so it can go under the header. */
+        @Nullable LinearLayout header;
+        /** The header's row while the pill sits under it, so the pill can stay close to what shows there. */
+        @Nullable View underRow;
+        private boolean moving;
+
+        Pill(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void onVisibilityAggregated(boolean visible) {
+            super.onVisibilityAggregated(visible);
+            settle(visible);
+        }
+
+        @Override
+        protected void onVisibilityChanged(View changedView, int visibility) {
+            super.onVisibilityChanged(changedView, visibility);
+            settle(visibility == VISIBLE && isShown());
+        }
+
+        @Override
+        protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            settle(isShown());
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            settle(false);
+        }
+
+        private void settle(boolean visible) {
+            try {
+                if (visible) pillShown(this);
+                else pillLeft(this);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+            }
+        }
+
+        /**
+         * In the name's row, the pill takes its width from the name: Instagram's row shrinks the
+         * name to fit, so a long name or a date like "January 16" left only the verified badge
+         * showing. Once a layout shows the name cut short, the pill goes under the header instead.
+         */
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            super.onLayout(changed, left, top, right, bottom);
+            try {
+                // Its first layout tells the pill how wide it is, which decides what shows over it.
+                if (changed && underRow != null) post(() -> fitUnder(this));
+                LinearLayout column = header;
+                ViewParent row = getParent();
+                if (column == null || moving || !(row instanceof LinearLayout) || !crowdsName((LinearLayout) row)) return;
+                moving = true;
+                post(() -> {
+                    moving = false;
+                    moveUnder(this, column);
+                });
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+            }
+        }
+    }
+
+    /**
+     * Injected right after Instagram's story viewer gives [page], one of its pages, the story [item].
+     * Puts the pill in the page's header once Instagram has bound it, or takes it away. Never
+     * throws.
+     */
+    public static void bind(Object page, Object item) {
+        try {
+            HookStatus.invoked(FamilyNames.STORY_MENTIONS);
+            Reads reads = reads();
+            View view = reads.itemView(page);
+            if (view == null) return;
+            List<Mention> people = on() ? people(reads, reads.media(item)) : Collections.<Mention>emptyList();
+            if (people.isEmpty() && !anyPill) {
+                LATEST.remove(view);
+                return;
+            }
+            Object token = new Object();
+            LATEST.put(view, token);
+            // Instagram goes on to bind the header after this, and may only build it then.
+            place(view, people, token, 0);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+        }
+    }
+
+    /** Looks for the header [TRIES][attempt] after the bind, and again at the next, until it's there or they run out. */
+    private static void place(View view, List<Mention> people, Object token, int attempt) {
+        Runnable look = () -> {
+            if (LATEST.get(view) != token) return;
+            if (show(view, people)) return;
+            if (attempt + 1 >= TRIES.length) {
+                HookStatus.counted(FamilyNames.STORY_MENTIONS, HEADER_NOT_FOUND);
+                return;
+            }
+            place(view, people, token, attempt + 1);
+        };
+        if (attempt == 0) view.post(look);
+        else view.postDelayed(look, TRIES[attempt] - TRIES[attempt - 1]);
+    }
+
+    /** The accounts [media] mentions, each once, in the story's order. Empty when it has none. */
+    static List<Mention> people(Reads reads, @Nullable Object media) {
+        if (media == null) return Collections.emptyList();
+        List<?> mentions = reads.mentions(media);
+        if (mentions == null || mentions.isEmpty()) return Collections.emptyList();
+        List<Mention> people = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Object mention : mentions) {
+            Object user = mention == null ? null : reads.mentionUser(mention);
+            String username = user == null ? null : reads.username(user);
+            if (username == null || username.trim().isEmpty() || !seen.add(username)) continue;
+            people.add(new Mention(username, blankToNull(reads.fullName(user)), reads.picture(user)));
+        }
+        return people;
+    }
+
+    /**
+     * Puts [people]'s pill in the header of the page [itemView] is in, or hides it for none. True
+     * once that's settled: the pill is placed or hidden, or there's nothing to show. False while
+     * the header isn't there yet.
+     */
+    static boolean show(View itemView, List<Mention> people) {
+        try {
+            LinearLayout header = header(itemView);
+            if (header == null) return people.isEmpty();
+            Pill pill = pillIn(header);
+            if (people.isEmpty()) {
+                if (pill != null) pill.setVisibility(View.GONE);
+                return true;
+            }
+            Context context = header.getContext();
+            StoryMentionsLook look = look();
+            LinearLayout topBar = topBar(header);
+            LinearLayout bar = look.inTopBar() ? topBar : null;
+            if (pill != null && (topBar != null && pill.getParent() == topBar) != (bar != null)) {
+                // The look changed since this pill was placed, so it goes where the look puts it now.
+                PILLS.remove(pill);
+                ((ViewGroup) pill.getParent()).removeView(pill);
+                pill = null;
+            }
+            if (pill == null && bar != null) {
+                pill = newPill(context, true);
+                LinearLayout.LayoutParams place = placement(true);
+                place.setMarginStart(0);
+                place.setMarginEnd(Dim.dp(8));
+                pill.setLayoutParams(place);
+                bar.addView(pill, 0);
+                anyPill = true;
+            } else if (pill == null) {
+                LinearLayout row = titleRow(header);
+                LinearLayout under = row == null ? below(header) : null;
+                LinearLayout into = row != null ? row : under != null ? under : header;
+                pill = newPill(context, into.getOrientation() == LinearLayout.HORIZONTAL);
+                if (under != null) {
+                    putUnder(pill, header, under);
+                } else {
+                    into.addView(pill);
+                    if (row != null) pill.header = header;
+                }
+                anyPill = true;
+            }
+            String text = label(context, people.size());
+            pill.people = people;
+            pill.setText(bar != null ? topBarLabel(look, text, people.size()) : text);
+            pill.setTextColor(textColor());
+            pill.setContentDescription(L10n.f(context, "%1$s, see who this story mentions", text));
+            pill.setVisibility(View.VISIBLE);
+            pillShown(pill);
+            HookStatus.counted(FamilyNames.STORY_MENTIONS, PILL_SHOWN);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+            return true;
+        }
+    }
+
+    /** "1 mention" or "3 mentions", in the phone's language. */
+    static String label(Context context, int count) {
+        return L10n.quantity(context, count, "1 mention", "%1$d mentions");
+    }
+
+    /** What a pill in the top bar says: "@1 mention" from [label], or "@1" for the short look (#468). */
+    static String topBarLabel(StoryMentionsLook look, String label, int count) {
+        return look == StoryMentionsLook.TOP_BAR_SHORT ? "@" + count : "@" + label;
+    }
+
+    /** Where the pill goes and what it says, under the name when the settings can't be read. Never throws. */
+    static StoryMentionsLook look() {
+        try {
+            return Utils.settingsReady() ? Settings.STORY_MENTIONS_LOOK.get() : StoryMentionsLook.UNDER_NAME;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "mention pill look", failure);
+            return StoryMentionsLook.UNDER_NAME;
+        }
+    }
+
+    /**
+     * The row of buttons at the right of the top bar [header] sits in, which a top bar pill goes at
+     * the start of, left of Follow and the menu. Null when there's none, or it isn't a row.
+     */
+    @Nullable
+    static LinearLayout topBar(ViewGroup header) {
+        int id = topBarId(header.getContext());
+        ViewParent headerRow = header.getParent();
+        if (id == 0 || !(headerRow instanceof View)) return null;
+        View found = ((View) headerRow).findViewById(id);
+        if (!(found instanceof LinearLayout)) return null;
+        LinearLayout bar = (LinearLayout) found;
+        return bar.getOrientation() == LinearLayout.HORIZONTAL ? bar : null;
+    }
+
+    /**
+     * The header's column with the name in it: going up from [itemView], the first view holding it.
+     * Null when there's none yet, or it isn't a layout a pill can go at the end of.
+     */
+    @Nullable
+    static LinearLayout header(View itemView) {
+        int id = headerId(itemView.getContext());
+        if (id == 0) return null;
+        View at = itemView;
+        for (int depth = 0; depth < MAX_DEPTH && at != null; depth++) {
+            View found = at.findViewById(id);
+            if (found != null) return found instanceof LinearLayout ? (LinearLayout) found : null;
+            ViewParent parent = at.getParent();
+            at = parent instanceof View ? (View) parent : null;
+        }
+        return null;
+    }
+
+    /**
+     * The pill already in [header]: in the top bar, in the name's row, under the whole header, or in
+     * the column itself. Null for none.
+     */
+    @Nullable
+    static Pill pillIn(ViewGroup header) {
+        LinearLayout bar = topBar(header);
+        if (bar != null) {
+            Pill inBar = pillAmong(bar);
+            if (inBar != null) return inBar;
+        }
+        LinearLayout row = titleRow(header);
+        if (row != null) {
+            Pill inRow = pillAmong(row);
+            if (inRow != null) return inRow;
+        }
+        LinearLayout under = below(header);
+        if (under != null) {
+            Pill underIt = pillAmong(under);
+            if (underIt != null) return underIt;
+        }
+        return pillAmong(header);
+    }
+
+    /**
+     * The column the whole header's row sits in, so the pill goes right under the header, or null
+     * when there's no such column. On Instagram 453 the name's row is a Compose view with no name
+     * view inside it, so there's no row to put the pill at the end of, and under the name it made
+     * the name's column taller. The header centers that column, so on every story with mentions
+     * the name moved up under the progress bars, and a story with a music line lost the top of its
+     * name (#405). Under the header, the pill changes nothing above it.
+     */
+    @Nullable
+    static LinearLayout below(ViewGroup header) {
+        ViewParent headerRow = header.getParent();
+        ViewParent column = headerRow instanceof View ? headerRow.getParent() : null;
+        if (!(column instanceof LinearLayout)) return null;
+        LinearLayout found = (LinearLayout) column;
+        return found.getOrientation() == LinearLayout.VERTICAL ? found : null;
+    }
+
+    /** Puts [pill] right under the header's row in [under], lined up with the name's text. */
+    private static void putUnder(Pill pill, LinearLayout header, LinearLayout under) {
+        View headerRow = (View) header.getParent();
+        LinearLayout.LayoutParams place = placement(false);
+        place.setMarginStart(headerRow.getLeft() + header.getLeft() + nameStart(header));
+        place.topMargin = gapUnder(headerRow, place.getMarginStart() - headerRow.getLeft(), 0);
+        pill.setLayoutParams(place);
+        under.addView(pill, under.indexOfChild(headerRow) + 1);
+        pill.underRow = headerRow;
+        // The name's second line can come after this, and the row's box doesn't change for it.
+        headerRow.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View row, int l, int t, int r, int b, int oldL, int oldT, int oldR, int oldB) {
+                if (pill.getParent() == null || pill.underRow != row) {
+                    row.removeOnLayoutChangeListener(this);
+                    return;
+                }
+                pill.post(() -> fitUnder(pill));
+            }
+        });
+    }
+
+    /** Moves [pill] to where it belongs under the header's row, when that changed. Never throws. */
+    static void fitUnder(Pill pill) {
+        try {
+            View row = pill.underRow;
+            if (row == null || !(pill.getLayoutParams() instanceof LinearLayout.LayoutParams)) return;
+            LinearLayout.LayoutParams place = (LinearLayout.LayoutParams) pill.getLayoutParams();
+            int gap = gapUnder(row, place.getMarginStart() - row.getLeft(), pill.getWidth());
+            if (gap == place.topMargin) return;
+            place.topMargin = gap;
+            pill.setLayoutParams(place);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+        }
+    }
+
+    /**
+     * The pill's top margin under the header's [row]: a little under the lowest thing that shows over
+     * the pill, from [start] for [width] across the row (with no width yet, across all of it). The row
+     * is as tall as its tallest box, far taller than a one-line name, which left a gap as tall as the
+     * pill between them (#510). So the margin usually comes out negative, up into the row's empty foot.
+     */
+    static int gapUnder(View row, int start, int width) {
+        int gap = Dim.dp(4);
+        int height = row.getHeight();
+        if (height <= 0) return gap;
+        int lowest = lowestShowing(row, 0, 0, start, start + width);
+        return lowest <= 0 ? gap : Math.min(gap, lowest + gap - height);
+    }
+
+    /**
+     * How far down [view], at [left] and [top], reaches what it shows between [from] and [to]. Only what
+     * has nothing inside it counts, as a box around things can be far bigger than they are.
+     */
+    private static int lowestShowing(View view, int left, int top, int from, int to) {
+        if (view.getVisibility() != View.VISIBLE || view.getWidth() <= 0 || view.getHeight() <= 0) return 0;
+        if (view instanceof ViewGroup && ((ViewGroup) view).getChildCount() > 0) {
+            ViewGroup group = (ViewGroup) view;
+            int lowest = 0;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                lowest = Math.max(lowest, lowestShowing(child, left + child.getLeft(), top + child.getTop(), from, to));
+            }
+            return lowest;
+        }
+        if (to > from && (left + view.getWidth() <= from || left >= to)) return 0;
+        return top + view.getHeight();
+    }
+
+    /**
+     * Where the name's text starts inside [header]: the name view's left, summed up to the header,
+     * or with no name view (453's Compose row) the room that row keeps before its text. Lined up
+     * with the header's edge instead, the pill sat a name's inset left of the name on the S22 (#405).
+     */
+    static int nameStart(ViewGroup header) {
+        int id = titleId(header.getContext());
+        View title = id == 0 ? null : header.findViewById(id);
+        if (title == null) return Dim.dp(COMPOSE_NAME_INSET_DP);
+        int start = 0;
+        for (View at = title; at != null && at != header; at = at.getParent() instanceof View ? (View) at.getParent() : null) {
+            start += at.getLeft();
+        }
+        return start;
+    }
+
+    /**
+     * Moves [pill] from the name's row to under the header of [header]'s column, where it leaves the
+     * name its whole width. With no column to go under, it stays in the row and stops checking.
+     */
+    static void moveUnder(Pill pill, LinearLayout header) {
+        try {
+            pill.header = null;
+            LinearLayout under = below(header);
+            ViewParent row = pill.getParent();
+            if (under == null || !(row instanceof ViewGroup) || row == under) return;
+            ((ViewGroup) row).removeView(pill);
+            putUnder(pill, header, under);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+        }
+    }
+
+    /** Whether the name in [row] is narrower than its text and badge need, so it shows cut short. */
+    static boolean crowdsName(LinearLayout row) {
+        int id = titleId(row.getContext());
+        View found = id == 0 ? null : row.findViewById(id);
+        if (!(found instanceof TextView) || found.getVisibility() != View.VISIBLE) return false;
+        TextView title = (TextView) found;
+        CharSequence text = title.getText();
+        if (text == null || text.length() == 0) return false;
+        float wanted = Layout.getDesiredWidth(text, title.getPaint())
+                + title.getCompoundPaddingLeft() + title.getCompoundPaddingRight();
+        return title.getWidth() + 1 < wanted;
+    }
+
+    @Nullable
+    private static Pill pillAmong(ViewGroup group) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            if (group.getChildAt(i) instanceof Pill) return (Pill) group.getChildAt(i);
+        }
+        return null;
+    }
+
+    /**
+     * The row the name sits in, when it's a row of its own inside the header's column, so the pill
+     * goes at the end of it, after the name and the time. Under the name, the pill made the column
+     * taller, and on each story with mentions the name moved up toward the progress bars (#151).
+     * When the row can't hold the pill without cutting the name short, {@link Pill} moves it under
+     * the header. Null when the name sits in the column itself or isn't there, and the pill goes under it.
+     */
+    @Nullable
+    static LinearLayout titleRow(ViewGroup header) {
+        int id = titleId(header.getContext());
+        if (id == 0) return null;
+        View title = header.findViewById(id);
+        ViewParent parent = title == null ? null : title.getParent();
+        if (!(parent instanceof LinearLayout) || parent == header) return null;
+        LinearLayout row = (LinearLayout) parent;
+        return row.getOrientation() == LinearLayout.HORIZONTAL ? row : null;
+    }
+
+    /** The header's id, looked up once: a name lookup on every story frame adds up. */
+    private static int headerId(Context context) {
+        if (headerIdForTests != 0) return headerIdForTests;
+        if (headerId == -1) headerId = context.getResources().getIdentifier(HEADER, "id", Utils.resourcePackage(context));
+        return headerId;
+    }
+
+    /** The name's id, looked up once like the header's. */
+    private static int titleId(Context context) {
+        if (titleIdForTests != 0) return titleIdForTests;
+        if (titleId == -1) titleId = context.getResources().getIdentifier(TITLE, "id", Utils.resourcePackage(context));
+        return titleId;
+    }
+
+    /** The top bar row's id, looked up once like the header's. */
+    private static int topBarId(Context context) {
+        if (topBarIdForTests != 0) return topBarIdForTests;
+        if (topBarId == -1) topBarId = context.getResources().getIdentifier(TOP_BAR, "id", Utils.resourcePackage(context));
+        return topBarId;
+    }
+
+    /** Where the pill sits: after the time in a row, or a little under what's above it in a column. */
+    private static LinearLayout.LayoutParams placement(boolean row) {
+        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (row) {
+            place.setMarginStart(Dim.dp(6));
+            place.gravity = Gravity.CENTER_VERTICAL;
+        } else {
+            place.topMargin = Dim.dp(4);
+            place.gravity = Gravity.START;
+        }
+        return place;
+    }
+
+    /** Instagram's red, the pill's text color while Red story mentions is on (#459). */
+    static final int RED = 0xFFFF3040;
+
+    /** The pill's text color: red while Red story mentions is on, otherwise white. Never throws. */
+    static int textColor() {
+        try {
+            return Utils.settingsReady() && Settings.RED_STORY_MENTIONS.get() ? RED : Color.WHITE;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "pill color", failure);
+            return Color.WHITE;
+        }
+    }
+
+    /**
+     * A small rounded pill in white (red with Red story mentions on) on a dim backing, like the rest of a story's header: under the
+     * name in a column, or after it in a row.
+     */
+    private static Pill newPill(Context context, boolean row) {
+        Pill pill = new Pill(context);
+        pill.setTextColor(textColor());
+        pill.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        pill.setTypeface(Typeface.DEFAULT_BOLD);
+        pill.setSingleLine(true);
+        pill.setGravity(Gravity.CENTER_VERTICAL);
+        pill.setPadding(Dim.dp(10), Dim.dp(3), Dim.dp(10), Dim.dp(3));
+        GradientDrawable backing = new GradientDrawable();
+        backing.setColor(0x59000000);
+        backing.setCornerRadius(Dim.dp(12));
+        pill.setBackground(backing);
+        pill.setLayoutParams(placement(row));
+        PILLS.add(pill);
+        pill.setOnClickListener(view -> {
+            try {
+                Activity activity = activityOf(view);
+                list(activity != null ? activity : view.getContext(), ((Pill) view).people);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+            }
+        });
+        return pill;
+    }
+
+    /**
+     * The accounts in a list centered over the story, or with the pill in the top bar a sheet along
+     * the bottom of the screen with a Close as wide as it (#468). A tap on one opens their profile.
+     */
+    @Nullable
+    static AlertDialog list(Context context, List<Mention> people) {
+        Activity activity = activity(context);
+        if (activity == null) {
+            HookStatus.counted(FamilyNames.STORY_MENTIONS, LIST_NO_ACTIVITY);
+            Logger.printDebug(() -> "Story mentions: no activity to show the list in");
+            return null;
+        }
+        if (people.isEmpty()) return null;
+        boolean sheet = look().inTopBar();
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        if (!sheet) {
+            builder.setTitle(L10n.t(activity, "Mentioned in this story"))
+                    .setNegativeButton(L10n.t(activity, "Close"), null);
+        }
+        Context themed = builder.getContext();
+        AlertDialog dialog = builder.create();
+        boolean[] leaving = {false};
+        LinearLayout rows = new LinearLayout(themed);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        rows.setPadding(0, Dim.dp(8), 0, Dim.dp(8));
+        for (Mention person : people) {
+            rows.addView(row(themed, person, sheet, () -> {
+                leaving[0] = true;
+                backToList = new BackToList(people, activity, heldList.get() == dialog ? heldViewer.get() : null);
+                Logger.printDebug(() -> "Story mentions: the list waits for a profile to close");
+                watch(activity);
+                dialog.dismiss();
+                openProfile(activity, person.username);
+            }));
+        }
+        // Names by the picture in a right-to-left layout, in the sheet too, which isn't a painted dialog.
+        ScreenColors.startTextAtTheStart(rows);
+        dialog.setOnDismissListener(shown -> {
+            if (!leaving[0] && backToList != null) Logger.printDebug(() -> "Story mentions: the list closed");
+            if (!leaving[0]) backToList = null;
+            release(shown, !leaving[0]);
+        });
+        if (sheet) {
+            dialog.setView(sheet(themed, rows, dialog), 0, 0, 0, 0);
+            dialog.show();
+            alongTheBottom(dialog);
+        } else {
+            ScrollView scroll = new ScrollView(themed);
+            scroll.addView(rows);
+            dialog.setView(scroll);
+            dialog.show();
+            ScreenColors.dialog(dialog);
+        }
+        hold(dialog);
+        HookStatus.counted(FamilyNames.STORY_MENTIONS, LIST_SHOWN);
+        return dialog;
+    }
+
+    /** How much of the screen's height a sheet's accounts take before they scroll. */
+    static final float SHEET_ROWS_SHARE = 0.6f;
+
+    /** The glass sheet's corners, its gap to the screen's sides and bottom, and its widest width, in dp (#525). */
+    static final int GLASS_CORNER_DP = 24;
+    static final int GLASS_GAP_DP = 8;
+    static final int GLASS_WIDEST_DP = 560;
+    /** How far the story behind the glass sheet is blurred, in dp. */
+    static final int GLASS_BLUR_DP = 24;
+    /** How much of the sheet's color covers a blurred story, and a story the phone won't blur. */
+    static final int GLASS_ALPHA = 0xB8;
+    static final int CLEAR_ALPHA = 0xEE;
+    /** How much the story dims around the sheet. */
+    static final float GLASS_DIM = 0.3f;
+    /** For tests: whether the phone blurs what's behind a window, or null to ask it. */
+    @Nullable static Boolean blursForTests;
+    /** How much of the card color a row in the glass sheet keeps. */
+    static final int ROW_GLASS_ALPHA = 0x66;
+
+    /**
+     * The sheet's content: "Story mentions" over a line saying what it lists, the account [rows],
+     * and a Close as wide as the sheet. Its glass tint is the window's background ({@link
+     * #alongTheBottom}); the sheet adds the light catching its top and a thin rim (#525).
+     */
+    private static View sheet(Context themed, LinearLayout rows, AlertDialog dialog) {
+        ScreenColors colors = ScreenColors.DEFAULT;
+        LinearLayout sheet = new LinearLayout(themed);
+        sheet.setOrientation(LinearLayout.VERTICAL);
+        sheet.setPadding(0, Dim.dp(20), 0, Dim.dp(16));
+        float corner = Dim.dp(GLASS_CORNER_DP);
+        GradientDrawable sheen = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[] {colors.light ? 0x59FFFFFF : 0x1FFFFFFF, Color.TRANSPARENT, Color.TRANSPARENT});
+        sheen.setCornerRadius(corner);
+        GradientDrawable rim = new GradientDrawable();
+        rim.setColor(Color.TRANSPARENT);
+        rim.setCornerRadius(corner);
+        rim.setStroke(Math.max(1, Dim.dp(1)), colors.light ? 0x99FFFFFF : 0x33FFFFFF);
+        sheet.setBackground(new LayerDrawable(new Drawable[] {sheen, rim}));
+
+        TextView title = new TextView(themed);
+        title.setText(L10n.t(themed, "Story mentions"));
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setTextColor(colors.title);
+        title.setPadding(Dim.dp(20), 0, Dim.dp(20), 0);
+        title.setAccessibilityHeading(true);
+        sheet.addView(title);
+
+        TextView subtitle = new TextView(themed);
+        subtitle.setText(L10n.t(themed, "Accounts mentioned in this story"));
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        subtitle.setTextColor(colors.summary);
+        subtitle.setPadding(Dim.dp(20), Dim.dp(4), Dim.dp(20), Dim.dp(4));
+        sheet.addView(subtitle);
+
+        ScrollView scroll = new ScrollView(themed) {
+            @Override
+            protected void onMeasure(int widthSpec, int heightSpec) {
+                int most = (int) (getResources().getDisplayMetrics().heightPixels * SHEET_ROWS_SHARE);
+                int size = MeasureSpec.getMode(heightSpec) == MeasureSpec.UNSPECIFIED
+                        ? most : Math.min(most, MeasureSpec.getSize(heightSpec));
+                super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(size, MeasureSpec.AT_MOST));
+            }
+        };
+        scroll.addView(rows);
+        sheet.addView(scroll);
+
+        Button close = new Button(themed);
+        close.setText(L10n.t(themed, "Close"));
+        close.setAllCaps(false);
+        close.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        close.setTypeface(Typeface.DEFAULT_BOLD);
+        close.setTextColor(colors.title);
+        close.setStateListAnimator(null);
+        close.setMinHeight(Dim.dp(48));
+        close.setMinimumHeight(Dim.dp(48));
+        GradientDrawable outline = new GradientDrawable();
+        outline.setColor(Color.TRANSPARENT);
+        outline.setCornerRadius(Dim.dp(12));
+        outline.setStroke(Dim.dp(1), colors.outline);
+        close.setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.heading)), outline, null));
+        LinearLayout.LayoutParams wide = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        wide.setMargins(Dim.dp(16), Dim.dp(8), Dim.dp(16), 0);
+        close.setLayoutParams(wide);
+        close.setOnClickListener(view -> dialog.dismiss());
+        sheet.addView(close);
+        return sheet;
+    }
+
+    /**
+     * Floats [dialog]'s window along the bottom of the screen as a pane of glass (#525): a card with
+     * a small gap to the sides and bottom, tinted with the sheet's color, with the story blurred
+     * behind it where the phone blurs behind windows (Android 12 and up, unless battery saver or the
+     * phone turns that off, which it follows while the sheet is open). Without the blur the tint is
+     * nearly solid, so the names stay easy to read over any story.
+     *
+     * <p>The blur covers the window and takes its corners from the window's background, which is why
+     * the window is the card's size and the tint its background.
+     */
+    private static void alongTheBottom(AlertDialog dialog) {
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        GradientDrawable glass = new GradientDrawable();
+        glass.setCornerRadius(Dim.dp(GLASS_CORNER_DP));
+        int color = ScreenColors.DEFAULT.dialog;
+        glass.setColor(tint(color, false));
+        window.setBackgroundDrawable(glass);
+        int screen = dialog.getContext().getResources().getDisplayMetrics().widthPixels;
+        window.setLayout(Math.min(screen - 2 * Dim.dp(GLASS_GAP_DP), Dim.dp(GLASS_WIDEST_DP)),
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        window.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        WindowManager.LayoutParams place = window.getAttributes();
+        place.y = Dim.dp(GLASS_GAP_DP);
+        window.setAttributes(place);
+        // A shadow would show through the tint as a dark smudge; the rim draws the edge instead.
+        window.setElevation(0);
+        window.setDimAmount(GLASS_DIM);
+        window.setWindowAnimations(android.R.style.Animation_InputMethod);
+        try {
+            frost(window, glass, color, blurs(dialog.getContext()));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && blursForTests == null) followBlur(dialog, window, glass, color);
+        } catch (Throwable failure) {
+            frost(window, glass, color, false);
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "glass sheet", failure);
+        }
+    }
+
+    /** Whether the phone blurs what's behind a window right now. */
+    static boolean blurs(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false;
+        Boolean forTests = blursForTests;
+        if (forTests != null) return forTests;
+        WindowManager manager = context.getSystemService(WindowManager.class);
+        return manager != null && manager.isCrossWindowBlurEnabled();
+    }
+
+    /** [color] as the glass tint: see-through over a blurred story, nearly solid over a sharp one. */
+    static int tint(int color, boolean blurred) {
+        return (color & 0x00FFFFFF) | ((blurred ? GLASS_ALPHA : CLEAR_ALPHA) << 24);
+    }
+
+    private static void frost(Window window, GradientDrawable glass, int color, boolean blurred) {
+        glass.setColor(tint(color, blurred));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) window.setBackgroundBlurRadius(blurred ? Dim.dp(GLASS_BLUR_DP) : 0);
+    }
+
+    /** Re-tints the sheet when the phone turns blurring behind windows on or off while it's open. */
+    private static void followBlur(AlertDialog dialog, Window window, GradientDrawable glass, int color) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        WindowManager manager = dialog.getContext().getSystemService(WindowManager.class);
+        if (manager == null) return;
+        Consumer<Boolean> follow = blurred -> {
+            try {
+                frost(window, glass, color, Boolean.TRUE.equals(blurred));
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "glass sheet blur", failure);
+            }
+        };
+        View decor = window.getDecorView();
+        View.OnAttachStateChangeListener attach = new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                manager.addCrossWindowBlurEnabledListener(follow);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                manager.removeCrossWindowBlurEnabledListener(follow);
+            }
+        };
+        decor.addOnAttachStateChangeListener(attach);
+        if (decor.isAttachedToWindow()) attach.onViewAttachedToWindow(decor);
+    }
+
+    /**
+     * A row with [person]'s picture, then their full name over their @username, on a card that's
+     * see-through in the glass sheet ([glass]).
+     */
+    private static View row(Context themed, Mention person, boolean glass, Runnable open) {
+        LinearLayout row = new LinearLayout(themed);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(Dim.dp(64));
+        row.setPadding(Dim.dp(16), Dim.dp(10), Dim.dp(16), Dim.dp(10));
+        ScreenColors colors = ScreenColors.DEFAULT;
+        int secondary = colors.summary;
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(glass ? (colors.card & 0x00FFFFFF) | (ROW_GLASS_ALPHA << 24) : colors.card);
+        surface.setCornerRadius(Dim.dp(12));
+        surface.setStroke(Dim.dp(1), glass ? (colors.light ? 0x80FFFFFF : 0x26FFFFFF) : colors.outline);
+        row.setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.heading)), surface, null));
+        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        place.setMargins(Dim.dp(16), Dim.dp(4), Dim.dp(16), Dim.dp(4));
+        row.setLayoutParams(place);
+        row.setFocusable(true);
+
+        ImageView picture = new ImageView(themed);
+        int size = Dim.dp(40);
+        LinearLayout.LayoutParams pictureSize = new LinearLayout.LayoutParams(size, size);
+        pictureSize.setMarginEnd(Dim.dp(16));
+        picture.setLayoutParams(pictureSize);
+        picture.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        GradientDrawable blank = new GradientDrawable();
+        blank.setShape(GradientDrawable.OVAL);
+        blank.setColor((secondary & 0x00FFFFFF) | 0x33000000);
+        picture.setImageDrawable(blank);
+        picture.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
+        picture.setClipToOutline(true);
+        picture.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.addView(picture);
+        if (person.picture != null) load(picture, person.picture, size);
+
+        LinearLayout names = new LinearLayout(themed);
+        names.setOrientation(LinearLayout.VERTICAL);
+        names.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        String handle = "@" + person.username;
+        if (person.fullName != null) {
+            TextView name = new TextView(themed);
+            name.setText(person.fullName);
+            name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            name.setTextColor(colors.title);
+            name.setTypeface(Typeface.DEFAULT_BOLD);
+            name.setSingleLine(true);
+            name.setEllipsize(TextUtils.TruncateAt.END);
+            names.addView(name);
+        }
+        TextView username = new TextView(themed);
+        username.setText(handle);
+        username.setTextSize(TypedValue.COMPLEX_UNIT_SP, person.fullName != null ? 14 : 16);
+        username.setTextColor(person.fullName != null ? secondary : colors.title);
+        username.setSingleLine(true);
+        username.setEllipsize(TextUtils.TruncateAt.END);
+        names.addView(username);
+        row.addView(names);
+
+        row.setContentDescription(person.fullName != null ? person.fullName + ", " + handle : handle);
+        row.setOnClickListener(view -> {
+            try {
+                open.run();
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions profile", failure);
+            }
+        });
+        return row;
+    }
+
+    /**
+     * Shows the picture at [url] in [view], fetched off the main thread the way a download is
+     * fetched, from Meta's media servers alone. Anything else keeps the blank circle.
+     */
+    private static void load(ImageView view, String url, int size) {
+        Bitmap cached = PICTURES.get(url);
+        if (cached != null) {
+            view.setImageBitmap(cached);
+            return;
+        }
+        Context context = view.getContext().getApplicationContext();
+        Utils.runOnBackgroundThread(() -> {
+            PictureSource forTests = picturesForTests;
+            Bitmap bitmap = forTests != null ? forTests.fetch(context, url, size) : PictureFetch.fetch(context, url, size);
+            if (bitmap == null) return;
+            PICTURES.put(url, bitmap);
+            Utils.runOnMainThread(() -> view.setImageBitmap(bitmap));
+        });
+    }
+
+    /**
+     * Injected first thing in IgFragmentActivity.dispatchTouchEvent, which every touch on an
+     * Instagram screen passes through before any of its views. A finger going down on a pill that's
+     * showing, and coming up again without moving further than the touch slop, taps the pill.
+     * Answers true for each event of a touch that went down on a pill, which Instagram then never
+     * sees, so the story neither pauses nor skips. Answers false for every other touch, which
+     * Instagram gets as it was. Never throws.
+     */
+    public static boolean touch(Activity activity, MotionEvent event) {
+        try {
+            if (event == null) return false;
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN) {
+                if (activity != null && touched.get() != activity) touched = new WeakReference<>(activity);
+                Pill down = PILLS.isEmpty() ? null : pillAt(activity, event.getX(), event.getY());
+                pressed = new WeakReference<>(down);
+                if (down == null) return false;
+                downX = event.getX();
+                downY = event.getY();
+                moved = false;
+                return true;
+            }
+            Pill pill = pressed.get();
+            if (pill == null) return false;
+            switch (action) {
+                case MotionEvent.ACTION_MOVE:
+                    if (beyondSlop(pill, event.getX(), event.getY())) moved = true;
+                    break;
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    // A second finger makes a pinch, not a tap.
+                    moved = true;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    pressed = new WeakReference<>(null);
+                    if (!moved && !beyondSlop(pill, event.getX(), event.getY()) && pill.isShown()) {
+                        HookStatus.counted(FamilyNames.STORY_MENTIONS, PILL_TAPPED);
+                        pill.performClick();
+                    }
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                    pressed = new WeakReference<>(null);
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        } catch (Throwable failure) {
+            pressed = new WeakReference<>(null);
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions tap", failure);
+            return false;
+        }
+    }
+
+    /**
+     * The pill showing in [activity]'s window whose box holds the point [x], [y] in that window, or
+     * null. It goes by the window, not the pill's context: the story viewer's views on 450 carry a
+     * context that doesn't lead back to the activity (#125).
+     */
+    @Nullable
+    static Pill pillAt(Activity activity, float x, float y) {
+        Window window = activity == null ? null : activity.getWindow();
+        View decor = window == null ? null : window.peekDecorView();
+        if (decor == null) return null;
+        for (Pill pill : PILLS) {
+            if (!pill.isShown() || pill.getWidth() == 0 || pill.getRootView() != decor) continue;
+            if (holds(pill, x, y, 0, 0)) return pill;
+            // The pill is drawn about 22dp tall. A finger gets room around it, up to the 48dp
+            // Android asks of a target, but only room: never past the row or column the pill is
+            // in, and never on the name or anything else next to it, which are Instagram's taps.
+            int padX = Math.max(0, Dim.dp(MIN_TARGET_DP) - pill.getWidth()) / 2;
+            int padY = Math.max(0, Dim.dp(MIN_TARGET_DP) - pill.getHeight()) / 2;
+            if (!holds(pill, x, y, padX, padY) || !(pill.getParent() instanceof ViewGroup)) continue;
+            ViewGroup parent = (ViewGroup) pill.getParent();
+            if (holds(parent, x, y, 0, 0) && !onAnother(parent, pill, x, y)) return pill;
+        }
+        return null;
+    }
+
+    /** Whether [view]'s box in its window, grown by [padX] and [padY] on each side, holds [x], [y]. */
+    private static boolean holds(View view, float x, float y, int padX, int padY) {
+        int[] at = new int[2];
+        view.getLocationInWindow(at);
+        return x >= at[0] - padX && x < at[0] + view.getWidth() + padX
+                && y >= at[1] - padY && y < at[1] + view.getHeight() + padY;
+    }
+
+    /** Whether [x], [y] is on a view showing in [parent] other than [pill]. */
+    private static boolean onAnother(ViewGroup parent, Pill pill, float x, float y) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child == pill || child.getVisibility() != View.VISIBLE || !holds(child, x, y, 0, 0)) continue;
+            // The pill sits in the empty foot of the header's row, and nobody taps there but on what shows.
+            if (child != pill.underRow || showsAt(child, x, y)) return true;
+        }
+        return false;
+    }
+
+    /** Whether something with nothing inside it shows at [x], [y] in [view]. */
+    private static boolean showsAt(View view, float x, float y) {
+        if (view.getVisibility() != View.VISIBLE || !holds(view, x, y, 0, 0)) return false;
+        if (!(view instanceof ViewGroup) || ((ViewGroup) view).getChildCount() == 0) return true;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            if (showsAt(group.getChildAt(i), x, y)) return true;
+        }
+        return false;
+    }
+
+    /** The smallest box a tap on the pill is taken from, in dp. */
+    static final int MIN_TARGET_DP = 48;
+
+    private static boolean beyondSlop(Pill pill, float x, float y) {
+        int slop = ViewConfiguration.get(pill.getContext()).getScaledTouchSlop();
+        float dx = x - downX;
+        float dy = y - downY;
+        return dx * dx + dy * dy > (float) slop * slop;
+    }
+
+    /** Opens [username]'s profile the way a link to it opens inside Instagram. */
+    static void openProfile(Activity activity, String username) {
+        Intent open = new Intent(Intent.ACTION_VIEW, profileLink(username));
+        open.setPackage(activity.getPackageName());
+        activity.startActivity(open);
+    }
+
+    static Uri profileLink(String username) {
+        return Uri.parse("https://www.instagram.com/" + Uri.encode(username) + "/");
+    }
+
+    /**
+     * The activity [view] shows in: the one its context leads to, or else the one the last touch
+     * went through when [view] is in that activity's window. The story viewer's views on 450 carry
+     * a context that doesn't lead back to the activity, so a pill's own click needs the second (#125).
+     */
+    @Nullable
+    static Activity activityOf(View view) {
+        Activity own = activity(view.getContext());
+        if (own != null) return own;
+        return showsIn(view, touched.get());
+    }
+
+    /** [activity] when [view] is laid out in its window, or null. */
+    @Nullable
+    private static Activity showsIn(View view, @Nullable Activity activity) {
+        Window window = activity == null ? null : activity.getWindow();
+        View decor = window == null ? null : window.peekDecorView();
+        return decor != null && view.getRootView() == decor ? activity : null;
+    }
+
+    @Nullable
+    private static Activity activity(Context context) {
+        Context at = context;
+        while (at instanceof ContextWrapper) {
+            if (at instanceof Activity) return (Activity) at;
+            at = ((ContextWrapper) at).getBaseContext();
+        }
+        return null;
+    }
+
+    @Nullable
+    private static String blankToNull(@Nullable String text) {
+        return text == null || text.trim().isEmpty() ? null : text;
+    }
+
+    /** Whether the pill shows: the settings are read and the switch is on, which a pause answers off. */
+    private static boolean on() {
+        return Utils.settingsReady() && Settings.SHOW_STORY_MENTIONS.get();
+    }
+
+    /** Forgets every page and picture, for a test that starts over. */
+    static void resetForTests() {
+        LATEST.clear();
+        PICTURES.evictAll();
+        PILLS.clear();
+        pressed = new WeakReference<>(null);
+        touched = new WeakReference<>(null);
+        anyPill = false;
+        backToList = null;
+        viewer = new WeakReference<>(null);
+        heldViewer = new WeakReference<>(null);
+        heldList = new WeakReference<>(null);
+        blursForTests = null;
+        Application app = watching.get();
+        if (app != null) app.unregisterActivityLifecycleCallbacks(COMEBACK);
+        watching = new WeakReference<>(null);
+    }
+
+    // ------------------------------------------------------------------ what the patch fills in
+
+    /** Filled in by the patch: the view a story viewer's [page] shows its story's media in, or null. */
+    @Nullable
+    public static View itemView(Object page) {
+        return null;
+    }
+
+    /** Filled in by the patch: the Media of the story [item], or null. */
+    @Nullable
+    public static Object media(Object item) {
+        return null;
+    }
+
+    /** Filled in by the patch: the mentions [media] holds, or null when it has none. */
+    @Nullable
+    public static List<?> mentions(Object media) {
+        return null;
+    }
+
+    /** Filled in by the patch: the account [mention] is of, or null. */
+    @Nullable
+    public static Object mentionUser(Object mention) {
+        return null;
+    }
+
+    /** Filled in by the patch: [user]'s full name, or null. */
+    @Nullable
+    public static String fullName(Object user) {
+        return null;
+    }
+
+    /** Filled in by the patch: pauses [viewer]'s story the way its own pause does. The spare is the patch's register. */
+    public static void holdStory(Object viewer, @Nullable Object spare) {
+    }
+
+    /**
+     * Filled in by the patch: plays [viewer]'s story again the way lifting a finger off it does.
+     * The spares are the patch's registers.
+     */
+    public static void playStory(Object viewer, @Nullable Object spare1, @Nullable Object spare2) {
+    }
+}

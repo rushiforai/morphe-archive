@@ -39,6 +39,7 @@ public final class ReadingPosition {
     private ReadingPosition() { }
 
     public static void register(Object fragment) {
+        ReporterArchiveLookup.opened(fragment);
         try {
             Session old = SESSIONS.remove(fragment);
             if (old != null) old.close();
@@ -55,6 +56,21 @@ public final class ReadingPosition {
             list.getViewTreeObserver().addOnScrollChangedListener(session);
             list.addOnAttachStateChangeListener(session);
         } catch (Exception error) { Log.w("HaiagaruPosition", "Cannot attach reading-position observer", error); }
+    }
+
+    /** 191 repopulates the ListView after the background DAT job completes. */
+    public static void beforeLegacyRebuild(Object adapter) {
+        if(Looper.myLooper()!=Looper.getMainLooper())return;
+        for(Session session:SESSIONS.values()){
+            if(!(session.list instanceof ListView)||!session.list.isShown()||session.openingAnchor==null
+                    ||session.openingAnchor.explicit||session.openingAnchor.number<=1
+                    ||android.os.SystemClock.uptimeMillis()-session.opened>12000
+                    ||XPostPreviewPosition.hasUserInteraction(session.list))continue;
+            android.widget.ListAdapter attached=((ListView)session.list).getAdapter();
+            if(attached instanceof android.widget.WrapperListAdapter)
+                attached=((android.widget.WrapperListAdapter)attached).getWrappedAdapter();
+            if(attached==adapter)session.openingRebuild=true;
+        }
     }
 
     public static void save(Object fragment) {
@@ -156,7 +172,8 @@ public final class ReadingPosition {
         final Runnable delayedSave = this::save;
         String inspectedKey, written;
         boolean closed, restoring;
-        Anchor coldPreview;
+        Anchor coldPreview, openingAnchor;
+        boolean openingRebuild;
         long coldPreviewUntil;
         final long opened=android.os.SystemClock.uptimeMillis();
 
@@ -228,6 +245,24 @@ public final class ReadingPosition {
             // Never perform reflective anchor discovery on every 120 Hz frame.
             long now = android.os.SystemClock.uptimeMillis();
             if (!list.isShown()) return true;
+            // Capture the displayed unread viewport, not an adapter index. The
+            // saved position is relevant only during the initial 191 load.
+            if(version.contains("191")&&now-opened<12000&&!XPostPreviewPosition.hasUserInteraction(list)){
+                try{
+                    if(openingRebuild&&!list.isLayoutRequested()){
+                        openingRebuild=false;
+                        Anchor previous=openingAnchor;
+                        openingAnchor=null;
+                        Anchor current=anchor();
+                        Object owner=fragment.get();
+                        if(previous!=null&&current!=null&&owner!=null&&previous.key.equals(current.key)
+                                &&(previous.number!=current.number||Math.abs(previous.offset-current.offset)>2)
+                                &&FilterPosition.jumpToResponse(owner,previous.number,previous.offset)){
+                            restoring=true;return false;
+                        }
+                    }
+                }catch(Exception unavailable){openingRebuild=false;openingAnchor=null;}
+            }else{openingRebuild=false;openingAnchor=null;}
             // A settled session only checks for a changed thread once per second;
             // do not inspect retained tablet panes during an active scroll.
             boolean settled = inspectedKey != null && coldPreview == null && now > layoutDeadline;
@@ -237,6 +272,8 @@ public final class ReadingPosition {
             try {
                 Anchor current = anchor();
                 if(current==null)return true;
+                if(version.contains("191")&&now-opened<12000&&current.number>1
+                        &&!openingRebuild&&!XPostPreviewPosition.hasUserInteraction(list))openingAnchor=current;
                 if(coldPreview!=null){
                     if(now>coldPreviewUntil||XPostPreviewPosition.hasUserInteraction(list)){coldPreview=null;onScrollChanged();}
                     else if(current.key.equals(coldPreview.key)){

@@ -1,26 +1,29 @@
-name: Build xboyrex Patches (.mpp)
+name: Build & Release xboyrex Patches (.mpp)
 
 on:
+  push:
+    branches: [ main, master, dev ]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [ main, master ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
-  contents: read
+  contents: write
   packages: read
 
 jobs:
   build:
-    name: Build xboyrex (.mpp)
+    name: Compile & Release xboyrex (.mpp)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
-    env:
-      GITHUB_ACTOR: ${{ github.actor }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -29,23 +32,104 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      - name: Build Android DEX (.mpp) & Patch List
+      - name: Build Morphe Patches Bundle (.mpp) with Android DEX (classes.dex)
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./gradlew checkStringResources buildAndroid generatePatchesList --no-daemon
-          MPP_FILE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          ./gradlew build :patches:generatePatchesList --no-daemon
+          ./gradlew :patches:buildAndroid --rerun-tasks --no-daemon
+          rm -f patches/build/libs/*-sources.mpp patches/build/libs/*-javadoc.mpp
+          MPP_FILE=$(ls patches/build/libs/patches-*.mpp | head -n 1)
           echo "Verifying classes.dex inside $MPP_FILE..."
-          unzip -l "$MPP_FILE" | grep "classes.dex"
+          unzip -l "$MPP_FILE" | grep -E "classes.*\.dex|\.mpe|MANIFEST\.MF"
+          unzip -l "$MPP_FILE" | grep -q "classes.dex"
 
-      - name: Upload xboyrex .mpp Artifact
+      - name: Upload Compiled .mpp Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rex-ig-lite-patches-mpp
-          path: |
-            patches/build/libs/patches-*.mpp
-            !patches/build/libs/*-sources.mpp
-            !patches/build/libs/*-javadoc.mpp
-            patches-list.json
+          name: xboyrex-patches-mpp
+          path: patches/build/libs/patches-*.mpp
           if-no-files-found: error
+
+      - name: Publish GitHub Release & Update Morphe Bundle JSON
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          TAG="v${VERSION}"
+          MPP_FILE=$(ls patches/build/libs/patches-*.mpp | grep -v 'sources' | grep -v 'javadoc' | head -n 1)
+          if [ -z "$MPP_FILE" ]; then
+            echo "No .mpp file found!"
+            exit 1
+          fi
+          ASSET_NAME="patches-${VERSION}.mpp"
+          cp "$MPP_FILE" "$ASSET_NAME"
+
+          CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S")
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ASSET_NAME}"
+          export VERSION CREATED_AT DOWNLOAD_URL
+
+          python3 - <<'PYCODE'
+          import json
+          import os
+
+          version = os.environ["VERSION"]
+          created_at = os.environ["CREATED_AT"]
+          download_url = os.environ["DOWNLOAD_URL"]
+
+          data = {
+              "created_at": created_at,
+              "description": (
+                  f"## v{version} — xboyrex Unified Liquid Glass Instagram & X Patch Suite\n\n"
+                  "- 161 Unified Patches (87 Instagram + 74 X/Twitter) by Mayank (@xboyrex)\n"
+                  "- SakuraTunes-style Liquid Glass About UI + Real-Time Gaussian Blur\n"
+                  "- Zero-Prompt MediaStore Direct Download on Redmi/HyperOS"
+              ),
+              "download_url": download_url,
+              "signature_download_url": "",
+              "version": version,
+          }
+          for out_name in ("patches-bundle.json", "bundle.json"):
+              with open(out_name, "w") as f:
+                  json.dump(data, f, indent=2)
+
+          if os.path.exists("patches-list.json"):
+              with open("patches-list.json", "r") as f:
+                  plist = json.load(f)
+              plist["version"] = version
+              with open("patches-list.json", "w") as f:
+                  json.dump(plist, f, indent=2)
+          PYCODE
+
+          RELEASE_FILES=("$ASSET_NAME" "patches-bundle.json" "bundle.json")
+          if [ -f "patches-list.json" ]; then
+            RELEASE_FILES+=("patches-list.json")
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${RELEASE_FILES[@]}" --clobber
+          else
+            gh release create "$TAG" "${RELEASE_FILES[@]}" \
+              --title "xboyrex Patches ${TAG}" \
+              --notes "Automated xboyrex (.mpp) Android DEX patch bundle release (${TAG}) by Mayank (@xboyrex)."
+          fi
+
+          rm -f bundle.json "$ASSET_NAME"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(bundle): update patches-bundle.json and patches-list.json for ${TAG} [skip ci]"
+            git push origin HEAD:main
+          fi

@@ -450,6 +450,8 @@ public class InAppDownloadsTest {
     private long queued(String pinId, String folder) {
         long id = manager.enqueue(PinDownloads.request(PinMedia.sourceUrl(SOURCE, false), "Pinterest_" + pinId + "_1.jpg", folder));
         status(id, DownloadManager.STATUS_PENDING);
+        // As on a phone: a request Android never started reports no local URI yet.
+        nativeJobs.unstarted.add(id);
         assertTrue(DownloadLedger.record(app, id, pinId, folder));
         return id;
     }

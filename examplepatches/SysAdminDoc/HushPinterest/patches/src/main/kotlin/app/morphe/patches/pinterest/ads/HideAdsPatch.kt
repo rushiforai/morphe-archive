@@ -21,6 +21,7 @@ import app.morphe.patches.pinterest.misc.extension.HookTarget
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
+import app.morphe.patches.pinterest.misc.extension.localRegisterCount
 import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.recordTargets
@@ -36,6 +37,7 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
@@ -50,6 +52,13 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 
 /** The consent vendor Pinterest names for Meta's Audience Network, an enum constant. */
 internal const val META_AUDIENCE_NETWORK = "META_AUDIENCE_NETWORK"
+
+/** The experiment Pinterest reads to switch every interstitial off from its server. */
+internal const val INTERSTITIAL_KILLSWITCH = "android_ad_interstitial_killswitch"
+
+/** The experiments for Pinterest's own full-screen ad and the Google one, asked one at a time. */
+internal const val HOUSE_INTERSTITIAL = "android_ad_house_interstitial"
+internal const val GMA_INTERSTITIAL = "android_ad_gma_interstitial"
 
 /**
  * Takes promoted pins out of the home feed, search, related pins and boards, and folds away the
@@ -71,6 +80,14 @@ internal const val META_AUDIENCE_NETWORK = "META_AUDIENCE_NETWORK"
  * switch is on. Pinterest then takes the path it takes when someone turns that consent off: the SDK
  * never starts, the token goes up empty and each slot fails as "consent_revoked" (2026-11-05).
  *
+ * Since late October tapping a pin can open a full-screen ad first, with a "Continue in" countdown.
+ * Pinterest asks two questions before one: its killswitch read, which every interstitial path
+ * checks first, and its experiment check for the house and Google kinds. While the switch is on the
+ * killswitch reads as on and the experiment check says no, so the pin-click gate opens the pin at
+ * once on its own killswitch path and no prefetch runs. That gate serves both triggers Pinterest
+ * wires up, a related pin tapped on a closeup and a search result. The side-swipe trigger is
+ * declared, but nothing hands it to the gate (14.44.0, 2026-11-14).
+ *
  * The four views keep their names in 14.39.0.
  */
 @Suppress("unused")
@@ -91,11 +108,15 @@ val hideAdsPatch = bytecodePatch(
         requireStatusMethod("adViews")
         requireStatusMethod("googleAds")
         requireStatusMethod("metaAds")
+        requireStatusMethod("interstitialAds")
         requireStub(HOOK_TARGETS, AD_VIEW_TARGETS)
         val googleAds = googleAdsStart()
         val answer = googleAds?.freeLocalsAt(PATCH, 0, 1)?.single()
         val metaConsent = metaConsentCheck()
         val metaAnswer = metaConsent?.freeLocalsAt(PATCH, 0, 1)?.single()
+        val interstitials = interstitialChecks()
+        val killAnswer = interstitials?.first?.freeLocalsAt(PATCH, 0, 1)?.single()
+        val experimentAnswer = interstitials?.second?.freeLocalsAt(PATCH, 0, 1)?.single()
 
         if (feedListHoldersHooked > 0) enableCapability("feedAds")
 
@@ -142,6 +163,26 @@ val hideAdsPatch = bytecodePatch(
                 return v$metaAnswer
             """, ExternalLabel("hush_ask_meta_consent", metaConsent.getInstruction(0)))
             enableCapability("metaAds")
+        }
+
+        if (interstitials != null && killAnswer != null && experimentAnswer != null) {
+            val (killswitch, experiment) = interstitials
+            // Both or neither, so the one capability means every interstitial question is answered.
+            killswitch.addInstructionsWithLabels(0, """
+                invoke-static { }, $ADS->killInterstitials()Z
+                move-result v$killAnswer
+                if-eqz v$killAnswer, :hush_read_killswitch
+                const/4 v$killAnswer, 0x1
+                return v$killAnswer
+            """, ExternalLabel("hush_read_killswitch", killswitch.getInstruction(0)))
+            experiment.addInstructionsWithLabels(0, """
+                invoke-static { }, $ADS->skipInterstitials()Z
+                move-result v$experimentAnswer
+                if-eqz v$experimentAnswer, :hush_ask_interstitial
+                const/4 v$experimentAnswer, 0x0
+                return v$experimentAnswer
+            """, ExternalLabel("hush_ask_interstitial", experiment.getInstruction(0)))
+            enableCapability("interstitialAds")
         }
 
         enableStatus("hideAds")
@@ -203,6 +244,44 @@ private fun BytecodePatchContext.metaConsentCheck(): MutableMethod? {
         return null
     }
     return mutable(checks.single())
+}
+
+/**
+ * Pinterest's two interstitial questions, both in one class: the killswitch read, the instance
+ * method answering a boolean with no parameters that names [INTERSTITIAL_KILLSWITCH], and the
+ * experiment check, the instance `(kind, Z)Z` naming both [HOUSE_INTERSTITIAL] and
+ * [GMA_INTERSTITIAL]. The pin-click gate names both experiments too, but answers nothing. Null,
+ * with a warning, unless exactly one of each fits and each has a local register for its answer.
+ */
+private fun BytecodePatchContext.interstitialChecks(): Pair<MutableMethod, MutableMethod>? {
+    val reads = mutableListOf<Method>()
+    val checks = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        for (method in owner.methods) {
+            if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Z") continue
+            val read = method.parameterTypes.isEmpty()
+            val check = method.parameterTypes.size == 2 && method.parameterTypes[1].toString() == "Z"
+            if (!read && !check) continue
+            val strings = method.implementation?.instructions?.mapNotNullTo(mutableSetOf()) { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string
+            } ?: continue
+            if (read && INTERSTITIAL_KILLSWITCH in strings) reads += method
+            if (check && HOUSE_INTERSTITIAL in strings && GMA_INTERSTITIAL in strings) checks += method
+        }
+    }
+    if (reads.size != 1 || checks.size != 1 || reads.single().definingClass != checks.single().definingClass) {
+        patchLog.warning("$PATCH: this build has ${reads.size} interstitial killswitch reads and ${checks.size} interstitial " +
+            "experiment checks instead of one of each in one class, so the full-screen ad on opening a pin runs as usual")
+        return null
+    }
+    // Nothing is live at the first instruction but the parameters, so one local is all the answer needs.
+    if (reads.single().localRegisterCount() == 0 || checks.single().localRegisterCount() == 0) {
+        patchLog.warning("$PATCH: the interstitial killswitch read or experiment check has no local register for an answer " +
+            "in this build, so the full-screen ad on opening a pin runs as usual")
+        return null
+    }
+    return mutable(reads.single()) to mutable(checks.single())
 }
 
 /**

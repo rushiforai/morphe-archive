@@ -42,13 +42,13 @@ public class DeepLink {
             String mainPath = secondSegment.toLowerCase();
             String lastSegment = deeplink.getLastPathSegment();
 
-            boolean isxboyrex = mainPath.equals("rex") || mainPath.equals("rexsettings");
+            boolean isRex = mainPath.equals("rex") || mainPath.equals("rexsettings");
 
             String key = null;
             if (segmentSize == 2 && "settings".equals(lastSegment)){
                 Utils.startXSettings();
                 return true;
-            } else if (segmentSize == 2 && isxboyrex) {
+            } else if (segmentSize == 2 && isRex) {
                 ActivityHook.startSettingsActivity();
                 return true;
             } else if (mainPath.equals("addflags")) {
@@ -66,7 +66,7 @@ public class DeepLink {
                 String tweetId = deeplinkSegments.get(2);
                 ActivityHook.startReaderMode(tweetId);
                 return true;
-            } else if (isxboyrex) {
+            } else if (isRex) {
                 if ("premium".equals(lastSegment)){
                     key = Settings.PREMIUM_SECTION;
                 } else if ("download".equals(lastSegment)) {

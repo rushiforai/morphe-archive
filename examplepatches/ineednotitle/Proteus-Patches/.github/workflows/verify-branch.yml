@@ -1,0 +1,80 @@
+name: Verify patch bundle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, test, and verify .mpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build Android patch bundle
+        run: |
+          ./gradlew buildAndroid --stacktrace > build.log 2>&1 && tail -10 build.log && exit 0
+          echo "=== GREP: exception headers ==="
+          grep -n -m 25 -E "What went wrong|FAILURE:|Caused by|Exception|Error|(^|[[:space:]])e:" build.log || true
+          tail -n 50 build.log
+          exit 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Pinterest and Instagram extension helpers
+        run: |
+          bash .github/scripts/test_pinterest_video_urls.sh
+          bash .github/scripts/test_instagram_extension.sh
+
+      - name: Run patches verification tasks
+        run: |
+          ./gradlew :patches:check --console=plain > check.log 2>&1 && tail -20 check.log && exit 0
+          cat check.log
+          echo "::error::$(grep -v '^[[:space:]]*$' check.log | tail -n 25 | tr '\n' '|' | cut -c1-1200)"
+          exit 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate patch metadata
+        run: ./gradlew generatePatchesList --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Android bundle and remote source metadata
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+          VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties)
+          python3 .github/scripts/verify_android_bundle.py "patches/build/libs/patches-${VERSION}.mpp" "$VERSION" --patch-list patches-list.json
+          python3 .github/scripts/verify_patch_source.py patches-bundle.json "$VERSION"
+
+      - name: Upload .mpp and patches-list.json artifacts
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.7.0
+        with:
+          name: verified-patches-artifacts
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error
+
+      - name: Upload full gradle log on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.7.0
+        with:
+          name: gradle-error-log
+          path: |
+            build.log
+            check.log
+          if-no-files-found: ignore

@@ -11,7 +11,13 @@ import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinterest.coexist.DEFAULT_APP_NAME
+import app.morphe.patches.pinterest.coexist.DEFAULT_PACKAGE
+import app.morphe.patches.pinterest.coexist.ownAuthorities
+import app.morphe.patches.pinterest.coexist.ownPermissions
+import app.morphe.patches.pinterest.coexist.renameCopy
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.shared.compat.AppCompatibilities.PINTEREST_PACKAGE
 import com.android.apksig.ApkVerifier
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -54,7 +60,7 @@ class GoogleSignInSpoofManifestTest {
     }
 
     @Test
-    fun `each declared build gains only the two metadata entries and no permission`() {
+    fun `each declared build gains only the three metadata entries and no permission`() {
         for (build in Fixtures.declaredBuilds()) {
             val stock = decode(build)
             val before = declarations(stock)
@@ -62,6 +68,7 @@ class GoogleSignInSpoofManifestTest {
             addSignatureSpoofMetadata(patched)
             val after = declarations(patched)
             val added = listOf(
+                "manifest/application/meta-data{android:name=$SPOOFED_PACKAGE_METADATA,android:value=com.pinterest}",
                 "manifest/application/meta-data{android:name=$SPOOFED_SIGNATURE_METADATA,android:value=$PINTEREST_CERTIFICATE_SHA1}",
                 "manifest/application/meta-data{android:name=$FAKE_SIGNATURE_METADATA,android:value=$PINTEREST_CERTIFICATE_DER}",
             )
@@ -72,8 +79,49 @@ class GoogleSignInSpoofManifestTest {
     }
 
     @Test
-    fun `a manifest already naming either key or without an application refuses before any edit`() {
-        for (name in listOf(SPOOFED_SIGNATURE_METADATA, FAKE_SIGNATURE_METADATA)) {
+    fun `the spoofed package stays Pinterest's own on a renamed copy`() {
+        // Morphe's Clone app names its copy this unless told otherwise.
+        val cloneApp = "com.pinterest.morphe"
+        for (build in Fixtures.declaredBuilds()) {
+            for ((label, rename) in listOf<Pair<String, (Document) -> Unit>>(
+                "not renamed" to {},
+                "Change package name" to { it.renameStockCopy(DEFAULT_PACKAGE) },
+                "Change package name to a custom name" to { it.renameStockCopy("org.example.pinboard") },
+                // Clone app renames the package in its finalize, then Change package name keeps that
+                // name and moves what's left under the stock one.
+                "Clone app, then Change package name" to {
+                    it.documentElement.setAttribute("package", cloneApp)
+                    it.renameStockCopy(DEFAULT_PACKAGE)
+                },
+            )) {
+                val document = decode(build)
+                addSignatureSpoofMetadata(document)
+                rename(document)
+                val values = metadata(document)
+                val expected = mapOf(
+                    SPOOFED_PACKAGE_METADATA to "com.pinterest",
+                    SPOOFED_SIGNATURE_METADATA to PINTEREST_CERTIFICATE_SHA1,
+                    FAKE_SIGNATURE_METADATA to PINTEREST_CERTIFICATE_DER,
+                )
+                assertEquals("${build.name}, $label", expected, values.filterKeys { it in expected })
+                assertEquals("${build.name}, $label: each key once", 3,
+                    metadataNames(document).count { it in expected })
+                val renamedTo = document.documentElement.getAttribute("package")
+                when (label) {
+                    "not renamed" -> assertEquals(label, "com.pinterest", renamedTo)
+                    "Change package name to a custom name" -> assertEquals(label, "org.example.pinboard", renamedTo)
+                    "Clone app, then Change package name" -> assertEquals(label, cloneApp, renamedTo)
+                    else -> assertEquals(label, DEFAULT_PACKAGE, renamedTo)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a manifest already naming any key or without an application refuses before any edit`() {
+        assertEquals(listOf(SPOOFED_PACKAGE_METADATA, SPOOFED_SIGNATURE_METADATA, FAKE_SIGNATURE_METADATA),
+            SIGNATURE_SPOOF_METADATA.keys.toList())
+        for (name in SIGNATURE_SPOOF_METADATA.keys) {
             val document = parse("""
                 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.pinterest">
                     <application>
@@ -115,6 +163,24 @@ class GoogleSignInSpoofManifestTest {
 
     /** The decoded manifest of [apk], as the resource patch reads it. */
     private fun decode(apk: File): Document = parse(Fixtures.manifest(apk))
+
+    /** Change package name's finalize, reading Pinterest's own names off this manifest first as its execute does. */
+    private fun Document.renameStockCopy(packageName: String) {
+        renameCopy(packageName, DEFAULT_APP_NAME, ownAuthorities(PINTEREST_PACKAGE), ownPermissions(PINTEREST_PACKAGE))
+    }
+
+    private fun applicationMetadata(document: Document): List<Element> {
+        val application = document.getElementsByTagName("application").item(0) as Element
+        return (0 until application.childNodes.length).mapNotNull { application.childNodes.item(it) as? Element }
+            .filter { it.tagName == "meta-data" }
+    }
+
+    private fun metadataNames(document: Document): List<String> =
+        applicationMetadata(document).map { it.getAttribute("android:name") }
+
+    /** The application's meta-data as name to value; a repeated name keeps its last value. */
+    private fun metadata(document: Document): Map<String, String> =
+        applicationMetadata(document).associate { it.getAttribute("android:name") to it.getAttribute("android:value") }
 
     private fun parse(xml: String): Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         .parse(ByteArrayInputStream(xml.trimIndent().toByteArray()))

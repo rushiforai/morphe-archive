@@ -13,21 +13,22 @@ import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.opcode
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.util.indexOfFirstInstruction
-import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 internal object ReelItemTimestampFormatMethodFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     definingClass = "Lcom/instagram/model/reels/ReelItem;",
     parameters = listOf("Landroid/content/Context;"),
+    filters = listOf(opcode(Opcode.LONG_TO_DOUBLE)),
 )
 
 @Suppress("unused")
 val customiseStoryTimestampPatch =
-    bytecodePatch(
+    patch(
         name = "Customise story timestamp",
         description = "Customise the timestamp that shows when the story was posted",
     ) {
@@ -36,12 +37,12 @@ val customiseStoryTimestampPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             ReelItemTimestampFormatMethodFingerprint.method.apply {
-                val longToDoubleIndex = indexOfFirstInstruction(Opcode.LONG_TO_DOUBLE)
-                val longToDoubleInstruction = getInstruction(longToDoubleIndex)
-                val longToDoubleRegisters = longToDoubleInstruction.registersUsed
-                val dummyRegister = longToDoubleRegisters[0]
-                val postedTimestampRegister = longToDoubleRegisters[1]
+                val longToDoubleIndex = ReelItemTimestampFormatMethodFingerprint.instructionMatches.first().index
+                val longToDoubleInstruction = getInstruction<TwoRegisterInstruction>(longToDoubleIndex)
+                val dummyRegister = longToDoubleInstruction.registerA
+                val postedTimestampRegister = longToDoubleInstruction.registerB
 
                 addInstructionsWithLabels(
                     longToDoubleIndex,
@@ -55,6 +56,8 @@ val customiseStoryTimestampPatch =
                 )
 
                 enableSettings("customiseStoryTimestamp")
+            }
+        
             }
         }
     }

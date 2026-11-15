@@ -51,6 +51,7 @@ import java.util.logging.Logger
 // runs apps as user 0 (DiLink 5). UI density chosen in Maps' Settings instead of a patch option.
 // Driver side chosen in Maps' Settings: the side of Maps' cards and map buttons (DriverSidePatch.kt).
 // Color scheme chosen in Maps' Settings: day or night colors, Auto from the car's low beam (ColorSchemePatch.kt).
+// The cluster map's colors and satellite layer follow the main map (ClusterNightPatch.kt, ClusterLayersPatch.kt).
 // Cronet telemetry off (its logger uses the API 30 StatsEvent).
 // Report a problem (ReportPatch in the extension): a Settings row and its own screen outside Maps,
 // with safe mode and the feature switches (SafeMode), and a launcher icon of its own.
@@ -164,7 +165,7 @@ val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
     description = "Runs Google Maps for Android Automotive on Android 10 with MicroG-RE 7.3.0, named " +
         "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density, language, driver side and color scheme settings, " +
-        "a problem report, an update check and a safe mode.",
+        "a problem report, an update check and a safe mode. The cluster map uses the main map's colors and satellite layer.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -199,6 +200,8 @@ val automotiveMicroGPatch = bytecodePatch(
         applyUiDensity()
         useDriverSide()
         useColorScheme()
+        useCarColorsOnCluster()
+        useCarSatelliteOnCluster()
     }
 
     finalize {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Settings Search -->
-    <string name="rex_settings_search_hint">Search xboyrex settings</string>
+    <string name="rex_settings_search_hint">Search xboyrex Settings</string>
     <string name="rex_settings_search_clear">Clear input</string>
     <string name="rex_settings_search_no_results">No results for \"%s\"</string>
 
@@ -267,9 +267,9 @@
 
     <!-- Backup and Restore -->
     <string name="rex_title_backup">Backup and restore</string>
-    <string name="rex_pref_import_settings">Import xboyrex settings</string>
-    <string name="rex_pref_export_settings">Export xboyrex settings</string>
-    <string name="rex_pref_reset_settings">Reset xboyrex settings</string>
+    <string name="rex_pref_import_settings">Import xboyrex Settings</string>
+    <string name="rex_pref_export_settings">Export xboyrex Settings</string>
+    <string name="rex_pref_reset_settings">Reset xboyrex Settings</string>
     <string name="rex_pref_export_success">Export successful</string>
     <string name="rex_pref_import_success">Import successful</string>
     <string name="rex_pref_export_failed">Error: Exporting %s failed</string>

@@ -33,7 +33,7 @@ import app.morphe.patches.shared.Constants
  */
 @Suppress("SpellCheckingInspection")
 val bejuweedCrashGuard = bytecodePatch(
-    name = "Crash-guard",
+    name = "[Experimental] Crash-guard",
     description = "Null-guards the GluAnalytics callback references (fixes latent NPEs).",
     default = true
 ) {

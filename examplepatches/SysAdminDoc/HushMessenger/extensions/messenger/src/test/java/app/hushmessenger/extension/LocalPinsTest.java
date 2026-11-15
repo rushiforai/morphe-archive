@@ -245,6 +245,30 @@ public class LocalPinsTest {
         assertFalse(again.flag);
     }
 
+    @Test public void anUnpinThatReloadsFreshRowsLeavesTheDrawnRowMarkedSoTheListRedrawsIt() {
+        // On a phone an unpin's reload brings new rows. The drawn row still points at the old one, so clearing that one
+        // made the two compare equal and the pin mark stayed until a restart.
+        Summary drawn = new Summary("chat");
+        Supplier supplier = new Supplier(new Summary("plain"), drawn);
+        assertTrue(LocalPins.pinFull(drawn.key));
+        LocalPins.arrange(supplier);
+        assertTrue(drawn.flag);
+
+        assertTrue(LocalPins.unpinning(drawn.key));
+        Summary fresh = new Summary("chat");
+        supplier.list = Rows.copyOf(Arrays.asList(new Summary("plain"), fresh));
+        LocalPins.arrange(supplier);
+        assertFalse(fresh.flag);
+        assertNotEquals("The list sees the chat change and redraws it", drawn, fresh);
+        assertEquals(Arrays.asList("plain", "chat"), order(supplier));
+
+        // If that old row ever comes back in a list, its mark comes off there.
+        supplier.list = Rows.copyOf(Arrays.asList(new Summary("plain"), drawn));
+        LocalPins.arrange(supplier);
+        assertFalse(drawn.flag);
+        assertEquals(drawn, fresh);
+    }
+
     @Test public void aServerPinsUnpinStillGoesToTheServer() {
         assertFalse(LocalPins.unpinning(new Key("server")));
         Summary server = new Summary("server");

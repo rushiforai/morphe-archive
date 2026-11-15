@@ -90,7 +90,9 @@ import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.misc.OpeningPause;
+import app.morphe.extension.facebook.misc.PostMenuItems;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
+import app.morphe.extension.facebook.misc.RefreshRate;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.theme.MarkColors.Mark;
@@ -177,6 +179,8 @@ public class SettingsBackupTest {
                         + "points at nothing on another phone.");
         out.put("hushfacebook_seen_share_items",
                 "it records the share items this install's Facebook offered, which the hook writes, not a choice.");
+        out.put("hushfacebook_seen_post_menu_items",
+                "it records the 3-dot menu rows this install's Facebook showed, which the hook writes, not a choice.");
         out.put("hushfacebook_seen_menu_tiles",
                 "it records the Menu tiles this install's Facebook showed, which the hook writes, not a choice.");
         return Collections.unmodifiableMap(out);
@@ -242,6 +246,7 @@ public class SettingsBackupTest {
         Settings.BREAK_LENGTH.resetToDefault();
         Settings.TEXT_SIZE.resetToDefault();
         Settings.NEW_ROW_MARK.resetToDefault();
+        Settings.REFRESH_RATE.resetToDefault();
         Settings.ACCENT_COLOR.resetToDefault();
         Settings.VIDEO_SUBFOLDER.resetToDefault();
         Settings.PHOTO_SUBFOLDER.resetToDefault();
@@ -264,6 +269,8 @@ public class SettingsBackupTest {
         Settings.LOGO_EMOJI.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
+        Settings.HIDDEN_POST_MENU_ITEMS.resetToDefault();
+        Settings.SEEN_POST_MENU_ITEMS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -306,18 +313,19 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.BURN_IN_GUARD, Settings.BURN_IN_WAIT, Settings.GRAY_REELS_OVER, Settings.REEL_POST_DATE_STYLE, Settings.REELS_ORDER, Settings.HOLD_REACTION, Settings.COMMENTS_HEIGHT, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.TAB_ORDER, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.BURN_IN_GUARD, Settings.BURN_IN_WAIT, Settings.GRAY_REELS_OVER, Settings.REEL_POST_DATE_STYLE, Settings.REELS_ORDER, Settings.HOLD_REACTION, Settings.COMMENTS_HEIGHT, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_POST_MENU_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.TAB_ORDER, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
                 Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.QUIET_HOURS_FROM,
                 Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.OPENING_PAUSE_LENGTH, Settings.BREAK_AFTER,
-                Settings.BREAK_LENGTH, Settings.TEXT_SIZE, Settings.NEW_ROW_MARK, Settings.ACCENT_COLOR, Settings.ACCENT_CUSTOM, Settings.LOGO_EMOJI, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
+                Settings.BREAK_LENGTH, Settings.TEXT_SIZE, Settings.REFRESH_RATE, Settings.NEW_ROW_MARK, Settings.ACCENT_COLOR, Settings.ACCENT_CUSTOM, Settings.LOGO_EMOJI, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
         assertEquals(Settings.HIDDEN_SOURCES, SettingsBackup.SOURCES);
         assertEquals(Settings.HIDDEN_SHARE_ITEMS, SettingsBackup.SHARE_ITEMS);
+        assertEquals(Settings.HIDDEN_POST_MENU_ITEMS, SettingsBackup.POST_MENU_ITEMS);
         assertEquals(Settings.HIDDEN_MENU_TILES, SettingsBackup.MENU_TILES);
         assertEquals(Settings.HIDDEN_FEED_TYPES, SettingsBackup.FEED_TYPES);
         assertEquals(Settings.SAVE_FOLDER, SettingsBackup.FOLDER);
@@ -343,6 +351,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.QUIET_HOURS_FROM, SettingsBackup.QUIET_FROM);
         assertEquals(Settings.QUIET_HOURS_UNTIL, SettingsBackup.QUIET_UNTIL);
         assertEquals(Settings.TEXT_SIZE, SettingsBackup.TEXT_SIZE);
+        assertEquals(Settings.REFRESH_RATE, SettingsBackup.REFRESH_RATE);
         assertEquals(Settings.NEW_ROW_MARK, SettingsBackup.NEW_ROW_MARK);
         assertEquals(Settings.ACCENT_COLOR, SettingsBackup.ACCENT);
         assertEquals(Settings.VIDEO_SUBFOLDER, SettingsBackup.VIDEO_SUBFOLDER);
@@ -1561,6 +1570,77 @@ public class SettingsBackupTest {
         assertEquals(picks, SettingsBackup.Snapshot.fromBundle(state).shareItems);
         state.putString("hidden_share_items", "COPY_LINK,COPY_LINK");
         assertNull(SettingsBackup.Snapshot.fromBundle(state).shareItems);
+    }
+
+    /**
+     * The 3-dot menu rows to hide go out and come back as their row stores them, a kind this build
+     * doesn't name included. A file can clear the list, an older file leaves it alone, the kinds
+     * Facebook showed on this phone stay on it, and a list the row would store differently refuses
+     * the whole file.
+     */
+    @Test
+    public void postMenuPicksRoundTripWithKindsThisBuildDoesntName() throws Exception {
+        String picks = "ASK_META_AI,SEE_MORE,CAST";
+        Settings.HIDDEN_POST_MENU_ITEMS.save(picks);
+        Settings.SEEN_POST_MENU_ITEMS.save("SAVE,ASK_META_AI");
+        String file = SettingsBackup.create();
+        JSONObject written = new JSONObject(file).getJSONObject("settings");
+        assertEquals(picks, written.get(SettingsBackup.POST_MENU_ITEMS.key));
+        assertFalse("the kinds Facebook showed went into the file", written.has(Settings.SEEN_POST_MENU_ITEMS.key));
+        Settings.HIDDEN_POST_MENU_ITEMS.resetToDefault();
+        Settings.SEEN_POST_MENU_ITEMS.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(0, snapshot.unknown);
+        assertEquals(picks, snapshot.postMenuItemsChange());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals(picks, Settings.HIDDEN_POST_MENU_ITEMS.savedValue());
+        assertEquals("an import wrote the kinds Facebook showed", "", Settings.SEEN_POST_MENU_ITEMS.savedValue());
+        assertTrue("the list doesn't offer the kind this build doesn't name",
+                PostMenuItems.choices().contains("ASK_META_AI"));
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals("the same list again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        assertEquals("Your list of 3-dot menu items to hide will hold 3 items.",
+                SettingsBackupPreference.postMenuItemsSentence(snapshot.postMenuItems));
+        assertEquals("Your list of 3-dot menu items to hide will hold 1 item.",
+                SettingsBackupPreference.postMenuItemsSentence("CAST"));
+        assertEquals("Your list of 3-dot menu items to hide will be empty.",
+                SettingsBackupPreference.postMenuItemsSentence(""));
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{" CAST", "CAST,", "CAST,,SAVE", "CAST, SAVE", "CAST,CAST", "cast",
+                "1CAST", 5, true, JSONObject.NULL, new JSONObject()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.POST_MENU_ITEMS.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the list " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject emptied = new JSONObject(file);
+        emptied.getJSONObject("settings").put(SettingsBackup.POST_MENU_ITEMS.key, "");
+        SettingsBackup.Snapshot clearing = SettingsBackup.parse(emptied.toString());
+        assertEquals("", clearing.postMenuItemsChange());
+        assertEquals(1, SettingsBackup.apply(clearing));
+        assertEquals("", Settings.HIDDEN_POST_MENU_ITEMS.savedValue());
+
+        Settings.HIDDEN_POST_MENU_ITEMS.save("CAST");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.POST_MENU_ITEMS.key);
+        SettingsBackup.Snapshot fromOlder = SettingsBackup.parse(older.toString());
+        assertNull(fromOlder.postMenuItems);
+        assertNull(fromOlder.postMenuItemsChange());
+        SettingsBackup.apply(fromOlder);
+        assertEquals("CAST", Settings.HIDDEN_POST_MENU_ITEMS.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals(picks, SettingsBackup.Snapshot.fromBundle(state).postMenuItems);
+        state.putString("hidden_post_menu_items", "CAST,CAST");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).postMenuItems);
     }
 
     /** Clean share item types, commas between, one type past [length] chars. */
@@ -3021,6 +3101,63 @@ public class SettingsBackupTest {
         assertEquals("Settings imported. Facebook's text will be 130% of the size your phone's font size setting gives it.",
                 SettingsBackupPreference.importedMessage(0, null, null, null, null, null, null, null, null, null, null,
                         null, null, null, null, null, null, null, null, null, null, null, TextSize.Scale.P130));
+    }
+
+    /**
+     * The refresh rate (#480) goes out as its file value and comes back only as one this build
+     * offers, with a sentence in the preview: anything else, or a value that isn't text, refuses
+     * the file, and a file from before it was carried leaves it alone.
+     */
+    @Test
+    public void theRefreshRateRoundTripsAndComesBackOnlyAsOneThisBuildOffers() throws Exception {
+        for (RefreshRate.Rate choice : RefreshRate.Rate.values()) {
+            RefreshRate.Rate other = choice == RefreshRate.Rate.HZ60 ? RefreshRate.Rate.HIGHEST : RefreshRate.Rate.HZ60;
+            Settings.REFRESH_RATE.save(choice);
+            String file = SettingsBackup.create();
+            assertEquals(choice.fileValue, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.REFRESH_RATE.key));
+            Settings.REFRESH_RATE.save(other);
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(choice, snapshot.refreshRate);
+            assertEquals(choice, snapshot.refreshRateChange());
+            Map<Setting<?>, Object> expected = new LinkedHashMap<>();
+            expected.put(SettingsBackup.REFRESH_RATE, choice);
+            assertEquals(expected, snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(choice, Settings.REFRESH_RATE.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same rate again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+            Bundle state = SettingsBackup.parse(file).toBundle();
+            assertEquals("a preview kept across a rebuild keeps it", choice, SettingsBackup.Snapshot.fromBundle(state).refreshRate);
+        }
+
+        Settings.REFRESH_RATE.save(RefreshRate.Rate.HZ120);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"HZ120", "120 Hz", "75", "", 120, true, JSONObject.NULL,
+                new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.REFRESH_RATE.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the refresh rate " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.refreshRate);
+        assertNull(older.refreshRateChange());
+        SettingsBackup.apply(older);
+        assertEquals(RefreshRate.Rate.HZ120, Settings.REFRESH_RATE.savedValue());
+
+        assertEquals("Facebook will ask your screen for 90 Hz.", SettingsBackupPreference.refreshRateSentence(RefreshRate.Rate.HZ90));
+        assertEquals("Facebook will ask for your screen's highest refresh rate.",
+                SettingsBackupPreference.refreshRateSentence(RefreshRate.Rate.HIGHEST));
+        assertEquals("Facebook will run at the refresh rate your phone picks for it.",
+                SettingsBackupPreference.refreshRateSentence(RefreshRate.Rate.FACEBOOK));
     }
 
     /**

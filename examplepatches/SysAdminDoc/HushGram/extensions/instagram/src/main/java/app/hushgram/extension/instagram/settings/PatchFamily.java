@@ -140,7 +140,7 @@ public enum PatchFamily {
     HOME_FEED(FamilyNames.HOME_FEED, "homeFeed", null, Settings.HIDE_HOME_FEED),
     FOLLOWING_FEED(FamilyNames.FOLLOWING_FEED, "followingFeed", null, Settings.START_ON_FOLLOWING,
             Settings.ONLY_FOLLOWING, Settings.LOGO_ON_FOLLOWING, Settings.FOLLOWING_FALLBACK, Settings.FOLLOWING_MIX, Settings.FAVORITES_TAB_BAR),
-    SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE),
+    SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE, Settings.SWIPE_LEFT_MESSAGES),
     TAB_SWIPE(FamilyNames.TAB_SWIPE, "tabSwipe", null, Settings.STOP_TAB_SWIPING),
     TAB_BAR_LAYOUT(FamilyNames.TAB_BAR_LAYOUT, "tabBarLayout", null),
     FULL_RESOLUTION(FamilyNames.FULL_RESOLUTION, "fullResolution", null, Settings.FULL_RESOLUTION_PHOTOS,
@@ -179,7 +179,8 @@ public enum PatchFamily {
     REFRESH_RATE(FamilyNames.REFRESH_RATE, "refreshRate", null, Settings.HIGHEST_REFRESH_RATE),
     EMOJI_STYLE(FamilyNames.EMOJI_STYLE, "emojiStyle", null, Settings.NOTO_EMOJI),
     ACCENT_COLOR(FamilyNames.ACCENT_COLOR, "accentColor", null, Settings.ACCENT_COLOR, Settings.ACCENT_BADGES,
-            Settings.ACCENT_ICONS, Settings.ACCENT_RINGS, Settings.ACCENT_RINGS_SOLID, Settings.ACCENT_BACKGROUNDS),
+            Settings.ACCENT_ICONS, Settings.ACCENT_RINGS, Settings.ACCENT_RINGS_SOLID, Settings.ACCENT_BACKGROUNDS,
+            Settings.CLASSIC_COLORS),
     LAUNCH_SCREEN(FamilyNames.LAUNCH_SCREEN, "launchScreen", null, Settings.LAUNCH_SCREEN, Settings.LAUNCH_SCREEN_ACCENT),
     HEADER_TEXT(FamilyNames.HEADER_TEXT, "headerText", null),
     APP_ICON(FamilyNames.APP_ICON, "appIcon", "the home screen icon you picked"),
@@ -406,6 +407,22 @@ public enum PatchFamily {
         return COMMENT_COPY.inBuild() && SettingsStatus.commentAuthor();
     }
 
+    /** Whether a test says this build opens Messages on a left swipe, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean homeLeftSwipeForTests;
+
+    /**
+     * Whether this build opens Messages on a left swipe across Home. Stop swipe to create goes in
+     * without it when the screens' touch dispatch has moved, so its second switch isn't offered then.
+     */
+    public static boolean homeLeftSwipeInBuild() {
+        Boolean forced = homeLeftSwipeForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(SWIPE_TO_CREATE);
+        return SWIPE_TO_CREATE.inBuild() && SettingsStatus.homeLeftSwipe();
+    }
+
     /** Whether a test says this build replies with a comment's GIF, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Boolean commentGifReplyForTests;
@@ -617,6 +634,9 @@ public enum PatchFamily {
                 }
                 if (family == FOLLOWING_FEED && !favoritesFeedInBuild()) {
                     lines.add("  Favorites from the tab bar: not in this build (Home's feed switch or the tab bar didn't match)");
+                }
+                if (family == SWIPE_TO_CREATE && !homeLeftSwipeInBuild()) {
+                    lines.add("  Swipe left for Messages: not in this build (the screens' touch dispatch didn't match)");
                 }
                 if (family == COMMENT_PHOTO && !commentGifReplyInBuild()) {
                     lines.add("  Reply with a comment's GIF: not in this build (the comment screen's Reply or GIF send didn't match)");

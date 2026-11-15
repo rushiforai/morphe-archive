@@ -1,0 +1,774 @@
+"""Build the private live development MPP on the exact v1.11.1 release."""
+import argparse
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+from tempfile import TemporaryDirectory
+from zipfile import ZIP_DEFLATED, ZipFile
+
+import sys
+BASE_ROOT = Path(__file__).resolve().parent.parent / "v2.0.0-dev.1"
+sys.path.insert(0, str(BASE_ROOT))
+from patch_manifest import patch_manifest
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v2.0.1-dev.3"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v2.0.1-dev.7"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from patch_217 import OVERRIDES, stage
+PREVIOUS_ROOT = Path(__file__).resolve().parent.parent / "v2.0.1-dev.1"
+
+ROOT = Path(__file__).resolve().parent
+BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
+VERSION = "2.0.3-dev.14"
+
+
+def run(*args):
+    subprocess.run([str(arg) for arg in args], check=True)
+
+
+LAME_UPSTREAM="https://github.com/nwaldispuehl/java-lame.git"
+LAME_COMMIT="0224bc48f7ca4c9dfafea3d3bee13be741d34552"
+
+def build_pinned_java_lame(work):
+    # A reproducible pure-Java encoder without unsupported Android java.sound
+    # dependencies. Only the transitive mp3 and mpg core of Lame.java is
+    # compiled, not the desktop Swing/JavaSound frontend.
+    source=work/"java-lame"
+    run("git","clone","--quiet","--depth","1","--branch","v3.98.4",
+        LAME_UPSTREAM,source)
+    actual=subprocess.check_output(["git","-C",str(source),"rev-parse","HEAD"],text=True).strip()
+    if actual!=LAME_COMMIT:
+        raise ValueError("Unrecognized Java LAME source revision "+actual)
+    code=source/"src/main/java"
+    binary=work/"lame-classes"
+    binary.mkdir()
+    run("javac","--release","8","-sourcepath",code,"-d",binary,
+        code/"net/sourceforge/lame/mp3/Lame.java")
+    library=work/"lame-core.jar"
+    run("jar","cf",library,"-C",binary,".")
+    test_source=ROOT.parent/"v2.0.3-dev.11/tests/LameSmoke213.java"
+    smoke=work/"lame-smoke"
+    smoke.mkdir()
+    run("javac","--release","8","-cp",library,"-d",smoke,test_source)
+    run("java","-cp",str(library)+os.pathsep+str(smoke),
+        "LameSmoke213",work/"mp3-smoke.mp3")
+    return library,source/"LICENSE"
+
+
+def add_hook(source, signature, instruction):
+    pattern = rf"(^{re.escape(signature)}\n\s*\.registers \d+\n)"
+    updated, count = re.subn(pattern, lambda match: match[1] + "\n    " + instruction + "\n",
+                             source, flags=re.MULTILINE)
+    if count != 1:
+        raise ValueError(f"Expected one method: {signature}")
+    return updated
+
+
+def build(args, work):
+    tools = args.tools.resolve()
+    android = tools / "android-all-16-robolectric-13921718.jar"
+    smali = os.pathsep.join(str(tools / name) for name in ("assemble/*", "dexlib2.jar", "guava.jar"))
+    smali_compile = os.pathsep.join(map(str, [*sorted((tools / "assemble").glob("*.jar")), tools / "dexlib2.jar", tools / "guava.jar"]))
+    deps = json.loads((BASE_ROOT / "media-dependencies.lock.json").read_text())
+    libs = [args.media / f"{dep['artifact']}-{dep['version']}.jar" for dep in deps]
+    if not all(lib.is_file() for lib in libs):
+        raise ValueError("Prepare the pinned Media3 graph with bootstrap_live.py")
+    original = work / "base.dex"
+    with ZipFile(args.base) as base:
+        original.write_bytes(base.read("nicoid/helpers.mpe"))
+        expected_input = dict(line.split()[::-1] for line in base.read("nicoid/input-hashes.txt").decode().splitlines())
+    native_dex = work / "original.dex"
+    sources = [(original, work / "helpers.jar")]
+    network = work / "original.jar"
+    if args.apk is not None:
+        with ZipFile(args.apk) as apk:
+            native = apk.read("classes.dex")
+        if hashlib.sha256(native).hexdigest() != expected_input["classes.dex"]:
+            raise ValueError("Use the original supported nicoid 6.49 APK")
+        native_dex.write_bytes(native)
+        sources.append((native_dex, network))
+    elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or not (
+         os.environ.get("GITHUB_REF") in ("refs/heads/dev", "refs/heads/fix/v2.0.3-dev.6-regression-root-causes") or (
+         args.official_release and os.environ.get("GITHUB_REF") == "refs/heads/main"
+         and os.environ.get("NICOID_OFFICIAL_RELEASE_APPROVED") in ("APPROVE","VERIFY"))):
+        raise ValueError("The original nicoid 6.49 APK is required outside the guarded CI build")
+    for source, target in sources:
+        run("java", "-cp", str(args.media / "*"), "com.googlecode.dex2jar.tools.Dex2jarCmd",
+            "-o", target, source)
+    helpers = work / "helpers.jar"
+    compile_only = [network] if args.apk is not None else args.compile_jar
+    if not all(jar.is_file() for jar in compile_only):
+        raise ValueError("Missing compiler classpath JAR")
+    # Stage only changed Java sources; keep the released source snapshot intact.
+    overrides = work / "source-overrides/e/e/a"
+    stage(BASE_ROOT / "java/e/e/a", overrides)
+    excluded = (OVERRIDES | {p.name for p in (ROOT / "java").rglob("*.java")}
+                | {p.name for p in (ROOT.parent / "v2.0.2-dev.4/java").rglob("*.java")}
+                | {p.name for p in (ROOT.parent / "v2.0.1-dev.2/java").rglob("*.java")})
+    lame_jar,lame_license=build_pinned_java_lame(work)
+    classpath = os.pathsep.join(map(str, [android, helpers, *compile_only, lame_jar, *libs]))
+    classes = work / "classes"
+    run("java", "-jar", tools / "ecj.jar", "-8", "-proc:none", "-nowarn", "-cp", classpath,
+        "-d", classes, *sorted(p for p in (BASE_ROOT / "java").rglob("*.java") if p.name not in excluded),
+        *sorted((PREVIOUS_ROOT / "java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.1-dev.2/java").rglob("*.java")),
+        *sorted(p for p in (ROOT.parent / "v2.0.1-dev.4/java").rglob("*.java")
+                if p.name != "SmoothTabRestore204.java"),
+        *sorted(p for p in (ROOT.parent / "v2.0.1-dev.5/java").rglob("*.java")
+                if p.name != "SmoothTabRestore204.java"),
+        ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java",
+        *sorted(p for p in (ROOT.parent / "v2.0.2-dev.4/java").rglob("*.java")
+                if p.name not in {"AmbientLight.java","AppBarPlacement202.java"}),
+        *sorted((ROOT.parent / "v2.0.3-dev.1/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.2/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.3/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.4/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.6/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.7/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.8/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.9/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.11/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.12/java").rglob("*.java")),
+        *sorted((ROOT / "java").rglob("*.java")),
+        *sorted(overrides.rglob("*.java")))
+    live_jar = work / "live.jar"
+    with ZipFile(live_jar, "w", ZIP_DEFLATED) as archive:
+        for class_file in sorted(classes.rglob("*.class")):
+            archive.write(class_file, class_file.relative_to(classes))
+    dex = work / "live-dex"
+    dex.mkdir()
+    java_home = Path(os.path.realpath(subprocess.check_output(["which", "java"], text=True).strip())).parents[1]
+    dex_cmd = ["java", "-cp", tools / "r8.jar", "com.android.tools.r8.D8", "--release", "--min-api", 28,
+               "--lib", android, "--lib", java_home, "--classpath", helpers]
+    for jar in compile_only:
+        dex_cmd.extend(("--classpath", jar))
+    run(*dex_cmd, "--output", dex, live_jar, lame_jar, *libs)
+    live_dex = dex / "classes.dex"
+    if list(dex.glob("*.dex")) != [live_dex]:
+        raise ValueError("Expected a single live DEX")
+
+    with ZipFile(args.base) as base:
+        disassembled = work / "stable"
+        run("java", "-cp", smali, "org.jf.baksmali.Main", "disassemble", original, "-o", disassembled)
+        hooks = work / "hooks/e/e/a"
+        hooks.mkdir(parents=True)
+        # Only update the stored settings label for the existing save action.
+        # Preserve its ID and user's visibility/sort settings. No new registers.
+        menu_label="MenuOptions119.smali"
+        menu_source=(disassembled/"e/e/a"/menu_label).read_text()
+        old_label=r'const-string v2, "MP4\u3067\u4fdd\u5b58"'
+        new_label=r'const-string v2, "\u52d5\u753b\u30fb\u97f3\u58f0\u3092\u4fdd\u5b58"'
+        if menu_source.count(old_label)!=1:
+            raise ValueError("Cannot locate native video-menu display preferences label")
+        (hooks/menu_label).write_text(menu_source.replace(old_label,new_label))
+
+        replacements = {
+            "ModernShorts$2": (".method public onActivityResumed(Landroid/app/Activity;)V",
+                               "invoke-static/range {p1 .. p1}, Le/e/a/NicoliveEntry;->refreshMenu(Landroid/app/Activity;)V"),
+            "Playback214": (".method public static begin(Ljava/lang/Object;Ljava/lang/String;)V",
+                            "invoke-static {}, Le/e/a/NicoliveEntry;->beforeVideo()V"),
+        }
+        for name, (signature, instruction) in replacements.items():
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            (hooks / file).write_text(add_hook(source, signature, instruction))
+        for name in ("PatchVersion237", "ModernShorts"):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            updated, count = re.subn(r'(?<=["v])1\.11\.1(?=[" ])', VERSION, source)
+            if not count:
+                raise ValueError(f"Missing stable version in {name}")
+            if name == "ModernShorts":
+                updated = add_hook(updated, ".method public static finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V",
+                                   "invoke-static/range {p0 .. p1}, Le/e/a/NicoliveEntry;->addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V")
+            (hooks / file).write_text(updated)
+        settings = (disassembled / "e/e/a/SettingsTools.smali").read_text()
+        anchor = "    invoke-static {p0, v1}, Le/e/a/HistoryLimit120;->settings(Landroid/app/Activity;Landroid/preference/PreferenceGroup;)V"
+        if settings.count(anchor) != 1:
+            raise ValueError("Missing settings insertion point")
+        (hooks / "SettingsTools.smali").write_text(settings.replace(
+            anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        # dev.11's unsafe DownloadUi115$Manager return-register patch caused
+        # ART VerifyError on Android 16.  All MP4/MP3 actions are now built
+        # from verified Java replacements staged by patch_215.py, including
+        # DownloadWorker115's MP3 dispatch. No MP3 UI smali is modified.
+        # Include live playback diagnostics in the existing Debug > Share output.
+        # Preserve the stable debug UI and save location.
+        debug_file = "ModernDebug.smali"
+        debug = (disassembled / "e/e/a" / debug_file).read_text()
+        debug_anchor = ("    invoke-static {p0, v1}, Le/e/a/CrashDiagnostics;->append"
+                        "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;\n"
+                        "\n    move-result-object v1")
+        if debug.count(debug_anchor) != 1:
+            raise ValueError("Missing ModernDebug.share crash-log append hook")
+        debug = debug.replace(debug_anchor, debug_anchor +
+            "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveDiagnostics;->append"
+            "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;"
+            "\n\n    move-result-object v1")
+        (hooks / debug_file).write_text(debug)
+
+        # Some native menus reuse IDs 7/9 with different semantic labels.
+        # Filter by the displayed action instead of assuming a universal ID.
+        # Keep all existing visibility preferences intact (no key migration).
+        menu_file = "MenuOptions119.smali"
+        menu = (disassembled / "e/e/a" / menu_file).read_text()
+        begin = menu.index(".method static finish(Landroid/view/Menu;")
+        finish = menu.index(".end method", begin)
+        action = menu[begin:finish]
+        old_key = "    invoke-static {v2}, Le/e/a/MenuOptions119;->key(I)Ljava/lang/String;"
+        if action.count(old_key) != 1:
+            raise ValueError("Missing per-action visibility key lookup")
+        action = action.replace(old_key,
+            "    invoke-static {p3}, Le/e/a/MenuVisible203;"
+            "->keyForAction(Le/e/a/ListActions$Action;)Ljava/lang/String;")
+        menu = menu[:begin] + action + menu[finish:]
+        (hooks / menu_file).write_text(menu)
+
+        # The native popup fullscreen control goes through PlaybackReturn.open,
+        # not PopupReturn244.start. The old hook was on the wrong return route.
+        return_file = "PlaybackReturn.smali"
+        ret = (disassembled / "e/e/a" / return_file).read_text()
+        begin = ret.index(".method public static open(Ljava/lang/Object;)V")
+        end = ret.index(".end method",begin)
+        ret_method = ret[begin:end]
+        launch = ("    invoke-virtual {v0, v4}, Landroid/app/Service;"
+                  "->startActivity(Landroid/content/Intent;)V")
+        if ret_method.count(launch)!=1:
+            raise ValueError("Missing real popup-to-normal launcher")
+        ret_method = ret_method.replace(launch,
+            "    invoke-static {v4}, Le/e/a/PopupFullscreen204;"
+            "->prepare(Landroid/content/Intent;)V\n\n" + launch)
+        ret = ret[:begin]+ret_method+ret[end:]
+        (hooks / return_file).write_text(ret)
+
+        # Capture the actual fullscreen button without changing intentional
+        # portrait-return controls.
+        popup_buttons_file = "PopupControls193.smali"
+        popup_buttons = (disassembled / "e/e/a" / popup_buttons_file).read_text()
+        popup_button_anchor = (
+            "    const-string v5, \"fullscreen\"\n\n"
+            "    invoke-interface {v1, v5, v4}, Ljava/util/Map;"
+            "->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+        )
+        if popup_buttons.count(popup_button_anchor) != 1:
+            raise ValueError("Popup fullscreen button reference changed")
+        popup_buttons = popup_buttons.replace(popup_button_anchor,
+            "    invoke-static {v4}, Le/e/a/PopupFullscreen204;"
+            "->bind(Landroid/view/View;)V\n\n" + popup_button_anchor)
+        (hooks / popup_buttons_file).write_text(popup_buttons)
+
+        popup_return_file = "PopupReturn244.smali"
+        popup_return = (disassembled / "e/e/a" / popup_return_file).read_text()
+        popup_return_anchor = (
+            "    invoke-static {p0, v5, v3}, Le/e/a/TabPlayback110;"
+            "->transfer(Ljava/lang/Object;Landroid/content/Intent;Z)V"
+        )
+        if popup_return.count(popup_return_anchor) != 1:
+            raise ValueError("Missing popup-to-activity transition")
+        popup_return = popup_return.replace(popup_return_anchor,
+            popup_return_anchor + "\n\n    invoke-static {v5}, "
+            "Le/e/a/PopupFullscreen204;->prepare(Landroid/content/Intent;)V")
+        (hooks / popup_return_file).write_text(popup_return)
+
+        # Protect against deferred popup-layout work after WindowManager ends.
+        popup_layout_file = "PopupLayout236.smali"
+        popup_layout = (disassembled / "e/e/a" / popup_layout_file).read_text()
+        old_update = (
+            "    invoke-interface {v0, v4, v3}, "
+            "Landroid/view/WindowManager;->updateViewLayout("
+            "Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"
+        )
+        if popup_layout.count(old_update) != 1:
+            raise ValueError("Popup layout's nullable WindowManager moved")
+        popup_layout = popup_layout.replace(old_update,
+            "    if-eqz v0, :cond_2ad\n\n" + old_update)
+        (hooks / popup_layout_file).write_text(popup_layout)
+
+        # Duration can read as 0 during Activity -> background suspension,
+        # while the native MediaSession remains active. Publishing a zero
+        # duration disables SystemUI's seek track until the Activity resumes.
+        media_file = "MediaControls.smali"
+        media = (disassembled / "e/e/a" / media_file).read_text()
+        begin=media.index(".method static update(Le/e/a/MediaControls$State;)V")
+        end=media.index(".end method",begin)
+        update=media[begin:end]
+        duration=(
+            "    invoke-virtual {v3}, Ljava/lang/Number;->longValue()J\n\n"
+            "    move-result-wide v5"
+        )
+        if update.count(duration)!=1:
+            raise ValueError("Missing live MediaSession duration read")
+        update=update.replace(duration,duration+
+           "\n\n    invoke-static {v0, v5, v6}, Le/e/a/MediaSeek206;"
+           "->validDuration(Ljava/lang/Object;J)J\n\n    move-result-wide v5")
+        media=media[:begin]+update+media[end:]
+        (hooks / media_file).write_text(media)
+        # Verify whether Android 16 SystemUI delivers seek callbacks.
+        media_callback_file="MediaControls$1.smali"
+        callback=(disassembled/"e/e/a"/media_callback_file).read_text()
+        callback=add_hook(callback,
+             ".method public onSeekTo(J)V",
+             "invoke-static/range {p1 .. p2}, Le/e/a/MediaSeek206;->requested(J)V")
+        (hooks/media_callback_file).write_text(callback)
+
+        # Once a legacy consecutive video enters in-app background mode,
+        # restore the mini state after the next decoded video is prepared.
+        playback_file = "PlaybackSession.smali"
+        playback = (disassembled / "e/e/a" / playback_file).read_text()
+        playback = add_hook(playback,
+            ".method public static prepared(Ljava/lang/Object;Z)V",
+            "invoke-static/range {p0 .. p1}, Le/e/a/PlaybackContinuation204;->prepared(Ljava/lang/Object;Z)V")
+        playback = add_hook(playback,
+            ".method public static prepared(Ljava/lang/Object;Z)V",
+            "invoke-static/range {p0 .. p1}, Le/e/a/FullscreenHandoff211;->prepared(Ljava/lang/Object;Z)V")
+        (hooks / playback_file).write_text(playback)
+
+        # Tab-owned queue navigation bypasses the native fragment's next
+        # handler. Carry in-app mini state on this path as well.
+        queue_file = "TabPlayback110.smali"
+        queue = (disassembled / "e/e/a" / queue_file).read_text()
+        transfer_marker = ("    invoke-static {p0, v5, p2}, Le/e/a/TabPlayback110;"
+                           "->transfer(Ljava/lang/Object;Landroid/content/Intent;Z)V")
+        if queue.count(transfer_marker) != 1:
+            raise ValueError("Missing stable tab-owned next-video transfer")
+        queue = queue.replace(transfer_marker, transfer_marker +
+            "\n    if-nez p2, :nicoid_skip_mini203"
+            "\n    invoke-static {p0, v5}, Le/e/a/PlaybackContinuation204;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V"
+            "\n    :nicoid_skip_mini203")
+        # Tab-owned next-video launch is separate from the native fragment.
+        # Prepare the fullscreen intent *before* Activity.startActivity.
+        native_queue_start = (
+            "    invoke-virtual {p0, v5}, Landroid/app/Activity;"
+            "->startActivity(Landroid/content/Intent;)V"
+        )
+        if queue.count(native_queue_start) != 1:
+            raise ValueError("Missing tab-owned native video launch")
+        queue = queue.replace(native_queue_start,
+            "    invoke-static {v4, v5}, Le/e/a/FullscreenHandoff211;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n\n"
+            + native_queue_start
+            + "\n\n    invoke-static {v4, v5}, Le/e/a/FullscreenHandoff211;"
+            "->afterLaunch(Ljava/lang/Object;Landroid/content/Intent;)V")
+        (hooks / queue_file).write_text(queue)
+
+        # Manual / cached queues short-circuit the tab-owned queue.
+        # Preserve in-app background mode before the next Activity starts.
+        manual_file = "ManualQueue119.smali"
+        manual = (disassembled / "e/e/a" / manual_file).read_text()
+        start = manual.index(".method public static move(Ljava/lang/Object;ZZ)Z")
+        end = manual.index(".end method", start)
+        body = manual[start:end]
+        marker = "    sput-boolean v2, Le/e/a/ManualQueue119;->opening:Z"
+        if body.count(marker) != 1:
+            raise ValueError("Missing manual queue transition anchor")
+        body = body.replace(marker,
+            "    if-nez v1, :nicoid_manual_skip_mini203\n"
+            "    move-object/from16 v11, p0\n"
+            "    invoke-static {v11, v10}, Le/e/a/PlaybackContinuation204;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n"
+            "    :nicoid_manual_skip_mini203\n" + marker)
+        manual = manual[:start] + body + manual[end:]
+        # Manual/playlist queues launch via a distinct Activity path.
+        manual_start = (
+            "    invoke-virtual {v0, v10}, Landroid/app/Activity;"
+            "->startActivity(Landroid/content/Intent;)V"
+        )
+        if manual.count(manual_start) != 1:
+            raise ValueError("Missing manual queue Activity launch")
+        manual = manual.replace(manual_start,
+            "    invoke-static {v9, v10}, Le/e/a/FullscreenHandoff211;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n\n"
+            + manual_start
+            + "\n\n    invoke-static {v9, v10}, Le/e/a/FullscreenHandoff211;"
+            "->afterLaunch(Ljava/lang/Object;Landroid/content/Intent;)V")
+        (hooks / manual_file).write_text(manual)
+
+        # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
+        dev112_file = "Dev112.smali"
+        dev112 = (disassembled / "e/e/a" / dev112_file).read_text()
+        for signature, instruction, finish in (
+            (".method public static exitSettings(Landroid/preference/PreferenceActivity;)V",
+             "invoke-static {p0}, Le/e/a/ExitModeOptions;->install(Landroid/preference/PreferenceActivity;)V",
+             "return-void"),
+            (".method public static back(Landroid/app/Activity;)Z",
+             "invoke-static {p0}, Le/e/a/ExitModeOptions;->normalBack(Landroid/app/Activity;)Z\n"
+             "    move-result v0", "return v0"),
+        ):
+            replacement = signature + "\n    .registers 2\n\n    " + instruction + "\n    " + finish + "\n.end method"
+            dev112, count = re.subn(re.escape(signature) + r".*?\.end method",
+                                     lambda match: replacement, dev112, flags=re.DOTALL)
+            if count != 1:
+                raise ValueError("Missing exit method: " + signature)
+
+        # Keep all of Dev112's native back/settings fixes while routing only
+        # list restoration through the common, idempotent renderer.
+        restore_pattern = (r"(?ms)^\.method[^\n]* restoreList"
+                           r"\(Landroid/widget/ListView;II\)V\r?\n.*?^\.end method")
+        restore_stub = (".method public static restoreList(Landroid/widget/ListView;II)V\n"
+                        "    .registers 3\n"
+                        "    invoke-static {p0, p1, p2}, Le/e/a/SmoothTabRestore204;->restoreList(Landroid/widget/ListView;II)V\n"
+                        "    return-void\n.end method")
+        dev112, count = re.subn(restore_pattern, lambda _: restore_stub, dev112)
+        if count != 1:
+            raise ValueError("Unexpected Dev112.restoreList method count")
+
+        (hooks / dev112_file).write_text(dev112)
+
+        # Clip thumbnail surfaces and native progress overlays together without touching image caches.
+        details_source = (disassembled / "e/e/a/VideoDetails.smali").read_text()
+        details_source = add_hook(
+            details_source, ".method public static bind(Ljava/lang/Object;Landroid/view/View;)V",
+            "invoke-static {p1}, Le/e/a/ThumbnailCorners;->applyDetails(Landroid/view/View;)V")
+        (hooks / "VideoDetails.smali").write_text(details_source)
+
+        # The playback mini bar may start with a Bitmap before an URL is loaded.
+        mini_path = disassembled / "e/e/a/MiniChrome236.smali"
+        mini_source = mini_path.read_text()
+        mini_anchor = "invoke-virtual {p2, p1}, Landroid/widget/ImageView;->setContentDescription(Ljava/lang/CharSequence;)V"
+        if mini_source.count(mini_anchor) != 1:
+            raise ValueError("Missing playback mini-thumbnail")
+        mini_source = mini_source.replace(mini_anchor, mini_anchor +
+            "\n\n    invoke-static {p2}, Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V")
+        (hooks / "MiniChrome236.smali").write_text(mini_source)
+
+        # Clip only known thumbnail views; keep bitmap caches and sibling badges untouched.
+        outline = "Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V"
+        outline_with_parent = "Le/e/a/ThumbnailCorners;->applyWithParent(Landroid/view/View;)V"
+        native_outline = "Le/e/a/ThumbnailCorners;->applyNative(Landroid/view/View;)V"
+        for name, signature in (
+            ("VideoMarks119", ".method public static bind(Landroid/view/View;Ljava/lang/Object;)V"),
+            ("PaidVideos", ".method public static bind(Landroid/view/View;Ljava/lang/Object;)V"),
+            ("Dev116", ".method public static playlistThumbnail(Landroid/view/View;Landroid/widget/BaseAdapter;Lorg/json/JSONObject;)V"),
+        ):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            (hooks / file).write_text(add_hook(source, signature, f"invoke-static {{p0}}, {native_outline}"))
+        image_loader = "Le/e/a/ShortImages;->load(Ljava/lang/String;Landroid/widget/ImageView;Landroid/widget/TextView;)V"
+        for name, prefix in (
+            ("ModernShorts", r"invoke-static \{p0, p1, p2\}, "),
+            ("VideoDetails", r"invoke-static \{v0, v4, v5\}, "),
+            ("MiniChrome236", r"invoke-static \{p1, v0, v1\}, "),
+        ):
+            file = name + ".smali"
+            path = hooks / file
+            source = (path if path.exists() else disassembled / "e/e/a" / file).read_text()
+            updated, count = re.subn(r"(" + prefix + r")" + re.escape(image_loader),
+                                     lambda match: match[1] + image_loader.replace("ShortImages", "ThumbnailCorners"),
+                                     source)
+            if count != 1:
+                raise ValueError(f"Missing thumbnail binding in {name}")
+            path.write_text(updated)
+        for name, anchor, register in (
+            ("FollowFeed$Rows", "    iget-object v4, v2, Le/e/a/FollowFeedData$Item;->thumbnail:Ljava/lang/String;", "v3"),
+            ("QueueUi120", "    invoke-virtual {v11, v12}, Landroid/widget/FrameLayout;->setClipToOutline(Z)V", "v11"),
+        ):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            if source.count(anchor) != 1:
+                raise ValueError(f"Missing thumbnail frame in {name}")
+            (hooks / file).write_text(source.replace(anchor, anchor + f"\n\n    invoke-static {{{register}}}, {outline if name == 'QueueUi120' else outline_with_parent}"))
+        gesture_file = "GestureControls110.smali"
+        gesture = (disassembled / "e/e/a" / gesture_file).read_text()
+        actions = "    sput-object v0, Le/e/a/GestureControls110;->ACTIONS:[Ljava/lang/String;"
+        if gesture.count(actions) != 1:
+            raise ValueError("Missing gesture action array")
+        gesture = gesture.replace(actions,
+            "    invoke-static {v0}, Le/e/a/NicoliveEntry;->gestureActions([Ljava/lang/String;)[Ljava/lang/String;\n"
+            "    move-result-object v0\n\n" + actions)
+        for signature, handler, conditional_return in (
+            (".method static name(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
+             "gestureName(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;", "return-object v0"),
+            (".method static perform(Landroid/app/Activity;Ljava/lang/String;)V",
+             "performGesture(Landroid/app/Activity;Ljava/lang/String;)Z", "return-void"),
+        ):
+            gesture = add_hook(gesture, signature,
+                f"invoke-static {{p0, p1}}, Le/e/a/NicoliveEntry;->{handler}\n"
+                f"    {'move-result-object' if conditional_return.startswith('return-object') else 'move-result'} v0\n"
+                "    if-eqz v0, :nicoid_live_original_gesture\n"
+                f"    {conditional_return}\n"
+                "    :nicoid_live_original_gesture")
+        reset_messages = {
+            "Reset assignments, sensitivity and display. Keep gestures enabled or disabled as currently set.":
+                "Restore default assignments, sensitivity, display and axis recognition. Keep the main gesture switch as set.",
+            "割り当て・感度・表示を初期値に戻します。ジェスチャーの有効/無効は維持します。":
+                "割り当て・感度・表示・上下/左右方向の認識を初期値に戻します。ジェスチャー全体の有効/無効は維持します。",
+            "重設手勢、靈敏度與顯示，保留啟用狀態。":
+                "重設手勢指派、靈敏度、顯示與方向辨識，保留手勢總開關。"
+        }
+        for old, new in reset_messages.items():
+            old_string, new_string = (json.dumps(value, ensure_ascii=True) for value in (old, new))
+            if gesture.count(old_string) != 1:
+                raise ValueError("Missing gesture reset description")
+            gesture = gesture.replace(old_string, new_string)
+        gesture = add_hook(gesture,
+            ".method public static touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z",
+            "invoke-static/range {p0 .. p1}, Le/e/a/PlaylistGestureRouter;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)I\n"
+            "    move-result v0\n"
+            "    if-ltz v0, :nicoid_existing_list_gesture\n"
+            "    return v0\n"
+            "    :nicoid_existing_list_gesture")
+        (hooks / gesture_file).write_text(gesture)
+        axis_file = "Dev128.smali"
+        axis = (disassembled / "e/e/a" / axis_file).read_text()
+        axis = add_hook(axis, ".method public static allowClaim(Landroid/content/Context;Ljava/lang/String;)Z",
+            "invoke-static {p0, p1}, Le/e/a/GestureAxisOptions;->allowHorizontalClaim(Landroid/content/Context;Ljava/lang/String;)Z\n"
+            "    move-result v0\n"
+            "    if-nez v0, :nicoid_check_vertical\n"
+            "    return v0\n"
+            "    :nicoid_check_vertical")
+        for method, params, registers in (
+            ("install", "Landroid/app/Activity;Landroid/widget/LinearLayout;", "p0, p1"),
+            ("reset", "Landroid/content/Context;", "p0"),
+        ):
+            signature = f".method public static {method}({params})V"
+            replacement = (f"{signature}\n    .registers {registers.count(',') + 1}\n"
+                           f"    invoke-static {{{registers}}}, Le/e/a/GestureAxisOptions;->{method}({params})V\n"
+                           "    return-void\n.end method")
+            axis, count = re.subn(re.escape(signature) + r".*?\.end method", replacement, axis, flags=re.DOTALL)
+            if count != 1:
+                raise ValueError(f"Missing gesture direction method: {method}")
+        (hooks / axis_file).write_text(axis)
+
+        viewport_file = "FullscreenViewport209.smali"
+        viewport = (disassembled / "e/e/a" / viewport_file).read_text()
+        viewport = add_hook(viewport, ".method public static update(Landroid/view/View;Landroid/view/ViewGroup;Landroid/view/View;)V",
+                            "invoke-static/range {p0 .. p0}, Le/e/a/NormalVideoInsets;->clear(Landroid/view/View;)V")
+        (hooks / viewport_file).write_text(viewport)
+
+        restore_file = "Dev115.smali"
+        restore = (disassembled / "e/e/a" / restore_file).read_text()
+        signature = ".method public static afterFullscreenRestore(Landroid/view/View;)V"
+        replacement = (signature + "\n    .registers 1\n"
+                       "    invoke-static {p0}, Le/e/a/NormalVideoInsets;->schedule(Landroid/view/View;)V\n"
+                       "    return-void\n.end method")
+        restore, count = re.subn(re.escape(signature) + r".*?\.end method", replacement, restore, flags=re.DOTALL)
+        if count != 1:
+            raise ValueError("Missing normal playback restore")
+        (hooks / restore_file).write_text(restore)
+        tab_host_file = "MultiTabs227$Host.smali"
+        tab_host = (disassembled / "e/e/a" / tab_host_file).read_text()
+        insert = "invoke-virtual {v1, v2, v5, v3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V"
+        if tab_host.count(insert) != 1:
+            raise ValueError("Missing multiple tab bar insertion")
+        tab_host = tab_host.replace(insert,
+            "invoke-static {v1, v2, v5, v3}, Le/e/a/MultiTabPlacement;->insert(Landroid/widget/LinearLayout;Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V")
+        cached_bar = "    invoke-virtual/range {p0 .. p0}, Le/e/a/MultiTabs227$Host;->refreshSelected()V"
+        if tab_host.count(cached_bar) != 1:
+            raise ValueError("Missing cached tab bar update")
+        tab_host = tab_host.replace(cached_bar,
+            "    iget-object v2, v0, Le/e/a/MultiTabs227$Host;->parent:Landroid/widget/LinearLayout;\n"
+            "    iget-object v3, v0, Le/e/a/MultiTabs227$Host;->bar:Landroid/view/View;\n"
+            "    invoke-static {v2, v3}, Le/e/a/MultiTabPlacement;->update(Landroid/widget/LinearLayout;Landroid/view/View;)V\n\n" + cached_bar)
+        # The native listener previously clamped each partial page and made
+        # the visible list jump repeatedly. Preserve the Host and replace only
+        # its restoration method, retaining tab/chrome/navigation hooks.
+        host_pattern = (r"(?ms)^\.method[^\n]* restoreScroll"
+                        r"\(Ljava/lang/Object;Le/e/a/SavedTabs227\$Tab;\)V\r?\n.*?^\.end method")
+        host_stub = (".method restoreScroll(Ljava/lang/Object;Le/e/a/SavedTabs227$Tab;)V\n"
+                     "    .registers 3\n"
+                     "    invoke-static {p0, p1, p2}, Le/e/a/SmoothTabRestore204;->restore(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V\n"
+                     "    return-void\n.end method")
+        tab_host, count = re.subn(host_pattern, lambda _: host_stub, tab_host)
+        if count != 1:
+            raise ValueError("Unexpected MultiTabs227.Host.restoreScroll method count")
+        # Restore the 3-argument reflection call. The same v12 register is
+        # reused later as the LRU cache limit. Dev.5 changed its initial
+        # assignment to 8 and unintentionally made reflection allocate
+        # eight arguments, so new tabs could not be created.
+        native_arity = "    const/4 v12, 0x3"
+        array_use = "    new-array v15, v12"
+        lru_anchor = (
+            "    :goto_19a\n"
+            "    iget-object v5, v0, Le/e/a/MultiTabs227$Host;->pages:Ljava/util/LinkedHashMap;"
+        )
+        if tab_host.count(native_arity) != 1 or tab_host.count(array_use) != 2:
+            raise ValueError("Unexpected three-argument reflection registers")
+        if tab_host.count(lru_anchor) != 1:
+            raise ValueError("Unexpected native tab LRU loop")
+        if not (tab_host.index(native_arity) <
+                tab_host.index(array_use) <
+                tab_host.index(lru_anchor)):
+            raise ValueError("Native reflection arity and LRU order changed")
+        tab_host = tab_host.replace(lru_anchor,
+            "    :goto_19a\n"
+            "    const/16 v12, 0xc\n"
+            "    iget-object v5, v0, Le/e/a/MultiTabs227$Host;->pages:Ljava/util/LinkedHashMap;")
+
+        # While restoration waits for the saved row, a quick tab switch must
+        # not replace the persistent deep offset with the temporary first row.
+        capture_match = re.search(r"(?ms)^\.method capture\(\)V\r?\n.*?^\.end method",
+                                  tab_host)
+        if not capture_match:
+            raise ValueError("Missing native tab position capture")
+        capture = capture_match.group()
+        captured_list = ("    check-cast v1, Landroid/widget/ListView;\n\n"
+                         "    invoke-virtual {v1}, Landroid/widget/ListView;->getFirstVisiblePosition()I")
+        if capture.count(captured_list) != 1:
+            raise ValueError("Missing native ListView capture")
+        capture = capture.replace(captured_list,
+            "    check-cast v1, Landroid/widget/ListView;\n\n"
+            "    invoke-static {v1}, Le/e/a/SmoothTabRestore204;->restoring(Landroid/widget/ListView;)Z\n"
+            "    move-result v2\n"
+            "    if-nez v2, :nicoid_capture_keep_saved_scroll\n\n"
+            "    invoke-virtual {v1}, Landroid/widget/ListView;->getFirstVisiblePosition()I")
+        url_anchor = ("    iget-object v1, p0, Le/e/a/MultiTabs227$Host;->current:Ljava/lang/Object;\n\n"
+                      "    const-string v2, \"d0\"")
+        if capture.count(url_anchor) != 1:
+            raise ValueError("Missing URL continuation after scroll capture")
+        capture = capture.replace(url_anchor,
+            "    :nicoid_capture_keep_saved_scroll\n" + url_anchor)
+        tab_host = tab_host[:capture_match.start()] + capture + tab_host[capture_match.end():]
+        (hooks / tab_host_file).write_text(tab_host)
+        order_file = "Dev111.smali"
+        order = (disassembled / "e/e/a" / order_file).read_text()
+        desired = '    .local v9, "desired":[Ljava/lang/String;'
+        if order.count(desired) != 1:
+            raise ValueError("Missing general settings order")
+        (hooks / order_file).write_text(order.replace(desired, desired +
+            "\n    invoke-static {v2, v9}, Le/e/a/MultiTabPlacement;->settingsOrder(Landroid/preference/PreferenceGroup;[Ljava/lang/String;)[Ljava/lang/String;\n"
+            "    move-result-object v9\n"))
+
+        ink_file = "CommentInk192.smali"
+        ink = (disassembled / "e/e/a" / ink_file).read_text()
+        ink = add_hook(ink, ".method public static draw(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;IFI)V",
+            "invoke-static/range {p0 .. p7}, Le/e/a/CommentOutlineOpacity;->drawPass(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;IFI)Z\n"
+            "    move-result v0\n"
+            "    if-eqz v0, :nicoid_legacy_ink\n"
+            "    return-void\n"
+            "    :nicoid_legacy_ink")
+        (hooks / ink_file).write_text(ink)
+        visuals_file = "CommentVisuals.smali"
+        visuals = (disassembled / "e/e/a" / visuals_file).read_text()
+        custom_draw = "invoke-virtual {v2, v4, v0, v12, v1}, Landroid/graphics/Canvas;->drawText(Ljava/lang/String;FFLandroid/graphics/Paint;)V"
+        if visuals.count(custom_draw) != 2:
+            raise ValueError("Missing custom comment outline and fill passes")
+        (hooks / visuals_file).write_text(visuals.replace(custom_draw,
+            "invoke-static {v2, v4, v0, v12, v1}, Le/e/a/CommentOutlineOpacity;->drawCustom(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;)V"))
+        # Route taps on the moved tab strip without replacing the native Activity.
+        gesture_path = "TabGestures228.smali"
+        gestures = (disassembled / "e/e/a" / gesture_path).read_text()
+        signature = ".method public static touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z"
+        gesture_pattern = re.escape(signature) + r".*?\.end method"
+        match = re.search(gesture_pattern, gestures, flags=re.DOTALL)
+        if not match or match.group().count("Le/e/a/TabPager233;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z") != 1:
+            raise ValueError("Unexpected native tab gesture bridge")
+        replacement = (signature + "\n    .registers 3\n"
+                       "    invoke-static {p0, p1}, Le/e/a/AppBarPlacement202;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z\n"
+                       "    move-result v0\n"
+                       "    if-eqz v0, :nicoid_default_tab_gesture\n"
+                       "    return v0\n"
+                       "    :nicoid_default_tab_gesture\n"
+                       "    invoke-static {p0, p1}, Le/e/a/TabPager233;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z\n"
+                       "    move-result v0\n"
+                       "    return v0\n.end method")
+        gestures = gestures[:match.start()] + replacement + gestures[match.end():]
+        (hooks / gesture_path).write_text(gestures)
+
+        hook_dex = work / "hooks.dex"
+        run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
+        merged = work / "helpers.mpe"
+        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT / "MergeLiveDex.java")
+        run("java", "-cp", str(work) + os.pathsep + smali, "MergeLiveDex",
+            original, hook_dex, live_dex, merged)
+
+        # Patch only the already-versioned native-method override dex. The
+        # original installed APK stays untouched and need not be distributed.
+        native_delta = work / "source-method-delta.dex"
+        native_delta.write_bytes(base.read("nicoid/method-delta.dex"))
+        native_dir = work / "native-method-delta"
+        run("java", "-cp", smali, "org.jf.baksmali.Main", "disassemble",
+            native_delta, "-o", native_dir)
+        activity_file = native_dir / "com/sauzask/nicoid/NicoidVideoActivity.smali"
+        activity = activity_file.read_text()
+        early_orientation = ("    invoke-virtual {p0, v1}, Landroid/app/Activity;"
+                             "->setRequestedOrientation(I)V")
+        if activity.count(early_orientation) != 1:
+            raise ValueError("Missing early fullscreen orientation hook")
+        hide_anchor = ("    invoke-static {p0}, Le/e/a/DirectBootstrap238;"
+                       "->prepare(Landroid/app/Activity;)V")
+        if activity.count(hide_anchor) != 1:
+            raise ValueError("Missing first Activity.onCreate hook")
+        activity = activity.replace(hide_anchor,
+            hide_anchor + "\n\n    invoke-static {p0}, "
+            "Le/e/a/PlaybackContinuation204;->beforeContent(Landroid/app/Activity;)V"
+            + "\n\n    invoke-static {p0}, "
+            "Le/e/a/FullscreenHandoff211;->beforeContent(Landroid/app/Activity;)V")
+        activity_file.write_text(activity.replace(early_orientation,
+            "    invoke-static {p0, v1}, Le/e/a/FullscreenHandoff211;"
+            "->applyNativeRotation(Landroid/app/Activity;I)V"
+            + "\n\n    invoke-static {p0}, Le/e/a/FullscreenContinuity203;"
+            "->beforeContent(Landroid/app/Activity;)V"))
+        fragment_file = native_dir / "com/sauzask/nicoid/NicoidVideoFragment.smali"
+        fragment = fragment_file.read_text()
+        next_launch = ("    invoke-static {p1, v3, v2, v1}, Le/e/a/v0;"
+                       "->a(Landroid/content/Intent;Ljava/util/ArrayList;IZ)V")
+        if fragment.count(next_launch) != 1:
+            raise ValueError("Missing legacy next-video continuity hook")
+        # Mark the intent BEFORE the Activity launch, not after it.
+        fragment_file.write_text(fragment.replace(next_launch,
+            "    invoke-static {p0, p1}, Le/e/a/FullscreenHandoff211;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n\n"
+            "    invoke-static {p0, p1}, Le/e/a/PlaybackContinuation204;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n\n"
+            + next_launch
+            + "\n\n    invoke-static {p0, p1}, Le/e/a/FullscreenHandoff211;"
+              "->afterLaunch(Ljava/lang/Object;Landroid/content/Intent;)V"))
+        patched_native = work / "native-method-delta-patched.dex"
+        run("java", "-cp", smali, "org.jf.smali.Main", "assemble", native_dir,
+            "-o", patched_native)
+
+        resources = io.BytesIO()
+        with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as old, ZipFile(resources, "w", ZIP_DEFLATED) as new:
+            for item in old.infolist():
+                data = old.read(item)
+                new.writestr(item, patch_manifest(data) if item.filename == "AndroidManifest.xml" else data)
+        manifest = base.read("META-INF/MANIFEST.MF")
+        if manifest.count(b"Version: 1.11.1\r\n") != 1:
+            raise ValueError("Expected the stable patch version")
+        overrides = {
+            "META-INF/MANIFEST.MF": manifest.replace(b"Version: 1.11.1\r\n", f"Version: {VERSION}\r\n".encode()),
+            "nicoid/helpers.mpe": merged.read_bytes(),
+            "nicoid/method-delta.dex": patched_native.read_bytes(),
+            "nicoid/resources.zip": resources.getvalue(),
+        }
+        with ZipFile(args.output, "w", ZIP_DEFLATED, compresslevel=9) as output:
+            for item in base.infolist():
+                output.writestr(item, overrides[item.filename] if item.filename in overrides else base.read(item))
+            for license_file in sorted((BASE_ROOT / "licenses").glob("*.txt")):
+                output.write(license_file, "META-INF/" + license_file.name)
+            output.write(lame_license, "META-INF/java-lame-3.98.4-LGPL-3.0.txt")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    for flag in ("base", "tools", "media", "output"):
+        parser.add_argument("--" + flag, type=Path, required=True)
+    parser.add_argument("--apk", type=Path)
+    parser.add_argument("--official-release", action="store_true", help="Build verified v2.0.0 on approved main CI")
+    parser.add_argument("--ci-without-apk", action="store_true",
+                        help="GitHub v2.0.0-dev only: compile against pinned API JARs instead of private APK")
+    parser.add_argument("--compile-jar", action="append", type=Path, default=[])
+    
+    args = parser.parse_args()
+    global VERSION
+    if args.official_release:
+        parser.error("Only a development verification MPP may be produced")
+    if args.base.resolve() == args.output.resolve():
+        parser.error("Use a separate output path")
+    if args.apk is None and (not args.ci_without_apk or len(args.compile_jar) < 2):
+        parser.error("The original APK is required, except for the CI-only checked-source build")
+    if args.apk is not None and args.ci_without_apk:
+        parser.error("Select either an original APK or the CI-only build")
+    if hashlib.sha256(args.base.read_bytes()).hexdigest() != BASE_HASH:
+        parser.error("Expected the official v1.11.1 MPP")
+    with TemporaryDirectory() as folder:
+        build(args, Path(folder))
+    print(args.output)
+
+
+if __name__ == "__main__":
+    main()

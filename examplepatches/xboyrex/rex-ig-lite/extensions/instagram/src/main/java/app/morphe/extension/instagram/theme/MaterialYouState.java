@@ -208,7 +208,7 @@ final class MaterialYouState {
         return cachedNightMask;
     }
 
-    static boolean shouldxboyrexRecreate(
+    static boolean shouldRexRecreate(
             ThemeMode previousMode,
             ThemeMode requestedMode,
             boolean hasNativeAction,

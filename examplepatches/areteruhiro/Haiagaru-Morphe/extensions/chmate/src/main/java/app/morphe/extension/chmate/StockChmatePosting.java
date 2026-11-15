@@ -17,11 +17,14 @@ import java.util.WeakHashMap;
 /** Hands an explicit draft to stock ChMate's exported editor. Never reads cookies or sends a post. */
 public final class StockChmatePosting {
     static final int ACTION=0x7e00000d;
+    static final String ALWAYS="stockPostingAlways";
     static final String LONG_PRESS="stockPostingOnWriteLongPress";
     static final String SKIP_CONFIRM="stockPostingSkipConfirmation";
     static final String SHOW_MENU="stockPostingShowMenu";
+    static final String DISPLAY_MODE="stockPostingDisplayMode";
     private static final String PACKAGE = "jp.co.airfront.android.a2chMate";
     private static final String EDITOR = "jp.syoboi.a2chMate.activity.ResEditActivity";
+    private static final String DIALOG_EDITOR = EDITOR+"$Dialog";
     private static final String HANDOFF = "app.morphe.extension.chmate.STOCK_POST_DRAFT";
     private static final int MENU = 0x48690062;
     private static final Map<Activity, Draft> DRAFTS = new WeakHashMap<>();
@@ -41,6 +44,12 @@ public final class StockChmatePosting {
         String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
         return StockChmatePostingRules.target(NativeThreadContext.url(NativeThreadContext.board(fragment,version),version,0));
     }
+    public static boolean normalClick(Object fragment,int action){
+        if(action!=2||!FeatureSwitches.enabled(ALWAYS,false))return false;
+        Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return false;
+        try{String target=toolbarTarget(fragment,activity);if(target==null)return false;openEditor(activity,target);return true;}
+        catch(Exception unavailable){return false;}
+    }
     public static boolean longClick(Object fragment,android.view.View button){
         if(button==null||button.getId()!=2||!FeatureSwitches.enabled(LONG_PRESS,false))return false;
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return false;
@@ -51,15 +60,19 @@ public final class StockChmatePosting {
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;
         try{
             String target=toolbarTarget(fragment,activity);
-            if(target==null){message(activity,"通常版ChMateで書き込む","エッヂのスレを開いてから利用してください。");return;}
+            if(target==null){message(activity,"通常版ChMateで書き込む","通常版ChMateが対応する板のスレを開いてから利用してください。");return;}
             openEditor(activity,target);
         }catch(Exception unavailable){message(activity,"通常版へ渡せません","現在の投稿先を確認できませんでした。");}
     }
     static Intent editorIntent(String address){
         String target=StockChmatePostingRules.target(address);
-        if(target==null)throw new IllegalArgumentException("エッヂの投稿先を確認できません。");
+        if(target==null)throw new IllegalArgumentException("通常版ChMateへ渡す投稿先を確認できません。");
         // No body/subject extras: retain the stock application's own draft.
-        return new Intent(Intent.ACTION_SENDTO,Uri.parse(target)).setClassName(PACKAGE,EDITOR).putExtra(HANDOFF,true);
+        return new Intent(Intent.ACTION_SENDTO,Uri.parse(target)).setClassName(PACKAGE,editorComponent()).putExtra(HANDOFF,true);
+    }
+    private static String editorComponent(){
+        android.content.Context context=Haiagaru.applicationContextForExtension();
+        return context==null||FeatureSwitches.prefs(context).getInt(DISPLAY_MODE,1)!=0?DIALOG_EDITOR:EDITOR;
     }
     private static void openEditor(Activity activity,String target){
         try{relay(activity,editorIntent(target),null);}
@@ -156,17 +169,17 @@ public final class StockChmatePosting {
 
     static void addSettingsButton(LinearLayout layout, Activity activity) {
         Button button = new Button(activity);
-        button.setAllCaps(false); button.setText("通常版ChMateでエッヂに書き込む"); layout.addView(button);
+        button.setAllCaps(false); button.setText("通常版ChMateで書き込む"); layout.addView(button);
         button.setOnClickListener(view -> message(activity, "通常版ChMateとの書き込み連携",
-                "エッヂの書き込み画面で本文・スレタイを入力し、メニューの「通常版ChMateで書き込む」を選びます。\n\n"
-                + "通常版の書き込み画面へ渡し、通常版に保存されている認証・レベルで送信できます。root・Shizuku・証明書の追加は不要です。\n\n"
+                "書き込み画面で本文・スレタイを入力し、メニューの「通常版ChMateで書き込む」を選びます。\n\n"
+                + "通常版の書き込み画面へ渡し、通常版に保存されている各板の認証情報で送信できます。root・Shizuku・証明書の追加は不要です。\n\n"
                 + "名前・メールは通常版の画面で確認してください。投稿成功の結果を受け取るとHaiagaruへ戻り、渡した下書きを削除します。戻るボタンで中断した場合は下書きを保持します。投稿履歴とCookieは通常版で管理されます。"));
     }
 
     static Intent intent(String target, String body, String subject) {
         StockChmatePostingRules.validate(target, body, subject);
         Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse(target))
-                .setClassName(PACKAGE, EDITOR).putExtra(Intent.EXTRA_TEXT, body).putExtra(HANDOFF, true);
+                .setClassName(PACKAGE, editorComponent()).putExtra(Intent.EXTRA_TEXT, body).putExtra(HANDOFF, true);
         if (StockChmatePostingRules.newThread(target)) intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         return intent;
     }
@@ -175,14 +188,15 @@ public final class StockChmatePosting {
     static boolean isHandoff(Intent intent) {
         if (intent == null || !intent.getBooleanExtra(HANDOFF, false)
                 || !Intent.ACTION_SENDTO.equals(intent.getAction())
-                || !new android.content.ComponentName(PACKAGE, EDITOR).equals(intent.getComponent())) return false;
+                || !(new android.content.ComponentName(PACKAGE, EDITOR).equals(intent.getComponent())
+                    ||new android.content.ComponentName(PACKAGE,DIALOG_EDITOR).equals(intent.getComponent()))) return false;
         String target = StockChmatePostingRules.target(intent.getDataString());
         return target != null && target.equals(intent.getDataString());
     }
 
     private static void confirm(Activity activity) {
         Draft draft = current(activity);
-        if (draft == null) { message(activity, "通常版へ渡せません", "エッヂの書き込み画面から、もう一度お試しください。"); return; }
+        if (draft == null) { message(activity, "通常版へ渡せません", "書き込み画面から、もう一度お試しください。"); return; }
         try { StockChmatePostingRules.validate(draft.target, draft.body.get().getText().toString(), draft.subject()); }
         catch (IllegalArgumentException invalid) { message(activity, "入力内容を確認", invalid.getMessage()); return; }
         catch (Exception unavailable) { message(activity, "通常版へ渡せません", "スレタイを読み取れませんでした。Haiagaruの下書きは保持しています。"); return; }
@@ -192,7 +206,7 @@ public final class StockChmatePosting {
         new HaiagaruDialog.Builder(activity).setTitle("通常版ChMateで書き込む")
                 .setMessage("投稿先: " + draft.target + "\n\n本文" + (StockChmatePostingRules.newThread(draft.target) ? "とスレタイ" : "")
                         + "を通常版の書き込み画面へ渡します。名前・メールを確認し、通常版の画面で送信してください。\n\n"
-                        + "通常版のエッヂ認証・レベルを使います。投稿成功の結果を受け取るとHaiagaruへ戻り、渡した下書きを削除します。戻るボタンで中断した場合は下書きを保持します。")
+                        + "通常版に保存されている各板の認証情報を使います。投稿成功の結果を受け取るとHaiagaruへ戻り、渡した下書きを削除します。戻るボタンで中断した場合は下書きを保持します。")
                 .setView(options).setNegativeButton("戻る", null).setPositiveButton("通常版へ渡す", (dialog, which) -> {
                     FeatureSwitches.prefs(activity).edit().putBoolean(SKIP_CONFIRM,skip.isChecked()).apply();
                     launch(activity,draft);

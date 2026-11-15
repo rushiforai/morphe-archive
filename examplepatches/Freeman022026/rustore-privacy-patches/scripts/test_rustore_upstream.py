@@ -6,12 +6,12 @@ import json
 import tempfile
 from pathlib import Path
 
-from rustore_upstream import APPLICATION_SUPER_ON_CREATE, inventory_diff, promote, readable_packages, startup_cancellation_blocks, verify_after_super_on_create, verify_auto_update_guard, verify_device_identifier_stub, verify_google_ad_id_stub, verify_instruction_prefix, push_service_cleanup_prefix
+from rustore_upstream import APPLICATION_SUPER_ON_CREATE, AUTO_UPDATE_CONTROLLER_DESCRIPTOR, EMPTY_MAP_STUB, FALSE_STUB, inventory_diff, promote, readable_packages, startup_cancellation_blocks, verify_after_super_on_create, verify_auto_update_guard, verify_device_identifier_stub, verify_google_ad_id_stub, verify_instruction_prefix, push_service_cleanup_prefix
 
 
 def main() -> None:
-    unit_stub = ["sget-object v0, Lsu0/e0;->a:Lsu0/e0;", "return-object v0"]
-    for expected in (unit_stub, ["return-void"], push_service_cleanup_prefix()):
+    unit_stub = ["sget-object v0, Lru0/e0;->a:Lru0/e0;", "return-object v0"]
+    for expected in (unit_stub, EMPTY_MAP_STUB, FALSE_STUB, ["return-void"], push_service_cleanup_prefix()):
         code = (".method public test\n.registers 4\n"
                 ".annotation system Ldalvik/annotation/Signature;\n"
                 'value = { "Ljava/util/List;" }\n.end annotation\n' + "\n".join(expected))
@@ -63,14 +63,15 @@ def main() -> None:
         pass
     else:
         raise AssertionError("Active network policy loader passed")
-    guard = '''invoke-static {p1}, Lwl1/l;->a(Lvl1/c;)Z
+    controller = AUTO_UPDATE_CONTROLLER_DESCRIPTOR
+    guard = f'''invoke-static {{p1}}, {controller}->a(Lrl1/c;)Z
 move-result v0
 if-eqz v0, :blocked
-iget-boolean v0, p1, Lvl1/c;->f:Z
+iget-boolean v0, p1, Lrl1/c;->f:Z
 if-eqz v0, :blocked
-iget-boolean p1, p1, Lvl1/c;->g:Z
+iget-boolean p1, p1, Lrl1/c;->g:Z
 if-eqz p1, :blocked
-iget-object p1, p0, Lwl1/l;->v:Lsx2/b;
+iget-object p1, p0, {controller}->v:Ley2/b;
 const/4 p1, 0x0
 if-nez p1, :blocked
 const/4 p1, 0x1
@@ -80,8 +81,8 @@ const/4 p1, 0x0
 return p1'''
     verify_auto_update_guard(guard)
     for broken in ("const/4 v0, 0x0\nreturn v0\n" + guard,
-                   guard.replace("const/4 p1, 0x0", "iget-boolean p1, p1, Lsx2/b;->c:Z", 1),
-                   guard.replace("iget-boolean p1, p1, Lvl1/c;->g:Z", "const/4 p1, 0x1")):
+                   guard.replace("const/4 p1, 0x0", "iget-boolean p1, p1, Ley2/b;->c:Z", 1),
+                   guard.replace("iget-boolean p1, p1, Lrl1/c;->g:Z", "const/4 p1, 0x1")):
         try:
             verify_auto_update_guard(broken)
         except RuntimeError:

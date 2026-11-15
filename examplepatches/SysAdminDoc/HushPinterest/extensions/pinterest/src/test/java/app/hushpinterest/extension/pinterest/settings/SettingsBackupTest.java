@@ -249,15 +249,17 @@ public class SettingsBackupTest {
                         Settings.EXTERNAL_BROWSER, Settings.SYSTEM_SHARE,
                         Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
                         Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
-                        Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU,
+                        Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET,
                         Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
                         Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
                         Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
                         Settings.SMALLER_SAVE_BUTTON,
                         Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
-                        Settings.HIDE_PIN_MENU_PIN_BOOST, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS,
+                        Settings.HIDE_PIN_MENU_PIN_BOOST, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
+                        Settings.HIDE_TOPIC_SUGGESTIONS,
                         Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
-                        Settings.SHOW_POSTED_DATE, Settings.DISABLE_UPDATE_NAG, Settings.FIX_PUSH_NOTIFICATIONS),
+                        Settings.SHOW_POSTED_DATE, Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
+                        Settings.DISABLE_UPDATE_NAG, Settings.FIX_PUSH_NOTIFICATIONS),
                 SettingsBackup.ALLOWLIST);
     }
 

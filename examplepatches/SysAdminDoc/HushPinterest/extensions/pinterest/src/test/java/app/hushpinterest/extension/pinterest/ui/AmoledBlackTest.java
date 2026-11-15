@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -71,6 +72,7 @@ public class AmoledBlackTest {
         Settings.BLACK_BOTTOM_BAR.resetToDefault();
         Settings.BLACK_COMMENTS.resetToDefault();
         Settings.BLACK_PIN_MENU.resetToDefault();
+        Settings.BLACK_SAVE_SHEET.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
         AmoledBlack.searchText = -1;
@@ -413,6 +415,52 @@ public class AmoledBlackTest {
         View inMenu = fill(menu, 4, new ColorDrawable(REACTIONS));
         AmoledBlack.pinMenu(menu);
         assertEquals("a pin's menu doesn't paint the header", REACTIONS, ((ColorDrawable) inMenu.getBackground()).getColor());
+    }
+
+    /**
+     * The Save to sheet (#31) is handed over before it has a background. Pinterest then gives it a
+     * transition between a rounded gray card, while it's part way up, and a square one all the way up.
+     * Both turn black on the next layout pass, and the red Create new board button stays red while
+     * the gray footer row under it turns black. Painting mutates the transition, which rebuilds its
+     * layers, so they're read back from the view.
+     */
+    @Test public void theSaveToSheetTurnsBlackOnceItHasItsBackgroundAndOffGivesTheGrayBack() {
+        Settings.BLACK_SAVE_SHEET.save(true);
+        FrameLayout root = sheet(true, "draggable_sheet", "gestalt_sheet_header", "footer_container");
+        View draggable = fill(root, 1, null);
+        View header = fill(root, 2, null);
+        View footer = fill(root, 3, new ColorDrawable(REACTIONS));
+        View button = fill(root, View.NO_ID, new ColorDrawable(0xFFE60023));
+        AmoledBlack.saveSheet(root);
+        GradientDrawable partWay = solid();
+        partWay.setCornerRadius(32f);
+        GradientDrawable allTheWay = solid();
+        draggable.setBackground(new TransitionDrawable(new Drawable[] {partWay, allTheWay}));
+        header.setBackground(new ColorDrawable(ELEVATION));
+        root.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, layer(draggable, 0));
+        assertEquals("all the way up too", Color.BLACK, layer(draggable, 1));
+        assertEquals("still rounded part way up", 32f, ((GradientDrawable) ((LayerDrawable) draggable.getBackground()).getDrawable(0)).getCornerRadius(), 0f);
+        assertEquals(Color.BLACK, ((ColorDrawable) header.getBackground()).getColor());
+        assertEquals("the row under the button", Color.BLACK, ((ColorDrawable) footer.getBackground()).getColor());
+        assertEquals("the Create new board button keeps its red", 0xFFE60023, ((ColorDrawable) button.getBackground()).getColor());
+        Settings.BLACK_SAVE_SHEET.save(false);
+        root.layout(0, 0, 320, 520);
+        assertEquals(ELEVATION, layer(draggable, 0));
+        assertEquals(ELEVATION, layer(draggable, 1));
+        assertEquals(ELEVATION, ((ColorDrawable) header.getBackground()).getColor());
+        assertEquals(REACTIONS, ((ColorDrawable) footer.getBackground()).getColor());
+        Settings.BLACK_SAVE_SHEET.save(true);
+        FrameLayout light = sheet(false, "draggable_sheet");
+        View lightSheet = fill(light, 1, new TransitionDrawable(new Drawable[] {solid(), solid()}));
+        AmoledBlack.saveSheet(light);
+        light.layout(0, 0, 320, 480);
+        assertEquals("light mode stays as it is", ELEVATION, layer(lightSheet, 0));
+    }
+
+    /** The color of [view]'s background layer [index], a solid shape. */
+    private static int layer(View view, int index) {
+        return ((GradientDrawable) ((LayerDrawable) view.getBackground()).getDrawable(index)).getColor().getDefaultColor();
     }
 
     @Test public void eachSheetFollowsItsOwnSwitchAndLightModeIsLeftAlone() {

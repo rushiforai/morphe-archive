@@ -21,11 +21,6 @@ public final class SeyttingsBridge {
     @JavascriptInterface
     public void open() {
         final Context target = context;
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Seyttings.show(target);
-            }
-        });
+        new Handler(Looper.getMainLooper()).post(() -> Seyttings.show(target));
     }
 }

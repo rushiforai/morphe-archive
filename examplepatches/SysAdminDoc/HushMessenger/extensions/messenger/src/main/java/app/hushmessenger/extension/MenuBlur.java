@@ -9,8 +9,10 @@ import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -22,7 +24,8 @@ import java.util.function.Predicate;
 /**
  * Blur behind menus (#162). Every sheet, menu and dialog Messenger opens from a DialogFragment comes through shown()
  * right after it's shown, the long-press menu on a chat included. When its window dims the screen behind it, the switch
- * blurs that screen instead, the way an iPhone does, and keeps a light dim so the sheet still stands out.
+ * blurs that screen instead, the way an iPhone does, and keeps a light dim so the sheet still stands out. The menu a long
+ * press on a message opens draws its own dim, so it's found by its view and blurs the chat under its dim.
  * Window blur needs Android 12. Where the phone can't blur behind a window (some Samsung phones never report it, and
  * battery saver turns it off), the Messenger screen under the menu blurs itself until the menu's window goes away. A menu with no
  * Messenger screen under it keeps Messenger's own dim. Public, since the call comes from androidx's DialogFragment in
@@ -34,6 +37,10 @@ public final class MenuBlur {
     static final int RADIUS_DP = 24;
     /** The most dim left over the blur. */
     static final float DIM = 0.25f;
+    /** The view a long press on a message fills its menu's window with. */
+    static final String MESSAGE_MENU = "com.facebook.messaging.reactions.MessageReactionsOverlayView";
+    /** How many views of a dialog to look through for that menu before giving up. */
+    static final int MENU_SEARCH_LIMIT = 64;
 
     /** Whether this window can blur what's behind it right now. Tests swap it. */
     static Predicate<Window> available = MenuBlur::crossWindowBlur;
@@ -49,34 +56,56 @@ public final class MenuBlur {
 
     private MenuBlur() {}
 
-    /** Blurs the screen behind a dialog that dims it. Anything else, and Off, Pause or safe mode, leave the window as it is. */
+    /**
+     * Blurs the screen behind a dialog that dims it, or behind the menu a long press on a message opens. Anything else,
+     * and Off, Pause or safe mode, leave the window as it is.
+     */
     public static void shown(Dialog dialog) {
         try {
             if (dialog == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !dialog.isShowing()) return;
             Window window = dialog.getWindow();
             if (window == null) return;
             WindowManager.LayoutParams attributes = window.getAttributes();
-            if ((attributes.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) == 0 || attributes.dimAmount <= 0f) return;
+            boolean dims = (attributes.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) != 0 && attributes.dimAmount > 0f;
+            if (!dims && !holdsMessageMenu(window.peekDecorView())) return;
             if (!Settings.enabled(KEY)) return;
-            if (available.test(window)) blur(window, attributes);
-            else blurScreen(dialog, window, attributes);
+            if (available.test(window)) blur(window, attributes, dims);
+            else blurScreen(dialog, window, attributes, dims);
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Couldn't blur behind a menu", error);
         }
     }
 
+    /**
+     * Whether this window holds the menu a long press on a message opens. That menu covers the chat with a window
+     * that draws its own dim, so the system never dims behind it. Every supported 587 build keeps the class name.
+     */
+    static boolean holdsMessageMenu(View root) {
+        if (root == null) return false;
+        ArrayDeque<View> queue = new ArrayDeque<>();
+        queue.add(root);
+        for (int looked = 0; !queue.isEmpty() && looked < MENU_SEARCH_LIMIT; looked++) {
+            View view = queue.poll();
+            if (MESSAGE_MENU.equals(view.getClass().getName())) return true;
+            if (!(view instanceof ViewGroup)) continue;
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+        }
+        return false;
+    }
+
     @TargetApi(Build.VERSION_CODES.S)
-    private static void blur(Window window, WindowManager.LayoutParams attributes) {
+    private static void blur(Window window, WindowManager.LayoutParams attributes, boolean dims) {
         WindowManager.LayoutParams changed = new WindowManager.LayoutParams();
         changed.copyFrom(attributes);
         changed.flags |= WindowManager.LayoutParams.FLAG_BLUR_BEHIND;
         changed.setBlurBehindRadius(radius(window));
-        changed.dimAmount = Math.min(attributes.dimAmount, DIM);
+        if (dims) changed.dimAmount = Math.min(attributes.dimAmount, DIM);
         window.setAttributes(changed);
     }
 
     /** The phone can't blur across windows, so the Messenger screen the menu opened over blurs its own drawing. */
-    private static void blurScreen(Dialog dialog, Window window, WindowManager.LayoutParams attributes) {
+    private static void blurScreen(Dialog dialog, Window window, WindowManager.LayoutParams attributes, boolean dims) {
         // A menu dismissed before its window ever attached never says it's gone; let go of those first.
         for (Dialog held : new ArrayList<>(holders.keySet())) if (held != dialog && !held.isShowing()) release(held);
         if (holders.containsKey(dialog)) return;
@@ -88,7 +117,7 @@ public final class MenuBlur {
         if (held == null) screenEffect.accept(screen, (float) radius(window));
         blurredScreens.put(screen, held == null ? 1 : held + 1);
         holders.put(dialog, screen);
-        window.setDimAmount(Math.min(attributes.dimAmount, DIM));
+        if (dims) window.setDimAmount(Math.min(attributes.dimAmount, DIM));
         if (watched.add(dialog)) window.getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override public void onViewAttachedToWindow(View view) {}
 

@@ -74,34 +74,23 @@ public final class EmoteSection implements MorpheSection {
         container.addView(hint, MorpheTheme.matchWidth());
 
         final Handler handler = new Handler(Looper.getMainLooper());
-        final Runnable refresh = new Runnable() {
-            @Override
-            public void run() {
-                status.setText(EmoteRepository.getSummary());
-            }
-        };
+        final Runnable refresh = () -> status.setText(EmoteRepository.getSummary());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean enabled = enable.isChecked();
-                EmotePrefs.setEnabled(enabled);
-                reload.setEnabled(enabled);
-                reload.setAlpha(enabled ? 1f : 0.45f);
-                if (enabled) {
-                    EmoteRepository.ensureStarted();
-                }
+        enable.setOnClickListener(v -> {
+            boolean enabled = enable.isChecked();
+            EmotePrefs.setEnabled(enabled);
+            reload.setEnabled(enabled);
+            reload.setAlpha(enabled ? 1f : 0.45f);
+            if (enabled) {
+                EmoteRepository.ensureStarted();
             }
         });
 
-        reload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                status.setText("Reloading...");
-                EmoteRepository.reload();
-                handler.removeCallbacks(refresh);
-                handler.postDelayed(refresh, 4000);
-            }
+        reload.setOnClickListener(v -> {
+            status.setText("Reloading...");
+            EmoteRepository.reload();
+            handler.removeCallbacks(refresh);
+            handler.postDelayed(refresh, 4000);
         });
     }
 }

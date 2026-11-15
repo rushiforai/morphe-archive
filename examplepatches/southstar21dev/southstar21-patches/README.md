@@ -5,11 +5,18 @@
   </picture>
 </p>
 
+<p align="center">
+  <img src=".github/readme/liquid-glass-ios-style.gif" width="400" alt="The iOS style Liquid Glass bar: a grey capsule glides between tabs, and the bar zooms in, turns liquid and rubber-bands past its ends while dragged">
+  <img src=".github/readme/liquid-glass-southstar21-style.gif" width="400" alt="The southstar21 style Liquid Glass bar: pressing swells the selection into a drop of clear glass with rainbow edges, dragged between tabs while the bar shrinks back behind it">
+  <br>
+  <sub>The Liquid Glass bar in its iOS style (left) and southstar21 style (right), recorded in the settings' live preview.</sub>
+</p>
+
 <h3 align="center">Patches for Instagram, made with Morphe.</h3>
 
 <p align="center">
-  A Liquid Glass tab bar from iOS 26, Reels gone from your feed, full size profile pictures<br>
-  and a settings menu inside the app to switch each one on and off.
+  A Liquid Glass tab bar from iOS 26, Reels gone from your feed, a daily time budget for scrolling,<br>
+  full size profile pictures and a settings menu inside the app to switch each one on and off.
 </p>
 
 <p align="center">
@@ -22,8 +29,9 @@
 
 <p align="center">
   <a href="https://github.com/southstar21dev/southstar21-patches/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/southstar21dev/southstar21-patches?sort=semver&label=release&style=flat-square&color=1F1A17"></a>
+  <a href="https://github.com/southstar21dev/southstar21-patches/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/southstar21dev/southstar21-patches/total?label=downloads&style=flat-square&color=1F1A17"></a>
   <a href="https://github.com/southstar21dev/southstar21-patches/actions/workflows/release.yml"><img alt="Release" src="https://img.shields.io/github/actions/workflow/status/southstar21dev/southstar21-patches/release.yml?branch=main&label=build&style=flat-square"></a>
-  <img alt="Instagram 453.0.0.57.79" src="https://img.shields.io/badge/Instagram-453.0.0.57.79-1F1A17?style=flat-square&logo=instagram&logoColor=F5ECD7">
+  <img alt="Instagram 454.0.0.54.77" src="https://img.shields.io/badge/Instagram-454.0.0.54.77-1F1A17?style=flat-square&logo=instagram&logoColor=F5ECD7">
   <a href="https://morphe.software"><img alt="Morphe" src="https://img.shields.io/badge/Morphe-patches-1F1A17?style=flat-square"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-1F1A17?style=flat-square"></a>
 </p>
@@ -43,22 +51,23 @@ Patched apps are signed with a different key, so uninstall the Play Store versio
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/southstar21dev/southstar21-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.2.1](https://github.com/southstar21dev/southstar21-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 453.0.0.57.79 |
+| 454.0.0.54.77 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Bypass signature check](#bypass-signature-check) | Stops Instagram rejecting apps by their signature, which a patched app no longer matches. |  |
+| [Conscious gate](#conscious-gate) | Gives the home feed, Reels, Explore and stories a daily time budget. In the last 15 seconds they frost over and can only be scrolled, then a gate closes them until the next day. Searching for people, messages and profiles keep working. Off until you switch it on in the settings. |  |
 | [Disable Reels](#disable-reels) | Removes reels from the home feed and Explore, and stops scrolling from one reel to the next. Each part is off until you switch it on in the settings. |  |
 | [Hide ads](#hide-ads) | Removes sponsored posts, stories and reels, and ad units in the home feed. Each part can be switched off in the settings. |  |
-| [Hide navigation buttons](#hide-navigation-buttons) | Adds settings to hide Search, Reels, Create, Messages and other tabs from the bottom bar. |  |
+| [Hide navigation buttons](#hide-navigation-buttons) | Adds settings to hide Search, Reels, Create, Messages and other tabs from the bottom bar. Every tab stays until you hide it in the settings. |  |
 | [Liquid Glass navigation bar](#liquid-glass-navigation-bar) | Turns the bottom tab bar into a floating iOS 26 style Liquid Glass pill with live background blur and edge refraction. Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. | • Blur radius<br>• Refraction strength<br>• Extend content behind bar |
 | [Remove build expired popup](#remove-build-expired-popup) | Removes the popup that appears after a while, when the app version ages. |  |
 | [View profile picture](#view-profile-picture) | Adds a button on the profile picture of profile pages that shows the profile picture in full resolution and saves it to the gallery. |  |
@@ -73,15 +82,23 @@ Instagram's iOS 26 Liquid Glass design on Android, matched against screen record
 
 - **Floating glass tab bar.** A frosted pill with live background blur, a subtle refracting rim and a grey capsule behind the selected tab.
 - **Shrinks while scrolling.** Scrolling down scales the whole bar down (every tab stays visible and tappable), scrolling up brings it back.
-- **Gliding selection.** Drag along the bar to slide the selection between tabs as clear glass, with a haptic tick per tab; let go to open the tab underneath.
+- **Gliding selection.** Drag along the bar to slide the grey selection capsule between tabs, as on iOS, with a haptic tick per tab; let go to open the tab underneath. Switch on *Glass while dragging* to turn the capsule into clear glass while it moves.
 - **Adaptive tint.** The glass frosts more when what's behind it would make the icons hard to read, and turns dark on Reels and in dark mode.
+- **Videos blur too.** Instagram normally plays videos in a separate layer apps can't see, which would leave the glass solid over them. *Blur videos behind the bar* (on by default) switches the player to Instagram's other way of drawing video, so the glass and the blur at the bottom of the screen blur videos like the rest of the feed.
+- **southstar21 style.** An optional switch in the settings menu (off by default) gives the bar thicker glass that bends what's behind it towards the edges. A press swells the selection into a drop of clear glass that bends what's under its rim outward, with rainbow fringes at the edge; it wobbles, stretches as you drag it and ticks over each tab. The bar shrinks back behind the drop, leans and glows under your finger.
+- **Customize navbar.** A page in the settings menu with a live preview of the bar pinned at the top: tap and drag along it, scroll the sample feed under it, and it changes as you move each slider.
+  - **Under the preview:** light or dark, three backdrops (photos, text, colors), pause, hold to compare with the default look, and one-tap presets (iOS, Clear, Frosted, Bold, Minimal, Neon).
+  - **A "?" on every setting** opens a short demo: the bar sweeps that one setting from low to high on its own, acting out a drag, taps or scrolling where that's what shows it. The demos are drawn live, so they add no files.
+  - **Glass:** blur, refraction, opacity, vibrancy, clear edge, rim, end glare, shadow and a tint color.
+  - **Shape:** height, side margin, bottom gap, roundness and tab inset.
+  - **Selection:** shade, width, inset, 3D pill, edge colors and drop size.
 - Taps, double taps and long presses on the tabs still go to Instagram untouched.
 
 Android 13+ gets the full effect, Android 12 gets blur without refraction, and older versions get a translucent tinted pill.
 
 | Option | Default | |
 |---|---|---|
-| Blur radius | 12 dp | How frosted the glass is (0 to 40). |
+| Blur radius | 4 dp | How frosted the glass is (0 to 40). iOS Instagram barely blurs. |
 | Refraction strength | 60 | How strongly the edge bends what's behind it (0 to 100). |
 | Extend content behind bar | on | Lets feeds scroll under the bar so there's something to see through the glass. |
 
@@ -89,6 +106,33 @@ Android 13+ gets the full effect, Android 12 gets blur without refraction, and o
 <summary>How it works</summary>
 
 A hook in `InstagramMainActivity.onWindowFocusChanged` (an unobfuscated method, so it should survive app updates) starts the extension, which finds the tab bar by its resource name and gives it a background drawable that re-records the views behind it into a `RenderNode` each frame, then runs that through a blur and an AGSL refraction shader.
+
+</details>
+
+### Conscious gate
+
+A daily time budget for the parts of Instagram made for endless scrolling, so you can still check in every day but stop where you chose to. Off by default: select it in Morphe Manager to include it, then switch it on from its page in the [settings menu](#settings-menu).
+
+- **One shared budget.** The home feed, Reels, Explore, stories and post feeds share one daily budget, counted only while one of them is on screen. Messages, searching for people and profiles keep working the whole time.
+- **Frost, then the gate.** In the last 15 seconds the gated screens frost over and can only be scrolled, with a badge counting down. Then a gate closes them until the new day starts and pauses Reels and stories. The tab bar stays usable, and swiping to Create or Messages still works.
+- **Extra time, on purpose.** The gate can give you a few more minutes, but its button counts down first, so taking more time is a choice rather than a reflex.
+- **Schedules.** Quiet hours keep the screens closed overnight, and a morning start keeps them closed until a set time.
+
+| Setting | Default | |
+|---|---|---|
+| Gated screens | all on | Home feed, Reels, Explore, Stories and Post feeds, each with its own switch. Your own posts and saved posts stay open. |
+| Weekday / weekend time | 20 / 30 min | The budget for Monday to Friday and for the weekend. |
+| New day starts at | 4:00 | Scrolling after midnight still counts towards the night before. |
+| Quiet hours | off | Closed from 23:00 until 07:00, both adjustable. |
+| Morning start | off | Closed each morning until 09:00, adjustable. |
+| Extra minutes | 5 min, once a day | How much the gate's button adds and how often; 0 times turns it off. |
+| Wait before extending | 10 s | How long the button counts down before it can be used. |
+| Gate message | | Your own words on the gate, instead of "That's the feed for today". |
+
+<details>
+<summary>How it works</summary>
+
+The extension runs from the same main activity hook as the rest of the patches and counts time on a timer while the app is in focus. Each gated screen's largest list (or the whole screen for stories) is found by walking the view tree of its fragment; it is frosted with a `RenderEffect` blur on Android 12+ plus a tint, and a gate view placed over it lets drags through to the list while frosting, swallows taps once closed, and hands sideways swipes to Instagram's swipe navigation.
 
 </details>
 

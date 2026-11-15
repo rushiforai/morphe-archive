@@ -67,6 +67,20 @@ class CodeMatchTest {
             val match = MemberMatch(id)
             refs.forEach { assertEquals((it is MethodReference || it is FieldReference) && it.toString() == id, match.matches(it), "$what member $id at $it") }
         }
+        val table = MemberTable(members.withIndex().associate { (index, id) -> id to index })
+        refs.forEach { ref ->
+            val expected = if (ref is MethodReference || ref is FieldReference) members.indexOf(ref.toString()).takeIf { it >= 0 } else null
+            assertEquals(expected, table[ref], "$what table at $ref")
+        }
+        // One id per table, so the other members come back null both ways: a name the table doesn't hold, and a name it
+        // holds on another member (Target's `name` field and method against Other's).
+        for (id in members) {
+            val single = MemberTable(mapOf(id to 0))
+            refs.forEach { ref ->
+                val expected = if ((ref is MethodReference || ref is FieldReference) && ref.toString() == id) 0 else null
+                assertEquals(expected, single[ref], "$what table of $id at $ref")
+            }
+        }
     }
 
     @Test fun matchersAnswerLikeTheComparisonsTheyReplace() {
@@ -80,6 +94,11 @@ class CodeMatchTest {
         assertEquals(1, read.count { MemberMatch("$target->name:Ljava/lang/String;").matches(it) })
         assertEquals(1, read.count { MemberMatch("$target->name(Ljava/lang/String;)V").matches(it) })
         assertEquals(0, read.count { MemberMatch("Lfixture/Missing;->name:Ljava/lang/String;").matches(it) })
+        // The table finds both members named `name` on Target and the constructor, and nothing for a string that reads like an id.
+        val table = MemberTable(members.associateWith { it })
+        assertEquals(setOf("$target-><init>()V", "$target->name:Ljava/lang/String;", "$target->name(Ljava/lang/String;)V",
+            "Lfixture/Other;->name:Ljava/lang/String;"), read.mapNotNull { table[it] }.toSet())
+        assertEquals(null, MemberTable(mapOf("$target" to 1))[read.first { it is StringReference && it.string == target }])
     }
 
     @Test fun oneMatcherFollowsEachDexFilesOwnIndexes() {

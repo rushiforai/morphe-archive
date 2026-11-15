@@ -20,8 +20,74 @@ public final class GmsCore {
     static final int SERVICE_MISSING = 1;
     /** Play services' ConnectionResult.SERVICE_DISABLED. */
     static final int SERVICE_DISABLED = 3;
+    /** The cloud messaging permission GmsCore support's manifest edit asks for in place of Google's. */
+    static final String MICROG_RECEIVE = "app.revanced.android.c2dm.permission.RECEIVE";
+    /** Google Play services' package, which the patch leaves alone in HushMessenger's own classes. */
+    static final String PLAY_SERVICES = "com.google.android.gms";
 
     private GmsCore() {
+    }
+
+    /**
+     * True in an app GmsCore support was patched into. The patch rewrites this; the extension alone answers false. It
+     * holds on a Root Mount install too, which keeps the stock manifest.
+     */
+    static boolean bundled() {
+        return false;
+    }
+
+    /**
+     * True when GmsCore support was patched in: the patch's own mark in the code, or the cloud messaging permission
+     * its manifest edit asks for.
+     */
+    static boolean patchedIn(Context context) {
+        if (bundled()) return true;
+        try {
+            String[] requested = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
+            if (requested != null) for (String permission : requested) if (MICROG_RECEIVE.equals(permission)) return true;
+        } catch (PackageManager.NameNotFoundException | RuntimeException unreadable) {
+            // A package manager that can't answer for Messenger itself says nothing about the patch.
+        }
+        return false;
+    }
+
+    /**
+     * True when GmsCore support was patched in but microG-RE is missing or turned off. The patch points every Play
+     * services name at microG-RE, so Messenger then can't get notifications through Google's push service.
+     */
+    static boolean withoutPush(Context context) {
+        try {
+            return patchedIn(context) && availability(context) != SUCCESS;
+        } catch (RuntimeException unreadable) {
+            // A package manager that stops answering mid-check isn't a reason to warn, or to break the settings header.
+            return false;
+        }
+    }
+
+    /** Which push service Messenger is set up to use, for Copy setup text. It reads what's installed and enabled. */
+    static String pushRoute(Context context) {
+        try {
+            return route(context);
+        } catch (RuntimeException unreadable) {
+            return "unknown, the package manager didn't answer";
+        }
+    }
+
+    private static String route(Context context) {
+        if (patchedIn(context)) {
+            switch (availability(context)) {
+                case SUCCESS: return "microG-RE";
+                case SERVICE_DISABLED: return "none, GmsCore support is patched in and microG-RE is turned off";
+                default: return "none, GmsCore support is patched in and microG-RE isn't installed";
+            }
+        }
+        try {
+            ApplicationInfo app = context.getPackageManager().getApplicationInfo(PLAY_SERVICES, 0);
+            return app.enabled ? "Google Play services" : "none, Google Play services is turned off";
+        } catch (PackageManager.NameNotFoundException missing) {
+            return "none, no Google Play services";
+        }
     }
 
     /**

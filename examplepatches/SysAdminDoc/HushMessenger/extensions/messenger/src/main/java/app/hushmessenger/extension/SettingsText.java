@@ -109,6 +109,7 @@ final class SettingsText {
         ENGLISH.put("preview_title", "HushMessenger UI preview");
         ENGLISH.put("preview_notice", "UI preview. These controls don't change Messenger.");
         ENGLISH.put("mounted_build_mismatch", "This was patched from Messenger %1$d, but Android has %2$d installed. Patch %2$d for Root Mount, or chat heads and other screens can crash.");
+        ENGLISH.put("gmscore_without_microg", "GmsCore support is patched in, but microG-RE isn't installed or is turned off, so Messenger can't get notifications through Google's push service. Install microG-RE, or patch again without GmsCore support.");
         ENGLISH.put("open", "Open");
         ENGLISH.put("open_messenger", "Open Messenger");
         ENGLISH.put("back", "Back");

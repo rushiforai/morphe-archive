@@ -9,11 +9,11 @@ package app.rex.patches.twitter.ads.timelineEntryHook
 import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val hideRecommendationItemsPatch =
-    bytecodePatch(
+    patch(
         name = "Hide recommendation items",
         description = "Adds options to hide recommendation items such as \"Who to follow\" and \"Today's news\" in timeline, search, and replies.",
     ) {

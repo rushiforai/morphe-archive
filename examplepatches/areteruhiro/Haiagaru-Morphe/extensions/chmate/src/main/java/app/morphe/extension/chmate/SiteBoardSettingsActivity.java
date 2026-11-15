@@ -22,6 +22,7 @@ public final class SiteBoardSettingsActivity extends Activity {
         Button back=new Button(this);back.setText("掲示板設定へ戻る");back.setOnClickListener(v->finish());rows.addView(back);
         TextView help=new TextView(this);help.setText("標準の「掲示板設定」にある「エッヂ」「オルグ板」「爆サイ」「ふたば」「あにまん」で「使用する」をオンにし、「板一覧を取得/更新」を押してください。板一覧に追加されます。これらのサイト設定は初期ONです。\nここでは認証や個別の板・スレURLの手動登録を行えます。新規スレ・画像添付は対応準備中です。");rows.addView(help);
         Button add=new Button(this);add.setText("板・スレのURLを登録");add.setOnClickListener(v->add());rows.addView(add);
+        Button ranking=new Button(this);ranking.setText("ふたばの勢いランキング（ふたぽ）");ranking.setOnClickListener(v->FutabaRanking.show(this));rows.addView(ranking);
         Button listLimit=new Button(this);listLimit.setText("スレ一覧の表示件数（ふたば・爆サイ／板別）");listLimit.setOnClickListener(v->selectListLimitBoard());rows.addView(listLimit);
         Button menu=new Button(this);menu.setText("板一覧から追加");menu.setOnClickListener(v->new AlertDialog.Builder(this).setTitle("掲示板を選択").setItems(new String[]{"爆サイ","ふたば","あにまん"},(d,n)->{
             String kind=new String[]{"bakusai","futaba","animanch"}[n];if(n==0)new AlertDialog.Builder(this).setTitle("爆サイの地域").setItems(SiteBoardMenuProtocol.REGION_NAMES,(r,index)->loadMenu(kind,index)).setNegativeButton("キャンセル",null).show();else loadMenu(kind,0);

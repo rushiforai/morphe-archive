@@ -63,14 +63,11 @@ public final class MatureWarningSection implements SeyttingsSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean enabled = enable.isChecked();
-                MatureWarningPrefs.setEnabled(enabled);
-                status.setText(valueText());
-                MatureWarningInjector.setEnabled(enabled);
-            }
+        enable.setOnClickListener(v -> {
+            boolean enabled = enable.isChecked();
+            MatureWarningPrefs.setEnabled(enabled);
+            status.setText(valueText());
+            MatureWarningInjector.setEnabled(enabled);
         });
     }
 

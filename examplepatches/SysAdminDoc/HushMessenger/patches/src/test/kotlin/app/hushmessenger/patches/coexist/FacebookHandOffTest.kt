@@ -93,6 +93,30 @@ class FacebookHandOffTest {
         assertTrue(findFacebookHandOffs(listOf(fixtureClass("LX/Aaa;", listOf(hands)))).isEmpty())
     }
 
+    // #174: Morphe's Spoof signature runs first when it's picked too, and makes each getPackageInfo a static call of its
+    // wrapper with the manager in front. The install test still asks about the Facebook app, so it still follows the clone.
+    @Test fun aGetPackageInfoThroughMorphesSpoofSignatureIsStillAHandOff() {
+        fun probe(call: String) = fixtureMethod("LX/Ddd;->A00(${PM})Z", """
+            const-string v0, "com.facebook.katana"
+            const/4 v1, 0x0
+            $call
+            move-result-object v0
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent(), 3, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+        val stock = probe("invoke-virtual {p0, v0, v1}, $PM->getPackageInfo(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;")
+        val wrapped = probe("invoke-static {p0, v0, v1}, Lapp/morphe/extension/signature/SignatureSpoof;->getPackageInfo(${PM}Ljava/lang/String;I)Landroid/content/pm/PackageInfo;")
+        for (method in listOf(stock, wrapped)) {
+            val found = findFacebookHandOffs(listOf(fixtureClass("LX/Ddd;", listOf(method))))
+            assertEquals(setOf("${method.hookId()}@0"), found)
+            applyFacebookHandOffs(listOf(method to 0), KATANA_CLONE)
+            assertEquals(listOf(KATANA_CLONE), method.stringLoads())
+        }
+        // A wrapper whose first argument isn't the manager tells nothing about what it asks.
+        val other = probe("invoke-static {p0, v0, v1}, Lapp/morphe/extension/signature/SignatureSpoof;->getPackageInfo(Ljava/lang/Object;Ljava/lang/String;I)Landroid/content/pm/PackageInfo;")
+        assertTrue(findFacebookHandOffs(listOf(fixtureClass("LX/Ddd;", listOf(other)))).isEmpty())
+    }
+
     @Test fun aMethodTheAnalysisCantFollowStopsThePatchByName() {
         // A goto into the middle of the load, which the register analysis can't follow.
         val broken = ImmutableMethod("LX/Ccc;", "A00", null, "V", AccessFlags.STATIC.value, null, null,

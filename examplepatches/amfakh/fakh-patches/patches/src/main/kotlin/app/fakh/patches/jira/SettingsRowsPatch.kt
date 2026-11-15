@@ -50,6 +50,12 @@ val settingsRowsPatch = bytecodePatch {
     dependsOn(fakhPatchesPagePatch)
 
     execute {
+        // The page's onMAMCreate starts with the superclass's own, which the extension cannot name at compile time.
+        mutableClassDefBy("L${PAGE.replace('.', '/')};").methods.first { it.name == "onMAMCreate" }.addInstructions(
+            0,
+            "invoke-super { p0, p1 }, Landroidx/activity/ComponentActivity;->onMAMCreate(Landroid/os/Bundle;)V",
+        )
+
         var added = 0
         classDefForEach { classDef ->
             // The class name first: reading the code of every class in the app takes far longer.

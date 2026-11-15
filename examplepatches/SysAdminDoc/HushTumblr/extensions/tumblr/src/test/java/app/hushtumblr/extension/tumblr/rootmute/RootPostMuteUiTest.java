@@ -21,6 +21,7 @@ import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.io.File;
@@ -297,7 +298,9 @@ public class RootPostMuteUiTest {
         };
     }
 
+    /** The notice as shown: it says each answer on the next frame, so it's read once. */
     private TextView menuNotice() {
+        ShadowLooper.idleMainLooper();
         TextView label = controller.get().findViewById(android.R.id.content).findViewWithTag("root_mute_notice");
         assertNotNull(label);
         return label;
@@ -431,7 +434,8 @@ public class RootPostMuteUiTest {
         assertTrue(dialog.isShowing());
         assertEquals(java.util.Set.of("11"), RootPostMutes.capture().roots);
         ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
-        assertTrue(list.isEnabled());
+        // The list itself stays on through a save now, so the row is what came back on.
+        assertTrue(list.getAdapter().isEnabled(list.getHeaderViewsCount()));
         assertTrue(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
         assertTrue(notice(dialog).getText().toString().contains("Try again"));
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, notice(dialog).getAccessibilityLiveRegion());
@@ -446,7 +450,9 @@ public class RootPostMuteUiTest {
 
     /**
      * A screen reader reads the notice from its polite live region, with no announcement event
-     * (Android 16 deprecates them), and the same failure a second time is read again.
+     * (Android 16 deprecates them), and the same failure a second time is read again. Seen under
+     * TalkBack: each was read twice, as the notice said "Updating muted posts" and then the failure
+     * within the same moment, and TalkBack reads the text the line has when it gets to a change.
      */
     @Test @Config(sdk = {26, 36})
     public void aFailedUnmuteIsReadFromTheNoticeEachTimeWithoutAnAnnouncement() throws Exception {
@@ -467,9 +473,80 @@ public class RootPostMuteUiTest {
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, notice(dialog).getAccessibilityLiveRegion());
         assertTrue("the first failure gave a screen reader nothing to read", first > 0);
         assertTrue("the same failure again wasn't read", liveTextChanges(manager) > first);
+        assertEquals("each failure wasn't read exactly once", 2,
+                app.hushtumblr.extension.tumblr.settings.SpokenLineTest.readsFrom(manager, notice(dialog)));
         for (android.view.accessibility.AccessibilityEvent event : Shadows.shadowOf(manager).getSentAccessibilityEvents()) {
             assertNotEquals("announced: " + event.getText(),
                     android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT, event.getEventType());
+        }
+        dialog.dismiss();
+    }
+
+    /**
+     * Seen under TalkBack: a failed unmute's notice showed above the rows, inside the list, and
+     * pushed the row out of view, so the screen reader's focus moved on to the notice and read it a
+     * second time. A list scrolled down went back to the top, where focus could land on another post.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w390dp-h844dp-night-xhdpi")
+    public void aFailedUnmuteLeavesItsRowWhereItWas() {
+        for (int i = 1; i <= 20; i++) mute(String.valueOf(1000 + i));
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        layoutManager(dialog);
+        ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
+        list.setSelection(list.getCount() - 1);
+        layoutManager(dialog);
+        View row = list.getChildAt(list.getChildCount() - 1);
+        Object root = row.getTag();
+        int top = row.getTop();
+        ShadowReplacingAtomicFile.refuseCommitFor = RootPostMutes.fileForTests;
+        list.performItemClick(row, list.getPositionForView(row), 0);
+        TextView notice = notice(dialog);
+        layoutManager(dialog);
+        ShadowReplacingAtomicFile.refuseCommitFor = null;
+        assertTrue(notice.getText().toString(), notice.getText().toString().contains("Try again"));
+        View after = list.findViewWithTag(root);
+        assertNotNull("the row went out of view", after);
+        assertEquals("the row moved", top, after.getTop());
+        Rect shown = new Rect();
+        assertTrue("the notice is out of view", notice.getGlobalVisibleRect(shown));
+        assertEquals("the notice is cut off", notice.getHeight(), shown.height());
+        dialog.dismiss();
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "ar-rEG-w390dp-h320dp-night-xhdpi")
+    public void aShortScreenAtTwiceTheTextSizeShowsAFailedUnmutesNoticeWhole() {
+        Configuration config = new Configuration(controller.get().getResources().getConfiguration());
+        config.fontScale = 2f;
+        controller.get().getResources().updateConfiguration(config, null);
+        for (int i = 1; i <= 20; i++) mute(String.valueOf(1000 + i));
+        controller.visible();
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        ShadowLooper.idleMainLooper();
+        View decor = dialog.getWindow().getDecorView();
+        measure(decor, 716, 640);
+        ListView list = find(decor, ListView.class);
+        // The header is taller than the list at this size, so the rows are reached by scrolling.
+        list.setSelection(list.getCount() - 1);
+        measure(decor, 716, 640);
+        View row = list.getChildAt(list.getChildCount() - 1);
+        assertTrue(row.getTag() instanceof String);
+        ShadowReplacingAtomicFile.refuseCommitFor = RootPostMutes.fileForTests;
+        list.performItemClick(row, list.getPositionForView(row), 0);
+        TextView notice = notice(dialog);
+        measure(decor, 716, 640);
+        ShadowReplacingAtomicFile.refuseCommitFor = null;
+        assertTrue(decor.getHeight() <= 640);
+        int room = ((View) list.getParent()).getHeight();
+        assertTrue("the notice took the list's room", list.getHeight() >= room / 2);
+        Rect shown = new Rect();
+        assertTrue("the notice is out of view", notice.getGlobalVisibleRect(shown));
+        android.text.Layout lines = notice.getLayout();
+        assertEquals("the notice lost its end", notice.getText().length(), lines.getLineEnd(lines.getLineCount() - 1));
+        ScrollView area = decor.findViewWithTag("root_mute_status");
+        if (shown.height() < notice.getHeight()) {
+            assertTrue("the rest of the notice can't be scrolled into view", area.canScrollVertically(1));
         }
         dialog.dismiss();
     }
@@ -571,13 +648,141 @@ public class RootPostMuteUiTest {
         List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
         clickFirstPost(dialog);
         assertEquals(1, queued.size());
-        assertFalse(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        // Clear stays on during the save, so keyboard focus can stay on it. Its press does nothing.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        assertEquals(1, queued.size());
         account("account-b");
         ShadowLooper.idleMainLooper();
         assertFalse("Old account rows remain visible", dialog.isShowing());
         queued.get(0).run();
         assertFalse(dialog.isShowing());
         assertNull(find(controller.get().findViewById(android.R.id.content), Button.class));
+    }
+
+    /** A list switched off for the write let go of focus, which went to Done. */
+    @Test public void anUnmuteFromTheListKeepsFocusInTheListWhileItSaves() {
+        mute("11");
+        mute("12");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        layoutManager(dialog);
+        ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
+        // A keyboard takes the window out of touch mode, where Android moves focus it loses.
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(list.requestFocus());
+            int position = list.getHeaderViewsCount();
+            View row = list.getChildAt(position - list.getFirstVisiblePosition());
+            List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
+            list.performItemClick(row, position, 0);
+            assertEquals(1, queued.size());
+            assertTrue("the list let go of focus during the save", list.hasFocus());
+            queued.get(0).run();
+            ShadowLooper.idleMainLooper();
+            assertTrue("the list let go of focus once the save answered", list.hasFocus());
+        } finally {
+            touchMode(dialog, wasTouch);
+        }
+        dialog.dismiss();
+    }
+
+    /**
+     * Seen with a D-pad under TalkBack: after a failed unmute, the next press of the center key only
+     * found the row again. The rows said they were off during the save, and a list moves its key
+     * selection off a row that's off.
+     */
+    @Test public void aRowUnmutedByKeyKeepsTheSelectionThroughAFailedSave() {
+        mute("11");
+        mute("12");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        layoutManager(dialog);
+        ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(list.requestFocus());
+            int position = list.getHeaderViewsCount();
+            list.setSelection(position);
+            layoutManager(dialog);
+            assertEquals(position, list.getSelectedItemPosition());
+            List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
+            ShadowReplacingAtomicFile.refuseCommitFor = RootPostMutes.fileForTests;
+            center(list);
+            assertEquals(1, queued.size());
+            layoutManager(dialog);
+            assertEquals("the selection left the row during the save", position, list.getSelectedItemPosition());
+            queued.get(0).run();
+            layoutManager(dialog);
+            assertTrue(notice(dialog).getText().toString().contains("Try again"));
+            assertEquals("the selection left the row once the save failed", position, list.getSelectedItemPosition());
+            center(list);
+            assertEquals("the next press only found the row again", 2, queued.size());
+            queued.get(1).run();
+            ShadowLooper.idleMainLooper();
+        } finally {
+            touchMode(dialog, wasTouch);
+        }
+        assertEquals(java.util.Set.of("11", "12"), RootPostMutes.capture().roots);
+        dialog.dismiss();
+    }
+
+    /** Presses and lets go of the center key on [view], as a D-pad does. */
+    private static void center(View view) {
+        view.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER));
+        view.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER));
+        ShadowLooper.idleMainLooper();
+    }
+
+    /** Clear muted posts was switched off for its write, and let go of keyboard focus as the list did. */
+    @Test public void clearKeepsKeyboardFocusOnItsButtonWhileItSaves() {
+        mute("11");
+        mute("12");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        layoutManager(dialog);
+        Button clear = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(clear.requestFocus());
+            clear.performClick();
+            assertEquals(1, queued.size());
+            assertTrue("Clear let go of focus during the save, to " + dialog.getCurrentFocus(), clear.hasFocus());
+            clear.performClick();
+            assertEquals("a second press during the save started another write", 1, queued.size());
+            queued.get(0).run();
+            ShadowLooper.idleMainLooper();
+        } finally {
+            touchMode(dialog, wasTouch);
+        }
+        assertTrue(RootPostMutes.capture().roots.isEmpty());
+        dialog.dismiss();
+    }
+
+    /**
+     * Presses the arrow [code] in [dialog] as a keyboard does. The views get it first, and when none
+     * takes it the window moves focus [direction], as ViewRootImpl does. Robolectric's dialog window
+     * has no input focus, so its own key path drops the press.
+     */
+    private static void press(AlertDialog dialog, int code, int direction) {
+        View decor = dialog.getWindow().getDecorView();
+        if (!decor.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, code))) {
+            View focused = decor.findFocus();
+            View next = focused == null ? null : focused.focusSearch(direction);
+            if (next != null) next.requestFocus(direction);
+        }
+        decor.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, code));
+        ShadowLooper.idleMainLooper();
+    }
+
+    /**
+     * Puts [dialog]'s window in touch mode, or out of it as a keyboard does, and answers which it
+     * was in. Robolectric keeps the mode from one test to the next, so a test puts it back.
+     */
+    private static boolean touchMode(AlertDialog dialog, boolean on) {
+        View decor = dialog.getWindow().getDecorView();
+        boolean was = decor.isInTouchMode();
+        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(decor, "getViewRootImpl");
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "ensureTouchMode",
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, on));
+        return was;
     }
 
     @Test public void aManagerRowIsAnUnmuteButtonAndDuplicateActionsWaitForTheWorker() {
@@ -594,14 +799,17 @@ public class RootPostMuteUiTest {
         assertTrue(info.getContentDescription().toString().contains("Unmute"));
         List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
         assertTrue(row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
-        assertFalse(list.isEnabled());
-        assertFalse(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
+        // A screen reader hears the row is off during the save. The adapter still calls it on, as
+        // a list moves its key selection off a row the adapter calls off (this asserted that the
+        // adapter did, which was the bug). Clear stays on too, as a button switched off lets go of
+        // keyboard focus. The presses below show neither starts anything.
+        assertFalse(row.createAccessibilityNodeInfo().isClickable());
+        assertTrue(list.getAdapter().isEnabled(position));
         list.performItemClick(row, position, 0);
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
         assertEquals(1, queued.size());
         queued.get(0).run();
         assertTrue(dialog.isShowing());
-        assertTrue(list.isEnabled());
         dialog.dismiss();
     }
 
@@ -645,6 +853,49 @@ public class RootPostMuteUiTest {
         dialog.dismiss();
     }
 
+    /**
+     * Seen under TalkBack: Undo's time ran out while the screen reader was on it, so it went away
+     * under the user and focus fell back to the top of the window. It waits while anyone is on it.
+     */
+    // Android takes a screen reader's focus from a window that isn't on screen, and Robolectric
+    // puts a window on screen only with real graphics.
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void undoWaitsWhileAScreenReaderOrKeyboardIsOnIt() {
+        AccessibilityManager manager = controller.get().getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(manager).setEnabled(true);
+        Shadows.shadowOf(manager).setTouchExplorationEnabled(true);
+        mute("11");
+        mute("12");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        clickFirstPost(dialog);
+        Button undo = inlineUndo(dialog);
+        assertTrue(undo.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(70));
+        assertEquals("Undo went away under a screen reader", View.VISIBLE, undo.getVisibility());
+        assertTrue(undo.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS, null));
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11));
+        assertEquals("Undo stayed once the screen reader left it", View.GONE, undo.getVisibility());
+
+        Shadows.shadowOf(manager).setTouchExplorationEnabled(false);
+        Shadows.shadowOf(manager).setEnabled(false);
+        clickFirstPost(dialog);
+        assertEquals(View.VISIBLE, undo.getVisibility());
+        ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(undo.requestFocus());
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(70));
+            assertEquals("Undo went away under keyboard focus", View.VISIBLE, undo.getVisibility());
+            assertTrue(list.requestFocus());
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11));
+            assertEquals("Undo stayed once keyboard focus left it", View.GONE, undo.getVisibility());
+        } finally {
+            touchMode(dialog, wasTouch);
+        }
+        assertTrue(RootPostMutes.capture().roots.isEmpty());
+        dialog.dismiss();
+    }
+
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w390dp-h844dp-night-xhdpi")
     public void aKeyboardCanReachTheManagersInlineUndo() {
@@ -653,18 +904,25 @@ public class RootPostMuteUiTest {
         clickFirstPost(dialog);
         ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
         Button undo = inlineUndo(dialog);
-        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(
-                dialog.getWindow().getDecorView(), "getViewRootImpl");
-        org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "ensureTouchMode",
-                org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, false));
-        assertTrue(list.requestFocus());
-        assertFalse(undo.hasFocus());
-        list.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
-        list.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_DOWN));
-        assertTrue("Keyboard focus skipped the visible Undo action", undo.hasFocus());
-        undo.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER));
-        undo.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER));
-        ShadowLooper.idleMainLooper();
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(list.requestFocus());
+            assertFalse(undo.hasFocus());
+            // Undo sits under the list now, and the window moves focus there when the list has no
+            // row to move to. Sent to the list alone, the key reached only what was inside it.
+            press(dialog, KeyEvent.KEYCODE_DPAD_DOWN, View.FOCUS_DOWN);
+            assertTrue("Keyboard focus skipped the visible Undo action, for " + dialog.getCurrentFocus(), undo.hasFocus());
+            List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
+            undo.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER));
+            undo.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER));
+            assertEquals(1, queued.size());
+            // Undo was switched off for its write, and let go of focus while it ran.
+            assertTrue("Undo let go of focus during its write, to " + dialog.getCurrentFocus(), undo.hasFocus());
+            queued.get(0).run();
+            ShadowLooper.idleMainLooper();
+        } finally {
+            touchMode(dialog, wasTouch);
+        }
         assertEquals(java.util.Set.of("11"), RootPostMutes.capture().roots);
         dialog.dismiss();
     }
@@ -792,9 +1050,14 @@ public class RootPostMuteUiTest {
         assertTrue(retry.isShown()); assertTrue(retry.isEnabled());
         assertArrayEquals(damaged, Files.readAllBytes(saved.toPath()));
         List<Runnable> queued = new ArrayList<>(); RootPostMutes.workerForTests = queued::add;
+        // Retry stays on during the read, so keyboard focus can stay on it, and the second press
+        // reads nothing.
         retry.performClick(); retry.performClick();
         assertEquals(1, queued.size());
-        assertFalse(retry.isEnabled());
+        // A read still running after a moment says so. It used to say so at once, and a read that
+        // answered right away had a screen reader read the answer twice.
+        assertTrue(notice(dialog).getText().toString().startsWith("Couldn't read"));
+        ShadowLooper.idleMainLooper(app.hushtumblr.extension.tumblr.settings.SpokenLine.BUSY_AFTER_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
         assertEquals("Reading muted posts", notice(dialog).getText().toString());
         assertNull(RootPostMutes.capture());
         Files.write(saved.toPath(), good);
@@ -908,7 +1171,9 @@ public class RootPostMuteUiTest {
         measure(dialog.getWindow().getDecorView(), width > 0 ? Math.min(780, width) : 716, 1688);
     }
 
+    /** The notice as shown: it says each answer on the next frame, so it's read once. */
     private static TextView notice(AlertDialog dialog) {
+        ShadowLooper.idleMainLooper();
         TextView notice = dialog.getWindow().getDecorView().findViewWithTag("root_mute_notice");
         assertNotNull(notice);
         return notice;

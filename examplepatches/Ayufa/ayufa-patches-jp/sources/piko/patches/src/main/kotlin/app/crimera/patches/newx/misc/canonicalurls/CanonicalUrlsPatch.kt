@@ -183,8 +183,11 @@ private fun resolveCanonicalUrlMatches(urlEntityFields: UrlEntityFields): Canoni
     val textEntityNavigationFingerprint =
         Fingerprint(
             definingClass = "Lcom/x/navigation/",
-            parameters = listOf("L", "L"),
             returnType = "V",
+            custom = { method, _ ->
+                val parameters = method.parameterDescriptors()
+                parameters.size in 2..3 && parameters.all(String::isObjectDescriptor)
+            },
             filters =
                 listOf(
                     instanceOf(mentionType),
@@ -1028,7 +1031,6 @@ private fun patchCardNavigation(
         )
     val inlinedMatches =
         Fingerprint(
-            definingClass = "Landroidx/compose/animation/core/",
             parameters = listOf("Ljava/lang/Object;"),
             returnType = "Ljava/lang/Object;",
             filters =

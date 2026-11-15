@@ -17,6 +17,7 @@ local.properties
 *.keystore
 *.jks
 *.p12
+*.xapk
 
 # Python bytecode from scripts/
 __pycache__/

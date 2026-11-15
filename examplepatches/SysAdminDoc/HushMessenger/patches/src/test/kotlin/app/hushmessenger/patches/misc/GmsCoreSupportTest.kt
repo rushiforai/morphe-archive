@@ -3,6 +3,7 @@ package app.hushmessenger.patches.misc
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
+import app.hushmessenger.patches.controls.hookId
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -188,7 +189,8 @@ class GmsCoreSupportTest {
         assertEquals(14, provider.size)
     }
 
-    @Test fun theExtensionCarriesTheMethodsTheChecksCall() {
+    /** Runs [check] over every method in the embedded release extension, R8 and all. */
+    private fun withReleaseExtension(check: (List<com.android.tools.smali.dexlib2.iface.Method>) -> Unit) {
         val extension = Files.createTempFile("hush-gmscore-extension-", ".mpe")
         try {
             javaClass.classLoader.getResourceAsStream("extensions/messenger.mpe").use { input ->
@@ -196,15 +198,40 @@ class GmsCoreSupportTest {
                 Files.copy(input, extension, StandardCopyOption.REPLACE_EXISTING)
             }
             val dex = DexFileFactory.loadDexContainer(extension.toFile(), Opcodes.forApi(35))
-            val methods = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }.flatMap { it.methods }
-            for (reference in listOf(GMS_CORE_AVAILABILITY, GMS_CORE_SIGNS_IN_THROUGH_MICROG)) {
-                val found = methods.filter { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == reference }
-                assertEquals(1, found.size, reference)
-                assertTrue(AccessFlags.PUBLIC.isSet(found.single().accessFlags) && AccessFlags.STATIC.isSet(found.single().accessFlags),
-                    "$reference is public static, so Messenger's classes can call it")
-            }
+            check(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }.flatMap { it.methods })
         } finally {
             Files.deleteIfExists(extension)
+        }
+    }
+
+    @Test fun theExtensionCarriesTheMethodsTheChecksCall() = withReleaseExtension { methods ->
+        for (reference in listOf(GMS_CORE_AVAILABILITY, GMS_CORE_SIGNS_IN_THROUGH_MICROG)) {
+            val found = methods.filter { it.hookId() == reference }
+            assertEquals(1, found.size, reference)
+            assertTrue(AccessFlags.PUBLIC.isSet(found.single().accessFlags) && AccessFlags.STATIC.isSet(found.single().accessFlags),
+                "$reference is public static, so Messenger's classes can call it")
+        }
+    }
+
+    /** #173: the settings tell GmsCore support is in from a mark the patch flips, so it holds on a Root Mount's stock manifest. */
+    @Test fun theExtensionsMarkSurvivesR8AndIsAskedFor() = withReleaseExtension { methods ->
+        val mark = methods.single { it.hookId() == GMS_CORE_BUNDLED }
+        assertEquals(listOf(Opcode.CONST_4, Opcode.RETURN), mark.implementation!!.instructions.map { it.opcode })
+        assertEquals(0, (mark.implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral, "false until patched")
+        val callers = methods.filter { method -> method.implementation?.instructions?.any { it is ReferenceInstruction &&
+            it.reference is MethodReference && it.called() == GMS_CORE_BUNDLED } == true }
+        assertTrue(callers.isNotEmpty(), "R8 kept the calls, so the patched answer reaches the settings")
+    }
+
+    @Test fun thePatchFlipsTheMarkAndRefusesAnotherShape() {
+        val mark = fixtureMethod(GMS_CORE_BUNDLED, "const/4 v0, 0x0\nreturn v0", 1).apply { markGmsCoreBundled() }.instructions()
+        assertEquals(listOf(Opcode.CONST_4, Opcode.RETURN), mark.map { it.opcode })
+        assertEquals(1, (mark[0] as NarrowLiteralInstruction).narrowLiteral)
+        assertFailsWith<PatchException> {
+            fixtureMethod(GMS_CORE_BUNDLED, "const/4 v0, 0x0\nconst/4 v0, 0x0\nreturn v0", 1).markGmsCoreBundled()
+        }
+        assertFailsWith<PatchException> {
+            fixtureMethod("Lapp/hushmessenger/extension/GmsCore;->other()Z", "const/4 v0, 0x0\nreturn v0", 1).markGmsCoreBundled()
         }
     }
 

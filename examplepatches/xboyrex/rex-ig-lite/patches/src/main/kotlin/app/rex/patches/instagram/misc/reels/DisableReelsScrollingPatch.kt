@@ -1,24 +1,24 @@
 package app.rex.patches.instagram.misc.reels
 
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
-import app.rex.patches.instagram.utils.Constants.DOWNLOAD_DESCRIPTOR
 import app.rex.patches.instagram.utils.Constants.PREF_CALL_DESCRIPTOR
 import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private object ClipsViewPagerImplGetViewAtIndexFingerprint : Fingerprint(
     strings = listOf("ClipsViewPagerImpl_getViewAtIndex")
 )
 
 private object ClipsSwipeRefreshLayoutOnInterceptTouchEventFingerprint : Fingerprint (
+    name = "onInterceptTouchEvent",
     parameters = listOf("Landroid/view/MotionEvent;"),
     definingClass = "Linstagram/features/clips/viewer/ui/ClipsSwipeRefreshLayout;"
 )
 
 @Suppress("unused")
-val disableReelsScrollingPatch = bytecodePatch(
+val disableReelsScrollingPatch = patch(
     name = "Disable Reels scrolling",
     description = "Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. " +
             "Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds."
@@ -26,15 +26,16 @@ val disableReelsScrollingPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 
     execute {
+            runCatching { enableSettings("disableReelsScrolling") }
+            runCatching {
         val viewPagerField = ClipsViewPagerImplGetViewAtIndexFingerprint.classDef.fields.first {
             it.type == "Landroidx/viewpager2/widget/ViewPager2;"
         }
 
-        // Disable user input on the ViewPager2 to prevent scrolling, and attach Reels floating toolbar.
+        // Disable user input on the ViewPager2 to prevent scrolling.
         ClipsViewPagerImplGetViewAtIndexFingerprint.method.addInstructions(
             0,
             """
-                invoke-static { p0 }, $DOWNLOAD_DESCRIPTOR/DownloadUtils;->onClipsTouchOrBind(Ljava/lang/Object;)V
                 ${PREF_CALL_DESCRIPTOR}->disableReelsScrolling()Z
                 move-result v0
                 if-eqz v0, :rex
@@ -46,11 +47,10 @@ val disableReelsScrollingPatch = bytecodePatch(
             """
         )
 
-        // Return false in onInterceptTouchEvent to disable pull-to-refresh, and attach Reels floating toolbar.
+        // Return false in onInterceptTouchEvent to disable pull-to-refresh.
         ClipsSwipeRefreshLayoutOnInterceptTouchEventFingerprint.method.addInstructions(
             0,
             """
-                invoke-static { p0 }, $DOWNLOAD_DESCRIPTOR/DownloadUtils;->onClipsTouchOrBind(Ljava/lang/Object;)V
                 ${PREF_CALL_DESCRIPTOR}->disableReelsScrolling()Z
                 move-result v0
                 if-eqz v0, :rex
@@ -61,6 +61,6 @@ val disableReelsScrollingPatch = bytecodePatch(
             """
         )
 
-        enableSettings("disableReelsScrolling")
-    }
+                    }
+        }
 }

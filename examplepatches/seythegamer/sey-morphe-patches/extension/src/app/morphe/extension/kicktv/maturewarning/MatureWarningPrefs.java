@@ -86,12 +86,7 @@ public final class MatureWarningPrefs {
         long now = SystemClock.elapsedRealtime();
         if (now - lastAcceptMs >= ACCEPT_COOLDOWN_MS) {
             lastAcceptMs = now;
-            MAIN.post(new Runnable() {
-                @Override
-                public void run() {
-                    accept.invoke();
-                }
-            });
+            MAIN.post(() -> accept.invoke());
         }
         return true;
     }

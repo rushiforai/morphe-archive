@@ -1,0 +1,847 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/rex-ig-lite
+ *
+ * Modified for xboyrex (Instagram), 2026.
+ */
+package app.morphe.extension.suite.instagram.settings;
+
+/**
+ * Which patches were selected for this build.
+ *
+ * <p>Every boolean method answers false here. A patch that adds a feature rewrites it to answer
+ * true, so the settings screen offers only the switches this APK backs and the diagnostic report
+ * lists only the patches it carries. Coverage strings start empty and are stamped from the
+ * targets that patching actually handled, not from activity observed on the phone.
+ */
+@SuppressWarnings({"unused", "SameReturnValue"})
+public final class SettingsStatus {
+    private SettingsStatus() {
+    }
+
+    /** Input-derived subtarget coverage, filled by the corresponding selected patch. */
+    public static String sanitizeSharingLinksCoverage() {
+        return "";
+    }
+
+    public static String translatedStartCoverage() {
+        return "";
+    }
+
+    public static boolean hideAds() {
+        return false;
+    }
+
+    /** Rewritten by the Hide Instagram Plus prompts patch. */
+    public static boolean hidePlusUpsell() {
+        return false;
+    }
+
+    public static boolean sanitizeSharingLinks() {
+        return false;
+    }
+
+    public static boolean externalBrowser() {
+        return false;
+    }
+
+    public static boolean buildExpiredPopup() {
+        return false;
+    }
+
+    public static boolean restoreTrust() {
+        return false;
+    }
+
+    public static boolean removeAdId() {
+        return false;
+    }
+
+    public static boolean reelWatchHistory() {
+        return false;
+    }
+
+    public static boolean storyAutoAdvance() {
+        return false;
+    }
+
+    public static boolean storyTime() {
+        return false;
+    }
+
+    public static boolean storyMentions() {
+        return false;
+    }
+
+    public static boolean storyFollow() {
+        return false;
+    }
+
+    public static boolean storyLoop() {
+        return false;
+    }
+
+    public static boolean smoothStoryOpen() {
+        return false;
+    }
+
+    public static boolean storyZoomPlay() {
+        return false;
+    }
+
+    public static boolean storyPriority() {
+        return false;
+    }
+
+    public static boolean storySound() {
+        return false;
+    }
+
+    public static boolean storySwipeReply() {
+        return false;
+    }
+
+    public static boolean storyReplyBox() {
+        return false;
+    }
+
+    public static boolean storyButtonsRoom() {
+        return false;
+    }
+
+    public static boolean storyFonts() {
+        return false;
+    }
+
+    public static boolean storyUploadQuality() {
+        return false;
+    }
+
+    public static boolean storySeen() {
+        return false;
+    }
+
+    public static boolean visualSeen() {
+        return false;
+    }
+
+    public static boolean spoofLocation() {
+        return false;
+    }
+
+    public static boolean appProxy() {
+        return false;
+    }
+
+    /** Rewritten by the Skip the contacts and location popups patch. */
+    public static boolean setupPopups() {
+        return false;
+    }
+
+    /** Rewritten by the Skip the ad data reminder patch. */
+    public static boolean adDataReminder() {
+        return false;
+    }
+
+    /** Rewritten by the Keep photo locations from Instagram patch. */
+    public static boolean photoLocations() {
+        return false;
+    }
+
+    public static boolean threadSeen() {
+        return false;
+    }
+
+    public static boolean typing() {
+        return false;
+    }
+
+    public static boolean activeStatus() {
+        return false;
+    }
+
+    public static boolean messagesLock() {
+        return false;
+    }
+
+    public static boolean feedReels() {
+        return false;
+    }
+
+    public static boolean feedSuggestions() {
+        return false;
+    }
+
+    /** Rewritten by Hide suggested posts when Home's reads and a post's type were found. */
+    public static boolean feedTypes() {
+        return false;
+    }
+
+    /** Rewritten by Hide suggested posts when the parameters of Home's requests were found too. */
+    public static boolean favoritesSource() {
+        return false;
+    }
+
+    /** Rewritten by Hide suggested posts when an account's type was found too. */
+    public static boolean feedProfessional() {
+        return false;
+    }
+
+    public static boolean metaAi() {
+        return false;
+    }
+
+    public static boolean exploreGrid() {
+        return false;
+    }
+
+    public static boolean recentSearches() {
+        return false;
+    }
+
+    public static boolean allRecentSearches() {
+        return false;
+    }
+
+    public static boolean exploreMenu() {
+        return false;
+    }
+
+    public static boolean notesRow() {
+        return false;
+    }
+
+    public static boolean splitNotesRow() {
+        return false;
+    }
+
+    public static boolean inboxSearch() {
+        return false;
+    }
+
+    public static boolean inboxSuggestions() {
+        return false;
+    }
+
+    public static boolean instants() {
+        return false;
+    }
+
+    /** Rewritten by the Show when someone was last active patch. */
+    public static boolean lastActive() {
+        return false;
+    }
+
+    public static boolean shareSheet() {
+        return false;
+    }
+
+    public static boolean storyRingSize() {
+        return false;
+    }
+
+    /** Rewritten by the Thicker story progress bar patch. */
+    public static boolean storyProgressBar() {
+        return false;
+    }
+
+    /** Rewritten by the Seek bar on stories patch. */
+    public static boolean storySeekBar() {
+        return false;
+    }
+
+    /** Rewritten by the Speed button on stories patch. */
+    public static boolean storySpeed() {
+        return false;
+    }
+
+    public static boolean repostButton() {
+        return false;
+    }
+
+    public static boolean hideShareButton() {
+        return false;
+    }
+
+    public static boolean bottomSpace() {
+        return false;
+    }
+
+    /** Rewritten by the Phone layout on big screens patch. */
+    public static boolean phoneLayout() {
+        return false;
+    }
+
+    public static boolean emojiStyle() {
+        return false;
+    }
+
+    public static boolean accentColor() {
+        return false;
+    }
+
+    public static boolean launchScreen() {
+        return false;
+    }
+
+    public static boolean headerText() {
+        return false;
+    }
+
+    public static boolean appIcon() {
+        return false;
+    }
+
+    public static boolean settingsRows() {
+        return false;
+    }
+
+    public static boolean font() {
+        return false;
+    }
+
+    public static boolean notificationGroups() {
+        return false;
+    }
+
+    public static boolean hdrBoost() {
+        return false;
+    }
+
+    /** Rewritten by the Stop videos looping patch. */
+    public static boolean stopLooping() {
+        return false;
+    }
+
+    /** Rewritten by the Keep playing in the background patch. */
+    public static boolean backgroundPlay() {
+        return false;
+    }
+
+    public static boolean mediaCache() {
+        return false;
+    }
+
+    public static boolean friendshipStatus() {
+        return false;
+    }
+
+    /** Mark who doesn't follow you back, the friendship patch's second switch, which a build can lack. */
+    public static boolean followingListMark() {
+        return false;
+    }
+
+    /** Recent unfollowers, the friendship patch's switch reading your own Followers list, which a build can lack. */
+    public static boolean unfollowers() {
+        return false;
+    }
+
+    public static boolean profileSuggestions() {
+        return false;
+    }
+
+    public static boolean profileHighlights() {
+        return false;
+    }
+
+    public static boolean messageBox() {
+        return false;
+    }
+
+    public static boolean profileTabs() {
+        return false;
+    }
+
+    public static boolean threadsButton() {
+        return false;
+    }
+
+    public static boolean profileNotes() {
+        return false;
+    }
+
+    public static boolean profileBanners() {
+        return false;
+    }
+
+    /** Hide links, the profile banners patch's switch for the row of links, which a build can lack. */
+    public static boolean profileLinks() {
+        return false;
+    }
+
+    public static boolean profilePostsList() {
+        return false;
+    }
+
+    public static boolean profileGridJump() {
+        return false;
+    }
+
+    public static boolean homeFeed() {
+        return false;
+    }
+
+    public static boolean tabSwipe() {
+        return false;
+    }
+
+    /** Rewritten by the Tab bar layout patch. */
+    public static boolean tabBarLayout() {
+        return false;
+    }
+
+    public static boolean swipeToCreate() {
+        return false;
+    }
+
+    public static boolean fullResolution() {
+        return false;
+    }
+
+    public static boolean reelsSuggestions() {
+        return false;
+    }
+
+    public static boolean paidPartnershipReels() {
+        return false;
+    }
+
+    public static boolean liveReels() {
+        return false;
+    }
+
+    public static boolean aiLabeledReels() {
+        return false;
+    }
+
+    public static boolean captionWordReels() {
+        return false;
+    }
+
+    public static boolean lowViewReels() {
+        return false;
+    }
+
+    public static boolean commentCopy() {
+        return false;
+    }
+
+    /** Copy the commenter's username, Copy comment's second switch, which a build can lack. */
+    public static boolean commentAuthor() {
+        return false;
+    }
+
+    public static boolean commentPhoto() {
+        return false;
+    }
+
+    /** Reply with a comment's GIF, Save comment photo's second switch, which a build can lack. */
+    public static boolean commentGifReply() {
+        return false;
+    }
+
+    /** Show a comment GIF's name, Save comment photo's third switch, which a build can lack. */
+    public static boolean commentGifName() {
+        return false;
+    }
+
+    /** Send saved GIFs as GIFs, Save comment photo's fourth switch, which needs the GIF reply's send. */
+    public static boolean commentGifPick() {
+        return false;
+    }
+
+    /** Rewritten by the Save profile picture patch. */
+    public static boolean profilePicture() {
+        return false;
+    }
+
+    /** Rewritten by the Download voice messages patch. */
+    public static boolean voiceMessage() {
+        return false;
+    }
+
+    public static boolean hideComments() {
+        return false;
+    }
+
+    /** Rewritten by Hide comments when the Reply on a comment's line was found too. */
+    public static boolean commentReply() {
+        return false;
+    }
+
+    public static boolean commentEmojiRow() {
+        return false;
+    }
+
+    public static boolean commentGifs() {
+        return false;
+    }
+
+    /** Rewritten by the Search comments patch. */
+    public static boolean commentSearch() {
+        return false;
+    }
+
+    public static boolean commentKeyboard() {
+        return false;
+    }
+
+    public static boolean feedFollow() {
+        return false;
+    }
+
+    public static boolean editsLabel() {
+        return false;
+    }
+
+    public static boolean feedSave() {
+        return false;
+    }
+
+    public static boolean watchAgain() {
+        return false;
+    }
+
+    /** Rewritten by the Hide activity bubbles patch. */
+    public static boolean activityBubbles() {
+        return false;
+    }
+
+    public static boolean hideCaptions() {
+        return false;
+    }
+
+    public static boolean feedAudioIcon() {
+        return false;
+    }
+
+    public static boolean feedAutoScroll() {
+        return false;
+    }
+
+    public static boolean homeTopBar() {
+        return false;
+    }
+
+    public static boolean keepReelsTopBar() {
+        return false;
+    }
+
+    public static boolean followingFeed() {
+        return false;
+    }
+
+    public static boolean followingMix() {
+        return false;
+    }
+
+    public static boolean favoritesFeed() {
+        return false;
+    }
+
+    public static boolean storiesTray() {
+        return false;
+    }
+
+    public static boolean reelDeclutter() {
+        return false;
+    }
+
+    public static boolean reelDownload() {
+        return false;
+    }
+
+    public static boolean doubleTapLike() {
+        return false;
+    }
+
+    public static boolean likeAnimation() {
+        return false;
+    }
+
+    public static boolean reelsTab() {
+        return false;
+    }
+
+    public static boolean glassTabBar() {
+        return false;
+    }
+
+    public static boolean fullScreenBars() {
+        return false;
+    }
+
+    public static boolean savedOnProfile() {
+        return false;
+    }
+
+    public static boolean stopHeartbeat() {
+        return false;
+    }
+
+    /** Rewritten by the Use the highest refresh rate patch. */
+    public static boolean refreshRate() {
+        return false;
+    }
+
+    public static boolean keepReelSpeed() {
+        return false;
+    }
+
+    /** Rewritten by the Control the reel above comments patch. */
+    public static boolean reelAboveComments() {
+        return false;
+    }
+
+    /** Rewritten by the Open reel links on that reel patch. */
+    public static boolean reelLinks() {
+        return false;
+    }
+
+    public static boolean reelSeekBar() {
+        return false;
+    }
+
+    /** Rewritten by the Show a reel's exact time patch. */
+    public static boolean reelPostTime() {
+        return false;
+    }
+
+    /** Rewritten by the Blur the bars around Reels patch. */
+    public static boolean reelBlurBars() {
+        return false;
+    }
+
+    /** Rewritten by the Control taps and volume on Reels patch. */
+    public static boolean reelTapAndVolume() {
+        return false;
+    }
+
+    /** Rewritten by the Start reels with sound patch. */
+    public static boolean reelSound() {
+        return false;
+    }
+
+    /** Rewritten by the Pinch to zoom on Reels patch. */
+    public static boolean reelZoom() {
+        return false;
+    }
+
+    /** Rewritten by the Double tap to skip on Reels patch. */
+    public static boolean reelDoubleTapSkip() {
+        return false;
+    }
+
+    /** Rewritten by the Hide the 2x popup on Reels patch. */
+    public static boolean reelFastLabel() {
+        return false;
+    }
+
+    public static boolean reelAutoScroll() {
+        return false;
+    }
+
+    public static boolean reelScrolling() {
+        return false;
+    }
+
+    public static boolean swipeToProfile() {
+        return false;
+    }
+
+    public static boolean reelProfileTabBar() {
+        return false;
+    }
+
+    public static boolean reelOrigin() {
+        return false;
+    }
+
+    public static boolean storyDownload() {
+        return false;
+    }
+
+    public static boolean videoDownload() {
+        return false;
+    }
+
+    public static boolean tapToPlay() {
+        return false;
+    }
+
+    public static boolean resumeLongVideos() {
+        return false;
+    }
+
+    public static boolean defaultPlaybackQuality() {
+        return false;
+    }
+
+    public static boolean dataSaver() {
+        return false;
+    }
+
+    public static boolean translatedStart() {
+        return false;
+    }
+
+    public static boolean pureBlack() {
+        return false;
+    }
+
+    public static boolean versionCode() {
+        return false;
+    }
+
+    /** Rewritten by the Don't report screenshots patch. */
+    public static boolean screenshotReports() {
+        return false;
+    }
+
+    /** Rewritten by the Don't report Blend visits patch. */
+    public static boolean blendVisits() {
+        return false;
+    }
+
+    /** Rewritten by the Allow screenshots patch. */
+    public static boolean screenshotBlock() {
+        return false;
+    }
+
+    /** Rewritten by the Ask before a call patch. */
+    public static boolean askBeforeCall() {
+        return false;
+    }
+
+    /** Rewritten by the Hide the Community Standards reminder patch. */
+    public static boolean kindnessReminder() {
+        return false;
+    }
+
+    /** Rewritten by the Call blocker patch. */
+    public static boolean callBlocker() {
+        return false;
+    }
+
+    /** Rewritten by the Chat plus menu patch. */
+    public static boolean plusMenu() {
+        return false;
+    }
+
+    /** Rewritten by the Glass in chats patch. */
+    public static boolean glassChat() {
+        return false;
+    }
+
+    public static boolean askBeforeLike() {
+        return false;
+    }
+
+    public static boolean askBeforeRefresh() {
+        return false;
+    }
+
+    public static boolean askBeforeFollow() {
+        return false;
+    }
+
+    /** Rewritten by the Skip the collections tray patch. */
+    public static boolean saveTray() {
+        return false;
+    }
+
+    /** Rewritten by the Show a post's exact time patch. */
+    public static boolean postTime() {
+        return false;
+    }
+
+    /** Rewritten by the Show hidden like counts patch. */
+    public static boolean hiddenLikeCounts() {
+        return false;
+    }
+
+    /** Rewritten by the Back leaves Home patch. */
+    public static boolean backLeavesHome() {
+        return false;
+    }
+
+    /** Rewritten by the Keep your place in Home patch. */
+    public static boolean homePlace() {
+        return false;
+    }
+
+    /** Rewritten by the Start feed videos with sound patch. */
+    public static boolean feedSound() {
+        return false;
+    }
+
+    /** Rewritten by the Tap a feed video to pause it patch. */
+    public static boolean feedTapPause() {
+        return false;
+    }
+
+    /** Rewritten by the Hold for 2x on feed videos patch. */
+    public static boolean feedHoldFast() {
+        return false;
+    }
+
+    /** Rewritten by the Seek bar on feed videos patch. */
+    public static boolean feedSeekBar() {
+        return false;
+    }
+
+    /** Rewritten by the Long press to zoom patch. */
+    public static boolean longPressZoom() {
+        return false;
+    }
+
+    /** Rewritten by the Rounded post corners patch. */
+    public static boolean roundedPostCorners() {
+        return false;
+    }
+
+    /** Rewritten by the Carousel arrows patch. */
+    public static boolean carouselArrows() {
+        return false;
+    }
+
+    /** Rewritten by the Ambient light patch. */
+    public static boolean ambientLight() {
+        return false;
+    }
+
+    /** Rewritten by the Keep in chat patch. */
+    public static boolean keepInChat() {
+        return false;
+    }
+
+    /** Rewritten by the Mark one-time photos and videos patch. */
+    public static boolean viewOnceMark() {
+        return false;
+    }
+
+    /** Rewritten by the Swipe through a chat's reels patch. */
+    public static boolean chatReels() {
+        return false;
+    }
+
+    /** Rewritten by the Swipe through a chat's photos and posts patch. */
+    public static boolean chatMediaWalk() {
+        return false;
+    }
+
+    /** Rewritten by the Chat history tools patch. */
+    public static boolean chatHistory() {
+        return false;
+    }
+
+    /** Rewritten by the Preview chats patch. */
+    public static boolean previewChats() {
+        return false;
+    }
+
+    /** Rewritten by the View live anonymously patch. */
+    public static boolean liveSeen() {
+        return false;
+    }
+}

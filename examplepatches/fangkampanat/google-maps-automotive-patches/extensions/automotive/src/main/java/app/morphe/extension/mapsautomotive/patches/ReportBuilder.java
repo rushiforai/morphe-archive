@@ -440,6 +440,7 @@ final class ReportBuilder {
                 .put("driver_side", DriverSide.report(context))
                 .put("color_scheme", ColorScheme.report(context))
                 .put("buildings_3d", SafeMode.included(SafeMode.BUILDINGS_3D) ? Buildings3d.report() : JSONObject.NULL)
+                .put("cluster_satellite", ClusterSatellite.report())
                 .put("window", window);
     }
 

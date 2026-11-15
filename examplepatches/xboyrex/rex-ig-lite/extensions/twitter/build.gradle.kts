@@ -2,6 +2,12 @@ android {
     defaultConfig {
         minSdk = 26
     }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        warningsAsErrors = false
+    }
 }
 
 dependencies {

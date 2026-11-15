@@ -21,6 +21,8 @@ fun fixRedgifsApiPatch(
     description = "Fixes loading RedGifs media, which RedGifs otherwise refuses.",
     default = true
 ) {
+    category("2. Media")
+
     dependsOn(
         extensionPatch,
         bytecodePatch {

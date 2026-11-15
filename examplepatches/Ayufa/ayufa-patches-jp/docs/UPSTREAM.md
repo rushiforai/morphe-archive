@@ -27,7 +27,7 @@
 - 本家 `crimera/piko` の `x-lite` ブランチのツリーから、NewX 以外（Instagram／旧 Twitter 向けパッチと拡張）を取り除いたコピーを保持します（取り除いた範囲は `sources/piko/UPSTREAM_BASE.md` に記載）。
 - 日本語化はコピーの中で完結します。
   - Piko 設定 UI の文字列: 本家には日本語リソースが無いため、`sources/piko/patches/src/main/resources/addresources/values-ja-rJP/newx/strings.xml`（全486件）を実ファイルとして保持します。
-  - Morphe の一覧に表示されるパッチ説明: パッチ宣言（Kotlin ソース）の中の `description` を日本語に書き換えています（全52件）。`name` は本家の英語名のままです（絶対ルール。v1.2.0 では名前も日本語化していましたが、実行順序が変わって実機で失敗したため v1.2.1 で英語名に戻しました）。方針は `docs/LOCALIZATION.md`。
+  - Morphe の一覧に表示されるパッチ説明: パッチ宣言（Kotlin ソース）の中の `description` を日本語に書き換えています（全51件）。`name` は本家の英語名のままです（絶対ルール。v1.2.0 では名前も日本語化していましたが、実行順序が変わって実機で失敗したため v1.2.1 で英語名に戻しました）。方針は `docs/LOCALIZATION.md`。
 - 取り込み手順（本家 `x-lite` のみが対象）:
   1. 本家を読み取り専用で取得する（浅いクローン、または push URL を無効化したリモートからの fetch）。
   2. 本家の変更を `sources/piko/` へ反映する（差分適用／手作業マージ）。取り除いた範囲（Instagram／旧 Twitter 向け）は引き続き含めません。

@@ -45,7 +45,6 @@ private val splashResourcePatch: ResourcePatch = resourcePatch {
             defStream.use { input -> targetDef.outputStream().use { output -> input.copyTo(output) } }
         }
 
-        // Android 12 draws the launcher icon before any code runs. A blank icon keeps that frame empty.
         val blank = resDir.resolve("drawable/morphe_splash_blank.xml")
         blank.parentFile?.mkdirs()
         blank.writeText(
@@ -87,7 +86,7 @@ private val splashResourcePatch: ResourcePatch = resourcePatch {
 @Suppress("unused")
 val splashScreenPatch: BytecodePatch = bytecodePatch(
     name = "Splash Screen",
-    description = "[v1.3.5: Animation can be turned off] Logo inspired by u/otheast. Animation and colours are fully customisable in Joey Settings - Morphe Settings.",
+    description = "[v1.4.0: Match theme keeps your chosen animation.] Logo inspired by u/otheast. Logo, colours and animation can be customised, follow your theme, or the animation can be turned off, in Joey Settings - Morphe Settings.",
     default = true,
 ) {
     compatibleWith(JOEY)

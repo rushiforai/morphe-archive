@@ -38,6 +38,8 @@ val addArchiveLinksPatch = bytecodePatch(
             "behind a link.",
     default = true
 ) {
+    category("3. Archives")
+
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*SyncForRedditCompatible)

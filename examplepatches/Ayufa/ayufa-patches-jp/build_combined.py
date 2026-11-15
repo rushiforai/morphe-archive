@@ -667,6 +667,36 @@ def _rewrite_kakao_read_all_bytes(piko_directory: Path) -> None:
     print("Adapted KakaoTalk patches: readAllBytes() -> readBytes() (2 sites)")
 
 
+def _adapt_kakao_debug_setting(extension_file: Path) -> None:
+    """Drop the KakaoTalk extension's binding to BaseSettings.DEBUG.
+
+    morphe-extensions-library 2.2.0-dev.4 (pulled in by the piko
+    base) removed the BooleanSetting BaseSettings.DEBUG and replaced
+    it with the EnumSetting BaseSettings.DEBUG_LEVEL, so the upstream
+    bindSwitch(PREF_DEBUG, BaseSettings.DEBUG) call no longer
+    compiles; upstream has not adapted yet. A switch cannot bind an
+    enum setting, so in the build tree only the binding line is
+    replaced with removePreference(PREF_DEBUG) — the same call the
+    activity itself uses for preferences whose patch is not included.
+    The debug switch disappears from the KakaoTalk settings screen
+    and the library default (debug level DISABLED, the old DEBUG =
+    false equivalent) applies. The replacement count is asserted so
+    an upstream fix surfaces as an error instead of a silent rewrite.
+    """
+    old = "bindSwitch(PREF_DEBUG, BaseSettings.DEBUG);"
+    text = extension_file.read_text(encoding="utf-8")
+    count = text.count(old)
+    if count != 1:
+        raise ValueError(
+            f"Expected 1 BaseSettings.DEBUG binding in {extension_file}, "
+            f"found {count}"
+        )
+    extension_file.write_text(
+        text.replace(old, "removePreference(PREF_DEBUG);"), encoding="utf-8"
+    )
+    print("Adapted KakaoTalk extension: BaseSettings.DEBUG binding removed")
+
+
 def inject_kakao_sources(piko_directory: Path) -> None:
     """Copy the KakaoTalk patch set from sources/kakao into the build tree.
 
@@ -720,6 +750,20 @@ def inject_kakao_sources(piko_directory: Path) -> None:
     )
     _adapt_kakao_extension_build(
         piko_directory / "extensions" / "kakaotalk" / "build.gradle.kts"
+    )
+    _adapt_kakao_debug_setting(
+        piko_directory
+        / "extensions"
+        / "kakaotalk"
+        / "src"
+        / "main"
+        / "java"
+        / "app"
+        / "revanced"
+        / "extension"
+        / "kakaotalk"
+        / "settings"
+        / "SettingsActivity.java"
     )
     # The KakaoTalk extension compiles against the Morphe preference
     # UI classes (app.morphe.extension.shared.settings.preference.*)
@@ -838,7 +882,6 @@ UPSTREAM_X_LIST_ORDER = [
     "NewX: Customize inline actions",
     "NewX: Inline download button",
     "NewX: Redirect downloads to chosen folder",
-    "NewX: Log HLS audio renditions",
     "NewX: Customize media menu items",
     "NewX: Set default media tab",
     "NewX: Gallery profile Photos tab",

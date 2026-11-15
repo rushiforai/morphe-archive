@@ -110,6 +110,20 @@ public final class SettingsContextRule extends ExternalResource {
     }
 
     /**
+     * Runs [body] with the settings ready and Utils' context swapped for [stand] (null allowed),
+     * as when Android hands a hook a context that fails it. The real one comes back afterwards.
+     */
+    public static void withContext(Context stand, Runnable body) {
+        Context saved = Utils.context;
+        Utils.context = stand;
+        try {
+            body.run();
+        } finally {
+            Utils.context = saved;
+        }
+    }
+
+    /**
      * Runs [body] the way a hook runs inside setContext's window: the context is set, and whether
      * this process runs paused isn't decided yet. The flag comes back afterwards.
      */

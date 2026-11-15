@@ -1831,6 +1831,55 @@ public final class Probe extends Instrumentation {
                                 + " pieces encoding=base64-utf8 bytes=" + bytes.length + " sha256=" + hash);
                         break;
                     }
+                    case "rootsignals": {
+                        // Calls TikTok's own root checks and prints what each one answers. Each
+                        // extra (status, packages, paths, whichsu, sucommand) names one static
+                        // method as Class.method taking nothing or a Context. Off the main thread,
+                        // since the su checks start a shell and wait on it.
+                        final String[] names = {"status", "packages", "paths", "whichsu", "sucommand"};
+                        final String[] targets = new String[names.length];
+                        for (int i = 0; i < names.length; i++) targets[i] = intent.getStringExtra(names[i]);
+                        new Thread(() -> {
+                            StringBuilder out = new StringBuilder();
+                            for (int i = 0; i < names.length; i++) {
+                                if (targets[i] == null) continue;
+                                out.append(' ').append(names[i]).append('=');
+                                try {
+                                    int dot = targets[i].lastIndexOf('.');
+                                    Class<?> owner = loader.loadClass(targets[i].substring(0, dot));
+                                    String method = targets[i].substring(dot + 1);
+                                    Object result = null;
+                                    boolean called = false;
+                                    for (Method candidate : owner.getDeclaredMethods()) {
+                                        Class<?> returns = candidate.getReturnType();
+                                        if (!candidate.getName().equals(method)
+                                                || !Modifier.isStatic(candidate.getModifiers())
+                                                || (returns != boolean.class && !Map.class.isAssignableFrom(returns))) {
+                                            continue;
+                                        }
+                                        Class<?>[] types = candidate.getParameterTypes();
+                                        candidate.setAccessible(true);
+                                        if (types.length == 0) {
+                                            result = candidate.invoke(null);
+                                        } else if (types.length == 1 && types[0] == Context.class) {
+                                            result = candidate.invoke(null, app);
+                                        } else {
+                                            continue;
+                                        }
+                                        called = true;
+                                        break;
+                                    }
+                                    out.append(called ? String.valueOf(result) : "nomethod");
+                                } catch (Throwable failure) {
+                                    Throwable cause = failure instanceof java.lang.reflect.InvocationTargetException
+                                            && failure.getCause() != null ? failure.getCause() : failure;
+                                    out.append("failed:").append(cause.getClass().getSimpleName());
+                                }
+                            }
+                            Log.i(TAG, "ok rootsignals" + out);
+                        }).start();
+                        break;
+                    }
                     case "get": {
                         String key = required(intent, "key");
                         Log.i(TAG, "ok get " + key + "=" + valueOf(find(key)));
@@ -4592,6 +4641,30 @@ public final class Probe extends Instrumentation {
                 if (source != null) {
                     out.append(' ').append(source.getIntrinsicWidth()).append('x').append(source.getIntrinsicHeight())
                             .append(' ').append(image.getScaleType());
+                }
+                // An icon class that paints a box of its own from a field (LIVE's LiveIconView)
+                // shows no background: each Drawable field it holds, with its tint and filter.
+                for (Class<?> type = view.getClass(); type != null && type != android.widget.ImageView.class; type = type.getSuperclass()) {
+                    for (Field field : type.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                                || !android.graphics.drawable.Drawable.class.isAssignableFrom(field.getType())) continue;
+                        try {
+                            field.setAccessible(true);
+                            android.graphics.drawable.Drawable held = (android.graphics.drawable.Drawable) field.get(view);
+                            out.append(" field ").append(type.getSimpleName()).append('.').append(field.getName())
+                                    .append('=').append(describeDrawable(held, 0));
+                            if (held != null) {
+                                out.append(" class=").append(held.getClass().getName());
+                                if (held.getColorFilter() != null) out.append(" filter=").append(held.getColorFilter().getClass().getSimpleName());
+                                if (android.os.Build.VERSION.SDK_INT >= 29 && held instanceof android.graphics.drawable.ColorStateListDrawable) {
+                                    out.append(" csl=#").append(Integer.toHexString(((android.graphics.drawable.ColorStateListDrawable) held)
+                                            .getColorStateList().getDefaultColor()));
+                                }
+                            }
+                        } catch (ReflectiveOperationException | RuntimeException failure) {
+                            out.append(" field ").append(field.getName()).append("=?");
+                        }
+                    }
                 }
             }
             if (view.getAlpha() < 1f) out.append(" alpha=").append(view.getAlpha());

@@ -10,17 +10,20 @@ import app.rex.patches.instagram.entity.messageInfoEntity.messageInfoEntity
 import app.rex.patches.instagram.misc.directMessage.saveAllMessages.saveAllMessagesPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val downloadVoiceMessagePatch =
-    bytecodePatch(
+    patch(
         name = "Download voice message",
         description = "Enables ability to download voice messages",
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(messageInfoEntity, saveAllMessagesPatch)
         execute {
+            runCatching {
             enableSettings("downloadVoiceMessage")
+        
+            }
         }
     }

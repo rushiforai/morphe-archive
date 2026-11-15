@@ -33,7 +33,7 @@ val hideAdsPatch = bytecodePatch(
         )
 
         // Home feed: drop ad units as they're parsed.
-        extensionStub(EXTENSION_CLASS, "feedItemType").method.callThrough(FeedItemTypeFingerprint.method)
+        extensionStub(EXTENSION_CLASS, "feedItemType").method.callThrough(FeedItemTypeFingerprint.originalMethod)
         ParseFeedItemFingerprint.method.apply {
             hookReturnedObjects(
                 "$EXTENSION_CLASS->filterFeedItem(Ljava/lang/Object;)Ljava/lang/Object;",

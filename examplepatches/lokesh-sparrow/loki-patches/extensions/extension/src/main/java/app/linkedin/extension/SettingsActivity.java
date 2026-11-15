@@ -9,10 +9,12 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
@@ -20,6 +22,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.text.Editable;
@@ -40,20 +43,36 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import app.loki.extension.LokiLog;
+import app.loki.extension.LokiPrefs;
+import app.loki.extension.MenuInfo;
+import app.loki.extension.SplitwiseFeatures;
+
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Loki Patches' own settings screen.
+ * Loki Patches' own settings screen, the same in every app: LinkedIn opens it as SettingsActivity, every other
+ * app as app.loki.extension.MenuActivity (a subclass with nothing of its own). The app's own pages are chosen
+ * from the package the screen runs in; the standard pages (patch status, backup, diagnostics, general, about)
+ * are shared.
  *
  * Three things live here: the page list (what the user sees), the palette used to draw it, and a small set of
  * view helpers at the bottom that every screen part is made of. The screen is built in code because extensions
  * cannot ship Android resources; the manifest entry is added by the settings patch.
  */
 @SuppressWarnings("unused")
-public final class SettingsActivity extends Activity {
+public class SettingsActivity extends Activity {
     static final String AUTHOR = "Lokesh Sparrow";
     static final String BRAND = "Loki Patches";
 
@@ -70,18 +89,25 @@ public final class SettingsActivity extends Activity {
     // which keeps the page definitions below readable as a plain list.
 
     /** Text worked out at draw time, e.g. the folder downloads currently go to. */
-    private interface Live {
+    interface Live {
         String text();
     }
 
     /** A condition that can change between draws, such as whether a row may be tapped right now. */
-    private interface Check {
+    interface Check {
         boolean ok();
     }
 
-    private static final Check YES = () -> true;
+    static final Check YES = () -> true;
 
-    private static final class Row {
+    /** A switch whose value is not a LinkedIn preference (Loki's own settings in other apps, the drawer icon). */
+    interface Toggle {
+        boolean get();
+
+        void set(boolean on);
+    }
+
+    static final class Row {
         /** Stored preference for a switch row; {@code null} means the row is not a switch. */
         final String pref;
         final boolean fallback;
@@ -94,6 +120,10 @@ public final class SettingsActivity extends Activity {
         /** Runs after this switch flips, for rows that change what another row shows. */
         final Runnable afterwards;
         final Check usable;
+        /** Reads and writes a switch that is not a LinkedIn preference; {@code null} for preference rows. */
+        Toggle toggle;
+        /** Whether flipping this switch needs an app restart (LinkedIn's feature switches do). */
+        boolean restart = true;
 
         Row(String pref, boolean fallback, String title, String note, Live live, Runnable open,
             Runnable afterwards, Check usable) {
@@ -108,7 +138,7 @@ public final class SettingsActivity extends Activity {
         }
     }
 
-    private static final class Page {
+    static final class Page {
         final String title;
         final String icon;
         final List<Row> rows = new ArrayList<>();
@@ -137,24 +167,55 @@ public final class SettingsActivity extends Activity {
         Page act(String title, String note, Runnable run) {
             return shown(title, () -> note, run, YES);
         }
+
+        /** A read-only line: title and its current value. */
+        Page info(String title, Live live) {
+            return shown(title, live, null, YES);
+        }
+
+        /** A switch backed by {@code toggle} that takes effect at once. */
+        Page toggle(String title, String note, Toggle toggle) {
+            return toggle(title, note, toggle, false);
+        }
+
+        /** A switch backed by {@code toggle}; with {@code restart} the screen offers to restart the app after it. */
+        Page toggle(String title, String note, Toggle toggle, boolean restart) {
+            Row row = new Row("", false, title, note, null, null, null, null);
+            row.toggle = toggle;
+            row.restart = restart;
+            rows.add(row);
+            return this;
+        }
     }
 
     private List<Page> pages() {
         List<Page> all = new ArrayList<>();
-        all.add(ads());
-        all.add(feed());
-        all.add(appearance());
-        all.add(downloads());
-        all.add(chat());
-        all.add(privacy());
-        all.add(other());
+        if (linkedIn) {
+            all.add(ads());
+            all.add(feed());
+            all.add(appearance());
+            all.add(downloads());
+            all.add(chat());
+            all.add(privacy());
+        } else {
+            HostPages.add(this, all);
+        }
+        firstStandardPage = all.size();
+        all.add(patchStatus());
+        all.add(backup());
+        all.add(diagnostics());
+        all.add(general());
         // A page with no rows means none of its patches are in this install.
         List<Page> listed = new ArrayList<>();
-        for (Page page : all) {
-            if (!page.rows.isEmpty()) listed.add(page);
+        for (int i = 0; i < all.size(); i++) {
+            if (i == firstStandardPage) firstStandardPage = listed.size();
+            if (!all.get(i).rows.isEmpty()) listed.add(all.get(i));
         }
         return listed;
     }
+
+    /** Index in {@link #pages} where the standard pages start; a gap is drawn above it on the home list. */
+    private int firstStandardPage;
 
     private Page ads() {
         Page page = new Page("Ads & promotions", IconDrawable.BLOCK);
@@ -271,7 +332,7 @@ public final class SettingsActivity extends Activity {
                 "to this page.");
         // Read-only summary of the two rows under it; follows them without being tapped.
         page.shown("Save location", () -> Settings.downloadSplitByType()
-                ? I18n.f("Photos: %1$s\nVideos: %2$s", Downloads.location(false), Downloads.location(true))
+                ? f("Photos: %1$s\nVideos: %2$s", Downloads.location(false), Downloads.location(true))
                 : Downloads.location(false), null, YES);
         page.shown("Main folder", () -> Settings.downloadSplitByType()
                 ? "Chosen for you (Split photos & videos is on)" : Settings.downloadBaseDir(),
@@ -321,18 +382,76 @@ public final class SettingsActivity extends Activity {
         return page;
     }
 
-    private Page other() {
-        Page page = new Page("Other", IconDrawable.MORE);
-        page.shown("Language", () -> languageNames()[languageIndex()], this::chooseLanguage, YES);
-        page.act("Export settings", "Back up every setting to the clipboard.", this::exportSettings);
-        page.act("Import settings", "Restore settings from a backup in the clipboard.", this::importSettings);
-        page.act("Reset to defaults", "Reset all Loki Patches settings.", this::resetSettings);
-        page.sw(Settings.DEBUG_LOGGING, false, "Diagnostic logging",
-                "Records extra detail for the diagnostic report. Switch it on, reproduce the " +
-                "issue, then copy the report.");
-        page.act("Copy diagnostic report", "A bug-report bundle: app, device and patch info plus the recent log, with links " +
-                                           "and IDs stripped.", this::copyDiagnosticReport);
-        page.act("Clear diagnostic log", "Deletes the saved log.", this::clearDiagnosticLog);
+    // The standard pages, identical in every app.
+
+    private Page patchStatus() {
+        Page page = new Page("Patch status", IconDrawable.CHECKLIST);
+        if (linkedIn) {
+            for (Object[] patch : patches()) {
+                boolean applied = (Boolean) patch[1];
+                page.info((String) patch[0], () -> applied ? "Applied" : "Not applied");
+            }
+        } else {
+            for (String[] patch : MenuInfo.patches(this)) {
+                boolean applied = "true".equals(patch[1]);
+                page.info(patch[0], () -> applied ? "Applied" : "Not applied");
+            }
+        }
+        return page;
+    }
+
+    private Page backup() {
+        Page page = new Page("Backup & restore", IconDrawable.CLOUD);
+        page.act("Export to file", "Save every " + BRAND + " setting as a file you choose, e.g. in Downloads " +
+                "or Google Drive. It survives uninstalling the app.", this::exportToFile);
+        page.act("Import from file", "Restore settings from a backup file.", this::importFromFile);
+        page.act("Reset to defaults", "Reset all " + BRAND + " settings.", this::resetSettings);
+        return page;
+    }
+
+    private Page diagnostics() {
+        Page page = new Page("Diagnostics", IconDrawable.BUG);
+        String logging = "Records extra detail for the diagnostic report. Switch it on, reproduce the issue, " +
+                "then copy or share the report.";
+        if (linkedIn) {
+            page.sw(Settings.DEBUG_LOGGING, false, "Diagnostic logging", logging);
+            page.rows.get(page.rows.size() - 1).restart = false;
+        } else {
+            page.toggle("Diagnostic logging", logging, new Toggle() {
+                public boolean get() {
+                    return LokiPrefs.debug(SettingsActivity.this);
+                }
+
+                public void set(boolean on) {
+                    LokiPrefs.setDebug(SettingsActivity.this, on);
+                }
+            });
+        }
+        page.act("Copy report", "Puts the report on the clipboard, to paste into a GitHub issue or a chat. " +
+                "Links and IDs are stripped.", this::copyDiagnosticReport);
+        page.act("Share report", "Sends the report to WhatsApp, Gmail, Telegram or any other app.",
+                this::shareDiagnosticReport);
+        page.act("Clear log", "Deletes the saved log.", this::clearDiagnosticLog);
+        return page;
+    }
+
+    private Page general() {
+        Page page = new Page("General", IconDrawable.GEAR);
+        if (launcherAlias() != null) {
+            page.toggle("Show in the app drawer", "Adds a " + BRAND + " icon to your app list. Off by default; " +
+                    "the menu is always inside the app and on a long press of its icon.", new Toggle() {
+                public boolean get() {
+                    return drawerIconOn();
+                }
+
+                public void set(boolean on) {
+                    setDrawerIcon(on);
+                }
+            });
+        }
+        if (linkedIn) {
+            page.shown("Language", () -> languageNames()[languageIndex()], this::chooseLanguage, YES);
+        }
         return page;
     }
 
@@ -344,8 +463,12 @@ public final class SettingsActivity extends Activity {
     private int background, surface, divider, ink, inkMuted, accent;
 
     private List<Page> pages;
+    /** True inside LinkedIn; every other app gets the same screen with its own pages. */
+    boolean linkedIn;
     /** Page on screen, or {@code null} for the page list. */
     private Page openPage;
+    /** "About" or "Credits" while that page fills the screen, otherwise null. */
+    private String cardPage;
     private boolean searching;
     private String query = "";
 
@@ -455,6 +578,9 @@ public final class SettingsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        linkedIn = getPackageName().startsWith("com.linkedin.android");
+        // The top bar below carries the title; the window's own title bar would only repeat it.
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         ActionBar bar = getActionBar();
         if (bar != null) bar.hide();
@@ -516,6 +642,12 @@ public final class SettingsActivity extends Activity {
     public void onBackPressed() {
         if (searching) {
             setSearching(false);
+        } else if ("Credits".equals(cardPage)) {
+            cardPage = "About";
+            render();
+        } else if (cardPage != null) {
+            cardPage = null;
+            render();
         } else if (openPage != null) {
             openPage = null;
             render();
@@ -524,12 +656,39 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    /**
+     * Apps targeting Android 16 never get onBackPressed(): the back gesture goes to the OnBackInvokedDispatcher
+     * and, with nothing registered, closes the screen. While a page, About or search is open a callback is
+     * registered that steps back one level; on the page list it is removed so back leaves as usual.
+     */
+    private Object backCallback;
+
+    private void updateBackCallback() {
+        if (Build.VERSION.SDK_INT < 33) return;
+        boolean nested = searching || openPage != null || cardPage != null;
+        android.window.OnBackInvokedDispatcher dispatcher = getOnBackInvokedDispatcher();
+        if (nested && backCallback == null) {
+            android.window.OnBackInvokedCallback callback = this::onBackPressed;
+            dispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback);
+            backCallback = callback;
+        } else if (!nested && backCallback != null) {
+            dispatcher.unregisterOnBackInvokedCallback((android.window.OnBackInvokedCallback) backCallback);
+            backCallback = null;
+        }
+    }
+
     // region Drawing
 
     private void render() {
+        updateBackCallback();
         titleView.setVisibility(searching ? View.GONE : View.VISIBLE);
         searchField.setVisibility(searching ? View.VISIBLE : View.GONE);
-        if (!searching) titleView.setText(openPage == null ? BRAND : I18n.tr(openPage.title));
+        if (!searching) {
+            titleView.setText(cardPage != null ? tr(cardPage)
+                    : openPage == null ? BRAND : tr(openPage.title));
+        }
+        // Search covers the settings rows; About and Credits have none, so the button goes.
+        searchButton.setVisibility(cardPage != null ? View.GONE : View.VISIBLE);
         fill();
         scroll.scrollTo(0, 0);
     }
@@ -545,6 +704,10 @@ public final class SettingsActivity extends Activity {
         content.removeAllViews();
         if (searching) {
             drawResults();
+        } else if ("About".equals(cardPage)) {
+            drawAbout();
+        } else if ("Credits".equals(cardPage)) {
+            drawCredits();
         } else if (openPage == null) {
             drawPageList();
         } else {
@@ -553,13 +716,65 @@ public final class SettingsActivity extends Activity {
     }
 
     private void drawPageList() {
-        content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
-        for (Page page : pages) {
+        content.addView(homeHeader());
+        for (int i = 0; i < pages.size(); i++) {
+            Page page = pages.get(i);
+            if (i == firstStandardPage && i > 0) content.addView(sectionGap());
             content.addView(navRow(page.icon, page.title, v -> {
                 openPage = page;
                 render();
             }));
         }
+        content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
+    }
+
+    /** Brand card at the top of the page list: app icon, name, author, version and the update state. */
+    private View homeHeader() {
+        LinearLayout card = column();
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setPadding(dp(20), dp(18), dp(20), dp(18));
+        card.setBackground(bordered());
+
+        ImageView icon = new ImageView(this);
+        icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
+        card.addView(icon, square(64));
+        card.addView(placed(label(BRAND, 24, ink, true), Gravity.CENTER, 10, 0));
+        card.addView(placed(label(f("Made by %1$s", AUTHOR), 15, accent, false), Gravity.CENTER, 2, 0));
+        card.addView(placed(label(BRAND + " " + version() + "  •  " + appName() + " " + appVersion(), 13,
+                inkMuted, false), Gravity.CENTER, 4, 0));
+        TextView state = placed(label("Checking for updates…", 14, accent, true), Gravity.CENTER, 10, 0);
+        card.addView(state);
+        UpdateChecker.check((status, latest) -> {
+            switch (status) {
+                case UPDATE_AVAILABLE:
+                    state.setText(f("Update available: %1$s", latest));
+                    break;
+                case UP_TO_DATE:
+                    state.setText(tr("Up to date"));
+                    break;
+                case NO_RELEASE:
+                    state.setText(tr("No stable release yet"));
+                    break;
+                default:
+                    state.setText(tr("Can't check for updates"));
+                    break;
+            }
+        });
+        card.setOnClickListener(v -> showAbout());
+        card.setForeground(ripple(false));
+
+        LinearLayout.LayoutParams params = wide();
+        params.setMargins(dp(16), dp(8), dp(16), dp(12));
+        card.setLayoutParams(params);
+        return card;
+    }
+
+    /** Space between the app's own pages and the standard ones. */
+    private View sectionGap() {
+        View line = hairline();
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) line.getLayoutParams();
+        params.setMargins(dp(24), dp(8), dp(24), dp(8));
+        return line;
     }
 
     /** Rows in order; with {@code fromPages}, each row carries the name of the page it came from. */
@@ -578,9 +793,9 @@ public final class SettingsActivity extends Activity {
         List<String> origins = new ArrayList<>();
         for (Page page : pages) {
             for (Row row : page.rows) {
-                String haystack = (I18n.tr(row.title) + " "
-                        + (row.note == null ? "" : I18n.tr(row.note)) + " "
-                        + I18n.tr(page.title)).toLowerCase(Locale.ROOT);
+                String haystack = (tr(row.title) + " "
+                        + (row.note == null ? "" : tr(row.note)) + " "
+                        + tr(page.title)).toLowerCase(Locale.ROOT);
                 if (needle.isEmpty() || haystack.contains(needle)) {
                     hits.add(row);
                     origins.add(page.title);
@@ -613,7 +828,7 @@ public final class SettingsActivity extends Activity {
         bar.addView(titleView, weightOne());
 
         searchField = new EditText(this);
-        searchField.setHint(I18n.tr("Search settings"));
+        searchField.setHint(tr("Search settings"));
         searchField.setSingleLine(true);
         searchField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         searchField.setTextColor(ink);
@@ -673,14 +888,18 @@ public final class SettingsActivity extends Activity {
         line.addView(texts(row.title, row.note, pageName, null), weightOne());
 
         Switch toggle = new Switch(this);
-        toggle.setChecked(Settings.get(row.pref, row.fallback));
+        toggle.setChecked(row.toggle != null ? row.toggle.get() : Settings.get(row.pref, row.fallback));
         int[][] states = {{android.R.attr.state_checked}, {}};
         toggle.setThumbTintList(new ColorStateList(states, new int[]{accent, dark ? 0xFFB0B0B0 : 0xFFFFFFFF}));
         toggle.setTrackTintList(new ColorStateList(states, new int[]{
                 (accent & 0x00FFFFFF) | 0x80000000, dark ? 0xFF474747 : 0xFFBDBDBD}));
         toggle.setOnCheckedChangeListener((button, checked) -> {
-            Settings.set(row.pref, checked);
-            showRestartBanner();
+            if (row.toggle != null) {
+                row.toggle.set(checked);
+            } else {
+                Settings.set(row.pref, checked);
+            }
+            if (row.restart) showRestartBanner();
             if (row.afterwards != null) row.afterwards.run();
         });
         line.addView(toggle);
@@ -716,7 +935,7 @@ public final class SettingsActivity extends Activity {
     private LinearLayout texts(String title, String secondLine, String pageName, Integer secondLineColor) {
         LinearLayout block = column();
         if (pageName != null) {
-            TextView page = label(I18n.tr(pageName).toUpperCase(Locale.ROOT), 11, accent, true);
+            TextView page = label(tr(pageName).toUpperCase(Locale.ROOT), 11, accent, true);
             page.setLetterSpacing(0.06f);
             block.addView(page);
         }
@@ -734,6 +953,11 @@ public final class SettingsActivity extends Activity {
     // region About and its dialogs
 
     private void showAbout() {
+        cardPage = "About";
+        render();
+    }
+
+    private void drawAbout() {
         LinearLayout card = cardShell(28, 24, true);
 
         ImageView icon = new ImageView(this);
@@ -741,7 +965,7 @@ public final class SettingsActivity extends Activity {
         card.addView(icon, square(88));
 
         card.addView(placed(label(BRAND, 26, ink, true), Gravity.CENTER, 16, 4));
-        card.addView(placed(label("LinkedIn patches  •  built for Morphe", 14, inkMuted, false),
+        card.addView(placed(label("Loki Patches  •  built for Morphe", 14, inkMuted, false),
                 Gravity.CENTER, 0, 20));
 
         // Update box: shows this build until the GitHub check answers, then the answer.
@@ -751,33 +975,33 @@ public final class SettingsActivity extends Activity {
         update.setBackground(bordered());
         TextView updateTitle = placed(label("Checking for updates…", 17, accent, true), Gravity.CENTER, 0, 0);
         update.addView(updateTitle);
-        TextView updateBody = placed(label(I18n.f("Installed: %1$s %2$s", BRAND,
-                Settings.patchesVersion()), 15, inkMuted, false), Gravity.CENTER, 6, 0);
+        TextView updateBody = placed(label(f("Installed: %1$s %2$s", BRAND,
+                version()), 15, inkMuted, false), Gravity.CENTER, 6, 0);
         update.addView(updateBody);
         card.addView(update, wide());
-        String thisBuild = BRAND + " " + Settings.patchesVersion() + "  •  LinkedIn " + appVersion()
-                + "\n" + I18n.f("Made by %1$s", AUTHOR);
+        String thisBuild = BRAND + " " + version() + "  •  " + appName() + " " + appVersion()
+                + "\n" + f("Made by %1$s", AUTHOR);
         UpdateChecker.check((status, latest) -> {
             switch (status) {
                 case UPDATE_AVAILABLE:
-                    updateTitle.setText(I18n.tr("Update available"));
-                    updateBody.setText(I18n.f("Installed version: %1$s.\n\nNewer version: %2$s\n\nPatch LinkedIn again in Morphe " +
+                    updateTitle.setText(tr("Update available"));
+                    updateBody.setText(f("Installed version: %1$s.\n\nNewer version: %2$s\n\nPatch %3$s again in Morphe " +
                                               "Manager to update.",
-                            Settings.patchesVersion(), latest));
+                            version(), latest, appName()));
                     break;
                 case UP_TO_DATE:
-                    updateTitle.setText(I18n.tr("Up to date"));
+                    updateTitle.setText(tr("Up to date"));
                     updateBody.setText(thisBuild);
                     break;
                 case NO_RELEASE:
-                    updateTitle.setText(I18n.tr("No stable release yet"));
+                    updateTitle.setText(tr("No stable release yet"));
                     updateBody.setText(thisBuild + "\n\n"
-                            + I18n.tr("GitHub has no stable release to compare against yet."));
+                            + tr("GitHub has no stable release to compare against yet."));
                     break;
                 default:
-                    updateTitle.setText(I18n.tr("Can't connect"));
+                    updateTitle.setText(tr("Can't connect"));
                     updateBody.setText(thisBuild + "\n\n"
-                            + I18n.tr("Couldn't reach GitHub. Check your connection and reopen this page."));
+                            + tr("Couldn't reach GitHub. Check your connection and reopen this page."));
                     break;
             }
         });
@@ -789,42 +1013,26 @@ public final class SettingsActivity extends Activity {
         link(links, IconDrawable.CODE, "GitHub", () -> openUrl(repo));
         link(links, IconDrawable.HISTORY, "Changelog", () -> openUrl(repo + "/releases"));
         link(links, IconDrawable.BUG, "Report a bug", () -> openUrl(repo + "/issues/new/choose"));
-        link(links, IconDrawable.CHECKLIST, "Patch status", this::showPatchStatus);
-        link(links, IconDrawable.PEOPLE, "Credits", this::showCredits);
+        link(links, IconDrawable.PEOPLE, "Credits", () -> {
+            cardPage = "Credits";
+            render();
+        });
         card.addView(links, wide());
 
-        card.addView(placed(label(I18n.f("%1$s is not made by LinkedIn and is not part of the Morphe project.",
-                BRAND), 12, inkMuted, false), Gravity.CENTER, 16, 0));
+        card.addView(placed(label(f("%1$s is not made by %2$s and is not part of the Morphe project.",
+                BRAND, appName()), 12, inkMuted, false), Gravity.CENTER, 16, 0));
 
         showCard(card);
     }
 
-    private void showPatchStatus() {
-        LinearLayout card = titledCard("Patch status", "The patches included in this LinkedIn install.");
-        LinearLayout list = column();
-        list.setBackground(bordered());
-
-        Object[][] all = patches();
-        for (int i = 0; i < all.length; i++) {
-            if (i > 0) list.addView(hairline());
-            boolean applied = (Boolean) all[i][1];
-            LinearLayout row = stripPlain(18, 14, 18, 14);
-            row.addView(label((String) all[i][0], 16, ink, false), weightOne());
-            row.addView(label(applied ? "Applied" : "Not applied", 14, applied ? accent : inkMuted, true));
-            list.addView(row);
-        }
-        card.addView(list, wide());
-        showCard(card);
-    }
-
-    private void showCredits() {
-        LinearLayout card = titledCard("Credits", I18n.f("Who made %1$s possible.", BRAND));
-        card.addView(credit(IconDrawable.PEOPLE, AUTHOR, I18n.f("Creator of %1$s", BRAND),
+    private void drawCredits() {
+        LinearLayout card = titledCard(null, f("Who made %1$s possible.", BRAND));
+        card.addView(credit(IconDrawable.PEOPLE, AUTHOR, f("Creator of %1$s", BRAND),
                 "github.com/lokesh-sparrow", "https://github.com/lokesh-sparrow"));
         card.addView(credit(IconDrawable.CODE, "Morphe", "The patcher engine, Morphe Manager and the patch template",
                 "morphe.software", MORPHE_WEBSITE));
-        card.addView(credit(IconDrawable.INFO, "LinkedIn",
-                I18n.f("The app being patched. %1$s has no connection to LinkedIn.", BRAND), null, null));
+        card.addView(credit(IconDrawable.INFO, appName(),
+                f("The app being patched. %1$s has no connection to %2$s.", BRAND, appName()), null, null));
         showCard(card);
     }
 
@@ -857,20 +1065,21 @@ public final class SettingsActivity extends Activity {
         return card;
     }
 
-    /** Card with a centred title and a subtitle under it; the frame the About dialogs share. */
+    /** Page with an optional centred title and a subtitle under it; the frame the About pages share. */
     private LinearLayout titledCard(String title, String subtitle) {
         LinearLayout card = cardShell(24, 24, false);
-        card.addView(placed(label(title, 24, ink, true), Gravity.CENTER, 0, 0), wide());
+        if (title != null) card.addView(placed(label(title, 24, ink, true), Gravity.CENTER, 0, 0), wide());
         card.addView(placed(label(subtitle, 14, inkMuted, false), Gravity.CENTER, 4, 16), wide());
         return card;
     }
 
+    /**
+     * Puts an About page into the screen itself, edge to edge like every settings page. It used to open as a
+     * dialog, which Android sizes to a fraction of the screen width.
+     */
     private void showCard(LinearLayout card) {
-        ScrollView wrapper = new ScrollView(this);
-        wrapper.addView(card);
-        AlertDialog dialog = new AlertDialog.Builder(this, dialogTheme()).setView(wrapper).create();
-        dialog.show();
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        card.setBackground(null);
+        content.addView(card, wide());
     }
 
     private TextView sectionTitle(String title) {
@@ -903,7 +1112,7 @@ public final class SettingsActivity extends Activity {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
         } catch (Exception e) {
-            Downloads.toast(this, "Can't open the link");
+            toast("Can't open the link");
         }
     }
 
@@ -949,64 +1158,183 @@ public final class SettingsActivity extends Activity {
 
     // region Backup and diagnostics
 
+    private String diagnosticReport() {
+        return linkedIn ? Diagnostics.report(this) : LokiLog.report(this);
+    }
+
     private void copyDiagnosticReport() {
-        copyToClipboard(Diagnostics.report(this), "Report copied — paste it into your bug report.");
+        try {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, diagnosticReport()));
+            toast("Report copied — paste it into your bug report.");
+        } catch (Exception e) {
+            toast("Couldn't copy the report");
+        }
+    }
+
+    private void shareDiagnosticReport() {
+        try {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, BRAND + " diagnostic report");
+            send.putExtra(Intent.EXTRA_TEXT, diagnosticReport());
+            startActivity(Intent.createChooser(send, tr("Share report")));
+        } catch (Exception e) {
+            toast("Couldn't share the report");
+        }
     }
 
     private void clearDiagnosticLog() {
-        Diagnostics.clear();
-        Downloads.toast(this, "Diagnostic log cleared");
+        if (linkedIn) {
+            Diagnostics.clear();
+        } else {
+            LokiLog.clear(this);
+        }
+        toast("Diagnostic log cleared");
     }
 
-    private void exportSettings() {
+    private static final int REQUEST_EXPORT = 0x4C01;
+    private static final int REQUEST_IMPORT = 0x4C02;
+    /** Marks a backup file as ours; anything else is refused on import. */
+    private static final String BACKUP_FORMAT = "loki-patches-settings";
+
+    /** Opens Android's "Save to" picker with a dated file name; the file is written in onActivityResult. */
+    private void exportToFile() {
+        String app = appName().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
+        String day = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date());
+        Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        save.addCategory(Intent.CATEGORY_OPENABLE);
+        save.setType("application/json");
+        save.putExtra(Intent.EXTRA_TITLE, "loki-" + app + "-settings-" + day + ".json");
         try {
-            copyToClipboard(Settings.exportJson(), "Settings backup copied");
+            startActivityForResult(save, REQUEST_EXPORT);
         } catch (Exception e) {
-            Downloads.toast(this, I18n.f("Export failed: %1$s", e.getMessage()));
+            toast("No app can save files on this phone");
         }
     }
 
-    /** Puts text on the clipboard under the app name, with the toast that says so. */
-    private void copyToClipboard(String text, String toast) {
+    private void importFromFile() {
+        Intent open = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        open.addCategory(Intent.CATEGORY_OPENABLE);
+        open.setType("*/*");
+        open.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/json", "text/plain", "application/octet-stream"});
         try {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, text));
-            Downloads.toast(this, toast);
+            startActivityForResult(open, REQUEST_IMPORT);
         } catch (Exception e) {
-            Downloads.toast(this, I18n.f("Export failed: %1$s", e.getMessage()));
+            toast("No app can open files on this phone");
         }
     }
 
-    private void importSettings() {
-        EditText input = multiline("Paste your settings backup below");
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        ClipData clip = clipboard.getPrimaryClip();
-        if (clip != null && clip.getItemCount() > 0 && clip.getItemAt(0).getText() != null) {
-            input.setText(clip.getItemAt(0).getText());
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri file = data.getData();
+        if (requestCode == REQUEST_EXPORT) {
+            writeBackup(file);
+        } else if (requestCode == REQUEST_IMPORT) {
+            readBackup(file);
         }
-        tinted(ask("Import settings")
-                .setView(fieldBox(input))
-                .setPositiveButton(I18n.tr("Import"), (dialog, which) -> {
+    }
+
+    /** The backup: which app and versions it came from, when, and the settings themselves. */
+    private JSONObject backupJson() throws Exception {
+        JSONObject out = new JSONObject();
+        out.put("format", BACKUP_FORMAT);
+        out.put("formatVersion", 1);
+        out.put("app", getPackageName());
+        out.put("appName", appName());
+        out.put("appVersion", appVersion());
+        out.put("patches", version());
+        out.put("created", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ROOT).format(new Date()));
+        out.put("settings", linkedIn ? new JSONObject(Settings.exportJson()) : LokiPrefs.toJson(this));
+        if (launcherAlias() != null) out.put("drawerIcon", drawerIconOn());
+        return out;
+    }
+
+    private void writeBackup(Uri file) {
+        try (OutputStream stream = getContentResolver().openOutputStream(file, "wt")) {
+            if (stream == null) throw new IllegalStateException("no stream");
+            stream.write(backupJson().toString(2).getBytes(StandardCharsets.UTF_8));
+            toast("Settings saved");
+        } catch (Exception e) {
+            toast(f("Export failed: %1$s", String.valueOf(e.getMessage())));
+        }
+    }
+
+    private void readBackup(Uri file) {
+        String text;
+        try (InputStream stream = getContentResolver().openInputStream(file)) {
+            if (stream == null) throw new IllegalStateException("no stream");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            for (int read; (read = stream.read(chunk)) > 0; ) bytes.write(chunk, 0, read);
+            text = bytes.toString("UTF-8");
+        } catch (Exception e) {
+            toast("Couldn't read the file");
+            return;
+        }
+        final JSONObject backup;
+        final JSONObject settings;
+        try {
+            JSONObject parsed = new JSONObject(text.trim());
+            if (BACKUP_FORMAT.equals(parsed.optString("format"))) {
+                backup = parsed;
+                settings = parsed.getJSONObject("settings");
+            } else if (linkedIn) {
+                // A backup from before the file format: LinkedIn's settings as a bare JSON object.
+                backup = null;
+                settings = parsed;
+            } else {
+                toast("This is not a " + BRAND + " backup");
+                return;
+            }
+        } catch (Exception e) {
+            toast("This is not a " + BRAND + " backup");
+            return;
+        }
+        if (backup != null && !sameApp(backup.optString("app"))) {
+            toast(f("This backup is for %1$s, not %2$s", backup.optString("appName", backup.optString("app")),
+                    appName()));
+            return;
+        }
+        String from = backup == null ? tr("an older backup")
+                : f("%1$s %2$s, saved %3$s", backup.optString("appName"), backup.optString("appVersion"),
+                        backup.optString("created").replace('T', ' ').replaceAll("[+-]\\d{4}$", ""));
+        tinted(ask("Import settings?")
+                .setMessage(f("Restore %1$s settings from %2$s? Your current settings are replaced.",
+                        String.valueOf(settings.length()), from))
+                .setPositiveButton(tr("Import"), (dialog, which) -> {
                     try {
-                        int count = Settings.importJson(input.getText().toString());
-                        Downloads.toast(this, I18n.f("%1$s settings imported", count));
+                        int count = linkedIn ? Settings.importJson(settings.toString())
+                                : LokiPrefs.fromJson(this, settings);
+                        if (backup != null && backup.has("drawerIcon") && launcherAlias() != null) {
+                            setDrawerIcon(backup.getBoolean("drawerIcon"));
+                        }
+                        toast(f("%1$s settings imported", count));
                         refresh();
-                        showRestartBanner();
+                        if (linkedIn) showRestartBanner();
                     } catch (Exception e) {
-                        Downloads.toast(this, "Invalid backup");
+                        toast("Import failed");
                     }
                 })
                 .show());
+    }
+
+    /** A clone (Change package name) and the original share settings: compare without the suffix. */
+    private boolean sameApp(String backupPackage) {
+        String here = getPackageName();
+        return !backupPackage.isEmpty() && (here.startsWith(backupPackage) || backupPackage.startsWith(here));
     }
 
     private void editMutedWords() {
         EditText input = multiline("One word or phrase per line, for example:\nthrilled to announce\nhiring");
         input.setText(Settings.mutedWords());
         tinted(ask("Muted words")
-                .setMessage(I18n.tr("Posts containing any of these, as whole words, are hidden from your feed. "
+                .setMessage(tr("Posts containing any of these, as whole words, are hidden from your feed. "
                         + "Upper and lower case don't matter."))
                 .setView(fieldBox(input))
-                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                .setPositiveButton(tr("Save"), (dialog, which) -> {
                     Settings.setMutedWords(input.getText().toString().trim());
                     refresh();
                 })
@@ -1015,12 +1343,18 @@ public final class SettingsActivity extends Activity {
 
     private void resetSettings() {
         tinted(ask("Reset to defaults?")
-                .setMessage(I18n.f("This resets every %1$s setting, including where downloads are saved.", BRAND))
-                .setPositiveButton(I18n.tr("Reset"), (dialog, which) -> {
-                    Settings.resetAll();
-                    Downloads.toast(this, "Settings reset to defaults");
+                .setMessage(linkedIn
+                        ? f("This resets every %1$s setting, including where downloads are saved.", BRAND)
+                        : f("This resets every %1$s setting.", BRAND))
+                .setPositiveButton(tr("Reset"), (dialog, which) -> {
+                    if (linkedIn) {
+                        Settings.resetAll();
+                    } else {
+                        LokiPrefs.reset(this);
+                    }
+                    toast("Settings reset to defaults");
                     refresh();
-                    showRestartBanner();
+                    if (linkedIn) showRestartBanner();
                 })
                 .show());
     }
@@ -1060,11 +1394,11 @@ public final class SettingsActivity extends Activity {
 
         tinted(ask("Subfolder name")
                 .setView(box)
-                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                .setPositiveButton(tr("Save"), (dialog, which) -> {
                     Settings.setString(Settings.DOWNLOAD_FOLDER, Settings.sanitizeFolder(input.getText().toString()));
                     refresh();
                 })
-                .setNeutralButton(I18n.tr("Default"), (dialog, which) -> {
+                .setNeutralButton(tr("Default"), (dialog, which) -> {
                     Settings.setString(Settings.DOWNLOAD_FOLDER, Settings.DEFAULT_DOWNLOAD_FOLDER);
                     refresh();
                 })
@@ -1080,7 +1414,7 @@ public final class SettingsActivity extends Activity {
         banner.setBackground(rounded(dark ? 0xFF262626 : 0xFF202124, 16));
         banner.setElevation(dp(8));
 
-        TextView message = label("Restart LinkedIn for the changes to take effect.", 14, 0xFFFFFFFF, false);
+        TextView message = label(f("Restart %1$s for the changes to take effect.", appName()), 14, 0xFFFFFFFF, false);
         banner.addView(message, weightOne());
 
         TextView action = label("RESTART", 14, MaterialYou.settingsAccent(true, 0xFF2DBCB1), true);
@@ -1123,7 +1457,25 @@ public final class SettingsActivity extends Activity {
     private FrameLayout pageFrame() {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(background);
-        root.setFitsSystemWindows(true);
+        // Apps targeting Android 15+ are drawn edge to edge: keep the screen clear of the status and nav bars.
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            int top, bottom, left, right;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets bars = insets.getInsets(android.view.WindowInsets.Type.systemBars()
+                        | android.view.WindowInsets.Type.ime());
+                top = bars.top;
+                bottom = bars.bottom;
+                left = bars.left;
+                right = bars.right;
+            } else {
+                top = insets.getSystemWindowInsetTop();
+                bottom = insets.getSystemWindowInsetBottom();
+                left = insets.getSystemWindowInsetLeft();
+                right = insets.getSystemWindowInsetRight();
+            }
+            view.setPadding(left, top, right, bottom);
+            return insets;
+        });
         return root;
     }
 
@@ -1137,8 +1489,8 @@ public final class SettingsActivity extends Activity {
     /** Dialog builder that already carries the screen's theme, a title and a Cancel button. */
     private AlertDialog.Builder ask(String title) {
         return new AlertDialog.Builder(this, dialogTheme())
-                .setTitle(I18n.tr(title))
-                .setNegativeButton(I18n.tr("Cancel"), null);
+                .setTitle(tr(title))
+                .setNegativeButton(tr("Cancel"), null);
     }
 
     /** Plain vertical container. */
@@ -1171,7 +1523,7 @@ public final class SettingsActivity extends Activity {
         return icon;
     }
 
-    /** Dialog or About card: rounded, opaque, and dark when the wallpaper has no colours. */
+    /** Dialog or About page: the column the page content sits in. */
     private LinearLayout cardShell(int padTop, int padBottom, boolean centered) {
         LinearLayout card = column();
         if (centered) card.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -1185,7 +1537,7 @@ public final class SettingsActivity extends Activity {
         ImageButton button = new ImageButton(this);
         button.setImageDrawable(new IconDrawable(path, ink));
         button.setBackground(ripple(true));
-        button.setContentDescription(I18n.tr(description));
+        button.setContentDescription(tr(description));
         button.setPadding(dp(13), dp(13), dp(13), dp(13));
         button.setLayoutParams(new LinearLayout.LayoutParams(dp(50), dp(50)));
         return button;
@@ -1193,7 +1545,7 @@ public final class SettingsActivity extends Activity {
 
     private TextView label(String value, int sp, int color, boolean bold) {
         TextView view = new TextView(this);
-        view.setText(I18n.tr(value));
+        view.setText(tr(value));
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         view.setTextColor(color);
         if (bold) view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -1202,7 +1554,7 @@ public final class SettingsActivity extends Activity {
 
     private EditText multiline(String hint) {
         EditText input = new EditText(this);
-        input.setHint(I18n.tr(hint));
+        input.setHint(tr(hint));
         input.setMinLines(4);
         input.setGravity(Gravity.TOP);
         return input;
@@ -1277,6 +1629,55 @@ public final class SettingsActivity extends Activity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density);
+    }
+
+    /** LinkedIn's screen is translated; the other apps are English only. */
+    private String tr(String text) {
+        return linkedIn ? I18n.tr(text) : text;
+    }
+
+    private String f(String template, Object... values) {
+        return String.format(tr(template), values);
+    }
+
+    private void toast(String text) {
+        android.widget.Toast.makeText(this, tr(text), android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    String appName() {
+        if (linkedIn) return "LinkedIn";
+        return LokiLog.appLabel(this);
+    }
+
+    /** Version of the bundle that patched this app, stamped at patch time. */
+    private String version() {
+        return linkedIn ? Settings.patchesVersion() : MenuInfo.patchesVersion();
+    }
+
+    /** The disabled launcher entry the patches declare, or {@code null} when this install has none. */
+    private ComponentName launcherAlias() {
+        ComponentName alias = new ComponentName(this, linkedIn
+                ? "app.linkedin.extension.SettingsLauncher" : "app.loki.extension.MenuLauncher");
+        try {
+            getPackageManager().getActivityInfo(alias, PackageManager.MATCH_DISABLED_COMPONENTS);
+            return alias;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean drawerIconOn() {
+        ComponentName alias = launcherAlias();
+        return alias != null && getPackageManager().getComponentEnabledSetting(alias)
+                == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+    }
+
+    private void setDrawerIcon(boolean on) {
+        ComponentName alias = launcherAlias();
+        if (alias == null) return;
+        getPackageManager().setComponentEnabledSetting(alias, on
+                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
     }
 
     // endregion

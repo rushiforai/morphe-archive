@@ -13,4 +13,4 @@ contact_links:
     about: Release news, and what is coming next.
   - name: 📖 How to use Loki Patches
     url: https://github.com/lokesh-sparrow/loki-patches#install
-    about: Adding the source to Morphe, which versions are supported, and how to reach the settings.
+    about: Adding the source to Morphe, which file and version to download, and where the Loki Patches menu is.

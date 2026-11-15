@@ -11,12 +11,17 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val UNIT_RESULT = """
-    sget-object v0, Lsu0/e0;->a:Lsu0/e0;
+    sget-object v0, Lru0/e0;->a:Lru0/e0;
     return-object v0
 """
 
 private const val FALSE_RESULT = """
     sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+    return-object v0
+"""
+
+private const val EMPTY_MAP_RESULT = """
+    sget-object v0, Lsu0/z;->a:Lsu0/z;
     return-object v0
 """
 
@@ -38,7 +43,7 @@ private fun MutableMethod.addAfterApplicationSuperOnCreate(smali: String) {
 @Suppress("unused")
 val disableAdvertisementsPatch = bytecodePatch(
     name = "Disable advertisements",
-    description = "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, blocks promo tracking pixels, and keeps advertising consent disabled.",
+    description = "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, blocks post-view ad requests and promo tracking pixels, and keeps advertising consent disabled.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
@@ -58,12 +63,18 @@ val disableAdvertisementsPatch = bytecodePatch(
         rawAdvertisementRepositoryGetFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Ltu0/x;->a:Ltu0/x;
+                sget-object v0, Lsu0/y;->a:Lsu0/y;
                 return-object v0
             """
         )
         // Promo cards arrive inside showcase sections; their show, click and install pixels go here.
         promoTrackingUrlFingerprint.method.addInstructions(0, UNIT_RESULT)
+        // Install and open taps request post-view ads with the installed-app list and device IDs.
+        // An empty map is what the caller itself uses when post-view ads are off.
+        postViewAdActionFingerprint.method.addInstructions(0, EMPTY_MAP_RESULT)
+        postViewAdActionVkrFingerprint.method.addInstructions(0, EMPTY_MAP_RESULT)
+        // Do not add the VPN state to any ad request that still gets built.
+        adTunnelStateSendingEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
         advertisementIdsConstructorFingerprint.method.addInstructions(
             0,
             """
@@ -281,7 +292,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
         autoUpdateForegroundRestrictionFingerprint.method.apply {
             val foregroundRead = implementation!!.instructions.withIndex().single { (_, instruction) ->
                 instruction.opcode == Opcode.IGET_BOOLEAN &&
-                    (instruction as? ReferenceInstruction)?.reference?.toString() == "Lsx2/b;->c:Z"
+                    (instruction as? ReferenceInstruction)?.reference?.toString() == "Ley2/b;->c:Z"
             }
             val register = (foregroundRead.value as OneRegisterInstruction).registerA
             // Keep the existing update-permission and status checks.
@@ -313,7 +324,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
         omicronNetworkRequestFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lt41/e;->ERROR:Lt41/e;
+                sget-object v0, Ls41/e;->ERROR:Ls41/e;
                 return-object v0
             """
         )
@@ -361,7 +372,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             }.addInstructions(
                 0,
                 """
-                    sget-object v0, Lsu0/e0;->a:Lsu0/e0;
+                    sget-object v0, Lru0/e0;->a:Lru0/e0;
                     return-object v0
                 """
             )
@@ -468,7 +479,7 @@ val blockRemoteNetworkPolicyPatch = bytecodePatch(
         networkPolicyConstructorFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {}, Lzp0/m;->a()Lzp0/c;
+                invoke-static {}, Lyp0/m;->a()Lyp0/c;
                 move-result-object p2
             """
         )
@@ -495,7 +506,7 @@ val disableReviewPromptsPatch = bytecodePatch(
         reviewPromptPlacementsFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Ltu0/x;->a:Ltu0/x;
+                sget-object v0, Lsu0/y;->a:Lsu0/y;
                 return-object v0
             """
         )
@@ -527,5 +538,22 @@ val disableTvInstallPatch = bytecodePatch(
     execute {
         remoteTvInstallEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
         remoteTvInstallDiscoveryFingerprint.method.addInstruction(0, "return-void")
+    }
+}
+
+@Suppress("unused")
+val disableWebGamesPatch = bytecodePatch(
+    name = "Disable web games",
+    description = "Hides the web game entry and Mine banner, and stops uploading the installed app list and a persistent identifier to the web game service.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        // The deep link, proxy screen, token initializer and Mine banner all read these flags.
+        webGameEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
+        webGameBannerEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
+        // Defence in depth: the only caller of the installed-apps upload returns before it reads the app list.
+        webGameInstalledAppsSenderFingerprint.method.addInstructions(0, UNIT_RESULT)
     }
 }

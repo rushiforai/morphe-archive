@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import app.morphe.extension.rex.RexUtils;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 
 public class InstagramDialogBox{
 
@@ -50,6 +51,9 @@ public class InstagramDialogBox{
         Dialog dialog = (Dialog) invoke("A02", null);
         if (hasPositiveButton || hasNegativeButton) {
             updateMenuCorners(dialog);
+        }
+        if (dialog != null) {
+            RexDialogs.attachBlurBehind(dialog, dialog.getContext());
         }
         return dialog;
     }

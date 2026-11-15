@@ -315,6 +315,8 @@ Hide comment and reaction previews	隱藏留言與心情預覽
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	Facebook 在 Reels 下方預覽的留言，以及留下心情的朋友泡泡。開啟留言即可查看全部內容。
 Hide Threads cards between reels	隱藏 Reels 之間的 Threads 卡片
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	隱藏 Reels 之間的「你可能喜歡的 Threads」卡片。預設停用，因為尚未使用真實帳號測試。
+Hide post cards between reels	隱藏 Reels 之間的貼文卡片
+Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	隱藏 Facebook 插在 Reels 之間的貼文輪播，例如來自你社團的「跟上對話」。預設停用。
 Only reels from accounts I follow	只看我追蹤的帳號的 Reels
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Reels 分頁只顯示你追蹤的人和粉絲專頁的 Reels，從 Facebook 載入的下一批開始。分頁可能需要更久才會填滿。預設停用。
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook 沒有更多能通過你的篩選的 Reels 了，所以這些 Reels 暫時不篩選。
@@ -869,12 +871,26 @@ Like or unlike this post?	要對這則貼文按讚還是收回讚？
 Like or unlike this reel?	要對這則 Reels 按讚還是收回讚？
 # context: the same question for a comment
 Like or unlike this comment?	要對這則留言按讚還是收回讚？
+# context: switch title on the News feed page, under Ask before liking a post; on, a tap on Follow in a post asks first
+Ask before following from a post	從貼文追蹤前先詢問
+# context: summary of that switch; Follow is Facebook's own button as Facebook shows it in this language, here the link beside the name of whoever posted and the Follow button on a shared Page or profile; Continue is the question's button
+A tap on Follow in a post, beside the poster's name or on its Follow button, asks first, and only Continue follows or unfollows.	點按貼文裡的「追蹤」（發文者名字旁邊的，或貼文上的追蹤按鈕）會先詢問，只有點「繼續」才會追蹤或取消追蹤。
+# context: switch title under Reels and Watch, under Ask before liking a reel; on, a tap on Follow beside a reel's author asks first
+Ask before following from a reel	從 Reels 追蹤前先詢問
+# context: summary of that switch
+A tap on Follow beside a reel's author asks first, and only Continue follows or unfollows.	點按 Reels 作者旁邊的「追蹤」會先詢問，只有點「繼續」才會追蹤或取消追蹤。
+# context: the question shown after a tap on Follow in a post or beside a reel; Continue goes ahead with the follow or unfollow, Cancel leaves it
+Follow or unfollow this account?	要追蹤還是取消追蹤這個帳號？
 # context: the question's button that goes ahead
 Continue	繼續
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	雙擊跳轉
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
 A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	雙擊 Reels 或影片的左側或右側邊緣，可後退或前進 10 秒；長度不足 30 秒時則為 5 秒。雙擊中央的功能不變。
+# context: switch title under Reels and Watch, right under Double tap to skip; on, the "+5s" or "-10s" Facebook shows over the player when a double tap skips stays hidden
+Hide the skip seconds	隱藏跳轉秒數
+# context: description of that switch; keep +5s and -10s as written, they're what Facebook shows on screen; Facebook can give an account the skip on its own, without the switch above
+A double tap on the edge still skips, but the +5s or -10s over the reel or video stays hidden. It also works when Facebook turned the skip on for you.	雙擊邊緣仍會跳轉，但 Reels 或影片上方的 +5s 或 -10s 會保持隱藏。Facebook 自行為你開啟雙擊跳轉時也有效。
 # context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
 Tap shows the controls	點按顯示控制項
 # context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
@@ -1007,9 +1023,13 @@ Hide post prompts	隱藏貼文提示
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	隱藏部分貼文上的提示列，例如「你對這則貼文感興趣嗎？」或最近留言的人，以及該處的追蹤與聊天建議。貼文仍會保留。
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow and Subscribe links on posts	隱藏貼文上的追蹤和訂閱連結
+Hide the Follow link on posts	隱藏貼文上的追蹤連結
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	隱藏未追蹤人物或粉絲專頁貼文和影片中，名稱旁的「追蹤」或「訂閱」連結。點按名稱仍可開啟個人檔案。變更後繪製的貼文才會生效。
+Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	隱藏未追蹤人物或粉絲專頁貼文中，名稱旁的「追蹤」連結。點按名稱仍可開啟個人檔案。變更後繪製的貼文才會生效。
+# context: switch title under News feed, right under Hide the Follow link on posts; the Subscribe link is the small "Subscribe" text after a creator's name in a post's header, use Facebook's own word for it
+Hide the Subscribe link on posts	隱藏貼文上的訂閱連結
+# context: description of that switch; "Subscribe" is Facebook's own word for the link
+Hides the "Subscribe" link next to a creator's name on posts and videos. Tapping the name still opens the profile. A change shows on the posts drawn after it.	隱藏貼文和影片中創作者名稱旁的「訂閱」連結。點按名稱仍可開啟個人檔案。變更後繪製的貼文才會生效。
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	隱藏貼文下方的 Meta AI 問題
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1042,6 +1062,8 @@ Long captions on reels show all of their text right away. Tap the caption to fol
 Dark box behind open captions	展開的說明加上深色底框
 # context: summary of that switch
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	展開的連續短片說明會顯示在深色底框上，像字幕一樣，在明亮的影片上也容易看清楚。變更從下一部連續短片開始生效。
+Dark box behind folded captions	收合的說明加上深色底框
+A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	收合的連續短片說明，也就是結尾有「更多」的簡短說明，也會顯示在同樣的深色底框上。兩個都開啟即可為每則說明加上底框。變更從下一部連續短片開始生效。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看誰分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在貼文選單中加入「查看誰分享了」，開啟 Facebook 上分享這則貼文的使用者清單。
@@ -2011,7 +2033,11 @@ A video you tap in Saved plays in the video player instead of Reels, where the n
 # context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
 Play saved videos in a row	連續播放珍藏的影片
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
-A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	從「我的珍藏」開啟的影片播完或向上滑動時，會接著播放「我的珍藏」中的下一部，而不是推薦的影片。
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	從「我的珍藏」開啟的影片播完或向上滑動時，會接著播放「我的珍藏」中的下一部，而不是推薦的影片。向下滑動可回到上一部。
+# context: switch title under Play saved videos in a row; on, a saved video that ends stays where it is instead of moving on to the next saved one
+Stay on a saved video when it ends	珍藏的影片播完後停留
+# context: summary of that switch
+A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	珍藏的影片播完後停留在畫面上，不會開啟下一部。想看下一部時向上滑動。
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	略過「你還在看嗎？」
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2328,8 +2354,10 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在關閉留言的 Reels 上保留留言按鈕，讓你仍能閱讀已有的留言。從下一個 Reel 開始生效。
 Select part of a post's text	選取貼文文字的一部分
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	長按貼文文字會在一個方塊中開啟，你可以只選取想要的部分並複製，或全部複製。長按本身不會複製任何內容。
-Hold a post to react	長按貼文來傳達心情
-Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	長按貼文的相片或影片會開啟它的心情選項，就像長按「讚」一樣。在動態貼文上，它優先於「長按開啟留言」。
+Hold a feed photo to react	長按動態消息相片來傳達心情
+Hold a feed video to react	長按動態消息影片來傳達心情
+Holding a post's photo opens its reactions, as holding Like does. It comes before Long press opens comments.	長按貼文的相片會開啟它的心情選項，就像長按「讚」一樣。它優先於「長按開啟留言」。
+Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	長按貼文的影片也會開啟它的心情選項。它優先於「長按開啟留言」。開啟「長按動態消息影片以 2 倍速播放」時，以該開關為準，影片會快速播放。
 Reaction	心情
 Pick one each time	每次都選擇
 Like	讚
@@ -2341,8 +2369,8 @@ Sad	嗚
 Angry	怒
 Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	每次都選擇。心情選項會在貼文上方開啟，滑到其中一個後放開，或放開後點一個。
 %1$s. Holding a post gives it straight away.	%1$s。長按貼文會立即傳達這個心情。
-Hold a post to react will open the reactions to pick from.	長按貼文來傳達心情將開啟心情選項讓你選擇。
-Hold a post to react will give %1$s.	長按貼文來傳達心情將傳達%1$s。
+Holding a post to react will open the reactions to pick from.	長按貼文來傳達心情將開啟心情選項讓你選擇。
+Holding a post to react will give %1$s.	長按貼文來傳達心情將傳達%1$s。
 Select text	選取文字
 Done	完成
 Copy all	全部複製
@@ -2630,6 +2658,7 @@ Pick Custom color again to change it.	再次選擇「自訂顏色」即可變更
 Switches that are on	已開啟的開關
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	你開啟的所有開關，集中在同一個清單。在這裡關掉一個，它在所有地方都會關閉。
 No switches are on yet.	還沒有開啟任何開關。
+Turned off lately	最近關閉
 Emoji after the logo	標誌後的表情符號
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	在首頁頂端的 Facebook 標誌後面緊接著顯示一個表情符號，保留它自己的顏色。留空則不顯示。
 No emoji after the logo. Type one to show it there.	標誌後沒有表情符號。輸入一個就會顯示在那裡。
@@ -2691,6 +2720,10 @@ Open chats in Messenger	在 Messenger 中開啟聊天
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	在 Messenger 應用程式中開啟聊天，而不是在 Facebook 內開啟，包括個人檔案上的「傳送訊息」按鈕，前提是已安裝並啟用 Messenger。未安裝 Messenger 時，聊天仍在 Facebook 中開啟。變更後請重新啟動 Facebook。
 Hide the Fullscreen button	隱藏「全螢幕」按鈕
 Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	移除 Reels 中寬螢幕影片下方空白處的「全螢幕」按鈕。從下一部影片起生效。
+# context: switch title under Reels and Watch, right under Hide the Fullscreen button; on, a video playing in the feed or in search results loses its full-screen arrows and its picture-in-picture (PiP) button
+Hide the full-screen and PiP buttons	隱藏「全螢幕」和子母畫面按鈕
+# context: description of that switch; "a live video that has ended" is a past Facebook Live shown as a video; the video still plays, only the two buttons go
+Takes the full-screen and picture-in-picture buttons off videos that play in the feed and in search results, like a live video that has ended. A change shows from the next video.	移除在動態消息和搜尋結果中播放的影片上的「全螢幕」和子母畫面按鈕，例如已結束的直播影片。從下一部影片起生效。
 Hide rings in the feed	隱藏動態消息中的圓環
 Hide rings in comments	隱藏留言中的圓環
 Hide rings on profiles	隱藏個人檔案上的圓環
@@ -2793,3 +2826,54 @@ Use the Hushfacebook logo	使用 Hushfacebook 標誌
 Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	在首頁頂端顯示 Hushfacebook 標誌，取代自訂文字和 Facebook 標誌。重新啟動 Facebook 後生效。
 # context: the name Home header picture shows once the logo is picked
 Hushfacebook logo	Hushfacebook 標誌
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for more posts like this one
+Interested	有興趣
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
+Not interested	沒興趣
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
+Manage your Feed	管理你的動態
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
+Report	檢舉
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
+Cast	投放
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that adds the poster to Favorites
+Add to Favorites	加到最愛
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Why am I seeing this post?	為什麼我會看到這則貼文？
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Turn on notifications for this post	開啟這則貼文的通知
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Hide post	隱藏貼文
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that hides a poster for 30 days
+Snooze	暫停 30 天
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Unfollow	取消追蹤
+# context: switch title under Playback speed in the post menu
+Playback speed on the menu's first page	選單第一頁的播放速度
+# context: summary of that switch; Playback speed, Save, Report and More options are rows of the menu
+Puts Playback speed on the menu's first page, with Save and Report, so it's one tap away. Off, it stays under More options.	將「播放速度」放在選單第一頁，與「儲存」和「檢舉」放在一起，點一下就能使用。關閉時，它仍會在「更多選項」中。
+# context: row title in News feed settings: the rows of a post's 3-dot menu the user picks to hide
+3-dot menu items to hide	要隱藏的三點選單項目
+# context: title of that row's list of checkboxes
+Hide from the 3-dot menus of posts and reels	從貼文和 Reels 的三點選單隱藏
+# context: import preview and toast, no 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will be empty.	要隱藏的三點選單項目清單將會清空。
+# context: import preview and toast, one 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d item.	要隱藏的三點選單項目清單將包含 %1$d 個項目。
+# context: import preview and toast, several 3-dot menu rows will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d items.	要隱藏的三點選單項目清單將包含 %1$d 個項目。
+Refresh rate	螢幕更新率
+Highest your screen offers	螢幕支援的最高值
+Facebook runs at whatever refresh rate your phone picks for it.	Facebook 依手機為它選擇的螢幕更新率執行。
+Facebook asks for your screen's highest refresh rate, so scrolling and reels look smoother. It uses a bit more battery, and your phone's own refresh rate setting still caps it.	Facebook 會要求螢幕的最高更新率，讓捲動和 Reels 看起來更流暢。這會多耗一點電，手機本身的螢幕更新率設定仍是上限。
+Facebook asks your screen for %1$s. Your phone's own refresh rate setting still caps it.	Facebook 會向螢幕要求 %1$s。手機本身的螢幕更新率設定仍是上限。
+Facebook will run at the refresh rate your phone picks for it.	Facebook 將依手機為它選擇的螢幕更新率執行。
+Facebook will ask for your screen's highest refresh rate.	Facebook 將要求螢幕的最高更新率。
+Facebook will ask your screen for %1$s.	Facebook 將向螢幕要求 %1$s。
+Hide the comment box	隱藏留言框
+The Write a comment box under a post's comments goes away. You can still read every comment.	貼文留言下方的「留言」框會消失。你仍然可以閱讀所有留言。
+Captions	字幕
+Clear mode	清爽模式
+Scroll to next reel automatically	自動捲動到下一個 Reels
+Transcript	文字記錄
+Audio and language	音訊和語言

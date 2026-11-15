@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -167,20 +168,63 @@ public final class Sidebar {
         return null;
     }
 
+    /** Paints one drawer row again after the seasonal picture has been chosen. */
+    static void repaint(View item) {
+        if (item == null || !ModernUi.isModernUiEnabled(item.getContext())) return;
+        paintWhenStill(item);
+    }
+
     /** Joey's bind entry for every left-drawer row. */
     public static void schedule(Object holder) {
         try {
             View item = (View) holder.getClass().getField("itemView").get(holder);
             if (item == null || !ModernUi.isModernUiEnabled(item.getContext())) return;
-            item.post(() -> {
-                try {
-                    paint(item);
-                } catch (Throwable t) {
-                    Log.w("Sidebar", "paint", t);
-                }
-            });
+            // Colour only. It never lays out, so it is safe while the list is moving.
+            // Without it a row bound mid-scroll shows Joey's lighter surface until idle.
+            try {
+                fill(item, ModernUi.getPalette(item.getContext()).canvas);
+            } catch (Throwable t) {
+                Log.w("Sidebar", "fill", t);
+            }
+            item.post(() -> paintWhenStill(item));
         } catch (Throwable ignored) {
         }
+    }
+
+    /**
+     * Painting asks the list to lay out. Doing that while it is moving cancels the
+     * scroll, so the banner cannot leave the screen the way it does in classic.
+     */
+    private static void paintWhenStill(View item) {
+        if (item == null || !item.isAttachedToWindow()) return;
+        View list = drawerList(item);
+        if (list != null && scrollState(list) != 0) {
+            item.post(() -> paintWhenStill(item));
+            return;
+        }
+        try {
+            paint(item);
+        } catch (Throwable t) {
+            Log.w("Sidebar", "paint", t);
+        }
+    }
+
+    private static int scrollState(View list) {
+        try {
+            Object state = list.getClass().getMethod("getScrollState").invoke(list);
+            if (state instanceof Integer) return (Integer) state;
+        } catch (Throwable ignored) {
+        }
+        return 0;
+    }
+
+    private static View drawerList(View item) {
+        int listId = id(item, "home_left_drawer_recycler_view");
+        View node = item;
+        while (node != null && (listId == 0 || node.getId() != listId)) {
+            node = node.getParent() instanceof View ? (View) node.getParent() : null;
+        }
+        return node;
     }
 
     public static void apply(List<?> items) {
@@ -190,13 +234,8 @@ public final class Sidebar {
             Set<String> hidden = hidden(ctx);
             List<String> order = getOrder(ctx);
 
-            if (ctx != null && ModernUi.isModernUiEnabled(ctx)) {
-                Iterator<?> dividers = items.iterator();
-                while (dividers.hasNext()) {
-                    Object item = dividers.next();
-                    if (item != null && "va.a".equals(item.getClass().getName())) dividers.remove();
-                }
-            }
+            // Dividers stay in the list. Classic scrolls the one above the search
+            // field to the top. Paint collapses them, so they take no space.
 
             // Filter hidden items
             if (!hidden.isEmpty()) {
@@ -252,12 +291,20 @@ public final class Sidebar {
 
         View divider = id(item, "divider_item_view") == item.getId() ? item : find(item, "divider_item_view");
         if (divider != null) {
-            divider.setVisibility(View.GONE);
-            ViewGroup.LayoutParams lp = divider.getLayoutParams();
-            if (lp != null) {
-                lp.height = 0;
-                divider.setLayoutParams(lp);
+            if (isDrawerFooter(item)) {
+                keepFooter(item, divider);
+                return;
             }
+            // The divider just above the search row keeps 1px, drawn transparent. Joey's
+            // tap-to-top snaps that divider to the top. While it is still the first visible
+            // row, FlexibleAdapter does not make the search row sticky. Sticking moves the
+            // search field into an overlay, which loses focus and closes the keyboard.
+            // Classic works because this divider is 2px there.
+            if (divider.getVisibility() != View.VISIBLE) divider.setVisibility(View.VISIBLE);
+            boolean guard = isAboveSearch(item);
+            float alpha = guard ? 0f : 1f;
+            if (divider.getAlpha() != alpha) divider.setAlpha(alpha);
+            heightIfChanged(divider, guard ? 1 : 0);
             return;
         }
 
@@ -275,11 +322,65 @@ public final class Sidebar {
         paintRow(item, palette);
     }
 
+    /**
+     * Joey ends the drawer list with a tall blank row. Classic scrolls the banner away
+     * into that room, so Modern leaves it alone instead of collapsing it with the hairlines.
+     */
+    private static boolean isDrawerFooter(View item) {
+        try {
+            View list = drawerList(item);
+            if (list == null) return false;
+            Object pos = list.getClass().getMethod("getChildAdapterPosition", View.class).invoke(list, item);
+            Object adapter = list.getClass().getMethod("getAdapter").invoke(list);
+            if (adapter == null || !(pos instanceof Integer)) return false;
+            Object count = adapter.getClass().getMethod("getItemCount").invoke(adapter);
+            return count instanceof Integer && (Integer) pos >= 0 && (Integer) pos == (Integer) count - 1;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** True for the divider row directly above the search row (the next item has another view type). */
+    private static boolean isAboveSearch(View item) {
+        try {
+            View list = drawerList(item);
+            if (list == null) return false;
+            Object pos = list.getClass().getMethod("getChildAdapterPosition", View.class).invoke(list, item);
+            Object adapter = list.getClass().getMethod("getAdapter").invoke(list);
+            if (adapter == null || !(pos instanceof Integer) || (Integer) pos < 0) return false;
+            int p = (Integer) pos;
+            int count = (Integer) adapter.getClass().getMethod("getItemCount").invoke(adapter);
+            if (p + 1 >= count - 1) return false;
+            java.lang.reflect.Method type = adapter.getClass().getMethod("getItemViewType", int.class);
+            Object mine = type.invoke(adapter, p);
+            Object next = type.invoke(adapter, p + 1);
+            if (mine == null || mine.equals(next)) return false;
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** Puts back a footer that an earlier paint may have collapsed on a recycled row. */
+    private static void keepFooter(View item, View divider) {
+        if (item.getVisibility() != View.VISIBLE) item.setVisibility(View.VISIBLE);
+        if (divider != item && divider.getVisibility() != View.VISIBLE) divider.setVisibility(View.VISIBLE);
+        if (divider.getAlpha() != 1f) divider.setAlpha(1f);
+        ViewGroup.LayoutParams lp = item.getLayoutParams();
+        View list = drawerList(item);
+        if (lp != null && lp.height == 0 && list != null && list.getHeight() > 0) {
+            lp.height = list.getHeight() * 47 / 100;
+            item.setLayoutParams(lp);
+        }
+    }
+
     private static void paintAccount(View item, ModernUi.Palette palette) {
         float density = item.getResources().getDisplayMetrics().density;
         View top = id(item, "drawer_top") == item.getId() ? item : find(item, "drawer_top");
         if (top == null) top = item;
-        boolean bird = ModernUi.sidebarBird(item.getContext());
+        boolean bird = SeasonalBanner.isEnabled()
+                ? SeasonalBanner.showsPicture(item.getContext())
+                : ModernUi.sidebarBird(item.getContext());
         View image = find(item, "drawer_image");
         if (bird) showBird(image);
         else hide(image);
@@ -297,21 +398,9 @@ public final class Sidebar {
         }
         top.setElevation(0f);
         top.setMinimumHeight(0);
-        ViewGroup.LayoutParams topLp = top.getLayoutParams();
-        if (topLp != null) {
-            topLp.height = height;
-            top.setLayoutParams(topLp);
-        }
+        heightIfChanged(top, height);
         if (bird) top.setPadding(0, 0, 0, 0);
         else top.setPadding(Math.round(16 * density), 0, Math.round(12 * density), 0);
-        if (top.getParent() instanceof View) {
-            View parent = (View) top.getParent();
-            ViewGroup.LayoutParams parentLp = parent.getLayoutParams();
-            if (parentLp != null && parentLp.height > 0 && parentLp.height != height) {
-                parentLp.height = height;
-                parent.setLayoutParams(parentLp);
-            }
-        }
 
         View nameView = find(item, "currentusername");
         if (!(nameView instanceof TextView)) return;
@@ -328,30 +417,14 @@ public final class Sidebar {
         if (name.getParent() instanceof ViewGroup) {
             ViewGroup row = (ViewGroup) name.getParent();
             View mark = row.findViewWithTag("morphe_user_mark");
-            ViewGroup.LayoutParams rowLp = row.getLayoutParams();
-            if (rowLp != null) {
-                rowLp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                if (bird) {
-                    rowLp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                    if (rowLp instanceof FrameLayout.LayoutParams) {
-                        FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
-                        fl.gravity = Gravity.BOTTOM;
-                        fl.setMargins(0, 0, 0, 0);
-                    }
-                } else {
-                    rowLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                    if (rowLp instanceof FrameLayout.LayoutParams) {
-                        FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
-                        fl.gravity = Gravity.CENTER_VERTICAL;
-                        fl.setMargins(0, 0, 0, 0);
-                    }
-                }
-                row.setLayoutParams(rowLp);
-            }
+            layoutRow(row, bird);
             row.setPadding(bird ? Math.round(12 * density) : 0, bird ? Math.round(8 * density) : 0,
                     bird ? Math.round(8 * density) : 0, bird ? Math.round(8 * density) : 0);
             if (bird) {
-                row.setBackgroundColor(palette.container);
+                row.setBackgroundColor(Color.argb(102,
+                        Color.red(palette.container),
+                        Color.green(palette.container),
+                        Color.blue(palette.container)));
                 if (mark != null) mark.setVisibility(View.GONE);
             } else {
                 row.setBackground(null);
@@ -363,15 +436,8 @@ public final class Sidebar {
         View arrow = find(item, "drawer_top_drop_down_arrow");
         if (arrow != null) {
             int chip = Math.round(32 * density);
-            ViewGroup.LayoutParams arrowLp = arrow.getLayoutParams();
-            if (arrowLp != null) {
-                arrowLp.width = chip;
-                arrowLp.height = chip;
-                if (arrowLp instanceof ViewGroup.MarginLayoutParams) {
-                    ((ViewGroup.MarginLayoutParams) arrowLp).setMargins(0, 0, 0, 0);
-                }
-                arrow.setLayoutParams(arrowLp);
-            }
+            sizeIfChanged(arrow, chip, chip);
+            clearMargins(arrow);
             GradientDrawable pill = new GradientDrawable();
             pill.setColor(palette.containerHigh);
             pill.setCornerRadius(chip / 2f);
@@ -422,11 +488,7 @@ public final class Sidebar {
         if (field == null) field = item;
         fill(field, palette.canvas);
         field.setPadding(0, 0, 0, 0);
-        ViewGroup.LayoutParams lp = field.getLayoutParams();
-        if (lp instanceof ViewGroup.MarginLayoutParams) {
-            ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
-            field.setLayoutParams(lp);
-        }
+        clearMargins(field);
         View input = find(item, "subreddit_entry_editText");
         if (input instanceof TextView) {
             TextView edit = (TextView) input;
@@ -462,6 +524,12 @@ public final class Sidebar {
     private static void showBird(View image) {
         if (image == null) return;
         image.setVisibility(View.VISIBLE);
+        ViewGroup.LayoutParams shown = image.getLayoutParams();
+        if (shown != null && (shown.width == 0 || shown.height == 0)) {
+            shown.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            shown.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            image.setLayoutParams(shown);
+        }
         if (image instanceof ImageView) {
             ImageView view = (ImageView) image;
             view.setColorFilter(null);
@@ -472,16 +540,71 @@ public final class Sidebar {
 
     private static void hide(View view) {
         if (view == null) return;
-        view.setVisibility(View.GONE);
         ViewGroup.LayoutParams lp = view.getLayoutParams();
-        if (lp instanceof ViewGroup.MarginLayoutParams) {
+        boolean clear = marginsClear(lp);
+        boolean sized = lp != null && lp.width == 0 && lp.height == 0;
+        if (view.getVisibility() == View.GONE && sized && clear) return;
+        view.setVisibility(View.GONE);
+        if (!clear && lp instanceof ViewGroup.MarginLayoutParams) {
             ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
         }
-        if (lp != null) {
+        if (lp != null && !sized) {
             lp.width = 0;
             lp.height = 0;
-            view.setLayoutParams(lp);
         }
+        if (lp != null && (!sized || !clear)) view.setLayoutParams(lp);
+    }
+
+    /** A repeated paint must not request layout, or Joey's drawer scroll is cancelled. */
+    private static void heightIfChanged(View view, int height) {
+        if (view == null) return;
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (lp == null || lp.height == height) return;
+        lp.height = height;
+        view.setLayoutParams(lp);
+    }
+
+    private static void sizeIfChanged(View view, int width, int height) {
+        if (view == null) return;
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (lp == null || (lp.width == width && lp.height == height)) return;
+        lp.width = width;
+        lp.height = height;
+        view.setLayoutParams(lp);
+    }
+
+    private static void clearMargins(View view) {
+        if (view == null) return;
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (marginsClear(lp) || !(lp instanceof ViewGroup.MarginLayoutParams)) return;
+        ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
+        view.setLayoutParams(lp);
+    }
+
+    private static boolean marginsClear(ViewGroup.LayoutParams lp) {
+        if (!(lp instanceof ViewGroup.MarginLayoutParams)) return true;
+        ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) lp;
+        return margins.leftMargin == 0 && margins.topMargin == 0
+                && margins.rightMargin == 0 && margins.bottomMargin == 0;
+    }
+
+    private static void layoutRow(ViewGroup row, boolean bird) {
+        ViewGroup.LayoutParams lp = row.getLayoutParams();
+        if (lp == null) return;
+        int height = bird ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT;
+        int gravity = bird ? Gravity.BOTTOM : Gravity.CENTER_VERTICAL;
+        boolean changed = lp.width != ViewGroup.LayoutParams.MATCH_PARENT || lp.height != height;
+        if (lp.width != ViewGroup.LayoutParams.MATCH_PARENT) lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        if (lp.height != height) lp.height = height;
+        if (lp instanceof FrameLayout.LayoutParams) {
+            FrameLayout.LayoutParams frame = (FrameLayout.LayoutParams) lp;
+            if (frame.gravity != gravity || !marginsClear(frame)) {
+                frame.gravity = gravity;
+                frame.setMargins(0, 0, 0, 0);
+                changed = true;
+            }
+        }
+        if (changed) row.setLayoutParams(lp);
     }
 
     private static void paintRow(View item, ModernUi.Palette palette) {

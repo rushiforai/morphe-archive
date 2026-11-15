@@ -1,6 +1,9 @@
 /*
  * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
+
 package app.morphe.extension.instagram.patches.actionbar;
 
 import static app.morphe.extension.instagram.utils.IgStr.str;
@@ -20,32 +23,30 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import app.morphe.extension.rex.sharedPreference.SharedPref;
-import app.morphe.extension.instagram.utils.Pref;
+import app.morphe.extension.instagram.constants.Constants;
+import app.morphe.extension.instagram.constants.UI;
+import app.morphe.extension.instagram.entity.UserData;
 import app.morphe.extension.instagram.patches.navigation.NavigationBarPatch;
+import app.morphe.extension.instagram.patches.userprofile.ProfileMoreOption;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.settings.preference.fragments.FragmentHook;
-import app.morphe.extension.instagram.constants.UI;
-import app.morphe.extension.instagram.patches.userprofile.ProfileMoreOption;
-import app.morphe.extension.instagram.entity.UserData;
-import app.morphe.extension.instagram.constants.Constants;
-import app.morphe.extension.instagram.ui.RexDialogs;
-import app.morphe.extension.instagram.ui.RexVectorIcons;
-
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexRuntimeFeatures;
+import app.morphe.extension.instagram.settings.preference.widgets.RexVault;
+import app.morphe.extension.instagram.settings.preference.widgets.RexVectorIcons;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.rex.RexUtils;
-import app.morphe.extension.shared.Utils;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
-import app.morphe.extension.shared.ui.Dim;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.suite.shared.ui.Dim;
 
 import com.instagram.common.session.UserSession;
 
 public class ActionBarPatch {
-
-    private static final String TAG_HOME_HEXAGON = "rex_ab_home_hexagon";
-    private static final String TAG_PROFILE_HEXAGON = "rex_ab_profile_hexagon";
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
     private static final Set<ImageView> GHOST_MODE_ICONS =
@@ -58,10 +59,7 @@ public class ActionBarPatch {
                 try {
                     updateGhostModeIcons(Pref.getTurnOnAllGhostModes());
                 } catch (RuntimeException exception) {
-                    Logger.printException(
-                            () -> "Failed reading ghost mode preference: ",
-                            exception
-                    );
+                    Logger.printException(() -> "Failed reading ghost mode preference: ", exception);
                 }
             };
     private static boolean ghostModeListenerRegistered;
@@ -75,17 +73,12 @@ public class ActionBarPatch {
     }
 
     private static synchronized void registerGhostModeListener() {
-        if (ghostModeListenerRegistered) {
-            return;
-        }
+        if (ghostModeListenerRegistered) return;
         try {
             ghostModeListenerRegistered =
                     SharedPref.registerOnSharedPreferenceChangeListener(GHOST_MODE_LISTENER);
         } catch (RuntimeException exception) {
-            Logger.printException(
-                    () -> "Failed registering ghost mode preference listener: ",
-                    exception
-            );
+            Logger.printException(() -> "Failed registering ghost mode preference listener: ", exception);
         }
     }
 
@@ -95,16 +88,12 @@ public class ActionBarPatch {
             synchronized (GHOST_MODE_ICONS) {
                 currentIcons = new ArrayList<>(GHOST_MODE_ICONS);
             }
-
             String icon = enabled ? UI.DRAWABLE_EYE_STROKE_ICON : UI.DRAWABLE_EYE_ICON;
             for (ImageView imageView : currentIcons) {
                 try {
                     UI.setThemedIcon(imageView, icon);
                 } catch (RuntimeException exception) {
-                    Logger.printException(
-                            () -> "Failed updating ghost mode icon: ",
-                            exception
-                    );
+                    Logger.printException(() -> "Failed updating ghost mode icon: ", exception);
                 }
             }
         });
@@ -113,12 +102,9 @@ public class ActionBarPatch {
     private static void ghostModeToggle(ViewGroup viewGroup) throws Exception {
         if (SettingsStatus.ghostSection()) {
             boolean ghostModeToggle = Pref.getTurnOnAllGhostModes();
-
             String iconStr = ghostModeToggle ? UI.DRAWABLE_EYE_STROKE_ICON : UI.DRAWABLE_EYE_ICON;
             ImageView imageView = UI.addImageViewToViewGroup(viewGroup, iconStr, null);
-            if (imageView == null) {
-                return;
-            }
+            if (imageView == null) return;
             synchronized (GHOST_MODE_ICONS) {
                 GHOST_MODE_ICONS.add(imageView);
             }
@@ -132,7 +118,6 @@ public class ActionBarPatch {
                     if (!ghostModeListenerRegistered) {
                         updateGhostModeIcons(next);
                     }
-
                     String toastStr = next ? str("rex_ghost_modes_on") : str("rex_ghost_modes_default");
                     Utils.showToastShort(toastStr);
                 } catch (Exception ex) {
@@ -142,86 +127,70 @@ public class ActionBarPatch {
         }
     }
 
-    private static ImageView addHexagonButtonToActionBar(
-            ViewGroup viewGroup,
-            String tag,
-            Runnable onClick,
-            Runnable onLongClick
-    ) {
+    private static ImageView addHexagonButton(ViewGroup viewGroup, Runnable onTap, Runnable onLongPress) {
         if (viewGroup == null) return null;
+        Object tag = "rex_hexagon_ab_btn";
         View existing = viewGroup.findViewWithTag(tag);
-        if (existing instanceof ImageView) {
-            existing.setOnClickListener(v -> {
-                if (onClick != null) onClick.run();
-            });
-            if (onLongClick != null) {
-                existing.setOnLongClickListener(v -> {
-                    onLongClick.run();
-                    return true;
-                });
-            }
-            return (ImageView) existing;
-        }
+        if (existing instanceof ImageView) return (ImageView) existing;
 
         Context context = viewGroup.getContext();
         ImageView imageView = new ImageView(context);
         imageView.setTag(tag);
         int iconColor = UI.getThemedColour("igds_color_primary_icon");
-        imageView.setImageDrawable(RexVectorIcons.create(context, RexVectorIcons.IC_HEXAGON_NUT, iconColor, 24));
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        int pad = Dim.dp12;
-        imageView.setPadding(pad, pad, pad, pad);
+        imageView.setImageDrawable(RexVectorIcons.create(context, "rex_vec_hexagon", iconColor, 24));
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         imageView.setLayoutParams(params);
-        imageView.setOnClickListener(v -> {
-            if (onClick != null) onClick.run();
-        });
-        if (onLongClick != null) {
+        int padding = Dim.dp14;
+        imageView.setPadding(padding, padding, padding, padding);
+        if (onTap != null) {
+            imageView.setOnClickListener(v -> {
+                try {
+                    onTap.run();
+                } catch (Exception e) {
+                    Logger.printException(() -> "hexagon tap failed", e);
+                }
+            });
+        }
+        if (onLongPress != null) {
             imageView.setOnLongClickListener(v -> {
-                onLongClick.run();
+                try {
+                    onLongPress.run();
+                } catch (Exception e) {
+                    Logger.printException(() -> "hexagon long press failed", e);
+                }
                 return true;
             });
         }
-
-        int count = viewGroup.getChildCount();
-        int insertIndex = Math.max(0, count - 1);
+        int insertIndex = Math.max(0, viewGroup.getChildCount() - 1);
         viewGroup.addView(imageView, insertIndex);
         return imageView;
     }
 
     public static void mainFeedActionBarButton(ViewGroup viewGroup) {
         try {
-            if (viewGroup == null) {
-                return;
-            }
-
+            if (viewGroup == null) return;
             Set<String> pref = Pref.mainFeedActionBarButtons();
 
             if (pref.contains(Constants.AB_GHOST_MODE_ICON)) {
                 ghostModeToggle(viewGroup);
             }
 
-            // Show the Hexagon Options Icon by default unless 'Hide Home Options Icon' is turned on
-            if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.HIDE_HOME_OPTIONS_ICON))) {
-                addHexagonButtonToActionBar(
+            if (pref.contains(Constants.AB_SETTINGS_ICON)) {
+                Context context = viewGroup.getContext();
+                addHexagonButton(
                         viewGroup,
-                        TAG_HOME_HEXAGON,
-                        () -> RexDialogs.showQuickActionMenu(viewGroup.getContext()),
+                        () -> RexDialogs.showHomeQuickMenu(context),
                         FragmentHook::startSettings
                 );
-            } else {
-                View existing = viewGroup.findViewWithTag(TAG_HOME_HEXAGON);
-                if (existing != null) viewGroup.removeView(existing);
             }
 
             HomeActionBarLayout.observe(
                     viewGroup,
                     NavigationBarPatch::effectiveNotificationsVisibility
             );
-
         } catch (Exception e) {
             Logger.printException(() -> "mainFeedActionBarButton failure", e);
             RexUtils.logger(e);
@@ -241,35 +210,82 @@ public class ActionBarPatch {
         }
     }
 
+    public static void hookLogoView(View view) {
+        try {
+            if (view == null) return;
+            view.setLongClickable(true);
+            view.setOnLongClickListener(v -> {
+                try {
+                    FragmentHook.startSettings();
+                } catch (Exception e) {
+                    Logger.printException(() -> "hookLogoView long press failed", e);
+                }
+                return true;
+            });
+        } catch (Exception e) {
+            Logger.printException(() -> "hookLogoView failed", e);
+        }
+    }
+
     public static void userProfileActionBarButton(Activity activity, ViewGroup viewGroup, UserSession userSession, Object userObject) {
         try {
-            if (activity == null || viewGroup == null) {
-                return;
-            }
-
+            if (activity == null || viewGroup == null) return;
             Set<String> pref = Pref.userProfileActionBarButtons();
-            UserData userData = new UserData(userObject);
-            boolean isSelfProfile = false;
+
+            UserData resolvedUser = null;
+            boolean isSelfProfile = true;
             try {
-                isSelfProfile = userData.getUserId().equals(userSession.getUserId());
+                if (userObject instanceof String) {
+                    String profileUserId = (String) userObject;
+                    if (userSession != null && userSession.getUserId() != null) {
+                        isSelfProfile = profileUserId.equals(userSession.getUserId());
+                    }
+                    try {
+                        Object fetched = new UserData(null).fetchProfileUser(userSession, profileUserId);
+                        if (fetched != null) {
+                            resolvedUser = new UserData(fetched);
+                        }
+                    } catch (Throwable ignored) {}
+                } else if (userObject != null) {
+                    resolvedUser = new UserData(userObject);
+                    String uid = resolvedUser.getUserId();
+                    if (uid != null && userSession != null && userSession.getUserId() != null) {
+                        isSelfProfile = uid.equals(userSession.getUserId());
+                    }
+                }
             } catch (Throwable ignored) {}
 
-            if (pref.contains(Constants.AB_GHOST_MODE_ICON) && isSelfProfile) {
-                ghostModeToggle(viewGroup);
+            final UserData finalUserData = resolvedUser;
+            if (finalUserData != null) {
+                try {
+                    RexVault.recordWatchedMedia(activity, finalUserData.getUsername(),
+                            "Profile (" + finalUserData.getFullName() + ")", finalUserData.getProfileLink());
+                } catch (Throwable ignored) {}
             }
 
-            // Always show the Hexagon Options Icon on Profile toolbar (unless 'Hide Profile Options Icon' is enabled)
-            // Tap -> Profile More Options Popup (Screenshot 062943)
-            // Long-Press -> Floating Quick Action Menu (Screenshot 062952)
-            if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.HIDE_PROFILE_OPTIONS_ICON))) {
-                addHexagonButtonToActionBar(
+            if (pref.contains(Constants.AB_GHOST_MODE_ICON) && isSelfProfile) {
+                try {
+                    ghostModeToggle(viewGroup);
+                } catch (Throwable ignored) {}
+            }
+
+            if (pref.contains(Constants.AB_PROFILE_INFO_ICON) || pref.contains(Constants.AB_SETTINGS_ICON)) {
+                addHexagonButton(
                         viewGroup,
-                        TAG_PROFILE_HEXAGON,
-                        () -> ProfileMoreOption.moreOptionsDailogueBox(activity, userData),
-                        () -> RexDialogs.showQuickActionMenu(activity)
+                        () -> {
+                            if (finalUserData != null) {
+                                ProfileMoreOption.moreOptionsDailogueBox(
+                                        activity,
+                                        finalUserData,
+                                        () -> finalUserData.refreshProfilePictureUrl(userSession)
+                                );
+                            } else {
+                                RexDialogs.showHomeQuickMenu(activity);
+                            }
+                        },
+                        FragmentHook::startSettings
                 );
             }
-
         } catch (Exception e) {
             Logger.printException(() -> "userProfileActionBarButton: ", e);
             RexUtils.logger(e);
@@ -278,20 +294,28 @@ public class ActionBarPatch {
 
     public static void chatActionBarButton(ViewGroup viewGroup) {
         try {
-            if (viewGroup == null) {
-                return;
-            }
-
+            if (viewGroup == null) return;
             Set<String> pref = Pref.chatActionBarButtons();
 
             if (pref.contains(Constants.AB_SETTINGS_ICON)) {
-                UI.rexSettingsGear(viewGroup);
+                Context context = viewGroup.getContext();
+                addHexagonButton(
+                        viewGroup,
+                        () -> RexDialogs.showHomeQuickMenu(context),
+                        FragmentHook::startSettings
+                );
             }
 
             if (pref.contains(Constants.AB_GHOST_MODE_ICON)) {
                 ghostModeToggle(viewGroup);
             }
 
+            if (pref.contains(Constants.AB_JUMP_OLDEST_ICON)) {
+                UI.addImageViewToViewGroup(viewGroup, "instagram_chevron_up_outline_24",
+                        () -> app.morphe.extension.instagram.patches.dm.JumpToOldestMessage.toggle(viewGroup));
+            }
+
+            RexRuntimeFeatures.applyChatWallpaper(viewGroup);
         } catch (Exception e) {
             Logger.printException(() -> "chatActionBarButton:", e);
         }
@@ -299,20 +323,21 @@ public class ActionBarPatch {
 
     public static void inboxActionBarButton(ViewGroup viewGroup) {
         try {
-            if (viewGroup == null) {
-                return;
-            }
-
+            if (viewGroup == null) return;
             Set<String> pref = Pref.inboxActionBarButtons();
 
             if (pref.contains(Constants.AB_SETTINGS_ICON)) {
-                UI.rexSettingsGear(viewGroup);
+                Context context = viewGroup.getContext();
+                addHexagonButton(
+                        viewGroup,
+                        () -> RexDialogs.showHomeQuickMenu(context),
+                        FragmentHook::startSettings
+                );
             }
 
             if (pref.contains(Constants.AB_GHOST_MODE_ICON)) {
                 ghostModeToggle(viewGroup);
             }
-
         } catch (Exception e) {
             Logger.printException(() -> "inboxActionBarButton:", e);
         }

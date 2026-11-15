@@ -24,6 +24,7 @@ public class SettingsTest {
         Settings.preferences.edit().clear().commit();
         Settings.hookErrors.clear();
         Settings.metaAiTab = null;
+        Settings.ROW_TEXT.clear();
         CrashGuard.resetForTests();
     }
 
@@ -135,6 +136,166 @@ public class SettingsTest {
         }
     }
 
+    /** An encrypted chat's text row with no time on record, the way the rows below that don't test the time read. */
+    private static String textRow(String text, String messageId, String threadingId) {
+        return Settings.labelKeptUnsentRow(text, messageId, threadingId, 0, 0, 1, 0);
+    }
+
+    /** A text row sent at [timestamp] by [senderId]. */
+    private static String sentRow(String text, String messageId, String threadingId, long timestamp, long senderId) {
+        return Settings.labelKeptUnsentRow(text, messageId, threadingId, timestamp, senderId, 1, 0);
+    }
+
+    /** The "deleted a message" row 587 shows in an unsent message's place, with its time and sender. */
+    private static String deletedRow(String text, String messageId, String threadingId, long timestamp, long senderId) {
+        return Settings.labelKeptUnsentRow(text, messageId, threadingId, timestamp, senderId, Settings.UNSENT_PLACEHOLDER_TYPE,
+            Settings.UNSENT_PLACEHOLDER_SUBTYPE);
+    }
+
+    /** #172: an encrypted chat's row comes back with no text once its message is unsent, so the words it showed return. */
+    @Test @Config(sdk = {28, 36}) public void encryptedChatRowsShowTheWordsTheyHadOnceUnsent() {
+        try {
+            assertFalse(Settings.watchesUnsentRows());
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            assertTrue(Settings.watchesUnsentRows());
+            assertEquals("hello", textRow("hello", "101", "7001"));
+            assertNull(textRow(null, "102", "7002"));
+            // The recaller is handed the threading id, and the row reads its text again with none.
+            assertTrue(Settings.unsentRecall("7001"));
+            assertEquals("[unsent] hello", textRow(null, "101", "7001"));
+            assertEquals("[unsent] hello", textRow("", "101", "7001"));
+            assertEquals("[unsent] still here", textRow("still here", "101", "7001"));
+            // Nothing on record for that row: it shows what Messenger gives it.
+            assertTrue(Settings.unsentRecall("7002"));
+            assertNull(textRow(null, "102", "7002"));
+            // A row with no threading id is kept by its message id.
+            assertEquals("by id", textRow("by id", "103", null));
+            Settings.recordUnsent("103");
+            assertEquals("[unsent] by id", textRow(null, "103", ""));
+            assertNull(textRow(null, null, null));
+            assertEquals("no ids", textRow("no ids", "", null));
+            Settings.preferences.edit().putBoolean("paused", true).commit();
+            assertFalse(Settings.watchesUnsentRows());
+        } finally {
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
+    /**
+     * #172 on 587: an unsent encrypted message's own row is hidden, and a "deleted a message" row with its time and
+     * sender but new ids takes its place. That row shows the words the message's row had.
+     */
+    @Test public void theDeletedMessageRowShowsTheWordsOfTheRowItReplaced() {
+        try {
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            assertEquals("see you", sentRow("see you", "mid.1", "8001", 1_700_000_000_123L, 42));
+            // The same row drawn again is still the stamp's one message.
+            assertEquals("see you", sentRow("see you", "mid.1", "8001", 1_700_000_000_123L, 42));
+            assertEquals("[unsent] see you", deletedRow("Ana deleted a message", "mid.2", "8002", 1_700_000_000_123L, 42));
+            // Another sender, another time, or a row of another type at that time is left as Messenger shows it.
+            assertEquals("Bo deleted a message", deletedRow("Bo deleted a message", "mid.3", "8003", 1_700_000_000_123L, 43));
+            assertEquals("Ana deleted a message", deletedRow("Ana deleted a message", "mid.4", "8004", 1_700_000_000_124L, 42));
+            assertEquals("a photo's caption", Settings.labelKeptUnsentRow("a photo's caption", "mid.5", "8005", 1_700_000_000_123L, 42, 2, 0));
+            assertEquals("Ana changed the theme", Settings.labelKeptUnsentRow("Ana changed the theme", "mid.7", "8007", 1_700_000_000_123L, 42,
+                Settings.UNSENT_PLACEHOLDER_TYPE, 7));
+            // A deleted message row is never remembered as words of its own.
+            assertEquals("Ana deleted a message", deletedRow("Ana deleted a message", "mid.6", "8006", 0, 42));
+            assertFalse(Settings.ROW_TEXT.containsValue("Ana deleted a message"));
+        } finally {
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
+    /** Two messages from one sender in the same millisecond: a deleted message row there can't tell whose words it had. */
+    @Test public void aStampTwoMessagesShareLabelsNeither() {
+        try {
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            assertEquals("first", sentRow("first", "mid.30", "8030", 1_700_000_000_777L, 42));
+            assertEquals("second", sentRow("second", "mid.31", "8031", 1_700_000_000_777L, 42));
+            assertEquals("Ana deleted a message", deletedRow("Ana deleted a message", "mid.32", "8032", 1_700_000_000_777L, 42));
+            // Drawing the first row again doesn't win the stamp back.
+            assertEquals("first", sentRow("first", "mid.30", "8030", 1_700_000_000_777L, 42));
+            assertEquals("Ana deleted a message", deletedRow("Ana deleted a message", "mid.32", "8032", 1_700_000_000_777L, 42));
+            // Each row's own words are still kept by its ids.
+            Settings.recordUnsent("8031");
+            assertEquals("[unsent] second", sentRow(null, "mid.31", "8031", 1_700_000_000_777L, 42));
+        } finally {
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
+    @Test public void encryptedChatRowWordsAreBoundedNewestKept() {
+        try {
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            for (int i = 0; i <= Settings.ROW_TEXT_LIMIT; i++) textRow("text " + i, "id", "otid-" + i);
+            assertEquals(Settings.ROW_TEXT_LIMIT, Settings.ROW_TEXT.size());
+            assertFalse(Settings.ROW_TEXT.containsKey("otid-0"));
+            assertEquals("text " + Settings.ROW_TEXT_LIMIT, Settings.ROW_TEXT.get("otid-" + Settings.ROW_TEXT_LIMIT));
+        } finally {
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
+    /** A message unsent before its chat was opened since the last start has its words in the notification only. */
+    @Test @Config(sdk = {28, 36}) public void theRecallerKeepsTheNotificationsWordsForTheEncryptedRow() {
+        Context context = Settings.appContext;
+        android.app.NotificationManager manager = context.getSystemService(android.app.NotificationManager.class);
+        android.os.Bundle newest = new android.os.Bundle();
+        newest.putString("msgId", "7101");
+        manager.notify("ADVANCED_CRYPTO_ONE_TO_ONE:9", 1, new android.app.Notification.Builder(context, "chats")
+            .setSmallIcon(android.R.drawable.sym_def_app_icon).setContentText("see you at six").addExtras(newest).build());
+        try {
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            assertTrue(Settings.unsentRecall("7101"));
+            assertEquals("[unsent] see you at six", textRow(null, "201", "7101"));
+            // Words the row showed itself win over the notification's.
+            assertEquals("seen first", textRow("seen first", "202", "7102"));
+            newest.putString("msgId", "7102");
+            manager.notify("ADVANCED_CRYPTO_ONE_TO_ONE:9", 1, new android.app.Notification.Builder(context, "chats")
+                .setSmallIcon(android.R.drawable.sym_def_app_icon).setContentText("other words").addExtras(newest).build());
+            assertTrue(Settings.unsentRecall("7102"));
+            assertEquals("[unsent] seen first", textRow(null, "202", "7102"));
+            // The recaller named the message id, while the row keeps its words by threading id: the notification's still count.
+            newest.putString("msgId", "203");
+            manager.notify("ADVANCED_CRYPTO_ONE_TO_ONE:9", 1, new android.app.Notification.Builder(context, "chats")
+                .setSmallIcon(android.R.drawable.sym_def_app_icon).setContentText("by message id").addExtras(newest).build());
+            assertTrue(Settings.unsentRecall("203"));
+            assertEquals("[unsent] by message id", textRow(null, "203", "7103"));
+        } finally {
+            manager.cancelAll();
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
+    /** #172 on 587: a message unsent before its chat was opened is found by its notification line's time. */
+    @Test @Config(sdk = {28, 36}) public void theDeletedMessageRowFindsAnUnseenMessageByItsNotificationTime() {
+        Context context = Settings.appContext;
+        android.app.NotificationManager manager = context.getSystemService(android.app.NotificationManager.class);
+        android.app.Person ana = new android.app.Person.Builder().setName("Ana").build();
+        android.app.Notification.MessagingStyle.Message line =
+            new android.app.Notification.MessagingStyle.Message("back at nine", 1_700_000_000_456L, ana);
+        line.getExtras().putString("msgId", "mid.9");
+        android.app.Notification.MessagingStyle style = new android.app.Notification.MessagingStyle(
+            new android.app.Person.Builder().setName("Me").build()).addMessage(line);
+        manager.notify("ADVANCED_CRYPTO_ONE_TO_ONE:9", 1, new android.app.Notification.Builder(context, "chats")
+            .setSmallIcon(android.R.drawable.sym_def_app_icon).setStyle(style).build());
+        try {
+            Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+            assertTrue(Settings.unsentRecall("mid.9"));
+            assertEquals("[unsent] back at nine", deletedRow("Ana deleted a message", "mid.10", "9010", 1_700_000_000_456L, 42));
+            assertEquals("Ana deleted a message", deletedRow("Ana deleted a message", "mid.11", "9011", 1_700_000_000_457L, 42));
+        } finally {
+            manager.cancelAll();
+            Settings.ROW_TEXT.clear();
+            Settings.STAMP_OWNER.clear();
+        }
+    }
+
     @Test @Config(sdk = {28, 36}) public void unsentIdsAreBoundedWithoutTakingTheSettingsMonitor() throws Exception {
         Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
         Settings.keepUnsent();
@@ -176,7 +337,7 @@ public class SettingsTest {
             assertTrue(choice.isChecked());
             String spoken = choice.getContentDescription().toString();
             assertTrue(spoken.contains("after someone unsends them"));
-            assertTrue(spoken.contains("In encrypted chats the message stays in its notification instead"));
+            assertTrue(spoken.contains("In encrypted chats it keeps the words you already saw in the chat or a notification"));
             assertTrue(spoken.contains("Group chats aren't tested"));
             assertTrue(spoken.contains("Your own unsends may be limited"));
             assertEquals("On. No unsent message received yet",

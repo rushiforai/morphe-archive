@@ -7,7 +7,7 @@ param(
 
     [string]$Branch = 'main',
 
-    [string]$Version = '1.2.4'
+    [string]$Version = '1.2.5'
 )
 
 $ErrorActionPreference = 'Stop'

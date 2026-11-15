@@ -4,7 +4,8 @@
   py -3 scripts/release/release_text.py cut --version 0.0.7 [--date 2026-10-11]
   py -3 scripts/release/release_text.py notes --version 0.0.7 --intro FILE --tail FILE --out FILE
   py -3 scripts/release/release_text.py index --version 0.0.7 --created 2026-10-11T03:34:54
-        --summary FILE --runtime N --patch N
+        --summary FILE --runtime N --patch N [--bundle FILE]
+  py -3 scripts/release/release_text.py signed --version 0.0.7 [--bundle FILE]
 
 Every command checks its inputs first and changes nothing when a check fails. --root points any
 of them at another checkout, which is how the unit tests run them. scripts/release/release.ps1
@@ -23,7 +24,10 @@ release a phone was patched with.
 """
 
 import argparse
+import base64
+import binascii
 import datetime
+import hashlib
 import json
 import re
 import sys
@@ -41,6 +45,10 @@ BULLET = re.compile(r"^\* \*\*(?P<scope>[^*\n]+?):\*\* (?P<text>\S.*)$")
 DASHES = ("\u2014", "\u2013")
 REPOSITORY = "SysAdminDoc/HushPinterest"
 PACKAGE = "com.pinterest"
+# A markdown link to a file in this repo. It works in CHANGELOG.md on GitHub, but on a release page it
+# resolves under /releases/tag/ and in Morphe Manager it goes nowhere, so the notes and the index carry
+# it as a link to the file on main. A link with a scheme (https:, mailto:) or to an anchor is left alone.
+RELATIVE_LINK = re.compile(r"(?<=\]\()(?![A-Za-z][A-Za-z0-9+.-]*:|#)(?:\./|/)?([^()\s]+)(?=\))")
 
 
 class ReleaseTextError(Exception):
@@ -56,6 +64,11 @@ class Bullet:
     line: str
     scope: str
     text: str
+
+
+def absolute_links(text: str) -> str:
+    """The text with every relative link pointed at the file on main."""
+    return RELATIVE_LINK.sub(lambda link: f"https://github.com/{REPOSITORY}/blob/main/{link.group(1)}", text)
 
 
 def read(path: Path) -> tuple[str, str]:
@@ -127,6 +140,146 @@ def release_bullets(body: str, label: str) -> list[Bullet]:
 def check_version(version: str) -> None:
     if not VERSION.match(version):
         fail(f"{version} isn't X.Y.Z.")
+
+
+# Ed25519 verification (RFC 8032, 5.1.7) for the MorpheSig1 check. The standard library has no
+# Ed25519 and the release runs Python with -I, so no package can supply it. Points are in
+# extended coordinates (X, Y, Z, T).
+P = 2 ** 255 - 19
+L = 2 ** 252 + 27742317777372353535851937790883648493
+D = -121665 * pow(121666, P - 2, P) % P
+ROOT_OF_MINUS_ONE = pow(2, (P - 1) // 4, P)
+IDENTITY = (0, 1, 1, 0)
+
+
+def point_add(a, b):
+    x1, y1, z1, t1 = a
+    x2, y2, z2, t2 = b
+    e, f, g, h = (y1 - x1) * (y2 - x2), (y1 + x1) * (y2 + x2), 2 * t1 * t2 * D, 2 * z1 * z2
+    e, f, g, h = f - e, h - g, h + g, f + e
+    return e * f % P, g * h % P, f * g % P, e * h % P
+
+
+def point_times(point, scalar: int):
+    result = IDENTITY
+    while scalar:
+        if scalar & 1:
+            result = point_add(result, point)
+        point = point_add(point, point)
+        scalar >>= 1
+    return result
+
+
+def point_encode(point) -> bytes:
+    x, y, z, _ = point
+    inverse = pow(z, P - 2, P)
+    x, y = x * inverse % P, y * inverse % P
+    return (y | (x & 1) << 255).to_bytes(32, "little")
+
+
+def point_decode(raw: bytes):
+    """The point a 32-byte encoding names, or None for bytes that name no point."""
+    y = int.from_bytes(raw, "little")
+    sign, y = y >> 255, y & ((1 << 255) - 1)
+    if y >= P:
+        return None
+    square = (y * y - 1) * pow(D * y * y + 1, P - 2, P) % P
+    x = pow(square, (P + 3) // 8, P)
+    if (x * x - square) % P:
+        x = x * ROOT_OF_MINUS_ONE % P
+    if (x * x - square) % P or (x == 0 and sign):
+        return None
+    if x & 1 != sign:
+        x = P - x
+    return x, y, 1, x * y % P
+
+
+BASE = point_decode((4 * pow(5, P - 2, P) % P).to_bytes(32, "little"))
+
+
+def ed25519_verify(public: bytes, message: bytes, signature: bytes) -> bool:
+    if len(public) != 32 or len(signature) != 64:
+        return False
+    key, nonce = point_decode(public), point_decode(signature[:32])
+    s = int.from_bytes(signature[32:], "little")
+    if key is None or nonce is None or s >= L:
+        return False
+    # A small-order key (the identity among them) verifies a made-up signature on any content.
+    # Java's verifier refuses such a key as malformed, and so does this one.
+    if point_encode(point_times(key, 8)) == point_encode(IDENTITY):
+        return False
+    h = int.from_bytes(hashlib.sha512(signature[:32] + public + message).digest(), "little") % L
+    return point_encode(point_times(BASE, s)) == point_encode(point_add(nonce, point_times(key, h)))
+
+
+def b64(field: str) -> bytes:
+    """Base64 the way Java's decoder takes it: padding may be left off, but padding that's there must be right."""
+    if "=" not in field and len(field) % 4:
+        field += "=" * (-len(field) % 4)
+    try:
+        return base64.b64decode(field, validate=True)
+    except (ValueError, binascii.Error):
+        return b""
+
+
+def published_key(root: Path) -> str:
+    path = root / "morphe-signing.pub"
+    if not path.is_file():
+        fail("There is no morphe-signing.pub, the public half of the bundle signing key.")
+    key = read(path)[0].strip()
+    if not re.fullmatch(r"[A-Za-z0-9+/]{43}=", key) or point_decode(base64.b64decode(key)) is None:
+        fail("morphe-signing.pub isn't a Base64 Ed25519 public key.")
+    return key
+
+
+def bundle_signer(root: Path, version: str, bundle: str | None = None) -> str:
+    """The published key, once it's checked that this key signed the bundle as it is now.
+
+    Without `bundle` it reads patches/build/release, where buildAndroid signed the bundle, and holds
+    it to the bundle.sha256 written beside it. `bundle` is a copy the release carries on with (the
+    assets folder, whose signed SHA256SUMS and hosted copy the release checks on their own), so
+    only its signature is read.
+
+    Morphe Manager pins the key it first sees for a source and refuses an update signed by another
+    key or by none. So the index only ever names the key in morphe-signing.pub, and only for a
+    bundle that key signed: its MorpheSig1 signature checks out over the bytes
+    PatchBundleSignature signs, the archive with an empty comment. A bundle changed after signing
+    that kept its comment fails here.
+    """
+    published = published_key(root)
+    release = root / "patches/build/release"
+    path = Path(bundle) if bundle else release / f"patches-{version}.mpp"
+    name = str(path) if bundle else f"patches/build/release/patches-{version}.mpp"
+    if not path.is_file():
+        fail(f"{name} is missing.")
+    data = path.read_bytes()
+    if not bundle:
+        recorded = release / "bundle.sha256"
+        if not recorded.is_file() or read(recorded)[0].strip().lower() != hashlib.sha256(data).hexdigest():
+            fail(f"{name} doesn't match the bundle.sha256 the build wrote, so it changed after the build.")
+    # The end record is the last one whose comment reaches the end of the file, as signBundle finds it.
+    end = data.rfind(b"PK\x05\x06")
+    while end >= 0 and (end + 22 > len(data) or int.from_bytes(data[end + 20:end + 22], "little") != len(data) - end - 22):
+        end = data.rfind(b"PK\x05\x06", 0, end)
+    if end < 0:
+        fail(f"{name} isn't a zip.")
+    fields = data[end + 22:].decode("ascii", "replace").split(" ")
+    if len(fields) != 3 or fields[0] != "MorpheSig1":
+        fail(f"{name} isn't signed. Build it again with HUSHPINTEREST_BUNDLE_SIGNING_KEY set.")
+    if fields[1] != published:
+        fail(f"{name} is signed by another key than morphe-signing.pub.")
+    message = b"MorpheSig1" + hashlib.sha256(data[:end + 20] + b"\x00\x00").digest()
+    if not ed25519_verify(base64.b64decode(published), message, b64(fields[2])):
+        fail(f"{name}'s signature doesn't match its contents, so it changed after it was signed.")
+    return published
+
+
+def signed(args) -> None:
+    """Stops a release whose bundle isn't signed by the published key, before anything is tagged."""
+    check_version(args.version)
+    key = bundle_signer(Path(args.root), args.version, args.bundle)
+    print(f"[release] {Path(args.bundle).name if args.bundle else f'patches-{args.version}.mpp'} is signed by "
+          f"morphe-signing.pub's key ({key})")
 
 
 def changelog(root: Path) -> Path:
@@ -201,8 +354,8 @@ def notes(args) -> None:
         if re.search(r"^## (What's new|Behind the scenes)\s*$", part, re.MULTILINE):
             fail(f"The {name} has a What's new or Behind the scenes heading of its own. Those two come from the "
                  "CHANGELOG, every bullet of the section.")
-    whats_new = ["- " + b.text for b in bullets if b.scope == "Pinterest"]
-    behind = ["- " + b.text for b in bullets if b.scope == "Tooling"]
+    whats_new = ["- " + absolute_links(b.text) for b in bullets if b.scope == "Pinterest"]
+    behind = ["- " + absolute_links(b.text) for b in bullets if b.scope == "Tooling"]
     parts = [intro, "## What's new\n\n" + "\n".join(whats_new)]
     if behind:
         parts.append("## Behind the scenes\n\n" + "\n".join(behind))
@@ -211,7 +364,7 @@ def notes(args) -> None:
     if any(dash in body for dash in DASHES):
         fail("The notes have an em or en dash. Rewrite the intro or the tail.")
     lines = set(body.split("\n"))
-    missing = [b.text[:60] for b in bullets if "- " + b.text not in lines]
+    missing = [b.text[:60] for b in bullets if "- " + absolute_links(b.text) not in lines]
     if missing:
         fail("These CHANGELOG bullets didn't make it into the notes: " + "; ".join(missing))
     write(Path(args.out), body)
@@ -304,16 +457,25 @@ def index(args) -> None:
     # shows them for every older release. They come after the facts checks above, which read the
     # prose alone: a bullet may name an older build or another patch count, and
     # validate-release-facts.ps1 reads the description only above its first ### line for that reason.
-    description += "\n\n### What's new\n\n" + "\n".join(b.line for b in bullets if b.scope == "Pinterest")
+    description += "\n\n### What's new\n\n" + "\n".join(absolute_links(b.line) for b in bullets if b.scope == "Pinterest")
     bundle_path = root / "patches-bundle.json"
     bundle_text, bundle_newline = read(bundle_path)
     bundle = json.loads(bundle_text)
+    # Manager pins the key the index names when it first adds the source. A checkout that
+    # publishes a key only indexes a bundle that key signed, read from the copy being released.
+    signer = None
+    if (root / "morphe-signing.pub").is_file():
+        if not args.bundle:
+            fail("--bundle names the release's .mpp, so the index can name the key that signed it.")
+        signer = bundle_signer(root, args.version, args.bundle)
     bundle.update({
         "created_at": args.created,
         "description": description,
         "download_url": f"https://github.com/{REPOSITORY}/releases/download/v{args.version}/patches-{args.version}.mpp",
         "version": args.version,
     })
+    if signer:
+        bundle["public_key"] = signer
     readme = swap(readme, r"^The latest release is \[v\d+\.\d+\.\d+\]\([^)\s]*\), with \d+ patches\.",
                   f"The latest release is [v{args.version}](https://github.com/{REPOSITORY}/releases/tag/v{args.version}), "
                   f"with {count} patches.", "README")
@@ -355,7 +517,12 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument(name, required=True)
     p.add_argument("--runtime", type=int, required=True)
     p.add_argument("--patch", type=int, required=True)
+    p.add_argument("--bundle", help="the .mpp being released, whose signer the index names")
     p.set_defaults(run=index)
+    p = sub.add_parser("signed", help="refuse a release bundle morphe-signing.pub's key didn't sign")
+    p.add_argument("--version", required=True)
+    p.add_argument("--bundle", help="a copy of the bundle to check instead of patches/build/release")
+    p.set_defaults(run=signed)
     args = parser.parse_args(argv)
     try:
         args.run(args)

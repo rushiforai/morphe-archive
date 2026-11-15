@@ -54,7 +54,7 @@ public final class MorpheBackup {
             group("local-subs", "Local subs", "On this device", true, "LOCAL_SUB_PREF_NAME"),
             group("default-subs", "Default subs", "On this device", true, "SPECIAL_SUB_PREF_NAME"),
             group("theme", "Theme", "Appearance", false, "THEME_PREFS"),
-            group("fonts", "Fonts", "Appearance", false, "font_prefs"),
+            group("fonts", "Fonts", "Appearance", false, "font_prefs", "morphe_fonts"),
             group("posts", "Post style", "Appearance", false, "settings"),
             group("drawer", "Left drawer", "Appearance", false, "left_drawer_prefs"),
             group("posts", "Multi column", "Appearance", false, "settings"),

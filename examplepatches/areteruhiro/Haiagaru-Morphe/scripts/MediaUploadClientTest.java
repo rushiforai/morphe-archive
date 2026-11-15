@@ -146,6 +146,19 @@ public final class MediaUploadClientTest {
             catch(IOException e) { check(!e.toString().contains("private-auth-response") && e.getCause()==null,"parse error does not disclose response"); }
             fails(()->MediaUploadClient.parseImgbox(new JSONObject("{\"files\":[{\"error\":\"too big\"}]}"),"image/png"),"imgbox rejection");
             fails(()->MediaUploadClient.parseImgpile(new JSONObject("{\"data\":{\"urls\":{\"original\":\"https://evil.test/a.png\"}}}"),"image/png"),"unsafe response");
+            String uguu="{\"success\": true, \"files\": [{\"name\": \"Test.png\", \"url\": \"https://a.uguu.se/Test.png\"}]}";
+            Fake temporary=new Fake(uguu);
+            JSONObject u=new MediaUploadClient(temporary).upload("uguu",png,"image/png","",false);
+            check(u.getString("link").equals("https://a.uguu.se/Test.png"),"uguu direct URL");
+            Reply ur=temporary.replies.get(0);
+            check(ur.getURL().toString().equals("https://uguu.se/upload"),"official uguu endpoint");
+            check(ur.sent.toString(StandardCharsets.ISO_8859_1).contains("name=\"files[]\"; filename=\"upload.png\""),"uguu multipart field");
+            check(ur.getRequestProperty("Cookie")==null&&ur.getRequestProperty("Authorization")==null,"uguu no credentials");
+            check(u.getString("deletehash").isEmpty(),"uguu no Imgur deletion token");
+            MediaUploadPolicy.validate("uguu","video/mp4",MediaUploadPolicy.UGUU_LIMIT,"");
+            fails(()->MediaUploadPolicy.validate("uguu","video/mp4",MediaUploadPolicy.UGUU_LIMIT+1,""),"uguu size preflight");
+            fails(()->MediaUploadClient.parseUguu(new JSONObject("{\"success\":false}"),"image/png"),"uguu rejection");
+            check(!MediaUploadPolicy.mediaUrl("uguu","https://evil.uguu.se/Test.png"),"uguu unknown CDN rejected");
             System.out.println("PASS: "+checks+" upload protocol / privacy / failure tests (no live upload)");
         } finally { Files.deleteIfExists(png.toPath());Files.deleteIfExists(video.toPath()); }
     }

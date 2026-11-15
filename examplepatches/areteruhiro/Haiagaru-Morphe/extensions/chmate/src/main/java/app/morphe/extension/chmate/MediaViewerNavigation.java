@@ -45,7 +45,7 @@ public final class MediaViewerNavigation {
     }
     private static WeakReference<TextView> body=new WeakReference<>(null);
     private static long touched;
-    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;String selected;MediaViewerBackGesture back;}
+    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;int next,previous;boolean custom;String selected;MediaViewerBackGesture back;}
     private static final WeakHashMap<Activity,WeakReference<Object>> MODELS=new WeakHashMap<>();
 
     static void rememberBody(TextView view,MotionEvent event) {
@@ -251,6 +251,9 @@ public final class MediaViewerNavigation {
         activity.startActivity(destination(activity,links,next));activity.finish();activity.overridePendingTransition(0,0);return true;
     }
     public static boolean onNativeTouch(Activity activity,MotionEvent event) {
+        if(event.getActionMasked()==MotionEvent.ACTION_DOWN&&NativeImagePaging.enabled(activity)&&!NativeImagePaging.mixed(activity)){
+            SWIPES.remove(activity);return false; // The native-only hook turns the page in place.
+        }
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN
                 && hasNativeStillPager(activity)
                 && !activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)) {
@@ -285,6 +288,12 @@ public final class MediaViewerNavigation {
         if(action==MotionEvent.ACTION_DOWN){
             if(links(activity).size()<2)return false;
             swipe=new Swipe();swipe.selected=current(activity);swipe.x=event.getRawX();swipe.y=event.getRawY();
+            swipe.custom=NativeImagePaging.isNativeActivity(activity)&&NativeImagePaging.enabled(activity);
+            if(swipe.custom){
+                android.content.SharedPreferences prefs=VideoViewerSettings.prefs(activity);
+                swipe.next=NativeImagePaging.direction(prefs,NativeImagePaging.NEXT);
+                swipe.previous=NativeImagePaging.direction(prefs,NativeImagePaging.PREVIOUS);
+            }
             Rect bounds=new Rect();View area=surface!=null?surface:activity.getWindow().getDecorView();
             swipe.blocked=!area.getGlobalVisibleRect(bounds)||!bounds.contains((int)swipe.x,(int)swipe.y)
                     ||controlAt(activity.getWindow().getDecorView(),swipe.x,swipe.y)
@@ -303,12 +312,14 @@ public final class MediaViewerNavigation {
         float threshold=Math.max(48,48*activity.getResources().getDisplayMetrics().density);
         // Whole-thread paging has the same four directions in every version.
         // The configured native Back recognizer above still gets first refusal.
-        int step=MediaGallery.gestureStep(dx,dy,threshold,
+        int step=swipe.custom?NativeImagePaging.step(NativeImagePaging.axis(dx,dy,threshold),swipe.next,swipe.previous)
+                :MediaGallery.gestureStep(dx,dy,threshold,
                 activity.getIntent().getBooleanExtra(THREAD_EXTRA,false));
         // The Back recognizer has its own event stream. Cancel the native canvas
         // even while it is active, or 242 may dismiss before a non-Back swipe can
         // page. Keep forwarding events to Back above until its result is known.
-        if(action==MotionEvent.ACTION_MOVE&&step!=0&&!swipe.dragging){
+        boolean claim=swipe.custom?NativeImagePaging.axis(dx,dy,ViewConfiguration.get(activity).getScaledTouchSlop())!=0:step!=0;
+        if(action==MotionEvent.ACTION_MOVE&&claim&&!swipe.dragging){
             swipe.dragging=true;swipe.cancelling=true;MotionEvent cancel=MotionEvent.obtain(event);cancel.setAction(MotionEvent.ACTION_CANCEL);
             try{activity.dispatchTouchEvent(cancel);}finally{cancel.recycle();swipe.cancelling=false;}
         }
@@ -326,13 +337,13 @@ public final class MediaViewerNavigation {
         }
         return swipe.dragging;
     }
-    private static boolean controlAt(View view,float x,float y) {
+    static boolean controlAt(View view,float x,float y) {
         Rect rect=new Rect();if(!view.isShown()||!view.getGlobalVisibleRect(rect)||!rect.contains((int)x,(int)y))return false;
         if(view instanceof Button||view instanceof ImageButton||view instanceof SeekBar||view instanceof EditText)return true;
         if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)if(controlAt(group.getChildAt(i),x,y))return true;}
         return false;
     }
-    private static boolean zoomed(View view) {
+    static boolean zoomed(View view) {
         if(!view.isShown())return false;
         // All three native canvases are FrameLayouts, so the ImageView API below
         // cannot detect their zoom. Field bindings differ; the policy is shared.

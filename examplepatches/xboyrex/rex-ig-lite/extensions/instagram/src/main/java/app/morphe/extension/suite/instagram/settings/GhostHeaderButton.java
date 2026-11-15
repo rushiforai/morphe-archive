@@ -1,0 +1,341 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.settings;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Switch;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import app.morphe.extension.suite.instagram.download.FeedDownloadButton;
+import app.morphe.extension.suite.instagram.reels.HeartCount;
+import app.morphe.extension.suite.instagram.reels.HomeHeader;
+import app.morphe.extension.suite.instagram.reels.HomeLogo;
+import app.morphe.extension.suite.instagram.reels.MessagesHeaderButton;
+import app.morphe.extension.suite.instagram.reels.SearchHeaderButton;
+import app.morphe.extension.suite.instagram.reels.SettingsHeaderButton;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+import app.morphe.extension.suite.shared.settings.BooleanSetting;
+import app.morphe.extension.suite.shared.settings.xboyrexPause;
+
+/**
+ * A ghost button on Home's header, beside the Messages button, that turns Ghost mode on or off the
+ * way the long press on New message does: every ghost switch in the build gets the same value and a
+ * toast says which way it went. The icon is drawn, not taken from Instagram, and shows the state:
+ * an outline while Ghost mode is off, a solid ghost while it's on.
+ *
+ * <p>The patch calls {@link #drew} as the header starts drawing from its state. The button is put in
+ * after that call returns, in the row the Messages button sits in, since the header clears its rows
+ * when it rebuilds. Where Messages isn't on the header, it goes at the end of the header's end row
+ * of buttons instead. With the switch off, xboyrex paused, or no ghost patch in the build, no
+ * button is added, and one left from before is taken out the next time the header draws or settings
+ * close.
+ */
+public final class GhostHeaderButton {
+    private GhostHeaderButton() { }
+
+    /** The name the diagnostic report counts this under, the Reels tab line the header's other hooks use. */
+    static final String ROUTE = FamilyNames.REELS_TAB;
+    static final String PLACED = "Home header Ghost button placed";
+    static final String PLACED_AT_END = "Home header Ghost button placed at the end, no Messages on the header";
+    static final String NO_ANCHOR = "Home header Ghost button not placed, no row to put it in";
+
+    /** The header Instagram drew last, for {@link #settingsClosed}. */
+    private static volatile WeakReference<View> lastHeader = new WeakReference<>(null);
+
+    /**
+     * Injected first thing as Home's header draws from its state. Queues the placement of the
+     * Search button ({@link SearchHeaderButton}), the Messages button ({@link MessagesHeaderButton})
+     * and this button behind the draw, then the centering of the logo ({@link HomeLogo}), which goes
+     * last so it sees every button the header ends up with. Never throws, and does nothing to the
+     * header itself.
+     */
+    public static void drew(View header) {
+        try {
+            HookStatus.invoked(ROUTE);
+            if (header == null) return;
+            lastHeader = new WeakReference<>(header);
+            header.post(() -> placeAll(header));
+        } catch (Throwable failure) {
+            HookStatus.threw(ROUTE, "ghost button", failure);
+        }
+    }
+
+    /**
+     * Called as the settings dialog closes. The header only draws when Instagram hands it a new state,
+     * and a dialog closing over the activity makes none, so a button switched off in there stayed up
+     * until something else changed the header (#492). This puts the buttons right without waiting.
+     * Never throws.
+     */
+    public static void settingsClosed() {
+        try {
+            View header = lastHeader.get();
+            if (header != null && header.isAttachedToWindow()) header.post(() -> placeAll(header));
+        } catch (Throwable failure) {
+            HookStatus.threw(ROUTE, "ghost button", failure);
+        }
+    }
+
+    private static void placeAll(View header) {
+        SearchHeaderButton.place(header);
+        // Before the ghost, which goes right before whichever Messages button the header shows.
+        MessagesHeaderButton.place(header);
+        place(header);
+        SettingsHeaderButton.place(header);
+        HomeMenuButton.place(header);
+        // After the menu button, so it can go in right before it.
+        HistoryHeaderButton.place(header);
+        HeartCount.show(header);
+        HomeLogo.center(header);
+    }
+
+    /**
+     * Puts the button in, leaves the one there, or takes it out, as the switch, Pause and the build
+     * say. It goes right before Messages, Instagram's own or the one xboyrex adds, or at the end of
+     * the header's end row of buttons when no Messages is on the header (it's on the tab bar for some
+     * accounts).
+     */
+    static void place(View header) {
+        try {
+            List<BooleanSetting> switches = GhostMode.switches(PatchFamily.inThisBuild());
+            boolean wanted = Utils.settingsReady() && !xboyrexPause.isPaused()
+                    && Settings.GHOST_BUTTON_ON_HOME.get() && !switches.isEmpty();
+            View inbox = HomeHeader.inboxOf(header);
+            LinearLayout row = HomeHeader.inboxRowOf(header);
+            if (row == null) {
+                LinearLayout end = HomeHeader.endRowOf(header);
+                View added = MessagesHeaderButton.in(end);
+                if (added != null) {
+                    inbox = added;
+                    row = end;
+                }
+            }
+            boolean besideMessages = row != null;
+            if (row == null) row = HomeHeader.endRowOf(header);
+            if (row == null) {
+                if (wanted) HookStatus.counted(ROUTE, NO_ANCHOR);
+                return;
+            }
+            ImageView existing = find(row);
+            if (!wanted) {
+                if (existing != null) row.removeView(existing);
+                return;
+            }
+            if (existing != null) {
+                existing.invalidate();
+                return;
+            }
+            ImageView button = create(header.getContext(), switches,
+                    besideMessages ? inbox : row.getChildCount() > 0 ? row.getChildAt(row.getChildCount() - 1) : null);
+            if (besideMessages) {
+                row.addView(button, row.indexOfChild(inbox), params(row));
+                HookStatus.counted(ROUTE, PLACED);
+            } else {
+                row.addView(button, params(row));
+                HookStatus.counted(ROUTE, PLACED_AT_END);
+            }
+            Logger.printDebug(() -> "Ghost mode: the button is on Home's header");
+        } catch (Throwable failure) {
+            HookStatus.threw(ROUTE, "ghost button", failure);
+            Logger.printException(() -> "Ghost mode: could not put the button on Home's header", failure);
+        }
+    }
+
+    @Nullable
+    private static ImageView find(LinearLayout row) {
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (child instanceof ImageView && ((ImageView) child).getDrawable() instanceof Ghost) return (ImageView) child;
+        }
+        return null;
+    }
+
+    private static LinearLayout.LayoutParams params(LinearLayout row) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.CENTER_VERTICAL;
+        return params;
+    }
+
+    private static ImageView create(Context context, List<BooleanSetting> switches, @Nullable View neighbor) {
+        ImageView button = new ImageView(context);
+        // Picked at each draw, so a pick changed in the settings shows without a restart (#251).
+        BooleanSupplier on = () -> GhostMode.on(GhostMode.picked(switches));
+        button.setImageDrawable(new Ghost(context.getResources().getDisplayMetrics().density, FeedDownloadButton.iconColor(context), on));
+        button.setScaleType(ImageView.ScaleType.CENTER);
+        // A neighbor's own padding, Messages' where it's there, sizes the touch target the same as theirs.
+        HomeHeader.padLike(button, neighbor);
+        button.setClickable(true);
+        button.setFocusable(true);
+        button.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        TypedValue ripple = new TypedValue();
+        if (context.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, ripple, true)
+                && ripple.resourceId != 0) {
+            button.setBackgroundResource(ripple.resourceId);
+        }
+        button.setContentDescription(L10n.t("Ghost mode"));
+        button.setAccessibilityDelegate(SWITCH);
+        button.setOnClickListener(GhostHeaderButton::press);
+        return button;
+    }
+
+    /** The tap: false-safe, so a paused xboyrex or a build with nothing to turn leaves Ghost mode alone. */
+    static void press(View view) {
+        try {
+            if (!Utils.settingsReady() || xboyrexPause.isPaused()) return;
+            List<BooleanSetting> switches = GhostMode.picked(GhostMode.switches(PatchFamily.inThisBuild()));
+            if (switches.isEmpty()) return;
+            boolean on = GhostMode.flip(switches);
+            view.invalidate();
+            Logger.printDebug(() -> "Ghost mode: the header button turned it " + (on ? "on" : "off"));
+        } catch (Throwable failure) {
+            HookStatus.threw(ROUTE, "ghost button tap", failure);
+            Logger.printException(() -> "Ghost mode: the header button's tap failed", failure);
+        }
+    }
+
+    /**
+     * Tells accessibility services the button is a switch, on while its ghost is: TalkBack reads
+     * "Ghost mode", then on or off, rather than an instruction. The state is read from the ghost
+     * each time, so Ghost mode turned on in settings reads right too.
+     */
+    static final View.AccessibilityDelegate SWITCH = new View.AccessibilityDelegate() {
+        @Override
+        public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(host, info);
+            info.setClassName(Switch.class.getName());
+            info.setCheckable(true);
+            info.setChecked(on(host));
+        }
+
+        @Override
+        public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            super.onInitializeAccessibilityEvent(host, event);
+            event.setClassName(Switch.class.getName());
+            event.setChecked(on(host));
+        }
+
+        private boolean on(View host) {
+            return host instanceof ImageView && ((ImageView) host).getDrawable() instanceof Ghost
+                    && ((Ghost) ((ImageView) host).getDrawable()).isOn();
+        }
+    };
+
+    /**
+     * The ghost, drawn rather than taken from Instagram's resources: an outline with two dots for
+     * eyes while Ghost mode is off, solid with the eyes cut out while it's on. The color is Instagram's
+     * own icon color for the screen's theme, so it follows Instagram's dark mode setting even when
+     * that differs from the phone's.
+     */
+    static final class Ghost extends Drawable {
+        private final float unit;
+        private final BooleanSupplier on;
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path body = new Path();
+        private final RectF head = new RectF();
+
+        Ghost(float density, int color, BooleanSupplier on) {
+            unit = density;
+            this.on = on;
+            paint.setColor(color);
+            paint.setStrokeWidth(1.8f * density);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+        }
+
+        boolean isOn() {
+            return on.getAsBoolean();
+        }
+
+        int color() {
+            return paint.getColor();
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            Rect bounds = getBounds();
+            float x = bounds.exactCenterX();
+            float y = bounds.exactCenterY();
+            float half = 8 * unit;
+            float top = y - 9 * unit;
+            float bottom = y + 9 * unit;
+            body.reset();
+            body.setFillType(Path.FillType.EVEN_ODD);
+            head.set(x - half, top, x + half, top + 2 * half);
+            body.moveTo(x - half, bottom);
+            body.lineTo(x - half, top + half);
+            body.arcTo(head, 180, 180);
+            body.lineTo(x + half, bottom);
+            // Three scallops along the bottom edge, from the right corner back to the left.
+            for (int step = 1; step <= 6; step++) {
+                body.lineTo(x + half - step * half / 3, step % 2 == 1 ? bottom - 3 * unit : bottom);
+            }
+            body.close();
+            float eyeY = top + half - unit;
+            if (isOn()) {
+                body.addCircle(x - 3 * unit, eyeY, 1.6f * unit, Path.Direction.CW);
+                body.addCircle(x + 3 * unit, eyeY, 1.6f * unit, Path.Direction.CW);
+                paint.setStyle(Paint.Style.FILL);
+                canvas.drawPath(body, paint);
+            } else {
+                paint.setStyle(Paint.Style.STROKE);
+                canvas.drawPath(body, paint);
+                paint.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(x - 3 * unit, eyeY, 1.4f * unit, paint);
+                canvas.drawCircle(x + 3 * unit, eyeY, 1.4f * unit, paint);
+            }
+        }
+
+        @Override
+        public int getIntrinsicWidth() {
+            return Math.round(24 * unit);
+        }
+
+        @Override
+        public int getIntrinsicHeight() {
+            return Math.round(24 * unit);
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter filter) {
+            paint.setColorFilter(filter);
+            invalidateSelf();
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+}

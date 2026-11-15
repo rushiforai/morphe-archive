@@ -8,6 +8,7 @@ import android.view.ViewTreeObserver;
 
 import java.util.WeakHashMap;
 
+import app.southstar21.extension.instagram.consciousgate.ConsciousGatePatch;
 import app.southstar21.extension.instagram.liquidglass.LiquidGlassNavBarPatch;
 import app.southstar21.extension.instagram.settings.ProfileSettingsButton;
 import app.southstar21.extension.instagram.settings.Settings;
@@ -34,6 +35,9 @@ public final class InstagramHooks {
             // Start patches here. Each checks it was included and is switched on.
             if (LiquidGlassNavBarPatch.SETTINGS.isActive()) {
                 LiquidGlassNavBarPatch.onMainActivityReady(activity);
+            }
+            if (ConsciousGatePatch.SETTINGS.isActive()) {
+                ConsciousGatePatch.onMainActivityFocusChanged(activity);
             }
         } catch (Throwable t) {
             // Never take the app down over a patch.

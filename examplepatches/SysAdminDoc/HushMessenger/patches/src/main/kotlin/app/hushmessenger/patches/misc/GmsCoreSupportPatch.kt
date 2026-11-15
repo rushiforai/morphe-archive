@@ -7,6 +7,7 @@ package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.coexist.validateVersionCode
+import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -69,6 +70,9 @@ internal const val GMS_CORE_AVAILABILITY = "Lapp/hushmessenger/extension/GmsCore
 
 /** The extension's answer for the framework provider: true while microG-RE is installed, so the provider steps aside. */
 internal const val GMS_CORE_SIGNS_IN_THROUGH_MICROG = "Lapp/hushmessenger/extension/GmsCore;->signsInThroughMicroG()Z"
+
+/** The extension's mark that GmsCore support is in. The patch makes it answer true, which holds where the manifest stayed stock (Root Mount). */
+internal const val GMS_CORE_BUNDLED = "Lapp/hushmessenger/extension/GmsCore;->bundled()Z"
 
 /** Play services permissions microG-RE defines under its own vendor. Morphe's list. */
 internal val GMS_PERMISSIONS = setOf(
@@ -450,6 +454,19 @@ internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
     }
     mutableClassDefBy(plan.availability.definingClass).methods.single { it.same(plan.availability) }.answerFromMicroG()
     mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }.stepAsideForMicroG()
+    mutableClassDefBy(GMS_CORE_BUNDLED.substringBefore("->")).methods.single { it.hookId() == GMS_CORE_BUNDLED }.markGmsCoreBundled()
+}
+
+/** The extension's `return false` mark answers true, so its settings know GmsCore support is in. */
+internal fun MutableMethod.markGmsCoreBundled() {
+    val instructions = implementation?.instructions?.toList().orEmpty()
+    val constant = instructions.getOrNull(0) as? OneRegisterInstruction
+    if (hookId() != GMS_CORE_BUNDLED || instructions.size != 2 || instructions[0].opcode != Opcode.CONST_4 ||
+        instructions[1].opcode != Opcode.RETURN || constant == null ||
+        constant.registerA != (instructions[1] as? OneRegisterInstruction)?.registerA) {
+        throw PatchException("GmsCore support: the extension's GmsCore mark differs from this patch version")
+    }
+    replaceInstruction(0, "const/4 v${constant.registerA}, 0x1")
 }
 
 /** The availability check answers whatever the extension says about microG-RE, in the Context register it's handed. */

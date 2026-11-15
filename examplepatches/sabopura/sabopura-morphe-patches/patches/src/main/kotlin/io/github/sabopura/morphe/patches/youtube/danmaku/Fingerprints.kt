@@ -65,7 +65,10 @@ internal object VideoIdParentFingerprint : Fingerprint(
     filters = listOf(literal(524288L)),
 )
 
-/** Stable visible-player video id hook used by Morphe's own video information patch. */
+/**
+ * Stable visible-player video id hook used by Morphe's own video information patch. The map write
+ * has no distance limit because Morphe's patches insert one id hook per feature before it.
+ */
 internal object VideoIdFingerprint : Fingerprint(
     classFingerprint = VideoIdParentFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -79,7 +82,6 @@ internal object VideoIdFingerprint : Fingerprint(
         ),
         methodCall(
             smali = "Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
-            location = MatchAfterWithin(6),
         ),
         app.morphe.patcher.opcode(
             Opcode.RETURN_VOID,
@@ -104,7 +106,6 @@ internal object DelegatingVideoIdFingerprint : Fingerprint(
             opcode = Opcode.INVOKE_VIRTUAL,
             parameters = listOf("Ljava/lang/String;", "L"),
             returnType = "V",
-            location = MatchAfterWithin(6),
         ),
         app.morphe.patcher.opcode(
             Opcode.RETURN_VOID,

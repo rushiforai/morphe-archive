@@ -7,7 +7,8 @@ import java.nio.charset.StandardCharsets;
 /** No Android state, credentials or network access. Fail closed before sending media. */
 public final class MediaUploadPolicy {
     public static final String NATIVE = "native", IMGBOX = "imgbox", IMGPILE = "imgpile",
-            IMGPILE_WEB = "imgpile-web", SENDVID = "sendvid";
+            IMGPILE_WEB = "imgpile-web", SENDVID = "sendvid", UGUU = "uguu";
+    public static final long UGUU_LIMIT = 128L * 1024 * 1024;
     public static final long IMGBOX_LIMIT = 10_000_000L, IMGPILE_LIMIT = 97_000_000L;
     public static final long IMGPILE_WEB_LIMIT = 100_000_000L, SENDVID_LIMIT = 1000L * 1024 * 1024;
     private MediaUploadPolicy() {}
@@ -15,7 +16,7 @@ public final class MediaUploadPolicy {
     public static String destination(String imageHost,String videoHost,String mime) throws IOException {
         String selected=mime.startsWith("video/")?videoHost:imageHost;
         if (!NATIVE.equals(selected) && !IMGBOX.equals(selected) && !IMGPILE.equals(selected)
-                && !IMGPILE_WEB.equals(selected) && !SENDVID.equals(selected))
+                && !IMGPILE_WEB.equals(selected) && !SENDVID.equals(selected) && !UGUU.equals(selected))
             throw new IOException("アップロード先の設定を確認してください");
         return selected;
     }
@@ -43,6 +44,13 @@ public final class MediaUploadPolicy {
     private static String ascii(byte[] b,int offset,int size) { return new String(b,offset,size,StandardCharsets.US_ASCII); }
 
     public static void validate(String provider,String mime,long length,String apiKey) throws IOException {
+        if(UGUU.equals(provider)){
+            if(length<=0)throw new IOException("送信ファイルが空です");
+            if(!(mime.equals("image/png")||mime.equals("image/jpeg")||mime.equals("image/gif")||mime.equals("image/webp")
+                    ||mime.equals("video/mp4")||mime.equals("video/webm")||mime.equals("video/quicktime")))throw new IOException("この形式はuguu.se送信に対応していません");
+            if(length>UGUU_LIMIT)throw new MediaUploadSizeException();
+            return;
+        }
         if (IMGPILE_WEB.equals(provider) || SENDVID.equals(provider)) {
             if (length <= 0) throw new IOException("送信ファイルが空です");
             if (SENDVID.equals(provider)) {
@@ -81,6 +89,7 @@ public final class MediaUploadPolicy {
                     || (u.getPort()!=-1 && u.getPort()!=443) || u.getRawQuery()!=null || u.getRawFragment()!=null) return false;
             String host = u.getHost(),path=u.getPath();
             if (host==null || path==null) return false;
+            if(UGUU.equals(provider))return (host.equals("uguu.se")||host.equals("a.uguu.se"))&&path.matches("/[A-Za-z0-9_-]{1,128}\\.(?i:jpg|jpeg|png|gif|webp|mp4|webm|mov)");
             if (SENDVID.equals(provider)) return host.equals("sendvid.com") && path.matches("/[A-Za-z0-9]{4,64}");
             if (provider.equals(IMGBOX)) return host.matches("images[0-9]*\\.imgbox\\.com")
                     && path.matches("/[a-zA-Z0-9/_-]+\\.(?i:jpg|jpeg|png|gif)");

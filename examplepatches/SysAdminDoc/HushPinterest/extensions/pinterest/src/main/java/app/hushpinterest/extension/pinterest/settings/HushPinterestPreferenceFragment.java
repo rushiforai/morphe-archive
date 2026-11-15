@@ -51,6 +51,7 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -69,6 +70,7 @@ import app.hushpinterest.extension.shared.settings.AppLanguage;
 import app.hushpinterest.extension.shared.settings.BaseSettings;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
+import app.hushpinterest.extension.shared.settings.Setting;
 import app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushpinterest.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.hushpinterest.extension.shared.settings.preference.ExportDiagnosticReportPreference;
@@ -469,8 +471,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
                         + "controls stay. The change shows the next time the bar updates."), SettingsIcons.BLOCK);
-            // Each of the three has its own hook and its own switch, so a build where Pinterest's bottom bar,
-            // comments or pin menu wasn't found has no row for it, and the rows it does have keep their own words.
+            // Each surface has its own hook and its own switch, so a build where Pinterest's bottom bar, comments,
+            // pin menu or Save to sheet wasn't found has no row for it, and the rows it does have keep their own words.
             if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BOTTOM_BAR.installed()) {
                 ui.addPreference(mark(toggle(context, Settings.BLACK_BOTTOM_BAR, L10n.t("Black bottom bar"),
                         L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
@@ -486,6 +488,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 ui.addPreference(mark(toggle(context, Settings.BLACK_PIN_MENU, L10n.t("Black pin menu"),
                         L10n.t("In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change "
                             + "shows the next time you open the menu.")), SettingsIcons.DARK_MODE));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_SAVE_SHEET.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_SAVE_SHEET, L10n.t("Black Save to sheet"),
+                        L10n.t("In dark mode, paints the sheet that lists your boards when you save a pin pure black. "
+                            + "Light mode stays as it is. The change shows the next time you save a pin.")),
+                        SettingsIcons.DARK_MODE));
             }
             patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_BACK,
                     L10n.t("Hide back arrow on pins"),
@@ -559,6 +567,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                             + "post your own comment. The change shows the next time you open comments.")),
                         SettingsIcons.BLOCK));
             }
+            // The previews collapse under Hide comments too, so with it on this switch can't bring
+            // them back. The row says so then (updatePreferenceAvailability keeps that current) and
+            // keeps its own saved choice for when it's off.
+            if (build.contains(PatchFamily.HIDE_COMMENTS) && PatchFamily.Capability.COMMENT_PREVIEWS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_COMMENT_PREVIEWS, L10n.t("Hide comment previews"),
+                        commentPreviewsSummary(Settings.HIDE_COMMENTS.savedValue())), SettingsIcons.BLOCK));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS,
                     L10n.t("Hide topic suggestions"),
                     L10n.t("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay."), SettingsIcons.BLOCK);
@@ -581,6 +596,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.SHOW_POSTED_DATE, Settings.SHOW_POSTED_DATE,
                     L10n.t("Show posted date"),
                     L10n.t("Shows the day a pin was posted under its title. It shows on the next pin you open."), SettingsIcons.ABOUT);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SUGGESTED_BOARDS, Settings.HIDE_SUGGESTED_BOARDS,
+                    L10n.t("Hide suggested boards"),
+                    L10n.t("When you save a pin, hides the board Pinterest suggests under your own boards. Your own "
+                        + "boards stay. The change shows the next time you save a pin."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.EXPAND_BOARD_LIST, Settings.EXPAND_BOARD_LIST,
+                    L10n.t("Expand board list"),
+                    L10n.t("Opens the sheet that lists your boards all the way up when you save a pin, so more boards "
+                        + "show without dragging it. The change shows the next time you save a pin."), SettingsIcons.FEED);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them
@@ -683,6 +706,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         // Switches live in one application-wide store, while Pinterest can hold several accounts.
         about.addPreference(mark(info(context, L10n.t("Accounts"), L10n.t("Every switch here applies to all the "
                 + "accounts in this Pinterest app, not only the one you have open.")), SettingsIcons.ABOUT));
+        // A patch-time fact with no switch: which app this copy is, beside the stock one.
+        if (build.contains(PatchFamily.CHANGE_PACKAGE_NAME)) {
+            about.addPreference(mark(info(context, L10n.t("Change package name"), L10n.f("This copy runs as %1$s, so it "
+                    + "installs beside Pinterest with its own sign-in. Set when patching.",
+                    L10n.isolate(context.getPackageName()))), SettingsIcons.ABOUT));
+        }
 
         about.addPreference(mark(new SetupGuidancePreference(context), SettingsIcons.ABOUT));
 
@@ -1311,6 +1340,28 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (build.contains(family)) {
             category.addPreference(mark(toggle(context, setting, title, family.coverageSummary(summary)), icon));
         }
+    }
+
+    /**
+     * Every saved change, an import, its Undo and a change from another open page end here for each
+     * row, so Hide comment previews follows Hide comments however that switch changed.
+     */
+    @Override
+    protected void updatePreferenceAvailability(@NonNull Preference pref, @NonNull Setting<?> setting) {
+        super.updatePreferenceAvailability(pref, setting);
+        if (setting == Settings.HIDE_COMMENT_PREVIEWS) {
+            pref.setSummary(commentPreviewsSummary(Settings.HIDE_COMMENTS.savedValue()));
+        }
+    }
+
+    /** What Hide comment previews does, or why it can't while Hide comments hides the whole section. */
+    static String commentPreviewsSummary(boolean hideComments) {
+        if (hideComments) {
+            return L10n.t("Hide comments is on and already hides the whole comments section, previews included. This "
+                + "switch keeps its setting for when Hide comments is off.");
+        }
+        return L10n.t("Hides the comments and comment photos shown under a pin. The comment box and the way into all "
+            + "comments stay. The change shows the next time the screen updates.");
     }
 
     static SwitchPreference toggle(Context context, BooleanSetting setting, String title, String summary) {

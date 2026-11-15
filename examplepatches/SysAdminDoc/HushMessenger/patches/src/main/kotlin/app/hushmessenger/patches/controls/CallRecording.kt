@@ -85,15 +85,19 @@ internal fun Method.recordHandoverAt(): Int {
 
 /** The config holder, both switches and the two threads, or nothing unless all five are there exactly once. */
 internal fun findCallRecording(classes: Iterable<ClassDef>): List<Method> {
-    val all = classes.flatMap { it.methods }
-    val holder = all.filter { it.isConfigHolder() }.singleOrNull() ?: return emptyList()
-    val switches = all.filter { it.isPlayoutSwitch() }
+    val holder = configHolders.methods(classes).singleOrNull() ?: return emptyList()
+    val switches = playoutSwitches.methods(classes)
     val start = switches.singleOrNull { it.name == "startPlayout" } ?: return emptyList()
     val stop = switches.singleOrNull { it.name == "stopPlayout" } ?: return emptyList()
-    val playout = all.filter { it.playoutWriteAt() >= 0 }.singleOrNull() ?: return emptyList()
-    val record = all.filter { it.recordHandoverAt() >= 0 }.singleOrNull() ?: return emptyList()
+    val playout = playoutWriters.methods(classes).singleOrNull() ?: return emptyList()
+    val record = recordHandovers.methods(classes).singleOrNull() ?: return emptyList()
     return listOf(holder, start, stop, playout, record)
 }
+
+internal val configHolders = methodCheck { _, method -> method.isConfigHolder() }
+internal val playoutSwitches = methodCheck { _, method -> method.isPlayoutSwitch() }
+internal val playoutWriters = methodCheck { _, method -> method.playoutWriteAt() >= 0 }
+internal val recordHandovers = methodCheck { _, method -> method.recordHandoverAt() >= 0 }
 
 /** Record calls and Live captions on calls share these hooks: whichever patches first puts them in, and the other finds them there. */
 internal fun Method.callAudioHooked(): Boolean = implementation?.instructions?.any { it.called() in CALL_AUDIO_CALLS } == true

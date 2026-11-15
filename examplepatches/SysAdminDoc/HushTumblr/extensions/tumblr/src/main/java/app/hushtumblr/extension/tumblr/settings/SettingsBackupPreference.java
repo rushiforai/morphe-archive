@@ -606,6 +606,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             }
         }
         page.importPreview = builder.show();
+        // A small file can be read before the list's first layout back from the picker.
+        if (page.navigation != null) page.navigation.dialogOpened();
         ScreenColors.dialog(page.importPreview);
     }
 
@@ -909,6 +911,12 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         if (current == null || !current.isAdded()) return null;
         Preference row = current.findPreference(keyOf(action));
         return row instanceof SettingsBackupPreference ? (SettingsBackupPreference) row : null;
+    }
+
+    /** The key of the row whose file picker answers with [request], or null for another request. */
+    @Nullable
+    static String rowFor(int request) {
+        return request == EXPORT || request == IMPORT ? keyOf(request) : null;
     }
 
     private static String keyOf(int action) {

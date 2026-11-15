@@ -10,11 +10,11 @@ import app.rex.patches.twitter.featureFlag.featureFlagPatch.featureFlagPatch
 import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.flagSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val restoreLegacyFollowerListsPatch =
-    bytecodePatch(
+    patch(
         name = "Restore legacy follower lists",
         description = "Restores the legacy follower and following list screen.",
         default = true,

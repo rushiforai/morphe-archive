@@ -9,7 +9,7 @@ package app.morphe.extension.instagram.patches.focusLock;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.morphe.extension.rex.settings.BooleanSetting;
+import app.morphe.extension.instagram.settings.BooleanSetting;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 
@@ -63,6 +63,8 @@ public final class FocusLockTargets {
                 Settings.DISABLE_STORIES, "rex_disable_stories", null);
         add(targets, SettingsStatus.hideStoriesTray,
                 Settings.HIDE_STORIES_TRAY, "rex_hide_stories_tray", null);
+        add(targets, SettingsStatus.hideHiddenRequests,
+                Settings.HIDE_HIDDEN_REQUESTS, "rex_hide_hidden_requests", null);
         add(targets, SettingsStatus.disableHighlights,
                 Settings.DISABLE_HIGHLIGHTS, "rex_disable_highlights", null);
         add(targets, SettingsStatus.hideNotesTray,

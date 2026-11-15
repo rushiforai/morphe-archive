@@ -135,6 +135,7 @@ public final class CustomizationActivity extends Activity {
         section(body, PAGE_UI, names(
                 Shapes.rectShapesPatched(), "Rectangle Shapes",
                 Shapes.blackThemePatched(), "Black theme",
+                Shapes.lightMapPatched(), "Light map",
                 Shapes.highRefreshPatched(), "120 refresh rate"));
         section(body, PAGE_HIDE, names(
                 Shapes.hideAdsPatched(), "Sponsored content",
@@ -146,8 +147,10 @@ public final class CustomizationActivity extends Activity {
                 Shapes.navZoomPatched(), "Zoom controls in navigation",
                 Shapes.betterOfflinePatched(), "Better offline maps",
                 Shapes.locationSourcePatched(), "Location source",
+                Shapes.mapRegionPatched(), "Map region",
                 Shapes.proxyPatched(), "Proxy",
-                Shapes.playingMediaPatched(), "Follow playing media"));
+                Shapes.playingMediaPatched(), "Follow playing media",
+                Shapes.anyMediaPatched(), "Media apps in navigation"));
     }
 
     /** A section's row: its title, what it holds, and its page when tapped. Left out when it holds nothing. */
@@ -185,6 +188,17 @@ public final class CustomizationActivity extends Activity {
             body.addView(toggleRow("Black theme", "Choosing a theme in Maps settings turns this off", black));
             black.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
                 Shapes.setBlackEnabled(this, on);
+                restartSoon(b);
+            });
+        }
+
+        if (Shapes.lightMapPatched()) {
+            Switch light = new Switch(this);
+            light.setChecked(Shapes.lightMapEnabled(this));
+            body.addView(toggleRow("Light map", "Keeps the map light when menus are dark", light));
+            light.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+                Shapes.setLightMapEnabled(this, on);
+                // the map picks its style when it is created
                 restartSoon(b);
             });
         }
@@ -296,6 +310,27 @@ public final class CustomizationActivity extends Activity {
             body.addView(locRow);
         }
 
+        if (Shapes.mapRegionPatched()) {
+            // Every country with a name in the phone's language, "Automatic" (Maps' own) first.
+            String[] codes = java.util.Locale.getISOCountries();
+            String[][] byName = new String[codes.length][];
+            for (int i = 0; i < codes.length; i++) byName[i] = new String[] {new java.util.Locale("", codes[i]).getDisplayCountry(), codes[i]};
+            java.util.Arrays.sort(byName, (x, y) -> java.text.Collator.getInstance().compare(x[0], y[0]));
+            final String[] regions = new String[codes.length + 1], labels = new String[codes.length + 1];
+            regions[0] = "";
+            labels[0] = "Automatic";
+            for (int i = 0; i < byName.length; i++) { labels[i + 1] = byName[i][0]; regions[i + 1] = byName[i][1]; }
+            final int current = Math.max(0, java.util.Arrays.asList(regions).indexOf(Shapes.mapRegion(this)));
+            View regionRow = row("Map region", current == 0 ? "Automatic (your SIM's country)" : labels[current]);
+            regionRow.setOnClickListener(v -> choose("Map region", labels, current, which -> {
+                if (which == current) return;
+                Shapes.setMapRegion(this, regions[which]);
+                // read when the map asks for tiles; a restart drops the ones already drawn
+                restartSoon(v);
+            }));
+            body.addView(regionRow);
+        }
+
         if (Shapes.proxyPatched()) {
             // its own screen (Enable / Host / Port), like OsmAnd's
             LinearLayout proxyRow = rowBase("Proxy", proxySummary());
@@ -313,6 +348,42 @@ public final class CustomizationActivity extends Activity {
                     dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert));
             body.addView(mediaRow);
         }
+
+        if (Shapes.anyMediaPatched()) {
+            // The row of other apps in navigation's media panel shows about five (issue #78).
+            LinearLayout appsRow = rowBase("Media apps in navigation", mediaAppsSummary());
+            TextView appsSub = (TextView) ((LinearLayout) appsRow.getChildAt(0)).getChildAt(1);
+            appsRow.setOnClickListener(v -> {
+                java.util.List<String> all = MediaApps.candidates(this);
+                java.util.List<String> chosen = MediaApps.chosen(this);
+                for (String p : chosen) if (!all.contains(p)) all.add(p);     // chosen but not offered right now
+                if (all.size() > 31) all = all.subList(0, 31);
+                final java.util.List<String> apps = all;
+                String[] labels = new String[apps.size()];
+                int mask = 0;
+                for (int i = 0; i < apps.size(); i++) {
+                    labels[i] = MediaApps.label(this, apps.get(i));
+                    if (chosen.contains(apps.get(i))) mask |= 1 << i;
+                }
+                chooseMany("Media apps in navigation", labels, mask, out -> {
+                    java.util.List<String> picked = new java.util.ArrayList<>();
+                    for (int i = 0; i < apps.size(); i++) if ((out & (1 << i)) != 0) picked.add(apps.get(i));
+                    // read when navigation starts, so no restart
+                    MediaApps.setChosen(this, picked);
+                    appsSub.setText(mediaAppsSummary());
+                });
+            });
+            body.addView(appsRow);
+        }
+    }
+
+    private String mediaAppsSummary() {
+        java.util.List<String> chosen = MediaApps.chosen(this);
+        if (chosen.isEmpty()) return "All, the one playing first";
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (String p : chosen) names.add(MediaApps.label(this, p));
+        if (names.size() <= 3) return String.join(", ", names);
+        return String.join(", ", names.subList(0, 2)) + " & " + (names.size() - 2) + " more";
     }
 
     /** Waze & external data source, opened from its own account sheet row: the speeding chime, speed cameras and Waze's alerts. */
@@ -472,6 +543,15 @@ public final class CustomizationActivity extends Activity {
         return seconds > 0 ? "After " + seconds + " seconds" : "Off";
     }
 
+    private static final String[] WAKE_LABELS = {"Off", "Back after 30 seconds", "Back after 1 minute", "Back after 2 minutes", "Back after 5 minutes"};
+
+    private static String wakeSummary(int seconds) {
+        for (int i = 1; i < PowerSaving.WAKE_CHOICES.length; i++) {
+            if (PowerSaving.WAKE_CHOICES[i] == seconds) return PowerSaving.WAKE_METERS + " m before a turn, " + WAKE_LABELS[i].toLowerCase(java.util.Locale.ROOT);
+        }
+        return seconds > 0 ? PowerSaving.WAKE_METERS + " m before a turn, back after " + seconds + " seconds" : "Off";
+    }
+
     private static String lowFpsSummary(int mode) {
         if (mode <= 0 || mode >= LOW_FPS_LABELS.length) return "Off";
         return LOW_FPS_LABELS[mode] + ": 15 fps and 30 Hz, as on the power saving screen";
@@ -508,6 +588,21 @@ public final class CustomizationActivity extends Activity {
             });
         });
         body.addView(idleRow);
+
+        LinearLayout wakeRow = rowBase("Normal screen near turns", wakeSummary(PowerSaving.wakeSeconds(this)));
+        TextView wakeSub = (TextView) ((LinearLayout) wakeRow.getChildAt(0)).getChildAt(1);
+        wakeRow.setOnClickListener(v -> {
+            int current = 0;
+            for (int i = 0; i < PowerSaving.WAKE_CHOICES.length; i++) {
+                if (PowerSaving.WAKE_CHOICES[i] == PowerSaving.wakeSeconds(this)) current = i;
+            }
+            choose("Normal screen near turns", WAKE_LABELS, current, which -> {
+                // read for every navigation update, so no restart
+                PowerSaving.setWakeSeconds(this, PowerSaving.WAKE_CHOICES[which]);
+                wakeSub.setText(wakeSummary(PowerSaving.WAKE_CHOICES[which]));
+            });
+        });
+        body.addView(wakeRow);
 
         Switch speedo = new Switch(this);
         speedo.setChecked(PowerSaving.speedometer(this));

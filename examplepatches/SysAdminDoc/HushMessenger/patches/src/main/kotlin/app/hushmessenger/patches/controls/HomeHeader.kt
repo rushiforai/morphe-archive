@@ -71,10 +71,13 @@ internal fun Method.homeHeaderSite(fitStart: MemberMatch = MemberMatch(FIT_START
 }
 
 /** The one method in the app with the wordmark's shape, or nothing when there are none or two. */
-internal fun findHomeHeader(classes: Iterable<ClassDef>): List<Method> {
+internal fun findHomeHeader(classes: Iterable<ClassDef>): List<Method> = listOfNotNull(homeHeaders.methods(classes).singleOrNull())
+
+internal val homeHeaders = MethodCheck {
     val fitStart = MemberMatch(FIT_START)
     val fitEnd = MemberMatch(FIT_END)
-    return listOfNotNull(classes.flatMap { it.methods }.filter { it.homeHeaderSite(fitStart, fitEnd) != null }.singleOrNull())
+    val test: MethodTest = { _, method -> method.homeHeaderSite(fitStart, fitEnd) != null }
+    test
 }
 
 internal fun MutableMethod.validateHomeHeader(): HeaderSite {

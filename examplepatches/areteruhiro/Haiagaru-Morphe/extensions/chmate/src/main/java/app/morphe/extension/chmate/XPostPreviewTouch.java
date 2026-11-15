@@ -100,6 +100,7 @@ public final class XPostPreviewTouch {
         TextView view=(TextView)object;
         MediaViewerNavigation.rememberBody(view,event);
         XPostPreviewPosition.onTouch(view,event);
+        if(QuotedPostChecker.touch(view,event))return true;
         int action=event.getActionMasked();
         if (action==MotionEvent.ACTION_DOWN) {
             PRESSES.remove(view);

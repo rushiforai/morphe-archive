@@ -56,6 +56,13 @@ class CompatProfileTest {
     private fun source(file: String) =
         Path.of("src/main/kotlin/app/hushmessenger/patches/$file").readText().replace("\r\n", "\n")
 
+    /** A copy of the report in [dir], the launcher with its scripts/compat sources, so it reads [dir]'s profiles. */
+    private fun copyReport(dir: Path) {
+        Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
+        val compat = dir.resolve("compat").createDirectories()
+        for (source in Path.of("../scripts/compat").listDirectoryEntries("*.java")) Files.copy(source, compat.resolve(source.fileName))
+    }
+
     /** Runs scripts/CompatReport.java (or a copy) as a source file, with the dexlib2 and Guava this build resolved. */
     private fun compatReport(vararg args: String, script: String = "../scripts/CompatReport.java"): Pair<Int, String> {
         val classpath = listOf(Opcode::class.java, Class.forName("com.google.common.collect.ImmutableList"))
@@ -95,7 +102,7 @@ class CompatProfileTest {
     private fun assertRecordGeneratesTheSource(code: Int, profile: ControlProfile, dir: Path) {
         assertSame(profile, controlProfileFor("$code"))
         // A copy of the script that knows only this record prints the blocks.
-        Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
+        copyReport(dir)
         dir.resolve("profiles").createDirectories()
         Files.copy(profiles.resolve("$code.txt"), dir.resolve("profiles/$code.txt"))
         val (exit, output) = compatReport(
@@ -121,7 +128,7 @@ class CompatProfileTest {
 
     @Test fun aRecordLikeAnotherBuildsReusesItsProfileAndSites(@TempDir dir: Path) {
         assertEquals(BASE_PROFILE.lines(), controlLines(347415354))
-        Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
+        copyReport(dir)
         dir.resolve("profiles").createDirectories()
         Files.copy(profiles.resolve("347415354.txt"), dir.resolve("profiles/347415354.txt"))
         val twin = dir.resolve("profiles/347415349.txt")
@@ -182,7 +189,7 @@ class CompatProfileTest {
     }
 
     @Test fun aMalformedRecordIsNamedInOneLineAndExitsTwo(@TempDir dir: Path) {
-        Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
+        copyReport(dir)
         val record = dir.resolve("profiles").createDirectories().resolve("347415354.txt")
         record.writeLines(profiles.resolve("347415354.txt").readLines() + "hook people")
         val apk = dir.resolve("any.apk")

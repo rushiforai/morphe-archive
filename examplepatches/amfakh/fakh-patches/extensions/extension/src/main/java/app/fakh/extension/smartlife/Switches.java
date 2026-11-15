@@ -27,6 +27,8 @@ public final class Switches {
     static final String LIQUID_GLASS = "fakh_liquid_glass";
     /** Dark device panels. */
     static final String DARK_PANELS = "fakh_dark_panels";
+    /** The text under the icons of the navigation bar, which is shown until this switch is turned on. */
+    static final String HIDE_TAB_LABELS = "fakh_hide_tab_labels";
     private static final String PLUS = "fakh_hide_plus";
     private static final String EXPLORE = "fakh_hide_explore";
     private static final String MALL_TAB = "fakh_hide_mall_tab";
@@ -46,6 +48,7 @@ public final class Switches {
         Map<String, String> bar = section("Navigation bar");
         bar.put(EXPLORE, "Hide Explore tab");
         bar.put(MALL_TAB, "Hide Mall tab");
+        bar.put(HIDE_TAB_LABELS, "Hide tab labels");
         Map<String, String> me = section("Me");
         me.put("fakh_hide_rewards", "Hide Rewards Hub");
         me.put("fakh_hide_orders", "Hide My Orders");
@@ -74,14 +77,15 @@ public final class Switches {
     }
 
     /**
-     * Whether the switch {@code key} is on: on until turned off, and off when its patch is not in the app. Asked by
-     * the patches' code before it hides or changes anything.
+     * Whether the switch {@code key} is on: on until turned off (off until turned on for the tab labels and the dark
+     * panels), and off when its patch is not in the app. Asked by the patches' code before it hides or changes
+     * anything.
      *
      * @param key the switch's key
      * @return the switch's state
      */
     public static boolean on(String key) {
-        return present(key) && prefs().getBoolean(key, true);
+        return present(key) && prefs().getBoolean(key, !HIDE_TAB_LABELS.equals(key) && !DARK_PANELS.equals(key));
     }
 
     /** Whether the patch of the switch {@code key} is in the app. */
@@ -98,6 +102,11 @@ public final class Switches {
     /** Whether the glass navigation bar and glass cards are on. */
     static boolean liquidGlass(Context context) {
         return on(LIQUID_GLASS);
+    }
+
+    /** Whether the navigation bar hides the labels under its icons. */
+    static boolean hideTabLabels() {
+        return on(HIDE_TAB_LABELS);
     }
 
     /** Whether dark device panels are on. */

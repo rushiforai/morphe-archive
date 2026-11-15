@@ -19,7 +19,7 @@ val meeshoBlockAnalyticsSdksPatch = bytecodePatch(
         Adjust, Facebook AppEvents, WebEngage, CleverTap and similar) using the
         same universal heuristic as 'Block analytics & tracking SDKs'.
 
-        Applies to com.meesho.shopping only. Heuristic; obfuscated or
+        Applies to com.meesho.supply only. Heuristic; obfuscated or
         reflection-based reporting is not covered. Unverified on device.
     """.trimIndent(),
     default = false,
@@ -39,7 +39,7 @@ val meeshoDisableAutoplayPatch = bytecodePatch(
         Stops video autoplay in the Meesho feed and product videos (ExoPlayer/Media3)
         using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.
 
-        Applies to com.meesho.shopping only. Heuristic; see the universal entry
+        Applies to com.meesho.supply only. Heuristic; see the universal entry
         for limitations. Unverified on device.
     """.trimIndent(),
     default = false,
@@ -60,7 +60,7 @@ val meeshoPreferExternalBrowserPatch = bytecodePatch(
         Tab, using the same rewrite as the universal 'Prefer external browser
         over Custom Tabs' patch.
 
-        Applies to com.meesho.shopping only. Covers Custom Tabs /
+        Applies to com.meesho.supply only. Covers Custom Tabs /
         CustomTabsIntent call sites only. Unverified on device.
     """.trimIndent(),
     default = false,

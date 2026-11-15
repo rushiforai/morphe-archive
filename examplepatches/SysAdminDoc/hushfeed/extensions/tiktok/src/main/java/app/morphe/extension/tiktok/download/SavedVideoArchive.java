@@ -107,15 +107,19 @@ public final class SavedVideoArchive {
     private SavedVideoArchive() {}
 
     /**
-     * For a photo post's save, off the main thread: offers Open or Save again when the post is
-     * recorded, as a video's save does. {@code OFFERED} means the offer owns the save and calls
-     * {@code release} when it's done with it; {@code FAILED} has said so and nothing is saved.
+     * The offer's title for a save of photos, as photos or as a video of them: a story's, or else
+     * a photo post's (#197).
      */
-    static Check check(Context context, String id, Runnable saveAgain, Runnable release) {
-        return check(context, id, L10n.t("This video is already saved"), saveAgain, release);
+    static String photoTitle(boolean story) {
+        return story ? L10n.t("This story is already saved") : L10n.t("This photo post is already saved");
     }
 
-    /** {@link #check} for a save that isn't a video, under the offer's own {@code title}. */
+    /**
+     * For a save that isn't a video's own, off the main thread: offers Open or Save again under
+     * {@code title} when the post is recorded, as a video's save does. {@code OFFERED} means the
+     * offer owns the save and calls {@code release} when it's done with it; {@code FAILED} has
+     * said so and nothing is saved.
+     */
     static Check check(Context context, String id, String title, Runnable saveAgain, Runnable release) {
         try {
             MediaFileWriter.Saved previous = find(context, id);
@@ -215,6 +219,21 @@ public final class SavedVideoArchive {
             return false;
         }
         return ids.contains(id);
+    }
+
+    /**
+     * Whether the ids are read and leave {@code id} out, so a save of it needs no question. Like
+     * {@link #isSaved} it never touches the database: before the ids are read this answers false
+     * and has them read off the main thread.
+     */
+    static boolean knownUnsaved(String id) {
+        if (id == null || id.isEmpty()) return false;
+        Set<String> ids = savedIds;
+        if (ids == null) {
+            readIdsLater();
+            return false;
+        }
+        return !ids.contains(id);
     }
 
     /**

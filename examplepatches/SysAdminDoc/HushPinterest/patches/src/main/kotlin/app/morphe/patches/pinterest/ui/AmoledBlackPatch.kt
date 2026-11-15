@@ -6,6 +6,7 @@
  */
 package app.morphe.patches.pinterest.ui
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -42,6 +43,7 @@ internal const val PIN_MENU_CARD = "bento_card_background"
 internal const val COMMENTS_HOOK = "$AMOLED_BLACK->comments(Landroid/view/View;)V"
 internal const val PIN_MENU_HOOK = "$AMOLED_BLACK->pinMenu(Landroid/view/View;)V"
 internal const val PIN_MENU_CARD_HOOK = "$AMOLED_BLACK->pinMenuCard(Landroid/view/View;)V"
+internal const val SAVE_SHEET_HOOK = "$AMOLED_BLACK->saveSheet(Landroid/view/View;)V"
 
 /** Where a glass view washes its canvas: its draw method, the wash's index, and the registers holding the view and the color. */
 internal data class GlassWash(val draw: Method, val index: Int, val view: Int, val color: Int)
@@ -50,18 +52,19 @@ internal data class GlassWash(val draw: Method, val index: Int, val view: Int, v
  * The bar's gray is Pinterest's elevation color, which menus, popovers and floating buttons share,
  * so the theme is left alone and only the bar's own drawables are recolored as it draws. The
  * comments sheet and a pin's menu carry the same color, and each is handed to the extension by the
- * method that builds it, as is each See more and See less card in that menu. The bar, the
- * comments sheet and the menu are found apart, so a build that lacks one keeps the others. The
- * menu's sheet and its cards go together, under one switch.
+ * method that builds it, as is each See more and See less card in that menu. The Save to sheet
+ * is handed over as its fragment starts laying it out. The bar, the comments sheet, the menu and
+ * the Save to sheet are found apart, so a build that lacks one keeps the others. The menu's sheet
+ * and its cards go together, under one switch.
  */
 @Suppress("unused")
 val amoledBlackPatch = bytecodePatch(
     name = PATCH,
     description = "Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED " +
-        "screens. The comments sheet and a pin's menu can go black too, each with its own switch. Light mode " +
-        "stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
+        "screens. The comments sheet, a pin's menu and the Save to sheet that lists your boards can go black " +
+        "too, each with its own switch. Light mode stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
-    category("Interface")
+    category("Theme")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {
@@ -69,7 +72,8 @@ val amoledBlackPatch = bytecodePatch(
         requireStatusMethod("blackBottomBar")
         requireStatusMethod("blackComments")
         requireStatusMethod("blackPinMenu")
-        handleTargets(PATCH, "surfaces", listOf("bottom bar", "comments screen", "pin menu")) { surface ->
+        requireStatusMethod("blackSaveSheet")
+        handleTargets(PATCH, "surfaces", listOf("bottom bar", "comments screen", "pin menu", "Save to sheet")) { surface ->
             try {
                 when (surface) {
                     "bottom bar" -> {
@@ -79,6 +83,12 @@ val amoledBlackPatch = bytecodePatch(
                     "comments screen" -> {
                         handOver(commentsScreen(), surface, COMMENTS_HOOK)
                         enableCapability("blackComments")
+                    }
+                    "Save to sheet" -> {
+                        // The view onViewCreated gets is the whole sheet, already built. It's
+                        // the method's second parameter, which nothing has written yet at its start.
+                        mutable(boardPickerViewCreated(PATCH)).addInstructions(0, "invoke-static/range { p1 .. p1 }, $SAVE_SHEET_HOOK")
+                        enableCapability("blackSaveSheet")
                     }
                     else -> {
                         // The sheet and its cards are one surface: both are found before either changes.

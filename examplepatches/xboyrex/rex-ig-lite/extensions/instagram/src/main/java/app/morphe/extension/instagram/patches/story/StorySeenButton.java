@@ -19,8 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import app.morphe.extension.instagram.utils.Pref;
-import app.morphe.extension.instagram.settings.Settings;
-import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
@@ -343,7 +341,7 @@ public final class StorySeenButton {
         }
 
         try {
-            boolean anonymousStories = Pref.viewStoriesAnonymously() && !Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.HIDE_STORY_MARK_SEEN_ICON));
+            boolean anonymousStories = Pref.viewStoriesAnonymously();
             boolean toolbarVisible = toolbar.isShown();
             boolean available = StorySeenBridge.isAvailable(
                     story.session,

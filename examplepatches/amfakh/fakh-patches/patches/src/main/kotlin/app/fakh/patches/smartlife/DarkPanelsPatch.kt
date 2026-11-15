@@ -1,5 +1,6 @@
 package app.fakh.patches.smartlife
 
+import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
 import app.morphe.patcher.Fingerprint
@@ -46,10 +47,10 @@ private object PanelCreateFingerprint : Fingerprint(
 val darkPanelsPatch = bytecodePatch(
     name = "Dark device panels",
     description = "Darkens device control panels that have no dark mode of their own while the phone is in dark " +
-        "mode, using Android's automatic dark theme. Its switch in Settings turns it off.",
-    default = false,
+        "mode, using Android's automatic dark theme. It stays off until its switch in Settings is turned on.",
+    default = true,
 ) {
-    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
+    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
     category("Theme")
     extendWith("extensions/extension.mpe")
     dependsOn(forceDarkThemePatch, settingsSwitchesPatch)

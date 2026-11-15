@@ -21,18 +21,13 @@ import android.widget.FrameLayout;
  * towards the bottom edge. Reels keeps its own layout and stops above the pill.
  */
 final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener {
-    /** Gap between the pill and the bottom of the screen / nav bar. */
-    private static final int BOTTOM_GAP_DP = 8;
-    /** Extra height so the pill matches iOS Instagram's ~60pt (Instagram Android's bar is 48dp). */
-    private static final int GROW_DP = 12;
-    /** Gap between the pill and the screen edges, ~5% of the width like iOS Instagram. */
-    private static final int SIDE_GAP_DP = 20;
-    /** Space between the pill edge and the outermost tab icons. */
-    private static final int INNER_PADDING_DP = 6;
+    // The bar's height, margins and tab inset come from NavbarStyle (the Customize page).
+
     /** On tablets and landscape the pill stops growing at this width. */
     private static final int MAX_PILL_WIDTH_DP = 520;
 
     private final ViewGroup bar;
+    private final NavbarStyle.Source styleSource;
     private final View shadow;
     private final boolean extendContent;
     private final LiquidGlassDrawable glass;
@@ -41,6 +36,9 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     /** Siblings whose bottom margin reserves room for the tab bar, and which we now manage. */
     private final java.util.WeakHashMap<View, Boolean> managedContent = new java.util.WeakHashMap<>();
     private final BackdropSampler sampler;
+    /** Copies of videos playing under the bar, which the glass can't record (see SurfaceSnapshots). */
+    private final SurfaceSnapshots snapshots;
+    private final android.graphics.RectF snapshotRegion = new android.graphics.RectF();
     private final android.graphics.Rect sampleRect = new android.graphics.Rect();
     private final float density;
     /** Progressive blur behind the pill. Null if it can't be added. */
@@ -55,20 +53,45 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private int appliedPadLeft = -1, appliedPadTop = -1, appliedPadRight = -1, appliedPadBottom = -1;
     private int basePadLeft, basePadTop, basePadRight, basePadBottom;
     private int appliedForWidth = -1;
+    /** The NavbarStyle version the geometry and shadow were last applied for. */
+    private int appliedStyleVersion = -1;
+    /** Driving a preview in the settings rather than Instagram's bar. */
+    private boolean preview;
 
-    LiquidGlassController(ViewGroup bar, View shadow,
-                          int blurRadiusDp, int refractionPercent, boolean extendContent) {
+    LiquidGlassController(ViewGroup bar, View shadow, boolean extendContent) {
+        this(bar, shadow, extendContent, NavbarStyle::get);
+    }
+
+    /** @param styleSource where the bar's look comes from: the settings, or a demo's values */
+    LiquidGlassController(ViewGroup bar, View shadow, boolean extendContent, NavbarStyle.Source styleSource) {
+        this.styleSource = styleSource;
         this.bar = bar;
         this.shadow = shadow;
         this.extendContent = extendContent;
         this.density = bar.getResources().getDisplayMetrics().density;
-        this.glass = new LiquidGlassDrawable(bar, density, blurRadiusDp, refractionPercent);
-        this.lens = new LiquidGlassLens(bar.getContext(), bar, glass, density);
+        this.glass = new LiquidGlassDrawable(bar, density, styleSource);
+        this.lens = new LiquidGlassLens(bar.getContext(), bar, glass, density, styleSource);
         this.reelsTabId = bar.getResources().getIdentifier("clips_tab", "id", "com.instagram.android");
         this.sampler = new BackdropSampler(bar, glass::setBackdropLuminance);
+        this.snapshots = new SurfaceSnapshots(bar);
+        glass.setSnapshots(snapshots);
     }
 
+    LiquidGlassLens lens() {
+        return lens;
+    }
+
+    /** Installs on Instagram's bar: also routes the window's touches and samples the backdrop. */
     void install() {
+        install(false);
+    }
+
+    /**
+     * @param preview a preview in the settings: the caller routes touches to the lens itself,
+     *                and the backdrop isn't sampled (the window behind is Instagram's)
+     */
+    void install(boolean preview) {
+        this.preview = preview;
         basePadLeft = bar.getPaddingLeft();
         basePadTop = bar.getPaddingTop();
         basePadRight = bar.getPaddingRight();
@@ -80,8 +103,11 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
 
         ViewGroup parent = (ViewGroup) bar.getParent();
         parent.addView(lens, parent.indexOfChild(bar) + 1, overlayLayoutParams(lens.extraTop));
+        // In the southstar21 style the pressed drop swells past the bar's top and bottom.
+        if (parent.getClipChildren()) parent.setClipChildren(false);
         if (parent instanceof FrameLayout) {
             bottomBlur = new EdgeBlurView(bar.getContext(), density);
+            bottomBlur.setSnapshots(snapshots);
             parent.addView(bottomBlur, parent.indexOfChild(bar),
                     new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, android.view.Gravity.BOTTOM));
         }
@@ -94,18 +120,16 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
                 public void getOutline(View view, android.graphics.Outline outline) {
                     android.graphics.RectF pill = glass.getPill();
                     outline.setRoundRect(Math.round(pill.left), Math.round(pill.top),
-                            Math.round(pill.right), Math.round(pill.bottom), pill.height() / 2f);
-                    outline.setAlpha(0.5f);
+                            Math.round(pill.right), Math.round(pill.bottom), glass.cornerRadius());
+                    outline.setAlpha(Math.min(1f, styleSource.get().shadow));
                 }
             });
-            bar.setElevation(dp(3));
-            // Keep the lens above the now-elevated bar, without a shadow of its own.
+            // Elevation (and the lens above it) is set from the Shadow setting in enforceGeometry().
             lens.setOutlineProvider(null);
-            lens.setElevation(dp(3) + 0.1f);
         }
 
         android.view.Window window = BackdropSampler.windowOf(bar.getContext());
-        if (window != null) TouchRouter.install(window, lens);
+        if (window != null && !preview) TouchRouter.install(window, lens);
 
         bar.getViewTreeObserver().addOnPreDrawListener(this);
         bar.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
@@ -122,7 +146,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         enforce();
     }
 
-    /** Layout params matching the bar's position, extended upwards by {@code extraTop}. */
+    /** Layout params matching the bar's position, taller by {@code extraTop} (the lens centers itself). */
     private ViewGroup.LayoutParams overlayLayoutParams(int extraTop) {
         ViewGroup.LayoutParams barLp = bar.getLayoutParams();
         int height = barLp.height > 0 ? barLp.height + extraTop : ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -143,13 +167,21 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     public boolean onPreDraw() {
         try {
             enforce();
+            if (bar.getVisibility() == View.VISIBLE && !preview) {
+                // Copy the videos under the bar, its glass and lens (which pokes out above it) and
+                // the edge blur, down to the bottom of the screen.
+                ViewGroup parent = (ViewGroup) bar.getParent();
+                float top = bar.getTop() + bar.getTranslationY() - dp(100);
+                snapshotRegion.set(bar.getLeft(), top, bar.getRight(), Math.max(top, parent.getHeight() + bottomInset));
+                snapshots.update(snapshotRegion);
+            }
             if (bar.getVisibility() == View.VISIBLE) {
                 // Content behind the bar may have changed this frame. Invalidating during
                 // pre-draw folds the redraw into the current frame instead of scheduling a new one.
                 glass.invalidateSelf();
             }
             lens.sync();
-            if (bar.getVisibility() == View.VISIBLE) {
+            if (bar.getVisibility() == View.VISIBLE && !preview) {
                 glass.getPill().round(sampleRect);
                 sampler.maybeSample(sampleRect, dp(20));
             }
@@ -254,7 +286,16 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         glass.setHostColorHint(bg instanceof ColorDrawable ? ((ColorDrawable) bg).getColor() : null);
     }
 
+    /** Light or dark regardless of Instagram, for the settings preview; null to follow Instagram. */
+    void forceDark(Boolean dark) {
+        forcedDark = dark;
+        bar.invalidate();
+    }
+
+    private Boolean forcedDark;
+
     private boolean isDark() {
+        if (forcedDark != null) return forcedDark;
         Integer hint = glass.getHostColorHint();
         if (hint != null && Color.alpha(hint) > 0x80) {
             return luminance(hint) < 0.4f;
@@ -271,6 +312,18 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private void enforceGeometry() {
         int width = bar.getWidth();
         if (width <= 0) return;
+        NavbarStyle style = styleSource.get();
+        if (style.version != appliedStyleVersion) {
+            appliedStyleVersion = style.version;
+            appliedForWidth = -1;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                // 3dp at the default 50%; the lens stays just above the bar.
+                float elevation = 6f * density * style.shadow;
+                bar.setElevation(elevation);
+                lens.setElevation(elevation + 0.1f);
+                bar.invalidateOutline();
+            }
+        }
 
         // Instagram changed the padding itself (e.g. new insets): take its values as the new base.
         if (bar.getPaddingLeft() != appliedPadLeft || bar.getPaddingTop() != appliedPadTop
@@ -284,28 +337,35 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
             appliedForWidth = -1;
         }
 
-        int gap = dp(BOTTOM_GAP_DP);
-        int grow = dp(GROW_DP);
+        int gap = dp(style.bottomGapDp);
         ViewGroup.LayoutParams lp = bar.getLayoutParams();
-        if (lp != null && lp.height > 0 && lp.height != appliedHeight) {
-            baseHeight = lp.height;
-            lp.height += gap + grow;
-            appliedHeight = lp.height;
-            bar.setLayoutParams(lp);
+        // A height we didn't set is Instagram's own: the base everything is added to.
+        if (lp != null && lp.height > 0 && lp.height != appliedHeight) baseHeight = lp.height;
+        // Grow the bar until the pill (the bar less its bottom padding) is the chosen height. A
+        // bar that wraps its content grows through the padding alone, from Android's 48dp.
+        int pillBase = baseHeight > 0 ? baseHeight - basePadBottom : dp(48);
+        int grow = Math.max(0, dp(style.heightDp) - pillBase);
+        if (lp != null && lp.height > 0) {
+            int want = baseHeight + gap + grow;
+            if (lp.height != want) {
+                lp.height = want;
+                appliedHeight = want;
+                bar.setLayoutParams(lp);
 
-            ViewGroup.LayoutParams lensLp = lens.getLayoutParams();
-            lensLp.height = appliedHeight + lens.extraTop;
-            lens.setLayoutParams(lensLp);
+                ViewGroup.LayoutParams lensLp = lens.getLayoutParams();
+                lensLp.height = appliedHeight + lens.extraTop;
+                lens.setLayoutParams(lensLp);
+            }
         }
 
         if (appliedForWidth == width) return;
 
-        int side = dp(SIDE_GAP_DP);
+        int side = dp(style.sideMarginDp);
         int maxPill = dp(MAX_PILL_WIDTH_DP);
         int usable = width - basePadLeft - basePadRight;
         if (usable - 2 * side > maxPill) side = (usable - maxPill) / 2;
 
-        int inner = dp(INNER_PADDING_DP);
+        int inner = dp(style.tabInsetDp);
         appliedPadLeft = basePadLeft + side + inner;
         appliedPadTop = basePadTop + grow / 2;
         appliedPadRight = basePadRight + side + inner;

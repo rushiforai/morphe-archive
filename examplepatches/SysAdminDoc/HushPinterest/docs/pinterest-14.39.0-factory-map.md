@@ -1,8 +1,8 @@
 # Pinterest Android app map for 14.39.0
 
-The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, all 32 patch mappings and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
+The [signed-in factory audit](pinterest-14.39.0-audit.md) extends this map with native settings, advertising delivery, tracking boundaries, the 32 patch mappings the catalog had then and specific patch opportunities. Privacy filtering covers selected known paths, and ordinary account and content requests still reach Pinterest. See the [privacy reference](pinterest-14.39.0-privacy.md) for exact coverage.
 
-Last checked: 2026-10-10, against Pinterest 14.39.0. This guide maps the original Pinterest package HushPinterest patches, which has been 14.39.0 since the October 10 port. It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release. Where an obfuscated name changed, the 14.38.0 name follows in parentheses so the two builds can be compared.
+Last checked: 2026-10-10, against Pinterest 14.39.0. This guide maps Pinterest 14.39.0, which HushPinterest patched from the October 10 port until a later port replaced it, so its build facts are historical. HushPinterest now targets Pinterest 14.44.0 (version code 14448030) on main, and the published v0.0.13 release targets 14.41.0 (version code 14418010). It records static APK facts and the reverse-engineering anchors that are useful when patches move to a new release. Where an obfuscated name changed, the 14.38.0 name follows in parentheses so the two builds can be compared.
 
 ## Evidence and limits
 
@@ -22,7 +22,7 @@ The factory reference is the universal APK named `pinterest-14.39.0-14398020.apk
 
 The signing certificate identifies the original Pinterest build. A patched copy is signed with a different key, so it is not a factory reference and cannot replace the original install in place. Never remove an existing install or its data just to compare signatures.
 
-HushPinterest declares this build only, so a patched Pinterest needs Android 10 (API 29), the same floor as the original APK.
+While 14.39.0 was the target, HushPinterest declared that build only, so a patched Pinterest needed Android 10 (API 29), the same floor as the original APK.
 
 This guide's package, manifest, DEX, resource, and signature facts come from the retained original 14.39.0 APK. The first-run launch survey below was captured on a clean Android 13 emulator with the original 14.38.0 APK, the build before it, and hasn't been repeated on 14.39.0. That survey reached Pinterest's unauthenticated entry screen. A later [signed-in audit](pinterest-14.39.0-audit.md) adds factory Home, pin, search, sharing, creation-entry and settings observations from 14.38.0, detailed ad/tracking traces, and a complete current patch reference.
 
@@ -132,16 +132,17 @@ Most features have two parts:
 
 Manifest-only changes have no runtime switch and remain in the installed APK until it is patched again. Runtime switches and Pause cannot undo manifest edits. `SettingsBackup.ALLOWLIST` is the authority for which settings can be imported or exported; account data, credentials, logs, and signing keys are not settings-backup content.
 
-The 32 source catalog entries are grouped here by the code that owns them:
+The 36 source catalog entries on main are grouped here by the code that owns them:
 
 | Patch area | Patch names | Main source |
 |---|---|---|
 | Feed and ads | Hide ads; Hide AI-labeled pins; Hide shopping and product pins; Filter feed; Keep Home feed | `patches/.../ads/`; runtime filters in `extensions/pinterest/.../ads/` |
 | Privacy | Disable analytics; Strip link tracking; Hide advertising ID; Remove ad tracking permissions; Spoof signature for Google sign-in; GmsCore support | `patches/.../privacy/`; runtime hooks in `extensions/pinterest/.../privacy/` |
 | Pin actions | Download pins; Download board; Long-press download; Open links in your browser; System share sheet | `patches/.../actions/`; runtime transfer and routing under `extensions/pinterest/.../actions/` |
-| Interface | AMOLED black; Filter pin menu; Hide Assistant; Hide closeup buttons; Hide comments; Hide header buttons; Hide navigation buttons; Hide save toasts; Hide search history; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag; Show posted date | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
+| Interface | AMOLED black; Filter pin menu; Hide Assistant; Hide closeup buttons; Hide comments; Hide header buttons; Hide Inbox updates; Hide navigation buttons; Hide save toasts; Hide search history; Hide suggested boards; Hide survey prompts; Hide topic suggestions; No screenshot share menu; Original-quality images; Quiet email reminders; Disable update nag; Expand board list; Show posted date | `patches/.../ui/`; runtime UI controls under `extensions/pinterest/.../ui/` |
 | Notifications | Fix push notifications | `patches/.../notifications/`; the certificate answer in `extensions/pinterest/.../notifications/` and the readiness report in `extensions/pinterest/.../settings/PushReadiness.java` |
 | Settings wiring | HushPinterest settings | `patches/.../misc/settings/` and `extensions/pinterest/.../settings/` |
+| Side by side | Change package name | `patches/.../coexist/`; the running copy's own authorities in `extensions/pinterest/.../coexist/` |
 
 The inventory is the current `patches-list.json` source catalog. The README is the user-facing feature list. Read the specific patch source and fixture test before relying on a table summary; those files are the implementation authority.
 
@@ -175,7 +176,7 @@ The repository's target and acceptance code is split across:
 | Runtime behavior and settings | `extensions/pinterest/**`, `extensions/shared/**` |
 | Fixture inventory and identities | `patches/src/test/kotlin/app/morphe/Fixtures.kt`, `FixtureDex.kt`, `obfuscated-identities.txt` |
 | Patch-specific fixtures | `patches/src/test/kotlin/app/morphe/patches/pinterest/**` |
-| Manifest delta review | `scripts/manifest-delta-allowlist.txt`, `scripts/release-receipt.ps1`, `scripts/test-manifest-contracts.ps1`, `scripts/test-script-contracts.ps1` |
+| Manifest delta review | `scripts/manifest-delta-allowlist.txt`, `scripts/release-receipt.ps1` |
 | Whole-catalog fixture verification | `scripts/verify-all-patches.ps1` |
 | Device installation safeguards | `scripts/patch-for-device.ps1`, `scripts/device-install.ps1`, `scripts/device-lease.ps1` |
 

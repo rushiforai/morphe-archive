@@ -10,8 +10,10 @@ package app.morphe.extension.crimera.legacydownloader;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.database.Cursor;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -31,12 +33,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import app.morphe.extension.crimera.constants.ExtensionStrings;
 import app.morphe.extension.crimera.PikoUtils;
@@ -44,14 +48,15 @@ import app.morphe.extension.shared.Utils;
 
 public class MediaDownloader {
     private static final String CHANNEL_ID = "media_download_channel";
+    private static final int CONNECT_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 30_000;
     // Separate downloader instances must reserve names before another request can choose them.
     private static final Object CREATE_DOCUMENT_LOCK = new Object();
+    private static final Set<String> ACTIVE_DESTINATIONS = new HashSet<>();
     private final Context context;
     private final NotificationManager notificationManager;
-    private final LinkedBlockingQueue<DownloadRequest> queue = new LinkedBlockingQueue<>();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private boolean isDownloading = false;
 
     public MediaDownloader(Context context) {
         Context resolvedContext = context != null ? context : Utils.getContext();
@@ -76,53 +81,70 @@ public class MediaDownloader {
     }
 
     public void enqueue(DownloadRequest request) {
+        enqueueBatch(Collections.singletonList(request));
+    }
+
+    /** Saves the whole batch before starting the next request on this downloader. */
+    public void enqueueBatch(List<DownloadRequest> requests) {
+        List<DownloadRequest> batch = new ArrayList<>(requests);
+        if (batch.isEmpty()) return;
         if (!StorageUtils.checkStoragePermissions()) {
             StorageUtils.allowStorageAccess();
             return;
         }
-        queue.add(request);
-        processNext();
-    }
-
-    private void processNext() {
-        if (isDownloading || queue.isEmpty()) return;
-        isDownloading = true;
-        DownloadRequest request = queue.poll();
-        if (request != null) {
-            executor.execute(() -> runDownloadTask(request));
-        }
+        executor.execute(() -> {
+            for (DownloadRequest request : batch) {
+                runDownloadTask(request);
+            }
+        });
     }
 
     private void runDownloadTask(DownloadRequest request) {
         int notificationId = (int) System.currentTimeMillis();
         Uri outputDocumentUri = null;
-        List<File> cacheFiles = new ArrayList<>();
         boolean downloadCompleted = false;
-        Notification.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(context, CHANNEL_ID);
-        } else {
-            builder = new Notification.Builder(context);
-        }
-        builder.setSmallIcon(android.R.drawable.stat_sys_download)
-                .setContentTitle(ExtensionStrings.DOWNLOAD_ONGOING + request.fileName)
-                .setOngoing(true) // Keeps notification un-swipable during download execution.
-                .setProgress(100, 0, false);
-
-        notificationManager.notify(notificationId, builder.build());
-
+        boolean replacing = false;
+        String activeDestination = null;
+        File replacement = null;
         try {
+            Notification.Builder builder;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(context, CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(context);
+            }
+            builder.setSmallIcon(android.R.drawable.stat_sys_download)
+                    .setContentTitle(ExtensionStrings.DOWNLOAD_ONGOING + request.fileName)
+                    .setOngoing(true) // Keeps notification un-swipable during download execution.
+                    .setProgress(100, 0, false);
+
             synchronized (CREATE_DOCUMENT_LOCK) {
                 Uri targetDirectoryUri = getTargetDirectoryUri(request);
-                request.fileName = DownloadFileNames.findAvailable(
-                        request.fileName, getChildNames(targetDirectoryUri)
-                );
-                outputDocumentUri = DocumentsContract.createDocument(
-                        context.getContentResolver(),
-                        targetDirectoryUri,
-                        getMimeType(request.fileName),
-                        request.fileName
-                );
+                String requestedDestination = targetDirectoryUri.buildUpon().appendPath(request.fileName).build().toString();
+                if (request.conflictPolicy != DownloadRequest.ConflictPolicy.RENAME
+                        && ACTIVE_DESTINATIONS.contains(requestedDestination)) {
+                    showToast(ExtensionStrings.DOWNLOAD_MEDIA_IN_PROGRESS);
+                    return;
+                }
+                Map<String, Uri> children = getChildDocuments(targetDirectoryUri);
+                Uri existing = request.conflictPolicy == DownloadRequest.ConflictPolicy.RENAME ? null
+                        : children.get(request.fileName);
+                if (existing != null && request.conflictPolicy == DownloadRequest.ConflictPolicy.SKIP) {
+                    showToast(ExtensionStrings.DOWNLOAD_MEDIA_EXISTS);
+                    return;
+                }
+                replacing = existing != null && request.conflictPolicy == DownloadRequest.ConflictPolicy.OVERWRITE;
+                if (replacing) {
+                    outputDocumentUri = existing;
+                } else {
+                    request.fileName = DownloadFileNames.findAvailable(request.fileName, children.keySet());
+                    outputDocumentUri = DocumentsContract.createDocument(
+                            context.getContentResolver(), targetDirectoryUri,
+                            getMimeType(request.fileName), request.fileName
+                    );
+                }
+                activeDestination = targetDirectoryUri.buildUpon().appendPath(request.fileName).build().toString();
+                ACTIVE_DESTINATIONS.add(activeDestination);
             }
             if (outputDocumentUri == null) {
                 throw new IOException("Could not create download file");
@@ -132,84 +154,142 @@ public class MediaDownloader {
             builder.setContentTitle(downloadStartString);
             notificationManager.notify(notificationId, builder.build());
             showToast(downloadStartString);
-            if (request.audioUrl == null && request.metadata == null) {
-                try (OutputStream output = context.getContentResolver().openOutputStream(outputDocumentUri)) {
-                    if (output == null) {
-                        throw new IOException("Could not open download file");
-                    }
-                    download(request.url, output, builder, notificationId);
-                } catch (IOException downloadException) {
-                    if (request.fallbackUrl == null) throw downloadException;
-                    PikoUtils.logger(downloadException);
-                    try (OutputStream output = new BufferedOutputStream(openOutput(outputDocumentUri))) {
-                        download(request.fallbackUrl, output, builder, notificationId);
-                    }
-                    request.completedToast = null;
-                }
+            if (replacing) {
+                // Finish all network and conversion work before touching the saved file.
+                replacement = File.createTempFile("piko-replacement-", ".tmp", context.getCacheDir());
+                downloadSources(request, Uri.fromFile(replacement), builder, notificationId);
+                replaceDocument(replacement, outputDocumentUri);
             } else {
-                // Anything that needs rewriting is fetched to the cache first, then remuxed into place.
-                boolean downloadedToCache = false;
-                try {
-                    downloadToCache(request.url, cacheFiles, builder, notificationId);
-                    if (request.audioUrl != null) {
-                        downloadToCache(request.audioUrl, cacheFiles, builder, notificationId);
-                    }
-                    downloadedToCache = true;
-                    Mp4Remuxer.write(cacheFiles, openOutput(outputDocumentUri), request.metadata);
-                } catch (Exception | LinkageError downloadException) {
-                    PikoUtils.logger(downloadException);
-                    if (request.audioUrl == null) {
-                        if (!downloadedToCache) {
-                            throw downloadException;
-                        }
-                        // Only the metadata was lost: the file itself is complete.
-                        copyRawFile(cacheFiles.get(0), outputDocumentUri);
-                    } else if (request.fallbackUrl != null) {
-                        try (OutputStream output = new BufferedOutputStream(openOutput(outputDocumentUri))) {
-                            download(request.fallbackUrl, output, builder, notificationId);
-                        }
-                    } else {
-                        throw new IOException("Could not download or merge video and audio", downloadException);
-                    }
-                }
+                downloadSources(request, outputDocumentUri, builder, notificationId);
             }
             downloadCompleted = true;
 
             final int finalNotificationId = notificationId;
             final String finalFileName = request.fileName;
             final String downloadCompletedString = ExtensionStrings.DOWNLOAD_COMPLETED + finalFileName;
-            final String completedToast = request.completedToast != null ? request.completedToast : downloadCompletedString;
+            // Built here and not in the posted task, it queries the provider for the mime type.
+            final PendingIntent viewFileIntent =
+                    buildViewFilePendingIntent(outputDocumentUri, finalFileName, finalNotificationId);
 
             mainHandler.post(() -> {
                 builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
                         .setContentTitle(downloadCompletedString)
                         .setContentText(finalFileName)
                         .setOngoing(false) // This unlocks the swipe lock completely
-                        .setProgress(0, 0, false); // Wipes the progress track bar layout away entirely
+                        .setProgress(0, 0, false) // Wipes the progress track bar layout away entirely
+                        .setAutoCancel(true)
+                        .setContentIntent(viewFileIntent);
                 // Force post the update layout
                 notificationManager.notify(finalNotificationId, builder.build());
 
                 try {
-                    PikoUtils.toast(completedToast);
+                    PikoUtils.toast(downloadCompletedString);
                 } catch (Exception ignored) {}
             });
-        } catch (Exception e) {
-            if (!downloadCompleted && outputDocumentUri != null) {
+        } catch (Exception | LinkageError e) {
+            if (!downloadCompleted && !replacing && outputDocumentUri != null) {
                 try {
                     DocumentsContract.deleteDocument(context.getContentResolver(), outputDocumentUri);
                 } catch (Exception ignored) {}
             }
-            showToast(ExtensionStrings.DOWNLOAD_ERROR + e.getMessage());
-            notificationManager.cancel(notificationId);
             PikoUtils.logger(e);
+            try {
+                showToast(ExtensionStrings.DOWNLOAD_ERROR + e.getMessage());
+                notificationManager.cancel(notificationId);
+            } catch (Exception notificationException) {
+                PikoUtils.logger(notificationException);
+            }
+        } finally {
+            synchronized (CREATE_DOCUMENT_LOCK) {
+                if (activeDestination != null) ACTIVE_DESTINATIONS.remove(activeDestination);
+            }
+            if (replacement != null) replacement.delete();
+        }
+    }
+
+    private void replaceDocument(File replacement, Uri destination) throws IOException {
+        File backup = File.createTempFile("piko-backup-", ".tmp", context.getCacheDir());
+        boolean keepBackup = false;
+        try {
+            try (InputStream input = context.getContentResolver().openInputStream(destination);
+                 OutputStream output = new BufferedOutputStream(new FileOutputStream(backup))) {
+                if (input == null) throw new IOException("Could not read existing download");
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+            }
+            try {
+                copyRawFile(replacement, destination);
+            } catch (IOException | RuntimeException failure) {
+                // SAF has no atomic replace; restore the original if writing the replacement fails.
+                try {
+                    copyRawFile(backup, destination);
+                } catch (IOException | RuntimeException restoreFailure) {
+                    keepBackup = true;
+                    failure.addSuppressed(new IOException("Original download backup retained at " + backup, restoreFailure));
+                }
+                throw failure;
+            }
+        } finally {
+            if (!keepBackup) backup.delete();
+        }
+    }
+
+    private void downloadSources(DownloadRequest request, Uri outputUri,
+                                 Notification.Builder builder, int notificationId) throws Exception {
+        List<DownloadRequest.Source> sources = new ArrayList<>();
+        sources.add(new DownloadRequest.Source(request.url, request.audioUrl));
+        sources.addAll(request.fallbackSources);
+        if (request.fallbackUrl != null) sources.add(new DownloadRequest.Source(request.fallbackUrl, null));
+        for (int i = 0; i < sources.size(); i++) {
+            try {
+                downloadSource(sources.get(i), request, outputUri, builder, notificationId, i > 0);
+                return;
+            } catch (Exception | LinkageError e) {
+                if (i == sources.size() - 1) throw e;
+                PikoUtils.logger(e);
+            }
+        }
+    }
+
+    private void downloadSource(DownloadRequest.Source source, DownloadRequest request, Uri outputUri,
+                                Notification.Builder builder, int notificationId, boolean retry) throws Exception {
+        if (source.audioUrl == null && request.metadata == null) {
+            // Plain downloads also support providers offering write-only streams, not seekable files.
+            OutputStream stream = retry
+                    ? context.getContentResolver().openOutputStream(outputUri, "wt")
+                    : context.getContentResolver().openOutputStream(outputUri);
+            if (stream == null) throw new IOException("Could not open download file");
+            try (OutputStream output = new BufferedOutputStream(stream)) {
+                download(source.url, output, builder, notificationId);
+            }
+            return;
+        }
+        // Cache and clean up each rendition independently so failed tracks never enter the next merge.
+        List<File> cacheFiles = new ArrayList<>();
+        boolean downloadedToCache = false;
+        try {
+            downloadToCache(source.url, cacheFiles, builder, notificationId);
+            List<File> inputs = new ArrayList<>(cacheFiles);
+            if (source.audioUrl != null) {
+                downloadToCache(source.audioUrl, cacheFiles, builder, notificationId);
+                File audio = cacheFiles.get(cacheFiles.size() - 1);
+                inputs.add(request.audioToAacLc ? toAacLc(audio, cacheFiles) : audio);
+            }
+            downloadedToCache = true;
+            Mp4Remuxer.write(inputs, openOutput(outputUri), request.metadata);
+        } catch (Exception | LinkageError e) {
+            if (source.audioUrl != null || !downloadedToCache
+                    || !Mp4Remuxer.isReadableVideo(cacheFiles.get(0))) throw e;
+            // Keep a readable original without metadata when rewriting it failed.
+            PikoUtils.logger(e);
+            copyRawFile(cacheFiles.get(0), outputUri);
         } finally {
             for (File file : cacheFiles) {
                 if (file.exists() && !file.delete()) {
                     PikoUtils.logger(new IOException("Could not delete download cache file"));
                 }
             }
-            isDownloading = false;
-            processNext();
         }
     }
 
@@ -244,10 +324,12 @@ public class MediaDownloader {
     }
 
     /** Fetches {@code url} into {@code output}, reporting progress on the notification. */
-    private void download(String url, OutputStream output, Notification.Builder builder, int notificationId)
+    protected void download(String url, OutputStream output, Notification.Builder builder, int notificationId)
             throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         try {
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.connect();
             try (InputStream input = new BufferedInputStream(conn.getInputStream())) {
                 copyDownload(input, output, conn.getContentLength(), builder, notificationId);
@@ -264,6 +346,21 @@ public class MediaDownloader {
         cacheFiles.add(cacheFile);
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(cacheFile))) {
             download(url, output, builder, notificationId);
+        }
+    }
+
+    /**
+     * {@code audio} re-encoded as AAC-LC in a new cache file, or {@code audio} itself when it has
+     * no xHE-AAC track or the conversion fails: the video then keeps its sound as served.
+     */
+    private File toAacLc(File audio, List<File> cacheFiles) {
+        try {
+            File converted = File.createTempFile("piko-download-", ".m4a", context.getCacheDir());
+            cacheFiles.add(converted);
+            return AacLcTranscoder.transcodeXheAac(audio, converted) ? converted : audio;
+        } catch (Exception | LinkageError e) {
+            PikoUtils.logger(e);
+            return audio;
         }
     }
 
@@ -286,6 +383,24 @@ public class MediaDownloader {
                 }
                 output.flush();
             }
+        }
+    }
+
+    // Opens the downloaded file in whichever app handles its mime type.
+    private PendingIntent buildViewFilePendingIntent(Uri documentUri, String fileName, int requestCode) {
+        try {
+            String providerMimeType = context.getContentResolver().getType(documentUri);
+            String mimeType = providerMimeType != null ? providerMimeType : getMimeType(fileName);
+            Intent viewIntent = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(documentUri, mimeType)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            return PendingIntent.getActivity(context, requestCode, viewIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } catch (Exception e) {
+            // A notification without a tap action is better than crashing the app.
+            PikoUtils.logger(e);
+            return null;
         }
     }
 
@@ -336,17 +451,26 @@ public class MediaDownloader {
         return directoryUri;
     }
 
-    private Set<String> getChildNames(Uri parentUri) throws IOException {
+    private Map<String, Uri> getChildDocuments(Uri parentUri) throws IOException {
         Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
                 parentUri, DocumentsContract.getDocumentId(parentUri)
         );
-        String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
-        Set<String> names = new HashSet<>();
+        String[] projection = {
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_MIME_TYPE
+        };
+        Map<String, Uri> children = new HashMap<>();
         try (Cursor cursor = context.getContentResolver().query(childrenUri, projection, null, null, null)) {
             if (cursor == null) throw new IOException("Could not read download folder");
-            while (cursor.moveToNext()) names.add(cursor.getString(0));
+            while (cursor.moveToNext()) {
+                // Directories reserve names too, but must never be treated as downloaded media.
+                Uri document = DocumentsContract.Document.MIME_TYPE_DIR.equals(cursor.getString(2)) ? null
+                        : DocumentsContract.buildDocumentUriUsingTree(parentUri, cursor.getString(1));
+                children.put(cursor.getString(0), document);
+            }
         }
-        return names;
+        return children;
     }
 
     private Uri findChildDocument(Uri parentUri, String displayName, String mimeType) {

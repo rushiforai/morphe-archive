@@ -122,7 +122,8 @@ public class PatchFamilyTest {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         Set<PatchFamily.Capability> expectedAds = EnumSet.of(PatchFamily.Capability.FEED_ADS,
-                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS, PatchFamily.Capability.META_ADS);
+                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS, PatchFamily.Capability.META_ADS,
+                PatchFamily.Capability.INTERSTITIAL_ADS);
         Set<PatchFamily.Capability> installedAds = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         assertEquals(expectedAds, PatchFamily.HIDE_ADS.expectedCapabilities());
         assertEquals(installedAds, PatchFamily.HIDE_ADS.installedCapabilities());
@@ -173,11 +174,12 @@ public class PatchFamilyTest {
         assertEquals(permanent, PatchFamily.DISABLE_ANALYTICS.staysWhilePaused);
         assertTrue(PatchFamily.DISABLE_ANALYTICS.switches.contains(Settings.DISABLE_ANALYTICS));
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
-        // Every other family but the three patch-time-only ones, which have edits of their own.
+        // Every other family but the four patch-time-only ones, which have edits of their own.
         Set<PatchFamily> everyOther = EnumSet.allOf(PatchFamily.class);
         everyOther.remove(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS);
         everyOther.remove(PatchFamily.SPOOF_SIGNATURE);
         everyOther.remove(PatchFamily.GMS_CORE_SUPPORT);
+        everyOther.remove(PatchFamily.CHANGE_PACKAGE_NAME);
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(everyOther));
         Set<PatchFamily> withoutAnalytics = EnumSet.copyOf(everyOther);
         withoutAnalytics.remove(PatchFamily.DISABLE_ANALYTICS);
@@ -226,7 +228,7 @@ public class PatchFamilyTest {
                 + "again and leave out the patch in parentheses after it.";
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.DISABLE_ANALYTICS, family)));
         assertEquals(both, PatchFamily.staysWhilePausedSummary(EnumSet.complementOf(
-                EnumSet.of(PatchFamily.SPOOF_SIGNATURE, PatchFamily.GMS_CORE_SUPPORT))));
+                EnumSet.of(PatchFamily.SPOOF_SIGNATURE, PatchFamily.GMS_CORE_SUPPORT, PatchFamily.CHANGE_PACKAGE_NAME))));
 
         String line = "Remove ad tracking permissions: no switch, stays in while paused: " + permanent;
         assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
@@ -262,7 +264,8 @@ public class PatchFamilyTest {
                 "Pinterest's access to the ad ID and Android's ad services is removed ("
                         + L10n.isolate("Remove ad tracking permissions") + ")",
                 permanent + " (" + L10n.isolate("Spoof signature for Google sign-in") + ")",
-                "Google sign-in and push notifications go through microG-RE (" + L10n.isolate("GmsCore support") + ")"))
+                "Google sign-in and push notifications go through microG-RE (" + L10n.isolate("GmsCore support") + ")",
+                "This copy has its own package name, so it installs beside Pinterest (" + L10n.isolate("Change package name") + ")"))
                 + ". They were set when you patched, so Pause can't turn them off. To rule one out, patch "
                 + "again and leave out the patch in parentheses after it.";
         assertEquals(all, PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)));
@@ -352,7 +355,7 @@ public class PatchFamilyTest {
                         + "hushpinterest_hide_ai_self_described=off)"),
                 running.subList(0, 2));
         assertEquals(Arrays.asList(
-                "Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK",
+                "Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK, full-screen ads when opening a pin",
                 "Hide AI-labeled pins coverage: AI-labeled pins in lists"),
                 coverageLines(running));
         assertTrue(PatchFamily.reportLines(EnumSet.of(PatchFamily.HIDE_ADS), false)
@@ -399,7 +402,7 @@ public class PatchFamilyTest {
         PatchFamily.inBuildForTests = build;
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         List<String> running = PatchFamily.reportLines(build, false);
-        assertTrue(running.toString(), running.contains("Hide ads coverage: promoted pins in lists; missing: ad-only views, Google ad SDK start, Meta ad SDK"));
+        assertTrue(running.toString(), running.contains("Hide ads coverage: promoted pins in lists; missing: ad-only views, Google ad SDK start, Meta ad SDK, full-screen ads when opening a pin"));
         assertTrue(running.toString(), running.contains("Hide AI-labeled pins coverage: none; missing: AI-labeled pins in lists"));
         Settings.HIDE_ADS.save(false);
         Settings.HIDE_AI_PINS.save(false);
@@ -409,14 +412,40 @@ public class PatchFamilyTest {
 
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
-        assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK"));
+        assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK, full-screen ads when opening a pin"));
         assertTrue(none.toString(), none.contains("Hide AI-labeled pins coverage: none; missing: AI-labeled pins in lists"));
+    }
+
+    /**
+     * The copy's own package is set when patching too: no switch, nothing recorded per hook, named in
+     * the stays row and the report, and drawn on About rather than a feature page.
+     */
+    @Test
+    public void ownPackageIsDisclosedWithNoSwitch() {
+        PatchFamily family = PatchFamily.CHANGE_PACKAGE_NAME;
+        String permanent = "This copy has its own package name, so it installs beside Pinterest";
+        assertEquals("Change package name", family.patchName);
+        assertEquals("changePackageName", family.statusMethod);
+        assertEquals(permanent, family.staysWhilePaused);
+        assertTrue("no switch can turn it off", family.switches.isEmpty());
+        assertTrue("it applies whole or fails the patch", family.expectedCapabilities().isEmpty());
+        assertFalse("no feature page draws it", PatchFamily.PRIVACY_PAGE.contains(family) || PatchFamily.FEED_PAGE.contains(family)
+                || PatchFamily.ACTIONS_PAGE.contains(family) || PatchFamily.INTERFACE_PAGE.contains(family));
+
+        Set<PatchFamily> build = EnumSet.of(family);
+        assertEquals(permanent + " (" + L10n.isolate("Change package name")
+                + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                + "and leave out that patch.", PatchFamily.staysWhilePausedSummary(build));
+        String line = "Change package name: no switch, stays in while paused: " + permanent;
+        assertEquals(Collections.singletonList(line), PatchFamily.reportLines(build, false).subList(0, 1));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(line, PatchFamily.reportLines(build, true).get(0));
     }
 
     /**
      * A paused export marks the Hook status lines of the families a switch runs, and only those.
      * registerDiagnostics() exempts a family with no switch, today Remove ad tracking permissions,
-     * Spoof signature for Google sign-in and GmsCore support: a pause changes nothing for any of
+     * Spoof signature for Google sign-in, GmsCore support and Change package name: a pause changes nothing for any of
      * them, so their lines stay unmarked.
      */
     @Test
@@ -434,7 +463,7 @@ public class PatchFamilyTest {
                     lines.contains(family.patchName + ": invoked 1, 0 found, 0 missing" + mark));
         }
         assertEquals(EnumSet.of(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, PatchFamily.SPOOF_SIGNATURE,
-                PatchFamily.GMS_CORE_SUPPORT), unswitched);
+                PatchFamily.GMS_CORE_SUPPORT, PatchFamily.CHANGE_PACKAGE_NAME), unswitched);
     }
 
     /** The section goes through the redactor like every other one, and has to come out whole. */

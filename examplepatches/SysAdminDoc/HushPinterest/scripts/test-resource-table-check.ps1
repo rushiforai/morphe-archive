@@ -185,7 +185,7 @@ if (-not $caseRoot.StartsWith($requiredPrefix, [System.StringComparison]::Ordina
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 # The merges below are of fixture-sized bundles, so they run straight away rather than waiting in
-# the machine's build queue behind real builds. The queue itself is held by test-script-contracts.ps1.
+# the machine's build queue behind real builds.
 $savedQueueScript = $env:BUILD_QUEUE_SCRIPT
 $env:BUILD_QUEUE_SCRIPT = $null
 try {

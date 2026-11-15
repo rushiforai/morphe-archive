@@ -58,12 +58,7 @@ public final class EmoteRepository {
         if (!GLOBAL_STARTED.compareAndSet(false, true)) {
             return;
         }
-        start("morphe-emotes-global", new Runnable() {
-            @Override
-            public void run() {
-                loadGlobal();
-            }
-        });
+        start("morphe-emotes-global", () -> loadGlobal());
     }
 
     /**
@@ -123,12 +118,7 @@ public final class EmoteRepository {
         }
 
         ensureStarted();
-        start("morphe-emotes-channel", new Runnable() {
-            @Override
-            public void run() {
-                loadChannel(requestedSlug, requestedUserId);
-            }
-        });
+        start("morphe-emotes-channel", () -> loadChannel(requestedSlug, requestedUserId));
     }
 
     /** Re-downloads the global sets and the current channel set. */
@@ -146,12 +136,7 @@ public final class EmoteRepository {
         final String slug = channelSlug;
         if (slug != null && !slug.isEmpty()) {
             final int userId = channelUserId;
-            start("morphe-emotes-channel", new Runnable() {
-                @Override
-                public void run() {
-                    loadChannel(slug, userId);
-                }
-            });
+            start("morphe-emotes-channel", () -> loadChannel(slug, userId));
         }
     }
 

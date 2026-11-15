@@ -666,6 +666,8 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if(HomeThreadOrder.click(fragment,itemId))return true;
+        if(StockChmatePosting.normalClick(fragment,itemId))return true;
         if(itemId==StockChmatePosting.ACTION){StockChmatePosting.openFromToolbar(fragment);return true;}
         if(itemId==OpenTabsRefresh.ACTION){OpenTabsRefresh.refresh(toolbarActivity(fragment));return true;}
         if(itemId==ThreadWatch.ACTION){ThreadWatch.show(fragment);return true;}
@@ -1045,6 +1047,7 @@ public final class Haiagaru {
             }
         });
         crashLoggerInstalled = true;
+        AnrLogs.collect(crashContext);
     }
 
     private static void writeCrashLog(Context context, Thread thread, Throwable error)
@@ -1126,7 +1129,7 @@ public final class Haiagaru {
     }
 
     /** Writes a UTF-8 report to Downloads/Haiagaru on every supported Android release. */
-    private static void writeDownloadLog(Context context, String fileName, String report)
+    static void writeDownloadLog(Context context, String fileName, String report)
             throws IOException {
         if (context == null) throw new IOException("No context available for Downloads log");
         if (Build.VERSION.SDK_INT >= 29) {
@@ -3501,7 +3504,7 @@ public final class Haiagaru {
     private static LinearLayout settingsGENERAL(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout basics=SettingsSection.add(layout,text("基本設定・言語", "Basics and language"),text("言語、広告、設定リンク、初期設定", "Language, ads, setting links and defaults"),false);
+        LinearLayout basics=SettingsSection.add(layout,text("基本設定・言語", "Basics and language"),text("言語、広告、設定リンク、初期設定", "Language, ads, setting links and defaults"),true);
         LinearLayout sites=SettingsSection.add(layout,text("外部掲示板・板一覧", "External boards and board list"),text("使うサイトと板一覧の分類", "Sites to use and board grouping"),true);
         LinearLayout tabs=SettingsSection.add(layout,text("追加画面のタブ設定", "Tool screen tabs"),text("タブの追加先、自動表示する画面、手動追加", "Target pane, automatic screens and manual tabs"),true);
         LinearLayout gestures=SettingsSection.add(layout,text("設定画面のジェスチャー", "Settings gestures"),text("設定内で使うスワイプの感度", "Swipe sensitivity inside settings"),true);
@@ -3532,6 +3535,7 @@ public final class Haiagaru {
             site.setOnCheckedChangeListener((button, checked) ->
                     siteGateway.prefs.edit().putBoolean(SiteBoardGateway.siteFlag(kind), checked).apply());
         }
+        Button futabaRanking=new Button(activity);futabaRanking.setText("ふたばの勢いランキング（ふたぽ）");futabaRanking.setOnClickListener(v->FutabaRanking.show(activity));sites.addView(futabaRanking);
         Switch siteGroups=addSwitch(sites,activity,text("外部板をサイト別に板一覧の最上位へ表示","Show external boards by site at the top level"),preferences.getBoolean(ExternalBoardGroups.KEY,false));
         live.toggle(siteGroups,ExternalBoardGroups.KEY);
         TextView siteGroupsHelp=new TextView(activity);siteGroupsHelp.setText("初期OFF。オンではエッヂ・オルグ板・したらばなどをサイト別に表示します。板一覧のキャッシュへ反映するため、変更後はChMateを再起動してください。");sites.addView(siteGroupsHelp);
@@ -3624,7 +3628,7 @@ public final class Haiagaru {
     private static LinearLayout settingsDISPLAY(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout appearance=SettingsSection.add(layout,text("画面・文字・テーマ", "Layout, text and themes"),text("画面モード、行間、テーマ、本文の装飾", "Display mode, spacing, themes and text styling"),false);
+        LinearLayout appearance=SettingsSection.add(layout,text("画面・文字・テーマ", "Layout, text and themes"),text("画面モード、行間、テーマ、本文の装飾", "Display mode, spacing, themes and text styling"),true);
         LinearLayout behavior=SettingsSection.add(layout,text("スレの操作・更新", "Thread controls and refresh"),text("コピー、読書位置、自動リロード", "Copying, reading position and auto-reload"),true);
         LinearLayout filters=SettingsSection.add(layout,text("ツールバー・絞り込み", "Toolbar and filters"),text("ボタン、人気レス、フィルターの表示", "Buttons, popular replies and filter presentation"),true);
         LinearLayout lists=SettingsSection.add(layout,text("スレ一覧・HOME・履歴の表示", "Thread lists, HOME and history"),text("並び順、表示するスレ、履歴タブ", "Ordering, thread visibility and history tabs"),true);
@@ -3831,6 +3835,7 @@ public final class Haiagaru {
         threadNamesHelp.setText(text("次に書き込み画面を開くときから適用します。未保存のスレは空欄で開きます。オフと新規スレ立ては従来の板ごとの動作です。通常版ChMateには引き継ぎません。", "Applies when opening the next editor. Unsaved threads start blank. Off and new-thread creation keep native board behavior. Names are not passed to stock ChMate."));
         layout.addView(threadNamesHelp,rowParams(activity));
         String[][] menuOptions = {
+                {"showPostingSettingLinks", text("書き込みメニューに「設定リンクを作成」を表示", "Show Create setting link in the posting menu")},
                 {"showClipboardHistoryMenu", text("メニューに「コピー履歴・分類」を表示", "Show clipboard history in the menu")},
                 {"showUploadHostMenu", text("メニューに「アップロード先を変更」を表示", "Show upload destination in the menu")},
                 {"showExternalBoardAuthMenu", text("メニューに「外部板の認証ページ」を表示", "Show external board authentication in the menu")}
@@ -3846,6 +3851,14 @@ public final class Haiagaru {
         menuDescription.setTextSize(13);
         layout.addView(menuDescription, rowParams(activity));
         StockChmatePosting.addSettingsButton(layout, activity);
+        Spinner stockDisplayMode=addSpinner(layout,activity,
+                text("通常版ChMateの書き込み画面", "Stock ChMate posting display"),
+                new String[]{text("全画面", "Full screen"),text("ポップアップダイアログ", "Popup dialog")},
+                preferences.getInt(StockChmatePosting.DISPLAY_MODE,1)==0?0:1);
+        live.choice(stockDisplayMode,StockChmatePosting.DISPLAY_MODE);
+        Switch stockAlways=addSwitch(layout,activity,"常に通常版ChMateで書き込む",
+                preferences.getBoolean(StockChmatePosting.ALWAYS,false));
+        live.toggle(stockAlways,StockChmatePosting.ALWAYS);
         Switch stockMenu=addSwitch(layout,activity,
                 text("書き込み画面の「︙」に「通常版ChMateで書き込む」を追加", "Add stock ChMate posting to the posting overflow menu"),
                 preferences.getBoolean(StockChmatePosting.SHOW_MENU,true));
@@ -3855,7 +3868,7 @@ public final class Haiagaru {
                 preferences.getBoolean(StockChmatePosting.SKIP_CONFIRM,false));
         live.toggle(stockSkipConfirm,StockChmatePosting.SKIP_CONFIRM);
         Switch stockLongPress=addSwitch(layout,activity,
-                text("書き込みボタンの長押しで通常版ChMateを開く（エッヂ）", "Long-press the write button to open stock ChMate (Edge)"),
+                text("書き込みボタンの長押しで通常版ChMateを開く", "Long-press the write button to open stock ChMate"),
                 preferences.getBoolean(StockChmatePosting.LONG_PRESS,false));
         live.toggle(stockLongPress,StockChmatePosting.LONG_PRESS);
         TextView stockLongPressHelp=new TextView(activity);
@@ -4337,6 +4350,19 @@ public final class Haiagaru {
             videoViewer.setText(text("動画専用ビューア（パッチ適用時に選択してください）",
                     "Dedicated video viewer (select the patch when patching)"));
         }
+        LinearLayout thumbnailAppearance=SettingsSection.add(layout,"Image NGの検出とサムネイル表示","自動で検出した画像だけに表示加工を適用します。Image NGを有効にして使用してください。",true);
+        for(String[] option:new String[][]{{ThumbnailAppearance.GRAY,"画像サムネイルをモノクロにする"},{ThumbnailAppearance.MOSAIC,"画像サムネイルにモザイクをかける"}}){
+            Switch toggle=addSwitch(thumbnailAppearance,activity,option[1],preferences.getBoolean(option[0],false));live.toggle(toggle,option[0]);
+        }
+        EditText mosaicStrength=addTextField(thumbnailAppearance,activity,"モザイクの強さ（1：弱い〜5：強い）",Integer.toString(preferences.getInt(ThumbnailAppearance.STRENGTH,3)));
+        mosaicStrength.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);live.number(mosaicStrength,ThumbnailAppearance.STRENGTH,1,5);
+        android.widget.Spinner imageNgLevel=new LiveSettings.Choice(activity);
+        TextView imageNgLabel=new TextView(activity);imageNgLabel.setText("Image NGの検出感度");thumbnailAppearance.addView(imageNgLabel);
+        imageNgLevel.setAdapter(new android.widget.ArrayAdapter<>(activity,android.R.layout.simple_spinner_dropdown_item,new String[]{"弱い（誤検出を抑える）","標準（従来どおり）","強い（見逃しを抑える）"}));
+        imageNgLevel.setSelection(Math.max(0,Math.min(2,preferences.getInt(ThumbnailAppearance.SENSITIVITY,1))));
+        live.choice(imageNgLevel,ThumbnailAppearance.SENSITIVITY);
+        thumbnailAppearance.addView(imageNgLevel);
+        NativeImagePaging.addSettingsButton(layout, activity);
         VideoViewerSettings.addSettingsButton(layout, activity);
 
         Switch videoFrameThumbnails = addSwitch(layout, activity,
@@ -4426,6 +4452,9 @@ public final class Haiagaru {
         SharedPreferences preferences = preferences(activity);
         Switch siteCards = addSwitch(sites, activity,
                 text("Webサイトのリンクカードを表示（追加通信あり）", "Show website link cards (network access)"), siteCardsEnabled());
+        Button excludedCards=new Button(activity);
+        excludedCards.setText(text("リンクカードから除外するURLを追加・編集", "Add / edit URLs excluded from link cards"));
+        excludedCards.setOnClickListener(v->showSiteCardExclusions(activity));sites.addView(excludedCards);
         SettingsSection siteDetails=SettingsSection.add(sites,text("リンクカードの詳細", "Link card details"),text("サムネイルと取得設定", "Thumbnails and retrieval"),true);
         siteDetails.available=siteCards::isChecked;siteDetails.unavailableMessage="リンクカードの表示をオンにすると変更できます。";
         Switch siteImages = addSwitch(siteDetails, activity,
@@ -4539,7 +4568,7 @@ public final class Haiagaru {
             RegisteredImageNg.prefs(activity).edit().putBoolean(RegisteredImageNg.ENABLE, checked).apply();
             RegisteredImageNg.settingsChanged();
         });
-        Switch autoNgRedIds = addSwitch(layout, activity, "全スレで赤いIDのレスを自動で非表示にする",
+        Switch autoNgRedIds = addSwitch(layout, activity, "全スレで赤いIDのレスを自動であぼーん表示にする",
                 preferences.getBoolean(RedIdAutoNg.KEY, false));
         TextView autoNgRedIdsDescription = new TextView(activity);
         autoNgRedIdsDescription.setText("オンにすると、開くすべてのスレで動作します。投稿数は各スレ内で判定し、ChMateで赤色（8件以上）のIDのレスを非表示にします。あるスレで赤くなったIDも、別のスレで8件未満ならこの機能では隠しません。初期OFF。通常のNGIDには登録しません。除外IDは全スレ共通です。変更後はスレを開き直してください。");
@@ -4547,6 +4576,10 @@ public final class Haiagaru {
         layout.addView(autoNgRedIdsDescription, rowParams(activity));
         live.toggle(autoNgRedIds, RedIdAutoNg.KEY);
         RedIdAutoNg.addExclusionsButton(layout, activity);
+        SettingsSection titleMenu=SettingsSection.add(layout,"スレタイトル長押しの追加項目","表示する項目を選択",true);
+        String[] titleKeys={ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH};
+        String[] titleLabels={"「更新対象に含む」を表示","「このスレの新着通知」を表示","「エッヂの閲覧認証」を表示"};
+        for(int i=0;i<titleKeys.length;i++)live.toggle(addSwitch(titleMenu,activity,titleLabels[i],preferences.getBoolean(titleKeys[i],true)),titleKeys[i]);
         EdgeLevelSettings.add(layout,activity);
         Switch hideChainedAbone = addSwitch(layout, activity,
                 text("連鎖あぼーんを常に非表示", "Always hide chained aboon rows"),
@@ -5606,6 +5639,28 @@ public final class Haiagaru {
     static long siteCardCacheDurationMillis() { return siteCardCacheHours() * 60L * 60L * 1000L; }
     static boolean siteCardImages() {
         SharedPreferences prefs = preferencesOrNull();return prefs == null || prefs.getBoolean("siteCardImages", true);
+    }
+    static String siteCardExcludedUrls(){
+        SharedPreferences prefs=preferencesOrNull();
+        return prefs==null?SiteCardExclusions.DEFAULT:prefs.getString(SiteCardExclusions.KEY,SiteCardExclusions.DEFAULT);
+    }
+    private static void showSiteCardExclusions(Activity activity){
+        EditText input=new EditText(activity);input.setSingleLine(false);input.setMinLines(4);input.setMaxLines(10);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        input.setText(siteCardExcludedUrls());input.setHint("https://imgur.com/\nexample.com\nhttps://example.org/news/");
+        input.setContentDescription("リンクカードから除外するURL（1行に1つ）");
+        HaiagaruDialog dialog=new HaiagaruDialog.Builder(activity).setTitle("リンクカードから除外するURL")
+                .setMessage("1行に1つ、URLまたはドメインを入力してください。配下のサブドメインも対象です。パスを指定すると、そのページと配下だけを除外します。\n\n元のリンクと画像・動画の添付表示は残します。除外を解除するには行を削除してください。空欄で保存すると追加の除外はなくなります。")
+                .setView(input).setNegativeButton("キャンセル",null).setNeutralButton("初期値",null).setPositiveButton("保存",null).create();
+        dialog.show();
+        dialog.getButton(-3).setOnClickListener(v->{input.setText(SiteCardExclusions.DEFAULT);input.setError(null);dialog.refresh();});
+        dialog.getButton(-1).setOnClickListener(v->{
+            try{
+                String value=SiteCardExclusions.normalize(input.getText().toString());
+                preferences(activity).edit().putString(SiteCardExclusions.KEY,value).apply();
+                SiteCards.changed();dialog.dismiss();
+            }catch(IllegalArgumentException invalid){input.setError(invalid.getMessage());dialog.refresh();}
+        });
     }
 
     /** ResEdit also prepares the BE account popup; only its main overflow owns upload actions. */

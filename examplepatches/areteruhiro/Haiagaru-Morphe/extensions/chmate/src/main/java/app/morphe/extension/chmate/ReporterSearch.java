@@ -99,6 +99,21 @@ final class ReporterSearch {
         result.rows.sort((a,b) -> Long.compare(b.created,a.created));
         return result;
     }
+    /** Exact numeric thread identity only; conflicting records never guess a reporter. */
+    static Row lookup(Reader source,long thread)throws IOException{
+        if(thread<100000000L||thread>9999999999L)throw new IllegalArgumentException("不正なスレIDです");
+        PushbackReader reader=new PushbackReader(new BufferedReader(source),1);
+        List<String> header=record(reader);
+        if(header==null||header.size()<6||!"記者ID".equals(header.get(1))||!"スレID".equals(header.get(4)))throw new IOException("検索ログの形式が変わっています");
+        Row found=null;List<String> fields;String wanted=Long.toString(thread);
+        while((fields=record(reader))!=null){
+            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException();
+            if(fields.size()<6||!wanted.equals(fields.get(4))||!fields.get(1).matches("[A-Za-z0-9+/.]{8}"))continue;
+            if(found!=null&&!found.id.equals(fields.get(1)))throw new IOException("記者IDの記録が一致しません");
+            found=new Row(fields.get(1),fields.get(2),wanted);
+        }
+        return found;
+    }
     private static List<String> record(PushbackReader reader) throws IOException {
         List<String> fields = new ArrayList<>(); StringBuilder value = new StringBuilder();
         boolean quoted = false, any = false; int count = 0, c;

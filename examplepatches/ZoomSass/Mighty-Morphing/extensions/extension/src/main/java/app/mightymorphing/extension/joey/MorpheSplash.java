@@ -113,18 +113,6 @@ public final class MorpheSplash {
         return normalizeStyle(defaultStyle);
     }
 
-    public static void setSplashStyle(Context context, String style) {
-        try {
-            context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit().putString(PREF_SPLASH_STYLE, normalizeStyle(style)).apply();
-        } catch (Throwable ignored) {
-        }
-    }
-
-    public static void init(Activity activity) {
-        init(activity, STYLE_GLOW);
-    }
-
     public static void init(Activity activity, String configuredDefault) {
         if (activity == null) return;
         sEnabled = true;
@@ -147,7 +135,7 @@ public final class MorpheSplash {
                     play(activity, splashView, look.style, look.ink, look.art);
                 } catch (Throwable ignored) {
                 }
-                new Handler(Looper.getMainLooper()).postDelayed(() -> leave(activity, splashView, 0), 900);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> leave(activity, splashView), 900);
             });
         } catch (Throwable ignored) {
         }
@@ -186,15 +174,10 @@ public final class MorpheSplash {
         }
     }
 
-    /** Stops the moving parts, waits a moment if the feed is still empty, then fades off. */
-    private static void leave(Activity activity, ViewGroup splashView, int waited) {
+    /** Stops the moving parts and fades off. The feed shows its own loading state. */
+    private static void leave(Activity activity, ViewGroup splashView) {
         try {
             clearMotion(splashView);
-            if (waited < 700 && !feedReady(activity)) {
-                new Handler(Looper.getMainLooper()).postDelayed(
-                        () -> leave(activity, splashView, waited + 80), 80);
-                return;
-            }
             splashView.animate().alpha(0f).setDuration(180).withEndAction(() -> {
                 try {
                     stop(splashView);
@@ -212,23 +195,6 @@ public final class MorpheSplash {
             } catch (Throwable ignoredToo) {
             }
         }
-    }
-
-    private static boolean feedReady(Activity activity) {
-        View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
-        return decor != null && hasRows(decor);
-    }
-
-    private static boolean hasRows(View view) {
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            String name = view.getClass().getName();
-            if (name.endsWith("RecyclerView") && group.getChildCount() > 0) return true;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                if (hasRows(group.getChildAt(i))) return true;
-            }
-        }
-        return false;
     }
 
     private static final String PREF_MATCH = "morphe_splash_match";
@@ -259,13 +225,13 @@ public final class MorpheSplash {
 
     public static String summary(Context context) {
         if (!animationOn(context)) return "Off";
-        if (matchesTheme(context)) return "Matches theme";
+        if (matchesTheme(context)) return "Matches theme \u00b7 " + label(getActiveStyle(context, STYLE_GLOW));
         return logoLabel(saved(context, PREF_LOGO, LOGO_HEADPHONES))
                 + " · " + colorLabel(saved(context, PREF_LOGO_COLOR, ModernUi.ACCENT_BLUE))
                 + " · " + label(getActiveStyle(context, STYLE_GLOW));
     }
 
-    /** Settings chooser. Match theme follows the palette. The four rows underneath set each part. */
+    /** Settings chooser. Match theme takes the logo and colours from the palette; the motion is always chosen here. */
     public static void showPicker(Activity activity, Runnable saved) {
         float density = activity.getResources().getDisplayMetrics().density;
         final boolean[] match = { matchesTheme(activity) };
@@ -282,7 +248,7 @@ public final class MorpheSplash {
         };
 
         LinearLayout page = MorpheDialog.page(activity, "Splash", null);
-        android.widget.CheckBox motionOn = MorpheDialog.check(activity, "Disable animation", disabled[0], null);
+        android.widget.CheckBox motionOn = MorpheDialog.check(activity, "No splash screen", disabled[0], null);
         android.widget.CheckBox follow = MorpheDialog.check(activity, "Match theme", match[0], null);
 
         FrameLayout stage = new FrameLayout(activity);
@@ -305,12 +271,15 @@ public final class MorpheSplash {
         final String[] motionKeys = { STYLE_GLOW, STYLE_TECH, STYLE_RADAR, STYLE_CIRCLE, STYLE_RIPPLE };
 
         final TextView[] replayHold = new TextView[1];
+        // Match theme decides the logo and both colours. The motion stays the user's choice.
+        final ArrayList<View> themed = new ArrayList<>();
         Runnable paint = () -> {
             boolean off = disabled[0];
             stage.setAlpha(off ? 0.38f : 1f);
             follow.setEnabled(!off);
             follow.setAlpha(off ? 0.38f : 1f);
-            options.setAlpha(off || match[0] ? 0.38f : 1f);
+            options.setAlpha(off ? 0.38f : 1f);
+            for (View row : themed) row.setAlpha(!off && match[0] ? 0.38f : 1f);
             if (replayHold[0] != null) replayHold[0].setAlpha(off ? 0.38f : 1f);
             for (int i = 0; i < faces.length; i++) {
                 boolean on = logos[i].equals(logo[0]);
@@ -339,7 +308,7 @@ public final class MorpheSplash {
         Runnable play = () -> {
             if (disabled[0]) return;
             Look look = match[0]
-                    ? matched(activity)
+                    ? matched(activity, motion[0])
                     : manual(activity, logo[0], logoColor[0], motion[0], motionColor[0]);
             play(activity, stage, look.style, look.ink, look.art);
         };
@@ -356,20 +325,12 @@ public final class MorpheSplash {
             else play.run();
         });
 
-        options.addView(MorpheDialog.section(activity, "Logo", MorpheDialog.sub(activity)));
-        options.addView(faceRow(activity, density, logos, faces, () -> disabled[0] || match[0], logo, paint, play));
-        options.addView(MorpheDialog.section(activity, "Logo colour", MorpheDialog.sub(activity)));
-        options.addView(dotRow(activity, colors, dots, () -> disabled[0] || match[0], logoColor, paint, play,
-                "Match animation", () -> COLOR_AUTO.equals(motionColor[0])
-                        ? lift(swatch(activity, logoColor[0]))
-                        : swatch(activity, motionColor[0])));
-        options.addView(MorpheDialog.section(activity, "Motion", MorpheDialog.sub(activity)));
         Flow motionRow = new Flow(activity, density);
         for (int i = 0; i < motionKeys.length; i++) {
             TextView chip = MorpheDialog.action(activity, label(motionKeys[i]), MorpheDialog.TEXT);
             int index = i;
             chip.setOnClickListener(v -> {
-                if (disabled[0] || match[0]) return;
+                if (disabled[0]) return;
                 motion[0] = motionKeys[index];
                 paint.run();
                 play.run();
@@ -377,11 +338,30 @@ public final class MorpheSplash {
             motions[i] = chip;
             motionRow.addView(chip);
         }
+        View logoTitle = MorpheDialog.section(activity, "Logo", MorpheDialog.sub(activity));
+        View logoRow = faceRow(activity, density, logos, faces, () -> disabled[0] || match[0], logo, paint, play);
+        View colourTitle = MorpheDialog.section(activity, "Logo colour", MorpheDialog.sub(activity));
+        View colourRow = dotRow(activity, colors, dots, () -> disabled[0] || match[0], logoColor, paint, play,
+                "Match animation", () -> COLOR_AUTO.equals(motionColor[0])
+                        ? lift(swatch(activity, logoColor[0]))
+                        : swatch(activity, motionColor[0]));
+        View inkTitle = MorpheDialog.section(activity, "Animation colour", MorpheDialog.sub(activity));
+        View inkRow = inkRow(activity, colors, inks, () -> disabled[0] || match[0], motionColor, paint, play,
+                "Match logo", () -> swatch(activity, logoColor[0]));
+        options.addView(logoTitle);
+        options.addView(logoRow);
+        options.addView(colourTitle);
+        options.addView(colourRow);
+        options.addView(MorpheDialog.section(activity, "Motion", MorpheDialog.sub(activity)));
         options.addView(motionRow);
-        options.addView(MorpheDialog.section(activity, "Animation colour", MorpheDialog.sub(activity)));
-        options.addView(inkRow(activity, colors, inks, () -> disabled[0] || match[0], motionColor, paint, play,
-                "Match logo", () -> swatch(activity, logoColor[0])));
-        paint.run();
+        options.addView(inkTitle);
+        options.addView(inkRow);
+        themed.add(logoTitle);
+        themed.add(logoRow);
+        themed.add(colourTitle);
+        themed.add(colourRow);
+        themed.add(inkTitle);
+        themed.add(inkRow);
 
         int previewH = Math.round(200 * density);
         page.addView(stage, new LinearLayout.LayoutParams(
@@ -408,16 +388,30 @@ public final class MorpheSplash {
             SharedPreferences prefs = activity.getApplicationContext()
                     .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             rememberAnimation(!disabled[0]);
-            prefs.edit()
+            SharedPreferences.Editor edit = prefs.edit()
                     .putBoolean(PREF_ANIMATION, !disabled[0])
                     .putBoolean(PREF_MATCH, match[0])
-                    .putString(PREF_LOGO, logo[0])
-                    .putString(PREF_LOGO_COLOR, logoColor[0])
-                    .putString(PREF_SPLASH_STYLE, motion[0])
-                    .putString(PREF_ANIM_COLOR, motionColor[0])
-                    .apply();
+                    .putString(PREF_SPLASH_STYLE, motion[0]);
+            // Under Match theme the logo and colours are the theme's, so the manual ones are kept as they were.
+            if (!match[0]) {
+                edit.putString(PREF_LOGO, logo[0])
+                        .putString(PREF_LOGO_COLOR, logoColor[0])
+                        .putString(PREF_ANIM_COLOR, motionColor[0]);
+            }
+            edit.apply();
             if (saved != null) saved.run();
             if (shown[0] != null) shown[0].dismiss();
+        });
+        // The preview loops forever, so it is stopped when the picker closes, however it closes.
+        stage.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                stop(stage);
+            }
         });
         shown[0] = MorpheDialog.show(activity, page, 560);
         stage.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
@@ -683,7 +677,7 @@ public final class MorpheSplash {
     }
 
     private static Look resolve(Context context) {
-        if (matchesTheme(context)) return matched(context);
+        if (matchesTheme(context)) return matched(context, getActiveStyle(context, STYLE_GLOW));
         return manual(context,
                 saved(context, PREF_LOGO, LOGO_HEADPHONES),
                 saved(context, PREF_LOGO_COLOR, ModernUi.ACCENT_BLUE),
@@ -691,12 +685,13 @@ public final class MorpheSplash {
                 saved(context, PREF_ANIM_COLOR, COLOR_AUTO));
     }
 
-    private static Look matched(Context context) {
+    /** The theme's logo and colours, with the user's own motion. */
+    private static Look matched(Context context, String style) {
         String theme = ModernUi.getMaterialAccent(context);
         if (ModernUi.isPureAmoled(context)) theme = ModernUi.ACCENT_AMOLED;
         String logo = logoFor(theme);
         int fur = swatch(context, ModernUi.ACCENT_AMOLED.equals(theme) ? ModernUi.ACCENT_BLUE : theme);
-        return new Look(STYLE_GLOW, lift(fur), SplashArt.recolor(logo, fur));
+        return new Look(normalizeStyle(style), lift(fur), SplashArt.recolor(logo, fur));
     }
 
     private static Look manual(Context context, String logo, String logoColor, String style, String motionColor) {

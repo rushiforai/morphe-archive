@@ -507,7 +507,11 @@ void uploadAndDrawRestore() {
 }
 void framebufferGuards() {
     for (int failure = 0; failure < 10; ++failure) {
-        reset(); makeContext(); prepare();
+        reset(); makeContext();
+        // GL_MAX_TEXTURE_IMAGE_UNITS is a context constant, so the helper caches it when it
+        // links a program; the low-unit case is therefore configured before linking.
+        if (failure == 6) fake::state.units = 1;
+        prepare();
         switch (failure) {
         case 0: fake::state.fbo = 0; break;
         case 1: fake::state.attachmentEncoding = GL_LINEAR; break;
@@ -515,7 +519,7 @@ void framebufferGuards() {
         case 3: fake::glEnable(GL_FRAMEBUFFER_SRGB_EXT); break;
         case 4: fake::glEnable(GL_BLEND); fake::state.blendDestination = GL_ONE_MINUS_SRC_ALPHA; break;
         case 5: fake::state.textures.erase(group()->texture); break;
-        case 6: fake::state.units = 1; break;
+        case 6: break; // already configured above, before the link that caches the limit
         case 7: fake::state.callerOffset = 0x5678; break;
         case 8: fake::state.callerLibrary = "libother.so"; break;
         case 9: fake::state.callerMapped = false; break;

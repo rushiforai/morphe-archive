@@ -39,8 +39,9 @@ internal fun Method.isRecentMediaDetector(): Boolean {
     return factory && recentMediaRefs().any { it is FieldReference && it.toString() == IMAGES_URI }
 }
 
-internal fun findRecentMedia(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { it.isRecentMediaDetector() }
+internal fun findRecentMedia(classes: Iterable<ClassDef>): List<Method> = recentMediaDetectors.methods(classes)
+
+internal val recentMediaDetectors = methodCheck { _, method -> method.isRecentMediaDetector() }
 
 internal fun MutableMethod.validateRecentMedia() {
     if (!isRecentMediaDetector()) throw PatchException("Messenger controls: ${hookId()} isn't the recent photo detector")

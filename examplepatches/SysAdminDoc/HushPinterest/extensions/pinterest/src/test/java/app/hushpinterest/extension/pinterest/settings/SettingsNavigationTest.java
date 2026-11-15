@@ -1245,6 +1245,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.BLACK_BOTTOM_BAR.key, "In dark mode", "bottom bar pure black", "Light mode stays", "next time the bar redraws");
         summaryContains(Settings.BLACK_COMMENTS.key, "In dark mode", "comments sheet and its reply bar pure black", "Light mode stays", "next time you open comments");
         summaryContains(Settings.BLACK_PIN_MENU.key, "In dark mode", "a pin's menu pure black", "Light mode stays", "next time you open the menu");
+        summaryContains(Settings.BLACK_SAVE_SHEET.key, "In dark mode", "lists your boards when you save a pin pure black", "Light mode stays", "next time you save a pin");
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key, "Search image label", "first pins each day", "Tapping the lens still searches", "next pin you open");
@@ -1267,6 +1268,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.LONG_PRESS_HIDE_SEARCH.key, "Pinterest's Search image button", "long-press menu", "The lens on a pin you open still searches");
         summaryContains(Settings.HIDE_COMMENTS.key, "comments and comment previews under pins", "next time the screen updates", "doesn't change who can comment");
         summaryContains(Settings.HIDE_SUGGESTED_REPLIES.key, "suggested replies next to the comment box", "write and post your own comment", "next time you open comments");
+        summaryContains(Settings.HIDE_COMMENT_PREVIEWS.key, "comment photos shown under a pin", "comment box and the way into all comments stay", "next time the screen updates");
         summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");
         summaryContains(Settings.HIDE_INBOX_UPDATES.key, "Updates section out of your Inbox", "Pinterest doesn't load it", "Your messages stay");
         summaryContains(Settings.HIDE_HOME_SUGGESTIONS.key, "\"More ideas for your board\"", "\"See more like this?\" bubble off pins", "next time Home loads");
@@ -1316,6 +1318,7 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper(2, java.util.concurrent.TimeUnit.SECONDS);
         assertTrue(contains(Settings.BLACK_COMMENTS.key));
         assertTrue(contains(Settings.BLACK_PIN_MENU.key));
+        assertTrue(contains(Settings.BLACK_SAVE_SHEET.key));
         assertFalse(contains(Settings.BLACK_BOTTOM_BAR.key));
     }
 

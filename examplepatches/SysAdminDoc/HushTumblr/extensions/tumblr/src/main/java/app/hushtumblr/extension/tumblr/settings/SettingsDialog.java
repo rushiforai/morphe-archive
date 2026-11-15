@@ -316,6 +316,10 @@ public final class SettingsDialog extends DialogFragment {
         return root;
     }
 
+    private static void keysReachRows(ViewGroup root, boolean keys) {
+        root.setDescendantFocusability(keys ? ViewGroup.FOCUS_AFTER_DESCENDANTS : ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+    }
+
     private void buildSearch(LinearLayout root) {
         ScreenColors palette = ScreenColors.DEFAULT;
         Context context = root.getContext();
@@ -394,6 +398,21 @@ public final class SettingsDialog extends DialogFragment {
         // A newly opened screen must not steal focus and raise the keyboard.
         root.setFocusableInTouchMode(true);
         root.requestFocus();
+        // Holding focus itself, the root kept it from arrow keys too: none moves from a view that
+        // covers every row. Without touch it hands focus to its rows first, so leaving touch
+        // gives it to the first one, as on any screen. Set before the window hears of the change.
+        root.getViewTreeObserver().addOnTouchModeChangeListener(inTouch -> {
+            keysReachRows(root, !inTouch);
+            // Back under touch, focus on a row is dropped, and the root holds it again.
+            if (inTouch) root.post(() -> {
+                if (root.isInTouchMode() && !root.hasFocus()) root.requestFocus();
+            });
+        });
+        root.post(() -> {
+            if (root.isInTouchMode()) return;
+            keysReachRows(root, true);
+            if (root.isFocused()) root.requestFocus(View.FOCUS_DOWN);
+        });
         searchBox.setVisibility(View.GONE);
     }
 

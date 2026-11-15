@@ -12,7 +12,8 @@ final class MediaViewerBackGesture {
     private Object recognizer;
     private Method touch;
     private boolean returned;
-    MediaViewerBackGesture(Activity activity){
+    MediaViewerBackGesture(Activity activity){this(activity,activity::finish);}
+    MediaViewerBackGesture(Activity activity,Runnable onBack){
         this.activity=activity;
         SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(activity);
         int back=prefs.getInt("gestureBack",0);
@@ -30,7 +31,7 @@ final class MediaViewerBackGesture {
                     if(args!=null&&args.length==3&&args[0] instanceof Integer&&(Integer)args[0]==back){
                         returned=true;
                         if(activity instanceof VideoViewerActivity)((VideoViewerActivity)activity).endHoldSpeed();
-                        activity.finish();
+                        onBack.run();
                     }return null;
                 });
                 recognizer=constructor.newInstance(activity,listener);break;

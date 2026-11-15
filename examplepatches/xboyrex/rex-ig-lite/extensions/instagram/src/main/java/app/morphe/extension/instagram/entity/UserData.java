@@ -7,6 +7,7 @@
 
 package app.morphe.extension.instagram.entity;
 
+import com.instagram.common.session.UserSession;
 import com.instagram.common.typedurl.ImageUrl;
 
 public class UserData extends Entity {
@@ -19,6 +20,11 @@ public class UserData extends Entity {
 
     private Object getAdditionalUserInfo() throws Exception {
         return super.getField(this.obj, "fieldName");
+    }
+
+    public Boolean isPrivate() throws Exception {
+        Object additionalUserInfo = getAdditionalUserInfo();
+        return (Boolean) super.getMethod(additionalUserInfo, "isPrivate");
     }
 
     public Boolean isVerified() throws Exception {
@@ -54,6 +60,20 @@ public class UserData extends Entity {
             return (String) profilePicEntity.getMethod("getUrl");
         }
         return "";
+    }
+
+    public String refreshProfilePictureUrl(UserSession session) throws Exception {
+        String userId = getUserId();
+        if (session == null || userId == null || userId.isEmpty()) return null;
+        Object result = fetchProfileUser(session, userId);
+        if (result == null) return null;
+        UserData refreshed = new UserData(result);
+        return userId.equals(refreshed.getUserId()) ? refreshed.getProfilePictureUrl() : null;
+    }
+
+    public Object fetchProfileUser(UserSession session, String userId) {
+        // Replaced with Instagram's synchronous profile request. Called on the image worker.
+        return null;
     }
 
     public ImageUrl getLowResProfilePicture() throws Exception {

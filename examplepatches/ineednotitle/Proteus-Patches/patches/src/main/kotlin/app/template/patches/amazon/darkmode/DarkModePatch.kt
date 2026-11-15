@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.template.patches.shared.Constants.AMAZON_BUSINESS_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_IN_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_SHOPPING_COMPATIBILITY
 import com.android.tools.smali.dexlib2.Opcode
@@ -78,7 +79,7 @@ val amazonDarkModePatch = bytecodePatch(
     description = "Force dark mode for Amazon Shopping.",
     default = true,
 ) {
-    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
+    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_BUSINESS_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
     dependsOn(amazonDarkModeResourcePatch)
     extendWith("extensions/extension.mpe")
 

@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.controls.hookId
+import app.hushmessenger.patches.controls.packageManagerCall
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -55,12 +56,13 @@ private fun Instruction.isHandOff(register: Int): Boolean {
     val operands = registers()
     // The name is the first argument after the receiver, or after the Context or PackageManager of a static helper.
     if (operands.indexOf(register) != 1 || operands.count { it == register } != 1) return false
+    // Straight or through Morphe's Spoof signature wrapper, where the name is still the first argument after the manager.
+    if (packageManagerCall()?.substringBefore('(') in packageManagerProbes) return true
     val shape = method.parameterTypes.joinToString("", "(", ")") + method.returnType
     val ours = !method.definingClass.startsWith("Ljava/") && !method.definingClass.startsWith("Landroid/")
     return when (opcode) {
         Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE -> method.toString() == INTENT_SET_PACKAGE ||
             method.toString() == INTENT_SET_CLASS_NAME ||
-            method.definingClass == PACKAGE_MANAGER && method.name in packageManagerProbes ||
             ours && shape in installedMethodChecks
         Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE -> method.toString() == COMPONENT_NAME_INIT
         Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> ours && shape in installedChecks

@@ -8,7 +8,7 @@
 # (Morphe Manager on Android), plus one extension DEX per feature.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.4'
+    [string]$Version = '1.2.6'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -81,13 +81,16 @@ $extensions = @(
     @{ Name = 'extensions/KickChatExpand.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatexpand\classes.dex') },
     @{ Name = 'extensions/KickHidePinned.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-hidepinned\classes.dex') },
     @{ Name = 'extensions/KickMatureWarning.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-maturewarning\classes.dex') },
+    @{ Name = 'extensions/KickStopOnMinimize.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-stoponminimize\classes.dex') },
+    @{ Name = 'extensions/KickHomeDestination.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-homedestination\classes.dex') },
     @{ Name = 'extensions/TwitchSeyttings.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-seyttings\classes.dex') },
     @{ Name = 'extensions/TwitchEmotes.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-emotes\classes.dex') },
     @{ Name = 'extensions/TwitchExpandChat.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-expandchat\classes.dex') },
     @{ Name = 'extensions/TwitchAdBlock.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-adblock\classes.dex') },
     @{ Name = 'extensions/TwitchAmoled.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-amoled\classes.dex') },
     @{ Name = 'extensions/TwitchMatureWarning.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-maturewarning\classes.dex') },
-    @{ Name = 'extensions/TwitchHidePinned.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-hidepinned\classes.dex') }
+    @{ Name = 'extensions/TwitchHidePinned.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-hidepinned\classes.dex') },
+    @{ Name = 'extensions/TwitchHomeTab.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-hometab\classes.dex') }
 )
 foreach ($extension in $extensions) {
     if (-not (Test-Path $extension.Source)) {
@@ -109,7 +112,7 @@ $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 $manifest = @"
 Manifest-Version: 1.0
 Name: Sey Morphe Patches
-Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, HIDE PINNED, SKIP 18+ WARNING, AD BLOCK and AMOLED)
+Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, HIDE PINNED, SKIP 18+ WARNING, STOP ON MINIMIZE, DEFAULT HOME DESTINATION, AD BLOCK, AMOLED and DEFAULT HOME TAB)
 Version: $Version
 Timestamp: $timestamp
 Source: https://github.com/seythegamer/sey-morphe-patches

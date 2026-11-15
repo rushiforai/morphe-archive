@@ -9,12 +9,31 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val READER_TYPE = "Ljava/io/InputStreamReader;"
 private const val READER_FIELD_NAME = "in"
+
+/**
+ * Whether the emulator implements save and restore cursor (3.9.6 and later): its
+ * read loop in JSocketSimple's inner class then compares the character it holds
+ * with both `s` and `u`, which no earlier release does.
+ */
+private fun List<ClassDef>.handlesCursorSave() = any { classDef ->
+    classDef.type.startsWith(JSOCKET_SIMPLE_CLASS.removeSuffix(";") + "$") &&
+        classDef.methods.any { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@any false
+            fun comparesWith(char: Char) = instructions.zipWithNext().any { (literal, branch) ->
+                (literal as? NarrowLiteralInstruction)?.narrowLiteral == char.code &&
+                    branch.opcode == Opcode.IF_EQ
+            }
+            comparesWith('s') && comparesWith('u')
+        }
+}
 
 @Suppress("unused")
 val fixTerminalEscapeSequencesPatch = bytecodePatch(
@@ -38,6 +57,10 @@ val fixTerminalEscapeSequencesPatch = bytecodePatch(
                 if (classDef.type.startsWith(JSOCKET_CLASS_PREFIX)) add(classDef)
             }
         }
+
+        // Sequences the emulator implements must reach it, so on a release that
+        // saves and restores the cursor those are let through as well.
+        val sanitize = if (classDefs.handlesCursorSave()) "sanitizeKeepingCursorSave" else "sanitize"
 
         var wrapped = 0
 
@@ -63,7 +86,7 @@ val fixTerminalEscapeSequencesPatch = bytecodePatch(
                     method.addInstructions(
                         index,
                         """
-                            invoke-static/range { v$register .. v$register }, $EXTENSION_TERMINAL_ESCAPE_CLASS->sanitize($READER_TYPE)$READER_TYPE
+                            invoke-static/range { v$register .. v$register }, $EXTENSION_TERMINAL_ESCAPE_CLASS->$sanitize($READER_TYPE)$READER_TYPE
                             move-result-object v$register
                         """,
                     )

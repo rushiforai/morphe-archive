@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**33 apps · 67 patches** · current bundle: [v1.71.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.71.0)
+**33 apps · 69 patches** · current bundle: [v1.73.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.73.0)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.71.0. -->
+     block below on purpose. Reflects bundle v1.73.0. -->
 
 <!-- GRID_START -->
 <table>
@@ -203,7 +203,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.71.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.71.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;67 patches total
+> **[v1.73.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.73.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;69 patches total
 <a id="app-com-strava" name="app-com-strava"></a>
 <details>
 <summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
@@ -459,6 +459,24 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
+<a id="app-com-google-android-apps-youtube-music" name="app-com-google-android-apps-youtube-music"></a>
+<details>
+<summary>YouTube Music (Wear OS)&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 9.45.41-WEAR_RELEASE |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Disable network telemetry](#disable-network-telemetry) | Turns off the Cronet networking library's telemetry in the Wear OS app (its manifest switch ships set to true). Does not affect playback, downloads, or sign-in. |  |
+| [GmsCore support](#gmscore-support) | Routes the app's Google services calls to MicroG (app.revanced.android.gms) instead of real Google Play services, so a re-signed build can sign in. Requires MicroG-RE with a signed-in account on the watch, and the stock app uninstalled first (the package name is not changed). Experimental: verified against 9.45.41-WEAR_RELEASE by dex scan, not yet tested on a watch. |  |
+| [Remove background playback restrictions](#remove-background-playback-restrictions) | Removes restrictions on background playback in the Wear OS app. Experimental: fingerprint verified against 9.45.41-WEAR_RELEASE, not yet tested on a watch. |  |
+
+</details>
+
 <a id="app-com-relmtech-remote" name="app-com-relmtech-remote"></a>
 <details>
 <summary>Unified Remote&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -666,22 +684,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Remove ads](#remove-ads) | Stops banner and interstitial ads from loading (Google Mobile Ads). |  |
-
-</details>
-
-<a id="app-com-google-android-apps-youtube-music" name="app-com-google-android-apps-youtube-music"></a>
-<details>
-<summary>YouTube Music (Wear OS)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Supported versions:**
-
-| 9.45.41-WEAR_RELEASE |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Remove background playback restrictions](#remove-background-playback-restrictions) | Removes restrictions on background playback in the Wear OS app. Experimental: fingerprint verified against 9.45.41-WEAR_RELEASE, not yet tested on a watch. |  |
 
 </details>
 

@@ -15,6 +15,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.loki.patches.universal.LOKI_ICON
+import app.loki.patches.universal.writeLokiIcon
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -50,6 +52,7 @@ private fun Document.node(tag: String, vararg attributes: Pair<String, String>, 
  */
 private val extensionActivitiesManifestPatch = resourcePatch {
     execute {
+        writeLokiIcon()
         document("AndroidManifest.xml").use { manifest ->
             val application = manifest.getElementsByTagName("application").item(0)
             application.appendChild(
@@ -59,6 +62,27 @@ private val extensionActivitiesManifestPatch = resourcePatch {
                     "android:exported" to "false",
                     "android:label" to "Loki Patches",
                     "android:theme" to "@android:style/Theme.DeviceDefault.DayNight",
+                )
+            )
+            // Optional app-drawer entry, off until the user turns it on (General > Show in the app drawer).
+            application.appendChild(
+                manifest.node(
+                    "activity-alias",
+                    "android:name" to "$EXT_JAVA_PACKAGE.SettingsLauncher",
+                    "android:targetActivity" to "$EXT_JAVA_PACKAGE.SettingsActivity",
+                    "android:enabled" to "false",
+                    "android:exported" to "true",
+                    "android:label" to "Loki Patches",
+                    "android:icon" to LOKI_ICON,
+                    children = listOf(
+                        manifest.node(
+                            "intent-filter",
+                            children = listOf(
+                                manifest.node("action", "android:name" to "android.intent.action.MAIN"),
+                                manifest.node("category", "android:name" to "android.intent.category.LAUNCHER"),
+                            ),
+                        ),
+                    ),
                 )
             )
             val postLinks = manifest.node(

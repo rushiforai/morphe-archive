@@ -179,11 +179,22 @@ private fun chatDispatchers(methods: List<Method>, byType: Map<String, ClassDef>
     return found.filterValues { ids -> ids.all(::publicStatic) }
 }
 
+/** The methods that build a tray insert, the only ones [chatDispatchers] can find a dispatcher in. */
+internal val trayInsertBuilders = MethodCheck {
+    val insertPreview = MemberMatch(INSERT_PREVIEW_INIT)
+    val test: MethodTest = { _, m ->
+        m.implementation?.instructions?.any { it.opcode == Opcode.INVOKE_DIRECT && insertPreview.matches(it.galleryMethod()) } == true
+    }
+    test
+}
+
 /** The tray's composer plugins: the ones whose event set takes Messenger's tray insert. */
-private fun trayPlugins(all: List<ClassDef>): Set<String> = all.filter { cls ->
-    cls.methods.any { m -> m.parameterTypes.isEmpty() && m.returnType == "Ljava/util/Set;" &&
-        m.implementation?.instructions?.any { it.opcode == Opcode.CONST_CLASS && it.galleryType() == INSERT_PREVIEW } == true }
-}.map { it.type }.toSet()
+internal val trayPluginClasses = classCheck { _, m ->
+    m.parameterTypes.isEmpty() && m.returnType == "Ljava/util/Set;" &&
+        m.implementation?.instructions?.any { it.opcode == Opcode.CONST_CLASS && it.galleryType() == INSERT_PREVIEW } == true
+}
+
+private fun trayPlugins(classes: Iterable<ClassDef>): Set<String> = trayPluginClasses.classes(classes).map { it.type }.toSet()
 
 /** Where the tray gate returns its answer, when one return a branch can't skip to hands back a register an invoke reaches. */
 internal fun Method.traySite(): Int? {
@@ -214,8 +225,8 @@ internal fun Method.traySite(): Int? {
  * factory that overrides its gate counts: the chat composer's does, and another surface's composer builds the same
  * plugin behind a base gate it leaves alone.
  */
-private fun trayGate(all: List<ClassDef>): Method? {
-    val trays = trayPlugins(all)
+private fun trayGate(classes: Iterable<ClassDef>, all: List<ClassDef>): Method? {
+    val trays = trayPlugins(classes)
     val gates = mutableSetOf<String>()
     for (factory in all) {
         if (factory.superclass != COMPOSER_FACTORY) continue
@@ -291,10 +302,10 @@ internal fun findGalleryToChat(classes: Iterable<ClassDef>): List<Method> {
     val insert = byType[INSERT_PREVIEW] ?: return emptyList()
     if (!AccessFlags.PUBLIC.isSet(insert.accessFlags) ||
         insert.methods.none { it.hookId() == INSERT_PREVIEW_INIT && AccessFlags.PUBLIC.isSet(it.accessFlags) }) return emptyList()
-    val dispatchers = chatDispatchers(methods, byType).filterValues { it.size == 1 }
+    val dispatchers = chatDispatchers(trayInsertBuilders.methods(classes), byType).filterValues { it.size == 1 }
     val editor = resume.coroutineSteps(byType).singleOrNull { it.galleryChatSite(dispatchers.keys) != null } ?: return emptyList()
     val site = editor.galleryChatSite(dispatchers.keys)!!
-    val tray = trayGate(all) ?: return emptyList()
+    val tray = trayGate(classes, all) ?: return emptyList()
     galleryChatRoute = GalleryChatRoute(items.hookId(), itemsIntent.toString(), editor.hookId(),
         dispatchers.getValue(site.chatType).single(), site.chatType, tray.hookId())
     return listOf(items, editor, tray)

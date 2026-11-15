@@ -1,0 +1,302 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.settings;
+
+import android.app.Activity;
+import android.os.Build;
+import android.view.View;
+import android.view.ViewParent;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+import app.morphe.extension.suite.instagram.download.SavedProfiles;
+import app.morphe.extension.suite.instagram.download.TextGrab;
+import app.morphe.extension.suite.instagram.feed.FavoritesFeed;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+
+/** The owned navigation listener is wired only by the structurally proved native tab factory. */
+public final class NavigationSettings {
+    private NavigationSettings() { }
+    // Neither side retains a View or Activity. The live View owns its real listener, as before.
+    private static final WeakHashMap<View, Binding> nativeBindings = new WeakHashMap<>();
+
+    private static final class Binding {
+        final String tab;
+        final WeakReference<View.OnLongClickListener> original;
+        final boolean hadOriginal;
+        /** A Press for this binding was handed to the view, and no later change took it back. */
+        volatile boolean opens;
+        Binding(String tab, View.OnLongClickListener original) {
+            this.tab = tab;
+            this.original = new WeakReference<>(original);
+            this.hadOriginal = original != null;
+        }
+    }
+
+    public static View.OnLongClickListener remember(View view, Object tab, View.OnLongClickListener original) {
+        return remember(view, tab instanceof Enum<?> ? ((Enum<?>) tab).name() : null, original);
+    }
+
+    /**
+     * Stands in for each setOnLongClickListener call of Instagram's main activity (#82). Besides the
+     * tab's own setter, 450's activity puts the account switcher straight on the Profile button,
+     * sometimes after the setter has, and the listener kept for Profile was gone by the time a
+     * choice reached it, so Profile went on opening the switcher. A tab button takes the listener
+     * the way its setter would: the chosen tab keeps opening xboyrex, and the others keep the
+     * newest listener Instagram gave them. Any other view gets it as it came.
+     */
+    public static void setOnLongClickListener(View view, View.OnLongClickListener listener) {
+        View.OnLongClickListener installed = listener;
+        try {
+            String tab = null;
+            if (view != null) {
+                synchronized (nativeBindings) {
+                    Binding binding = nativeBindings.get(view);
+                    if (binding != null) tab = binding.tab;
+                }
+            }
+            if (tab != null) installed = remember(view, tab, listener);
+        } catch (Throwable t) {
+            Logger.printException(() -> "Navigation settings: could not take a tab's long press", t);
+        }
+        view.setOnLongClickListener(installed);
+    }
+
+    private static View.OnLongClickListener remember(View view, String tab, View.OnLongClickListener original) {
+        if (original instanceof Press) original = ((Press) original).original;
+        if (view == null) return original;
+        Binding binding = null;
+        synchronized (nativeBindings) {
+            if (original == null || tab == null) nativeBindings.remove(view);
+            else {
+                binding = new Binding(tab, original);
+                nativeBindings.put(view, binding);
+            }
+        }
+        // A native null setter is teardown. Only the factory may add an entry to a tab without one.
+        return binding != null && selected(tab) ? new Press(binding, original) : original;
+    }
+
+    public static void bind(View view, Object tab) {
+        if (view == null) return;
+        View.OnLongClickListener original = null;
+        Binding next;
+        synchronized (nativeBindings) {
+            Binding binding = nativeBindings.get(view);
+            if (!(tab instanceof Enum<?>) || (binding != null && !binding.tab.equals(((Enum<?>) tab).name()))) {
+                nativeBindings.remove(view);
+                return;
+            }
+            if (!selected(tab)) {
+                // Kept so a tab chosen later in settings gets the long press without a restart
+                // (#82). The view is left alone, so a tab nobody chose gains no long press.
+                if (binding == null) nativeBindings.put(view, new Binding(((Enum<?>) tab).name(), null));
+                return;
+            }
+            if (binding != null) {
+                original = binding.original.get();
+                if (original == null && binding.hadOriginal) {
+                    nativeBindings.remove(view);
+                    return;
+                }
+            }
+            next = new Binding(((Enum<?>) tab).name(), original);
+            nativeBindings.put(view, next);
+        }
+        view.setOnLongClickListener(new Press(next, original));
+    }
+
+    /**
+     * Puts the saved choice on the tabs Instagram has already built, so a change in settings
+     * applies at once (#82). It used to wait for the next start, and until then the chosen tab's
+     * long press did what it always had, which read as the choice not saving. The chosen tab's
+     * long press opens xboyrex, and every other tab gets its own listener back, or none when it
+     * had none. A tab whose own listener is gone is left as it is. Main thread only. Never throws.
+     */
+    public static void applyChoice() {
+        try {
+            List<Map.Entry<View, Binding>> bound;
+            synchronized (nativeBindings) {
+                bound = new ArrayList<>(nativeBindings.entrySet());
+            }
+            for (Map.Entry<View, Binding> entry : bound) {
+                View view = entry.getKey();
+                Binding binding = entry.getValue();
+                if (view == null || binding == null) continue;
+                View.OnLongClickListener original = binding.original.get();
+                if (original == null && binding.hadOriginal) continue;
+                if (selected(binding.tab)) {
+                    view.setOnLongClickListener(new Press(binding, original));
+                } else {
+                    binding.opens = false;
+                    view.setOnLongClickListener(original);
+                    if (original == null) view.setLongClickable(false);
+                }
+            }
+        } catch (Throwable t) {
+            Logger.printException(() -> "Navigation settings: could not apply the tab choice", t);
+        }
+    }
+
+    /**
+     * Whether a tab button Instagram built right now carries the chosen long press, so xboyrex can
+     * be opened from the tab bar (#84). Off, Pause, a tab the account doesn't show, a hidden button
+     * or one whose own listener is gone all answer false, which keeps Instagram's menu row in place:
+     * there's always one way into settings. Never throws.
+     */
+    static boolean opensFromATab() {
+        try {
+            if (!Utils.settingsReady()) return false;
+            NavigationTarget chosen = Settings.NAVIGATION_SETTINGS_TARGET.get();
+            if (chosen == NavigationTarget.OFF) return false;
+            List<Map.Entry<View, Binding>> bound;
+            synchronized (nativeBindings) {
+                bound = new ArrayList<>(nativeBindings.entrySet());
+            }
+            for (Map.Entry<View, Binding> entry : bound) {
+                View view = entry.getKey();
+                Binding binding = entry.getValue();
+                if (view == null || binding == null || !binding.opens || !chosen.name().equals(binding.tab)) continue;
+                if (binding.hadOriginal && binding.original.get() == null) continue;
+                // Only the button's own state is read. The bar around it can be out of sight
+                // for a moment while Instagram's settings cover it, and that's when this is asked.
+                if (view.isAttachedToWindow() && view.isEnabled() && view.getVisibility() == View.VISIBLE) return true;
+            }
+        } catch (Throwable t) {
+            Logger.printException(() -> "Navigation settings: could not check the chosen tab", t);
+        }
+        return false;
+    }
+
+    /** Tabs another test bound stay attached to its activity's window; a test starts without them. */
+    static void forgetTabsForTests() {
+        synchronized (nativeBindings) {
+            nativeBindings.clear();
+        }
+    }
+
+    /**
+     * Whether any long press choice, opening xboyrex, the quality picker, Ghost mode, Saved
+     * profiles or Favorites, names [tab].
+     */
+    private static boolean selected(Object tab) {
+        return Utils.settingsReady()
+                && (Settings.NAVIGATION_SETTINGS_TARGET.get().matches(tab) || Settings.QUALITY_TAB_TARGET.get().matches(tab)
+                || Settings.GHOST_TAB_TARGET.get().matches(tab) || Settings.SAVED_PROFILES_TAB_TARGET.get().matches(tab)
+                || Settings.FAVORITES_TAB_TARGET.get().matches(tab));
+    }
+
+    /** Whether a long press on [tab] opens Your saved profiles: chosen for it, with the list switched on. */
+    private static boolean opensSavedProfiles(String tab) {
+        NavigationTarget savedTab = Settings.SAVED_PROFILES_TAB_TARGET.get();
+        return savedTab != NavigationTarget.OFF && savedTab.name().equals(tab)
+                && PatchFamily.PROFILE_PICTURE.inBuild() && SavedProfiles.on();
+    }
+
+    /** Whether a long press on [tab] opens Favorites: chosen for it, in a build that hooked Home's feed switch. */
+    private static boolean opensFavorites(String tab) {
+        NavigationTarget favoritesTab = Settings.FAVORITES_TAB_TARGET.get();
+        return favoritesTab != NavigationTarget.OFF && favoritesTab.name().equals(tab) && PatchFamily.favoritesFeedInBuild();
+    }
+
+    private static final class Press implements View.OnLongClickListener {
+        private final Binding binding;
+        private final View.OnLongClickListener original;
+        Press(Binding binding, View.OnLongClickListener original) {
+            this.binding = binding;
+            this.original = original;
+            binding.opens = true;
+        }
+
+        @Override public boolean onLongClick(View view) {
+            // Retained or programmatic actions on a removed/disabled button must do nothing.
+            synchronized (nativeBindings) {
+                if (nativeBindings.get(view) != binding) return false;
+            }
+            Activity owner = ownerOf(view);
+            if (owner == null) return false;
+            if (Utils.settingsReady()) {
+                // Opening xboyrex wins when both choices name this tab.
+                NavigationTarget settingsTab = Settings.NAVIGATION_SETTINGS_TARGET.get();
+                if (settingsTab != NavigationTarget.OFF && settingsTab.name().equals(binding.tab)
+                        && SettingsEntry.requestOpen(owner)) return true;
+                NavigationTarget qualityTab = Settings.QUALITY_TAB_TARGET.get();
+                if (qualityTab != NavigationTarget.OFF && qualityTab.name().equals(binding.tab)
+                        && QualityPicker.show(owner)) return true;
+                NavigationTarget ghostTab = Settings.GHOST_TAB_TARGET.get();
+                if (ghostTab != NavigationTarget.OFF && ghostTab.name().equals(binding.tab)
+                        && GhostModeEntry.press(view)) return true;
+                if (opensSavedProfiles(binding.tab)) {
+                    SavedProfilesPage.openOver(owner);
+                    return true;
+                }
+                if (opensFavorites(binding.tab) && FavoritesFeed.open(owner)) return true;
+            }
+            return original != null && original.onLongClick(view);
+        }
+
+        @Override public boolean onLongClickUseDefaultHapticFeedback(View view) {
+            synchronized (nativeBindings) {
+                if (nativeBindings.get(view) != binding) return false;
+            }
+            if (ownerOf(view) == null) return false;
+            // Before API 34 Android never calls this method. Native handlers keep their choice, and
+            // so does a press onLongClick would hand back to Instagram.
+            return takes(binding.tab)
+                    || original == null || Build.VERSION.SDK_INT < 34
+                    || original.onLongClickUseDefaultHapticFeedback(view);
+        }
+    }
+
+    /**
+     * Whether a long press on [tab] is xboyrex's right now, as onLongClick decides it: it opens
+     * xboyrex, shows the quality picker while the picker offers itself, turns Ghost mode while
+     * there's a ghost switch to turn, opens Saved profiles while that switch is on, or opens
+     * Favorites. Paused, with those switches off or without the patches, none does, and the press is
+     * Instagram's.
+     */
+    private static boolean takes(String tab) {
+        try {
+            if (!Utils.settingsReady()) return false;
+            NavigationTarget settingsTab = Settings.NAVIGATION_SETTINGS_TARGET.get();
+            if (settingsTab != NavigationTarget.OFF && settingsTab.name().equals(tab)) return true;
+            NavigationTarget qualityTab = Settings.QUALITY_TAB_TARGET.get();
+            if (qualityTab != NavigationTarget.OFF && qualityTab.name().equals(tab) && QualityPicker.offered()) return true;
+            NavigationTarget ghostTab = Settings.GHOST_TAB_TARGET.get();
+            if (ghostTab != NavigationTarget.OFF && ghostTab.name().equals(tab) && GhostModeEntry.offeredNow()) return true;
+            return opensSavedProfiles(tab) || opensFavorites(tab);
+        } catch (Throwable t) {
+            Logger.printException(() -> "Navigation settings: could not check a tab's long press", t);
+            return false;
+        }
+    }
+
+    /**
+     * The activity [view] is on, when a press on it can be the person's: attached, shown, enabled
+     * all the way up to a focused, living window. Null otherwise. The profile's menu button asks
+     * this too ({@link ProfileMenuPress}).
+     */
+    static Activity ownerOf(View view) {
+        if (view == null || !view.isAttachedToWindow() || !view.isShown()) return null;
+        // A profile opened from a link hands its bar a context with no activity under it.
+        Activity activity = TextGrab.ownerOf(view, null);
+        if (activity == null || !activity.hasWindowFocus()) return null;
+        View decor = activity.getWindow().getDecorView();
+        View current = view;
+        for (int depth = 0; depth < 64; depth++) {
+            if (!current.isEnabled() || current.getVisibility() != View.VISIBLE) return null;
+            if (current == decor) return activity;
+            ViewParent parent = current.getParent();
+            if (!(parent instanceof View)) return null;
+            current = (View) parent;
+        }
+        return null;
+    }
+}

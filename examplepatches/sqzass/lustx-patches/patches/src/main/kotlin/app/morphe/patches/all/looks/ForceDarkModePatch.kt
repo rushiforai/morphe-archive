@@ -8,7 +8,7 @@ import app.morphe.patcher.patch.mutableClassDefByOrNull
 import app.morphe.patcher.util.findMutableMethodOf
 import app.morphe.patcher.util.returnEarly
 
-private const val NIGHT_YES = 2  // AppCompatDelegate.MODE_NIGHT_YES
+private const val NIGHT_YES = 2 // AppCompatDelegate.MODE_NIGHT_YES
 private val AMOLED_FLAG_RE = Regex(
     "^(is|get|has|should).*(pure.?black|amoled|black.?theme|true.?black|dark.?amoled)",
     RegexOption.IGNORE_CASE,
@@ -22,7 +22,8 @@ val forceDarkPatch = bytecodePatch(
     default = false,
 ) {
     val amoled by booleanOption(
-        key = "amoled", default = true,
+        key = "amoled",
+        default = true,
         title = "Enable AMOLED / pure-black",
         description = "Also force isPureBlack/isAmoled-style flags to true (best-effort).",
     )
@@ -39,7 +40,7 @@ val forceDarkPatch = bytecodePatch(
         if (amoled == true) {
             classDefForEach { classDef ->
                 val targets = classDef.methods.filter { it.returnType == "Z" && AMOLED_FLAG_RE.matches(it.name) }
-                if (targets.isEmpty()) return@forEach
+                if (targets.isEmpty()) return@classDefForEach
                 val mc = mutableClassDefBy(classDef)
                 targets.forEach { mc.findMutableMethodOf(it).returnEarly(true) }
             }

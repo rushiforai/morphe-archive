@@ -37,8 +37,9 @@ public final class BrowsingHistory {
         Field value = owner.getClass().getDeclaredField(name); value.setAccessible(true); return value;
     }
     public static List<?> transform(List<?> input, int mode) {
+        mode=HomeThreadOrder.logicalMode(mode);
         List<?> result=transformValues(input,mode);
-        if(input==null||!HiddenDroppedThreads.target(mode))return result;
+        if(input==null||Math.abs(mode)==104)return result;
         // A display-owned copy lets ON/OFF refresh without editing the native model.
         ArrayList<Object> copy=new ArrayList<>(result);
         synchronized(displays){
@@ -52,9 +53,9 @@ public final class BrowsingHistory {
         input=HiddenDroppedThreads.filter(input,mode);
         // Native HOME IDs: 101 = unread, 103 = browsing history, 104 = posted.
         // Never override unread sorting (including its native board-sort option).
-        if (input == null || Math.abs(mode) != 103 || !enabled()) return input;
+        if (input == null || Math.abs(mode) != 103 || !enabled()) return HomeThreadOrder.apply(input,mode);
         try {
-            return BrowsingHistoryOrder.arrange(input, new BrowsingHistoryOrder.Access<Object>() {
+            return HomeThreadOrder.apply(BrowsingHistoryOrder.arrange(input, new BrowsingHistoryOrder.Access<Object>() {
                 @Override public String board(Object row) throws Exception {
                     if (row == null) return null;
                     String name = row.getClass().getName();
@@ -72,7 +73,7 @@ public final class BrowsingHistory {
                     return field(row, name.equals("o.onAdDisplayed$setIcon") ? "c"
                             : name.equals("o.Yy2$open") ? "e" : "d").getLong(row);
                 }
-            }, BrowsingHistoryOrder.cutoff(System.currentTimeMillis(), days(), TimeZone.getDefault()));
+            }, BrowsingHistoryOrder.cutoff(System.currentTimeMillis(), days(), TimeZone.getDefault())),mode);
         } catch (Exception error) {
             Log.w("Haiagaru", "Browsing history grouping left native list unchanged", error);
             return input;
@@ -81,6 +82,8 @@ public final class BrowsingHistory {
     /** Run only after the exact legacy home-sort method has completed. */
     public static void applyLegacy(Object fragment, int mode) {
         if (fragment == null) return;
+        int selectedMode=HomeThreadOrder.mode(fragment);
+        if(selectedMode!=0)mode=selectedMode;
         prepareLegacy(fragment, mode);
         try {
             boolean legacy191 = fragment.getClass().getName().equals("o.r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk");
@@ -117,6 +120,7 @@ public final class BrowsingHistory {
                 List<?> ordered = group ? transformValues(source, mode)
                         : HiddenDroppedThreads.active(mode) && HiddenDroppedThreads.target(mode)
                                 ? HiddenDroppedThreads.filter((List<?>)original, mode) : source;
+                ordered=HomeThreadOrder.apply(ordered,mode);
                 if(ordered==original){replacements[i]=original;continue;}
                 replacements[i] = original.getClass().getConstructor(List.class).newInstance(ordered);
                 HiddenDroppedThreads.remember(replacements[i],source);

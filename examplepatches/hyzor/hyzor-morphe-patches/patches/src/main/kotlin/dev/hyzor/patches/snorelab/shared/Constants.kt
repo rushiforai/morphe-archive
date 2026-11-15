@@ -9,14 +9,15 @@ object Constants {
         name = "SnoreLab",
         packageName = "com.snorelab.app",
 
-        // The tested artifact is the base APK of the 2.33.5.7814 XAPK (base + arm64-v8a +
-        // en + hdpi splits). The patch only touches code, which lives in the base APK.
+        // The tested artifact is the base APK (`com.snorelab.app.apk`) of the 2.33.7.7953
+        // XAPK, which also carries ABI, locale and density splits. The patch only touches
+        // code, which lives in the base APK.
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x1B5A9A,
 
         targets = listOf(
             // Version the fingerprints below were verified against.
-            AppTarget(version = "2.33.5.7814", versionCode = 78140),
+            AppTarget(version = "2.33.7.7953", versionCode = 79530),
         ),
     )
 }

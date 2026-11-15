@@ -30,6 +30,8 @@ val transparentAlphaPatch = bytecodePatch(
             "background behind it rather than as white.",
     default = true
 ) {
+    category("2. Media")
+
     dependsOn(sharedExtensionPatch, transparentAlphaSettingsPatch)
 
     compatibleWith(*SyncForRedditCompatible)

@@ -18,9 +18,8 @@ object Constants {
             packageName = "com.instagram.android",
             apkFileType = ApkFileType.APKM,
             appIconColor = 0xFC483C,
-            targets =
+                        targets =
                 listOf(
-                    // Stable (Latest merged rex + rex targets)
                     AppTarget(
                         version = "453.0.0.57.79",
                         versionCodes =
@@ -29,19 +28,16 @@ object Constants {
                             ),
                     ),
                     AppTarget(
-                        version = "451.0.0.53.80",
+                        version = "452.1.0.53.64",
                         versionCodes =
                             mapOf(
-                                ARM64_V8A to 385704221,
+                                ARM64_V8A to 385811006,
                             ),
                     ),
-                    AppTarget(
-                        version = "447.0.0.55.81",
-                        versionCodes =
-                            mapOf(
-                                ARM64_V8A to 385311895,
-                            ),
-                    ),
+                    AppTarget(version = "454.0.0.54.77"),
+                    AppTarget(version = "455.0.0.51.72"),
+                    AppTarget(version = "444.0.0.47.66"),
+                    AppTarget(version = "439.0.0.37.89"),
                 ),
         )
 

@@ -21,6 +21,7 @@ final class SettingsTextTr {
         {"preview_title", "HushMessenger arayüz önizlemesi"},
         {"preview_notice", "Arayüz önizlemesi. Bu kontroller Messenger'ı değiştirmez."},
         {"mounted_build_mismatch", "Bu, Messenger %1$d sürümünden yamalandı ama Android'de %2$d yüklü. Root Mount için %2$d sürümünü yamala, yoksa sohbet balonları ve diğer ekranlar çökebilir."},
+        {"gmscore_without_microg", "GmsCore support yamalı ama microG-RE yüklü değil ya da kapalı. Messenger bu yüzden Google'ın anlık bildirim hizmetinden bildirim alamaz. microG-RE'yi yükle ya da GmsCore support olmadan yeniden yamala."},
         {"open", "Aç"},
         {"open_messenger", "Messenger'ı aç"},
         {"back", "Geri"},
@@ -699,9 +700,9 @@ final class SettingsTextTr {
         {"call_captions.title", "Aramalarda canlı altyazı"},
         {"call_captions.description", "Arama sırasında karşı tarafın söylediklerini Messenger'ın üstünde altyazı olarak gösterir. Altyazıları telefonun kendisi oluşturur, senin diline çevirip sesli de okuyabilir. Android 13 veya daha yenisi ve telefonda konuşma tanıma gerekir. Bu açıkken aramalar Messenger'ın kendi ses yolu yerine Android'in normal ses yolunu kullanır ve değiştirdikten sonra Messenger'ın yeniden başlatılması gerekir."},
         {"hide_call_buttons.title", "Arama düğmelerini gizle"},
-        {"hide_call_buttons.description", "Sesli ve görüntülü arama düğmelerini sohbetin üst çubuğundan kaldırır, böylece yanlışlıkla birine dokunamazsın. Aramalar yine çalar ve devam eden bir aramaya yine katılabilirsin."},
+        {"hide_call_buttons.description", "Sesli ve görüntülü arama düğmelerini sohbetin üst çubuğundan, işletme sohbetlerinden ve Yeni mesaj ekranından kaldırır, böylece yanlışlıkla birine dokunamazsın. Aramalar yine çalar ve devam eden bir aramaya yine katılabilirsin."},
         {"call_confirm.title", "Aramadan önce sor"},
-        {"call_confirm.description", "Sohbetin üst çubuğundaki sesli veya görüntülü arama düğmesine dokunduğunda önce sorulur, böylece yanlış bir dokunuş kimseyi aramaz. Ara aramayı başlatır, İptal başlatmaz. Gelen aramalar etkilenmez."},
+        {"call_confirm.description", "Sesli veya görüntülü arama düğmesine dokunduğunda önce sorulur, böylece yanlış bir dokunuş kimseyi aramaz. Bu, sohbetin üst çubuğunu, işletme sohbetlerini ve Yeni mesaj ekranını kapsar. Ara aramayı başlatır, İptal başlatmaz. Gelen aramalar etkilenmez."},
         {"original_photo.title", "Fotoğrafları orijinal kalitede gönder"},
         {"original_photo.description", "HD açıkken JPEG fotoğrafları küçültülmüş bir kopya yerine tam boyutlarında gönderir. Konum bilgisi yine kaldırılır. 20 MB'tan büyük fotoğraflar yine küçültülür."},
         {"original_video.title", "Videoları yeniden kodlamadan gönder"},
@@ -771,6 +772,6 @@ final class SettingsTextTr {
         {"custom_font.title", "Kendi yazı tipini kullan"},
         {"custom_font.description", "Messenger'ın metnini Meta'nın yazı tipi yerine telefonunun yazı tipiyle ya da aşağıdan seçtiğin bir .ttf veya .otf yazı tipi dosyasıyla gösterir. Bu yazı tipini büyütüp küçültebilir, yukarı veya aşağı taşıyabilirsin. Emojiler değişmez. Değişikliği görmek için Messenger'ı yeniden başlat."},
         {"menu_blur.title", "Menülerin arkasını bulanıklaştır"},
-        {"menu_blur.description", "Bir sohbete basılı tuttuğunda açılan menünün ve Messenger'ın diğer açılır menülerinin ve sayfalarının arkasındaki ekranı iPhone'daki gibi bulanıklaştırır. Android 12 veya daha yenisi gerekir."},
+        {"menu_blur.description", "Bir sohbete veya mesaja basılı tuttuğunda açılan menünün ve Messenger'ın diğer açılır menülerinin ve sayfalarının arkasındaki ekranı iPhone'daki gibi bulanıklaştırır. Android 12 veya daha yenisi gerekir."},
     };
 }

@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
@@ -37,6 +38,7 @@ import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.Utils;
 import app.hushtumblr.extension.tumblr.settings.HushTumblrPreferenceFragment;
 import app.hushtumblr.extension.tumblr.settings.ScreenColors;
+import app.hushtumblr.extension.tumblr.settings.SpokenLine;
 
 /** Private management and an immediate, nonmodal Undo. No post IDs leave this local screen. */
 final class RootPostMuteUi {
@@ -149,7 +151,10 @@ final class RootPostMuteUi {
         return new Manager(HushTumblrPreferenceFragment.themed(context), owner, account).dialog;
     }
 
-    /** One scroll surface keeps both the explanation and all private rows reachable at large text sizes. */
+    /**
+     * One scroll surface keeps both the explanation and all private rows reachable at large text
+     * sizes. The notice stays outside it, under the rows.
+     */
     private static final class Manager {
         final Activity owner;
         final RootPostMutes.Session account;
@@ -177,14 +182,18 @@ final class RootPostMuteUi {
             list.setItemsCanFocus(true);
             list.setDivider(new ColorDrawable(ScreenColors.DEFAULT.outline));
             list.setDividerHeight(dp(context, 1));
-            LinearLayout header = new LinearLayout(context);
-            header.setOrientation(LinearLayout.VERTICAL);
+            // The notice and its actions sit under the list, outside its scroll, so one showing never
+            // moves the rows. In the list, it pushed the row just tapped out of view, and a screen
+            // reader's focus went on to the notice and read it again.
+            LinearLayout status = new LinearLayout(context);
+            status.setOrientation(LinearLayout.VERTICAL);
+            status.setPaddingRelative(dp(context, 16), 0, dp(context, 16), 0);
             feedback = new UndoPanel(context, this::ready, value -> {
                 setBusy(value);
                 if (!value) refreshRows();
             }, ignored -> refreshRows(), ignored -> controls());
             feedback.setVisibility(View.GONE);
-            header.addView(feedback);
+            status.addView(feedback);
             retry = new Button(context);
             retry.setTag("root_mute_retry");
             retry.setText(L10n.t("Retry"));
@@ -193,7 +202,9 @@ final class RootPostMuteUi {
             retry.setOnClickListener(ignored -> readAgain());
             LinearLayout.LayoutParams retryPosition = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             retryPosition.gravity = Gravity.END;
-            header.addView(retry, retryPosition);
+            status.addView(retry, retryPosition);
+            LinearLayout header = new LinearLayout(context);
+            header.setOrientation(LinearLayout.VERTICAL);
             help = paragraph(context, L10n.t("Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account."));
             help.setTag("root_mute_help");
             header.addView(help);
@@ -204,12 +215,13 @@ final class RootPostMuteUi {
             empty = paragraph(context, L10n.t("No muted posts or blog rules. Use a post's menu to add one on this device."));
             header.addView(empty);
             list.addHeaderView(header, null, false);
+            // The adapter never calls a row off, even during a save. A list moves its key selection
+            // off a row that's off, so after a failed unmute a keyboard's next press only found the
+            // row again. Clicks check `busy`, and a screen reader hears the row is off from its info.
             rows = new BaseAdapter() {
                 @Override public int getCount() { return roots.size(); }
                 @Override public String getItem(int position) { return roots.get(position); }
                 @Override public long getItemId(int position) { return position; }
-                @Override public boolean areAllItemsEnabled() { return false; }
-                @Override public boolean isEnabled(int position) { return !busy; }
                 @Override public View getView(int position, View recycled, ViewGroup parent) {
                     TextView row = recycled instanceof TextView ? (TextView) recycled : new TextView(context);
                     String root = getItem(position);
@@ -245,8 +257,26 @@ final class RootPostMuteUi {
                 }
             };
             list.setAdapter(rows);
+            // On a short screen the notice takes at most half the room and scrolls past it, and the
+            // list gives up the rest, so neither shuts the other out.
+            ScrollView statusArea = new ScrollView(context) {
+                @Override protected void onMeasure(int width, int height) {
+                    if (MeasureSpec.getMode(height) != MeasureSpec.UNSPECIFIED) {
+                        height = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(height) / 2, MeasureSpec.AT_MOST);
+                    }
+                    super.onMeasure(width, height);
+                }
+            };
+            statusArea.setTag("root_mute_status");
+            // Its Undo and Retry take keyboard focus. An empty area never does.
+            statusArea.setFocusable(false);
+            statusArea.addView(status);
+            LinearLayout content = new LinearLayout(context);
+            content.setOrientation(LinearLayout.VERTICAL);
+            content.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            content.addView(statusArea, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             dialog = new AlertDialog.Builder(context).setTitle(L10n.t("Manage muted posts"))
-                    .setView(list).setNegativeButton(L10n.t("Done"), null)
+                    .setView(content).setNegativeButton(L10n.t("Done"), null)
                     .setNeutralButton(L10n.t("Clear muted posts"), null).create();
             dialog.setOnDismissListener(ignored -> { alive = false; feedback.close(); });
             list.setOnItemClickListener((parent, view, position, id) -> {
@@ -257,7 +287,7 @@ final class RootPostMuteUi {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(ignored -> {
                 if (!ready() || busy || roots.isEmpty()) return;
                 setBusy(true);
-                feedback.message(L10n.t("Updating muted posts"));
+                feedback.busyMessage(L10n.t("Updating muted posts"));
                 RootPostMutes.clear(account, undo -> finished(undo, L10n.t("Muted posts cleared")));
             });
             accountChanged = () -> Utils.runOnMainThreadNowOrLater(() -> {
@@ -278,7 +308,7 @@ final class RootPostMuteUi {
         void unmute(String root) {
             if (!ready() || busy || !roots.contains(root)) return;
             setBusy(true);
-            feedback.message(L10n.t("Updating muted posts"));
+            feedback.busyMessage(L10n.t("Updating muted posts"));
             RootPostMutes.remove(account, root, undo -> finished(undo, removedMessage(root)));
         }
 
@@ -288,19 +318,19 @@ final class RootPostMuteUi {
             refreshRows();
             if (undo == null) feedback.message(L10n.t("Couldn't update muted posts. Try again."));
             else feedback.offer(undo.confirmed ? message : L10n.t("Couldn't update muted posts. Try again."), undo);
-            list.setSelection(0);
         }
 
         /** One read at a time, on the worker. A reply for a closed window or another account is dropped. */
         void readAgain() {
             if (!ready() || busy || RootPostMutes.capture() != null) return;
             setBusy(true);
-            feedback.message(L10n.t("Reading muted posts"));
+            feedback.busyMessage(L10n.t("Reading muted posts"));
             RootPostMutes.retry(account, ignored -> {
                 if (!ready()) return;
                 setBusy(false);
+                feedback.settle();
                 refreshRows();
-                if (RootPostMutes.capture() != null && feedback.token == null) feedback.setVisibility(View.GONE);
+                if (RootPostMutes.capture() != null && feedback.token == null) feedback.hide();
             });
         }
 
@@ -326,21 +356,21 @@ final class RootPostMuteUi {
 
         void setBusy(boolean value) {
             busy = value;
-            list.setEnabled(!value);
+            // Rows only look off, and the list and buttons stay on, as a view switched off lets go
+            // of keyboard focus. Their clicks check `busy`.
             feedback.setBusy(value);
             rows.notifyDataSetChanged();
-            controls();
         }
 
         void controls() {
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setEnabled(!busy && !roots.isEmpty());
-            retry.setEnabled(!busy);
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setEnabled(!roots.isEmpty());
         }
     }
 
     /** A failed write retains recovery. A refused rebind removes only its root, preserving later edits. */
     private static final class UndoPanel extends LinearLayout {
         final TextView label;
+        final SpokenLine line;
         final Button undo;
         final BooleanSupplier alive;
         final Consumer<Boolean> busyChanged;
@@ -359,7 +389,9 @@ final class RootPostMuteUi {
             label = paragraph(context, "");
             label.setTag("root_mute_notice");
             label.setTextColor(ScreenColors.DEFAULT.title);
-            label.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            // A polite live region, read once per answer without an announcement, which Android 16
+            // deprecates.
+            line = new SpokenLine(label, () -> setVisibility(VISIBLE));
             addView(label);
             undo = new Button(context);
             undo.setTag("root_mute_undo");
@@ -369,18 +401,34 @@ final class RootPostMuteUi {
             action.gravity = Gravity.END;
             addView(undo, action);
             undo.setVisibility(GONE);
-            expire = () -> { clearUndo(); expired.accept(this); };
+            // Undo never goes away under someone on it. A screen reader's or keyboard's focus there
+            // holds it, and its time starts again once they move on.
+            expire = () -> {
+                if (onUndo()) { scheduleExpiry(); return; }
+                clearUndo();
+                expired.accept(this);
+            };
             undo.setOnClickListener(ignored -> restore());
         }
 
+        /** Says [message] on the next frame. A second call before then replaces it, so it's read once. */
         void message(String message) {
             if (closed) return;
-            setVisibility(VISIBLE);
-            // The notice is a polite live region, so a screen reader reads a new line once without
-            // an announcement, which Android 16 deprecates. The same line again is news again
-            // (a second failed try), and only a change of text is read, so it changes twice.
-            if (message.contentEquals(label.getText())) label.setText("");
-            label.setText(message);
+            line.say(message);
+        }
+
+        /** Says [message] if the action is still running after a moment. */
+        void busyMessage(String message) {
+            if (closed) return;
+            line.busy(message);
+        }
+
+        /** Drops a busy line that hasn't shown yet. */
+        void settle() { line.cancel(); }
+
+        void hide() {
+            line.cancel();
+            setVisibility(GONE);
         }
 
         void offer(String message, RootPostMutes.Undo value) {
@@ -392,12 +440,12 @@ final class RootPostMuteUi {
             rootToUnmute = root;
             undo.setText(root == null || RootPostMuteStore.validBlogRule(root) ? L10n.t("Undo") : L10n.t("Unmute post"));
             undo.setVisibility(VISIBLE);
-            undo.setEnabled(!busy);
             message(message);
             scheduleExpiry();
         }
 
-        void setBusy(boolean value) { busy = value; undo.setEnabled(!value); }
+        /** Undo stays on while busy, so keyboard focus stays on it. Its click checks this. */
+        void setBusy(boolean value) { busy = value; }
 
         void restore() {
             RootPostMutes.Undo chosen = token;
@@ -423,9 +471,15 @@ final class RootPostMuteUi {
             else RootPostMutes.remove(chosen.account, chosenRoot, receipt -> completed.accept(receipt != null && receipt.confirmed));
         }
 
+        boolean onUndo() {
+            if (undo.getVisibility() != VISIBLE || !undo.isAttachedToWindow()) return false;
+            if (undo.isFocused() && !undo.isInTouchMode()) return true;
+            return undo.createAccessibilityNodeInfo().isAccessibilityFocused();
+        }
+
         void scheduleExpiry() { handler.removeCallbacks(expire); handler.postDelayed(expire, undoTimeout(getContext())); }
         void clearUndo() { handler.removeCallbacks(expire); token = null; rootToUnmute = null; undo.setVisibility(GONE); }
-        void close() { closed = true; clearUndo(); undo.setEnabled(false); }
+        void close() { closed = true; line.cancel(); clearUndo(); undo.setEnabled(false); }
     }
 
     private static TextView paragraph(Context context, String text) {

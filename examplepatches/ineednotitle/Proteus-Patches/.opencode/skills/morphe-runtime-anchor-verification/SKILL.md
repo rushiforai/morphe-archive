@@ -45,8 +45,10 @@ JAVA_HOME=/tmp/opencode/jdk21 /tmp/opencode/jadx/bin/jadx \
   /tmp/opencode/reddit42-dex/classes8.dex
 ```
 
-Jadx prints obfuscated default-package classes as `defpackage.c5l0`; the DEX
-descriptor is still `Lc5l0;`.
+Jadx prints obfuscated default-package classes as `defpackage.m5l0`; the DEX
+descriptor is still `Lm5l0;`. The name drifts between 2026.42.0 versionCodes
+(vc 2642001 uses `Lm5l0;`; another build uses the `Lc5l0;` interface), so find
+the class by shape instead of pinning the name.
 
 ## 3. Dump the exact method and registers
 
@@ -76,9 +78,11 @@ Do not trust a class name. Follow construction and emission:
 
 - `Listing` is a feed container, not automatically a comment container.
 - Reddit 2026.42.0 comment threads use the obfuscated store
-  `com.reddit.comments.tree.c` → `lfa` state → `Lc5l0` TreeData.
-- `Lc5l0` fields: `a` changes, `b` ordered ids, `c` id → comment map,
-  `d` id → tree-item map.
+  `com.reddit.comments.tree.c` → `lfa` state → a `TreeData` class
+  (`Lm5l0` on vc 2642001; the name is build-specific).
+- TreeData fields: `a` changes, `b` ordered ids, `c` id → comment map,
+  `d` id → tree-item map. Resolve them from the constructor's ordered
+  `IPUT_OBJECT` writes, not from field names.
 - Tree item wrappers are `Lf5l0` (user comment), `Ld5l0` (ad), `Le5l0`
   (more-comment), all extending `Lg5l0;` with public field `a` = kind-with-id.
 - GraphQL and REST both construct the full

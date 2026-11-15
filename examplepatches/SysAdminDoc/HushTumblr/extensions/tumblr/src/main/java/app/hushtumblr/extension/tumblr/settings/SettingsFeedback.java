@@ -89,6 +89,12 @@ final class SettingsFeedback {
 
     @Nullable String message() { return message; }
 
+    /**
+     * A screen reader's focus came back to this row and reads it whole, this line included, so the
+     * line isn't read out again from under it.
+     */
+    void readWithRow() { spokenRevision = revision; }
+
     void bind(View row) {
         TextView summary = row.findViewById(android.R.id.summary);
         TextView title = row.findViewById(android.R.id.title);

@@ -62,6 +62,10 @@ public final class FeatureDexFixture {
     private static final String ACTIVITY = "Lcom/pinterest/activity/PinterestActivity;";
     private static final String HOME_ACTIVITY = "Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;";
     private static final String OBSERVER = "Lfixture/ScreenshotObserver;";
+    private static final String CAPTURE = "Lfixture/ScreenCapture;";
+    private static final String SHOT_FILES = "Lfixture/ScreenshotFiles;";
+    private static final String SHOT_EVENT = "Lfixture/ScreenshotEvent;";
+    private static final String SHOT_RECEIVER = "Lfixture/ScreenshotReceiver;";
     private static final String FEED = "Lfixture/FeedPage;";
     private static final String SENDER = "Lfixture/OutgoingText;";
     private static final String VOID = "V";
@@ -99,6 +103,10 @@ public final class FeatureDexFixture {
     private static final String TEXT_BUILDER = "Lfixture/TextBuilder;";
     private static final String SAVED_TEXT = "Lfixture/SavedText;";
     private static final String SAVE_SCREEN = "Lfixture/SaveScreen;";
+    private static final String FRAMEWORK_PROVIDER = "Landroidx/credentials/CredentialProviderFrameworkImpl;";
+    private static final String PROVIDER_FACTORY = "Landroidx/credentials/CredentialProviderFactory;";
+    private static final String CREDENTIAL_REQUEST = "Landroidx/credentials/GetCredentialRequest;";
+    private static final String CREDENTIAL_OPTION = "Landroidx/credentials/CredentialOption;";
 
     /** What a fixture class has beyond its methods: its parent, its interfaces, its public fields as name:type, and whether it's an interface. */
     private record Shape(String parent, List<String> interfaces, List<String> fields, boolean contract) {}
@@ -109,6 +117,11 @@ public final class FeatureDexFixture {
         SHAPES.put(MESSAGE_TOAST, new Shape(TOAST, List.of(), List.of("text:Ljava/lang/String;"), false));
         SHAPES.put(TEXT_BUILDER, new Shape(OBJECT, List.of(), List.of(), true));
         SHAPES.put(SAVED_TEXT, new Shape(OBJECT, List.of(TEXT_BUILDER), List.of(), false));
+        SHAPES.put(CAPTURE, new Shape(OBJECT, List.of("Landroid/app/Activity$ScreenCaptureCallback;"), List.of(), false));
+        SHAPES.put(SHOT_FILES, new Shape("Landroid/database/ContentObserver;", List.of(), List.of(), false));
+        SHAPES.put(FRAMEWORK_PROVIDER, new Shape(OBJECT, List.of(), List.of("credentialManager:Landroid/credentials/CredentialManager;"), false));
+        SHAPES.put(CREDENTIAL_REQUEST, new Shape(OBJECT, List.of(), List.of("credentialOptions:" + LIST), false));
+        SHAPES.put(CREDENTIAL_OPTION, new Shape(OBJECT, List.of(), List.of("type:Ljava/lang/String;"), false));
     }
 
     private static ImmutableMethodReference ref(String type, String name, String result, String... parameters) {
@@ -411,6 +424,23 @@ public final class FeatureDexFixture {
         if (variant.equals("misrouted")) methods.add(method(OBSERVER, "unrelated", VOID, true, 1,
                 List.of(invoke(Opcode.INVOKE_STATIC, ref(SCREENSHOT, "hideScreenshotShare", "Z")), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end())));
         classes.put(OBSERVER, methods);
+        // The screen capture callback and the photos watcher's event receiver return at once on the
+        // same answer; the watcher that posts the event stays as it was.
+        List<Instruction> captured = new ArrayList<>(), received = new ArrayList<>(), changed = new ArrayList<>();
+        for (List<Instruction> guarded : List.of(captured, received)) if (calls) {
+            guarded.add(invoke(Opcode.INVOKE_STATIC, ref(SCREENSHOT, "hideScreenshotShare", "Z")));
+            guarded.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+            guarded.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3));
+            guarded.add(end());
+        }
+        captured.add(end());
+        received.add(end());
+        changed.add(literal("date_added", 0)); changed.add(literal("_data", 0));
+        changed.add(new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, new ImmutableTypeReference(SHOT_EVENT))); changed.add(end());
+        classes.put(CAPTURE, List.of(method(CAPTURE, "onScreenCaptured", VOID, false, 2, captured)));
+        classes.put(SHOT_FILES, List.of(method(SHOT_FILES, "onChange", VOID, false, 4, changed, "Z", "Landroid/net/Uri;")));
+        classes.put(SHOT_EVENT, List.of());
+        classes.put(SHOT_RECEIVER, List.of(method(SHOT_RECEIVER, "onEventMainThread", VOID, false, 3, received, SHOT_EVENT)));
         if (!variant.equals("clean")) {
             List<Instruction> decision = new ArrayList<>();
             if (variant.equals("unreachable-control")) {
@@ -566,7 +596,11 @@ public final class FeatureDexFixture {
                 new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
     }
 
-    /** androidx's failure listener for the Sign in with Google request, with GmsCore support's hook unless clean. */
+    /**
+     * androidx's failure listener for the Sign in with Google request, Credential Manager's framework
+     * provider and its provider choice, with GmsCore support's hooks unless clean. Only a variant whose
+     * listener hook is right edits the provider and the choice, so each refusal names one cause.
+     */
     private static void signInFailure(Map<String, List<Method>> classes, String variant) {
         Instruction hook = invoke(Opcode.INVOKE_STATIC, ref(SIGN_IN_READINESS, "requestFailed", VOID, "Ljava/lang/Exception;"),
                 variant.equals("wrong-argument") ? 1 : 2);
@@ -577,9 +611,70 @@ public final class FeatureDexFixture {
         body.add(end());
         classes.put(HIDDEN_ACTIVITY, List.of(method(HIDDEN_ACTIVITY, "handleGetSignInIntent$lambda$6$lambda$5", VOID, true, 3, body,
                 HIDDEN_ACTIVITY, "Ljava/lang/Exception;")));
+        // The provider is v0 and this; patched, true answers unavailable and false branches to the original body.
+        List<Instruction> provider = new ArrayList<>();
+        if (variant.equals("good") || variant.equals("false-capability")) provider.addAll(List.of(
+                invoke(Opcode.INVOKE_STATIC, ref(SIGN_IN_READINESS, "signsInThroughMicroG", "Z")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)));
+        provider.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1));
+        provider.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+        classes.put(FRAMEWORK_PROVIDER, List.of(method(FRAMEWORK_PROVIDER, "isAvailableOnDevice", "Z", false, 2, provider)));
+        classes.put(PROVIDER_FACTORY, List.of(method(PROVIDER_FACTORY, "choose", "Landroidx/credentials/CredentialProvider;", true, 4,
+                providerChoice(variant.equals("good") || variant.equals("false-capability")), PROVIDER_FACTORY, OBJECT)));
+        classes.put(CREDENTIAL_REQUEST, List.of());
+        classes.put(CREDENTIAL_OPTION, List.of());
         if (variant.equals("clean")) return;
+        List<Instruction> answer = List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0));
         classes.put(SIGN_IN_READINESS, List.of(method(SIGN_IN_READINESS, "requestFailed", VOID, true, 2,
-                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), "Ljava/lang/Exception;")));
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), "Ljava/lang/Exception;"),
+                method(SIGN_IN_READINESS, "signsInThroughMicroG", "Z", true, 1, answer),
+                method(SIGN_IN_READINESS, "isGoogleIdOption", "Z", true, 2, answer, STRING)));
+    }
+
+    /**
+     * Credential Manager's provider choice: v0 and v1, then the factory and the request. The original
+     * body builds the framework provider and falls back to the factory's own Play services lookup when
+     * it's unavailable. Patched, a request whose options are all Google's takes that lookup first and
+     * anything else branches to the original body, 45 code units in (offsets are in code units).
+     */
+    private static List<Instruction> providerChoice(boolean patched) {
+        ImmutableTypeReference request = new ImmutableTypeReference(CREDENTIAL_REQUEST);
+        ImmutableTypeReference option = new ImmutableTypeReference(CREDENTIAL_OPTION);
+        ImmutableFieldReference options = new ImmutableFieldReference(CREDENTIAL_REQUEST, "credentialOptions", LIST);
+        ImmutableMethodReference lookup = ref(PROVIDER_FACTORY, "playServices", "Landroidx/credentials/CredentialProvider;");
+        String iterator = "Ljava/util/Iterator;";
+        List<Instruction> body = new ArrayList<>();
+        if (patched) body.addAll(List.of(
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 3, request), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 43),
+                new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, 3), new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, request),
+                new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 0, options),
+                invoke(Opcode.INVOKE_INTERFACE, ref(LIST, "isEmpty", "Z"), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+                new ImmutableInstruction21t(Opcode.IF_NEZ, 1, 32),
+                invoke(Opcode.INVOKE_INTERFACE, ref(LIST, "iterator", iterator), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                invoke(Opcode.INVOKE_INTERFACE, ref(iterator, "hasNext", "Z"), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 1, 17),
+                invoke(Opcode.INVOKE_INTERFACE, ref(iterator, "next", OBJECT), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, option),
+                new ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, 1, new ImmutableFieldReference(CREDENTIAL_OPTION, "type", STRING)),
+                invoke(Opcode.INVOKE_STATIC, ref(SIGN_IN_READINESS, "isGoogleIdOption", "Z", STRING), 1),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1), new ImmutableInstruction21t(Opcode.IF_EQZ, 1, 8),
+                new ImmutableInstruction10t(Opcode.GOTO, -20),
+                invoke(Opcode.INVOKE_VIRTUAL, lookup, 2), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        body.addAll(List.of(
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 3, request), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 13),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 3, request), new ImmutableInstruction22c(Opcode.IGET_OBJECT, 3, 3, options),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), invoke(Opcode.INVOKE_INTERFACE, ref(LIST, "get", OBJECT, "I"), 3, 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, option),
+                new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 3, new ImmutableTypeReference(FRAMEWORK_PROVIDER)),
+                invoke(Opcode.INVOKE_DIRECT, ref(FRAMEWORK_PROVIDER, "<init>", VOID), 3),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(FRAMEWORK_PROVIDER, "isAvailableOnDevice", "Z"), 3),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 3),
+                invoke(Opcode.INVOKE_VIRTUAL, lookup, 2), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        return body;
     }
 
     /** Google's advertising ID getters and a Block Store wrapper, with Hide advertising ID's hooks unless clean. */
@@ -957,8 +1052,11 @@ public final class FeatureDexFixture {
             FLAGS.put("adViews", false);
             FLAGS.put("googleAds", false);
             FLAGS.put("metaAds", false);
-            // These synthetic targets have no Home request, so Hide pins you've already saved stays out.
+            FLAGS.put("interstitialAds", false);
+            // These synthetic targets have no Home request, so Hide pins you've already saved stays out,
+            // and no pin model, so the See more like this bubble stays out too.
             FLAGS.put("feedSavedPins", false);
+            FLAGS.put("feedbackFlyout", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             feed(classes, variant);
             write(root, "feature-feed-" + variant, classes, true, selected);

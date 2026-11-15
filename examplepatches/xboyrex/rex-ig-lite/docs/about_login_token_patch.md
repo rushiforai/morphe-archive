@@ -12,13 +12,13 @@ This is useful in the following cases:
 - If you have another rooted device and can log in normally
 
 Tokens and other necessary data will be exported in JSON format.  
-You can import it from the login screen or rex settings.
+You can import it from the login screen or xboyrex Settings.
 
 **This patch does NOT fix the login attestation problem. To get a token, you must first log in to your account using any login method.**
 
 ## How to export tokens
 
-xboyrex settings > Backup and restore > Export login token
+xboyrex Settings > Backup and restore > Export login token
 
 ## How to import tokens
 
@@ -50,7 +50,7 @@ Then click the deep link below.
 
 <summary>Method B: Using shortcut</summary>
 
-1. Long press the app icon and select "xboyrex settings".
+1. Long press the app icon and select "xboyrex Settings".
 <img width="360" src="https://github.com/user-attachments/assets/04862e6f-268d-4e78-a043-38f6ddae7965" />
 
 2. Select "Backup and restore".
@@ -87,7 +87,7 @@ Tap the text "Login through token json".
 
 ### • Add second account
 
-If you want to import a second or subsequent account, you can import it simply from xboyrex settings > Backup and restore > Import login token
+If you want to import a second or subsequent account, you can import it simply from xboyrex Settings > Backup and restore > Import login token
 
 ## WARNING
 

@@ -101,10 +101,12 @@ private fun Method.pinLimitGot(): Int? {
     return if (code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT) at + 1 else null
 }
 
+internal val pinLimitLoaders = methodCheck { _, method -> method.limitLoads().isNotEmpty() }
+
 /** Every method that reads the limit, when each one reads it that way, or none. A getter's callers read it in its place. */
 private fun pinLimitReaders(classes: Iterable<ClassDef>): List<Method> {
     pinLimitGetters = emptySet()
-    val direct = classes.flatMap { it.methods }.filter { it.limitLoads().isNotEmpty() }
+    val direct = pinLimitLoaders.methods(classes)
     if (direct.isEmpty() || direct.any { it.pinnedChatLimitRead() == null }) return emptyList()
     pinLimitGetters = direct.filter { it.isPinLimitGetter() }.map { it.hookId() }.toSet()
     if (pinLimitGetters.isEmpty()) return direct

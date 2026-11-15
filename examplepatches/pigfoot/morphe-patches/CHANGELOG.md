@@ -1,3 +1,9 @@
+## [0.8.0](https://github.com/pigfoot/morphe-patches/compare/v0.7.0...v0.8.0) (2026-11-15)
+
+### ✨ New Features
+
+* **bitwarden:** trust re-signed browsers for passkeys in 2026.10.1 ([#18](https://github.com/pigfoot/morphe-patches/issues/18)) ([4018b44](https://github.com/pigfoot/morphe-patches/commit/4018b448d028e081d9b4260b666895865d05f2ec))
+
 ## [0.7.0](https://github.com/pigfoot/morphe-patches/compare/v0.6.3...v0.7.0) (2026-11-13)
 
 ### ✨ New Features

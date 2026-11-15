@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.rotate
 import androidx.core.graphics.drawable.toBitmap
@@ -39,6 +40,8 @@ internal data class BoundSetting(
     val enabled: Boolean = control.isEnabled && available(),
     val checked: Boolean? = (control as? CompoundButton)?.isChecked,
     val progress: Int? = (control as? SeekBar)?.progress,
+    val text: String? = (control as? EditText)?.text?.toString(),
+    val error: String? = (control as? EditText)?.error?.toString(),
     val description: String = "",
     val previewColor: Int? = control.getTag(PosterHighlight.COLOR_PREVIEW_TAG) as? Int,
     val children: List<BoundSetting>? = null,
@@ -148,8 +151,8 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
         is SettingsSection -> {
             var expanded by remember(view) { mutableStateOf(!view.collapsed) }
             Column(Modifier.fillMaxWidth()) {
-                ListItem(headlineContent = { Text(item.label, style = MaterialTheme.typography.titleMedium,
-                    color = HaiagaruUi.settingsCategoryColor) },
+                ListItem(headlineContent = { Text(item.label, style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface) },
                     supportingContent = { if (item.description.isNotBlank()) Text(item.description) },
                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
                         Modifier.rotate(if (expanded) 90f else 0f)) },
@@ -191,7 +194,8 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             }
         }
         is SeekBar -> BoundSeekBar(view, item.label, changed)
-        is EditText -> BoundTextField(view, item.label, enabled = item.enabled, changed = changed)
+        is EditText -> BoundTextField(view, item.label, enabled = item.enabled, changed = changed,
+            native = item.text.orEmpty(), error = item.error)
         is ImageView -> view.drawable?.let { drawable ->
             val bitmap = remember(drawable) { drawable.toBitmap(width = 96, height = 96).asImageBitmap() }
             Image(bitmap, view.contentDescription?.toString(), modifier = Modifier.size(56.dp).padding(8.dp)
@@ -262,11 +266,12 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
 }
 
 @Composable
-internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = view.isEnabled, changed: () -> Unit = {}) {
+internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = view.isEnabled, changed: () -> Unit = {},
+    native: String = view.text.toString(), error: String? = view.error?.toString()) {
     // TextFieldValue preserves cursor/selection/composition while the native binding validates text.
-    var value by remember(view) { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(view.text.toString())) }
-    val native = view.text.toString()
-    if (value.text != native) value = androidx.compose.ui.text.input.TextFieldValue(native)
+    var value by remember(view) { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(native)) }
+    val current = view.text.toString()
+    if (value.text != current) value = androidx.compose.ui.text.input.TextFieldValue(current)
     val numeric = view.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_NUMBER
     val decimal = numeric && view.inputType and InputType.TYPE_NUMBER_FLAG_DECIMAL != 0
     val secret = view.inputType and InputType.TYPE_MASK_VARIATION == InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -287,7 +292,7 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
             decorationBox = { input ->
                 Surface(shape = MaterialTheme.shapes.small,
                     border = androidx.compose.foundation.BorderStroke(1.dp,
-                        if (view.error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline),
+                        if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline),
                     color = MaterialTheme.colorScheme.surfaceContainerLow) {
                     Column(Modifier.fillMaxWidth().heightIn(min = (48f + (archiveLayout - 50) * .16f).dp)
                         .padding(horizontal = 12.dp, vertical = (4f + (archiveLayout - 50) * .16f).dp),
@@ -299,7 +304,7 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
                     }
                 }
             })
-        view.error?.let { Text(it.toString(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
         return
     }
     OutlinedTextField(value = value, onValueChange = {
@@ -317,8 +322,8 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
             else -> KeyboardType.Text
         }),
         visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
-        isError = view.error != null,
-        supportingText = if (view.error != null) ({ Text(view.error.toString()) }) else null,
+        isError = error != null,
+        supportingText = if (error != null) ({ Text(error) }) else null,
         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
 }
 

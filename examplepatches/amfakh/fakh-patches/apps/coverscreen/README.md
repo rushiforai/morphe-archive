@@ -1,7 +1,7 @@
 # CoverScreen OS
 
 Patch for **CoverScreen OS** (`apps.ijp.coverscreenos`, "CoverScreen OS Pro" on APKMirror),
-version `CSOS_9.0.1_BETA` (244), as an APKM.
+version `CSOS_9.0.2_BETA` (245), as an APKM.
 
 ## Patches
 

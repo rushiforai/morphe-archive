@@ -44,6 +44,8 @@ val bottomNavigationItemsPatch = bytecodePatch(
             "rail used in tablet mode as well.",
     default = true,
 ) {
+    category("5. Interface")
+
     dependsOn(sharedExtensionPatch, bottomNavigationItemsSettingsPatch)
 
     compatibleWith(*SyncForRedditCompatible)

@@ -11,6 +11,7 @@
 package app.template.patches.amazon.feedvideo
 
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.shared.Constants.AMAZON_BUSINESS_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_IN_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_SHOPPING_COMPATIBILITY
 import app.template.patches.shared.logUniversal
@@ -34,7 +35,7 @@ val amazonStopFeedVideoAutoplayPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
-    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
+    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_BUSINESS_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
     dependsOn(disableAutoplayPatch)
 
     execute {

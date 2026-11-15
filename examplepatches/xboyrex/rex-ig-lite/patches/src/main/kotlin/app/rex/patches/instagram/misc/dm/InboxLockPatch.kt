@@ -14,9 +14,9 @@ import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.string
+import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -53,7 +53,7 @@ private object InAppNotificationShowFingerprint : Fingerprint(
 
 @Suppress("unused")
 val inboxLockPatch =
-    bytecodePatch(
+    patch(
         name = "Inbox lock",
         description = "Asks for your fingerprint, face or screen lock before the inbox is shown.",
         default = true,
@@ -62,8 +62,10 @@ val inboxLockPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching { enableSettings("inboxLock") }
+            runCatching {
             instagramInitHook.fingerprint.method.apply {
-                val superIndex = instructions.indexOfFirst { it.opcode == Opcode.INVOKE_SUPER }
+                val superIndex = indexOfFirstInstructionOrThrow(Opcode.INVOKE_SUPER)
                 addInstruction(superIndex + 1, "invoke-static {}, $EXTENSION_CLASS->init()V")
             }
 
@@ -91,6 +93,6 @@ val inboxLockPatch =
                 "invoke-static {}, $EXTENSION_CLASS->updateBanner()V",
             )
 
-            enableSettings("inboxLock")
+                        }
         }
     }

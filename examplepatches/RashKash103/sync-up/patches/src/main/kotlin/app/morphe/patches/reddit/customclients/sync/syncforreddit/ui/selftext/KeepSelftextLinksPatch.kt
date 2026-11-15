@@ -24,6 +24,8 @@ val keepSelftextLinksPatch = bytecodePatch(
             "otherwise discards.",
     default = true
 ) {
+    category("6. Text")
+
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*SyncForRedditCompatible)

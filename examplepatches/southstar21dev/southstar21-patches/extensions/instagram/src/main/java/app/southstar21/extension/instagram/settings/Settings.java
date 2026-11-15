@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import app.southstar21.extension.instagram.ads.HideAdsPatch;
+import app.southstar21.extension.instagram.consciousgate.ConsciousGatePatch;
 import app.southstar21.extension.instagram.liquidglass.LiquidGlassNavBarPatch;
 import app.southstar21.extension.instagram.navbuttons.HideNavigationButtonsPatch;
 import app.southstar21.extension.instagram.profilepicture.ViewProfilePicturePatch;
@@ -17,6 +18,7 @@ import app.southstar21.extension.instagram.reels.DisableReelsPatch;
 public final class Settings {
     private static final String PREFERENCES = "southstar21_patches";
     private static SharedPreferences preferences;
+    private static Context appContext;
 
     private Settings() {
     }
@@ -31,6 +33,7 @@ public final class Settings {
                 HideNavigationButtonsPatch.SETTINGS,
                 DisableReelsPatch.SETTINGS,
                 HideAdsPatch.SETTINGS,
+                ConsciousGatePatch.SETTINGS,
                 ViewProfilePicturePatch.SETTINGS
         );
     }
@@ -46,7 +49,8 @@ public final class Settings {
 
     public static void init(Context context) {
         if (preferences == null) {
-            preferences = context.getApplicationContext().getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+            appContext = context.getApplicationContext();
+            preferences = appContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         }
     }
 
@@ -59,6 +63,24 @@ public final class Settings {
      * Some hooks run before the main activity has focus (e.g. while Instagram builds its tab
      * list), so this loads the preferences from the application if init() hasn't run yet.
      */
+    /** The application, for formatting that follows the phone's settings, or null. */
+    static Context contextOrNull() {
+        preferencesOrNull();
+        return appContext;
+    }
+
+    /**
+     * Calls {@code listener} whenever a stored setting changes. The preferences hold
+     * listeners weakly, so keep a reference. Returns false if the preferences aren't
+     * available yet.
+     */
+    public static boolean addChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return false;
+        prefs.registerOnSharedPreferenceChangeListener(listener);
+        return true;
+    }
+
     static SharedPreferences preferencesOrNull() {
         if (preferences == null) {
             try {

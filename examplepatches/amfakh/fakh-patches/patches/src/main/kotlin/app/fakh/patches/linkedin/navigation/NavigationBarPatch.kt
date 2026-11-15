@@ -102,7 +102,7 @@ val swipeTabsPatch = bytecodePatch(
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")

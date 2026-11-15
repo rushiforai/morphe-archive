@@ -15,6 +15,8 @@ val useUserEndpointPatch = bytecodePatch(
     description = "Replaces the deprecated /u profile endpoint with /user.",
     default = true,
 ) {
+    category("1. Essentials")
+
     compatibleWith(*SyncForRedditCompatible)
 
     execute {

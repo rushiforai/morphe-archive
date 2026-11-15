@@ -12,10 +12,9 @@ import app.rex.patches.instagram.utils.Constants.PREF_CALL_DESCRIPTOR
 import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.literal
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.registersUsed
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.registersUsed
 
 internal object StoryRingBuilderFingerprint : Fingerprint(
     returnType = "V",
@@ -30,17 +29,18 @@ internal object StoryRingBuilderFingerprint : Fingerprint(
 // Credits InstaPro/MyInsta
 @Suppress("unused")
 val customiseStoryRingSizePatch =
-    bytecodePatch(
+    patch(
         name = "Customise story ring size",
     ) {
         dependsOn(settingsPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             StoryRingBuilderFingerprint.let {
                 it.method.apply {
                     val ringSizeLiteralIndex = it.instructionMatches[1].index
-                    val register = getInstruction(ringSizeLiteralIndex).registersUsed[0]
+                    val register = it.instructionMatches[1].instruction.registersUsed[0]
 
                     addInstructions(
                         ringSizeLiteralIndex + 1,
@@ -51,6 +51,8 @@ val customiseStoryRingSizePatch =
                     )
                     enableSettings("customiseStoryRingSize")
                 }
+            }
+        
             }
         }
     }

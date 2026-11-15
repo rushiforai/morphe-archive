@@ -130,7 +130,7 @@ internal val PROFILE_347415354 = ControlProfile(
         "chat_preview_size" to setOf("Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"),
         "chat_promotions" to setOf("LX/HY9;->A0C()Z", "LX/HY9;->A0D()Z"),
         "community_inbox" to setOf("LX/23Z;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
-        "delta_unsent" to setOf("LX/W2u;->DX0(I)Z"),
+        "delta_unsent" to setOf("LX/5hn;->DX0(I)Z", "LX/W2u;->DX0(I)Z", "LX/cNC;->DX0(I)Z"),
         "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/5lR;->DKJ()Z", "LX/AOq;->A0R(LX/HRn;)Z",
@@ -181,6 +181,10 @@ internal val PROFILE_347415354 = ControlProfile(
         "hide_call_bar" to setOf(
             "LX/7Nx;->FDi(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/74D;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
             "LX/AJ2;->A03(Landroid/content/Context;LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;LX/0LH;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/6eW;Lcom/google/common/collect/ImmutableList\$Builder;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIIZZZZZZ)Ljava/lang/Object;",
+        ),
+        "hide_call_lists" to setOf(
+            "LX/50E;->A00(LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;",
+            "LX/Okr;->A00(LX/Okr;)V",
         ),
         "hide_read_receipts" to setOf("LX/4hw;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4hw;Ljava/lang/String;)V"),
         "home_header" to setOf("LX/2MF;->render(LX/27r;)LX/1F6;"),
@@ -311,7 +315,10 @@ internal val PROFILE_347415354 = ControlProfile(
         "typing" to setOf("LX/BDj;->run()V"),
         "typing_mailbox" to setOf("LX/4dA;->A0L(Ljava/lang/String;Z)LX/34J;"),
         "unsent_clear" to setOf("Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0C(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V"),
-        "unsent_indicator" to setOf("LX/W2u;->CpO(I)Ljava/lang/String;"),
+        "unsent_indicator" to setOf(
+            "LX/5hn;->CpO(I)Ljava/lang/String;", "LX/W2u;->CpO(I)Ljava/lang/String;",
+            "LX/cNC;->CpO(I)Ljava/lang/String;",
+        ),
         "unsent_recall" to setOf("LX/9y2;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
         "wifi_identity" to setOf(
             "LX/1af;->A02()LX/ac3;", "LX/38L;->BD0()Ljava/lang/String;", "LX/38L;->C4Y()J",
@@ -436,7 +443,7 @@ internal val PROFILE_347415280 = ControlProfile(
         "chat_preview_size" to setOf("Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"),
         "chat_promotions" to setOf("LX/HVB;->A0C()Z", "LX/HVB;->A0D()Z"),
         "community_inbox" to setOf("LX/23Z;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
-        "delta_unsent" to setOf("LX/Yx1;->DXB(I)Z"),
+        "delta_unsent" to setOf("LX/5h8;->DXB(I)Z", "LX/Yx1;->DXB(I)Z", "LX/cQj;->DXB(I)Z"),
         "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/5km;->DKT()Z", "LX/AOv;->A0R(LX/HP3;)Z",
@@ -487,6 +494,10 @@ internal val PROFILE_347415280 = ControlProfile(
         "hide_call_bar" to setOf(
             "LX/7Oj;->FDl(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/74z;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
             "LX/AJ7;->A03(Landroid/content/Context;LX/0XS;Lcom/facebook/auth/usersession/FbUserSession;LX/0LG;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/4zZ;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/6fE;Lcom/google/common/collect/ImmutableList\$Builder;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIIZZZZZZ)Ljava/lang/Object;",
+        ),
+        "hide_call_lists" to setOf(
+            "LX/4zZ;->A00(LX/0XS;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/4zZ;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;",
+            "LX/Ol0;->A00(LX/Ol0;)V",
         ),
         "hide_read_receipts" to setOf("LX/4hH;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4hH;Ljava/lang/String;)V"),
         "home_header" to setOf("LX/2ME;->render(LX/27r;)LX/1F6;"),
@@ -617,7 +628,10 @@ internal val PROFILE_347415280 = ControlProfile(
         "typing" to setOf("LX/BDn;->run()V"),
         "typing_mailbox" to setOf("LX/4cV;->A0L(Ljava/lang/String;Z)LX/34L;"),
         "unsent_clear" to setOf("Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0C(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V"),
-        "unsent_indicator" to setOf("LX/Yx1;->CpT(I)Ljava/lang/String;"),
+        "unsent_indicator" to setOf(
+            "LX/5h8;->CpT(I)Ljava/lang/String;", "LX/Yx1;->CpT(I)Ljava/lang/String;",
+            "LX/cQj;->CpT(I)Ljava/lang/String;",
+        ),
         "unsent_recall" to setOf("LX/9y7;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
         "wifi_identity" to setOf(
             "LX/1af;->A02()LX/auK;", "LX/38P;->BD3()Ljava/lang/String;", "LX/38P;->C4c()J",
@@ -742,7 +756,7 @@ internal val PROFILE_347415302 = ControlProfile(
         "chat_preview_size" to setOf("Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"),
         "chat_promotions" to setOf("LX/HY8;->A0C()Z", "LX/HY8;->A0D()Z"),
         "community_inbox" to setOf("LX/23Z;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
-        "delta_unsent" to setOf("LX/W2s;->DX0(I)Z"),
+        "delta_unsent" to setOf("LX/5hn;->DX0(I)Z", "LX/W2s;->DX0(I)Z", "LX/cNC;->DX0(I)Z"),
         "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/5lR;->DKJ()Z", "LX/AOq;->A0R(LX/HRm;)Z",
@@ -793,6 +807,10 @@ internal val PROFILE_347415302 = ControlProfile(
         "hide_call_bar" to setOf(
             "LX/7Nx;->FDi(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/74D;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
             "LX/AJ2;->A03(Landroid/content/Context;LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;LX/0LH;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/6eW;Lcom/google/common/collect/ImmutableList\$Builder;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIIZZZZZZ)Ljava/lang/Object;",
+        ),
+        "hide_call_lists" to setOf(
+            "LX/50E;->A00(LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;",
+            "LX/Okq;->A00(LX/Okq;)V",
         ),
         "hide_read_receipts" to setOf("LX/4hw;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4hw;Ljava/lang/String;)V"),
         "home_header" to setOf("LX/2MF;->render(LX/27r;)LX/1F6;"),
@@ -923,7 +941,10 @@ internal val PROFILE_347415302 = ControlProfile(
         "typing" to setOf("LX/BDj;->run()V"),
         "typing_mailbox" to setOf("LX/4dA;->A0L(Ljava/lang/String;Z)LX/34J;"),
         "unsent_clear" to setOf("Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0C(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V"),
-        "unsent_indicator" to setOf("LX/W2s;->CpO(I)Ljava/lang/String;"),
+        "unsent_indicator" to setOf(
+            "LX/5hn;->CpO(I)Ljava/lang/String;", "LX/W2s;->CpO(I)Ljava/lang/String;",
+            "LX/cNC;->CpO(I)Ljava/lang/String;",
+        ),
         "unsent_recall" to setOf("LX/9y2;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
         "wifi_identity" to setOf(
             "LX/1af;->A02()LX/ac2;", "LX/38L;->BD0()Ljava/lang/String;", "LX/38L;->C4Y()J",
@@ -1048,7 +1069,7 @@ internal val PROFILE_347415262 = ControlProfile(
         "chat_preview_size" to setOf("Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"),
         "chat_promotions" to setOf("LX/HaU;->A0C()Z", "LX/HaU;->A0D()Z"),
         "community_inbox" to setOf("LX/23z;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
-        "delta_unsent" to setOf("LX/cZQ;->DXO(I)Z"),
+        "delta_unsent" to setOf("LX/5iJ;->DXO(I)Z", "LX/cZQ;->DXO(I)Z", "LX/cZZ;->DXO(I)Z"),
         "disappearing_swipe" to setOf("Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z"),
         "emoji_drawer" to setOf(
             "LX/5lx;->DKf()Z", "LX/AQp;->A0R(LX/HTp;)Z",
@@ -1099,6 +1120,10 @@ internal val PROFILE_347415262 = ControlProfile(
         "hide_call_bar" to setOf(
             "LX/7PJ;->FEG(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/75Z;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
             "LX/AL1;->A03(Landroid/content/Context;LX/0Xc;Lcom/facebook/auth/usersession/FbUserSession;LX/0LM;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50k;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/6fg;Lcom/google/common/collect/ImmutableList\$Builder;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIIZZZZZZ)Ljava/lang/Object;",
+        ),
+        "hide_call_lists" to setOf(
+            "LX/50k;->A00(LX/0Xc;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50k;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;",
+            "LX/OiQ;->A00(LX/OiQ;)V",
         ),
         "hide_read_receipts" to setOf("LX/4iS;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4iS;Ljava/lang/String;)V"),
         "home_header" to setOf("LX/2Mf;->render(LX/28H;)LX/1FW;"),
@@ -1229,7 +1254,10 @@ internal val PROFILE_347415262 = ControlProfile(
         "typing" to setOf("LX/BFh;->run()V"),
         "typing_mailbox" to setOf("LX/4dg;->A0L(Ljava/lang/String;Z)LX/34j;"),
         "unsent_clear" to setOf("Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0C(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V"),
-        "unsent_indicator" to setOf("LX/cZQ;->Cpd(I)Ljava/lang/String;"),
+        "unsent_indicator" to setOf(
+            "LX/5iJ;->Cpd(I)Ljava/lang/String;", "LX/cZQ;->Cpd(I)Ljava/lang/String;",
+            "LX/cZZ;->Cpd(I)Ljava/lang/String;",
+        ),
         "unsent_recall" to setOf("LX/A01;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"),
         "wifi_identity" to setOf(
             "LX/1b5;->A02()LX/eWo;", "LX/38m;->BD6()Ljava/lang/String;", "LX/38m;->C4e()J",

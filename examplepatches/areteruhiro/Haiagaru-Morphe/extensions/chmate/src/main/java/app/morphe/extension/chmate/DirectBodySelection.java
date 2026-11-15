@@ -19,8 +19,21 @@ public final class DirectBodySelection {
     /** Preserve native listeners, but let TextView's own selection handle an opt-in long press. */
     public static View.OnLongClickListener longClickListener(Object object, View.OnLongClickListener nativeListener) {
         if (nativeListener == null || !isBody(object)) return nativeListener;
-        return view -> selectionContext(view)
-                ? false : nativeListener.onLongClick(view);
+        // Rebinding can hand our current listener back through the native setter.
+        // Do not grow a chain of wrappers on every response bind.
+        return nativeListener instanceof SelectionLongClick ? nativeListener : new SelectionLongClick(nativeListener);
+    }
+
+    private static final class SelectionLongClick implements View.OnLongClickListener {
+        private final View.OnLongClickListener nativeListener;
+        private boolean running;
+        SelectionLongClick(View.OnLongClickListener listener){nativeListener=listener;}
+        public boolean onLongClick(View view){
+            if(running)return true;
+            running=true;
+            try{return selectionContext(view)?false:nativeListener.onLongClick(view);}
+            finally{running=false;}
+        }
     }
 
     /** Anchor gestures retain ChMate's own long-press context dispatch. */
@@ -36,7 +49,7 @@ public final class DirectBodySelection {
         final ActionMode.Callback selectionCallback;
         final Method nativeDispatch;
         MotionEvent down;
-        boolean moved, selectedAtDown, nativeAnchor;
+        boolean moved, selectedAtDown, nativeAnchor, preparing, dispatching;
         State(TextView view) throws ReflectiveOperationException {
             selectable = view.isTextSelectable();
             focusable = view.isFocusable();
@@ -80,6 +93,10 @@ public final class DirectBodySelection {
             try { STATES.put(view, new State(view)); }
             catch (ReflectiveOperationException error) { return false; }
         }
+        State current=STATES.get(view);
+        if(current.preparing)return true;
+        current.preparing=true;
+        try{
         if (!view.isTextSelectable()) view.setTextIsSelectable(true);
         // Rebinding/native link dispatch can replace these even while selectable stays true.
         view.setFocusableInTouchMode(true);
@@ -92,12 +109,16 @@ public final class DirectBodySelection {
         if (view.getCustomSelectionActionModeCallback() != null)
             view.setCustomSelectionActionModeCallback(null);
         return true;
+        }finally{current.preparing=false;}
     }
 
     /** Bypass native delayed selection/menu dispatch only for the opt-in body. */
     public static boolean dispatch(TextView view, MotionEvent event) {
         State state = STATES.get(view);
         if (state == null) return false;
+        if(state.dispatching)return true;
+        state.dispatching=true;
+        try{
         int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN)
             state.nativeAnchor = Haiagaru.directCopyAnchorsEnabled() && !view.hasSelection() && anchorAt(view,event);
@@ -162,6 +183,7 @@ public final class DirectBodySelection {
             if (view.getParent() != null) view.getParent().requestDisallowInterceptTouchEvent(false);
         }
         return true;
+        }finally{state.dispatching=false;}
     }
 
     private static boolean anchorAt(TextView view,MotionEvent event) {

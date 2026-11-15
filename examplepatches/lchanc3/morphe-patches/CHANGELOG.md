@@ -1,3 +1,18 @@
+# [1.8.0](https://github.com/lchanc3/morphe-patches/compare/v1.7.0...v1.8.0) (2026-11-14)
+
+### 新功能
+
+* **DMM VR動画プレイヤー:** Add Hand tracking
+
+### 修正
+
+* **JPTT:** Support JPTT 3.9.6
+
+### 其他
+
+* Support older JPTT releases on a best-effort basis
+
+
 # [1.7.0](https://github.com/lchanc3/morphe-patches/compare/v1.6.0...v1.7.0) (2026-10-25)
 
 ### 新功能

@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import app.hushpinterest.extension.pinterest.coexist.OwnAuthoritiesForTests;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
@@ -217,6 +218,45 @@ public class PushNotificationsTest {
         assertSame(ORIGINAL, PushNotifications.certificateHeader(missing, ORIGINAL));
         assertSame(ORIGINAL, PushNotifications.certificateHeader(null, ORIGINAL));
         assertFalse(HookStatus.report().get(0).contains("Counted:"));
+    }
+
+    /**
+     * A copy from Change package name sends its own package, which Pinterest's key doesn't accept.
+     * The request names Pinterest instead and gets Pinterest's certificate. Any other package, or a
+     * build without that patch, keeps its own.
+     */
+    @Test public void aRenamedCopyNamesPinterestsPackage() throws Exception {
+        String copy = "com.pinterest.hushpinterest";
+        OwnAuthoritiesForTests.running(copy);
+        try {
+            ProbeConnection withoutPatch = connection(CREATE);
+            withoutPatch.setRequestProperty("X-Android-Package", copy);
+            assertSame(ORIGINAL, PushNotifications.certificateHeader(withoutPatch, ORIGINAL));
+            assertEquals(copy, withoutPatch.getRequestProperty("X-Android-Package"));
+
+            PatchFamilyForTests.inBuild(EnumSet.of(PatchFamily.FIX_PUSH_NOTIFICATIONS, PatchFamily.CHANGE_PACKAGE_NAME));
+            ProbeConnection renamed = connection(CREATE);
+            renamed.setRequestProperty("X-Android-Package", copy);
+            assertEquals(PINTEREST_SHA1, PushNotifications.certificateHeader(renamed, ORIGINAL));
+            assertEquals("com.pinterest", renamed.getRequestProperty("X-Android-Package"));
+            assertEquals(0, renamed.connects);
+            assertTrue(HookStatus.report().get(0).contains("copy package headers fixed 1"));
+
+            for (String other : Arrays.asList("com.pinterest.other", "other.client", "")) {
+                ProbeConnection connection = connection(CREATE);
+                connection.setRequestProperty("X-Android-Package", other);
+                assertSame(other, ORIGINAL, PushNotifications.certificateHeader(connection, ORIGINAL));
+                assertEquals(other, connection.getRequestProperty("X-Android-Package"));
+            }
+
+            Settings.FIX_PUSH_NOTIFICATIONS.save(false);
+            ProbeConnection off = connection(CREATE);
+            off.setRequestProperty("X-Android-Package", copy);
+            assertSame(ORIGINAL, PushNotifications.certificateHeader(off, ORIGINAL));
+            assertEquals(copy, off.getRequestProperty("X-Android-Package"));
+        } finally {
+            OwnAuthoritiesForTests.running(null);
+        }
     }
 
     @Test public void otherOrChangedAddressesKeepTheValue() throws Exception {

@@ -50,11 +50,6 @@ public final class MatureWarningSection implements MorpheSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MatureWarningPrefs.setAutoAcceptEnabled(enable.isChecked());
-            }
-        });
+        enable.setOnClickListener(v -> MatureWarningPrefs.setAutoAcceptEnabled(enable.isChecked()));
     }
 }

@@ -13,7 +13,7 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 USES = re.compile(r"^[ \t]*(?:-[ \t]*)?uses:[ \t]*(\S+)", flags=re.MULTILINE)
-FULL_PIN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[a-f0-9]{40}$")
+FULL_PIN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*@[a-f0-9]{40}$")
 TAG_COMMENT = re.compile(r"#\s*v\d+(?:\.\d+)*\s*$")
 workflows = {}
 refs = 0
@@ -41,7 +41,12 @@ assert "workflows:" in lock and "dependencies:" in lock
 for name, source in workflows.items():
     assert f"'.github/workflows/{name}':" in lock, f"Workflow not onboarded: {name}"
     for match in USES.finditer(source):
-        assert "'" + match.group(1) + "'" in lock, f"Action missing from lockfile: {match.group(1)}"
+        # action directories (e.g. github/codeql-action/init) share the
+        # repository-level immutable commit recorded by gh actions-lock.
+        action = match.group(1)
+        owner_repo_path, commit = action.rsplit("@", 1)
+        repository = "/".join(owner_repo_path.split("/")[:2])
+        assert "'" + repository + "@" + commit + "'" in lock, f"Action missing from lockfile: {action}"
 assert "actions/attest@" in lock, "Missing locked transitive attestation dependency"
 
 private = workflows["private-build.yml"]

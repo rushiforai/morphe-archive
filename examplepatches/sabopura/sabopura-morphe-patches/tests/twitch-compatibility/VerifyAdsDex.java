@@ -5,7 +5,7 @@ import com.android.tools.smali.dexlib2.iface.reference.*;
 import java.io.File;
 import java.util.*;
 
-/** Checks the DEX wiring of the Block ads patch in a patched APK (analysed on 31.5.2; declared for 31.6.0 and 31.7.0). */
+/** Checks the DEX wiring of the Block ads patch in a patched APK (analysed on 31.5.2; declared for the TWITCH_ADS targets). */
 class VerifyAdsDex {
     public static void main(String[] args) throws Exception {
         String ads = "Lio/github/sabopura/morphe/extension/twitch/ads/";
@@ -76,8 +76,9 @@ class VerifyAdsDex {
             for (Method m : route.getMethods()) {
                 if (!m.getName().equals("rnTheatreRouteDecision")) continue;
                 Instruction first = m.getImplementation().getInstructions().iterator().next();
+                // RefuseUltralightOff up to 31.8.0, RefuseUltralightUnsupported from 31.9.0.
                 forced = first instanceof ReferenceInstruction r && r.getReference() instanceof FieldReference f
-                        && f.getName().equals("RefuseUltralightOff");
+                        && f.getName().startsWith("RefuseUltralight");
             }
             require(forced, "streams open in the native player screen");
         }

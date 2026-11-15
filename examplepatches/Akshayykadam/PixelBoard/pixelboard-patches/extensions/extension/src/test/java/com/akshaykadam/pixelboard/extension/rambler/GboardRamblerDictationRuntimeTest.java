@@ -130,9 +130,8 @@ public final class GboardRamblerDictationRuntimeTest {
 
         GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
 
-        // Committed span must start with textBefore and include the repeated phrase with space:
-        String expected = existing + " " + existing;
-        Assert.assertEquals(expected, span.c);
+        // Committed span must be the spoken phrase without duplicating textBefore (Issue #166):
+        Assert.assertEquals(existing, span.c);
         Assert.assertEquals(0, action.c);
     }
 
@@ -164,13 +163,38 @@ public final class GboardRamblerDictationRuntimeTest {
 
         GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
 
-        // Diff must be cleared, intent reset to dictation (0), and span formatted with textBefore:
+        // Diff must be cleared, intent reset to dictation (0), and span committed verbatim:
         Assert.assertNull(action.e);
         Assert.assertEquals(0, action.c);
         Assert.assertEquals(0, action.b & 0x10);
 
-        String expected = existing + " " + spoken;
-        Assert.assertEquals(expected, span.c);
+        Assert.assertEquals(spoken, span.c);
+    }
+
+    @Test
+    public void doesNotDuplicatePreExistingPastedTextFromClipboard() {
+        // User pasted clipboard text: "Order #98721 - shipped via FedEx"
+        String clipboardText = "Order #98721 - shipped via FedEx";
+        FakeExtension ext = new FakeExtension(clipboardText, "", "");
+
+        // User speaks new dictation phrase:
+        String spoken = "Please verify delivery date";
+        FakeAction action = new FakeAction();
+        action.c = 0; // DEFAULT_INTENT_DICTATION
+        action.d = spoken;
+
+        FakeSpan span = new FakeSpan();
+        span.c = spoken;
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        // Committed span must only be the newly spoken phrase, NEVER prepending clipboardText:
+        Assert.assertEquals("Please verify delivery date", span.c);
+        Assert.assertEquals(0, action.c);
     }
 
     @Test
@@ -290,6 +314,184 @@ public final class GboardRamblerDictationRuntimeTest {
         // Already has prefix and delta, left untouched:
         Assert.assertEquals("Hello world", span.c);
         Assert.assertEquals(0, action.c);
+    }
+
+    @Test
+    public void preservesVoiceActionToPerformEditOnSentence_addExclamationPoint() {
+        // User dictated a sentence: "Have a wonderful day"
+        String existingSentence = "Have a wonderful day";
+        FakeExtension ext = new FakeExtension(existingSentence, "", "");
+
+        // User speaks action instruction: "add exclamation point"
+        FakeAction action = new FakeAction();
+        action.c = 3; // INTENT_REWRITE
+        action.d = "add exclamation point";
+
+        FakeDiff diff = new FakeDiff();
+        diff.c = existingSentence;
+        diff.d = "";
+        diff.e = "";
+        action.e = diff;
+
+        FakeSpan span = new FakeSpan();
+        span.c = "Have a wonderful day!";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        // Action diff and intent must be preserved, and sentence must NOT be duplicated:
+        Assert.assertEquals(3, action.c);
+        Assert.assertNotNull(action.e);
+        Assert.assertEquals("Have a wonderful day!", span.c);
+    }
+
+    @Test
+    public void preservesVoiceActionWithEditIntent_addExclamationPoint() {
+        String existingSentence = "Have a wonderful day";
+        FakeExtension ext = new FakeExtension(existingSentence, "", "");
+
+        FakeAction action = new FakeAction();
+        action.c = 1; // INTENT_EDIT
+        action.d = "add exclamation point";
+
+        FakeSpan span = new FakeSpan();
+        span.c = "!";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        Assert.assertEquals(1, action.c);
+        Assert.assertEquals("!", span.c);
+    }
+
+    @Test
+    public void testIssue167_midSentenceEditWithCursorPlacedMidSentence_preservesDiff() {
+        // User has: "I will meet you at the office tomorrow"
+        // Cursor placed at "office", so textBefore is "I will meet you at the ", textAfter is " tomorrow"
+        String textBefore = "I will meet you at the ";
+        String textAfter = " tomorrow";
+        FakeExtension ext = new FakeExtension(textBefore, "", textAfter);
+
+        // User speaks: "station"
+        FakeAction action = new FakeAction();
+        action.c = 0; // DEFAULT_INTENT_DICTATION
+        action.d = "station";
+
+        FakeDiff diff = new FakeDiff();
+        diff.c = "I will meet you at the ";
+        diff.d = "office";
+        diff.e = " tomorrow";
+        action.e = diff;
+
+        FakeSpan span = new FakeSpan();
+        span.c = "station";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        // Diff must NOT be cleared, so Gboard can replace "office" with "station" in-place:
+        Assert.assertNotNull(action.e);
+        Assert.assertEquals("station", span.c);
+    }
+
+    @Test
+    public void testIssue167_sentenceRespokeWithWordChanged_preservesDiff() {
+        // User has: "I will meet you at the office tomorrow"
+        String textBefore = "I will meet you at the office tomorrow";
+        FakeExtension ext = new FakeExtension(textBefore, "", "");
+
+        // User speaks: "I will meet you at the station tomorrow"
+        String spoken = "I will meet you at the station tomorrow";
+        FakeAction action = new FakeAction();
+        action.c = 3; // INTENT_REWRITE
+        action.d = spoken;
+
+        FakeDiff diff = new FakeDiff();
+        diff.c = "I will meet you at the ";
+        diff.d = "office";
+        diff.e = " tomorrow"; // Non-empty suffix!
+        action.e = diff;
+
+        FakeSpan span = new FakeSpan();
+        span.c = "station";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        // Non-empty diff.e means this is an in-place word edit, NOT an issue #134 echo:
+        Assert.assertNotNull(action.e);
+        Assert.assertEquals(3, action.c);
+        Assert.assertEquals("station", span.c);
+    }
+
+    @Test
+    public void testIssue167_selectedTextReplacement_preservesDiff() {
+        String textBefore = "I will meet you at the ";
+        String selected = "office";
+        String textAfter = " tomorrow";
+        FakeExtension ext = new FakeExtension(textBefore, selected, textAfter);
+
+        FakeAction action = new FakeAction();
+        action.c = 0;
+        action.d = "station";
+
+        FakeDiff diff = new FakeDiff();
+        diff.c = "I will meet you at the ";
+        diff.d = "office";
+        diff.e = " tomorrow";
+        action.e = diff;
+
+        FakeSpan span = new FakeSpan();
+        span.c = "station";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        Assert.assertNotNull(action.e);
+        Assert.assertEquals("station", span.c);
+    }
+
+    @Test
+    public void testIssue167_voiceCommandReplaceWord_preservesDiff() {
+        FakeExtension ext = new FakeExtension("I will meet you at the office tomorrow", "", "");
+
+        FakeAction action = new FakeAction();
+        action.c = 3;
+        action.d = "replace office with station";
+
+        FakeDiff diff = new FakeDiff();
+        diff.c = "I will meet you at the ";
+        diff.d = "office";
+        diff.e = " tomorrow";
+        action.e = diff;
+
+        FakeSpan span = new FakeSpan();
+        span.c = "station";
+        span.j = action;
+
+        FakeProto proto = new FakeProto();
+        proto.b = Collections.singletonList(span);
+
+        GboardRamblerDictationRuntime.filterVoiceText(ext, proto);
+
+        Assert.assertNotNull(action.e);
+        Assert.assertEquals(3, action.c);
+        Assert.assertEquals("station", span.c);
     }
 
     @Test

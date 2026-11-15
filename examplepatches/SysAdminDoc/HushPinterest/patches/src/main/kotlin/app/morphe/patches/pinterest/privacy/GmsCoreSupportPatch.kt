@@ -13,12 +13,15 @@
 package app.morphe.patches.pinterest.privacy
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
@@ -33,9 +36,14 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import org.w3c.dom.Document
@@ -60,8 +68,17 @@ private const val CREDENTIAL_MANAGER = "Landroid/credentials/CredentialManager;"
 internal const val HIDDEN_ACTIVITY = "Landroidx/credentials/playservices/HiddenActivity;"
 internal const val SIGN_IN_FAILURE_TEXT = "During get sign-in intent, failure response from one tap: "
 private const val EXCEPTION = "Ljava/lang/Exception;"
+private const val OBJECT = "Ljava/lang/Object;"
+private const val LIST = "Ljava/util/List;"
+private const val STRING = "Ljava/lang/String;"
 private const val SIGN_IN_READINESS = "$EXTENSION_PACKAGE/settings/GoogleSignInReadiness;"
 internal const val SIGN_IN_FAILURE_HOOK = "$SIGN_IN_READINESS->requestFailed($EXCEPTION)V"
+
+/** The extension's answer for the framework provider: true while microG-RE is installed, so the provider steps aside. */
+internal const val CREDENTIAL_PROVIDER_HOOK = "$SIGN_IN_READINESS->signsInThroughMicroG()Z"
+
+/** The extension's answer for one option of a credential request: true when it asks for a Google ID token. */
+internal const val GOOGLE_ID_OPTION_HOOK = "$SIGN_IN_READINESS->isGoogleIdOption(Ljava/lang/String;)Z"
 
 /** Play services permissions microG-RE defines under its own vendor. Morphe's list. */
 internal val GMS_PERMISSIONS = setOf(
@@ -361,17 +378,33 @@ internal data class GmsCoreText(val method: Method, val index: Int, val text: St
 /** One static String field whose value gets rewritten: its class, its name, and the text it gets. */
 internal data class GmsCoreField(val type: String, val name: String, val text: String)
 
+/**
+ * androidx Credential Manager's provider choice and what its option loop reads: the request class it
+ * tests its argument against, that request's option list, the option class and its type field, and
+ * the call that picks the Play services provider. [call] is that call's opcode.
+ */
+internal data class GmsCoreProviderChoice(
+    val method: Method,
+    val request: String,
+    val options: String,
+    val option: String,
+    val type: String,
+    val fallback: String,
+    val call: Opcode,
+)
+
 /** Everything the patch edits, found before any edit. */
 internal data class GmsCorePlan(
     val availability: Method,
     val frameworkProvider: Method,
+    val providerChoice: GmsCoreProviderChoice,
     val signInFailure: Method,
     val texts: List<GmsCoreText>,
     val fields: List<GmsCoreField>,
 )
 
 /**
- * Finds the four edits, refusing when any of them isn't exactly where 14.43.0 has it:
+ * Finds the five edits, refusing when any of them isn't exactly where 14.43.0 has it:
  *
  * - Play services' availability check, the one method taking a Context and the minimum version
  *   that reads the version metadata ("MetadataValueReader") and Play services' package. It answers
@@ -380,8 +413,15 @@ internal data class GmsCorePlan(
  *   receiver open.
  * - androidx Credential Manager's framework provider, the one class holding Android's
  *   CredentialManager. On Android 14 and later androidx prefers it, and Android hands Google
- *   sign-in to Google's own Play services whatever the app asks for, so it answers unavailable
- *   and androidx falls back to the Play services provider, which the reroute sends to microG-RE.
+ *   sign-in to Google's own Play services whatever the app asks for, so while microG-RE is
+ *   installed it answers unavailable and androidx falls back to the Play services provider, which
+ *   the reroute sends to microG-RE. Without microG-RE it answers for itself: the Play services
+ *   provider is missing there too, and answering unavailable left androidx no provider at all.
+ * - androidx's provider choice, the one static method taking its own class and the request that
+ *   builds the framework provider and asks isAvailableOnDevice. A request whose every option asks
+ *   for a Google ID token goes straight to the Play services provider it would fall back to, so
+ *   Continue with Google always reaches microG-RE, and without microG-RE fails into the listener
+ *   below. Every other request, a saved password's among them, keeps the choice's own body.
  * - androidx's failure listener for the Sign in with Google request, the static method of its
  *   hidden activity taking that activity and an Exception and naming [SIGN_IN_FAILURE_TEXT]. It
  *   turns any failed request into "no credential", and Pinterest shows nothing for that, so the
@@ -394,6 +434,7 @@ internal fun BytecodePatchContext.resolveGmsCore(): GmsCorePlan {
     val availability = mutableListOf<Method>()
     val providers = mutableListOf<Method>()
     val signInFailures = mutableListOf<Method>()
+    val choices = mutableListOf<ChoiceCandidate>()
     val texts = mutableListOf<GmsCoreText>()
     val fields = mutableListOf<GmsCoreField>()
     classDefForEach { owner ->
@@ -421,17 +462,69 @@ internal fun BytecodePatchContext.resolveGmsCore(): GmsCorePlan {
             if (owner.type == HIDDEN_ACTIVITY && method.returnType == "V" && AccessFlags.STATIC.isSet(method.accessFlags) &&
                 method.parameterTypes.map(CharSequence::toString) == listOf(HIDDEN_ACTIVITY, EXCEPTION) && SIGN_IN_FAILURE_TEXT in strings
             ) signInFailures += method
+            if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType.startsWith("L") &&
+                method.parameterTypes.map(CharSequence::toString) == listOf(owner.type, OBJECT) &&
+                body.any { it.methodReference()?.let { called -> called.name == "isAvailableOnDevice" &&
+                    called.returnType == "Z" && called.parameterTypes.isEmpty() } == true }
+            ) choices += ChoiceCandidate(method, body.filter { it.opcode == Opcode.NEW_INSTANCE }.mapTo(mutableSetOf()) { it.typeReference() })
         }
     }
     shape(availability.size == 1, "Play services' availability check has ${availability.size} matches")
     shape(providers.size == 1, "Credential Manager's framework provider has ${providers.size} matches")
+    // Its only parameter is this, so any register below it is a local the answer can borrow on entry.
+    shape(providers.single().implementation!!.registerCount > 1, "Credential Manager's framework provider has no local register")
+    val choice = providerChoice(choices, providers.single())
     shape(signInFailures.size == 1, "androidx's sign-in failure listener has ${signInFailures.size} matches")
     val rewritten = texts.map { text -> text.method.texts()[text.index] }.toSet()
     GMS_CORE_REQUIRED_TEXTS.firstOrNull { it !in rewritten }?.let { shape(false, "Pinterest no longer names $it") }
-    return GmsCorePlan(availability.single(), providers.single(), signInFailures.single(), texts, fields)
+    return GmsCorePlan(availability.single(), providers.single(), choice, signInFailures.single(), texts, fields)
 }
 
-/** Rewrites every planned text and field, answers the two checks, then hooks the listener. Texts go first: they keep every index. */
+/** A static method that might be androidx's provider choice, with the classes it builds. */
+internal class ChoiceCandidate(val method: Method, val built: Set<String>)
+
+/**
+ * The one candidate that builds [provider]'s class, and what its option loop reads, refusing when
+ * any piece isn't single or the hook can't run in its frame.
+ */
+private fun BytecodePatchContext.providerChoice(candidates: List<ChoiceCandidate>, provider: Method): GmsCoreProviderChoice {
+    val matches = candidates.filter { provider.definingClass in it.built }
+    shape(matches.size == 1, "androidx's credential provider choice has ${matches.size} matches")
+    val method = matches.single().method
+    val implementation = method.implementation!!
+    val body = implementation.instructions.toList()
+    // Static, so the choice's class and the request are the last two registers and the rest are
+    // locals. The hook names p0 and p1 in four-bit register forms.
+    val registers = implementation.registerCount
+    shape(registers >= 4, "androidx's credential provider choice has fewer than two local registers")
+    shape(registers <= 16, "androidx's credential provider choice has more registers than the hook can name")
+    val requests = body.filter { it.opcode == Opcode.INSTANCE_OF && (it as TwoRegisterInstruction).registerB == registers - 1 }
+        .mapTo(mutableSetOf()) { it.typeReference() }
+    shape(requests.size == 1, "androidx's credential provider choice tests its request against ${requests.size} classes")
+    val request = requests.single()
+    val lists = body.filter { it.opcode == Opcode.IGET_OBJECT }.mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
+        .filter { it.definingClass == request && it.type == LIST }.mapTo(mutableSetOf()) { it.toString() }
+    shape(lists.size == 1, "androidx's credential provider choice reads ${lists.size} option lists")
+    val casts = body.filter { it.opcode == Opcode.CHECK_CAST }.mapTo(mutableSetOf()) { it.typeReference() } - request
+    shape(casts.size == 1, "androidx's credential provider choice casts to ${casts.size} option classes")
+    val option = casts.single()
+    val types = classDefByOrNull(option)?.fields?.filter { it.type == STRING && !AccessFlags.STATIC.isSet(it.accessFlags) }.orEmpty()
+    shape(types.size == 1, "androidx's credential option has ${types.size} String fields")
+    shape(AccessFlags.PUBLIC.isSet(types.single().accessFlags), "androidx's credential option type isn't public")
+    val fallbacks = body.mapNotNull { instruction ->
+        if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_DIRECT) return@mapNotNull null
+        val called = instruction.methodReference() ?: return@mapNotNull null
+        if (called.definingClass != method.definingClass || called.parameterTypes.isNotEmpty() || called.returnType != method.returnType) null
+        else instruction.opcode to called.toString()
+    }.toSet()
+    shape(fallbacks.size == 1, "androidx's credential provider choice has ${fallbacks.size} Play services lookups")
+    val answers = classDefByOrNull(provider.definingClass)?.interfaces.orEmpty()
+    shape(method.returnType in answers, "androidx's credential provider choice doesn't answer the framework provider's kind")
+    val (call, fallback) = fallbacks.single()
+    return GmsCoreProviderChoice(method, request, lists.single(), option, "$option->${types.single().name}:$STRING", fallback, call)
+}
+
+/** Rewrites every planned text and field, answers the two checks, hooks the provider choice, then the listener. Texts go first: they keep every index. */
 internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
     for ((type, sites) in plan.texts.groupBy { it.method.definingClass }) {
         val owner = mutableClassDefBy(type)
@@ -451,7 +544,50 @@ internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
         for (field in held) (owner.staticFields.single { it.name == field.name }.initialValue as MutableStringEncodedValue).value = field.text
     }
     mutableClassDefBy(plan.availability.definingClass).methods.single { it.same(plan.availability) }.returnEarly(0)
-    mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }.returnEarly(false)
+    // The framework provider answers false while microG-RE is installed and otherwise runs its own
+    // body. v0 is a local the plan checked for, unread before the original body's first write.
+    val provider = mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }
+    provider.addInstructionsWithLabels(0, """
+        invoke-static {}, $CREDENTIAL_PROVIDER_HOOK
+        move-result v0
+        if-eqz v0, :framework
+        const/4 v0, 0x0
+        return v0
+    """, ExternalLabel("framework", provider.getInstruction(0)))
+    // The provider choice sends a request whose every option asks for a Google ID token to the
+    // Play services provider and runs its own body for anything else. v0 and v1 are locals the plan
+    // checked for, unread before the original body's first write; p1 itself is never cast.
+    val choice = plan.providerChoice
+    val chooser = mutableClassDefBy(choice.method.definingClass).methods.single { it.same(choice.method) }
+    val lookup = if (choice.call == Opcode.INVOKE_DIRECT) "invoke-direct" else "invoke-virtual"
+    chooser.addInstructionsWithLabels(0, """
+        instance-of v0, p1, ${choice.request}
+        if-eqz v0, :own
+        move-object v0, p1
+        check-cast v0, ${choice.request}
+        iget-object v0, v0, ${choice.options}
+        invoke-interface {v0}, $LIST->isEmpty()Z
+        move-result v1
+        if-nez v1, :own
+        invoke-interface {v0}, $LIST->iterator()Ljava/util/Iterator;
+        move-result-object v0
+        :next
+        invoke-interface {v0}, Ljava/util/Iterator;->hasNext()Z
+        move-result v1
+        if-eqz v1, :google
+        invoke-interface {v0}, Ljava/util/Iterator;->next()$OBJECT
+        move-result-object v1
+        check-cast v1, ${choice.option}
+        iget-object v1, v1, ${choice.type}
+        invoke-static {v1}, $GOOGLE_ID_OPTION_HOOK
+        move-result v1
+        if-eqz v1, :own
+        goto :next
+        :google
+        $lookup {p0}, ${choice.fallback}
+        move-result-object v0
+        return-object v0
+    """, ExternalLabel("own", chooser.getInstruction(0)))
     mutableClassDefBy(plan.signInFailure.definingClass).methods.single { it.same(plan.signInFailure) }
         .addInstructions(0, "invoke-static/range { p1 .. p1 }, $SIGN_IN_FAILURE_HOOK")
 }
@@ -497,11 +633,20 @@ internal val gmsCorePreflightPatch = bytecodePatch {
     execute {
         requireStatusMethod("gmsCoreSupport")
         requireStatusMethod("signInFailure")
-        val hook = classDefByOrNull(SIGN_IN_READINESS)?.methods?.singleOrNull {
+        val readiness = classDefByOrNull(SIGN_IN_READINESS)?.methods?.toList().orEmpty()
+        val hook = readiness.singleOrNull {
             it.name == "requestFailed" && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf(EXCEPTION)
         }
         shape(hook != null && AccessFlags.PUBLIC.isSet(hook.accessFlags) && AccessFlags.STATIC.isSet(hook.accessFlags),
             "the extension has no callable $SIGN_IN_FAILURE_HOOK")
+        val provider = readiness.singleOrNull { it.name == "signsInThroughMicroG" && it.returnType == "Z" && it.parameterTypes.isEmpty() }
+        shape(provider != null && AccessFlags.PUBLIC.isSet(provider.accessFlags) && AccessFlags.STATIC.isSet(provider.accessFlags),
+            "the extension has no callable $CREDENTIAL_PROVIDER_HOOK")
+        val option = readiness.singleOrNull {
+            it.name == "isGoogleIdOption" && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf(STRING)
+        }
+        shape(option != null && AccessFlags.PUBLIC.isSet(option.accessFlags) && AccessFlags.STATIC.isSet(option.accessFlags),
+            "the extension has no callable $GOOGLE_ID_OPTION_HOOK")
         resolveGmsCore()
     }
 }
@@ -538,6 +683,10 @@ private fun Method.texts(): List<String?> = implementation?.instructions?.map {
 
 private fun Method.same(other: Method) = definingClass == other.definingClass && name == other.name &&
     returnType == other.returnType && parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
+
+private fun Instruction.methodReference() = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun Instruction.typeReference() = ((this as ReferenceInstruction).reference as TypeReference).type
 
 private fun shape(valid: Boolean, reason: String) {
     if (!valid) throw PatchException("$PATCH: $reason; refuses before any edit")

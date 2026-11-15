@@ -32,6 +32,8 @@ val subredditBannerPatch = bytecodePatch(
             "on its About page.",
     default = true
 ) {
+    category("4. Feed")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests, subredditBannerSettingsPatch)
 
     compatibleWith(*SyncForRedditCompatible)

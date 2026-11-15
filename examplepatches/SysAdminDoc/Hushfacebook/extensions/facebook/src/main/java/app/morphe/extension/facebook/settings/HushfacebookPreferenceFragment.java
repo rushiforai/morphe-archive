@@ -79,6 +79,8 @@ import app.morphe.extension.facebook.profile.LocalProfileCounts;
 import app.morphe.extension.facebook.stories.StoriesTrayCircles;
 import app.morphe.extension.facebook.misc.OpeningPause;
 import app.morphe.extension.facebook.menu.MenuTiles;
+import app.morphe.extension.facebook.misc.PostMenuItems;
+import app.morphe.extension.facebook.misc.RefreshRate;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
@@ -119,6 +121,7 @@ import app.morphe.extension.facebook.settings.ValueRows.CountRow;
 import app.morphe.extension.facebook.settings.ValueRows.HeaderTextRow;
 import app.morphe.extension.facebook.settings.ValueRows.MarkColorRow;
 import app.morphe.extension.facebook.settings.ValueRows.ReactionCeilingRow;
+import app.morphe.extension.facebook.settings.ValueRows.RefreshRateRow;
 import app.morphe.extension.facebook.settings.ValueRows.TextSizeRow;
 import app.morphe.extension.facebook.settings.ValueRows.DownloadActionRow;
 import app.morphe.extension.facebook.settings.ValueRows.FeedsSubtabRow;
@@ -957,6 +960,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         showShareItemsSummary();
         showMenuTilesSummary();
         showFeedTypesSummary();
+        showPostMenuItemsSummary();
         for (TabBarChoices.Pair pair : TabBarChoices.Pair.values()) {
             if (getPreferenceScreen() != null) TabBarChoices.showSaved(findPreference(pair.rowKey), pair);
         }
@@ -991,6 +995,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (row != null) {
             row.setSummary(FeedPages.feedTypesSummary(FeedTypeNames.hidden()));
         }
+    }
+
+    /** No setting is behind the 3-dot menu items row's key, so its summary is redone here after an import. */
+    private void showPostMenuItemsSummary() {
+        if (getPreferenceScreen() == null) return;
+        Preference row = findPreference(FeedPages.POST_MENU_ITEMS_ROW);
+        if (row != null) row.setSummary(FeedPages.postMenuItemsSummary(PostMenuItems.hidden()));
     }
 
     /** No setting is behind the share sheet row's key, so its summary is redone here after an import. */
@@ -1941,7 +1952,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 + "stay faded.", burnInWaitLabel(wait));
     }
 
-    /** What Hold a post to react gives, right under its switch (#454). */
+    /** What a hold to react gives, right under its two switches (#454). */
     static HoldReactionRow holdReactionRow(Context context) {
         HoldReactionRow row = new HoldReactionRow(context);
         row.setKey(Settings.HOLD_REACTION.key);
@@ -2128,6 +2139,47 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setEntryValues(values);
         row.setValue(Settings.TEXT_SIZE.savedValue().name());
         return row;
+    }
+
+    /**
+     * The refresh rate Facebook's screens ask for (#480). Its list holds the rates this screen
+     * offers, and its summary says what the choice does.
+     */
+    static RefreshRateRow refreshRateRow(Context context) {
+        RefreshRateRow row = new RefreshRateRow(context);
+        row.setKey(Settings.REFRESH_RATE.key);
+        row.setTitle(L10n.t("Refresh rate"));
+        row.setDialogTitle(L10n.t("Refresh rate"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        List<RefreshRate.Rate> choices = RefreshRate.offered(context, Settings.REFRESH_RATE.savedValue());
+        CharSequence[] entries = new CharSequence[choices.size()];
+        CharSequence[] values = new CharSequence[choices.size()];
+        for (int i = 0; i < choices.size(); i++) {
+            entries[i] = refreshRateLabel(choices.get(i));
+            values[i] = choices.get(i).name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.REFRESH_RATE.savedValue().name());
+        return row;
+    }
+
+    /** A refresh rate choice as its list writes it: a fixed one as the phone writes numbers, such as 120 Hz. */
+    static String refreshRateLabel(RefreshRate.Rate rate) {
+        if (rate == RefreshRate.Rate.FACEBOOK) return L10n.t("As Facebook has it");
+        if (rate == RefreshRate.Rate.HIGHEST) return L10n.t("Highest your screen offers");
+        return rate.hertzLabel();
+    }
+
+    /** What a refresh rate choice does, for the row's summary. */
+    static String refreshRateSummary(RefreshRate.Rate rate) {
+        if (rate == RefreshRate.Rate.FACEBOOK) return L10n.t("Facebook runs at whatever refresh rate your phone picks for it.");
+        if (rate == RefreshRate.Rate.HIGHEST) {
+            return L10n.t("Facebook asks for your screen's highest refresh rate, so scrolling and reels look smoother. "
+                    + "It uses a bit more battery, and your phone's own refresh rate setting still caps it.");
+        }
+        return L10n.f("Facebook asks your screen for %1$s. Your phone's own refresh rate setting still caps it.",
+                rate.hertzLabel());
     }
 
     /** Mark new settings (#16): how long the dot beside a setting an update added stays. */
@@ -2904,6 +2956,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((BreakRow) listPreference).showSummary();
         } else if (listPreference instanceof TextSizeRow) {
             ((TextSizeRow) listPreference).showSummary();
+        } else if (listPreference instanceof RefreshRateRow) {
+            ((RefreshRateRow) listPreference).showSummary();
         } else if (listPreference instanceof NewRowMarkRow) {
             ((NewRowMarkRow) listPreference).showSummary();
         } else if (listPreference instanceof AccentRow) {

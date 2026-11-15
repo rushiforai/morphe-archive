@@ -416,7 +416,7 @@ public class SettingsL10nTest {
                 + ").", "Remove the advertising ID"));
 
         // The real items (Analytics' manifest flags, the removed ad permissions, the spoofed
-        // signature and the microG-RE redirect) in every shipped language.
+        // signature, the microG-RE redirect and the copy's own package) in every shipped language.
         List<String> repeats = new ArrayList<>();
         int real = 0;
         for (PatchFamily family : PatchFamily.values()) {
@@ -428,7 +428,7 @@ public class SettingsL10nTest {
                 if (repeatsItsName(shown, family.patchName)) repeats.add(language + ": " + shown);
             }
         }
-        assertEquals("real stays items checked", 4, real);
+        assertEquals("real stays items checked", 5, real);
 
         // staysWhilePausedForTests substitutes one more item that, correctly, doesn't repeat its
         // patch's name, so the check also runs on a family whose item a test supplies.

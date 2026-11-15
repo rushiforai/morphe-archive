@@ -122,6 +122,8 @@ final class SiteBoardGateway {
     }
 
     private static String boardName(SiteBoardProtocol.Board board, String name) {
+        if (board.kind.equals("animanch") && board.path.equals("/") &&
+                (name.isEmpty() || name.equals(board.host) || name.equals("追加掲示板") || name.startsWith(AnimanchProtocol.ORIGIN))) return "あにまん";
         if (isAnimanchGamesBoard(board) && (name.isEmpty() || name.equals(board.host)
                 || name.equals("追加掲示板"))) return "家庭用ゲーム";
         return name.isEmpty() ? board.host : name;
@@ -201,6 +203,24 @@ final class SiteBoardGateway {
         settingNativeFlags=true;try{if(!save.commit())throw new IOException("板を保存できません");}finally{settingNativeFlags=false;}
         if(enabled())start();return key;
     }
+    String registeredKey(String host,String key){
+        return port>0&&("127.0.0.1:"+port).equals(host)&&key!=null&&boards.containsKey(key)?key:null;
+    }
+    String popupBoardKey(String key,String thread){
+        SiteBoardProtocol.Board original=boards.get(key);
+        if(original==null||!original.kind.equals("animanch")||thread==null)return key;
+        String category=animanchCategories.get(thread);
+        if(category==null||original.path.equals(category))return key;
+        // Prefer the known category only if it is already registered and enabled.
+        String target=null;
+        for(Map.Entry<String,SiteBoardProtocol.Board> entry:boards.entrySet())
+            if(entry.getValue().kind.equals("animanch")&&entry.getValue().path.equals(category)&&boardEnabled(entry.getKey())&&
+                    (target==null||entry.getKey().compareTo(target)<0))target=entry.getKey();
+        return target==null?key:target;
+    }
+    String popupBoardUrl(String key,String thread)throws IOException{
+        return nativeUrl(popupBoardKey(key,thread),null);
+    }
     synchronized String nativeUrl(String key,String thread)throws IOException{
         if(!boardEnabled(key))throw new IOException("この板の「使用する」をオンにしてください");start();
         return thread==null?origin()+"/"+key+"/":origin()+"/test/read.cgi/"+key+"/"+SiteThreadIds.nativeId(thread)+"/";
@@ -251,10 +271,21 @@ final class SiteBoardGateway {
         String id=AnimanchProtocol.threadId(address);
         if(id==null)return localUrl(address);
         if(animanchCategories.get(id)==null){
-            String html=page(AnimanchProtocol.ORIGIN+"/board/"+id+"/");
-            rememberAnimanch(id,AnimanchCategories.fromThread(html,id));
+            try{rememberAnimanchPage(id,page(AnimanchProtocol.ORIGIN+"/board/"+id+"/"));}
+            catch(IOException unavailable){/* The root route can still open a cached or restricted thread. */}
         }
         return localUrl(address);
+    }
+    private synchronized void rememberAnimanchPage(String id,String html){
+        AnimanchCategories.Category category=AnimanchCategories.identify(html,id);
+        if(category==null)return;
+        rememberAnimanch(id,category.path);
+        if(!enabled()||!siteEnabled("animanch"))return;
+        String address=AnimanchProtocol.ORIGIN+category.path;
+        for(SiteBoardProtocol.Board board:boards.values())if(board.url.equals(address))return;
+        // Like the existing Animanch root fallback, provision only the verified
+        // board route. An existing user-disabled category stays disabled.
+        try{register(address,category.name);}catch(IOException unavailable){android.util.Log.w("Haiagaru","Animanch category route unavailable",unavailable);}
     }
     private void rememberAnimanch(String id,String category){
         if(id==null||!id.matches("[1-9][0-9]{0,11}")||category==null||!category.matches("/category[1-9][0-9]{0,3}/"))return;
@@ -431,7 +462,7 @@ final class SiteBoardGateway {
                 android.content.Context app=Haiagaru.applicationContextForExtension();if(app!=null)GlobalTitleSearch.rememberSubject(app,registrationUrl(key),new String(data,java.nio.charset.Charset.forName("windows-31j")));
             }
             else{
-                String id=sourceThread(route.group(3));SiteBoardProtocol.Board resolved=newsSource(key,id,board);String html=page(resolved.threadUrl(id));if(board.kind.equals("animanch"))rememberAnimanch(id,AnimanchCategories.fromThread(html,id));if(newsBoard(key)){resolved=BakusaiNews.canonical(resolved.threadUrl(id),id,html);saveNews(id,resolved.threadUrl(id));prefs.edit().putInt("yamiCount:"+id,SiteBoardProtocol.bakusaiCount(Jsoup.parse(html))+1).apply();}SiteBoardProtocol.Board sourceBoard=resolved;SiteBoardProtocol.ThreadPage page=thread(sourceBoard,id,html);
+                String id=sourceThread(route.group(3));SiteBoardProtocol.Board resolved=newsSource(key,id,board);String html=page(resolved.threadUrl(id));if(board.kind.equals("animanch"))rememberAnimanchPage(id,html);if(newsBoard(key)){resolved=BakusaiNews.canonical(resolved.threadUrl(id),id,html);saveNews(id,resolved.threadUrl(id));prefs.edit().putInt("yamiCount:"+id,SiteBoardProtocol.bakusaiCount(Jsoup.parse(html))+1).apply();}SiteBoardProtocol.Board sourceBoard=resolved;SiteBoardProtocol.ThreadPage page=thread(sourceBoard,id,html);
                 if(!page.entries.isEmpty())SiteThreadMetadata.remember(key,id,SiteThreadDates.parse(page.entries.get(0).date));
                 data=SiteNativeData.dat(board,page,source->{if(board.kind.equals("animanch"))return origin()+"/m/"+key+URI.create(source).getPath()+".jpg";return source;},
                         source->{String other=SiteBoardProtocol.threadIn(sourceBoard,source);if(other==null)return source;try{String targetKey=key;if(board.kind.equals("animanch")){String targetCategory=animanchCategories.get(other);if(targetCategory==null)return source;targetKey=null;for(Map.Entry<String,SiteBoardProtocol.Board> entry:boards.entrySet())if(boardEnabled(entry.getKey())&&entry.getValue().kind.equals("animanch")&&entry.getValue().path.equals(targetCategory)){targetKey=entry.getKey();break;}if(targetKey==null)return source;}return origin()+"/test/read.cgi/"+targetKey+"/"+SiteThreadIds.nativeId(other)+"/";}catch(IOException invalid){return source;}});

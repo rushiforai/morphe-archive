@@ -29,10 +29,17 @@ private const val EXTENSION = "Lapp/polishapps/extension/lidl/AutoClaimCoupons;"
 private const val LIST_LOADER_STRING = "lidlplusapp_coupons_listing_display_1"
 
 /**
- * Member names of the coupon domain model in 17.13.6, checked against the APK before patching.
- * `my6` is the coupon shown in the list and `l87` its level lock. R8 renames them every release.
+ * Names of the coupon domain model, checked against the APK before patching. R8 renames the classes
+ * every release (the member names have stayed the same so far), so each supported version has its own entry.
+ * [coupon] is the coupon shown in the list and its level lock is the type of the field [levels].
  */
-private const val COUPON = "Lmy6;"
+private class CouponModel(val coupon: String, val levelsHolder: String)
+
+private val COUPON_MODELS = mapOf(
+    "17.13.6" to CouponModel("Lmy6;", "Ll87;"),
+    "17.14.6" to CouponModel("Ln17;", "Ldb7;"),
+)
+
 private const val COUPON_ID = "a"
 private const val COUPON_LOCATION = "g"
 private const val COUPON_ACTIVATED = "j"
@@ -52,7 +59,11 @@ private fun ClassDef.requireField(name: String, type: String) {
 }
 
 private fun BytecodePatchContext.checkCouponModel(): String {
-    val coupon = classDefByOrNull(COUPON) ?: throw PatchException("$COUPON not found")
+    val version = packageMetadata.versionName
+    val model = COUPON_MODELS[version] ?: throw PatchException(
+        "Lidl Plus $version has no coupon model entry. Known: ${COUPON_MODELS.keys.joinToString()}",
+    )
+    val coupon = classDefByOrNull(model.coupon) ?: throw PatchException("${model.coupon} not found")
     coupon.requireField(COUPON_ID, STRING)
     coupon.requireField(COUPON_LOCATION, STRING)
     coupon.requireField(COUPON_ACTIVATED, "Z")
@@ -60,8 +71,11 @@ private fun BytecodePatchContext.checkCouponModel(): String {
     coupon.requireField(COUPON_GROUPS, LIST)
 
     val levelsField = coupon.fields.singleOrNull { it.name == COUPON_LEVELS }
-        ?: throw PatchException("$COUPON: field $COUPON_LEVELS not found")
+        ?: throw PatchException("${model.coupon}: field $COUPON_LEVELS not found")
     val levels = classDefByOrNull(levelsField.type) ?: throw PatchException("${levelsField.type} not found")
+    if (levels.type != model.levelsHolder) {
+        throw PatchException("${model.coupon}.$COUPON_LEVELS is ${levels.type}, expected ${model.levelsHolder}")
+    }
     levels.requireField(LEVELS_LOCKED, "Z")
     return levelsField.type
 }

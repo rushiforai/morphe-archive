@@ -7,6 +7,11 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcode
 
 internal fun BytecodePatchContext.patchReadingPosition(version: String) {
+    if(version=="0.8.10.191 dev"){
+        val adapter=mutableClassDefBy("Lo/m9ExternalSyntheticLambda1;")
+        adapter.methods.single{it.name=="c"&&it.parameterTypes==listOf("Z")&&it.returnType=="V"}
+            .addInstructions(0,"invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ReadingPosition;->beforeLegacyRebuild(Ljava/lang/Object;)V")
+    }
     val owner = mutableClassDefBy(if (version == "0.8.10.191 dev") "Lo/pa;"
         else "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")
     val longClick=owner.methods.single { it.name=="onLongClick" && it.parameterTypes==listOf("Landroid/view/View;") }

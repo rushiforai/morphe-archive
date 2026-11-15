@@ -79,9 +79,11 @@ val danmakuPatch = bytecodePatch(
     execute {
         // Start one cancellable background fetch session for the visible video.
         // Explicit class scope also avoids the patcher's classFingerprint overload
-        // throwing from matchOrNull when only the legacy child no longer matches.
+        // throwing when only the legacy child no longer matches.
         val videoIdClass = VideoIdParentFingerprint.originalClassDef
-        val videoIdMatch = VideoIdFingerprint.matchOrNull(videoIdClass)
+        val mapPutMatches = VideoIdFingerprint.matchAllOrNull(videoIdClass).orEmpty()
+        check(mapPutMatches.size <= 1) { "Several YouTube video id map writes matched" }
+        val videoIdMatch = mapPutMatches.singleOrNull()
             ?: DelegatingVideoIdFingerprint.matchAll(videoIdClass, 1..1).single().also { match ->
                 val writer = match.instructionMatches[2].getMethodCalled()
                 check(writer.definingClass == match.method.definingClass && isVideoIdMapWriter(writer)) {
@@ -89,7 +91,9 @@ val danmakuPatch = bytecodePatch(
                 }
             }
         videoIdMatch.method.apply {
-            val index = videoIdMatch.instructionMatches[1].index
+            val index = checkNotNull(
+                videoIdResultIndex(implementation!!.instructions.toList(), videoIdMatch.instructionMatches[2].index),
+            ) { "The YouTube video id written to the player map no longer comes straight from its getter" }
             val register = getInstruction<OneRegisterInstruction>(index).registerA
             addInstruction(
                 index + 1,

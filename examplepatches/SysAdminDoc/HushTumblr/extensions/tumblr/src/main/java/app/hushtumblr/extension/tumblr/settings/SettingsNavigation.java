@@ -156,11 +156,32 @@ final class SettingsNavigation extends BaseAdapter {
     private String route = "";
     private String query = "";
     /**
-     * The row Back returns to. With a screen reader on it takes accessibility focus once it's back
-     * on screen: on the S22 TalkBack otherwise held the whole screen, and the person's place in
-     * the list was lost.
+     * The row Back returns to, or the row a screen reader was on when its page was rebuilt. With a
+     * screen reader on it takes accessibility focus once it's back on screen: on the S22 TalkBack
+     * otherwise held the whole screen, and the person's place in the list was lost. Cleared when
+     * the row takes focus, and by another page or a search.
      */
     private Preference refocus;
+    /**
+     * The row whose own button, such as the status card's Pause, the screen reader was on when the
+     * page was rebuilt. Rows are made anew, so the reader goes back to the new row's button.
+     */
+    private Preference refocusAction;
+    /** Without touch, whether {@link #keepTopAfterLayout} waits on the list's next layout. */
+    private boolean keepingTop;
+    /**
+     * Without touch, the place and top of the row kept at the top while rows above the keys' row
+     * change, with the restart row's place and the keys' row, all from before the first change.
+     * Held until a layout shows that row back where it was. -1 when nothing is kept.
+     */
+    private int keptFirst = -1;
+    private int keptTop;
+    private int keptRestartWas;
+    private Object keptKeys;
+    private int keptLayouts;
+    /** Without touch, the row the keys stayed on while rows changed, and its place before; see {@link #repeatsSelection}. */
+    private Object keysStayed;
+    private int keysStayedAt;
     private int homePosition;
     private int homeOffset;
     /** The first row in view a key could land on when home was left, and its top; see showPlace. */
@@ -178,6 +199,17 @@ final class SettingsNavigation extends BaseAdapter {
         screen = page.getPreferenceScreen();
         list = page.getView().findViewById(android.R.id.list);
         normalBottomPadding = list.getPaddingBottom();
+        // Keys coming into the list after a touch found no row selected. The list's focus event,
+        // sent before the list picks a row, read nothing to a screen reader, and the row it then
+        // picked went where the row it last showed was, the status card here, so the card went
+        // off screen. The event goes through this delegate with or without a screen reader on.
+        list.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void sendAccessibilityEvent(View host, int eventType) {
+                if (eventType == android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED) selectKeyRowInView();
+                if (eventType == android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED && repeatsSelection()) return;
+                super.sendAccessibilityEvent(host, eventType);
+            }
+        });
         source = screen.getRootAdapter();
         Context context = screen.getContext();
         searchAliases = localizedSearchAliases();
@@ -425,9 +457,55 @@ final class SettingsNavigation extends BaseAdapter {
         rebuild();
         host.showPage(title(), true, query, description());
         showPlace(homePosition, homeOffset, homeKeyPosition, homeKeyTop);
+        // Keys left on the header, as when the screen was made again on that page, went on from
+        // there. Asked while the new adapter has no rows drawn, so a screen reader hears nothing
+        // for it: later, it read the row the keys were about to leave.
+        if (section != null && !list.isInTouchMode() && !list.hasFocus()) list.requestFocus();
         refocus = section != null ? section.link : null;
         if (refocus != null && screenReaderOn()) bringIntoView(refocus);
+        // Without touch the list put the keys on the first row in view, not the row Enter opened.
+        else if (section != null && !list.isInTouchMode()) selectWhereItStands(section.link, visible.indexOf(section.link));
         return true;
+    }
+
+    /**
+     * Gives a screen reader's focus back to the row with [key] once it's drawn, as on the way back
+     * from a file picker that row opened. The picker's screen took the reader's focus with it, and
+     * the rows here are rebuilt while it's up, so the reader found nothing to go back to and
+     * started at the page's header.
+     */
+    void focusOnReturn(String key) {
+        if (key == null || !screenReaderOn()) return;
+        for (Preference row : visible) {
+            if (!key.equals(row.getKey())) continue;
+            refocus = row;
+            bringIntoView(row);
+            notifyDataSetChanged();
+            return;
+        }
+    }
+
+    /**
+     * A dialog opened over the page, as the import preview does once the picked file is read.
+     * Focus still waiting for a row's next draw would go to that row behind the dialog.
+     */
+    void dialogOpened() {
+        refocus = null;
+    }
+
+    /** The row in view that holds a screen reader's focus, or null for none. */
+    private View rowReaderIsOn() {
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View child = list.getChildAt(i);
+            if (child.createAccessibilityNodeInfo().isAccessibilityFocused() || readerOnAction(child) != null) return child;
+        }
+        return null;
+    }
+
+    /** The status action in [row] (Pause, Resume or Undo) when a screen reader is on it, or null. */
+    private static View readerOnAction(View row) {
+        View action = row.findViewWithTag(STATUS_ACTION);
+        return action != null && action.createAccessibilityNodeInfo().isAccessibilityFocused() ? action : null;
     }
 
     private boolean screenReaderOn() {
@@ -448,14 +526,58 @@ final class SettingsNavigation extends BaseAdapter {
             @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
                     int oldLeft, int oldTop, int oldRight, int oldBottom) {
                 list.removeOnLayoutChangeListener(this);
-                // Drawn already, which cleared refocus, or another page or a search came first.
+                // Focused already, which cleared refocus, or another page or a search came first.
                 int position = visible.indexOf(row);
                 if (refocus != row || position < 0) return;
-                if (position >= list.getFirstVisiblePosition() && position <= list.getLastVisiblePosition()) return;
+                if (position >= list.getFirstVisiblePosition() && position <= list.getLastVisiblePosition()) {
+                    // In view where home was left, while the keys went to the first row in view.
+                    if (!list.isInTouchMode()) selectShown(row, position);
+                    return;
+                }
                 list.post(() -> {
                     // The row above it shows too: its heading, or the page row before it.
-                    if (refocus == row && visible.indexOf(row) == position) list.setSelectionFromTop(Math.max(0, position - 1), 0);
+                    if (refocus != row || visible.indexOf(row) != position) return;
+                    list.setSelectionFromTop(Math.max(0, position - 1), 0);
+                    // Without touch that selected the row above, so the next key started there
+                    // while the screen reader read this one.
+                    if (!list.isInTouchMode()) selectWhereItStands(row, position);
                 });
+            }
+        });
+    }
+
+    /**
+     * Gives the keys to [row] where the list draws it, so nothing moves. Once the list has laid
+     * out, and posted: the screen reader's focus is posted from that layout and goes first, and
+     * the list keeps the rows it has, the focused one included, when only the selection moves.
+     */
+    private void selectWhereItStands(Preference row, int position) {
+        list.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                list.removeOnLayoutChangeListener(this);
+                selectShown(row, position);
+            }
+        });
+    }
+
+    /**
+     * Called from a layout: selects [row] where the list just drew it, when it drew it. Cut off at
+     * an edge it comes all the way in, or the next key only scrolled the rest of it in.
+     */
+    private void selectShown(Preference row, int position) {
+        // A row a key can't land on, like the status card while HushTumblr is on, keeps the keys
+        // where they are. Asked to select it, the list put the next row at its top instead, so a
+        // screen reader on the card's Pause sent the card off screen.
+        if (position < 0 || position >= getCount() || !isEnabled(position)) return;
+        int first = list.getFirstVisiblePosition();
+        View shown = position < first ? null : list.getChildAt(position - first);
+        if (shown == null || visible.indexOf(row) != position) return;
+        int area = list.getHeight() - list.getListPaddingTop() - list.getListPaddingBottom();
+        int at = Math.max(0, Math.min(shown.getTop() - list.getListPaddingTop(), area - shown.getHeight()));
+        list.post(() -> {
+            if (!list.isInTouchMode() && visible.indexOf(row) == position && list.getSelectedItemPosition() != position) {
+                list.setSelectionFromTop(position, at);
             }
         });
     }
@@ -489,6 +611,26 @@ final class SettingsNavigation extends BaseAdapter {
         for (int row = position; byKeyRow && row < keyPosition; row++) byKeyRow = !isEnabled(row);
         if (byKeyRow) showAt(keyPosition, keyTop - list.getListPaddingTop());
         else showAt(position, offset);
+    }
+
+    /**
+     * Without touch and with no row selected, selects the first row in view a key can land on
+     * where it stands, and lays the list out at once, so the row is selected before the list
+     * picks one itself.
+     */
+    private void selectKeyRowInView() {
+        if (list.isInTouchMode() || list.getSelectedItemPosition() != android.widget.AdapterView.INVALID_POSITION) return;
+        int first = list.getFirstVisiblePosition();
+        int area = list.getHeight() - list.getListPaddingTop() - list.getListPaddingBottom();
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View child = list.getChildAt(i);
+            if (first + i >= getCount() || !isEnabled(first + i) || child.getTop() < list.getListPaddingTop()) continue;
+            list.setSelectionFromTop(first + i, Math.min(child.getTop() - list.getListPaddingTop(), Math.max(0, area - child.getHeight())));
+            list.measure(View.MeasureSpec.makeMeasureSpec(list.getWidth(), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(list.getHeight(), View.MeasureSpec.EXACTLY));
+            list.layout(list.getLeft(), list.getTop(), list.getRight(), list.getBottom());
+            return;
+        }
     }
 
     /** The first row in view a key can land on, or -1. */
@@ -575,6 +717,13 @@ final class SettingsNavigation extends BaseAdapter {
         rememberRestingHeights();
         int restartWas = visible.indexOf(restart);
         boolean pageStatusWas = visible.contains(pageStatus);
+        // On the same page, the row a screen reader is on. Rows are drawn anew for every change and
+        // the list gives focus back by position, so the restart row coming in above a switch as it
+        // flipped took the focus from it and read itself, then the switch's saved note.
+        View readerOn = (route + '\n' + query).equals(rebuiltPage) && screenReaderOn() ? rowReaderIsOn() : null;
+        View readerOnAction = readerOn == null ? null : readerOnAction(readerOn);
+        Object reading = readerOn == null ? null : list.getItemAtPosition(list.getPositionForView(readerOn));
+        Preference keysWas = keysRow();
         visible.clear();
         List<String> terms = SettingsSearch.terms(query);
         Section selected = selected();
@@ -626,8 +775,18 @@ final class SettingsNavigation extends BaseAdapter {
         if (list.getPaddingBottom() != bottom) {
             list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(), bottom);
         }
+        if (reading instanceof Preference && visible.contains(reading)) {
+            // Taken off the old row, so the list puts it nowhere, and given back to the same row
+            // once that's drawn.
+            (readerOnAction != null ? readerOnAction : readerOn)
+                    .performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS, null);
+            refocus = (Preference) reading;
+            refocusAction = readerOnAction != null ? refocus : null;
+            // A restart row put in at the top of the view can push the last row in view off it.
+            bringIntoView(refocus);
+        }
         notifyDataSetChanged();
-        keepPlace(restartWas, pageStatusWas);
+        keepPlace(restartWas, pageStatusWas, keysWas);
         // A result that came back while its row's page wasn't in view shows once that page is.
         // Not from the constructor's first build, before the page knows this navigation.
         if (page.navigation == this) page.showUnseenResults();
@@ -655,10 +814,21 @@ final class SettingsNavigation extends BaseAdapter {
      * stays where it was. A row added at the top of what's in view is left to push the list down,
      * so it's seen. The row held stays held through every rebuild until the list lays out.
      */
-    private void keepPlace(int restartWas, boolean pageStatusWas) {
+    private void keepPlace(int restartWas, boolean pageStatusWas, Object keysWas) {
         String pageWas = rebuiltPage;
         rebuiltPage = route + '\n' + query;
-        if (!rebuiltPage.equals(pageWas) || pageStatusWas != visible.contains(pageStatus) || list.getChildCount() == 0) {
+        // Without touch the list keeps the row its keys are on in place itself, by its id. Holding
+        // another row moved the keys there, since an untouched list selects the row it's told to
+        // show, so a switch flipped by key under the top of scrolled results gave them to the top.
+        boolean keyed = !list.isInTouchMode() && list.getSelectedItemPosition() != android.widget.AdapterView.INVALID_POSITION;
+        boolean samePlace = rebuiltPage.equals(pageWas) && pageStatusWas == visible.contains(pageStatus) && list.getChildCount() > 0;
+        if (keyed && samePlace) {
+            keepTopWithKeys(restartWas, keysWas);
+        } else {
+            keptFirst = -1;
+            keysStayed = null;
+        }
+        if (!samePlace || keyed) {
             held = null;
             return;
         }
@@ -677,6 +847,124 @@ final class SettingsNavigation extends BaseAdapter {
         int at = visible.indexOf(held);
         if (at < 0) held = null;
         else list.setSelectionFromTop(at, heldTop - list.getPaddingTop());
+    }
+
+    /**
+     * Without touch, a row coming, going or growing above the keys' row moved every row above it
+     * instead, since the list keeps the keys' row where it was: the restart row and the paused
+     * status card sent the card off screen. After each layout the keys' row moves by however far
+     * the row touch keeps at the top went, until that row is back.
+     */
+    private void keepTopWithKeys(int restartWas, Object keysWas) {
+        // Taken once, from the rows as they were drawn before the first change. A pause rebuilds
+        // the page many times, and one that came between a layout and the move it asked for saw
+        // the rows the change had pushed, so the next layout moved them back off.
+        if (keptFirst < 0) {
+            keptFirst = list.getFirstVisiblePosition();
+            keptTop = list.getChildAt(0).getTop();
+            keptRestartWas = restartWas;
+            keptKeys = keysWas;
+            keptLayouts = 0;
+            // The list posts its word that the keys' row is selected at a new place, and holds it
+            // for its next layout when the page rebuilds first. Undo's save rebuilt it after the
+            // keep-top was done, so taking the place again here took the new one and the word got
+            // through. Kept while the keys are on the same row.
+            if (keysStayed != keysWas) {
+                keysStayed = keysWas;
+                keysStayedAt = list.getSelectedItemPosition();
+            }
+        }
+        waitToKeepTop();
+    }
+
+    private void waitToKeepTop() {
+        if (keepingTop) return;
+        keepingTop = true;
+        afterLayout(this::keepTopAfterLayout);
+    }
+
+    private void keepTopAfterLayout() {
+        keepingTop = false;
+        if (keptFirst < 0) return;
+        // The row at the top stays, by its place, as with touch. A restart row that came or went
+        // above it moved it a place.
+        int restartNow = visible.indexOf(restart);
+        int at = keptRestartWas < 0 && restartNow >= 0 && restartNow < keptFirst ? keptFirst + 1
+                : keptRestartWas >= 0 && restartNow < 0 && keptRestartWas < keptFirst ? keptFirst - 1 : keptFirst;
+        // Done once that row is back, when the keys went to another row, or after a few tries.
+        if (++keptLayouts > 4 || at < 0 || at >= visible.size() || keysRow() != keptKeys
+                || !moveKeysToKeep(visible.get(at), keptTop)) {
+            keptFirst = -1;
+        }
+    }
+
+    /**
+     * Called from a layout: moves the keys' row by however far [row] went from [top], keeping all
+     * of the keys' row in view, and says whether it's moving. Posted, since a layout request made
+     * during layout is dropped. A row the layout left above the rows drawn is brought in a little,
+     * and the next layout puts it in place.
+     */
+    private boolean moveKeysToKeep(Preference row, int top) {
+        int at = visible.indexOf(row);
+        int keys = list.getSelectedItemPosition();
+        View keyed = list.getSelectedView();
+        int first = list.getFirstVisiblePosition();
+        if (list.isInTouchMode() || keyed == null || at < 0 || at > keys || list.getChildCount() == 0) return false;
+        View shown = at < first ? null : list.getChildAt(at - first);
+        int by = shown != null ? top - shown.getTop() : top - list.getChildAt(0).getTop() + 1;
+        int area = list.getHeight() - list.getListPaddingTop() - list.getListPaddingBottom();
+        int from = keyed.getTop() - list.getListPaddingTop();
+        int to = Math.max(0, Math.min(from + by, area - keyed.getHeight()));
+        if (to == from) return false;
+        Preference keysRow = keysRow();
+        list.post(() -> {
+            if (keptFirst < 0) return;
+            if (list.isInTouchMode() || list.getSelectedItemPosition() != keys
+                    || visible.indexOf(keysRow) != keys || visible.indexOf(row) != at) {
+                // Rows changed again before the move. The layout that rebuild asked for measures
+                // afresh, and without one nothing is kept.
+                if (!keepingTop) keptFirst = -1;
+                return;
+            }
+            waitToKeepTop();
+            list.setSelectionFromTop(keys, to);
+        });
+        return true;
+    }
+
+    /**
+     * The row the keys are on, or null. The list's own getter reads the keys' place in the rows as
+     * they are now, and a rebuild that took rows away before the list laid them out left that
+     * place past the end, so it threw.
+     */
+    private Preference keysRow() {
+        int at = list.getSelectedItemPosition();
+        return at >= 0 && at < visible.size() ? visible.get(at) : null;
+    }
+
+    /**
+     * Whether the list is about to say a row is selected that its keys never left. A row coming or
+     * going above it gives it another place, and the list says it's selected again; TalkBack took
+     * its focus there, off the card's button just pressed. Any other row the keys go to is said.
+     */
+    private boolean repeatsSelection() {
+        Preference keys = keysRow();
+        int at = list.getSelectedItemPosition();
+        boolean repeat = keys != null && keys == keysStayed && at != keysStayedAt;
+        keysStayed = repeat ? keys : null;
+        keysStayedAt = at;
+        return repeat;
+    }
+
+    /** Runs [then] once, from the list's next layout. */
+    private void afterLayout(Runnable then) {
+        list.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                list.removeOnLayoutChangeListener(this);
+                then.run();
+            }
+        });
     }
 
     private void rememberRestingHeights() {
@@ -762,7 +1050,13 @@ final class SettingsNavigation extends BaseAdapter {
     @Override public long getItemId(int position) { return System.identityHashCode(getItem(position)); }
     @Override public boolean hasStableIds() { return true; }
     @Override public boolean areAllItemsEnabled() { return false; }
-    @Override public boolean isEnabled(int position) { return getItem(position).isEnabled() && getItem(position).isSelectable(); }
+    // A row off only while its save or action runs keeps the keys. The list moves its selection off
+    // a row that's off, so a switch flipped by key handed it to the switch under it, and the next
+    // press flipped that one. The row takes no click until it's done.
+    @Override public boolean isEnabled(int position) {
+        Preference item = getItem(position);
+        return (item.isEnabled() || showsBusyLine(item)) && item.isSelectable();
+    }
     // Preference creates several incompatible layouts. Never recycle one kind into another.
     @Override public int getItemViewType(int position) { return IGNORE_ITEM_VIEW_TYPE; }
 
@@ -770,9 +1064,27 @@ final class SettingsNavigation extends BaseAdapter {
         Preference item = getItem(position);
         View row = item.getView(null, parent);
         if (item == refocus) {
-            refocus = null;
-            // Posted from the new row, it runs after this layout has put the row in the window.
-            row.post(() -> row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+            // Not this row: a measure asks for rows it throws away undrawn, so the row that gets
+            // focus is the one the list shows once this pass is done. Posted to the list, it runs
+            // after the layout. With a layout still to come the children are the old rows, and
+            // still off screen the item waits too: the layout that draws it, as Back's scroll to it
+            // makes, asks for it again.
+            list.post(() -> {
+                if (refocus != item || list.isLayoutRequested()) return;
+                int at = visible.indexOf(item);
+                int first = list.getFirstVisiblePosition();
+                View shown = at < first ? null : list.getChildAt(at - first);
+                if (shown == null) return;
+                refocus = null;
+                // Back on the button it pressed, which now says what pressing it again does.
+                View action = refocusAction == item ? shown.findViewWithTag(STATUS_ACTION) : null;
+                refocusAction = null;
+                if (action != null && action.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)) return;
+                // Focus reads the whole row, so a note just put under it isn't read again on its own.
+                if (!shown.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)) return;
+                SettingsFeedback note = item.hasKey() ? page.feedbackFor(item.getKey()) : null;
+                if (note != null) note.readWithRow();
+            });
         }
         if (!(item instanceof PreferenceCategory)) {
             palette().paintSurface(row, item, true, true);
@@ -846,6 +1158,12 @@ final class SettingsNavigation extends BaseAdapter {
         action.setMinHeight(dp(48));
         action.setMinimumWidth(dp(48));
         action.setMinimumHeight(dp(48));
+        action.setTag(STATUS_ACTION);
+        // Not a stop for arrow keys or Tab: the list's next layout took the keys back from a
+        // button inside a row to the row selected under it, so Enter on "Pause" opened that row.
+        // A screen reader still reaches and presses it, a paused card resumes on Enter itself,
+        // and the Pause HushTumblr switch takes keys.
+        action.setFocusable(false);
         Preference pause = page.findPreference(BaseSettings.PAUSED.key);
         Preference status = pageStatusAction ? pageStatus : screen.getPreference(0);
         action.setEnabled(status.isEnabled() && pause != null && pause.isEnabled()
@@ -882,7 +1200,6 @@ final class SettingsNavigation extends BaseAdapter {
             place.topMargin = dp(8);
             View earlier = column.findViewWithTag(STATUS_ACTION);
             if (earlier != null) column.removeView(earlier);
-            action.setTag(STATUS_ACTION);
             column.addView(action, place);
             frame.setVisibility(View.GONE);
             return;

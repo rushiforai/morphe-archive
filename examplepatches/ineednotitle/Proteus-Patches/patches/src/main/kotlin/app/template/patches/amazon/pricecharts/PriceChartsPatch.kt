@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.patch.stringsOption
+import app.template.patches.shared.Constants.AMAZON_BUSINESS_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_IN_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_SHOPPING_COMPATIBILITY
 
@@ -16,7 +17,7 @@ val amazonPriceChartsPatch = bytecodePatch(
     description = "Injects Keepa and CamelCamelCamel price history charts on Amazon product pages.",
     default = true,
 ) {
-    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
+    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_BUSINESS_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
 
     val period by stringOption(

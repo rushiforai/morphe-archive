@@ -22,10 +22,10 @@ internal object BetterPlayerAttachAdsFingerprint : Fingerprint(
 /**
  * IMA AdsLoader.requestAds implementation used by the interactive_media_ads
  * Flutter plugin. It is called from the Pigeon handler, which catches the
- * "as1" platform exception and returns it to Dart.
+ * "yr1" platform exception and returns it to Dart.
  */
 internal object ImaAdsLoaderRequestAdsFingerprint : Fingerprint(
-    definingClass = "Lhz5;",
+    definingClass = "Lfz5;",
     name = "c",
     parameters = listOf("Lt8;"),
     returnType = "V",
@@ -44,9 +44,9 @@ internal object ImaAdsLoaderRequestAdsFingerprint : Fingerprint(
  * IMA AdsLoader.requestStreamAds implementation for live streams.
  */
 internal object ImaAdsLoaderRequestStreamAdsFingerprint : Fingerprint(
-    definingClass = "Lhz5;",
+    definingClass = "Lfz5;",
     name = "d",
-    parameters = listOf("Ljj4;"),
+    parameters = listOf("Lhj4;"),
     returnType = "Ljava/lang/String;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     custom = { method, _ ->
@@ -67,7 +67,7 @@ internal object ImaAdsLoaderRequestStreamAdsFingerprint : Fingerprint(
  * even when Dart explicitly enables them.
  */
 internal object FirebaseCollectionToggleFingerprint : Fingerprint(
-    definingClass = "Les1;",
+    definingClass = "Lcs1;",
     name = "run",
     parameters = emptyList(),
     returnType = "V",
@@ -76,7 +76,7 @@ internal object FirebaseCollectionToggleFingerprint : Fingerprint(
         method.implementation?.instructions?.any { instruction ->
             instruction is ReferenceInstruction &&
                 (instruction.reference as? FieldReference)?.let { reference ->
-                    reference.definingClass == "Les1;" &&
+                    reference.definingClass == "Lcs1;" &&
                         reference.name == "I" &&
                         reference.type == "Z"
                 } == true

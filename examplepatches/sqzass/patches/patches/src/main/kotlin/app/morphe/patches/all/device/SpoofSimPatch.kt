@@ -11,8 +11,14 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private class SimPreset(
-    val label: String, val iso: String, val mcc: String, val mnc: String, val carrier: String,
-) { val operator get() = mcc + mnc }
+    val label: String,
+    val iso: String,
+    val mcc: String,
+    val mnc: String,
+    val carrier: String,
+) {
+    val operator get() = mcc + mnc
+}
 
 private val PRESETS = listOf(
     SimPreset("Keep current (no spoof)", "", "", "", ""),
@@ -49,14 +55,17 @@ val simSpoofPatch = bytecodePatch(
     default = false,
 ) {
     val presetOption = stringOption(
-        key = "preset", default = PRESETS[1].label,
+        key = "preset",
+        default = PRESETS[1].label,
         values = PRESETS.associate { it.label to it.label },
-        title = "SIM preset", description = "The simulated SIM/network identity.", required = true,
+        title = "SIM preset",
+        description = "The simulated SIM/network identity.",
+        required = true,
     )
 
     execute {
         val p = PRESETS.first { it.label == presetOption.value }
-        if (p.iso.isEmpty()) return@execute  // "Keep current"
+        if (p.iso.isEmpty()) return@execute // "Keep current"
 
         // TelephonyManager getters (no args) -> replace result.
         mapOf(

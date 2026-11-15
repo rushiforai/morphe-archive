@@ -6,38 +6,25 @@
 
 package app.rex.patches.instagram.entity.messageInfoEntity
 
+import app.rex.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
 import app.rex.utils.changeFirstString
 import app.rex.utils.changeStringAt
-import app.rex.utils.extensionToClassName
-import app.rex.utils.fieldExtractor
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.indexOfFirstInstruction
-import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.patch
 
 val messageInfoEntity =
-    bytecodePatch(
+    patch(
         description = "This patch is used for decoding obfuscated code of message info",
     ) {
         execute {
-            StellaDirectMessagingServiceAudioRelatedFingerprint.apply {
-                val strIndex = stringMatches.first().index
-                method.apply {
-                    val audioDataIGetObjectIndex = indexOfFirstInstruction(strIndex, Opcode.IGET_OBJECT)
-                    val iGetObjectMetaData = getInstruction(audioDataIGetObjectIndex).fieldExtractor()
-                    GetAudioMediaExtension.changeFirstString(iGetObjectMetaData.name)
-
-                    mutableClassDefBy(extensionToClassName(iGetObjectMetaData.returnType))
-                        .methods
-                        .first {
-                            it.returnType ==
-                                "Ljava/lang/Integer;"
-                        }.apply {
-                            val mediaIGetObjectIndex = indexOfFirstInstruction(Opcode.IGET_OBJECT)
-                            val fieldName = getInstruction(mediaIGetObjectIndex).fieldExtractor().name
-                            GetAudioMediaExtension.changeStringAt(1, fieldName)
-                        }
-                }
+            runCatching {
+            val voiceMediaField = StellaDirectMessagingServiceAudioRelatedFingerprint.instructionMatches.last().fieldReference
+            GetAudioMediaExtension.changeFirstString(voiceMediaField.name)
+            GetAudioMediaExtension.changeStringAt(
+                1,
+                classDefBy(voiceMediaField.type).fields.first { it.type == MEDIA_CLASS_NAME }.name,
+            )
+        
             }
         }
     }

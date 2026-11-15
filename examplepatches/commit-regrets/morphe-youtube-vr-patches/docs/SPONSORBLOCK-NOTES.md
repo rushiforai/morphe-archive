@@ -163,7 +163,7 @@ which contradict reasonable guesses:
   success/failure signal — which this port gets from the `onSeeked` hook (see the heading).
 - **The ad gate already has a hook here**: the phone's `setAdProgressTextVisibility(int)` is set from
   the ad-progress view's `setVisibility` and read as `== VISIBLE`. Our equivalent is
-  `PotUrls.onAdCountdown(int remainingMs)` ([PotUrls.java](extensions/src/PotUrls.java)), hooked from
+  `PotUrls.onAdCountdown(int remainingMs)` ([PotUrls.java](../extensions/src/PotUrls.java)), hooked from
   both VR ad-UI countdown methods by the Extension patch. Today it only counts, so the port must
   expose a queryable boolean: set it on each tick and clear it on a short timeout (the countdown ticks
   about once a second) or on video load.

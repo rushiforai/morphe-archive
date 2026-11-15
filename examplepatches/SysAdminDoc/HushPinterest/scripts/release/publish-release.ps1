@@ -156,7 +156,8 @@ if ($indexed) {
     $previousDescription = $null
     try {
         Invoke-ReleaseText -Root $Root -What 'The index' -Arguments @('index', '--version', $Version, '--created', $created,
-            '--summary', $Summary, '--runtime', [string]$runtime, '--patch', [string]$patch)
+            '--summary', $Summary, '--runtime', [string]$runtime, '--patch', [string]$patch,
+            '--bundle', (Join-Path $assets "patches-$Version.mpp"))
         $description = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).description
         $facts = [regex]::Match($description, '^HushPinterest v\d+\.\d+\.\d+: (\d+) patches for Pinterest (\d+(?:\.\d+)+),')
         if (-not $facts.Success) { throw "The new index description doesn't start the way release_text.py writes it: $description" }

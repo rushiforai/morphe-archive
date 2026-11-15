@@ -55,7 +55,13 @@ public final class DisableReelsPatch {
                     "Changes apply to newly loaded posts. The Reels tab is in Navigation buttons.",
                     HIDE_IN_FEED, HIDE_IN_EXPLORE),
             new SettingsGroup("Player", NO_SCROLLING, BLOCK_PLAYER))
-            .icon(Icons.Glyph.NO_REELS, 0xFFFF2D55);
+            .icon(Icons.Glyph.NO_REELS, 0xFFFF2D55)
+            .about("Takes Reels out of the places they show up uninvited: reel posts and suggested reels in "
+                    + "the home feed, and grid sections with reels in Explore. A reel someone sends you can play "
+                    + "alone, with no swiping to the next one, or not open at all. Each part is off until you "
+                    + "switch it on. The Reels tab itself is hidden in Navigation buttons.",
+                    "Reels are the most addictive part of Instagram: short, endless and picked to keep you "
+                    + "swiping. This keeps Instagram about the people you follow.");
 
     /** The patch makes this return true, so the menu only shows patches that were applied. */
     public static boolean isIncluded() {
@@ -114,7 +120,13 @@ public final class DisableReelsPatch {
                 if (reelType.equals(name)) return true;
             }
         }
-        return isReel(feedItemMedia(item));
+        Object media = null;
+        try {
+            media = feedItemMedia(item);
+        } catch (Throwable ignored) {
+            // Some builds' getter throws if the item has no content yet.
+        }
+        return isReel(media);
     }
 
     // endregion

@@ -1,0 +1,42 @@
+name: Release
+# Builds the patch bundle (.mpp), attaches it to a GitHub release, and updates patches-bundle.json,
+# the metadata Morphe Manager reads to offer new versions. Runs when a version tag is pushed.
+# The Morphe Gradle plugin comes from GitHub Packages, which needs a token with read:packages:
+# add one as the repository secret MORPHE_PACKAGES_TOKEN.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" "patches/build/libs/patches-$VERSION.mpp" --generate-notes
+          gh release view "$GITHUB_REF_NAME" --json body -q .body > notes.md
+          python3 .github/scripts/write_bundle_json.py "$VERSION" "$GITHUB_REPOSITORY" notes.md "$RUNNER_TEMP/patches-bundle.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          cp "$RUNNER_TEMP/patches-bundle.json" patches-bundle.json
+          git add patches-bundle.json
+          git commit -m "chore: release metadata for $GITHUB_REF_NAME" || exit 0
+          git push origin main

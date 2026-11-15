@@ -28,6 +28,10 @@ public class SharedPref extends BaseSharedPref {
         return INSTANCE.getBoolean(setting);
     }
 
+    public static Boolean getBooleanPref(String key, Boolean defaultValue) {
+        return INSTANCE.getBoolean(new BooleanSetting(key, defaultValue));
+    }
+
     public static Boolean setBooleanPref(String key, Boolean val) {
         return INSTANCE.setBoolean(key, val);
     }

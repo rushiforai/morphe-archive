@@ -29,7 +29,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     dependsOn(settingsPatch, gmsCoreSupportResourcePatch(LINKEDIN_PACKAGE, LINKEDIN_SIGNATURE))
 
     execute {
-        redirectToGmsCore()
+        redirectToGmsCore(LINKEDIN_SIGNATURE)
 
         // The system Credential Manager asks the real Play services, which reject the patched app's signature.
         // Play services' own provider in the app goes through GmsCore instead.

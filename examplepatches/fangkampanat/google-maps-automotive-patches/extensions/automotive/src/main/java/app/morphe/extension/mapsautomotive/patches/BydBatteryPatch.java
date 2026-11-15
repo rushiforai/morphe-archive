@@ -78,8 +78,9 @@ import app.morphe.extension.shared.Utils;
  * user picks in the dialog. With 420_1, the Dolphin Standard Range's table, on the Dolphin (model id
  * 186) the Dolphin's motor power and charging rate are sent too. If no file can be used, Maps gets a fallback model: the road load
  * scaled to the learned consumption. With a file the learned consumption is only shown, for comparison.
- * Read-only: no ADB, no shell, no raw binder calls, no vehicle writes. Maps does not upload the model
- * to the account (its upload workers need the car permission this app never holds).
+ * Read-only: no ADB, no shell, no raw binder calls, no vehicle writes. Maps' uploads of the battery
+ * percentage and of the model to the account need the car permission this app never holds; both go
+ * while the dialog's Battery on the phone switch is on, the default ({@link PhoneBattery}).
  * <p>
  * On by default on the tested Dolphin (model id 186) with the BYD SDK, off elsewhere, with an
  * "untested" notice on other BYD models; the Settings row's choice is kept
@@ -281,6 +282,17 @@ public final class BydBatteryPatch {
         return active;
     }
 
+    /** The dashboard percentage of the model Maps can read now, NaN while there is none (before a reading, or withdrawn). */
+    /** Runs [task] on the BYD battery worker thread after [delayMs]; false when there is no worker (not active). */
+    static boolean postToWorker(Runnable task, long delayMs) {
+        Handler handler = worker;
+        return handler != null && handler.postDelayed(task, delayMs);
+    }
+
+    static double modelSoc() {
+        return energyModel != null ? sampleSoc : Double.NaN;
+    }
+
     /** Injection point: each read of Maps' demo_ev_connector_types preference. */
     public static String connectorTypes(String original) {
         return active ? CONNECTORS : original;
@@ -388,6 +400,8 @@ public final class BydBatteryPatch {
         byte[] model = energyModel;
         if (model == null) return null;
         lastMapsReadAt = SystemClock.elapsedRealtime();
+        // Battery on the phone: a lower whole percent in Maps' model makes Maps upload it soon (never throws).
+        PhoneBattery.modelRead(sampleSoc);
         return new ByteArrayInputStream(model);
     }
 
@@ -1031,7 +1045,7 @@ public final class BydBatteryPatch {
     }
 
     // The dialog: an on/off switch, the battery, the choices made before a trip (the load presets, the battery on
-    // arrival) and the last guided drive; then, on request, the details: the earlier drives, the model Maps gets, the
+    // arrival), the battery on the phone and the last guided drive; then, on request, the details: the earlier drives, the model Maps gets, the
     // consumption measured against BYD's table per speed band, and the car's values. It is built once and refreshed in
     // place while open.
     private static void showDialog(Context context, View container) {
@@ -1069,13 +1083,13 @@ public final class BydBatteryPatch {
         private final Activity host;
         private final Context themed;
         private final int primary, secondary, accent;
-        private final LinearLayout content, battery, load, arrival, lastSection, guidedSection, modelSection, usage, carSection,
-                bandTable, levelTable;
-        private final Switch toggle;
+        private final LinearLayout content, battery, load, arrival, phone, lastSection, guidedSection, modelSection, usage,
+                carSection, bandTable, levelTable;
+        private final Switch toggle, phoneToggle;
         private final View batteryDivider, detailsDivider;
         private final TextView status, intro, percent, energy, batteryNote, healthNote, fallbackUsage, modelNotice, loadCaption,
-                arrivalCaption, lastText, guidedText, guidedCaption, modelCaption, usageHeader, usageCaption, detailsToggle,
-                details;
+                arrivalCaption, phoneStatus, phoneCaption, lastText, guidedText, guidedCaption, modelCaption, usageHeader,
+                usageCaption, detailsToggle, details;
         // The last export's result, shown under the guided drives until the dialog closes.
         private String exportStatus;
         private final TextView[] chips = new TextView[LOADS_KG.length];
@@ -1191,6 +1205,29 @@ public final class BydBatteryPatch {
             arrivalCaption = text(14, secondary, false);
             arrival.addView(arrivalCaption);
 
+            // Battery on the phone (PhoneBattery), one switch, on by default: Maps' uploads to the Google account carry the
+            // battery percentage and the car's energy model while it is on. A change applies at Maps' next upload of each.
+            phone = section(thai ? "แบตบนมือถือ" : "Battery on the phone");
+            phoneStatus = text(14, secondary, false);
+            phoneStatus.setLineSpacing(0, 1.2f);
+            phoneToggle = new Switch(themed);
+            phoneToggle.setChecked(PhoneBattery.isOn(host));
+            phone.addView(phoneSwitch(thai ? "แสดงแบตใน Google Maps บนมือถือ" : "Show the battery in Google Maps on the phone",
+                    phoneStatus, phoneToggle, () -> PhoneBattery.choose(host, !PhoneBattery.isOn(host))));
+            phoneCaption = text(14, secondary, false);
+            phoneCaption.setLineSpacing(0, 1.2f);
+            phoneCaption.setText(thai
+                    ? "ขณะแอปทำงาน Maps ส่ง % แบตเข้าบัญชี Google ทุก 2 นาทีและทุกครั้งที่ % ลดลง และส่งโมเดลพลังงานของรถตอนเปิดแอปและทุก 2 ชั่วโมง"
+                    + " ไม่ส่งขณะจอรถดับ โมเดลมีความจุ น้ำหนัก กำลังสูงสุด อัตราสิ้นเปลือง และกราฟการชาร์จ"
+                    + " ไม่มีระดับแบตหรืออุณหภูมิภายนอก Google Maps บนมือถือที่ลงชื่อบัญชีเดียวกันจึงแสดงแบตของรถคันนี้"
+                    + " และแบตเมื่อถึงปลายทางได้"
+                    : "While it runs, Maps sends the battery percentage to your Google account every 2 minutes and again when the"
+                    + " percentage drops, and this car's energy model when it starts and every 2 hours. Maps sends nothing while the car's screen is off. The model holds"
+                    + " capacity, weight, power limits, consumption and charging curves, without the battery level or the outside"
+                    + " temperature. Google Maps on a phone signed in to the same account can then show this car's battery and"
+                    + " the battery on arrival.");
+            phone.addView(phoneCaption);
+
             // The last guided drive: Maps' battery on arrival at its start against the battery on arrival.
             lastSection = section(thai ? "ทริปนำทางล่าสุด" : "Last guided drive");
             lastText = text(15, primary, false);
@@ -1303,7 +1340,7 @@ public final class BydBatteryPatch {
                         : (thai ? "ไม่พบระบบรถ BYD จึงไม่ได้ส่งข้อมูลแบตให้ Maps ปิดได้ถ้าไม่ใช่รถ BYD"
                         : "No BYD vehicle system found, so Maps gets no battery data. Turn this off on other cars."));
                 show(intro, true);
-                for (View view : new View[]{batteryDivider, battery, fallbackUsage, modelNotice, load, arrival, lastSection,
+                for (View view : new View[]{batteryDivider, battery, fallbackUsage, modelNotice, load, arrival, phone, lastSection,
                         detailsDivider, detailsToggle, guidedSection, modelSection, usage, carSection}) {
                     show(view, false);
                 }
@@ -1381,6 +1418,11 @@ public final class BydBatteryPatch {
                 paintChoices(destinationChips, ArrivalBattery.DESTINATION_CHOICES, destination);
             }
             arrivalCaption.setText(arrivalCaption(thai));
+
+            show(phone, true);
+            boolean phoneOn = PhoneBattery.isOn(host);
+            if (phoneToggle.isChecked() != phoneOn) phoneToggle.setChecked(phoneOn);
+            phoneStatus.setText(PhoneBattery.status(host, thai));
 
             show(lastSection, true);
             lastText.setText(lastDriveText(thai));
@@ -1639,6 +1681,29 @@ public final class BydBatteryPatch {
             chip.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), shape, mask));
             chip.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
             chip.setSelected(selected);
+        }
+
+        // A switch row of Battery on the phone: the title and [statusText] on the left, [toggle] on the right. The whole
+        // row is the touch target; [flip] stores the new choice, then the dialog refreshes.
+        private LinearLayout phoneSwitch(String title, TextView statusText, Switch toggle, Runnable flip) {
+            LinearLayout row = horizontal();
+            row.setMinimumHeight(px(56));
+            row.setPadding(0, px(4), 0, px(4));
+            selectable(row);
+            LinearLayout texts = vertical();
+            TextView titleText = text(16, primary, false);
+            titleText.setText(title);
+            texts.addView(titleText);
+            texts.addView(statusText);
+            row.addView(texts, weight(1));
+            toggle.setClickable(false);
+            toggle.setFocusable(false);
+            row.addView(toggle, wrap());
+            row.setOnClickListener(view -> {
+                flip.run();
+                update();
+            });
+            return row;
         }
 
         // A label and one chip per choice of [level] (Auto, then the percentages), added to the arrival section.
@@ -2357,6 +2422,7 @@ public final class BydBatteryPatch {
                 .put("learner", on ? learnerReport() : JSONObject.NULL)
                 .put("speed_bands", on ? speedBandsReport() : JSONObject.NULL)
                 .put("arrival", ArrivalBattery.report(context))
+                .put("phone", PhoneBattery.report(context))
                 .put("forecasts", on ? forecastReport(now) : JSONObject.NULL)
                 .put("guided_drives", on ? guidedReport() : JSONObject.NULL)
                 .put("drives", on ? drivesReport() : JSONObject.NULL)

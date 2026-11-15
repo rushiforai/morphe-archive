@@ -79,10 +79,27 @@ internal fun Method.aiMentionRow(): String? {
     }
 }
 
+internal val sharedFlagReaders = methodCheck { _, method -> method.readsOnlySharedFlag() }
+
+/** The parameters each row's check takes, the part of [aiMentionRow] that doesn't need [metaAiFlagGetters]. */
+private val AI_MENTION_PARAMETERS = setOf<List<String>>(
+    emptyList(),
+    listOf(FB_USER_SESSION, CAPABILITIES),
+    listOf(FB_USER_SESSION),
+    listOf(FB_USER_SESSION, THREAD_KEY_TYPE, CAPABILITIES, "Z", "Z"),
+    listOf(FB_USER_SESSION, THREAD_KEY_TYPE, CAPABILITIES),
+)
+
+/** The instance checks with a row's parameters, before their flags are read: a call to a getter only counts once they're known. */
+internal val aiMentionShapes = methodCheck { _, method ->
+    !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.implementation != null &&
+        method.parameterTypes.map { it.toString() } in AI_MENTION_PARAMETERS
+}
+
 /** The five checks, exactly one of each, all on one class, or none. */
 internal fun findAiMentionRows(classes: Iterable<ClassDef>): List<Method> {
-    metaAiFlagGetters = classes.flatMap { it.methods }.filter { it.readsOnlySharedFlag() }.map { it.hookId() }.toSet()
-    val rows =classes.flatMap { cls -> cls.methods.mapNotNull { method -> method.aiMentionRow()?.let { it to method } } }
+    metaAiFlagGetters = sharedFlagReaders.methods(classes).map { it.hookId() }.toSet()
+    val rows = aiMentionShapes.methods(classes).mapNotNull { method -> method.aiMentionRow()?.let { it to method } }
         .groupBy({ it.first }, { it.second })
     if (rows.size != 5 || rows.values.any { it.size != 1 }) return emptyList()
     return rows.values.map { it.single() }.takeIf { checks -> checks.map { it.definingClass }.toSet().size == 1 }.orEmpty()

@@ -22,11 +22,11 @@ val viewProfilePicturePatch = bytecodePatch(
     execute {
         // Let the extension read the profile's user and its picture urls.
         extensionStub(EXTENSION_CLASS, "hdProfilePicInfo").method
-            .callThrough(UserHdProfilePicFingerprint.method)
+            .callThrough(UserHdProfilePicFingerprint.originalMethod)
         extensionStub(EXTENSION_CLASS, "profilePicUrl").method
-            .callThrough(UserProfilePicFingerprint.method)
+            .callThrough(UserProfilePicFingerprint.originalMethod)
         extensionStub(EXTENSION_CLASS, "tabControllerUser").method
-            .callThrough(TabControllerUserFingerprint.method)
+            .callThrough(TabControllerUserFingerprint.originalMethod)
 
         UserDetailFragmentOnViewCreatedFingerprint.method.addInstruction(
             0,

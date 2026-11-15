@@ -1,0 +1,616 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.download;
+
+import android.content.Context;
+import android.content.DialogInterface;
+
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.instagram.settings.Settings;
+import app.morphe.extension.suite.instagram.stories.StoryLoop;
+import app.morphe.extension.suite.instagram.stories.StoryPriority;
+import app.morphe.extension.suite.instagram.stories.StorySpeed;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.DiagnosticCategory;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+
+/**
+ * Download in the menu of anyone's story.
+ *
+ * <p>A story's menu is a list of labels, and a tap hands the tapped label to a handler that
+ * compares it with each of Instagram's own. Instagram offers a save only on your own stories. The
+ * patch adds a label of its own:
+ *
+ * <ul>
+ *   <li>Each builder of the menu tells {@link #building} which story's menu it's building, then
+ *       hands its labels through {@link #labels} ({@link #labelList} for your own highlights'
+ *       menu, a list) before the menu shows them. With the switch on,
+ *       the menu gets Download at the end. A photo story with music, which Instagram serves as a
+ *       video, gets Download as video and Download as photo instead, and a filmed video gets
+ *       Download and Download as photo, which saves the still Instagram shows before it plays (#215).
+ *   <li>Each handler asks {@link #save} first. A tap on Download saves the story from the
+ *       addresses its Media already holds, through {@link MediaSave}: a video at the Download
+ *       quality, a photo at its largest size. Download as photo saves the picture even when the
+ *       story has a video. Any other label goes on to Instagram.
+ * </ul>
+ *
+ * <p>With Loop a story in the build and its switch off, the menu also gets Loop this story last,
+ * whatever the Download switch says, and a tap on it loops that story through {@link StoryLoop}
+ * (#610). The row reads Stop looping this story once it loops.
+ *
+ * <p>With Speed in the story menu on, a video story's menu also gets Playback speed after that,
+ * whatever the Download switch says, and a tap on it opens the speeds through {@link StorySpeed}
+ * (#621). The story stays paused until that list closes.
+ *
+ * <p>With Stories priority in the build, the menu of a story whose account it can read gets Add to
+ * Stories priority last, whatever the switches say, and a tap on it puts that account on the list
+ * through {@link StoryPriority} and turns the switch on (#641). The row reads Remove from Stories
+ * priority once the account is there. Your own highlights' menu doesn't get it.
+ *
+ * <p>Every hook fails open: until the settings are ready, while xboyrex is paused, with the switch
+ * off, or when something throws, the menu is Instagram's own.
+ */
+public final class StoryDownload {
+    private StoryDownload() {
+    }
+
+    /** The source a story save's lines carry in the diagnostic report. */
+    private static final String SOURCE = "StoryDownload";
+
+    /** The step a failed read of a story's music flag is reported under. */
+    static final String MUSIC_CHECK = "story music check";
+
+    /** What a tap on one of xboyrex's rows saves. */
+    enum Choice { STORY, VIDEO, PHOTO }
+
+    /** Instagram's media type for a photo, which a story keeps as the type it was posted as. */
+    static final int POSTED_PHOTO = 1;
+
+    /** The rows a story's menu gets: Download alone, or two that tell the video and the picture apart. */
+    enum Rows {
+        DOWNLOAD(Choice.STORY),
+        VIDEO_AND_PHOTO(Choice.VIDEO, Choice.PHOTO),
+        DOWNLOAD_AND_PHOTO(Choice.STORY, Choice.PHOTO);
+
+        final Choice[] choices;
+
+        Rows(Choice... choices) {
+            this.choices = choices;
+        }
+    }
+
+    /**
+     * What a story's menu is built for, under the fixed name the diagnostic report counts it by,
+     * and the rows it gets.
+     */
+    enum Kind {
+        UNREAD("story not read", Rows.DOWNLOAD),
+        PHOTO("photo", Rows.DOWNLOAD),
+        FLAGGED("video flagged as a photo with music", Rows.VIDEO_AND_PHOTO),
+        POSTED_AS_PHOTO("video posted as a photo", Rows.VIDEO_AND_PHOTO),
+        POSTED_AS_VIDEO("video posted as a video", Rows.DOWNLOAD_AND_PHOTO),
+        NO_POSTED_TYPE("video with no posted type", Rows.DOWNLOAD_AND_PHOTO);
+
+        final String counted;
+        final Rows rows;
+
+        Kind(String counted, Rows rows) {
+            this.counted = counted;
+            this.rows = rows;
+        }
+    }
+
+    /** The story menu whose labels are being built, held weakly so a closed menu can go. */
+    private static volatile WeakReference<Object> building = new WeakReference<>(null);
+
+    /**
+     * Remembers [menu], the class running the story menu whose labels a builder is about to
+     * return, for {@link #labels}. Never throws.
+     */
+    public static void building(Object menu) {
+        try {
+            building = new WeakReference<>(menu);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
+        }
+    }
+
+    /**
+     * The labels [labels] of a story's menu, with xboyrex's rows at the end when the switch is on:
+     * Download, Download as video and Download as photo for a photo story with music, or Download
+     * and Download as photo for a filmed video. Loop this story goes after them when the story gets
+     * it ({@link #loopLabel}), then Playback speed ({@link #speedLabel}), and Add to Stories priority
+     * last ({@link #priorityLabel}). A menu that has the rows already is left alone. Never throws.
+     */
+    public static CharSequence[] labels(CharSequence[] labels) {
+        try {
+            HookStatus.invoked(FamilyNames.STORY_DOWNLOAD);
+            if (labels == null) return labels;
+            Object menu = building.get();
+            return withPriority(withSpeed(withLoop(on() ? labels(labels, rows(menu)) : labels, menu), menu), menu);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
+            return labels;
+        }
+    }
+
+    /** [labels] with Loop this story at the end when the story [menu] is open on gets it. */
+    private static CharSequence[] withLoop(CharSequence[] labels, Object menu) {
+        String loop = loopLabel(menu);
+        if (loop == null || hasLoop(Arrays.asList(labels))) return labels;
+        return plus(labels, loop);
+    }
+
+    /** [labels] with Playback speed at the end when the story [menu] is open on gets it. */
+    private static CharSequence[] withSpeed(CharSequence[] labels, Object menu) {
+        String speed = speedLabel(menu);
+        if (speed == null || hasSpeed(Arrays.asList(labels))) return labels;
+        return plus(labels, speed);
+    }
+
+    /** [labels] with Add to Stories priority at the end when the story [menu] is open on gets it. */
+    private static CharSequence[] withPriority(CharSequence[] labels, Object menu) {
+        String priority = priorityLabel(menu);
+        if (priority == null || hasPriority(Arrays.asList(labels))) return labels;
+        return plus(labels, priority);
+    }
+
+    private static CharSequence[] plus(CharSequence[] labels, String row) {
+        CharSequence[] more = Arrays.copyOf(labels, labels.length + 1);
+        more[labels.length] = row;
+        return more;
+    }
+
+    static CharSequence[] labels(CharSequence[] labels, Rows which) {
+        String[] rows = new String[which.choices.length];
+        for (int i = 0; i < rows.length; i++) rows[i] = label(which.choices[i]);
+        for (CharSequence label : labels) {
+            if (label != null && rows[0].contentEquals(label)) return labels;
+        }
+        CharSequence[] more = Arrays.copyOf(labels, labels.length + rows.length);
+        System.arraycopy(rows, 0, more, labels.length, rows.length);
+        return more;
+    }
+
+    /**
+     * The labels [labels] of a highlight's menu on your own profile, which Instagram builds as a
+     * list where other story menus build an array (#339). xboyrex's rows go at its end, as
+     * {@link #labels} adds them. A list that has the rows already is left alone. Never throws.
+     */
+    public static void labelList(List<Object> labels) {
+        try {
+            HookStatus.invoked(FamilyNames.STORY_DOWNLOAD);
+            if (labels == null) return;
+            Object menu = building.get();
+            if (on()) addRows(labels, labels(new CharSequence[0], rows(menu)));
+            String loop = loopLabel(menu);
+            if (loop != null && !hasLoop(labels)) labels.add(loop);
+            String speed = speedLabel(menu);
+            if (speed != null && !hasSpeed(labels)) labels.add(speed);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
+        }
+    }
+
+    /** Adds [more], xboyrex's Download rows, to [labels] unless its first row is there already. */
+    private static void addRows(List<Object> labels, CharSequence[] more) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && more[0].toString().contentEquals((CharSequence) label)) return;
+        }
+        labels.addAll(Arrays.asList(more));
+    }
+
+    /**
+     * Loop this story, or Stop looping this story once it loops, for the story [menu] is open on,
+     * or null when its menu doesn't get the row: Loop a story isn't in the build, its switch is on,
+     * or the story has no media ID.
+     */
+    @Nullable
+    static String loopLabel(Object menu) {
+        if (menu == null || !StoryLoop.offersRow()) return null;
+        Object media = InstagramMedia.storyMedia(menu);
+        if (InstagramMedia.mediaId(media) == null) return null;
+        Context context = Utils.getContext();
+        return StoryLoop.looping(media) ? L10n.t(context, "Stop looping this story") : L10n.t(context, "Loop this story");
+    }
+
+    /** Whether [labels] has Loop this story or Stop looping this story already. */
+    private static boolean hasLoop(List<?> labels) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && isLoop((CharSequence) label)) return true;
+        }
+        return false;
+    }
+
+    /** Whether [label] is Loop this story or Stop looping this story, however the menu styled it. */
+    private static boolean isLoop(CharSequence label) {
+        Context context = Utils.getContext();
+        return L10n.t(context, "Loop this story").contentEquals(label)
+                || L10n.t(context, "Stop looping this story").contentEquals(label);
+    }
+
+    /**
+     * Playback speed for the story [menu] is open on, or null when its menu doesn't get the row:
+     * Speed in the story menu is off or not in the build, or the story has no video to speed up.
+     */
+    @Nullable
+    static String speedLabel(Object menu) {
+        if (menu == null || !StorySpeed.offersRow()) return null;
+        Object media = InstagramMedia.storyMedia(menu);
+        if (media == null) return null;
+        if (ReelDownload.renditions(media).isEmpty() && InstagramMedia.dashManifest(media) == null) return null;
+        return StorySpeed.menuLabel();
+    }
+
+    /** Whether [labels] has Playback speed already. */
+    private static boolean hasSpeed(List<?> labels) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && StorySpeed.isMenuLabel((CharSequence) label)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add to Stories priority, or Remove from Stories priority once the account is on the list, for
+     * the story [menu] is open on, or null when its menu doesn't get the row: Stories priority isn't
+     * in the build, or the story's account can't be read.
+     */
+    @Nullable
+    static String priorityLabel(Object menu) {
+        if (menu == null || !StoryPriority.offersRow()) return null;
+        return StoryPriority.menuLabel(author(menu));
+    }
+
+    /** The username of whoever posted the story [menu] is open on, or null. */
+    @Nullable
+    private static String author(Object menu) {
+        Object media = InstagramMedia.storyMedia(menu);
+        if (media == null) return null;
+        Object user = InstagramMedia.owner(media);
+        return user == null ? null : InstagramMedia.username(user);
+    }
+
+    /** Whether [labels] has Add to Stories priority or Remove from Stories priority already. */
+    private static boolean hasPriority(List<?> labels) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && StoryPriority.isMenuLabel((CharSequence) label)) return true;
+        }
+        return false;
+    }
+
+    /** Puts the account of the story [menu] is open on first in the stories row, or takes it off, and says which. */
+    private static void togglePriority(Object menu) {
+        Context context = Utils.getContext().getApplicationContext();
+        Boolean listed = StoryPriority.toggle(author(menu));
+        String said = listed == null ? L10n.t(context, "Stories priority didn't change")
+                : listed ? L10n.t(context, "Added to Stories priority") : L10n.t(context, "Removed from Stories priority");
+        Feedback.show(context, said, false);
+    }
+
+    /** Loops the story [menu] is open on, or takes its loop off, and says which. */
+    private static void toggleLoop(Object menu) {
+        Context context = Utils.getContext().getApplicationContext();
+        Boolean loops = StoryLoop.toggle(InstagramMedia.storyMedia(menu));
+        String said = loops == null ? L10n.t(context, "Loop didn't change")
+                : loops ? L10n.t(context, "Looping this story") : L10n.t(context, "This story plays once");
+        Feedback.show(context, said, false);
+    }
+
+    /**
+     * The rows for the story [menu] is open on, counting what the story was for the diagnostic
+     * report. Download alone when it can't tell. Never throws.
+     */
+    static Rows rows(Object menu) {
+        try {
+            Kind kind = kind(menu == null ? null : InstagramMedia.storyMedia(menu));
+            HookStatus.counted(FamilyNames.STORY_DOWNLOAD, kind.counted);
+            return kind.rows;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, MUSIC_CHECK, t);
+            return Rows.DOWNLOAD;
+        }
+    }
+
+    /**
+     * What [media], a story's Media, is. A photo story with music reaches the menu as a video. Only
+     * some uploads flag it as one, and Instagram's own story viewer tells it from a filmed video by
+     * the type it was posted as, a photo (#98). Without a video there's only the picture to save,
+     * whatever the story says, so it keeps its one Download.
+     */
+    static Kind kind(Object media) {
+        if (media == null) return Kind.UNREAD;
+        if (ReelDownload.renditions(media).isEmpty() && InstagramMedia.dashManifest(media) == null) return Kind.PHOTO;
+        if (Boolean.TRUE.equals(InstagramMedia.storyImageWithMusic(media))) return Kind.FLAGGED;
+        Integer posted = InstagramMedia.originalMediaType(media);
+        if (posted == null) return Kind.NO_POSTED_TYPE;
+        return posted == POSTED_PHOTO ? Kind.POSTED_AS_PHOTO : Kind.POSTED_AS_VIDEO;
+    }
+
+    /**
+     * Saves the story [menu] is open on when [label], the tapped one, is one of xboyrex's rows and
+     * the switch is on, and answers whether it did, in which case Instagram's handler is skipped. A
+     * save that can't start says so. Loop this story loops the story instead, or takes its loop off,
+     * and Playback speed opens the speeds. Never throws.
+     */
+    public static boolean save(CharSequence label, Object menu) {
+        try {
+            if (label == null) return false;
+            if (StoryLoop.offersRow() && isLoop(label)) {
+                toggleLoop(menu);
+                return true;
+            }
+            if (StorySpeed.offersRow() && StorySpeed.isMenuLabel(label)) {
+                StorySpeed.fromMenu();
+                return true;
+            }
+            if (StoryPriority.offersRow() && StoryPriority.isMenuLabel(label)) {
+                togglePriority(menu);
+                return true;
+            }
+            if (!on()) return false;
+            Choice choice = choice(label);
+            if (choice == null) return false;
+            start(choice, InstagramMedia.storyMedia(menu));
+            return true;
+        } catch (Throwable t) {
+            // It runs inside Instagram's click dispatch, where a throw ends the app. Instagram's
+            // handler goes ahead instead, and passes over a label it doesn't know.
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
+            return false;
+        }
+    }
+
+    /**
+     * Runs [listener], the dismiss listener the story menu's handler was given, after {@link #save}
+     * handled the tap. Instagram hands it on to what its own row opens, which plays the story again
+     * when it's done, and the sheet doesn't run it after a row tap, so the story stayed paused once
+     * one of xboyrex's rows closed the menu (#610). With Playback speed's list open it runs once the
+     * list closes, so the story waits for the pick (#621). Never throws.
+     */
+    public static void menuClosed(Object listener) {
+        try {
+            if (!(listener instanceof DialogInterface.OnDismissListener)) return;
+            DialogInterface.OnDismissListener dismiss = (DialogInterface.OnDismissListener) listener;
+            if (StorySpeed.afterList(() -> dismissed(dismiss))) return;
+            dismiss.onDismiss(null);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu closed", t);
+        }
+    }
+
+    /** Runs [dismiss] after the speed list closed. Never throws. */
+    private static void dismissed(DialogInterface.OnDismissListener dismiss) {
+        try {
+            dismiss.onDismiss(null);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu closed", t);
+        }
+    }
+
+    /**
+     * The story button's tap (#400): the save the menu's Download row runs, for [media], the story's
+     * Media, whatever the Download on stories switch says. A save that can't start says so. Never throws.
+     */
+    public static void saveStory(Object media) {
+        try {
+            start(Choice.STORY, media);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story button", t);
+        }
+    }
+
+    /** Runs the save [choice] names for [media], or hands the story to the external downloader. */
+    private static void start(Choice choice, Object media) {
+        Context context = Utils.getContext().getApplicationContext();
+        if (choice == Choice.STORY && media != null
+                && ExternalDownload.handOff(context, ExternalDownload.storyLink(media), FamilyNames.STORY_DOWNLOAD)) {
+            return;
+        }
+        boolean started = media != null && (choice == Choice.PHOTO ? savePhoto(context, media) : saveMedia(context, media));
+        if (!started) {
+            Feedback.show(context, L10n.t(context, "Download failed"), true);
+        }
+    }
+
+    /** Starts the save of [media]: its video when it has one, else its picture. */
+    private static boolean saveMedia(Context context, Object media) {
+        List<MediaSave.Rendition> videos = ReelDownload.renditions(media);
+        String manifest = InstagramMedia.dashManifest(media);
+        PostDetails details = details(media);
+        if (!videos.isEmpty() || manifest != null) {
+            final int files = videos.size();
+            final boolean dash = manifest != null;
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
+                    () -> "story video download tapped: " + files + " file(s)" + (dash ? " and a manifest" : ", no manifest"));
+            return MediaSave.saveVideo(context, videos, manifest, details);
+        }
+        return savePhoto(context, media);
+    }
+
+    /**
+     * Starts the save of [media]'s picture, at its largest size, even when it has a video too, whose
+     * first frame saves when that's larger ({@link MediaSave#saveStoryPicture}).
+     */
+    private static boolean savePhoto(Context context, Object media) {
+        List<MediaSave.Rendition> pictures = pictures(media);
+        final int sizes = pictures.size();
+        Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "story photo download tapped: " + sizes + " size(s)");
+        return MediaSave.saveStoryPicture(context, pictures, ReelDownload.renditions(media),
+                InstagramMedia.dashManifest(media), details(media));
+    }
+
+    /** A story has a numeric story URL, not a public post shortcode. */
+    static PostDetails details(Object media) {
+        return ReelDownload.details(media).withPostId(null);
+    }
+
+    /** The sizes [media] lists for its picture, with the size each states. Never null. */
+    static List<MediaSave.Rendition> pictures(Object media) {
+        Object versions = InstagramMedia.imageVersions(media);
+        List<?> candidates = versions == null ? null : InstagramMedia.imageCandidates(versions);
+        if (candidates == null) return Collections.emptyList();
+        List<MediaSave.Rendition> pictures = new ArrayList<>(candidates.size());
+        for (Object candidate : candidates) {
+            if (candidate == null) continue;
+            String url = InstagramMedia.candidateUrl(candidate);
+            if (url == null || url.isEmpty()) continue;
+            pictures.add(new MediaSave.Rendition(url, InstagramMedia.candidateWidth(candidate),
+                    InstagramMedia.candidateHeight(candidate), 0));
+        }
+        return pictures;
+    }
+
+    /**
+     * The sizes of a cover and the places they came from, for the log.
+     * {@code sources} is as long as {@code sizes}, and each entry names the field it was read from.
+     */
+    static final class Cover {
+        final List<MediaSave.Rendition> sizes = new ArrayList<>();
+        final List<String> sources = new ArrayList<>();
+
+        /** The place the largest size came from, as {@link MediaSave#savePictureBySize} picks it, or "none". */
+        String chosenSource() {
+            int best = -1;
+            for (int i = 0; i < sizes.size(); i++) {
+                if (best < 0 || MediaSave.biggerPicture(sizes.get(i), sizes.get(best))) best = i;
+            }
+            if (best < 0) return "none";
+            MediaSave.Rendition r = sizes.get(best);
+            return sources.get(best) + (r.width > 0 && r.height > 0 ? " " + r.width + "x" + r.height : "");
+        }
+
+        /**
+         * Whether the cover is the video's first frame: a first frame still, which {@link #cover}
+         * keeps only when it shares the cover's file, is one of its sizes.
+         */
+        boolean firstFrame() {
+            return sources.contains("first_frame") || sources.contains("igtv_first_frame");
+        }
+
+        /** A line for the log: how many sizes, per place, and where the largest is from. */
+        String summary() {
+            StringBuilder places = new StringBuilder();
+            for (int i = 0; i < sizes.size(); i++) {
+                String source = sources.get(i);
+                int count = 0;
+                for (String other : sources) if (other.equals(source)) count++;
+                if (sources.indexOf(source) == i) places.append(places.length() == 0 ? "" : ", ").append(source).append(' ').append(count);
+            }
+            return sizes.size() + " picture size(s) (" + places + "), largest from " + chosenSource();
+        }
+    }
+
+    /**
+     * Every size [media] states for its cover: its {@code image_versions2} candidates, and the stills
+     * in {@code additional_candidates} (the first frame, the IGTV first frame and the smart frame)
+     * that keep the candidates' proportions and are the same picture. A smart frame is cropped, and
+     * a still of other proportions isn't the cover, so one is left out, and so is every still when
+     * the candidates state no size to compare with. A reel with a custom cover keeps a first frame
+     * that is a different picture from it, and 450 states nothing that says which a reel has, so a
+     * still counts only when the file in its address is one of the candidates' files. Any doubt,
+     * such as an address that names no file, leaves it out. A build where the stills can't be read
+     * gives the candidates alone. Never null, never throws.
+     */
+    static Cover cover(Object media) {
+        Cover cover = new Cover();
+        for (MediaSave.Rendition candidate : pictures(media)) {
+            cover.sizes.add(candidate);
+            cover.sources.add("candidates");
+        }
+        try {
+            MediaSave.Rendition base = null;
+            for (MediaSave.Rendition r : cover.sizes) {
+                if (r.width > 0 && r.height > 0 && (base == null || (long) r.width * r.height > (long) base.width * base.height)) base = r;
+            }
+            Object versions = base == null ? null : InstagramMedia.imageVersions(media);
+            Object more = versions == null ? null : InstagramMedia.additionalCandidates(versions);
+            if (more == null) return cover;
+            Object[] frames = {InstagramMedia.firstFrame(more), InstagramMedia.igtvFirstFrame(more), InstagramMedia.smartFrame(more)};
+            String[] names = {"first_frame", "igtv_first_frame", "smart_frame"};
+            Set<String> assets = new HashSet<>();
+            for (MediaSave.Rendition r : cover.sizes) {
+                String asset = assetOf(r.url);
+                if (asset != null) assets.add(asset);
+            }
+            for (int i = 0; i < frames.length; i++) {
+                if (frames[i] == null) continue;
+                String url = InstagramMedia.candidateUrl(frames[i]);
+                int width = InstagramMedia.candidateWidth(frames[i]);
+                int height = InstagramMedia.candidateHeight(frames[i]);
+                if (url == null || url.isEmpty() || width <= 0 || height <= 0) continue;
+                // Same proportions as the candidates', within 2 percent.
+                if (Math.abs((long) width * base.height - (long) height * base.width) * 50L > (long) height * base.width) continue;
+                String asset = assetOf(url);
+                if (asset == null || !assets.contains(asset)) {
+                    HookStatus.counted(FamilyNames.REEL_DOWNLOAD, "cover still left out, not the cover's picture");
+                    continue;
+                }
+                cover.sizes.add(new MediaSave.Rendition(url, width, height, 0));
+                cover.sources.add(names[i]);
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.REEL_DOWNLOAD, "cover stills", t);
+        }
+        return cover;
+    }
+
+    /**
+     * The file a picture's address names: the last part of its path without the extension, which is
+     * what two sizes of one upload share. Null when the address names none.
+     */
+    @Nullable
+    static String assetOf(@Nullable String url) {
+        if (url == null) return null;
+        int end = url.length();
+        int query = url.indexOf('?');
+        if (query >= 0) end = query;
+        int fragment = url.indexOf('#');
+        if (fragment >= 0 && fragment < end) end = fragment;
+        String path = url.substring(0, end);
+        int slash = path.lastIndexOf('/');
+        String file = path.substring(slash + 1);
+        int dot = file.lastIndexOf('.');
+        if (dot > 0) file = file.substring(0, dot);
+        return file.isEmpty() ? null : file;
+    }
+
+    /** The row for [choice], in the app's language. */
+    static String label(Choice choice) {
+        switch (choice) {
+            case VIDEO: return L10n.t(Utils.getContext(), "Download as video");
+            case PHOTO: return L10n.t(Utils.getContext(), "Download as photo");
+            default: return L10n.t(Utils.getContext(), "Download");
+        }
+    }
+
+    /** Which of xboyrex's rows [label] is, however the menu styled it, or null for Instagram's own. */
+    static Choice choice(CharSequence label) {
+        for (Choice choice : Choice.values()) {
+            if (label(choice).contentEquals(label)) return choice;
+        }
+        return null;
+    }
+
+    private static boolean on() {
+        try {
+            return Utils.settingsReady() && Settings.DOWNLOAD_STORIES.get();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu switch", t);
+            return false;
+        }
+    }
+}

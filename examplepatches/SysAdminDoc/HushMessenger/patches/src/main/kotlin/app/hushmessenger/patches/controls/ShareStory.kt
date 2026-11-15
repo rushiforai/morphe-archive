@@ -134,7 +134,7 @@ internal fun findShareStory(classes: Iterable<ClassDef>): List<Method> {
     shareStoryRow = ""
     val all = classes.toList()
     val row = all.filter { it.isStoryRow() }.singleOrNull()?.type ?: return emptyList()
-    val creators = all.flatMap { cls -> cls.methods.filter { method -> method.code().any { it.created() == row } } }
+    val creators = codeReferrers(classes, types = listOf(row)).map { it.second }.filter { method -> method.code().any { it.created() == row } }
     val gates = creators.map { it to it.storyGate(row) }
     if (gates.size != 2 || gates.any { it.second == null }) return emptyList()
     val hoisted = gates.filter { it.second!!.hoisted }

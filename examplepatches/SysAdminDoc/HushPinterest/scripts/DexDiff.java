@@ -275,12 +275,13 @@ public class DexDiff {
 
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
-            Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
+            Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 7),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
-            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 1), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
+            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
             Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
-            Map.entry("longPressChoices", 1));
+            Map.entry("saveSheet", 1), Map.entry("suggestedBoard", 1), Map.entry("boardListHeight", 1),
+            Map.entry("longPressChoices", 1), Map.entry("ownAuthorities", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -333,7 +334,8 @@ public class DexDiff {
                 boolean validMutation = family || (columns[2].equals("guard") ? mutationValues >= 2 && mutationValues % 2 == 0
                         : columns[2].equals("builtView") ? mutationValues >= 3 && mutationValues % 3 == 0
                         : MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues);
-                // A family's capability column may be empty: a manifest-only patch changes no bytecode.
+                // A family's capability column may be empty: a patch applied whole, whose own installed
+                // flag a mutation rule may name when it changes bytecode too.
                 if ((family && columns.length != 4) || (!family && columns.length < 4)
                         || Arrays.stream(columns).limit(family ? 3 : columns.length).anyMatch(String::isBlank)
                         || !columns[1].matches("[A-Za-z][A-Za-z0-9]*(,[A-Za-z][A-Za-z0-9]*)*")
@@ -2367,6 +2369,8 @@ public class DexDiff {
         final List<String> findings = new ArrayList<>();
         final Map<String, Boolean> flags = new LinkedHashMap<>();
         final Map<String, String> owners = new LinkedHashMap<>();
+        /** Installed flags of the families with no capability, applied whole or not at all. */
+        final Set<String> wholeFamilies = new HashSet<>();
         final Map<String, FeatureEdits> edits = new LinkedHashMap<>();
         final Set<String> claimed = new HashSet<>();
         final Set<String> selected;
@@ -2522,7 +2526,7 @@ public class DexDiff {
         }
 
         boolean active(Contract rule) {
-            for (String cap : rule.callee.split(",")) if (flag(owners.get(cap))) return true;
+            for (String cap : rule.callee.split(",")) if (flag(wholeFamilies.contains(cap) ? cap : owners.get(cap))) return true;
             return rule.target.equals("settings");
         }
 
@@ -2882,6 +2886,39 @@ public class DexDiff {
                 }
                 return true;
             }
+            if (selector.equals("screenshotCallback")) {
+                // Every screen capture callback in Pinterest's code returns at once while the switch is on.
+                List<Method> callbacks = new ArrayList<>();
+                for (ClassDef cd : clean.classes.values()) if (!cd.getType().startsWith(OWN)
+                        && cd.getInterfaces().contains("Landroid/app/Activity$ScreenCaptureCallback;"))
+                    for (Method m : cd.getMethods()) if (m.getName().equals("onScreenCaptured") && descriptor(m).equals("()V")
+                            && m.getImplementation() != null) callbacks.add(m);
+                if (callbacks.isEmpty()) { fail("no screen capture callback in this build"); return false; }
+                for (Method original : callbacks) guard(actual(original), hook, 0, List.of(), 0, false, false);
+                return true;
+            }
+            if (selector.equals("screenshotReceiver")) {
+                // The photos watchers post one event for a new screenshot file; every method taking only
+                // that event returns at once while the switch is on, and the watchers stay untouched.
+                Set<String> events = new TreeSet<>();
+                for (Method m : clean.holding("date_added")) if (m.getName().equals("onChange") && descriptor(m).equals("(ZLandroid/net/Uri;)V")
+                        && clean.texts.get(m.toString()).contains("_data") && clean.classes.containsKey(m.getDefiningClass())
+                        && "Landroid/database/ContentObserver;".equals(clean.classes.get(m.getDefiningClass()).getSuperclass()))
+                    for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.NEW_INSTANCE) {
+                        String type = String.valueOf(reference(i));
+                        if (clean.classes.containsKey(type) && List.of("Ljava/", "Ljavax/", "Lkotlin/", "Landroid/", "Landroidx/")
+                                .stream().noneMatch(type::startsWith)) events.add(type);
+                    }
+                if (events.size() != 1) { fail("the photos watchers post " + events.size() + " event types, expected one"); return false; }
+                String event = events.iterator().next();
+                List<Method> receivers = new ArrayList<>();
+                for (Method m : clean.methods.values()) if (!m.getDefiningClass().startsWith(OWN) && m.getImplementation() != null
+                        && !m.getName().startsWith("<") && m.getReturnType().equals("V") && m.getParameterTypes().size() == 1
+                        && m.getParameterTypes().get(0).toString().equals(event)) receivers.add(m);
+                if (receivers.isEmpty()) { fail("nothing receives the screenshot event " + event); return false; }
+                for (Method original : receivers) guard(actual(original), hook, 0, List.of(), 0, false, false);
+                return true;
+            }
             List<Method> targets = new ArrayList<>();
             int before = 0;
             boolean whole = true;
@@ -2953,6 +2990,25 @@ public class DexDiff {
                 }
                 // A build without Meta's ad SDK keeps the capability off, and the patch only warns.
                 if (targets.isEmpty()) return false;
+            } else if (selector.equals("interstitialKillswitch") || selector.equals("interstitialExperiment")) {
+                // The killswitch read: an instance ()Z naming the server experiment that turns interstitials off.
+                List<Method> reads = new ArrayList<>();
+                for (Method m : clean.holding("android_ad_interstitial_killswitch")) if (!m.getDefiningClass().startsWith(OWN)
+                        && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && descriptor(m).equals("()Z")) reads.add(m);
+                // The experiment check: an instance (kind, Z)Z naming both the house and the Google interstitial.
+                List<Method> checks = new ArrayList<>();
+                for (Method m : clean.holding("android_ad_house_interstitial")) if (!m.getDefiningClass().startsWith(OWN)
+                        && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("Z")
+                        && m.getParameterTypes().size() == 2 && m.getParameterTypes().get(1).toString().equals("Z")
+                        && clean.texts.get(m.toString()).contains("android_ad_gma_interstitial")) checks.add(m);
+                // The patch answers both questions or neither. Without exactly one of each in one class it
+                // only warns, so the capability stays off and none of these methods carries either hook.
+                if (reads.size() != 1 || checks.size() != 1 || !reads.get(0).getDefiningClass().equals(checks.get(0).getDefiningClass())) {
+                    for (Method m : reads) calls(actual(m), hook, 0);
+                    for (Method m : checks) calls(actual(m), hook, 0);
+                    return false;
+                }
+                targets.addAll(selector.equals("interstitialKillswitch") ? reads : checks);
             } else if (selector.equals("saveToast")) {
                 ClassDef container = clean.classes.get(TOAST_CONTAINER);
                 if (container != null) for (Method m : container.getMethods()) {
@@ -2966,13 +3022,19 @@ public class DexDiff {
             } else if (selector.equals("homeResume") || selector.equals("homeRefresh")) {
                 // The Home return check: the fragment's (J)V that hands the time away to the
                 // presenter's (JZ)V, which compares it with five minutes and calls the static
-                // refresh with a map and a default-argument mask. Its refresh is the second
-                // guarded method.
+                // refresh with a map and a default-argument mask. 14.44.0 inlines that check into
+                // the fragment's (J)V. Its refresh is the second guarded method.
                 List<Method> resumes = new ArrayList<>();
                 Set<Method> checks = new HashSet<>();
                 ClassDef home = clean.classes.get(HOME_FEED_FRAGMENT);
                 if (home != null) for (Method m : home.getMethods()) {
                     if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("(J)V")) continue;
+                    if (instructions(m).stream().anyMatch(a -> a instanceof WideLiteralInstruction
+                            && ((WideLiteralInstruction) a).getWideLiteral() == HOME_AWAY_MS) && !homeRefreshCalls(m).isEmpty()) {
+                        resumes.add(m);
+                        checks.add(m);
+                        continue;
+                    }
                     for (Instruction i : instructions(m)) if (reference(i) instanceof MethodReference r && descriptor(r).equals("(JZ)V")
                             && i.getOpcode().name.startsWith("invoke-virtual") && clean.methods.get(r.toString()) != null) {
                         Method check = clean.methods.get(r.toString());
@@ -3011,9 +3073,13 @@ public class DexDiff {
                     sendableStubs();
                     return original != null;
                 }
-                if (selector.equals("assistant") || selector.equals("metaAds")) {
-                    // The consent check hands its vendor to the hook; the assistant check hands nothing.
+                if (selector.equals("assistant") || selector.equals("metaAds") || selector.equals("interstitialExperiment")) {
+                    // The consent check hands its vendor to the hook; the other checks hand nothing.
                     falseGuard(m, hook, selector.equals("metaAds") ? List.of(parameter(m, 0)) : List.of());
+                    return original != null;
+                }
+                if (selector.equals("interstitialKillswitch")) {
+                    answerGuard(m, hook, List.of(), 1);
                     return original != null;
                 }
                 if (selector.equals("update")) {
@@ -3029,6 +3095,11 @@ public class DexDiff {
 
         /** A guard on a host method that answers a question: when the hook says so it answers false, and nothing else runs. */
         void falseGuard(Method m, String hook, List<Integer> arguments) {
+            answerGuard(m, hook, arguments, 0);
+        }
+
+        /** The same guard answering [answer] (0 or 1) instead. */
+        void answerGuard(Method m, String hook, List<Integer> arguments, int answer) {
             List<Integer> sites = calls(m, hook, 1);
             if (sites.size() != 1) return;
             List<Instruction> body = instructions(m);
@@ -3037,14 +3108,14 @@ public class DexDiff {
                 fail(hook + " has the wrong guarded placement or arguments in " + m);
                 return;
             }
-            Instruction answer = body.get(1), branch = body.get(2), zero = body.get(3), done = body.get(4);
-            if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ || firstRegister(answer) != firstRegister(branch)
+            Instruction result = body.get(1), branch = body.get(2), constant = body.get(3), done = body.get(4);
+            if (result.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ || firstRegister(result) != firstRegister(branch)
                     || !(branch instanceof OffsetInstruction)
                     || layout.addresses.get(2) + ((OffsetInstruction) branch).getCodeOffset() != layout.addresses.get(5))
                 fail(hook + " has no false branch to its original body in " + m);
-            if (zero.getOpcode() != Opcode.CONST_4 || done.getOpcode() != Opcode.RETURN || firstRegister(zero) != firstRegister(done)
-                    || ((NarrowLiteralInstruction) zero).getNarrowLiteral() != 0)
-                fail(hook + " does not answer false only in its enabled branch in " + m);
+            if (constant.getOpcode() != Opcode.CONST_4 || done.getOpcode() != Opcode.RETURN || firstRegister(constant) != firstRegister(done)
+                    || ((NarrowLiteralInstruction) constant).getNarrowLiteral() != answer)
+                fail(hook + " does not answer " + (answer == 0 ? "false" : "true") + " only in its enabled branch in " + m);
             remove(m, 0, 5);
         }
 
@@ -3948,6 +4019,17 @@ public class DexDiff {
          * call ahead of the tap effect's first action that skips them all when it answers true, and
          * three stubs naming the option interface, Pinterest's Download icon and label, and the enum.
          */
+        /** The indices of [m]'s parameters whose class extends [event]. */
+        List<Integer> eventParameters(Method m, String event) {
+            List<Integer> out = new ArrayList<>();
+            List<? extends CharSequence> types = m.getParameterTypes();
+            for (int p = 0; p < types.size(); p++) {
+                ClassDef parameter = clean.classes.get(types.get(p).toString());
+                if (parameter != null && event.equals(parameter.getSuperclass())) out.add(p);
+            }
+            return out;
+        }
+
         boolean longPressCompose(String itemsHook, String clickHook, String event, String model, String pin, String icon, String strings) {
             String own = BASE + "actions/LongPressDownload;->", pair = "Lkotlin/Pair;";
             List<ClassDef> faces = new ArrayList<>();
@@ -3977,9 +4059,10 @@ public class DexDiff {
 
             List<Method> dispatchers = new ArrayList<>();
             for (Method method : clean.holding("android_longpress_menu_v2")) {
-                if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getReturnType().equals("V") || method.getParameterTypes().size() != 1) continue;
-                ClassDef parameter = clean.classes.get(method.getParameterTypes().get(0).toString());
-                if (parameter == null || !event.equals(parameter.getSuperclass())) continue;
+                // Up to 14.43.0 the event bus handler itself, from 14.44.0 a helper it hands the
+                // activity, the event and the fragment to: one parameter is the pin long-press event.
+                if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getReturnType().equals("V")
+                        || eventParameters(method, event).size() != 1) continue;
                 List<Instruction> body = instructions(method);
                 // The event's pin through its getter, or (14.43.0 on, the getter inlined) straight from its field.
                 if (body.stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().equals(event)
@@ -3995,8 +4078,21 @@ public class DexDiff {
             if (shown != null && sites.size() == 1) {
                 List<Instruction> body = instructions(shown);
                 int at = sites.get(0);
-                Instruction first = body.get(0), built = at < 2 ? null : body.get(at - 1), builder = at < 2 ? null : body.get(at - 2);
+                // A list past v15 takes a range call, with a copy of the event in the register after the list.
+                boolean ranged = at >= 1 && body.get(at).getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                        && body.get(at - 1).getOpcode() == Opcode.MOVE_OBJECT_FROM16;
+                int listed = ranged ? at - 1 : at;
+                Instruction built = listed < 2 ? null : body.get(listed - 1), builder = listed < 2 ? null : body.get(listed - 2);
                 Method building = builder == null ? null : clean.methods.get(String.valueOf(reference(builder)));
+                // The dispatcher copies its parameters into low registers first; one of those copies is the event's.
+                int eventRegister = parameter(shown, eventParameters(shown, event).get(0)), alias = -1, aliases = 0;
+                for (int k = 0; k < body.size() && body.get(k).getOpcode() == Opcode.MOVE_OBJECT_FROM16; k++)
+                    if (((TwoRegisterInstruction) body.get(k)).getRegisterB() == eventRegister) { alias = firstRegister(body.get(k)); aliases++; }
+                int list = built == null ? -1 : firstRegister(built);
+                boolean handed = ranged
+                        ? firstRegister(body.get(at - 1)) == list + 1 && ((TwoRegisterInstruction) body.get(at - 1)).getRegisterB() == alias
+                            && arguments(body.get(at)).equals(List.of(list, list + 1))
+                        : arguments(body.get(at)).equals(List.of(list, alias));
                 // 14.43.0 folded the older view menu into this dispatcher, and it builds a list of its
                 // own after the newer menu's ComposeView. The newer menu's is the one built before it.
                 int compose = -1;
@@ -4004,13 +4100,12 @@ public class DexDiff {
                         && String.valueOf(reference(body.get(k))).equals("Landroidx/compose/ui/platform/ComposeView;")) compose = k;
                 final int composeAt = compose;
                 if (building == null || instructions(building).stream().noneMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && String.valueOf(reference(i)).equals(type))
-                        || composeAt < at || !callSites(body, String.valueOf(reference(builder))).stream().filter(k -> k < composeAt).toList().equals(List.of(at - 2)))
+                        || composeAt < at || !callSites(body, String.valueOf(reference(builder))).stream().filter(k -> k < composeAt).toList().equals(List.of(listed - 2)))
                     fail(itemsHook + " doesn't follow the dispatcher's one option list");
-                else if (first.getOpcode() != Opcode.MOVE_OBJECT_FROM16 || ((TwoRegisterInstruction) first).getRegisterB() != parameter(shown, 0)
-                        || !isMoveResult(built.getOpcode()) || !arguments(body.get(at)).equals(List.of(firstRegister(built), firstRegister(first)))
-                        || !isMoveResult(body.get(at + 1).getOpcode()) || firstRegister(body.get(at + 1)) != firstRegister(built))
+                else if (aliases != 1 || !isMoveResult(built.getOpcode()) || !handed
+                        || !isMoveResult(body.get(at + 1).getOpcode()) || firstRegister(body.get(at + 1)) != list)
                     fail(itemsHook + " doesn't replace the option list from the list and the event in " + shown);
-                remove(shown, at, at + 2);
+                remove(shown, listed, at + 2);
             }
 
             List<Method> effects = new ArrayList<>();
@@ -4261,6 +4356,12 @@ public class DexDiff {
          * Download image row, and six stubs bound to the sheet's menu data, row list, row factory and
          * the presenter method that closes it. A build without the sheet expects none of it.
          */
+        /** Whether [m] reads Pinterest's Download image title id, the row the sheet's mark goes on. */
+        boolean readsDownloadTitle(Method m) {
+            return instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.SGET && reference(i) instanceof FieldReference title
+                    && title.getName().equals("save_to_device") && title.getType().equals("I"));
+        }
+
         void downloadSheet(String downloads, ClassDef menu) {
             ClassDef location = clean.classes.get("Lcom/pinterest/feature/GridActionsLocation$PIN_OVERFLOW_MENU_MODAL_FRAGMENT;");
             if (location == null) return;
@@ -4283,18 +4384,32 @@ public class DexDiff {
                     fail("download sheet hand-over at " + at + " is not the sheet itself in front of a return");
                 remove(m, at, at + 1);
             }
-            List<Integer> marks = calls(m, downloads + "->nativeRow(Landroid/view/View;)V", 1);
+            // Up to 14.43.0 onViewCreated builds the rows itself; from 14.44.0 it calls a method of the
+            // sheet's own that does, and the row mark goes there.
+            Method rows = builder;
+            if (!readsDownloadTitle(builder)) {
+                List<Method> rowBuilders = new ArrayList<>();
+                for (Method candidate : fragment.getMethods()) if (candidate.getImplementation() != null && readsDownloadTitle(candidate)) rowBuilders.add(candidate);
+                rows = unique(rowBuilders, "download sheet row list");
+                if (rows == null) return;
+                String called = rows.toString();
+                if (instructions(builder).stream().noneMatch(i -> reference(i) instanceof MethodReference r && r.toString().equals(called)))
+                    fail("download sheet builds its rows in " + rows.getName() + ", which onViewCreated never calls");
+            }
+            Method marked = rows == builder ? m : actual(rows);
+            List<Instruction> rowBody = marked == null ? List.of() : instructions(marked);
+            List<Integer> marks = marked == null ? List.of() : calls(marked, downloads + "->nativeRow(Landroid/view/View;)V", 1);
             if (marks.size() == 1) {
                 int at = marks.get(0);
                 boolean titled = false;
-                for (int i = Math.max(0, at - 9); i < at - 2; i++) if (reference(body.get(i)) instanceof FieldReference title
+                for (int i = Math.max(0, at - 9); i < at - 2; i++) if (reference(rowBody.get(i)) instanceof FieldReference title
                         && title.getName().equals("save_to_device")) titled = true;
-                if (at < 2 || body.get(at - 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT
-                        || !(reference(body.get(at - 2)) instanceof MethodReference factory)
+                if (at < 2 || rowBody.get(at - 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT
+                        || !(reference(rowBody.get(at - 2)) instanceof MethodReference factory)
                         || !factory.getDefiningClass().equals(fragment.getType()) || !factory.getReturnType().equals("Landroid/widget/RelativeLayout;")
-                        || !arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1)))) || !titled)
+                        || !arguments(rowBody.get(at)).equals(List.of(firstRegister(rowBody.get(at - 1)))) || !titled)
                     fail("download sheet mark is not on the sheet's own Download image row");
-                remove(m, at, at + 1);
+                remove(marked, at, at + 1);
             }
             String type = fragment.getType();
             String pinType = "";
@@ -4389,7 +4504,11 @@ public class DexDiff {
         void comments(Contract c) {
             String[][] resources = {{"pin_closeup_unified_comments_module", "unified_comments_module_container"},
                     {"pin_closeup_new_comments_module", "new_comments_module_container"}};
-            for (String[] pair : resources) {
+            // The unified module folds through the comments hooks. The new module shows only one quoted
+            // comment, so it folds through the preview hooks, which Hide comments turns on as well.
+            String[][] hooks = {{c.strings.get(0), c.strings.get(1)}, {c.strings.get(4), c.strings.get(5)}};
+            for (int p = 0; p < resources.length; p++) {
+                String[] pair = resources[p];
                 List<ClassDef> modules = new ArrayList<>();
                 for (ClassDef cd : clean.classes.values()) {
                     boolean component = false;
@@ -4405,13 +4524,20 @@ public class DexDiff {
                 boolean inherits = false;
                 Set<String> visited = new HashSet<>();
                 for (String type = module.getSuperclass(); type != null && visited.add(type); ) {
-                    if (type.equals(c.strings.get(4))) { inherits = true; break; }
+                    if (type.equals(c.strings.get(3))) { inherits = true; break; }
                     ClassDef parent = clean.classes.get(type); type = parent == null ? null : parent.getSuperclass();
                 }
                 if (!inherits) fail("comments target does not inherit its dedicated module");
-                view(module.getType(), c.strings.get(0), c.strings.get(1), null);
+                view(module.getType(), hooks[p][0], hooks[p][1], null);
+                // The photo strip folds with the previews only where the unified module holds one, the
+                // same test the patch makes before it hooks the strip, so a build without one passes.
+                if (p == 0) for (Field field : module.getFields()) if (field.getType().equals(c.strings.get(6))) {
+                    view(c.strings.get(6), hooks[1][0], hooks[1][1], null);
+                    break;
+                }
             }
-            view(c.strings.get(3), c.strings.get(0), c.strings.get(1), null);
+            // The preview text inside the unified module is commentPreviews' own views rule, since
+            // either switch folds it.
             List<Method> descriptions = new ArrayList<>();
             for (Method method : clean.holding("CommentsZone(isVisible=")) if (method.getName().equals("toString")) descriptions.add(method);
             if (!descriptions.isEmpty()) {
@@ -5128,6 +5254,8 @@ public class DexDiff {
                 String type = m.getDefiningClass();
                 owners.add(type.contains("$") ? type.substring(0, type.indexOf('$')) + ";" : type);
             }
+            // Like the patch, a build where nothing reads the name has no bubble to hide, and the flag stays off.
+            if (owners.isEmpty()) { capability(c.callee, false); return; }
             List<Field> fields = new ArrayList<>();
             for (String owner : owners) {
                 ClassDef cd = clean.classes.get(owner);
@@ -5865,6 +5993,162 @@ public class DexDiff {
             return false;
         }
 
+        static final String SUGGESTED_BOARD_STATE = "SuggestedBoardItemVMState(itemId=", SHEET_HEIGHT_STATE = "Custom(percentage=";
+
+        /** The suggested board cell's model: the one clean class whose toString holds its state text. Null when the build has none. */
+        String suggestedBoardModel() {
+            List<Method> found = new ArrayList<>();
+            for (Method m : clean.holding(SUGGESTED_BOARD_STATE)) if (m.getName().equals("toString")) found.add(m);
+            if (found.isEmpty()) return null;
+            Method m = unique(found, "suggested board model");
+            return m == null ? null : m.getDefiningClass();
+        }
+
+        /** Each clean method outside the extension that builds a [type], with the index of each new-instance. The class itself is left out. */
+        List<Map.Entry<Method, Integer>> builders(String type) {
+            List<Map.Entry<Method, Integer>> sites = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getDefiningClass().equals(type) || m.getImplementation() == null) continue;
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k < body.size(); k++)
+                    if (body.get(k).getOpcode() == Opcode.NEW_INSTANCE && reference(body.get(k)) instanceof TypeReference t && t.getType().equals(type))
+                        sites.add(Map.entry(m, k));
+            }
+            return sites;
+        }
+
+        /** The Save to sheet: the one class that builds a suggested board's cell and has an onViewCreated(View, Bundle). Null when there's none. */
+        ClassDef boardPicker() {
+            String model = suggestedBoardModel();
+            if (model == null) return null;
+            Set<String> owners = new TreeSet<>();
+            for (Map.Entry<Method, Integer> site : builders(model)) owners.add(site.getKey().getDefiningClass());
+            List<ClassDef> pickers = new ArrayList<>();
+            for (String type : owners) if (clean.classes.containsKey(type) && viewCreated(clean.classes.get(type)) != null) pickers.add(clean.classes.get(type));
+            if (pickers.isEmpty()) return null;
+            return uniqueClass(pickers, "Save to sheet");
+        }
+
+        static Method viewCreated(ClassDef owner) {
+            Method found = null;
+            for (Method m : owner.getMethods()) {
+                if (!m.getName().equals("onViewCreated") || AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                        || !descriptor(m).equals("(Landroid/view/View;Landroid/os/Bundle;)V")) continue;
+                if (found != null) return null;
+                found = m;
+            }
+            return found;
+        }
+
+        /**
+         * Black Save to sheet (#31): the Save to sheet's onViewCreated(View, Bundle) hands the sheet's
+         * view over first, a range call on its first parameter after the fragment.
+         */
+        void saveSheet(Contract c) {
+            String hook = c.strings.get(0);
+            ClassDef picker = boardPicker();
+            if (picker == null) { capability(c.callee, false); return; }
+            Method m = actual(viewCreated(picker));
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                Instruction first = instructions(m).get(0);
+                placed = sites.get(0) == 0 && first.getOpcode() == Opcode.INVOKE_STATIC_RANGE && arguments(first).equals(List.of(parameter(m, 0)));
+                if (!placed) fail(hook + " isn't the first call, on the sheet's view, in " + m);
+                else remove(m, 0, 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        /**
+         * Hide suggested boards (#32): the one add(Object) right after the suggested board's cell is
+         * built, on a list and that cell with nothing reading its answer, becomes the hook on the same
+         * two registers.
+         */
+        void suggestedBoard(Contract c) {
+            String hook = c.strings.get(0);
+            String model = suggestedBoardModel();
+            if (model == null) { capability(c.callee, false); return; }
+            List<Method> adds = new ArrayList<>();
+            Map<String, Integer> addAt = new HashMap<>();
+            for (Map.Entry<Method, Integer> site : builders(model)) {
+                int at = suggestedAdd(site.getKey(), site.getValue(), model);
+                if (at < 0) continue;
+                adds.add(site.getKey());
+                addAt.put(site.getKey().toString(), at);
+            }
+            Method old = unique(adds, "suggested board add");
+            Method m = actual(old);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean swapped = false;
+            if (m != null && sites.size() == 1) {
+                int at = addAt.get(old.toString());
+                Instruction was = instructions(old).get(at);
+                swapped = sites.get(0) == at && instructions(m).get(at).getOpcode() == Opcode.INVOKE_STATIC
+                        && arguments(instructions(m).get(at)).equals(arguments(was));
+                if (!swapped) fail(hook + " doesn't take the suggested board's add, on the same list and cell, in " + m);
+                else edits.computeIfAbsent(m.toString(), k -> new FeatureEdits()).replacements.put(at, was);
+            }
+            capability(c.callee, swapped);
+        }
+
+        /** The index of the add(Object) that puts the cell built at [built] into a list, or -1 when that isn't the shape. */
+        static int suggestedAdd(Method m, int built, String model) {
+            List<Instruction> body = instructions(m);
+            int cell = firstRegister(body.get(built)), init = -1;
+            for (int k = built + 1; k < body.size() && init < 0; k++)
+                if (reference(body.get(k)) instanceof MethodReference r && r.getDefiningClass().equals(model) && r.getName().equals("<init>")) init = k;
+            if (init < 0 || init + 1 >= body.size() || DexDiff.firstRegister(body.get(init)) != cell) return -1;
+            Instruction add = body.get(init + 1);
+            if ((add.getOpcode() != Opcode.INVOKE_VIRTUAL && add.getOpcode() != Opcode.INVOKE_INTERFACE)
+                    || !(reference(add) instanceof MethodReference r) || !r.getName().equals("add")
+                    || !descriptor(r).equals("(Ljava/lang/Object;)Z") || arguments(add).size() != 2 || arguments(add).get(1) != cell) return -1;
+            if (init + 2 < body.size() && isMoveResult(body.get(init + 2).getOpcode())) return -1;
+            return init + 1;
+        }
+
+        /**
+         * Expand board list (#33): the Save to sheet's height, the one class it builds whose toString
+         * starts with the height's state text, asks the hook for its percentage right in front of the
+         * getter's only return, and the answer goes back where the percentage was.
+         */
+        void boardListHeight(Contract c) {
+            String hook = c.strings.get(0);
+            ClassDef picker = boardPicker();
+            if (picker == null) { capability(c.callee, false); return; }
+            Set<String> built = new TreeSet<>();
+            for (Method m : picker.getMethods()) for (Instruction i : instructions(m))
+                if (i.getOpcode() == Opcode.NEW_INSTANCE && reference(i) instanceof TypeReference t) built.add(t.getType());
+            List<ClassDef> heights = new ArrayList<>();
+            for (String type : built) {
+                ClassDef cd = clean.classes.get(type);
+                if (cd == null) continue;
+                boolean height = false;
+                for (Method m : cd.getMethods()) if (m.getName().equals("toString"))
+                    for (String text : clean.texts.getOrDefault(m.toString(), Set.of())) height |= text.startsWith(SHEET_HEIGHT_STATE);
+                if (height) heights.add(cd);
+            }
+            ClassDef height = uniqueClass(heights, "Save to sheet height");
+            List<Method> getters = new ArrayList<>();
+            if (height != null) for (Method m : height.getMethods())
+                if (!m.getName().equals("hashCode") && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null
+                        && descriptor(m).equals("()I")) getters.add(m);
+            Method m = actual(height == null ? null : unique(getters, "Save to sheet height percentage"));
+            List<Integer> sites = calls(m, hook, 1);
+            boolean asked = false;
+            if (m != null && sites.size() == 1) {
+                List<Instruction> body = instructions(m);
+                int at = sites.get(0);
+                asked = at + 2 < body.size() && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && body.get(at + 2).getOpcode() == Opcode.RETURN
+                        && body.stream().filter(i -> i.getOpcode() == Opcode.RETURN).count() == 1
+                        && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at + 2))))
+                        && firstRegister(body.get(at + 1)) == firstRegister(body.get(at + 2)) && onlyFrom(m, at + 2, at + 1);
+                if (!asked) fail(hook + " doesn't take the percentage " + m + " answers, right in front of its only return");
+                else remove(m, at, at + 2);
+            }
+            capability(c.callee, asked);
+        }
+
         static boolean readsFlag(Instruction i, String flag) {
             return i.getOpcode() == Opcode.IGET_BOOLEAN && String.valueOf(reference(i)).equals(flag);
         }
@@ -6238,6 +6522,64 @@ public class DexDiff {
             capability(c.callee, found);
         }
 
+        /** The authority a literal names: a content:// address's host, or the literal itself; null unless it's under Pinterest's package. */
+        static String ownAuthority(String literal) {
+            String authority = literal;
+            if (literal.startsWith("content://")) {
+                authority = literal.substring("content://".length());
+                for (char end : new char[] {'/', '?', '#'}) if (authority.indexOf(end) >= 0) authority = authority.substring(0, authority.indexOf(end));
+            }
+            return authority.startsWith("com.pinterest.") ? authority : null;
+        }
+
+        static String loadedString(Instruction i) {
+            return (i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO)
+                    && reference(i) instanceof StringReference s ? s.getString() : null;
+        }
+
+        /**
+         * Change package name's own providers: Pinterest's code spells their authorities out, and the
+         * patch hands each load of one to the hook, a range call on the register the load wrote, with
+         * the answer moved back into it. An authority routed once is routed at every load in
+         * Pinterest's code, and the methods are otherwise untouched. The patch itself refuses a
+         * build that routes none, since only the manifest knows which literals are providers.
+         */
+        void ownAuthorities(Contract c) {
+            String hook = c.strings.get(0);
+            Set<String> routed = new HashSet<>();
+            for (FeatureSite site : patched.ownCalls.getOrDefault(hook, List.of())) {
+                List<Instruction> body = instructions(site.method);
+                String literal = site.at > 0 ? loadedString(body.get(site.at - 1)) : null;
+                String authority = literal == null ? null : ownAuthority(literal);
+                if (authority == null) fail(hook + " doesn't take a literal naming one of Pinterest's own providers in " + site.method);
+                else routed.add(authority);
+            }
+            for (Method original : clean.methods.values()) {
+                if (original.getDefiningClass().startsWith(OWN) || original.getImplementation() == null) continue;
+                List<Instruction> was = instructions(original);
+                List<Integer> loads = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) {
+                    String literal = loadedString(was.get(at));
+                    if (literal != null && routed.contains(ownAuthority(literal))) loads.add(at);
+                }
+                if (loads.isEmpty()) continue;
+                Method m = actual(original);
+                List<Integer> sites = calls(m, hook, loads.size());
+                if (m == null || sites.size() != loads.size()) continue;
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k < loads.size(); k++) {
+                    int at = sites.get(k);
+                    int register = firstRegister(was.get(loads.get(k)));
+                    boolean shaped = at == loads.get(k) + 2 * k + 1 && body.get(at).getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                            && arguments(body.get(at)).equals(List.of(register)) && at + 1 < body.size()
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == register
+                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at);
+                    if (!shaped) fail(hook + " doesn't take the authority straight from its load, into the same register, in " + m);
+                    else remove(m, at, at + 2);
+                }
+            }
+        }
+
         static final String BLOCK_STORE = "Lcom/google/android/gms/auth/blockstore/";
 
         /**
@@ -6297,7 +6639,150 @@ public class DexDiff {
                 if (found) remove(m, 0, 1);
                 else fail(hook + " doesn't get the exception ahead of " + m);
             }
+            if (found) found = frameworkProvider(c.strings.get(1)) && providerChoice(c.strings.get(2));
             capability(c.callee, found);
+        }
+
+        /**
+         * Credential Manager's framework provider, the one instance isAvailableOnDevice()Z on a class
+         * holding an android.credentials.CredentialManager: the extension's answer comes first, true
+         * returns unavailable from a local register, and false branches to the untouched original body.
+         */
+        boolean frameworkProvider(String hook) {
+            List<Method> providers = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                boolean holds = false;
+                for (Field f : cd.getInstanceFields()) holds |= f.getType().equals("Landroid/credentials/CredentialManager;");
+                if (holds) for (Method m : cd.getMethods())
+                    if (m.getName().equals("isAvailableOnDevice") && m.getReturnType().equals("Z") && m.getParameterTypes().isEmpty()
+                            && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null) providers.add(m);
+            }
+            Method m = actual(unique(providers, "Credential Manager framework provider"));
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            int answer = body.size() > 4 ? firstRegister(body.get(1)) : -1;
+            boolean shaped = sites.get(0) == 0 && arguments(body.get(0)).isEmpty() && body.size() > 5
+                    && body.get(1).getOpcode() == Opcode.MOVE_RESULT && body.get(2).getOpcode() == Opcode.IF_EQZ
+                    && body.get(3).getOpcode() == Opcode.CONST_4 && body.get(4).getOpcode() == Opcode.RETURN
+                    && answer >= 0 && answer < parameter(m, -1) && firstRegister(body.get(2)) == answer
+                    && firstRegister(body.get(3)) == answer && firstRegister(body.get(4)) == answer
+                    && body.get(3) instanceof NarrowLiteralInstruction && ((NarrowLiteralInstruction) body.get(3)).getNarrowLiteral() == 0
+                    && body.get(2) instanceof OffsetInstruction
+                    && layout.addresses.get(2) + ((OffsetInstruction) body.get(2)).getCodeOffset() == layout.addresses.get(5);
+            for (int at = 1; shaped && at < 5; at++) shaped = onlyFrom(m, at, at - 1);
+            FeatureFlow graph = flow(m);
+            for (int k = 0; shaped && k < graph.normal.size(); k++) shaped = !graph.normal.get(k).contains(0) && !graph.handlers.get(k).contains(0);
+            if (!shaped) { fail(hook + " doesn't answer unavailable ahead of the untouched body of " + m); return false; }
+            remove(m, 0, 5);
+            return true;
+        }
+
+        /**
+         * Credential Manager's provider choice, the one static method taking its own class and the request
+         * that builds the framework provider and asks it isAvailableOnDevice()Z. A request whose options are
+         * all Sign in with Google goes to the class's own Play services lookup, and anything else (another
+         * option, an empty list, another request type) branches to the untouched original body. The prefix
+         * writes only the two locals below the parameters and reads the request's own list field and the
+         * option's one String field, both named by the clean body.
+         */
+        boolean providerChoice(String hook) {
+            List<Method> choices = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                for (Method m : cd.getMethods()) {
+                    if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null || !m.getReturnType().startsWith("L")
+                            || m.getParameterTypes().size() != 2 || !m.getParameterTypes().get(0).toString().equals(cd.getType())
+                            || !m.getParameterTypes().get(1).toString().equals("Ljava/lang/Object;")) continue;
+                    boolean builds = false, asks = false;
+                    for (Instruction i : instructions(m)) {
+                        Reference r = reference(i);
+                        if (i.getOpcode() == Opcode.NEW_INSTANCE && holdsCredentialManager(r.toString())) builds = true;
+                        if (r instanceof MethodReference called && called.getName().equals("isAvailableOnDevice")
+                                && called.getReturnType().equals("Z") && called.getParameterTypes().isEmpty()) asks = true;
+                    }
+                    if (builds && asks) choices.add(m);
+                }
+            }
+            Method original = unique(choices, "Credential Manager provider choice");
+            Method m = actual(original);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            int self = parameter(m, 0), request = parameter(m, 1);
+            Set<String> requests = new TreeSet<>(), lists = new TreeSet<>(), casts = new TreeSet<>(), lookups = new TreeSet<>();
+            for (Instruction i : instructions(original)) {
+                Reference r = reference(i);
+                if (i.getOpcode() == Opcode.INSTANCE_OF && ((TwoRegisterInstruction) i).getRegisterB() == request) requests.add(r.toString());
+                if (i.getOpcode() == Opcode.IGET_OBJECT && ((FieldReference) r).getType().equals("Ljava/util/List;")) lists.add(r.toString());
+                if (i.getOpcode() == Opcode.CHECK_CAST) casts.add(r.toString());
+                if ((i.getOpcode() == Opcode.INVOKE_VIRTUAL || i.getOpcode() == Opcode.INVOKE_DIRECT) && r instanceof MethodReference called
+                        && called.getDefiningClass().equals(m.getDefiningClass()) && called.getParameterTypes().isEmpty()
+                        && called.getReturnType().equals(m.getReturnType())) lookups.add(i.getOpcode().name + " " + r);
+            }
+            casts.removeAll(requests);
+            String typeField = null;
+            ClassDef option = casts.size() == 1 ? clean.classes.get(casts.iterator().next()) : null;
+            if (option != null) {
+                List<Field> types = new ArrayList<>();
+                for (Field f : option.getInstanceFields()) if (f.getType().equals("Ljava/lang/String;")) types.add(f);
+                if (types.size() == 1 && AccessFlags.PUBLIC.isSet(types.get(0).getAccessFlags()))
+                    typeField = option.getType() + "->" + types.get(0).getName() + ":Ljava/lang/String;";
+            }
+            List<Instruction> body = instructions(m);
+            boolean shaped = requests.size() == 1 && lists.size() == 1 && typeField != null && lookups.size() == 1
+                    && sites.get(0) == 17 && body.size() > 24;
+            int a = shaped ? firstRegister(body.get(0)) : -1, b = shaped ? firstRegister(body.get(6)) : -1;
+            shaped &= a >= 0 && b >= 0 && a != b && a < parameter(m, -1) && b < parameter(m, -1);
+            if (shaped) {
+                String requestType = requests.iterator().next(), lookup = lookups.iterator().next();
+                String[] opcodes = {"instance-of", "if-eqz", "move-object", "check-cast", "iget-object", "invoke-interface", "move-result",
+                        "if-nez", "invoke-interface", "move-result-object", "invoke-interface", "move-result", "if-eqz", "invoke-interface",
+                        "move-result-object", "check-cast", "iget-object", "invoke-static", "move-result", "if-eqz", "goto",
+                        lookup.substring(0, lookup.indexOf(' ')), "move-result-object", "return-object"};
+                // a and b are the two locals, r the request and s the class's own instance; "(x)" is an invoke's only argument.
+                String[] registers = {"a r", "a", "a r", "a", "a a", "(a)", "b", "b", "(a)", "a", "(a)", "b", "b", "(a)",
+                        "b", "b", "b b", "(b)", "b", "b", "", "(s)", "a", "a"};
+                Map<Integer, String> references = Map.ofEntries(Map.entry(0, requestType), Map.entry(3, requestType),
+                        Map.entry(4, lists.iterator().next()), Map.entry(5, "Ljava/util/List;->isEmpty()Z"),
+                        Map.entry(8, "Ljava/util/List;->iterator()Ljava/util/Iterator;"), Map.entry(10, "Ljava/util/Iterator;->hasNext()Z"),
+                        Map.entry(13, "Ljava/util/Iterator;->next()Ljava/lang/Object;"), Map.entry(15, option.getType()),
+                        Map.entry(16, typeField), Map.entry(21, lookup.substring(lookup.indexOf(' ') + 1)));
+                int[][] next = {{1}, {2, 24}, {3}, {4}, {5}, {6}, {7}, {8, 24}, {9}, {10}, {11}, {12}, {13, 21}, {14}, {15}, {16},
+                        {17}, {18}, {19}, {20, 24}, {10}, {22}, {23}, {}};
+                Map<Character, Integer> named = Map.of('a', a, 'b', b, 'r', request, 's', self);
+                FeatureFlow graph = flow(m);
+                for (int at = 0; shaped && at < 24; at++) {
+                    Instruction i = body.get(at);
+                    String op = i.getOpcode().name, want = registers[at];
+                    shaped = op.equals(opcodes[at]) || op.startsWith(opcodes[at] + "/") && !opcodes[at].startsWith("invoke");
+                    if (shaped && references.containsKey(at)) shaped = references.get(at).equals(String.valueOf(reference(i)));
+                    if (shaped && want.startsWith("(")) shaped = arguments(i).equals(List.of(named.get(want.charAt(1))));
+                    else if (shaped && !want.isEmpty()) {
+                        shaped = firstRegister(i) == named.get(want.charAt(0));
+                        if (shaped && want.length() > 1) shaped = i instanceof TwoRegisterInstruction
+                                && ((TwoRegisterInstruction) i).getRegisterB() == named.get(want.charAt(2));
+                    }
+                    Set<Integer> edges = new TreeSet<>();
+                    for (int target : next[at]) edges.add(target);
+                    if (shaped) shaped = new TreeSet<>(graph.normal.get(at)).equals(edges) && graph.handlers.get(at).isEmpty();
+                }
+                for (int k = 24; shaped && k < graph.normal.size(); k++) {
+                    for (int target : graph.normal.get(k)) shaped &= target >= 24;
+                    for (int target : graph.handlers.get(k)) shaped &= target >= 24;
+                }
+            }
+            if (!shaped) { fail(hook + " doesn't send only Google-only requests to the Play services lookup ahead of the untouched body of " + m); return false; }
+            remove(m, 0, 24);
+            return true;
+        }
+
+        boolean holdsCredentialManager(String type) {
+            ClassDef cd = clean.classes.get(type);
+            if (cd == null || cd.getType().startsWith(OWN)) return false;
+            for (Field f : cd.getInstanceFields()) if (f.getType().equals("Landroid/credentials/CredentialManager;")) return true;
+            return false;
         }
 
         /**
@@ -6861,6 +7346,7 @@ public class DexDiff {
             for (Contract c : rules) if (c.kind.equals("family")) {
                 if (!names.add(c.target) || flags.containsKey(c.callee)) { fail("duplicate family " + c.target); continue; }
                 readFlag(c.callee);
+                if (c.strings.get(0).isEmpty()) wholeFamilies.add(c.callee);
                 for (String cap : c.strings.get(0).split(",")) {
                     if (cap.isEmpty()) continue;
                     if (owners.putIfAbsent(cap, c.callee) != null) fail("duplicate capability " + cap);
@@ -6881,7 +7367,7 @@ public class DexDiff {
             for (Contract c : rules) if (c.kind.equals("mutation")) {
                 for (String cap : c.callee.split(",")) {
                     coveredCapabilities.add(cap);
-                    if (!owners.containsKey(cap) && !cap.equals("settings")) fail("unowned mutation capability " + cap);
+                    if (!owners.containsKey(cap) && !cap.equals("settings") && !wholeFamilies.contains(cap)) fail("unowned mutation capability " + cap);
                 }
                 if (!active(c)) continue;
                 featureControls = !c.target.equals("settings");
@@ -6907,6 +7393,7 @@ public class DexDiff {
                     case "saveAndDownload": saveAndDownload(c); break;
                     case "homePage": homePage(c); break;
                     case "firebaseCertificate": firebaseCertificate(c); break;
+                    case "ownAuthorities": ownAuthorities(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
@@ -6921,6 +7408,9 @@ public class DexDiff {
                     case "closeupVisitSite": closeupRows(c, true); break;
                     case "closeupSaveButton": closeupSaveButton(c); break;
                     case "postedDate": postedDate(c); break;
+                    case "saveSheet": saveSheet(c); break;
+                    case "suggestedBoard": suggestedBoard(c); break;
+                    case "boardListHeight": boardListHeight(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
                     case "pinInvites": pinInvites(c); break;

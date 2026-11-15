@@ -174,3 +174,33 @@ fun MutableMethod.indexOfString(value: String): Int {
 fun MutableMethod.insertAt(index: Int, smali: String, vararg labels: ExternalLabel) {
     addInstructionsWithLabels(index, smali.trimIndent(), *labels)
 }
+
+/** The first instruction at or after [from] whose reference contains [snippet]. */
+fun MutableMethod.nextReference(from: Int, snippet: String): Int {
+    val list = instructions
+    for (index in from until list.size) {
+        val instruction = list[index]
+        if (instruction is ReferenceInstruction && instruction.reference.toString().contains(snippet)) {
+            return index
+        }
+    }
+    throw PatchException("${where()} has no instruction containing $snippet after $from")
+}
+
+/**
+ * Passes a boolean Joey just read through [call] (Z)Z. [index] is the sget-boolean or
+ * the move-result that put the value in its register.
+ */
+fun MutableMethod.filterBoolean(index: Int, call: String) {
+    val instruction = instructions[index]
+    val register = (instruction as? com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction)?.registerA
+        ?: throw PatchException("${where()} instruction $index holds no register")
+    if (register > 15) throw PatchException("${where()} register v$register is out of reach")
+    insertAt(
+        index + 1,
+        """
+        invoke-static {v$register}, $call
+        move-result v$register
+        """,
+    )
+}

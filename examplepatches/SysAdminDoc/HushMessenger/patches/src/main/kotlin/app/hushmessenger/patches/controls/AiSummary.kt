@@ -6,7 +6,6 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /**
  * Meta AI's offer to sum up a chat's unread messages: the "Summarize N unread messages" pill over the chat, the
@@ -24,10 +23,6 @@ internal val AI_SUMMARY_PARAMETERS = listOf(THREAD_KEY_TYPE, CAPABILITIES, "J", 
 private fun summaryChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the Meta AI summary check moved ($detail)")
 
-private fun Method.namesSummaryPill() = implementation?.instructions?.any {
-    ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == AI_SUMMARY_PILL
-} == true
-
 private fun MethodReference.isSummaryCheck() =
     returnType == "Z" && parameterTypes.map { it.toString() } == AI_SUMMARY_PARAMETERS
 
@@ -36,9 +31,11 @@ private fun MethodReference.isSummaryCheck() =
  * one (ThreadKey, Capabilities, J, Z, Z)Z method it calls, defined with code in these classes. Anything else finds
  * nothing, so the control stays unapplied.
  */
+internal val summaryPillHandlers = ClassCheck(loadsString(AI_SUMMARY_PILL))
+
 internal fun findAiSummary(classes: Iterable<ClassDef>): List<Method> {
     val list = classes.toList()
-    val handler = list.filter { cls -> cls.methods.any { it.namesSummaryPill() } }.singleOrNull() ?: return emptyList()
+    val handler = summaryPillHandlers.classes(classes).singleOrNull() ?: return emptyList()
     val check = handler.methods.flatMap { method ->
         method.implementation?.instructions?.toList().orEmpty().mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
     }.filter { it.isSummaryCheck() }.map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }

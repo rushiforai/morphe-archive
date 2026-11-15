@@ -147,7 +147,7 @@ $junction = Join-Path $caseRoot 'reports'
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 # The wrapper runs below rank fixture-sized APKs, so they run straight away rather than waiting in
-# the machine's build queue behind real builds. The queue itself is held by test-script-contracts.ps1.
+# the machine's build queue behind real builds.
 $savedQueueScript = $env:BUILD_QUEUE_SCRIPT
 $env:BUILD_QUEUE_SCRIPT = $null
 try {

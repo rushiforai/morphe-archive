@@ -7,16 +7,20 @@ package app.linkedin.patches.misc
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.linkedin.patches.shared.markIncluded
-import app.linkedin.patches.shared.settingsPatch
+import app.loki.patches.universal.OriginalApp
+import app.loki.patches.universal.recordOriginalAppPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -24,11 +28,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
-
-private const val LINKEDIN_PACKAGE = "com.linkedin.android"
-
-/** SHA-1 of LinkedIn's signing certificate: GmsCore hands this to Google in place of the patched app's own. */
-private const val LINKEDIN_SIGNATURE = "443cb997718d0ac5162888bae5e4724582862676"
 
 /** Vendor id GmsCore uses where the app would otherwise name "com.google". */
 private const val GMS_CORE_VENDOR = "app.revanced"
@@ -41,15 +40,15 @@ private const val GMS_CORE_PACKAGE = "$GMS_CORE_VENDOR.android.gms"
  */
 private const val GMS_CORE_MAX_APK_VERSION = 252400000
 
-/** Google's availability checks: they compare the signature of the Play services package. */
-private const val PLAY_SERVICES_UTIL = "Lcom/google/android/gms/common/GooglePlayServicesUtilLight;"
-
 /** Chooses the Credential Manager implementation: the platform one on Android 14+, Play services' below it. */
 private const val CREDENTIAL_PROVIDER_FACTORY = "Landroidx/credentials/CredentialProviderFactory;"
 
+/** Google's availability checks: they compare the signature of the Play services package. */
+private const val PLAY_SERVICES_UTIL = "Lcom/google/android/gms/common/GooglePlayServicesUtilLight;"
+
 /**
  * Names that have to move from the Google packages to GmsCore's: every permission, intent action and
- * content provider authority of Google Play services that LinkedIn references. One entry per line, where a
+ * content provider authority of Google Play services that the app references. One entry per line, where a
  * line that starts at the left margin is the shared prefix (a package or a provider path) of the indented
  * lines under it.
  */
@@ -517,9 +516,26 @@ com.google
     """.trimIndent()
 )
 
+/** Certificate SHA-1 of the unpatched app, handed from the manifest step to the bytecode step. */
+private var originalSignatureSha1 = ""
+
 /** Neither side of the redirect is a plain rename, so the manifest is patched separately from the dex. */
 private val gmsCoreSupportResourcePatch = resourcePatch {
+    dependsOn(recordOriginalAppPatch)
+
+    val signatureOverride by stringOption(
+        key = "signature",
+        default = "",
+        title = "Original signature (SHA-1)",
+        description = "Leave empty to use the certificate the unpatched app was signed with.",
+        required = false,
+    )
+
     execute {
+        val signature = signatureOverride?.takeIf { it.isNotBlank() } ?: OriginalApp.signatureSha1
+        // Nothing to hand to microG without it; the patch then leaves the app as it is instead of failing.
+        if (signature.isEmpty()) return@execute
+        originalSignatureSha1 = signature
         val manifest = get("AndroidManifest.xml")
         manifest.writeText(manifest.readText().replace("com.google.android.c2dm", "$GMS_CORE_VENDOR.android.c2dm"))
 
@@ -531,9 +547,10 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
                 application.appendChild(entry)
             }
             // GmsCore reads these to know which package and certificate it should present to Google.
-            metaData("$GMS_CORE_PACKAGE.SPOOFED_PACKAGE_NAME", LINKEDIN_PACKAGE)
-            metaData("$GMS_CORE_PACKAGE.SPOOFED_PACKAGE_SIGNATURE", LINKEDIN_SIGNATURE)
+            metaData("$GMS_CORE_PACKAGE.SPOOFED_PACKAGE_NAME", OriginalApp.packageName)
+            metaData("$GMS_CORE_PACKAGE.SPOOFED_PACKAGE_SIGNATURE", signature)
             metaData("$GMS_CORE_VENDOR.MICROG_PACKAGE_NAME", GMS_CORE_PACKAGE)
+            metaData("app.loki.menu.gmscore", "true")
 
             // Package visibility: without this entry Android 11+ hides GmsCore from the app.
             val queries = document.getElementsByTagName("queries").item(0) as? Element
@@ -548,12 +565,13 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
-    description = "Routes \"Continue with Google\" through microG RE (GmsCore) instead of Google Play services, so " +
-        "signing in works in patched LinkedIn. microG RE has to be installed and signed in to a Google account.",
+    description = "Routes \"Continue with Google\" and Firebase push through MicroG-RE (GmsCore) instead of Google Play " +
+        "services. Signs the FCM registration with LinkedIn's original certificate, so notifications still arrive " +
+        "on a re-signed build. MicroG-RE has to be installed and signed in to a Google account.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
-    dependsOn(settingsPatch, gmsCoreSupportResourcePatch)
+    dependsOn(gmsCoreSupportResourcePatch)
 
     execute {
         val renamed = buildMap {
@@ -564,40 +582,60 @@ val gmsCoreSupportPatch = bytecodePatch(
             }
         }
         // Content URIs carry an authority followed by a path, so they are matched by prefix instead.
-        fun gmsCoreName(string: String): String? = renamed[string]
-            ?: REPLACED_AUTHORITIES.firstOrNull { string.startsWith("content://$it") }?.let { authority ->
-                string.replace("content://$authority", "content://${authority.replace("com.google", GMS_CORE_VENDOR)}")
-            }
+        fun gmsCoreName(string: String): String? {
+            // ML Kit keeps its OCR engine on real Play services: Google loads it through the chimera
+            // module loader, and microG has no ML Kit modules to answer with. Auth still goes to microG.
+            if (string.contains("chimera") || string.contains("dynamite")) return null
+            return renamed[string]
+                ?: REPLACED_AUTHORITIES.firstOrNull { string.startsWith("content://$it") }?.let { authority ->
+                    string.replace("content://$authority", "content://${authority.replace("com.google", GMS_CORE_VENDOR)}")
+                }
+        }
 
-        if (replaceStrings(::gmsCoreName) == 0) throw PatchException("No Google Play services strings found")
+        // An app with no Google Play services strings has nothing to redirect: leave it untouched.
+        if (replaceStrings(::gmsCoreName) == 0) return@execute
 
         // The patched app is signed with another key, so every signature check would fail. GmsCore is reported
         // as an old Play services instead: the APIs that need 25.24 or newer (Credential Manager's Identity
         // Credentials API, absent from GmsCore) then fall back to the ones GmsCore implements, and nothing on
         // the sign-in path aborts on the check.
-        mutableClass(PLAY_SERVICES_UTIL).methods.forEach { method ->
+        mutableClassOrNull(PLAY_SERVICES_UTIL)?.methods?.forEach { method ->
             when (method.name) {
-                "isGooglePlayServicesAvailable" -> method.addInstructions(
-                    0,
-                    """
-                        const v0, $GMS_CORE_MAX_APK_VERSION
-                        if-ge p1, v0, :too_old
-                        const/4 v0, 0x0
-                        return v0
-                        :too_old
-                        const/4 v0, 0x2
-                        return v0
-                    """
-                )
+                // The class carries two overloads: (Context) and (Context, int). Only the second one has a
+                // version register to compare, and injecting p1 into the first is a VerifyError
+                // ("register index out of range"), which kills the app on its first Play services call.
+                "isGooglePlayServicesAvailable" -> if (method.parameterTypes.size >= 2) {
+                    method.addInstructions(
+                        0,
+                        """
+                            const v0, $GMS_CORE_MAX_APK_VERSION
+                            if-ge p1, v0, :too_old
+                            const/4 v0, 0x0
+                            return v0
+                            :too_old
+                            const/4 v0, 0x2
+                            return v0
+                        """
+                    )
+                } else {
+                    method.addInstructions(
+                        0,
+                        """
+                            const/4 v0, 0x0
+                            return v0
+                        """
+                    )
+                }
                 "ensurePlayServicesAvailable" -> method.addInstructions(0, "return-void")
             }
         }
 
         // The platform's Credential Manager would ask the real Play services, whose signature check fails.
-        // Play services' own implementation inside the app talks to GmsCore instead.
-        mutableClass(CREDENTIAL_PROVIDER_FACTORY).methods
-            .first { it.name == "getBestAvailableProvider\$default" }
-            .addInstructions(
+        // Play services' own implementation inside the app talks to GmsCore instead. Apps that do not ship
+        // androidx.credentials keep the platform behaviour and are otherwise untouched.
+        mutableClassOrNull(CREDENTIAL_PROVIDER_FACTORY)?.methods
+            ?.firstOrNull { it.name == "getBestAvailableProvider\$default" }
+            ?.addInstructions(
                 0,
                 """
                     invoke-virtual { p0 }, $CREDENTIAL_PROVIDER_FACTORY->tryCreateClosedSourceProviderFromManifest()Landroidx/credentials/CredentialProvider;
@@ -607,62 +645,33 @@ val gmsCoreSupportPatch = bytecodePatch(
             )
 
         // Push needs a Firebase installation first, and Google only issues one when the request names the
-        // certificate LinkedIn's API key is bound to. The patched app is signed with another key, so the request is
+        // certificate the app's API key is bound to. The patched app is signed with another key, so the request is
         // refused (API_KEY_ANDROID_APP_BLOCKED), GmsCore's push registration then fails with FIS_AUTH_ERROR, and
-        // no notification ever arrives. The header gets LinkedIn's own certificate instead.
-        spoofFirebaseCertificate(LINKEDIN_SIGNATURE.uppercase())
+        // the app never gets notifications. The header gets the original certificate, the same one GmsCore already
+        // presents for the app.
+        if (originalSignatureSha1.isNotEmpty()) spoofFirebaseCertificate(originalSignatureSha1.uppercase())
 
-        markIncluded("isGmsCoreSupportIncluded")
+        // LinkedIn's settings screen reports the GmsCore state through this method. Temporary coupling: the
+        // unified menu replaces that screen, and this call plus the import above go away with it. Apps without
+        // the method (every non-LinkedIn app) skip silently.
+        runCatching { markIncluded("isGmsCoreSupportIncluded") }
     }
 }
 
-/**
- * Sets the value of every "X-Android-Cert" request header to [sha1]. Firebase names the header with a string
- * constant and passes it straight to URLConnection, so the value register is found from that call, whatever the
- * obfuscated class around it is called.
- */
-private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
-    val holders = mutableListOf<ClassDef>()
-    classDefForEach { classDef ->
-        if (classDef.methods.any { method ->
-                method.implementation?.instructions?.any { it.stringConstant() == "X-Android-Cert" } == true
-            }) holders += classDef
-    }
-    var spoofed = 0
-    holders.forEach { classDef ->
-        mutableClassDefBy(classDef).methods.forEach { method ->
-            val code = method.implementation?.instructions?.toList() ?: return@forEach
-            code.indices.reversed().forEach { index ->
-                if (code[index].stringConstant() != "X-Android-Cert") return@forEach
-                val name = (code[index] as OneRegisterInstruction).registerA
-                val call = (index + 1 until minOf(index + 6, code.size)).firstOrNull { at ->
-                    val instruction = code[at]
-                    val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    instruction is FiveRegisterInstruction && instruction.registerCount == 3 &&
-                        instruction.registerD == name &&
-                        target?.definingClass == "Ljava/net/URLConnection;" &&
-                        target.name.endsWith("RequestProperty")
-                } ?: return@forEach
-                val value = (code[call] as FiveRegisterInstruction).registerE
-                method.addInstructions(call, "const-string v$value, \"$sha1\"")
-                spoofed++
-            }
-        }
-    }
-    if (spoofed == 0) throw PatchException("Firebase certificate header not found")
-}
-
-/** The mutable class with [type]. */
-private fun BytecodePatchContext.mutableClass(type: String): MutableClass {
+/** The mutable class with [type], or null when the app does not contain it. */
+private fun BytecodePatchContext.mutableClassOrNull(type: String): MutableClass? {
     var found: MutableClass? = null
     classDefForEach { if (it.type == type) found = mutableClassDefBy(it) }
-    return found ?: throw PatchException("$type not found")
+    return found
 }
 
 /** Rewrites every string constant [rename] knows; returns how many were rewritten. */
 private fun BytecodePatchContext.replaceStrings(rename: (String) -> String?): Int {
     val holders = mutableListOf<ClassDef>()
     classDefForEach { classDef ->
+        // The module loader talks to the Play services package by name; leaving it alone keeps ML Kit
+        // (which loads its OCR engine through it) on real Play services instead of microG.
+        if (classDef.type.startsWith("Lcom/google/android/gms/dynamite/")) return@classDefForEach
         val holds = classDef.methods.any { method ->
             method.implementation?.instructions?.any { it.stringConstant()?.let(rename) != null } == true
         }
@@ -686,7 +695,52 @@ private fun BytecodePatchContext.replaceStrings(rename: (String) -> String?): In
     return rewritten
 }
 
+/**
+ * Sets the value of every "X-Android-Cert" request header to [sha1]. Firebase names the header with a string
+ * constant and passes it straight to URLConnection, so the value register is found from that call, whatever the
+ * obfuscated class around it is called.
+ */
+private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
+    val holders = mutableListOf<ClassDef>()
+    classDefForEach { classDef ->
+        if (classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.stringConstant() == "X-Android-Cert" } == true
+            }) holders += classDef
+    }
+    holders.forEach { classDef ->
+        mutableClassDefBy(classDef).methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            code.indices.reversed().forEach { index ->
+                if (code[index].stringConstant() != "X-Android-Cert") return@forEach
+                val name = (code[index] as OneRegisterInstruction).registerA
+                val call = (index + 1 until minOf(index + 6, code.size)).firstOrNull { at ->
+                    val instruction = code[at]
+                    val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    instruction is FiveRegisterInstruction && instruction.registerCount == 3 &&
+                        instruction.registerD == name &&
+                        target?.definingClass == "Ljava/net/URLConnection;" &&
+                        target.name.endsWith("RequestProperty")
+                } ?: return@forEach
+                val value = (code[call] as FiveRegisterInstruction).registerE
+                method.addInstructions(call, "const-string ${method.registerName(value)}, \"$sha1\"")
+            }
+        }
+    }
+}
+
 /** The string this instruction loads, if it is a string constant. */
 private fun Instruction.stringConstant(): String? =
     if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) null
     else ((this as ReferenceInstruction).reference as StringReference).string
+
+/**
+ * The smali name of [register]: the first `registerCount - parameters` registers are `v`, the parameters after
+ * them are `p`. Writing `v18` for what the assembler calls `p2` is invalid, and the value being replaced above
+ * can be either.
+ */
+private fun Method.registerName(register: Int): String {
+    val implementation = implementation ?: return "v$register"
+    val parameters = parameterTypes.size + if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
+    val locals = implementation.registerCount - parameters
+    return if (register < locals) "v$register" else "p${register - locals}"
+}

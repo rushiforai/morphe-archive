@@ -35,6 +35,8 @@ public final class MorpheSettings {
             "app.morphe.extension.kicktv.chatexpand.ChatExpandSection",
             "app.morphe.extension.kicktv.hidepinned.PinnedChatSection",
             "app.morphe.extension.kicktv.maturewarning.MatureWarningSection",
+            "app.morphe.extension.kicktv.stoponminimize.StopOnMinimizeSection",
+            "app.morphe.extension.kicktv.homedestination.HomeDestinationSection",
     };
 
     private MorpheSettings() {
@@ -44,12 +46,7 @@ public final class MorpheSettings {
         if (activity == null || activity.isFinishing()) {
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                showInternal(activity);
-            }
-        });
+        activity.runOnUiThread(() -> showInternal(activity));
     }
 
     private static void showInternal(final Activity activity) {
@@ -135,12 +132,7 @@ public final class MorpheSettings {
         close.setTextColor(MorpheTheme.COLOR_ACCENT);
         close.setTextSize(18);
         MorpheTheme.makeFocusable(activity, close);
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        close.setOnClickListener(v -> dialog.dismiss());
         root.addView(close, MorpheTheme.matchWidth());
 
         // Measure the natural dialog height, then cap the scrolling area so the

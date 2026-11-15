@@ -91,6 +91,9 @@ public final class Shapes {
     public static boolean flockAvoidPatched() { return false; }
     public static boolean wazeAlertsPatched() { return false; }
     public static boolean playingMediaPatched() { return false; }
+    public static boolean anyMediaPatched() { return false; }
+    public static boolean lightMapPatched() { return false; }
+    public static boolean mapRegionPatched() { return false; }
     /** Offline saved places, saving to the phone (not microG Maps', which saves to the account). */
     public static boolean localSavedPatched() { return false; }
     /** Add microG support: microG Maps, which signs in through microG. */
@@ -100,10 +103,21 @@ public final class Shapes {
      * Change package name: in place of the app's package name where Maps looks itself up in its
      * table of Google's own builds (Location sharing's client number, keyed by package). A new
      * package name is not in it, the lookup came back empty, and opening Location sharing crashed
-     * Maps (issue #30). To that table the app is stock Maps.
+     * Maps (issue #30). To that table the app is stock Maps, unless it is one of the builds the
+     * table names: a custom name merely starting like Google's (com.google.android.apps.maps.morphe)
+     * is not in it either (issue #194).
      */
     public static String mapsPackage(String actual) {
-        return actual != null && actual.startsWith("com.google.android.apps.") ? actual : "com.google.android.apps.maps";
+        if (actual == null) return "com.google.android.apps.maps";
+        switch (actual) {
+            case "com.google.android.apps.gmm":            // the table's keys: Google's internal builds
+            case "com.google.android.apps.gmm.dev":
+            case "com.google.android.apps.gmm.fishfood":
+            case "com.google.android.apps.gmm.qp":
+                return actual;
+            default:
+                return "com.google.android.apps.maps";
+        }
     }
     /** Location provider toggle's option: rewritten to return true when it defaults to Play services. */
     public static boolean playLocationByDefault() { return false; }
@@ -198,6 +212,9 @@ public final class Shapes {
     public static void processStart(Context c) {
         try {
             if (microgPatched()) MicroG.processStart(c);
+            refreshLightMap(c);
+            refreshMapRegion(c);
+            dropStaleTiles(c);
             refreshPlayLocation(c);
             applyProxy(c);
         } catch (Throwable ignored) {}
@@ -678,6 +695,210 @@ public final class Shapes {
         if (on) enforceDark(c); else restoreTheme(c);
     }
 
+    // ---- Light map ----------------------------------------------------------------
+    // Maps draws its map in the night style whenever its own theme is dark (Settings ->
+    // Theme, or Black theme). With Light map on, the map keeps its day style while the
+    // menus stay dark. Navigation has its own colour scheme (Automatic | Day | Night),
+    // which Black theme pins to Night so the navigation panels stay black: there the map
+    // follows the scheme the user had before Black theme took it over.
+
+    public static final String KEY_LIGHT_MAP = "light_map";
+    public static volatile boolean LIGHT_MAP = false;
+    /** The navigation colour scheme Black theme captured (AUTO | FORCE_DAY | FORCE_NIGHT). */
+    private static volatile String NAV_SCHEME_OWN;
+    /** The navigation map's own night state while Black theme pins the scheme, null until known. */
+    private static volatile Boolean NAV_MAP_NIGHT;
+    private static volatile java.lang.ref.WeakReference<Object> navMap;
+    private static volatile String navMapMethod;
+    private static volatile boolean navMapRaw;
+    private static volatile java.lang.reflect.Field[] navFields;
+
+    public static boolean lightMapEnabled(Context c) {
+        return lightMapPatched() && prefs(c).getBoolean(KEY_LIGHT_MAP, false);
+    }
+
+    public static void setLightMapEnabled(Context c, boolean on) {
+        prefs(c).edit().putBoolean(KEY_LIGHT_MAP, on).commit();
+        refreshLightMap(c);
+    }
+
+    static void refreshLightMap(Context c) {
+        try {
+            LIGHT_MAP = lightMapEnabled(c);
+            String own = prefs(c).getString(KEY_PREV_NAV, null);
+            NAV_SCHEME_OWN = own == null || ABSENT.equals(own) ? "AUTO" : own;
+            if (LIGHT_MAP && !lightMapBars) {
+                Context app = c.getApplicationContext();
+                if (app instanceof android.app.Application) {
+                    lightMapBars = true;
+                    ((android.app.Application) app).registerActivityLifecycleCallbacks(new LightMapBars());
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static boolean lightMapBars;
+
+    /**
+     * Maps colours the status bar's icons from its theme, so with dark menus they are white,
+     * and over the light map they all but vanished. A soft dark shade under the status bar
+     * on the map screen keeps them readable; over Maps' own dark surfaces it does not show.
+     */
+    static final class LightMapBars implements android.app.Application.ActivityLifecycleCallbacks {
+        /** The shade, drawn in the screen's overlay: above everything, never in the way of a tap. */
+        private static final java.util.WeakHashMap<android.view.View, android.graphics.drawable.GradientDrawable> SHADES = new java.util.WeakHashMap<>();
+
+        @Override public void onActivityResumed(android.app.Activity a) {
+            try {
+                if (!a.getClass().getName().equals("com.google.android.maps.MapsActivity")) return;
+                final android.view.View decor = a.getWindow().getDecorView();
+                boolean dark = (a.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+                android.graphics.drawable.GradientDrawable shade = SHADES.get(decor);
+                if (!LIGHT_MAP || !dark) {
+                    if (shade != null) { decor.getOverlay().remove(shade); SHADES.remove(decor); }
+                    return;
+                }
+                if (shade != null) return;
+                int id = a.getResources().getIdentifier("status_bar_height", "dimen", "android");
+                final int height = (id != 0 ? a.getResources().getDimensionPixelSize(id) : (int) (24 * a.getResources().getDisplayMetrics().density)) * 3 / 2;
+                final android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable(
+                        android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                        new int[] {0x8C000000, 0x59000000, 0x00000000});
+                g.setBounds(0, 0, Math.max(decor.getWidth(), a.getResources().getDisplayMetrics().widthPixels), height);
+                decor.getOverlay().add(g);
+                SHADES.put(decor, g);
+                decor.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> g.setBounds(0, 0, r - l, height));
+            } catch (Throwable ignored) {}
+        }
+        @Override public void onActivityCreated(android.app.Activity a, android.os.Bundle b) {}
+        @Override public void onActivityStarted(android.app.Activity a) {}
+        @Override public void onActivityPaused(android.app.Activity a) {}
+        @Override public void onActivityStopped(android.app.Activity a) {}
+        @Override public void onActivitySaveInstanceState(android.app.Activity a, android.os.Bundle b) {}
+        @Override public void onActivityDestroyed(android.app.Activity a) {}
+    }
+
+    /** The map's day/night style (each map type's day or night variant, and the dark terrain layer). */
+    public static boolean mapNight(boolean night) {
+        return night && !LIGHT_MAP;
+    }
+
+    /**
+     * Navigation's night mode as the map takes it (the map-side setter; [method] is its name).
+     * Without Black theme the scheme is the user's own and the map follows it unchanged.
+     */
+    public static boolean navMapNight(Object map, boolean night, String method) {
+        if (!LIGHT_MAP) return night;
+        navMap = new java.lang.ref.WeakReference<>(map);
+        navMapMethod = method;
+        navMapRaw = night;
+        if (!BLACK) return night;
+        Boolean own = NAV_MAP_NIGHT;
+        return own != null ? own : night;
+    }
+
+    /**
+     * Called at the start of every update of navigation's night-mode controller with its
+     * fields' names: created count, night allowed, night time, in a tunnel, forced by the car.
+     * Works out the map's state for the scheme Black theme captured, as the controller would
+     * for that scheme, and hands it to the map when it changed (the pinned scheme never does).
+     */
+    public static void navNightInputs(Object controller, String names) {
+        try {
+            if (!(LIGHT_MAP && BLACK)) { NAV_MAP_NIGHT = null; return; }
+            java.lang.reflect.Field[] f = navFields;
+            if (f == null) {
+                String[] n = names.split(",");
+                f = new java.lang.reflect.Field[n.length];
+                for (int i = 0; i < n.length; i++) {
+                    f[i] = controller.getClass().getDeclaredField(n[i]);
+                    f[i].setAccessible(true);
+                }
+                navFields = f;
+            }
+            if (f[0].getInt(controller) == 0) return;
+            boolean auto = f[2].getBoolean(controller) || f[3].getBoolean(controller) || f[4].getBoolean(controller);
+            String scheme = NAV_SCHEME_OWN;
+            boolean night = f[1].getBoolean(controller)
+                    && ("FORCE_NIGHT".equals(scheme) || (!"FORCE_DAY".equals(scheme) && auto));
+            Boolean old = NAV_MAP_NIGHT;
+            NAV_MAP_NIGHT = night;
+            if (old != null && old == night) return;
+            java.lang.ref.WeakReference<Object> ref = navMap;
+            String method = navMapMethod;
+            if (ref != null && method != null) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(new NavMapUpdate(ref, method));
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    static final class NavMapUpdate implements Runnable {
+        private final java.lang.ref.WeakReference<Object> map;
+        private final String method;
+        NavMapUpdate(java.lang.ref.WeakReference<Object> map, String method) { this.map = map; this.method = method; }
+        @Override public void run() {
+            try {
+                Object m = map.get();
+                if (m != null) m.getClass().getMethod(method, boolean.class).invoke(m, navMapRaw);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    // ---- Map region -----------------------------------------------------------------
+    // Every batch of map tiles is asked for in a language and for a region, the country
+    // whose names and borders the server draws (like hl and gl on the web). Maps takes the
+    // region from the SIM or the network; a region picked here goes into the tile requests
+    // instead. Nothing else Maps sends changes.
+
+    public static final String KEY_MAP_REGION = "map_region";
+    public static volatile String MAP_REGION = "";
+
+    /** The picked region (an ISO country code), "" for Maps' own. */
+    public static String mapRegion(Context c) {
+        return mapRegionPatched() ? prefs(c).getString(KEY_MAP_REGION, "") : "";
+    }
+
+    /** Set with a new region: the tiles on disk were drawn for the old one. */
+    private static final String KEY_MAP_REGION_STALE = "map_region_stale";
+
+    public static void setMapRegion(Context c, String region) {
+        prefs(c).edit().putString(KEY_MAP_REGION, region == null ? "" : region)
+                .putBoolean(KEY_MAP_REGION_STALE, true).commit();
+        refreshMapRegion(c);
+    }
+
+    static void refreshMapRegion(Context c) {
+        try { MAP_REGION = mapRegion(c); } catch (Throwable ignored) {}
+    }
+
+    /**
+     * From processStart, before the map opens its tile cache: after a region change, the
+     * cache (map_cache.db in diskcache/ next to each external files dir, or in the cache
+     * dir) goes, as Maps' own wipe does it, so no tile drawn for the old region comes back.
+     */
+    static void dropStaleTiles(Context c) {
+        try {
+            if (!prefs(c).getBoolean(KEY_MAP_REGION_STALE, false)) return;
+            java.util.List<java.io.File> dirs = new java.util.ArrayList<>();
+            try {
+                for (java.io.File f : c.getExternalFilesDirs(null)) {
+                    if (f != null && f.getParentFile() != null) dirs.add(new java.io.File(new java.io.File(f.getParentFile(), "cache"), "diskcache"));
+                }
+            } catch (Throwable ignored) {}
+            dirs.add(new java.io.File(c.getCacheDir(), "diskcache"));
+            for (java.io.File d : dirs) {
+                for (String n : new String[] {"map_cache.db", "map_cache.db-shm", "map_cache.db-wal"}) new java.io.File(d, n).delete();
+            }
+            prefs(c).edit().remove(KEY_MAP_REGION_STALE).commit();
+        } catch (Throwable ignored) {}
+    }
+
+    /** The region a tile batch is asked for. */
+    public static String tileRegion(String detected) {
+        String r = MAP_REGION;
+        return r == null || r.isEmpty() ? detected : r;
+    }
+
     /**
      * Called from the Activity base class right before its super.attachBaseContext
      * (after the app's own locale wrapping). The override holds only what is ours --
@@ -693,6 +914,8 @@ public final class Shapes {
         try {
             RECT = enabled(base);
             BLACK = blackEnabled(base) && !themePickedInMaps(base);
+            refreshLightMap(base);
+            refreshMapRegion(base);
             HIDE_ADS = hideAdsEnabled(base);
             HIDE_EXPLORE = hideExploreEnabled(base);
             HIDE_TABS = hideTabsEnabled(base);

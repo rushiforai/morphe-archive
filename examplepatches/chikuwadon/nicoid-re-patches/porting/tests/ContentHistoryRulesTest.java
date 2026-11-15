@@ -26,6 +26,28 @@ public final class ContentHistoryRulesTest {
         }
         check(!HistoryRules.same("https://www.nicovideo.jp/watch/sm123", "sm1234"), "no prefix collisions");
         check(!HistoryRules.same(null, "sm123"), "null safe");
+        check("sm123".equals(HistoryRules.id("https://www.nicovideo.jp/watch/sm123?from=playlist")),
+                "popup playlist extracts canonical watch ID");
+        check("ss901".equals(HistoryRules.id("https://www.nicovideo.jp/shorts/ss901#top")),
+                "short ID remains supported");
+        check("raw text".equals(HistoryRules.id("raw text")), "non-watch labels are preserved");
+        check("  invalid/id  ".equals(HistoryRules.id("  invalid/id  ")),
+                "unrecognized strings retain original whitespace");
+        check(HistoryRules.watchUrl("http://nicovideo.jp/watch/so123?ref=abc", true),
+                "watch metadata accepts original HTTP URLs");
+        check(!HistoryRules.watchUrl("http://nicovideo.jp/watch/so123", false),
+                "video player routing does not treat HTTP as internal HTTPS");
+        check(!HistoryRules.watchUrl("https://nicovideo.jp.evil.invalid/watch/sm12", true),
+                "external hosts are never treated as nicoid watch URLs");
+        check(!HistoryRules.watchUrl("https://nicovideo.jp/watch/sm", true),
+                "watch URL requires a numeric ID");
+        StringBuilder longInvalid = new StringBuilder("https://nicovideo.jp/watch/sm");
+        for (int i = 0; i < 60000; i++) longInvalid.append('0');
+        longInvalid.append('x');
+        check(longInvalid.toString().equals(HistoryRules.id(longInvalid.toString())),
+                "malformed oversized watch IDs are processed without regex backtracking");
+        check(HistoryRules.watchUrl(longInvalid.toString(), true),
+                "watch URL routing keeps the original permissive suffix behavior");
         HashSet<String> selected = new HashSet<>(Arrays.asList("https://www.nicovideo.jp/watch/sm123", "http://www.nicovideo.jp/watch/so456"));
         check(HistoryRules.contains(selected, "sm123"), "bulk bare ID deletion");
         check(HistoryRules.contains(selected, "so456"), "bulk multiple deletion");

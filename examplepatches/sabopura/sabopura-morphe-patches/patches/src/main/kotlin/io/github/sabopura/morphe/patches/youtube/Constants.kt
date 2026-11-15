@@ -23,14 +23,14 @@ internal object Constants {
                 description = "Official Morphe patches' stable target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.43.523",
+                version = "21.45.82",
                 minSdk = 29,
-                description = "Applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
+                description = "Official Morphe patches' newest target (since 2.2.0); applies after the player-overlay hook stopped depending on an obfuscated method name; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.44.528",
+                version = "21.45.90",
                 minSdk = 29,
-                description = "Applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
+                description = "Newest store version; applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
         ),
     )

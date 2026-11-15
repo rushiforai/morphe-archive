@@ -98,10 +98,15 @@ internal fun Method.blockedPicture(): BlockedPicture? {
 }
 
 /** The app's only method that logs the presenter's tag and its parse failure, taken when its picture store has that shape. */
+internal val blockedListBuilders = MethodCheck {
+    val presenter = StringMatch(BLOCK_PEOPLE_PRESENTER)
+    val unreadable = StringMatch(BLOCKED_ID_UNREADABLE)
+    val test: MethodTest = { _, method -> presenter.inCode(method) && unreadable.inCode(method) }
+    test
+}
+
 internal fun findBlockedListPictures(classes: Iterable<ClassDef>): List<Method> {
-    val builders = classes.flatMap { it.methods }.filter { method ->
-        method.strings().let { BLOCK_PEOPLE_PRESENTER in it && BLOCKED_ID_UNREADABLE in it }
-    }
+    val builders = blockedListBuilders.methods(classes)
     val builder = builders.singleOrNull() ?: return emptyList()
     return if (builder.blockedPicture() != null) listOf(builder) else emptyList()
 }

@@ -14,11 +14,19 @@ import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.compat.AppCompatibilities.PINTEREST_PACKAGE
 import java.security.MessageDigest
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val PATCH = "Spoof signature for Google sign-in"
+
+/**
+ * The application meta-data microG-RE reads for the package to show Google. Without it microG-RE
+ * shows the running package, so a renamed copy reached Google as its own package with Pinterest's
+ * certificate, a pair Google has never seen, and the account came back "Account abnormality" (#28).
+ */
+internal const val SPOOFED_PACKAGE_METADATA = "app.revanced.android.gms.SPOOFED_PACKAGE_NAME"
 
 /** The application meta-data microG-RE reads: the SHA-1 of the certificate to show Google. */
 internal const val SPOOFED_SIGNATURE_METADATA = "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE"
@@ -49,8 +57,14 @@ internal const val PINTEREST_CERTIFICATE_DER =
         "190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c" +
         "21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714"
 
-/** The two application meta-data entries the patch adds, in the order it adds them. */
+/**
+ * The three application meta-data entries the patch adds, in the order it adds them. The package is
+ * Pinterest's own whatever a copy gets renamed to: Change package name, Morphe's Clone app and
+ * GmsCore support move only the manifest's package, permissions and authorities, never a meta-data
+ * value, so this one stays `com.pinterest` beside the certificate it belongs with.
+ */
 internal val SIGNATURE_SPOOF_METADATA: Map<String, String> = linkedMapOf(
+    SPOOFED_PACKAGE_METADATA to PINTEREST_PACKAGE,
     SPOOFED_SIGNATURE_METADATA to PINTEREST_CERTIFICATE_SHA1,
     FAKE_SIGNATURE_METADATA to PINTEREST_CERTIFICATE_DER,
 )
@@ -63,8 +77,8 @@ internal fun sha1OfHex(hex: String): String {
 }
 
 /**
- * Adds both [SIGNATURE_SPOOF_METADATA] entries to the application. The certificate has to hash to
- * the SHA-1 beside it, and a manifest that already names either key refuses, so nothing a
+ * Adds every [SIGNATURE_SPOOF_METADATA] entry to the application. The certificate has to hash to
+ * the SHA-1 beside it, and a manifest that already names any key refuses, so nothing a
  * signature module reads is ever written twice or left half changed. The FAKE_PACKAGE_SIGNATURE
  * permission is left out of the manifest: where something else already defines it, a second
  * definition from another signer makes Android refuse the install as a duplicate permission.
@@ -102,7 +116,7 @@ internal val signatureSpoofManifestPatch = resourcePatch {
 @Suppress("unused")
 val googleSignInSpoofPatch = bytecodePatch(
     name = PATCH,
-    description = "Helps Google sign-in work in the patched app by naming Pinterest's original signature. It only " +
+    description = "Helps Google sign-in work in the patched app by naming Pinterest's original package and signature. It only " +
         "helps with microG-RE or the XSpoofSignatures module. Email sign-in doesn't need it. It isn't " +
         "selected by default. Works as soon as you patch it in, with no switch.",
     default = false,

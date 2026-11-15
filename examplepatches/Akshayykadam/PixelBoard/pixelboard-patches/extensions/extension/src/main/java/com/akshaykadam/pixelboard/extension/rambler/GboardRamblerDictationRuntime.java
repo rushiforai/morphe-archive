@@ -183,44 +183,29 @@ public final class GboardRamblerDictationRuntime {
                     }
                 }
 
-                // Check whether this turn represents an explicit voice editing command
-                // (e.g. "Translate to French", "Make it all caps", "Clear that", "Undo").
-                boolean isCommand = isVoiceCommand(intent, transcript, selectedText, action);
+                // Check whether an errant diff was generated (e.g. Issue #134 Test 2, where Rambler
+                // mistook newly spoken text at the end of the document for an edit of preceding text).
+                // In contrast, genuine mid-sentence edits (Issue #167, where cursor is placed mid-text
+                // or diff has a suffix) and explicit voice commands must retain their diffs.
+                boolean isErrantDiff = isErrantDictationDiff(
+                        action, transcript, textBefore, textAfter, selectedText, intent);
 
-                if (!isCommand) {
-                    // Regular dictation: the user spoke text to insert, not a command.
-                    // If an errant diff was generated (e.g. Test 2 where Rambler mistook speech
-                    // for an edit of preceding text), clear it and set intent to dictation (0).
+                if (isErrantDiff) {
                     clearDiffField(action);
                     if (intent != 0 && intent != 5) {
                         intentField.setInt(action, 0);
                     }
-
-                    String textToInsert = !transcript.isEmpty() ? transcript : spanText;
-                    if (!textToInsert.isEmpty()) {
-                        // Check if spanText ALREADY starts with textBefore, ends with textAfter,
-                        // and contains a non-empty delta (normal dictation path).
-                        boolean hasPrefixAndDelta = !textBefore.isEmpty()
-                                && spanText != null
-                                && spanText.startsWith(textBefore)
-                                && spanText.endsWith(textAfter)
-                                && spanText.length() > (textBefore.length() + textAfter.length());
-
-                        if (!hasPrefixAndDelta) {
-                            // If spanText equals textBefore (Test 1, repeated phrase) or does NOT
-                            // start with textBefore (Test 2, similar phrase), format spanText with
-                            // textBefore + separator + textToInsert + textAfter.
-                            // Gboard's native logic will cleanly extract delta = separator + textToInsert
-                            // and commit it at the cursor without dropping or diff-overwriting!
-                            String formattedText;
-                            if (!textBefore.isEmpty()) {
-                                boolean needsSpace = needsSpaceBetween(textBefore, textToInsert);
-                                formattedText = textBefore + (needsSpace ? " " : "") + textToInsert + textAfter;
-                            } else {
-                                formattedText = textToInsert + textAfter;
-                            }
-                            textSpanField.set(span, formattedText);
-                        }
+                    if (!transcript.isEmpty()) {
+                        textSpanField.set(span, transcript);
+                    }
+                } else {
+                    // Legitimate diff or normal dictation without an errant diff.
+                    // If Rambler dropped spoken text or echoed textBefore during dictation when NO diff is present:
+                    Field diffField = findField(action.getClass(), "e");
+                    Object diff = diffField != null ? diffField.get(action) : null;
+                    if (diff == null && (intent == 0 || intent == 5) && !transcript.isEmpty()
+                            && (spanText == null || spanText.isEmpty() || spanText.equals(textBefore))) {
+                        textSpanField.set(span, transcript);
                     }
                 }
             }
@@ -229,70 +214,102 @@ public final class GboardRamblerDictationRuntime {
         }
     }
 
-    private static boolean isVoiceCommand(int intent, String transcript, String selectedText, Object action) {
-        if (transcript == null || transcript.isEmpty()) {
+    private static boolean isErrantDictationDiff(
+            Object action,
+            String transcript,
+            String textBefore,
+            String textAfter,
+            String selectedText,
+            int intent) {
+        if (action == null) {
             return false;
         }
 
-        // If the user actively selected text in the editor, and intent is edit/rewrite,
-        // they specifically highlighted text to operate on.
-        if (selectedText != null && !selectedText.trim().isEmpty() && (intent == 1 || intent == 3)) {
-            return true;
+        Field diffField = findField(action.getClass(), "e");
+        if (diffField == null) {
+            return false;
         }
-
-        String lower = transcript.trim().toLowerCase(Locale.ROOT);
-
-        // Intent 1 (INTENT_EDIT) and Intent 2 (INTENT_EDIT_HISTORY):
-        if (intent == 1 || intent == 2) {
-            if (isEditCommand(lower)) {
-                return true;
-            }
-        }
-
-        // Intent 3 (INTENT_REWRITE):
-        if (intent == 3) {
-            if (isRewriteCommand(lower)) {
-                return true;
-            }
-            // Check if Rambler's diff indicates an echo/correction of surrounding text
-            // rather than a genuine command (Test 2).
-            if (isDiffDictationEcho(action, transcript)) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean isDiffDictationEcho(Object action, String transcript) {
+        Object diff;
         try {
-            Field diffField = findField(action.getClass(), "e");
-            if (diffField == null) {
-                return false;
-            }
-            diffField.setAccessible(true);
-            Object diff = diffField.get(action);
-            if (diff == null) {
-                return false;
-            }
+            diff = diffField.get(action);
+        } catch (Throwable t) {
+            return false;
+        }
+        if (diff == null) {
+            return false;
+        }
 
+        // 1. If text is actively selected, the user specifically highlighted text to operate on.
+        if (selectedText != null && !selectedText.trim().isEmpty()) {
+            return false;
+        }
+
+        // 2. If there is text after the cursor in the editor, the user placed the cursor
+        // mid-sentence to edit or insert text (Issue #167).
+        if (textAfter != null && !textAfter.trim().isEmpty()) {
+            return false;
+        }
+
+        String diffPrefix = "";
+        String diffToReplace = "";
+        String diffSuffix = "";
+        try {
             Field cField = findField(diff.getClass(), "c");
-            String prefix = cField != null ? (String) cField.get(diff) : null;
-            if (prefix == null) {
-                prefix = "";
+            if (cField != null && cField.get(diff) instanceof String) {
+                diffPrefix = (String) cField.get(diff);
             }
-
-            String normTranscript = normalizeForComparison(transcript);
-            String normPrefix = normalizeForComparison(prefix);
-
-            if (!normPrefix.isEmpty() && normTranscript.startsWith(normPrefix)) {
-                return true;
+            Field dField = findField(diff.getClass(), "d");
+            if (dField != null && dField.get(diff) instanceof String) {
+                diffToReplace = (String) dField.get(diff);
             }
-            if (!normPrefix.isEmpty() && normPrefix.length() > 5 && normTranscript.contains(normPrefix)) {
-                return true;
+            Field eField = findField(diff.getClass(), "e");
+            if (eField != null && eField.get(diff) instanceof String) {
+                diffSuffix = (String) eField.get(diff);
             }
         } catch (Throwable ignored) {
         }
+
+        // 3. If the diff has a non-empty suffix, the text being replaced is surrounded
+        // by following text — it is an in-place word edit (Issue #167).
+        if (diffSuffix != null && !diffSuffix.trim().isEmpty()) {
+            return false;
+        }
+
+        // 4. Intent 1 (INTENT_EDIT) and Intent 2 (INTENT_EDIT_HISTORY) are always genuine actions.
+        if (intent == 1 || intent == 2) {
+            return false;
+        }
+
+        // 5. If the transcript is an explicit edit or rewrite command, it is an intentional action.
+        String lower = transcript != null ? transcript.trim().toLowerCase(Locale.ROOT) : "";
+        if (isEditCommand(lower) || isRewriteCommand(lower)) {
+            return false;
+        }
+
+        // 6. Check if diff is trying to replace the tail of textBefore when the user is dictating
+        // at the end of the field (Issue #134, Test 2).
+        // In Issue #134:
+        // textBefore ended with diffToReplace (e.g. "прокурор."), diffPrefix was preceding words,
+        // diffSuffix is empty, and transcript starts with diffPrefix followed by new words.
+        if (!diffPrefix.isEmpty() && diffPrefix.length() >= 4) {
+            String normTranscript = normalizeForComparison(transcript);
+            String normPrefix = normalizeForComparison(diffPrefix);
+            if (!normPrefix.isEmpty() && normTranscript.startsWith(normPrefix)) {
+                if (textBefore != null && !textBefore.isEmpty()) {
+                    String trimmedBefore = textBefore.trim();
+                    if (!diffToReplace.isEmpty() && trimmedBefore.endsWith(diffToReplace.trim())) {
+                        return true;
+                    }
+                    if ((diffPrefix + diffToReplace).trim().equals(trimmedBefore)) {
+                        return true;
+                    }
+                }
+                if (!diffToReplace.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -300,6 +317,8 @@ public final class GboardRamblerDictationRuntime {
         if (lower.startsWith("delete") || lower.startsWith("clear") || lower.startsWith("erase")
                 || lower.startsWith("remove") || lower.startsWith("scratch that")
                 || lower.startsWith("undo") || lower.startsWith("redo") || lower.startsWith("revert")
+                || lower.startsWith("add ") || lower.startsWith("insert ") || lower.startsWith("put ")
+                || lower.startsWith("добавь") || lower.startsWith("вставь") || lower.startsWith("поставь")
                 || lower.startsWith("удали") || lower.startsWith("стереть") || lower.startsWith("очисти")
                 || lower.startsWith("отмени")) {
             return true;
@@ -308,6 +327,10 @@ public final class GboardRamblerDictationRuntime {
     }
 
     private static boolean isRewriteCommand(String lower) {
+        if (lower.startsWith("add ") || lower.startsWith("insert ") || lower.startsWith("put ")
+                || lower.startsWith("добавь") || lower.startsWith("вставь") || lower.startsWith("поставь")) {
+            return true;
+        }
         if (lower.startsWith("translate") || lower.startsWith("переведи")
                 || lower.startsWith("traduire") || lower.startsWith("traducir") || lower.startsWith("übersetz")) {
             return true;
@@ -350,33 +373,6 @@ public final class GboardRamblerDictationRuntime {
             }
         } catch (Throwable ignored) {
         }
-    }
-
-    private static boolean needsSpaceBetween(String textBefore, String textToInsert) {
-        if (textBefore == null || textBefore.isEmpty()) {
-            return false;
-        }
-        if (textToInsert == null || textToInsert.isEmpty()) {
-            return false;
-        }
-        char lastChar = textBefore.charAt(textBefore.length() - 1);
-        if (Character.isWhitespace(lastChar)) {
-            return false;
-        }
-        char firstChar = textToInsert.charAt(0);
-        if (Character.isWhitespace(firstChar)) {
-            return false;
-        }
-        if (firstChar == '.' || firstChar == ',' || firstChar == '!' || firstChar == '?'
-                || firstChar == ';' || firstChar == ':' || firstChar == ')' || firstChar == ']'
-                || firstChar == '}' || firstChar == '—' || firstChar == '-') {
-            return false;
-        }
-        if (lastChar == '(' || lastChar == '[' || lastChar == '{' || lastChar == '"'
-                || lastChar == '\'' || lastChar == '«') {
-            return false;
-        }
-        return true;
     }
 
     private static String normalizeForComparison(String s) {

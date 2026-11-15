@@ -18,12 +18,15 @@ Guides, verification notes and triage references for Proteus Patches.
 | [Amazon](AMAZON.md) | Amazon Shopping and Amazon India patch status, limitations and issue responses |
 | [Brave](BRAVE.md) | Brave patch status, `res=-113` fix and install troubleshooting |
 | [HT News apps](HT-NEWS-APPS.md) | Mint and Hindustan Times patch analysis |
+| [Instagram](INSTAGRAM.md) | Instagram settings, Ghost Mode, Reels controls and browser limits |
 | [Meesho](MEESHO.md) | Meesho patch status and analysis |
 | [Mereframe](MEREFRAME.md) | Mereframe patch status, verification and crash triage |
+| [Netflix (Android TV)](NETFLIX.md) | Netflix clone, ad strip and privacy patches — install, limits and India notes |
 | [Pinterest video](PINTEREST-VIDEO.md) | Experimental Pinterest video download behavior |
 | [Reddit deleted comments](REDDIT-DELETED-COMMENTS.md) | Archive restore behavior, limits and privacy |
 | [Reddit performance](REDDIT-PERFORMANCE.md) | Listing filter performance notes |
 | [Reddit stability](REDDIT-STABILITY.md) | Save-flow crash analysis and stability hardening |
+| [Table Notes](TABLE_NOTES.md) | Table Notes premium-export and ad-removal patch analysis |
 
 ## Project
 

@@ -1,50 +1,54 @@
 # NEXT_SESSION.md — working memory / handoff
 
-Updated: 2026-11-12 (X-rung waiter-fix session, UTC)
+Updated: 2026-11-15 (v8 session: embedded system-wide free VPN, UTC)
 
 ## Current state
 
-- Harness LIVE with **event-driven backups** (ADR 0004): every execution
-  plan ends with `harness/bin/backup.sh` as its final step.
-- Project: v1.3.0 released. W-rung verdicts in: **W1 boots** (innocent
-  combo cleared); **W2 froze at "Start browsing" / black on reopen** —
-  root cause found (fresh-install `m9k` startup-dependency waiter: j9k
-  remote-config + bac Leanplum/Braze + a umi-scheduled give-up timeout,
-  none fire in the patched flow; full trace in root STATE.md §W2
-  post-mortem).
-- **X-rung (v1.3.1-R3) built + host-verified + uploaded**, awaiting device
-  results: X2 = W2 + 02f (waiter seeds TRUE) + 02h (hch splash posting
-  dead) — flash first; X1 = W2 + 02f — differential. Protocol in
-  `docs/X-RUNG-README.md`; hashes in root STATE.md §X-rung build.
-- v1.3.2 #8 (adblock defaults + Secure DNS) recon COMPLETE
-  (`evidence/adblock-defaults-recon.md`), implementation fully specified,
-  blocked on the X2 verdict (target substrate = X2 lineage).
+- **v8 SHIPPED**: `download/OperaBeta-104.0.5262.91143-custom-v8-universal.apk`
+  sha256 `cce194fe…` (154.4 MB), signed with morphe.keystore (same key as
+  v4-v7, updates over v7). ALL v8 markers verified; v4+v5+v6 regression
+  suite passes; entry-diff vs v6 = manifest + 3 dexes + 2 libs + re-sign.
+- v8 content = v7-equivalent patch set (re-derived after the recycle) +
+  embedded system-wide free VPN (tun -> hev-socks5-tunnel ->
+  127.0.0.1:18080 -> opera-proxy child -> sec-tunnel free servers) +
+  fixes: V8a (Protect more devices, VPN settings row), V7b2 (tile enable),
+  N8 (orphan in-app-notifications header + separator), RS8 (Rewards
+  settings row - real fix for the never-applied v6 bo3).
+- Build pipeline: `scripts/build_v8_universal.sh` (substrate v6 ->
+  baksmali 1+3 -> apply_v8_patches.py (21 patches) -> apktool b ->
+  ecj+d8 classes5 -> v8_splice.py (AXML extractNativeLibs/labels + payload)
+  -> zipalign -p 4 -> apksigner). Sources: `scripts/v8src/**`.
+- Toolchain re-provisioned this session: ecj 3.36.0 (Aliyun mirror),
+  android-34 platform jar (dl.google.com), d8/zipalign/apksigner r34
+  (/tmp/my-project/tools/android-14). Keystore re-fetched from the
+  sandbox-storage release into /tmp + build-cache/.
+- KEY LESSON (hit twice): when several smali method-body patches target
+  the SAME file, they must be applied CUMULATIVELY (plan phase must chain
+  the edited text, not re-read the original) - the first version silently
+  clobbered earlier patches with later ones (T8a lost to T8b etc.).
+- Opera component discovery: VpnProQuickSettingsTileService /
+  VpnProAppWidget / VpnReceiver DO exist in classes3 (v7's belief "classes
+  missing" only holds for com.kape.*). ien.l / yen.l disable both
+  components for free users at startup (both sites now flipped to enable).
 
-## Open threads
+## Open threads (v8 device verdict pending)
 
-1. **X1/X2 device results** — when the user reports, record verdicts in
-   root STATE.md. X2 boots → v1.3.1 DONE (tag/release, update PATCHES.md,
-   then start v1.3.2 #8). X1 boots + X2 fails → 02h guilty, ship X1
-   content + investigate. Both fail → pull `vogelkop-diag.log`, suspects:
-   umi flow executor, tzn-1 pushed-content deferral.
-2. **Token expiry watch** — PAT uploaded 2026-11-12, ~7-day convention →
-   expect expiry ~2026-11-19. On auth failure ask the user to re-issue
-   (fine-grained, Contents: Read & Write on
-   maniesh-NR/Vogelkop-MorphePatches) and upload as `Vogelkop access
-   key.txt`; `backup.sh` auto-imports it.
-3. (optional) `scripts/upload_storage.py` has stale `/tmp/my-project`
-   paths — retire in favour of `harness/bin/storage_upload.py` next time
-   it is touched.
-4. (note) `scripts/build_x_rung.sh` embeds the recycle-#3 session layout
-   (`/home/z/my-project/work/...`); if the sandbox recycles again, re-run
-   `scripts/fetch_x_rung_artifacts.py`-style provisioning first (see
-   episode 2026-11-12-x-rung-waiter-fix.md for the toolchain recipe: smali
-   3.0.10 lib jar + baksmali fat + antlr-runtime 3.5.3, build-tools r34).
+1. First-enable flow: tile -> notification -> Allow -> tile again. Watch
+   for: tun0 up, other-app IP change, region buttons, widget state,
+   orphan-child cleanup after force-stop, boot (no auto-restart by design).
+2. If tun establishes but no traffic: check `files/sysvpn/opera-proxy.log`
+   (SurfEasy registration), hev config at `files/sysvpn/hev.yml`, and
+   `adb logcat -s VpnService,ConnectivityService`.
+3. Remaining v7 feedback items NOT yet addressed (design doc §7):
+   NTP first-paint freeze (1), preseeded speed dial third source (2),
+   adblock 78->90 (3), custom filter-list UI (4), news ad banners (5),
+   VPN location menu latency (7), rewards icon/wallpaper visibility (10),
+   optional news/match-center strip (13).
+4. arm64-v8a variant still wanted for real 64-bit libopera.so.
 
 ## Next session should
 
 1. `git -C /home/z/my-project/.harness/vogelkop pull --rebase --autostash origin HEAD`
-2. Read `memory/MEMORY.md` → this file → root `STATE.md`.
-3. Do the work. EVERY reply ends with `bash harness/bin/backup.sh`
-   (AGENTS.md "End of every prompt — MANDATORY final step"); at rung
-   boundaries also write an episode + update this file BEFORE the backup.
+2. Read `memory/MEMORY.md` -> this file -> the v8 episode.
+3. Collect the v8 device verdict; iterate on the open threads above.
+4. End every reply with `bash harness/bin/backup.sh`.

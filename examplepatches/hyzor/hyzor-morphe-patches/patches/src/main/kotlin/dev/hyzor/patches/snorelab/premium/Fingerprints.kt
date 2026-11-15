@@ -4,16 +4,19 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * `vp.h.q()Z` — `getRemotePremiumActive()` in `UserDataSharedPreferences`.
+ * `up.h.q()Z` — `getRemotePremiumActive()` in `UserDataSharedPreferences`.
  *
  * The class is matched by the three string literals it passes to
  * `Intrinsics.checkNotNullParameter` in its constructor (`sharedPrefs`, `jsonBridge`) and
  * to the delegated property initialiser (`remotePremiumActive`). Only one class in the
  * APK references `remotePremiumActive`, so the class fingerprint is unambiguous.
  *
- * The getter itself has no string of its own: in 2.33.5.7814 it is the obfuscated method
- * `q()`. The class also has two other no-argument boolean getters (`s()`/`t()` for the
- * onboarding flags), so the reference patch's "any `()Z` method" fingerprint would match
+ * The class was `vp.h` in 2.33.5.7814 and moved to `up.h` in 2.33.7.7953; the string
+ * anchors keep the fingerprint independent of that move.
+ *
+ * The getter itself has no string of its own: in 2.33.7.7953 it is still the obfuscated
+ * method `q()`. The class also has two other no-argument boolean getters (`s()`/`t()` for
+ * the onboarding flags), so the reference patch's "any `()Z` method" fingerprint would match
  * three methods here. The exact DEX name is therefore pinned to this target; re-resolve
  * it (see `tools/verify_fingerprints.py`) when bumping the supported version.
  */
@@ -27,13 +30,13 @@ object IsRemotePremiumActiveFingerprint : Fingerprint(
 )
 
 /**
- * `mp.d.p(Lh80/g;)Z` — `isPremiumDateValid(expirationDate)`.
+ * `mp.d.p(Lg80/g;)Z` — `isPremiumDateValid(expirationDate)`.
  *
  * `mp.d` is the local premium source (`SnoreLabCrossPlatformPremiumSource`) that reads the
  * persisted `remotePremiumActive` flag and `remotePremiumExpirationDate`. The class is found
- * through its public `(Lvp/h;)V` constructor, which checks the `userDataSharedPrefs` parameter
+ * through its public `(Lup/h;)V` constructor, which checks the `userDataSharedPrefs` parameter
  * name, plus the `pl.a0` premium-source interface that distinguishes it from the other
- * `(Lvp/h;)V` holders (e.g. `pr.a`).
+ * `(Lup/h;)V` holders.
  *
  * Its single boolean method taking one object is the expiry check, which the patch forces to
  * `true`.

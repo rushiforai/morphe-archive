@@ -3,19 +3,16 @@ package app.morphe.patches.all.version
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
-import app.morphe.patcher.patch.classDefForEach
-import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 
 private fun overrideConstInClinit(mc: app.morphe.patcher.util.proxy.mutableTypes.MutableClass, fieldName: String, newSmali: String) {
@@ -47,15 +44,19 @@ val changeVersionPatch = patch(
     default = false,
 ) {
     val nameOption = stringOption(
-        key = "versionName", default = "Current",
+        key = "versionName",
+        default = "Current",
         values = mapOf("Current" to "Current"),
-        title = "Version name", description = "New android:versionName (e.g. 9.9.9), or 'Current'.",
+        title = "Version name",
+        description = "New android:versionName (e.g. 9.9.9), or 'Current'.",
         required = true,
     )
     val codeOption = stringOption(
-        key = "versionCode", default = "Current",
+        key = "versionCode",
+        default = "Current",
         values = mapOf("Current" to "Current"),
-        title = "Version code", description = "New android:versionCode (digits), or 'Current'.",
+        title = "Version code",
+        description = "New android:versionCode (digits), or 'Current'.",
         required = true,
     ) { it == "Current" || (it != null && it.matches(Regex("^\\d+$"))) }
 
@@ -73,7 +74,7 @@ val changeVersionPatch = patch(
         // BuildConfig (baked into dex).
         val codeInt = newCode.toIntOrNull()
         classDefForEach { classDef ->
-            if (!classDef.type.endsWith("/BuildConfig;")) return@forEach
+            if (!classDef.type.endsWith("/BuildConfig;")) return@classDefForEach
             val mc = mutableClassDefBy(classDef)
             if (nameOption.value != "Current") overrideConstInClinit(mc, "VERSION_NAME", "const-string %REG, \"$newName\"")
             if (codeOption.value != "Current" && codeInt != null) overrideConstInClinit(mc, "VERSION_CODE", "const %REG, $codeInt")

@@ -477,10 +477,12 @@ public final class GlassTabBar {
 
     /**
      * Whether [x], [y], in [bar]'s own pixels, lie on [strip], Instagram's touch strip for a reel's seek
-     * bar, while it shows. The strip runs over the pill's top edge, and a drag started there is the seek
-     * bar's, never a slide across the tabs (#526).
+     * bar, while it shows, and on [bar] too. The strip runs over the pill's top edge, and a drag started
+     * there is the seek bar's, never a slide across the tabs (#526). Above the bar the strip's own gate
+     * decides, so a tap on a reel's button it covers still reaches the button (#452).
      */
     static boolean onTheStrip(@Nullable View strip, View bar, float x, float y) {
+        if (x < 0 || y < 0 || x >= bar.getWidth() || y >= bar.getHeight()) return false;
         if (strip == null || !strip.isShown() || strip.getWidth() <= 0 || strip.getHeight() <= 0) return false;
         int[] at = new int[2];
         strip.getLocationOnScreen(at);
@@ -1071,6 +1073,21 @@ public final class GlassTabBar {
         navGiven = 0;
         HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_NAV_BEHIND);
         return 0;
+    }
+
+    /**
+     * Called through FullScreenBars while Instagram's copy of the navigation bar's height holds a 0
+     * HushGram answered for a floating pill: as the pill's activity resumes and the 0 goes back in
+     * ({@link FullScreenBars#takeNavBarHeight}), and when Instagram's next pass offers that 0 back. The
+     * pill keeps [height] of room under itself, and sheets the same over the bar (none over a bar
+     * HushGram's full screen hides, [hidden]), as when {@link #navBarHeight} answered 0 for [height]. Read
+     * as no navigation bar, that 0 left the pill sitting in the three-button bar.
+     */
+    public static void navBarHeightTaken(int height, boolean hidden) {
+        if (height <= 0) return;
+        navTaken = height;
+        sheetRoom = hidden ? 0 : height;
+        navGiven = 0;
     }
 
     /**

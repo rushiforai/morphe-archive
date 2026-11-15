@@ -9,8 +9,8 @@ import app.morphe.patcher.Fingerprint
  * the dark one. Every colour is a Compose `Color` built from a `const-wide` ARGB literal followed
  * by `ColorKt.d(J)J`, so the dark greys are plain constants that can be rewritten in place.
  *
- * In 6.48.0 the dark palette uses `#121212` for the page background and `#2A2A2A` for the modal
- * and subdued page backgrounds; the light palette only reuses `#121212` as its content text,
+ * In 6.50.0 the dark palette uses `#2A2A2A` for the page and sheet backgrounds and `#121212`
+ * for some of the darker cards; the light palette only reuses `#121212` as its content text,
  * which is why rewriting both is safe for light mode too.
  */
 object DarkPaletteFingerprint : Fingerprint(

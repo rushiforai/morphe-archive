@@ -117,13 +117,15 @@ internal fun Method.messageLogBarSite(): LogBarSite? {
     return if (scratch.size == 2) LogBarSite(site, list, scratch) else null
 }
 
+internal val logBars = methodCheck { _, m ->
+    m.returnType == "Ljava/util/List;" && m.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(m.accessFlags) &&
+        m.implementation != null && m.logStrings().containsAll(BAR_STRINGS)
+}
+
 /** Reads the recipe from the one bar that builds the new message button, or null. */
 internal fun resolveMessageLogButtonRecipe(classes: Iterable<ClassDef>): MessageLogButtonRecipe? {
     val byType = classes.associateBy { it.type }
-    val bar = classes.flatMap { it.methods }.filter { m ->
-        m.returnType == "Ljava/util/List;" && m.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(m.accessFlags) &&
-            m.implementation != null && m.logStrings().containsAll(BAR_STRINGS)
-    }.singleOrNull() ?: return null
+    val bar = logBars.methods(classes).singleOrNull() ?: return null
     val barClass = byType[bar.definingClass] ?: return null
     // The bar's tap handler gets each button's id second, and the new message button's id is one it knows.
     val click = barClass.methods.singleOrNull { m ->

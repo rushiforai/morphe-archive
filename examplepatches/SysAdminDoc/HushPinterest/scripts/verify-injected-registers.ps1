@@ -209,8 +209,12 @@ if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf
     throw 'No patched APK. Pass -PatchedApk, or -FromDevice -Serial <serial>.'
 }
 $patched = Get-ApkManifestFacts -Apk $PatchedApk -Aapt2 $Aapt2
-if ($patched.package -ne $package -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
-    throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Pinterest build ($package)."
+# Change package name (opt-in) moves the build to a package of its own, by default Pinterest's plus
+# ".hushpinterest" (DEFAULT_PACKAGE in ChangePackageNamePatch.kt), so with it in -SelectedPatchNames
+# the patched side carries exactly that package. verify-all-patches.ps1 applies every patch, that one too.
+$patchedPackage = if ($null -ne $SelectedPatchNames -and $SelectedPatchNames -ccontains 'Change package name') { "$package.hushpinterest" } else { $package }
+if ($patched.package -ne $patchedPackage -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
+    throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Pinterest build ($patchedPackage)."
 }
 
 if (-not $CleanApk) {
@@ -235,7 +239,7 @@ $cleanBase = Get-BaseApk -Apk $CleanApk -Destination (Join-Path $work 'clean-bas
 # or another version: two patched files differ from each other, both halves report differences,
 # and the run would pass while comparing nothing against a clean baseline.
 $clean = Get-ApkManifestFacts -Apk $cleanBase -Aapt2 $Aapt2
-if ($clean.package -ne $patched.package -or $clean.versionName -ne $patched.versionName -or
+if ($clean.package -ne $package -or $patched.package -ne $patchedPackage -or $clean.versionName -ne $patched.versionName -or
         $clean.versionCode -ne $patched.versionCode) {
     throw ("The clean APK is $($clean.package) $($clean.versionName) ($($clean.versionCode)) and the " +
         "patched one $($patched.package) $($patched.versionName) ($($patched.versionCode)); they have to be the same build.")

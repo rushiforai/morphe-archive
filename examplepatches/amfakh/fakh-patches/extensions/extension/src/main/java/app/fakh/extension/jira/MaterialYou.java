@@ -91,7 +91,7 @@ public final class MaterialYou {
     static final String[] SUBTITLES = {null, null, null, null, null,
             "Blurs what's behind the glass. Uses more battery and might stutter.",
             null, null, null, null};
-    static final boolean[] DEFAULTS = {true, false, true, false, true, true, true, true, true, true};
+    static final boolean[] DEFAULTS = {true, false, true, false, true, false, true, true, true, true};
 
     /** The darkest page background (0xRRGGBB), the canvas behind cards, which pitch black turns black. */
     private static final int DARK_CANVAS = 0x111213;
@@ -215,7 +215,7 @@ public final class MaterialYou {
 
     /** Whether the glass bar blurs what's behind it. */
     static boolean liquidGlass(Context context) {
-        return prefs(context).getBoolean(KEYS[5], true);
+        return prefs(context).getBoolean(KEYS[5], false);
     }
 
     /** Whether the bottom bar shows the tab with this label; tabs it has no switch for always show. */

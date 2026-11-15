@@ -11,11 +11,11 @@ import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
 import app.rex.patches.twitter.utils.flagSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val hideBookmarkInTimelinePatch =
-    bytecodePatch(
+    patch(
         name = "Hide bookmark icon in timeline",
     ) {
         compatibleWith(COMPATIBILITY_X)

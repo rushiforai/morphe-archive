@@ -1,3 +1,46 @@
+## 2.0.4 (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix patch application failure with Morphe Patcher 2.3.0
+
+## 2.0.3 (2026-11-14)
+
+### ✨ New Features
+
+* **nicoid:** Add MP3 audio downloads with selectable bitrates of 128, 192, and 256 kbps
+* **nicoid:** Add customizable Back button behavior for videos opened from external links ([#132](https://github.com/chikuwadon/nicoid-re-patches/issues/132))
+* **nicoid:** Add a movable and resizable Niconico Live mini-player with live comments
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix background and popup playback being interrupted when advancing to the next video ([#122](https://github.com/chikuwadon/nicoid-re-patches/issues/122))
+* **nicoid:** Fix black bars, portrait flashes, and orientation changes during fullscreen video transitions ([#123](https://github.com/chikuwadon/nicoid-re-patches/issues/123))
+* **nicoid:** Fix the navigation drawer being obscured by the tab bar or mini-player ([#124](https://github.com/chikuwadon/nicoid-re-patches/issues/124))
+* **nicoid:** Fix inconsistent system media controls when switching between playback modes or apps ([#127](https://github.com/chikuwadon/nicoid-re-patches/issues/127))
+* **nicoid:** Fix missing thumbnails for user broadcasts in Niconico Live media controls ([#133](https://github.com/chikuwadon/nicoid-re-patches/issues/133))
+* **nicoid:** Fix overlapping previous, play, and next buttons during playback startup and queue transitions
+* **nicoid:** Fix playback controls appearing incorrectly during initial buffering
+* **nicoid:** Fix fullscreen and return-to-player behavior in Niconico Live mini-player playback
+* **nicoid:** Fix incorrect popup fullscreen behavior and unintended playback mode changes
+* **nicoid:** Fix video menu visibility settings being applied incorrectly
+* **nicoid:** Fix uneven ambient lighting and missing edge effects around 4:3 and portrait videos
+* **nicoid:** Fix seeking and playback state inconsistencies in background media controls
+* **nicoid:** Fix navigation drawer interaction issues while mini-player playback is active
+
+### 🔧 Improvements
+
+* **nicoid:** Unify MP4 and MP3 downloads into a compact format and quality selection dialog
+* **nicoid:** Redesign download list rows with clearer progress, file sizes, and estimated totals
+* **nicoid:** Reduce unnecessary download list updates and improve UI responsiveness
+* **nicoid:** Improve fullscreen playback continuity and eliminate unnecessary transition animations
+* **nicoid:** Refine playback button icons, fullscreen skip controls, and initial control positioning
+* **nicoid:** Enhance Niconico Live mini-player gestures, four-corner resizing, and touch handling
+* **nicoid:** Improve media notification controls and playback session management
+* **nicoid:** Enhance ambient lighting coverage, symmetry, and blending without obscuring playback controls or comments
+* **nicoid:** Improve navigation drawer layering and mini-player positioning
+* **nicoid:** Unify six playback-related settings with selected values and descriptive summaries
+
 ## 2.0.2 (2026-11-13)
 
 ### ✨ New Features

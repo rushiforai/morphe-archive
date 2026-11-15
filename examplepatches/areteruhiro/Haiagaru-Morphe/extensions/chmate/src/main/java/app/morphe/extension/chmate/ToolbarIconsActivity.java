@@ -31,25 +31,26 @@ public final class ToolbarIconsActivity extends HaiagaruComposeActivity {
         Button filters=new Button(this);filters.setText("フィルターの設定（下部パネル・追加項目）");filters.setOnClickListener(v->QuickFilterOptions.showToolbarSettings(this));rows.addView(filters);
         for (int i=0;i<ToolbarIcons.NAMES.length;i++) {
             final int n=i;
-            TextView label = new TextView(this); label.setText(ToolbarIcons.NAMES[i]); rows.addView(label);
+            SettingsSection group=SettingsSection.add(rows,ToolbarIcons.NAMES[i],"アイコン画像の選択・変更・初期化",false);
+            TextView label = new TextView(this);
             ImageView preview = new ImageView(this);
             preview.setImageDrawable(ToolbarIcons.preview(this, i, label.getCurrentTextColor()));
             preview.setContentDescription(ToolbarIcons.NAMES[i]+"のアイコン");
             preview.setTag(ToolbarIcons.file(this,i).isFile());
             int iconSize=Math.round(40*getResources().getDisplayMetrics().density);
-            rows.addView(preview,new LinearLayout.LayoutParams(iconSize,iconSize));
+            group.addView(preview,new LinearLayout.LayoutParams(iconSize,iconSize));
             Button image = new Button(this); image.setText(ToolbarIcons.file(this,i).isFile()?"画像を変更（カスタム画像使用中）":"画像を選択");
             image.setOnClickListener(v->{
                 if(busy)return;selected=n;
                 Intent picker=new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
                 try {startActivityForResult(picker,71);}catch(RuntimeException e){toast("画像を選択できるアプリがありません");}
-            });rows.addView(image);
+            });group.addView(image);
             Button reset=new Button(this);reset.setText("標準のアイコンに戻す");
             reset.setOnClickListener(v->new HaiagaruDialog.Builder(this).setMessage(ToolbarIcons.NAMES[n]+"の画像を標準に戻しますか？")
                 .setNegativeButton("キャンセル",null).setPositiveButton("戻す",(d,w)->{
                     File f=ToolbarIcons.file(this,n); if(f.exists()&&!f.delete()){toast("画像を削除できませんでした");return;}
                     ToolbarIcons.invalidate(n);render();if(n!=ToolbarIcons.index(ToolbarIcons.FLOATING_FILTER))SettingsRestart.confirm(this);
-                }).show());rows.addView(reset);
+                }).show());group.addView(reset);
         }
         Button close=new Button(this);close.setText("閉じる");close.setOnClickListener(v->finish());rows.addView(close);
         HaiagaruUi.showForm(this,"ツールバーのアイコン画像",rows);

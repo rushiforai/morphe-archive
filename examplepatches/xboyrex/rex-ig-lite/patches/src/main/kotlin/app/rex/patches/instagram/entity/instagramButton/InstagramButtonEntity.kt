@@ -9,17 +9,15 @@ package app.rex.patches.instagram.entity.instagramButton
 import app.rex.utils.changeFirstString
 import app.rex.utils.classNameToExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 val instagramButtonEntity =
-    bytecodePatch(
+    patch(
         description = "This patch is used for decoding obfuscated code of Instagram button",
     ) {
         execute {
-            val buttonStyleClass =
-                IgdsButtonSetStyleFingerprint.method.parameters
-                    .first()
-                    .type
+            runCatching {
+            val buttonStyleClass = IgdsButtonSetStyleFingerprint.originalMethod.parameterTypes.first().toString()
 
             SetStyleExtensionFingerprint.changeFirstString(classNameToExtension(buttonStyleClass))
 
@@ -38,6 +36,8 @@ val instagramButtonEntity =
                     invoke-virtual {v0, p1}, $IGDS_BUTTON_CLASS_DESCRIPTOR->setStyle($buttonStyleClass)V
                     """.trimIndent(),
                 )
+            }
+        
             }
         }
     }

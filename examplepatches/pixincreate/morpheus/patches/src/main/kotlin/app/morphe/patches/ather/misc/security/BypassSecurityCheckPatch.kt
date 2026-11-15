@@ -31,6 +31,9 @@ import app.morphe.patcher.patch.bytecodePatch
  *     return-object v0
  * .end method
  * ```
+ *
+ * Ather 13.6.0 moved the factory to `i0.b(Z)`, which returns `i0$a`; the `Secure`
+ * singleton is `i0$a$c.a`.
  */
 @Suppress("unused")
 val bypassSecurityCheckPatch = bytecodePatch(
@@ -41,6 +44,18 @@ val bypassSecurityCheckPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
+        val current = SecurityCheck1360Fingerprint.matchOrNull()
+        if (current != null) {
+            current.method.addInstructions(
+                0,
+                """
+                    sget-object v0, Lcom/ather/common/utils/coreUtils/i0${'$'}a${'$'}c;->a:Lcom/ather/common/utils/coreUtils/i0${'$'}a${'$'}c;
+                    return-object v0
+                """,
+            )
+            return@execute
+        }
+
         val modern = SecurityCheckFingerprint.matchOrNull()
         if (modern != null) {
             modern.method.addInstructions(

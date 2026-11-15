@@ -9,7 +9,6 @@ package app.rex.patches.instagram.misc.overflowMenuButton.posts
 import app.rex.patches.instagram.entity.decoder.CURRENT_MEDIA_FIELD
 import app.rex.patches.instagram.entity.decoder.MEDIA_ADD_INFO_CLASS_NAME
 import app.rex.patches.instagram.misc.download.FeedButtonOnClickFingerprint
-import app.rex.patches.instagram.utils.Constants
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.Constants.FEED_OVERFLOW_MENU_BUTTON_CLASS
 import app.rex.patches.instagram.utils.Constants.FRAGMENT_ACTIVITY
@@ -17,17 +16,17 @@ import app.rex.patches.instagram.utils.Constants.MEDIA_OPTIONS_CLASS
 import app.rex.patches.instagram.utils.Constants.USER_SESSION_CLASS
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
-import com.android.tools.smali.dexlib2.AccessFlags
 
 @Suppress("unused")
 val hookOverflowMenuButtonOnClickPatch =
-    bytecodePatch(
+    patch(
         description = "Hooks feed overflow menu on click.",
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         execute {
+            runCatching {
             FeedButtonOnClickFingerprint.apply {
                 val classDef = classDef
                 method.apply {
@@ -37,10 +36,7 @@ val hookOverflowMenuButtonOnClickPatch =
                     val appActivityField = classFields.first { it.type == FRAGMENT_ACTIVITY }
                     val userSessionField = classFields.first { it.type == USER_SESSION_CLASS }
 
-                    val getMediaObjectMethod =
-                        classDef.methods.first {
-                            AccessFlags.FINAL.isSet(it.accessFlags) && it.implementation?.registerCount == 1
-                        }
+                    val getMediaObjectMethod = FeedButtonGetMediaFingerprint.originalMethod
 
                     val mediaExtraDataField = classDef.fields.first { it.type == MEDIA_ADD_INFO_CLASS_NAME }
 
@@ -67,6 +63,8 @@ val hookOverflowMenuButtonOnClickPatch =
                         ExternalLabel("rex", getInstruction(0)),
                     )
                 }
+            }
+        
             }
         }
     }

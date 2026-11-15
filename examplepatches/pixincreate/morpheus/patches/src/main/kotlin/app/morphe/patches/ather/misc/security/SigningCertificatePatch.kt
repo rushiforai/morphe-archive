@@ -47,7 +47,11 @@ val signingCertificatePatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        PackageCertificateHashFingerprint.method.addInstructions(
+        val target = PackageCertificateHash1360Fingerprint.matchOrNull()
+            ?: PackageCertificateHashFingerprint.matchOrNull()
+            ?: throw IllegalStateException("Package certificate hash helper was not found.")
+
+        target.method.addInstructions(
             0,
             """
                 const/16 v0, 0x14

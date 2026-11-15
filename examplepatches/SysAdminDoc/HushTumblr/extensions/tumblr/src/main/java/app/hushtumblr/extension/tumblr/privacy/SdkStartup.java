@@ -12,7 +12,9 @@ import android.os.Looper;
 import app.hushtumblr.extension.shared.Utils;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
 import app.hushtumblr.extension.shared.settings.BooleanSetting;
+import app.hushtumblr.extension.tumblr.flags.FeatureSwitches;
 import app.hushtumblr.extension.tumblr.settings.FamilyNames;
+import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily.Capability;
 import app.hushtumblr.extension.tumblr.settings.Settings;
 
@@ -109,6 +111,9 @@ public final class SdkStartup {
                     : kind == LIVERAMP ? Capability.LIVERAMP_STARTUP : Capability.CRASH_REPORTS;
             BooleanSetting setting = kind == AD ? Settings.HIDE_ADS : Settings.DISABLE_ANALYTICS;
             if (!capability.installed() || !setting.get()) return false;
+            // What this skips stays unstarted until Tumblr restarts, so the family's flags that
+            // lead to it stay off that long too (FeatureSwitches).
+            FeatureSwitches.keepOffThisRun(kind == AD ? PatchFamily.HIDE_ADS.name() : PatchFamily.DISABLE_ANALYTICS.name());
         } catch (Throwable failure) {
             HookStatus.threw(name, what + (kind == CRASHLYTICS ? " collection" : " start"), failure);
             return false;

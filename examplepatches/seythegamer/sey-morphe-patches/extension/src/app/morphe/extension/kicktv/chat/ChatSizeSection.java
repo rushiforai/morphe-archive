@@ -56,31 +56,22 @@ public final class ChatSizeSection implements MorpheSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        final Runnable updateSizeState = new Runnable() {
-            @Override
-            public void run() {
-                sizeButton.setText("Chat size: " + ChatSizePrefs.getChatSizeLabel());
-                boolean enabled = ChatSizePrefs.isChatResizeEnabled();
-                sizeButton.setEnabled(enabled);
-                sizeButton.setAlpha(enabled ? 1f : 0.45f);
-            }
+        final Runnable updateSizeState = () -> {
+            sizeButton.setText("Chat size: " + ChatSizePrefs.getChatSizeLabel());
+            boolean enabled = ChatSizePrefs.isChatResizeEnabled();
+            sizeButton.setEnabled(enabled);
+            sizeButton.setAlpha(enabled ? 1f : 0.45f);
         };
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatSizePrefs.setChatResizeEnabled(enable.isChecked());
-                updateSizeState.run();
-            }
+        enable.setOnClickListener(v -> {
+            ChatSizePrefs.setChatResizeEnabled(enable.isChecked());
+            updateSizeState.run();
         });
 
-        sizeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int next = ChatSizePrefs.nextChatSizePercent(ChatSizePrefs.getChatSizePercent());
-                ChatSizePrefs.setChatSizePercent(next);
-                updateSizeState.run();
-            }
+        sizeButton.setOnClickListener(v -> {
+            int next = ChatSizePrefs.nextChatSizePercent(ChatSizePrefs.getChatSizePercent());
+            ChatSizePrefs.setChatSizePercent(next);
+            updateSizeState.run();
         });
 
         updateSizeState.run();

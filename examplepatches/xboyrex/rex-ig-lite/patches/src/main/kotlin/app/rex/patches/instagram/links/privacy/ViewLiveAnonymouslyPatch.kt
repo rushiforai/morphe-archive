@@ -12,18 +12,21 @@ import app.rex.patches.instagram.misc.actionBar.inboxActionBarButton.inboxAction
 import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val viewLiveAnonymouslyPatch =
-    bytecodePatch(
+    patch(
         name = "View live anonymously",
-        default = false,
+        default = true,
     ) {
         dependsOn(settingsPatch, interceptUriPatch, chatActionBarButtonPatch, inboxActionBarButtonPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             enableSettings("viewLiveAnonymously")
+        
+            }
         }
     }

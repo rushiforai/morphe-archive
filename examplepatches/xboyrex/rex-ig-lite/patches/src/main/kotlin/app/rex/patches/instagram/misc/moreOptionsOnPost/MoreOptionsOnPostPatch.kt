@@ -15,11 +15,11 @@ import app.rex.patches.instagram.misc.overflowMenuButton.reels.hookReelOverflowM
 import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val moreOptionsOnPostPatch =
-    bytecodePatch(
+    patch(
         name = "More options on post",
         description = "Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc",
         default = true,
@@ -34,9 +34,11 @@ val moreOptionsOnPostPatch =
             hookReelOverflowMenuButton,
         )
         execute {
-
-            addOverflowMenuButtonAttributes("REX_MORE_POST_OPTION", "morePostOptionOverflowButton")
+            runCatching {
+            runCatching { addOverflowMenuButtonAttributes("REX_MORE_POST_OPTION", "morePostOptionOverflowButton") }
 
             enableSettings("moreOptionsOnPost")
+        
+            }
         }
     }

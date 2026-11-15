@@ -1,7 +1,7 @@
 ![HushTumblr. Tumblr, on your terms.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.10-92BFFF" alt="Version 0.0.10">
+  <img src="https://img.shields.io/badge/version-0.0.11-92BFFF" alt="Version 0.0.11">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%208%2B-3DDC84" alt="Platform Android 8+">
   <img src="https://img.shields.io/badge/Tumblr-47.0.0.108-001935" alt="Tumblr 47.0.0.108">
@@ -18,7 +18,7 @@
 
 [Morphe](https://morphe.software) patches for Tumblr on Android. Patch the Tumblr bundle in Morphe Manager and you get a quieter Tumblr with its own HushTumblr settings page. It can drop ads and paid Blaze posts, hide suggestions, filter posts by type or by your own words, and trim the bottom bar.
 
-The latest release is [v0.0.10](https://github.com/SysAdminDoc/HushTumblr/releases/tag/v0.0.10), with 55 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out. Changes are listed in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.11](https://github.com/SysAdminDoc/HushTumblr/releases/tag/v0.0.11), with 57 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out. Changes are listed in the [changelog](CHANGELOG.md).
 
 **[Add HushTumblr to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushTumblr)**
 
@@ -138,10 +138,10 @@ Every patch is checked against this exact build, and other versions aren't suppo
 
 ## Verify a download
 
-Each release ships `SHA256SUMS.txt`, signed as `SHA256SUMS.txt.asc` with the HushTumblr release key. Its fingerprint is `2143 368A A5CE 6E5D FFEA  79CF BBC1 3768 83CF 3AB4` and the public key is [keys/hushtumblr-release.asc](keys/hushtumblr-release.asc). Morphe Manager doesn't check it, so that's up to you. The v0.0.10 bundle's line:
+Each release ships `SHA256SUMS.txt`, signed as `SHA256SUMS.txt.asc` with the HushTumblr release key. Its fingerprint is `2143 368A A5CE 6E5D FFEA  79CF BBC1 3768 83CF 3AB4` and the public key is [keys/hushtumblr-release.asc](keys/hushtumblr-release.asc). Morphe Manager doesn't check it, so that's up to you. The v0.0.11 bundle's line:
 
 ```text
-4129e65f00cfa66eddc240f7a4c38c53a9e8830e3ccbb91b25862bb9d88c67b0  patches-0.0.10.mpp
+23e2040ade4a60512419a0bd4ea82e9f6a8f278555ff2dd3972be857f0ef99ff  patches-0.0.11.mpp
 ```
 
 ```text

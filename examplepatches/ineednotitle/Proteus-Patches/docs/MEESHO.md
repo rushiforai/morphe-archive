@@ -1,6 +1,6 @@
 # Meesho — patch status and analysis
 
-Meesho: Online Shopping App (`com.meesho.shopping`, Meesho / FSN E-Commerce
+Meesho: Online Shopping App (`com.meesho.supply`, Meesho / FSN E-Commerce
 Ventures) is India's largest social-commerce marketplace app. This document is
 the current status page, mirroring the Mint/HT analysis.
 
@@ -8,15 +8,15 @@ the current status page, mirroring the Mint/HT analysis.
 
 | Field | Value |
 |---|---|
-| Package | `com.meesho.shopping` |
+| Package | `com.meesho.supply` |
 | Latest seen | **29.9** (2026-11-06, arm64-v8a, 480-640dpi, Android 10+, 19.12 MB), **29.8**, **29.7** (872), **29.6** (870), **29.5** (868), 29.3, 29.1, 28.x |
 | Form | **XAPK split bundles** ("BUNDLE 9 S/11 S…") — patch in XAPK mode, like Amazon |
 | Min SDK | API 21 (listings); recent arm64 builds target Android 10+ |
 | Version codes | 29.7=872, 29.6=870, 29.5=868 (observed); 29.9/29.8 ship without public codes in the listings — pinned version-only |
 
-**No `com.meesho.shopping` APK has been decompiled in this build environment.**
+**No `com.meesho.supply` APK has been decompiled in this build environment.**
 
-## What the bundle ships for Meesho (v2.2.8 re-cut #5)
+## What the bundle ships for Meesho
 
 App-scoped entries (off by default, unverified on device — same thin wrappers
 over the universal heuristics as the Mint/HT entries):
@@ -49,13 +49,13 @@ Plus, app-agnostic and visible for Meesho today with no new code: universal
 
 ## Verification checklist (device)
 
-1. Bundle reports **v2.2.8** in the manager.
+1. Confirm you are on the latest bundle in the manager (releases after the `#32` fix target `com.meesho.supply`, replacing the mistaken `com.meesho.shopping` package ID).
 2. Meesho shows as supported (target must match your installed build:
    29.9 / 29.8 / 29.7 / 29.6 / 29.5) and the XAPK form is used.
 3. Patch list under Meesho shows the three scoped entries + universals.
 4. If the patcher rejects the file (single .apk selected instead of the
-   XAPK/bundle), pull **all** splits (`adb shell pm path com.meesho.shopping`),
+   XAPK/bundle), pull **all** splits (`adb shell pm path com.meesho.supply`),
    or use the universal variant.
-5. If install fails with an integrity-style crash after patching, enable
-   **Diagnostic crash log** (Mereframe-style) + send the log from
-   Downloads/mereframe-crash-*.txt — it now records app versionName/versionCode.
+5. If install or launch fails with an integrity-style crash after patching,
+   capture `logcat` around launch (`adb logcat -d`) along with the installed
+   `versionName` and `versionCode`.

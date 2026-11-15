@@ -121,7 +121,7 @@ public class ScreenBuilder {
                     Settings.PATCH_INFO,
                     "ic_vector_accessibility_circle",
                     () -> true,
-                    ScreenBuilder::buildxboyrexSection
+                    ScreenBuilder::buildRexSection
             )
     };
     private final Context context;
@@ -1218,7 +1218,7 @@ public class ScreenBuilder {
        }
     }
 
-    public void buildxboyrexSection(boolean buildCategory){
+    public void buildRexSection(boolean buildCategory){
         LegacyTwitterPreferenceCategory category = null;
         if(buildCategory)
             category = preferenceCategory(str("rex_title_about"));

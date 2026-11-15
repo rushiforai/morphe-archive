@@ -6,12 +6,15 @@
  */
 package app.hushpinterest.extension.pinterest.actions;
 
+import android.app.Activity;
+import android.app.AppOpsManager;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Process;
 
 import androidx.annotation.Nullable;
 
@@ -21,7 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
@@ -41,6 +47,7 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * and its first bytes, and kept in the app's cache under {@link CopiedImages}. The clip holds an
  * address on {@link SharePreviewProvider}, which serves only that folder and only to an app the
  * clipboard hands the read grant. The newest copy stays readable until a newer one replaces it.
+ * Anything copied while the picture loads is newer still, so it stays and the picture is dropped.
  *
  * <p>Nothing here runs unless Download pins is installed and on, as for its other rows.
  */
@@ -104,6 +111,9 @@ final class CopyImage {
                 report(Result.FAILED);
                 return false;
             }
+            // Taken at the tap, while Pinterest has focus and Android lets it read the clipboard, and
+            // before the copy counts as running, so nothing here can leave it running.
+            Mark asked = Mark.read(app);
             if (!RUNNING.compareAndSet(false, true)) {
                 report(Result.BUSY);
                 return false;
@@ -120,7 +130,7 @@ final class CopyImage {
                 Utils.runOnMainThread(() -> {
                     Result shown = Result.FAILED;
                     try {
-                        shown = publish(app, done);
+                        shown = publish(app, done, asked);
                     } finally {
                         // Deleting is disk work, so it goes back to a worker, and the next copy waits
                         // for it: the sweep would take that copy's part file too.
@@ -205,9 +215,10 @@ final class CopyImage {
     /**
      * Sets the clip for a finished picture and says so, or says why not. Main thread, and no disk
      * work: {@link #settle} deletes files afterwards on a worker. The clipboard changes only here,
-     * after the file is in place, and only to the new picture.
+     * after the file is in place, only to the new picture, and only while it still holds what
+     * [asked] saw at the tap: a copy made while the picture loaded is newer, so it stays.
      */
-    static Result publish(Context app, Fetch fetched) {
+    static Result publish(Context app, Fetch fetched, @Nullable Mark asked) {
         File file = fetched.file;
         if (fetched.result != Result.COPIED || file == null) {
             report(fetched.result);
@@ -216,6 +227,11 @@ final class CopyImage {
         try {
             // Switched off or paused while it fetched: no clip.
             if (!active()) return Result.SKIPPED;
+            if (!unchanged(app, asked)) {
+                HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "image copy kept a newer clip");
+                Utils.showToastLong(L10n.t("The image wasn't copied, since the clipboard may have changed."));
+                return Result.SKIPPED;
+            }
             Uri uri = SharePreviewProvider.clipUri(app, file.getName());
             ClipboardManager clipboard = (ClipboardManager) app.getSystemService(Context.CLIPBOARD_SERVICE);
             if (uri == null || clipboard == null || fetched.mime == null) throw new IllegalStateException("No clip target");
@@ -250,6 +266,76 @@ final class CopyImage {
             }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "tidy copied images", failure);
+        }
+    }
+
+    /**
+     * What the clipboard held at the tap, told by its description alone: the time Android stamped
+     * on the clip, its label and its types. Never what the clip holds. It lives in memory for one
+     * comparison and is never logged or kept. Reading a description isn't a paste, so Android 12
+     * and newer show no paste notice for it.
+     */
+    static final class Mark {
+        final boolean held;
+        final long stamp;
+        @Nullable final String label;
+        final List<String> types;
+
+        private Mark(@Nullable ClipDescription description) {
+            held = description != null;
+            stamp = description == null ? 0 : description.getTimestamp();
+            CharSequence named = description == null ? null : description.getLabel();
+            label = named == null ? null : named.toString();
+            List<String> found = new ArrayList<>();
+            int count = description == null ? 0 : description.getMimeTypeCount();
+            for (int i = 0; i < count; i++) found.add(description.getMimeType(i));
+            types = found;
+        }
+
+        /** The clipboard now, or null when it can't be asked at all. */
+        @Nullable
+        static Mark read(Context app) {
+            try {
+                ClipboardManager clipboard = (ClipboardManager) app.getSystemService(Context.CLIPBOARD_SERVICE);
+                return clipboard == null ? null : new Mark(clipboard.getPrimaryClipDescription());
+            } catch (RuntimeException refused) {
+                return null;
+            }
+        }
+
+        boolean sameClip(Mark other) {
+            return held && other.held && stamp == other.stamp && Objects.equals(label, other.label)
+                    && types.equals(other.types);
+        }
+    }
+
+    /**
+     * Whether the clipboard still holds the clip [asked] saw, so the picture may replace it.
+     * Android answers an app without focus, or one its clipboard app op turns away, as if the
+     * clipboard were empty, so an empty clipboard counts as unchanged only while Pinterest's screen
+     * has focus and the app op lets it read. Anything it can't tell counts as changed: the picture
+     * is dropped rather than put over a copy made since.
+     */
+    static boolean unchanged(Context app, @Nullable Mark asked) {
+        if (asked == null) return false;
+        Mark now = Mark.read(app);
+        if (now == null || now.held != asked.held) return false;
+        if (now.held) return now.sameClip(asked);
+        Activity screen = Utils.getActivity();
+        return screen != null && screen.hasWindowFocus() && mayRead(app);
+    }
+
+    /** The app op Android's clipboard checks after focus. Its name isn't in the public SDK. */
+    private static final String READ_CLIPBOARD_OP = "android:read_clipboard";
+
+    /** Whether the clipboard app op lets Pinterest read, as Android checks it. No answer counts as no. */
+    private static boolean mayRead(Context app) {
+        try {
+            AppOpsManager ops = (AppOpsManager) app.getSystemService(Context.APP_OPS_SERVICE);
+            return ops != null && ops.unsafeCheckOpNoThrow(READ_CLIPBOARD_OP, Process.myUid(), app.getPackageName())
+                    == AppOpsManager.MODE_ALLOWED;
+        } catch (RuntimeException unknown) {
+            return false;
         }
     }
 

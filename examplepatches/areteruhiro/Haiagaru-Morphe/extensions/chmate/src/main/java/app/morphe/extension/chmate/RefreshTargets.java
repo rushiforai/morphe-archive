@@ -19,25 +19,45 @@ public final class RefreshTargets {
     private static String identity(String board,long id){return board+"\n"+id;}
     private static String version(Context context)throws Exception{return context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName;}
 
-    static CheckBox control(Activity activity,Object info)throws Exception{
+    private static String menuKey(Activity activity,Object info)throws Exception{
         String version=version(activity);boolean old=version.contains("191"),middle=version.contains("226");
         String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
         String board=(String)NativeFields.find(info.getClass(),old?"b":middle?"f":"g").get(info);
         Long id=(Long)NativeFields.find(info.getClass(),middle?"c":"e").get(info);
         if(server==null||board==null||id==null||id<=0)return null;
-        Object nativeBoard=nativeBoard(info,version);
-        String key=identity(nativeBoard.toString(),id);
-        CheckBox check=new CheckBox(activity);check.setText("更新対象に含む");check.setChecked(selected(activity).contains(key));
-        check.setOnCheckedChangeListener((button,enabled)->{
-            synchronized(RefreshTargets.class){
-                Set<String> values=selected(activity);
-                if(enabled&&values.size()>=100&&!values.contains(key)){
-                    check.setChecked(false);Toast.makeText(activity,"更新対象は100件までです",Toast.LENGTH_LONG).show();return;
-                }
-                if(enabled)values.add(key);else values.remove(key);
-                prefs(activity).edit().putStringSet(KEY,values).apply();
+        return identity(nativeBoard(info,version).toString(),id);
+    }
+    private static boolean setSelected(Activity activity,String key,boolean enabled){
+        synchronized(RefreshTargets.class){
+            Set<String> values=selected(activity);
+            if(enabled&&values.size()>=100&&!values.contains(key)){
+                Toast.makeText(activity,"更新対象は100件までです",Toast.LENGTH_LONG).show();return false;
             }
-            Toast.makeText(activity,enabled?"別の板・スレで更新すると、このスレの新着本文も取得します":"更新対象から外しました",Toast.LENGTH_SHORT).show();
+            if(enabled)values.add(key);else values.remove(key);
+            prefs(activity).edit().putStringSet(KEY,values).apply();
+        }
+        Toast.makeText(activity,enabled?"別の板・スレで更新すると、このスレの新着本文も取得します":"更新対象から外しました",Toast.LENGTH_SHORT).show();
+        return true;
+    }
+    static String menuLabel(Activity activity,Object info)throws Exception{
+        String key=menuKey(activity,info);
+        return key==null?null:selected(activity).contains(key)?"☑ 更新対象から外す":"□ 更新対象に含む";
+    }
+    static void toggleFromMenu(Activity activity,Object info){
+        try{
+            String key=menuKey(activity,info);if(key!=null)setSelected(activity,key,!selected(activity).contains(key));
+        }catch(Exception error){Log.w("Haiagaru","Thread update target unavailable",error);}
+    }
+    static CheckBox control(Activity activity,Object info)throws Exception{
+        String key=menuKey(activity,info);if(key==null)return null;
+        CheckBox check=new CheckBox(activity);check.setText("更新対象に含む");check.setChecked(selected(activity).contains(key));
+        check.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener(){
+            private boolean restoring;
+            @Override public void onCheckedChanged(android.widget.CompoundButton button,boolean enabled){
+                if(!restoring&&!setSelected(activity,key,enabled)){
+                    restoring=true;try{check.setChecked(false);}finally{restoring=false;}
+                }
+            }
         });
         return check;
     }

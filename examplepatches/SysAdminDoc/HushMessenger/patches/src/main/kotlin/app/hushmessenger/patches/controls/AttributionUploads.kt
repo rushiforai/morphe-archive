@@ -39,7 +39,9 @@ internal fun Method.isAttributionUpload(): Boolean {
 
 /** The worker, when exactly one method looks like it. */
 internal fun findAttributionUploads(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { it.isAttributionUpload() }.let { if (it.size == 1) it else emptyList() }
+    attributionUploads.methods(classes).let { if (it.size == 1) it else emptyList() }
+
+internal val attributionUploads = methodCheck { _, method -> method.isAttributionUpload() }
 
 internal fun MutableMethod.validateAttributionUpload() {
     if (!isAttributionUpload()) {

@@ -34,6 +34,7 @@ public final class SettingsStatus {
     public static boolean adViews() { return false; }
     public static boolean googleAds() { return false; }
     public static boolean metaAds() { return false; }
+    public static boolean interstitialAds() { return false; }
 
     public static boolean hideAiPins() { return false; }
     public static boolean feedAiPins() { return false; }
@@ -62,6 +63,7 @@ public final class SettingsStatus {
     public static boolean spoofSignature() { return false; }
     public static boolean gmsCoreSupport() { return false; }
     public static boolean signInFailure() { return false; }
+    public static boolean changePackageName() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
     public static boolean copyImage() { return false; }
@@ -93,6 +95,7 @@ public final class SettingsStatus {
     public static boolean blackBottomBar() { return false; }
     public static boolean blackComments() { return false; }
     public static boolean blackPinMenu() { return false; }
+    public static boolean blackSaveSheet() { return false; }
     public static boolean hideCloseupButtons() { return false; }
     public static boolean closeupButtons() { return false; }
     public static boolean closeupSearchLabel() { return false; }
@@ -105,6 +108,7 @@ public final class SettingsStatus {
     public static boolean hideComments() { return false; }
     public static boolean comments() { return false; }
     public static boolean suggestedReplies() { return false; }
+    public static boolean commentPreviews() { return false; }
     public static boolean hideTopicSuggestions() { return false; }
     public static boolean topicSuggestions() { return false; }
     public static boolean hideInboxUpdates() { return false; }
@@ -120,6 +124,10 @@ public final class SettingsStatus {
     public static boolean closeupImage() { return false; }
     public static boolean showPostedDate() { return false; }
     public static boolean postedDate() { return false; }
+    public static boolean hideSuggestedBoards() { return false; }
+    public static boolean suggestedBoards() { return false; }
+    public static boolean expandBoardList() { return false; }
+    public static boolean boardListHeight() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
     public static boolean fixPushNotifications() { return false; }

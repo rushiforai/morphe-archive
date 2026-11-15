@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.4'
+    [string]$Version = '1.2.6'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -135,6 +135,29 @@ $patches = @(
         options            = @()
     },
     [ordered]@{
+        name               = 'STOP ON MINIMIZE'
+        description        = 'Stops playback (audio/video) when the app is ' +
+                             'minimized or exited, so nothing keeps playing in ' +
+                             'the background. Open a stream again to resume ' +
+                             'playback. Toggle it in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'DEFAULT HOME DESTINATION'
+        description        = 'Opens the chosen tab (Home, Categories, Live, ' +
+                             'Following or Settings) automatically when KICK ' +
+                             'starts. Pick it in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
         name               = 'SEYTTINGS'
         description        = 'Adds the red themed SEYTTINGS menu to KICK TV. ' +
                              'This is the base patch required by every KICK TV tweak.'
@@ -190,6 +213,17 @@ $patches = @(
                              'card, its "Pinned by" label, the pin badge and any ' +
                              'pinned highlight in the message list. One toggle in ' +
                              'SEYTTINGS. Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($twitchTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'DEFAULT HOME TAB'
+        description        = 'Twitch TV opens the chosen tab (Home, Following, Browse ' +
+                             'or Search) automatically on every launch instead of ' +
+                             'the stock start tab. Toggle it in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($twitchTv)

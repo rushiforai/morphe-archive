@@ -109,6 +109,7 @@ final class MorpheDialog {
     static ScrollView scroller(Activity activity, View content) {
         ScrollView scroll = new ScrollView(activity);
         scroll.setFillViewport(false);
+        scroll.setNestedScrollingEnabled(true);
         scroll.addView(content, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         float density = activity.getResources().getDisplayMetrics().density;
@@ -215,7 +216,18 @@ final class MorpheDialog {
     }
 
     static AlertDialog show(Activity activity, View page, int maxDp) {
-        AlertDialog dialog = new AlertDialog.Builder(activity).setView(page).create();
+        // Every popup scrolls when it is taller than the screen. A list that scrolls inside the
+        // popup scrolls first, then hands the rest of the swipe to the popup. A popup that fits
+        // does not scroll, so nothing changes there.
+        View content = page;
+        if (!(page instanceof ScrollView)) {
+            ScrollView scroll = new ScrollView(activity);
+            scroll.setFillViewport(true);
+            scroll.addView(page, new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            content = scroll;
+        }
+        AlertDialog dialog = new AlertDialog.Builder(activity).setView(content).create();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(card(activity)));
         }

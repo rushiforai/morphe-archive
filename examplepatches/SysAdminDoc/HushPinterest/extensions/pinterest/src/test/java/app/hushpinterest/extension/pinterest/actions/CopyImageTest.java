@@ -8,8 +8,11 @@ package app.hushpinterest.extension.pinterest.actions;
 
 import static org.junit.Assert.*;
 
+import android.app.Activity;
+import android.app.AppOpsManager;
 import android.app.Application;
 import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -18,6 +21,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Looper;
+import android.os.Process;
 import android.provider.OpenableColumns;
 
 import org.junit.After;
@@ -29,8 +33,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowAppOpsManager;
 import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
@@ -41,11 +47,14 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -70,6 +79,7 @@ public class CopyImageTest {
     private static final Map<String, Object> IMAGE_PIN = Map.of("id", "123", "images", Map.of("orig", Map.of(
             "url", ORIGINAL, "width", 3000, "height", 2000)));
     private static final String TOAST_FAILED = "Couldn't copy the image. Check your connection and try again.";
+    private static final String TOAST_KEPT = "The image wasn't copied, since the clipboard may have changed.";
 
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -79,6 +89,7 @@ public class CopyImageTest {
     private final AtomicLong now = new AtomicLong(1_000_000L);
     private PinTransfer.Connection previousConnection;
     private java.util.function.LongSupplier previousClock;
+    private ActivityController<Activity> screen;
 
     @Before public void setUp() {
         app = RuntimeEnvironment.getApplication();
@@ -103,9 +114,16 @@ public class CopyImageTest {
         File dir = CopiedImages.dir(app);
         File[] left = dir == null ? null : dir.listFiles();
         if (left != null) for (File file : left) file.delete();
+        // A tap happens on a Pinterest screen that has focus, the only time Android lets it read
+        // the clipboard.
+        screen = Robolectric.buildActivity(Activity.class).setup().windowFocusChanged(true);
+        Utils.setActivity(screen.get());
+        assertTrue(screen.get().hasWindowFocus());
     }
 
     @After public void tearDown() {
+        Utils.setActivity(null);
+        screen.pause().stop().destroy();
         CopyImage.connection = previousConnection;
         CopyImage.clock = previousClock;
         Settings.COPY_IMAGE.save(false);
@@ -119,6 +137,7 @@ public class CopyImageTest {
         table.picture(ORIGINAL, "image/png", png);
         clipboard().setPrimaryClip(ClipData.newPlainText("before", "kept text"));
 
+        CopyImage.Mark tapped = tap();
         CopyImage.Fetch fetched = CopyImage.fetch(app, media());
         assertEquals(CopyImage.Result.COPIED, fetched.result);
         assertEquals("image/png", fetched.mime);
@@ -135,7 +154,7 @@ public class CopyImageTest {
         assertFalse(asked.followsRedirects());
         assertTrue(asked.disconnected);
 
-        assertEquals(CopyImage.Result.COPIED, CopyImage.publish(app, fetched));
+        assertEquals(CopyImage.Result.COPIED, CopyImage.publish(app, fetched, tapped));
         ClipData clip = clipboard().getPrimaryClip();
         assertEquals(1, clip.getItemCount());
         Uri uri = clip.getItemAt(0).getUri();
@@ -199,7 +218,7 @@ public class CopyImageTest {
         assertEquals(0, body.served);
         assertNull(fetched.file);
         assertEquals(0, ownedFiles());
-        CopyImage.publish(app, fetched);
+        CopyImage.publish(app, fetched, tap());
         assertEquals("That image is too big to copy.", ShadowToast.getTextOfLatestToast());
         assertEquals("kept text", copiedText());
     }
@@ -217,7 +236,7 @@ public class CopyImageTest {
             assertEquals(String.valueOf(type), CopyImage.Result.NOT_IMAGE, fetched.result);
             assertEquals(String.valueOf(type), 0, body.served);
             assertEquals(0, ownedFiles());
-            CopyImage.publish(app, fetched);
+            CopyImage.publish(app, fetched, tap());
             assertEquals("Pinterest didn't send a usable image.", ShadowToast.getTextOfLatestToast());
             assertEquals("kept text", copiedText());
         }
@@ -245,7 +264,7 @@ public class CopyImageTest {
                 .failing(new SocketTimeoutException("slow")));
         CopyImage.Fetch refused = CopyImage.fetch(app, media());
         assertEquals(CopyImage.Result.TIMED_OUT, refused.result);
-        CopyImage.publish(app, refused);
+        CopyImage.publish(app, refused, tap());
         assertEquals("Copying the image took too long. Try again.", ShadowToast.getTextOfLatestToast());
         assertEquals("kept text", copiedText());
 
@@ -265,7 +284,7 @@ public class CopyImageTest {
                 .failing(new IOException("connection reset")));
         CopyImage.Fetch reset = CopyImage.fetch(app, media());
         assertEquals(CopyImage.Result.FAILED, reset.result);
-        CopyImage.publish(app, reset);
+        CopyImage.publish(app, reset, tap());
         assertEquals(TOAST_FAILED, ShadowToast.getTextOfLatestToast());
 
         for (int status : new int[]{403, 404, 500, 301, 206}) {
@@ -274,7 +293,7 @@ public class CopyImageTest {
                     FileHostForTests.picture(8, 8, Bitmap.CompressFormat.PNG))).header("Content-Type", "image/png"));
             CopyImage.Fetch refused = CopyImage.fetch(app, media());
             assertEquals("status " + status, CopyImage.Result.FAILED, refused.result);
-            CopyImage.publish(app, refused);
+            CopyImage.publish(app, refused, tap());
             assertEquals(TOAST_FAILED, ShadowToast.getTextOfLatestToast());
         }
         assertEquals(0, ownedFiles());
@@ -293,15 +312,17 @@ public class CopyImageTest {
         byte[] first = FileHostForTests.picture(40, 30, Bitmap.CompressFormat.PNG);
         byte[] second = FileHostForTests.picture(30, 40, Bitmap.CompressFormat.JPEG);
         table.picture(ORIGINAL, "image/png", first);
+        CopyImage.Mark askedOne = tap();
         CopyImage.Fetch one = CopyImage.fetch(app, media());
-        CopyImage.settle(one, CopyImage.publish(app, one));
+        CopyImage.settle(one, CopyImage.publish(app, one, askedOne));
         Uri firstUri = clipboard().getPrimaryClip().getItemAt(0).getUri();
         assertTrue(one.file.isFile());
 
         table.picture(ORIGINAL, "image/jpeg", second);
+        CopyImage.Mark askedTwo = tap();
         CopyImage.Fetch two = CopyImage.fetch(app, media());
         assertTrue("the newest clip stays readable while the next copy fetches", one.file.isFile());
-        CopyImage.Result shown = CopyImage.publish(app, two);
+        CopyImage.Result shown = CopyImage.publish(app, two, askedTwo);
         assertTrue("setting the clip on the main thread deletes nothing", one.file.isFile());
         CopyImage.settle(two, shown);
         Uri secondUri = clipboard().getPrimaryClip().getItemAt(0).getUri();
@@ -330,9 +351,10 @@ public class CopyImageTest {
         File old = new File(dir, "fedcba9876543210fedcba9876543210.jpg");
         for (File file : new File[]{stranger, notes, shortName, stale, old}) Files.write(file.toPath(), new byte[]{1});
         table.picture(ORIGINAL, "image/png", FileHostForTests.picture(8, 8, Bitmap.CompressFormat.PNG));
+        CopyImage.Mark asked = tap();
         CopyImage.Fetch fetched = CopyImage.fetch(app, media());
         assertFalse("a part left by a dead copy goes", stale.exists());
-        CopyImage.settle(fetched, CopyImage.publish(app, fetched));
+        CopyImage.settle(fetched, CopyImage.publish(app, fetched, asked));
         assertFalse("an older copy goes", old.exists());
         assertTrue(stranger.exists());
         assertTrue(notes.exists());
@@ -378,9 +400,10 @@ public class CopyImageTest {
     @Test public void switchedOffWhileItFetchedDiscardsThePictureAndSetsNoClip() throws Exception {
         table.picture(ORIGINAL, "image/png", FileHostForTests.picture(8, 8, Bitmap.CompressFormat.PNG));
         clipboard().setPrimaryClip(ClipData.newPlainText("before", "kept text"));
+        CopyImage.Mark asked = tap();
         CopyImage.Fetch fetched = CopyImage.fetch(app, media());
         Settings.COPY_IMAGE.save(false);
-        assertEquals(CopyImage.Result.SKIPPED, CopyImage.publish(app, fetched));
+        assertEquals(CopyImage.Result.SKIPPED, CopyImage.publish(app, fetched, asked));
         CopyImage.settle(fetched, CopyImage.Result.SKIPPED);
         assertFalse(fetched.file.exists());
         assertEquals("kept text", copiedText());
@@ -435,6 +458,77 @@ public class CopyImageTest {
         assertEquals(1, ownedFiles());
     }
 
+    @Test public void aCopyMadeWhileThePictureLoadsIsKeptAndThePictureDropped() throws Exception {
+        ClipData text = ClipData.newPlainText("note", "copied while it loaded");
+        ClipData picture = new ClipData(new ClipDescription("Photo", new String[]{"image/jpeg"}),
+                new ClipData.Item(Uri.parse("content://another.app/photo.jpg")));
+        // The same label and type as the clip at the tap: only Android's stamp tells them apart.
+        ClipData sameShape = ClipData.newPlainText("before", "another text");
+        for (ClipData newer : new ClipData[]{text, picture, sameShape}) {
+            ShadowToast.reset();
+            clipboard().setPrimaryClip(ClipData.newPlainText("before", "kept text"));
+            copyWhile(() -> {
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(5));
+                clipboard().setPrimaryClip(newer);
+            });
+            ClipData clip = clipboard().getPrimaryClip();
+            String which = String.valueOf(newer.getDescription().getLabel());
+            assertEquals(which, newer.getDescription().getMimeType(0), clip.getDescription().getMimeType(0));
+            assertEquals(which, String.valueOf(newer.getItemAt(0).getText()), String.valueOf(clip.getItemAt(0).getText()));
+            assertEquals(which, newer.getItemAt(0).getUri(), clip.getItemAt(0).getUri());
+            assertEquals(which, TOAST_KEPT, ShadowToast.getTextOfLatestToast());
+            assertEquals(which + ": the dropped picture is deleted", 0, ownedFiles());
+        }
+        assertEquals(3, table.asked.size());
+
+        // Nothing copied meanwhile: the next tap puts the picture over the same clip as usual.
+        clipboard().setPrimaryClip(ClipData.newPlainText("before", "kept text"));
+        copyWhile(() -> { });
+        assertCopiedPicture();
+    }
+
+    @Test public void aClipboardItCantReadIsLeftAloneAndThePictureDropped() throws Exception {
+        // Cleared while the picture loaded, which is also how Android answers once it stops letting
+        // Pinterest read.
+        clipboard().setPrimaryClip(ClipData.newPlainText("before", "kept text"));
+        copyWhile(() -> clipboard().clearPrimaryClip());
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals(TOAST_KEPT, ShadowToast.getTextOfLatestToast());
+        assertEquals(0, ownedFiles());
+
+        // Empty at the tap, then Pinterest lost focus: an empty answer could hide a newer copy.
+        ShadowToast.reset();
+        copyWhile(() -> screen.windowFocusChanged(false));
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals(TOAST_KEPT, ShadowToast.getTextOfLatestToast());
+        assertEquals(0, ownedFiles());
+
+        // No Pinterest screen known at all.
+        ShadowToast.reset();
+        screen.windowFocusChanged(true);
+        Utils.setActivity(null);
+        copyWhile(() -> { });
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals(TOAST_KEPT, ShadowToast.getTextOfLatestToast());
+        assertEquals(0, ownedFiles());
+
+        // Focused, but the clipboard app op turns Pinterest away (`appops set ... READ_CLIPBOARD
+        // ignore`, or a phone's own clipboard permission): Android answers empty there too.
+        Utils.setActivity(screen.get());
+        ShadowToast.reset();
+        ShadowAppOpsManager ops = Shadows.shadowOf((AppOpsManager) app.getSystemService(Context.APP_OPS_SERVICE));
+        ops.setMode("android:read_clipboard", Process.myUid(), app.getPackageName(), AppOpsManager.MODE_IGNORED);
+        copyWhile(() -> { });
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals(TOAST_KEPT, ShadowToast.getTextOfLatestToast());
+        assertEquals(0, ownedFiles());
+        ops.setMode("android:read_clipboard", Process.myUid(), app.getPackageName(), AppOpsManager.MODE_ALLOWED);
+
+        // The same empty clipboard while Pinterest has focus and may read takes the picture.
+        copyWhile(() -> { });
+        assertCopiedPicture();
+    }
+
     @Test public void theProviderServesOnlyTheOwnedFolderAndOnlyToReaders() throws Exception {
         File dir = CopiedImages.dir(app);
         File picture = new File(dir, "0123456789abcdef0123456789abcdef.png");
@@ -482,6 +576,49 @@ public class CopyImageTest {
 
     private ClipboardManager clipboard() {
         return (ClipboardManager) app.getSystemService(Context.CLIPBOARD_SERVICE);
+    }
+
+    /** What start() notes when the row is tapped. */
+    private CopyImage.Mark tap() {
+        return CopyImage.Mark.read(app);
+    }
+
+    /**
+     * Taps Copy image with a fetch that waits until [meanwhile] has run on the main thread, then
+     * lets the copy finish, tidy-up included.
+     */
+    private void copyWhile(Runnable meanwhile) throws Exception {
+        byte[] png = FileHostForTests.picture(40, 30, Bitmap.CompressFormat.PNG);
+        CountDownLatch fetching = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        table.answer(ORIGINAL, url -> {
+            fetching.countDown();
+            try {
+                if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("the fetch was never released");
+            } catch (InterruptedException interrupted) {
+                throw new AssertionError(interrupted);
+            }
+            return new FileHostForTests.Answer(url, 200, new FileHostForTests.Body(png))
+                    .header("Content-Type", "image/png").header("Content-Length", String.valueOf(png.length));
+        });
+        assertTrue(CopyImage.start(IMAGE_PIN, app));
+        assertTrue("the fetch started", fetching.await(10, TimeUnit.SECONDS));
+        meanwhile.run();
+        release.countDown();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        Utils.awaitBackgroundTasksForTests();
+    }
+
+    private void assertCopiedPicture() throws IOException {
+        ClipData clip = clipboard().getPrimaryClip();
+        assertNotNull(clip);
+        assertEquals("image/png", clip.getDescription().getMimeType(0));
+        try (InputStream in = resolver.openInputStream(clip.getItemAt(0).getUri())) {
+            assertTrue(in.readAllBytes().length > 0);
+        }
+        assertEquals("Image copied.", ShadowToast.getTextOfLatestToast());
+        assertEquals(1, ownedFiles());
     }
 
     private String copiedText() {

@@ -12,7 +12,9 @@ import dev.hyzor.patches.util.returnEarly
  *
  * Everything downstream reads that value:
  *
- *   `AppEntitlementsImpl.e()` -> `UserEntitlements.statusFlow` -> `EntitlementStatus`
+ *   `AppEntitlementsImpl.e()` -> `SubauthRxJavaClientImpl.i()` ->
+ *        `GamesSubauth2PurchaseClientImpl.d()` -> `P()`; that flag feeds
+ *        `UserEntitlements.statusFlow` -> `EntitlementStatus`
  *        -> `GameAvailabilityCalculator` (puzzles, archives), bonus puzzle paywall, home banners
  *   `AppEntitlementsImpl.e()` -> `GamesHybridUserConfig.isSubscribed` -> the hybrid WebView games
  *   `GamesSubauth2PurchaseClientImpl.d()`, `SubauthClientImpl.P()` -> ads targeting, analytics
@@ -24,6 +26,8 @@ import dev.hyzor.patches.util.returnEarly
  *
  * This is the same hook as rushiranpise/morphe-patches' 6.33.0 patch. Its `r()` no longer exists
  * in 6.48.0: the delegate chain was flattened and the equivalent isSubscribed bit is `P()`.
+ * 6.50.0 keeps that bit as `P()` (the neighbouring getters were renamed `E()`/`K()` ->
+ * `D()`/`J()`), so the hook is unchanged.
  */
 @Suppress("unused")
 val unlockSubscriptionPatch = bytecodePatch(

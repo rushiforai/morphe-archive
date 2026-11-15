@@ -21,8 +21,9 @@ internal object HasUnlockFingerprint : Fingerprint(
 /**
  * `TrialFilter.isTrial()Z`
  *
- * The paywall itself. 58 call sites read it, `isTrialExpired()` derives from it, and
- * `refresh()` is its only writer — so a patched getter decides every feature.
+ * The paywall itself. 64 call sites outside this class read it, `isTrialExpired()` derives
+ * from it, and nothing outside `TrialFilter` touches the field — every consumer goes through
+ * this getter, so patching it decides every feature.
  */
 internal object IsTrialFingerprint : Fingerprint(
     definingClass = TRIAL_FILTER,

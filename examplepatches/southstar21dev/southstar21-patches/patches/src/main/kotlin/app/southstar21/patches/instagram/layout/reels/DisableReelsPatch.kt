@@ -23,10 +23,11 @@ val disableReelsPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        // Let the extension read Instagram's obfuscated models.
-        stub("feedItemType").method.callThrough(FeedItemTypeFingerprint.method)
-        stub("feedItemMedia").method.callThrough(FeedItemMediaFingerprint.method)
-        stub("productType").method.callThrough(MediaProductTypeFingerprint.method)
+        // Let the extension read Instagram's obfuscated models. The stubs only call these
+        // methods, so they're taken unchanged to leave Instagram's classes as they are.
+        stub("feedItemType").method.callThrough(FeedItemTypeFingerprint.originalMethod)
+        stub("feedItemMedia").method.callThrough(feedItemMediaGetter())
+        stub("productType").method.callThrough(MediaProductTypeFingerprint.originalMethod)
 
         // Home feed: drop reel items as they're parsed.
         ParseFeedItemFingerprint.method.apply {

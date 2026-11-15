@@ -33,6 +33,12 @@ internal const val PIN_CLOSEUP_BASE_MODULE = "Lcom/pinterest/activity/pin/view/m
 /** The row of suggested replies next to the comment box. Obfuscation leaves its name alone. */
 internal const val COMMENTS_QUICK_REPLIES = "Lcom/pinterest/activity/pin/view/unifiedcomments/CommentsQuickReplies;"
 
+/**
+ * The row of photos people added to their comments, at the top of the unified comments module
+ * under a pin. Only that module holds one, and only its content layout inflates it.
+ */
+internal const val COMMENTS_IMAGES = "Lcom/pinterest/activity/pin/view/unifiedcomments/CommentsImagesView;"
+
 /** The chip Pinterest builds each suggested reply as. */
 internal const val SMALL_PRIMARY_BUTTON = "Lcom/pinterest/gestalt/button/view/GestaltButton\$SmallPrimaryButton;"
 private const val LINEAR_LAYOUT = "Landroid/widget/LinearLayout;"
@@ -85,8 +91,10 @@ internal fun BytecodePatchContext.suggestedReplies(): MutableClass {
 val hideCommentsPatch = bytecodePatch(
     name = "Hide comments",
     description = "Collapses the comments and comment previews under pins. It doesn't change who can comment on " +
-        "your pins. Good for a quieter pin page. A separate switch hides the suggested replies next to the " +
-        "comment box. Both start off. Turn them on in HushPinterest settings > Interface.",
+        "your pins. Good for a quieter pin page. Hide comment previews, a separate switch, hides only the " +
+        "previews and comment photos, so the comment box and the way into all comments stay. Another switch " +
+        "hides the suggested replies next to the comment box. All three start off. Turn them on in " +
+        "HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -95,6 +103,7 @@ val hideCommentsPatch = bytecodePatch(
         requireStatusMethod("hideComments")
         requireStatusMethod("comments")
         requireStatusMethod("suggestedReplies")
+        requireStatusMethod("commentPreviews")
         val modules = mutableListOf<ClassDef>()
         classDefForEach { if (it.isCommentsModule()) modules += it }
         val selected = COMMENT_MODULE_RESOURCES.map { resources ->
@@ -112,8 +121,18 @@ val hideCommentsPatch = bytecodePatch(
             }
             if (parent != PIN_CLOSEUP_BASE_MODULE) throw PatchException("Comments module must inherit PinCloseupBaseModule")
         }
-        val views = (selected.map { it.type } + COMMENT_PREVIEW).map { mutableClassDefBy(it) }
-        views.forEach { view ->
+        val views = selected.map { mutableClassDefBy(it.type) }
+        // The previews collapse under either switch: Hide comments hides them with the module, and
+        // Hide comment previews hides only them, leaving the module's title, comment box and button.
+        // The photo row is part of them where the module holds one.
+        val previewTypes = listOf(COMMENT_PREVIEW) + if (selected.first().fields.any { it.type == COMMENTS_IMAGES }) {
+            listOf(COMMENTS_IMAGES)
+        } else {
+            patchLog.warning("Hide comments: the comments module holds no $COMMENTS_IMAGES, so Hide comment previews leaves comment photos.")
+            emptyList()
+        }
+        val previews = previewTypes.map { mutableClassDefBy(it) }
+        (views + previews).forEach { view ->
             requireOverride(view, "setVisibility", listOf("I"))
             requireOverride(view, "onMeasure", listOf("I", "I"))
         }
@@ -132,7 +151,10 @@ val hideCommentsPatch = bytecodePatch(
             patchLog.warning("Hide comments: ${missing.message}. Hide suggested replies isn't in this build.")
             null
         }
-        views.forEach { collapseView(it, "comments") }
+        // The second module shows nothing but one quoted comment, the community insight line, and
+        // taps into the comments like the action bar's comment button does, so it is a preview too.
+        collapseView(views.first(), "comments")
+        (views.drop(1) + previews).forEach { collapseView(it, "commentPreviews") }
         replies?.let { collapseView(it, "suggestedReplies") }
         zone?.let {
             val visible = it.parameterRegister(0)
@@ -142,6 +164,7 @@ val hideCommentsPatch = bytecodePatch(
             """)
         }
         enableCapability("comments")
+        enableCapability("commentPreviews")
         if (replies != null) enableCapability("suggestedReplies")
         enableStatus("hideComments")
     }

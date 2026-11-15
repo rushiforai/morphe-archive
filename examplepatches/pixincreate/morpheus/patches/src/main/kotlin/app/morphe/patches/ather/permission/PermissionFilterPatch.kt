@@ -17,14 +17,10 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val MAP_PREF = "Lapp/morphe/ather/MapPref;"
-
-/** Compose slot table key of the permission dialog. Appears once in `d.smali`. */
-private const val DIALOG_SLOT_KEY = 0x357e090aL // keywatch:ignore
 
 /** Package of the Compose runtime. R8 renames the composer class every release. */
 private const val COMPOSE_RUNTIME = "Landroidx/compose/runtime/"
@@ -66,6 +62,29 @@ internal object PermissionDialogFingerprint : Fingerprint(
 )
 
 /**
+ * Matches the same composable in Ather 13.6.0, where it moved to `utils.f1`.
+ *
+ * ```
+ * public static final c(List, a, l, compose.runtime.p, int): void
+ * ```
+ */
+internal object PermissionDialog1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/ather/designsystem/components/utils/f1;",
+    name = "c",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "V",
+    custom = { method, _ ->
+        val parameters = method.parameterTypes.map { it.toString() }
+        parameters.size == 5 &&
+            parameters[0] == "Ljava/util/List;" &&
+            parameters[1] == "Lkotlin/jvm/functions/a;" &&
+            parameters[2].startsWith("Lkotlin/jvm/functions/") &&
+            parameters[3].startsWith(COMPOSE_RUNTIME) &&
+            parameters[4] == "I"
+    },
+)
+
+/**
  * Matches the probe that decides whether the scooter capabilities are usable.
  *
  * ```
@@ -98,18 +117,21 @@ internal object PairingCapabilityFingerprint : Fingerprint(
  * The pairing probe is patched to match, so pairing a scooter no longer waits for contact
  * and SMS access.
  *
- * Equivalent smali (verified against 13.5.1, versionCode 324):
+ * Equivalent smali (verified against 13.5.1, versionCode 324 and 13.6.0, versionCode 327),
+ * inserted at index 0:
  * ```
- * invoke-static {v1}, Lapp/morphe/ather/MapPref;->dropLocationRequests(Ljava/util/List;)Ljava/util/List;
- * move-result-object v1
- * invoke-interface {v1}, Ljava/util/List;->isEmpty()Z
- * move-result v0
- * if-nez v0, :cond_35
+ * move-object/from16 v0, p0
+ * invoke-static {v0}, Lapp/morphe/ather/MapPref;->dropLocationRequests(Ljava/util/List;)Ljava/util/List;
+ * move-result-object v0
+ * move-object/from16 p0, v0
+ * invoke-interface {v0}, Ljava/util/List;->isEmpty()Z
+ * move-result v1
+ * if-nez v1, :morphe_permissions
+ * return-void
  * ```
  *
- * The jump targets the epilogue of the composable, which reloads the composer and closes
- * the Compose group before returning. Returning straight from the method would leave the
- * slot table open and crash the next recomposition.
+ * No Compose group has opened at index 0, so returning there is safe.
+ * The filtered list is written back to the parameter register before the original body runs.
  */
 @Suppress("unused")
 val permissionFilterPatch = bytecodePatch(
@@ -122,52 +144,41 @@ val permissionFilterPatch = bytecodePatch(
     extendWith("extensions/ather.mpe")
 
     execute {
-        PermissionDialogFingerprint.method.apply {
-            val body = implementation ?: throw IllegalStateException(
-                "Permission dialog has no body to patch.",
-            )
+        val dialog = PermissionDialog1360Fingerprint.matchOrNull()
+            ?: PermissionDialogFingerprint.matchOrNull()
+            ?: throw IllegalStateException("Permission dialog was not found.")
+        dialog.method.applyPermissionFilter()
 
-            val slotKeyIndex = body.instructions.indexOfFirst { instruction ->
-                instruction.opcode == Opcode.CONST &&
-                    (instruction as? WideLiteralInstruction)?.wideLiteral == DIALOG_SLOT_KEY
-            }
-            if (slotKeyIndex < 0) {
-                throw IllegalStateException("Permission dialog slot key was not found.")
-            }
-
-            val groupEndIndex = body.instructions.indexOfFirst { instruction ->
-                val reference = (instruction as? ReferenceInstruction)?.reference
-                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                    reference is MethodReference &&
-                    reference.definingClass.startsWith(COMPOSE_RUNTIME) &&
-                    reference.name == "Y" &&
-                    reference.parameterTypes.isEmpty() &&
-                    reference.returnType == "V"
-            }
-            if (groupEndIndex < 0) {
-                throw IllegalStateException("Permission dialog group end was not found.")
-            }
-
-            addInstructionsWithLabels(
-                // After the slot key and its `g0(key)` call, before the dialog body.
-                slotKeyIndex + 2,
-                """
-                    invoke-static {v1}, $MAP_PREF->dropLocationRequests(Ljava/util/List;)Ljava/util/List;
-                    move-result-object v1
-                    invoke-interface {v1}, Ljava/util/List;->isEmpty()Z
-                    move-result v0
-                    if-nez v0, :skip_dialog
-                """.trimIndent(),
-                // Reloads the composer, then closes the Compose group.
-                ExternalLabel("skip_dialog", getInstruction(groupEndIndex - 1)),
-            )
-        }
-
-        PairingCapabilityFingerprint.method.apply {
+        PairingCapabilityFingerprint.matchOrNull()?.method?.apply {
             removePermissionCheck(READ_CONTACTS)
             removePermissionCheck(SEND_SMS)
         }
     }
+}
+
+/**
+ * Filters the permission list at the composable's entry and skips the dialog when nothing
+ * is left. No Compose group has opened at index 0, so returning there is safe.
+ */
+private fun MutableMethod.applyPermissionFilter() {
+    if (implementation == null) {
+        throw IllegalStateException("Permission dialog has no body to patch.")
+    }
+
+    addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, p0
+            invoke-static {v0}, $MAP_PREF->dropLocationRequests(Ljava/util/List;)Ljava/util/List;
+            move-result-object v0
+            move-object/from16 p0, v0
+            invoke-interface {v0}, Ljava/util/List;->isEmpty()Z
+            move-result v1
+            if-nez v1, :morphe_permissions
+            return-void
+        """.trimIndent(),
+        ExternalLabel("morphe_permissions", getInstruction(0)),
+    )
 }
 
 /**

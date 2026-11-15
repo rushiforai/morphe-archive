@@ -136,6 +136,22 @@ class FreeRegisterProvider internal constructor(
     }
 
     /**
+     * Returns a free 4-bit register (v0-v15) and removes it from the available list,
+     * or null when no 4-bit register is available.
+     *
+     * Unlike [getFreeRegister4Bit] this never throws, which lets callers fall
+     * back to another strategy (for example reusing parameter registers)
+     * instead of failing the whole patch.
+     */
+    fun getFreeRegister4BitOrNull(): Int? {
+        val index = freeRegisters.indexOfFirst { it < 16 }
+        if (index < 0) return null
+        val register = freeRegisters.removeAt(index)
+        allocatedFreeRegisters.add(register)
+        return register
+    }
+
+    /**
      * Returns all registers that have been allocated via [getFreeRegister].
      * This does not include the originally excluded registers.
      *

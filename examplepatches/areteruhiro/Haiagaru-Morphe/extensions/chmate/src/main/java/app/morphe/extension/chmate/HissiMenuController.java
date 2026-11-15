@@ -199,6 +199,10 @@ public final class HissiMenuController extends ToolScreenController {
             }
             target = currentUsesKyodemo ? kyodemoTarget : hissiTarget;
         }
+        if(getIntent().getBooleanExtra("haiagaru.checker.forceHissi",false)&&incoming!=null
+                &&"hissi.org".equalsIgnoreCase(incoming.getHost())&&hissiTarget!=null){
+            currentUsesKyodemo=false;target=hissiTarget;
+        }
         if(getIntent().getBooleanExtra("haiagaru.checker.forceKyodemo",false)&&incoming!=null
                 &&"www.kyodemo.net".equalsIgnoreCase(incoming.getHost())){currentUsesKyodemo=true;target=incoming.toString();}
         if (target == null) {
@@ -823,12 +827,12 @@ public final class HissiMenuController extends ToolScreenController {
         tabs.setOrientation(LinearLayout.HORIZONTAL);
         tabs.setTag(RESULT_TABS_TAG, 0);
         tabs.setPadding(0, 0, 0, 0);
-        String[] labels = {"レス", "スレ", "名前"};
+        String[] labels = {"レス", "スレ", "名前", "作成したスレ"};
         hissiTabButtons = new Button[labels.length];
         for (int index = 0; index < labels.length; index++) {
             final int tab = index;
             Button button = toolbarButton(labels[index]);
-            button.setContentDescription(new String[]{"書き込んだレス", "書き込んだスレ", "使用した名前"}[index]);
+            button.setContentDescription(new String[]{"書き込んだレス", "書き込んだスレ", "使用した名前", "作成したスレの1レス目"}[index]);
             button.setOnClickListener(view -> {
                 webView.evaluateJavascript("window.haiagaruSelectHissiTab&&"
                         + "window.haiagaruSelectHissiTab(" + tab + ")", null);
@@ -1031,12 +1035,15 @@ public final class HissiMenuController extends ToolScreenController {
         }
     }
 
-    private void configureHissiTabs(WebView webView) {
+    private void configureHissiTabs(WebView webView) { configureHissiTabs(webView,0); }
+    private void configureHissiTabs(WebView webView,int attempt) {
         if (hissiTabs == null) return;
+        final String configuringUrl=webView.getUrl();
         if (Haiagaru.kyodemoEnhancedViewer()) {
             webView.evaluateJavascript("(function(){"
-                    + "if(location.hostname!=='www.kyodemo.net'||!location.search.includes('bs=hi'))return false;"
+                    + "if(!['www.kyodemo.net','kyodemo.net'].includes(location.hostname)||!location.pathname.startsWith('/sdemo/b/'))return false;"
                     + "var list=document.querySelector('#blist');if(!list)return false;"
+                    + "var oldCreated=document.getElementById('haiagaru-kyodemo-created');if(oldCreated)oldCreated.remove();"
                     + "var posts=list.querySelectorAll('.post');if(!posts.length)return false;"
                     + "document.body.setAttribute('data-haiagaru-kyodemo','');"
                     + "var threads=list.querySelectorAll('.box.content');"
@@ -1059,15 +1066,29 @@ public final class HissiMenuController extends ToolScreenController {
                     + "Object.keys(counts).forEach(function(name){var item=document.createElement('div');"
                     + "item.className='haiagaru-kyodemo-item';item.textContent=name+'  ('+counts[name]+')';"
                     + "names.appendChild(item);});"
+                    + "var created=document.getElementById('haiagaru-kyodemo-created');"
+                    + "if(!created){created=document.createElement('div');created.id='haiagaru-kyodemo-created';list.insertBefore(created,names.nextSibling);}created.textContent='';"
+                    + "var createdCount=0;Array.from(threads).forEach(function(box){"
+                    + "var first=Array.from(box.querySelectorAll('.post')).find(function(post){var n=post.querySelector('.r-head strong');"
+                    + "return n&&/^(?:No[. ]*|#)?1$/.test((n.innerText||n.textContent||'').trim());});if(!first)return;"
+                    + "var item=box.cloneNode(false),heading=box.querySelector('h2');if(heading)item.appendChild(heading.cloneNode(true));"
+                    + "item.appendChild(first.cloneNode(true));created.appendChild(item);createdCount++;});"
+                    + "if(!createdCount){var empty=document.createElement('p');empty.textContent='表示中の検索結果に、1レス目を書き込んだスレはありません。';created.appendChild(empty);}"
                     + "window.haiagaruSelectHissiTab=function(tab){document.body.setAttribute('data-haiagaru-tab',tab);"
-                    + "summary.style.display=tab===1?'':'none';names.style.display=tab===2?'':'none';"
-                    + "Array.from(list.children).forEach(function(child){if(child===summary||child===names)return;"
+                    + "summary.style.display=tab===1?'':'none';names.style.display=tab===2?'':'none';created.style.display=tab===3?'':'none';"
+                    + "Array.from(list.children).forEach(function(child){if(child===summary||child===names||child===created)return;"
                     + "child.style.display=tab===0?'':'none';});list.scrollIntoView({block:'start'});};"
                     + "window.haiagaruSelectHissiTab(0);return true;})()", result -> {
+                if(!java.util.Objects.equals(configuringUrl,webView.getUrl())||isDestroyed())return;
                 boolean available = "true".equals(result);
                 if (available) {
                     hissiTabs.setVisibility(View.VISIBLE);
+                    if(hissiTabButtons.length>3)hissiTabButtons[3].setVisibility(View.VISIBLE);
                     selectHissiTab(0);
+                    return;
+                }
+                if(attempt<10&&configuringUrl!=null&&(configuringUrl.startsWith("https://www.kyodemo.net/sdemo/b/")||configuringUrl.startsWith("https://kyodemo.net/sdemo/b/"))){
+                    webView.postDelayed(()->{if(!isDestroyed()&&java.util.Objects.equals(configuringUrl,webView.getUrl()))configureHissiTabs(webView,attempt+1);},500);
                     return;
                 }
                 configureClassicHissiTabs(webView);
@@ -1078,6 +1099,7 @@ public final class HissiMenuController extends ToolScreenController {
     }
 
     private void configureClassicHissiTabs(WebView webView) {
+        if(hissiTabButtons!=null&&hissiTabButtons.length>3)hissiTabButtons[3].setVisibility(View.GONE);
         webView.evaluateJavascript("(function(){"
                 + "if(!/(^|\\.)hissi\\.org$/.test(location.hostname))return false;"
                 + "var body=document.body,post=Array.from(body.querySelectorAll('dl'))"

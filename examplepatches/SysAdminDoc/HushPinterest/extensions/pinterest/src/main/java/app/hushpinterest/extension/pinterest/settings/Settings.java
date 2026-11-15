@@ -162,6 +162,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_black_comments", FALSE);
     public static final BooleanSetting BLACK_PIN_MENU =
             new BooleanSetting("hushpinterest_black_pin_menu", FALSE);
+    public static final BooleanSetting BLACK_SAVE_SHEET =
+            new BooleanSetting("hushpinterest_black_save_sheet", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_BACK =
             new BooleanSetting("hushpinterest_hide_closeup_back", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_LENS =
@@ -192,6 +194,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_comments", FALSE);
     public static final BooleanSetting HIDE_SUGGESTED_REPLIES =
             new BooleanSetting("hushpinterest_hide_suggested_replies", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_PREVIEWS =
+            new BooleanSetting("hushpinterest_hide_comment_previews", FALSE);
     public static final BooleanSetting HIDE_TOPIC_SUGGESTIONS =
             new BooleanSetting("hushpinterest_hide_topic_suggestions", FALSE);
     /** The Inbox leaves out its Updates section, and doesn't load it. Messages stay. Off to start. */
@@ -207,6 +211,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_original_images", FALSE);
     public static final BooleanSetting SHOW_POSTED_DATE =
             new BooleanSetting("hushpinterest_show_posted_date", FALSE);
+    public static final BooleanSetting HIDE_SUGGESTED_BOARDS =
+            new BooleanSetting("hushpinterest_hide_suggested_boards", FALSE);
+    public static final BooleanSetting EXPAND_BOARD_LIST =
+            new BooleanSetting("hushpinterest_expand_board_list", FALSE);
     public static final BooleanSetting DISABLE_UPDATE_NAG =
             new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
 

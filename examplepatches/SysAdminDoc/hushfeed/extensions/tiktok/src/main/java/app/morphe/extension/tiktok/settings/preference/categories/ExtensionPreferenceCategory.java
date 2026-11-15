@@ -20,6 +20,7 @@ import app.morphe.extension.tiktok.settings.preference.ProfileShortcutChecklistP
 import app.morphe.extension.tiktok.settings.preference.ProfileTabChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.LocalProfileCountsPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsRowChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 /**
@@ -281,6 +282,13 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Account country on profiles",
+                    "A profile's share sheet gets an Account country button. It asks TikTok where "
+                            + "that account is based, or where its latest videos were posted from.",
+                    Settings.COUNTRY_ON_PROFILES
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Tap @names in bios",
                     "An @username in a profile's bio opens that profile when you tap it. "
                             + "A full name typed after an @ opens a search for that name. "
@@ -484,6 +492,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                         + "Hushfeed settings is on. If neither press can open them, the row stays.",
                 Settings.HIDE_SETTINGS_ROW
         ));
+        addPreference(new SettingsRowChecklistPreference(context));
         // Shown from the same start of TikTok's main screen as the settings row, so every bundle has it.
         addPreference(new TogglePreference(
                 context,

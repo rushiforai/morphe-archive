@@ -50,7 +50,7 @@ public final class MorpheSettingsActivity extends Activity {
         root.setBackgroundColor(canvas);
 
         Toolbar toolbar = new Toolbar(activity);
-        toolbar.setBackgroundColor(ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).primary : card);
+        toolbar.setBackgroundColor(modernTheme(activity) ? ModernUi.getPalette(activity).primary : card);
         toolbar.setTitle("Morphe Settings");
         toolbar.setTitleTextColor(textColor);
         int back = activity.getResources().getIdentifier(
@@ -129,6 +129,7 @@ public final class MorpheSettingsActivity extends Activity {
                     "Use the Modern look?",
                     checked -> ModernUi.setClassicUi(activity, checked)));
             View theme = materialAccentRow(activity);
+            View fonts = fontsRow(activity);
             View posts = groupLabel(activity, "Posts");
             View image = choiceRow(activity, "Image style", PostLayout.imageBlurb(),
                     value -> PostLayout.showImage(activity, value));
@@ -137,6 +138,18 @@ public final class MorpheSettingsActivity extends Activity {
             View downloads = actionRow(activity, "Downloads",
                     "A picture, GIF, or video saves straight away. Set the file name and the folder.",
                     () -> MediaDownload.show(activity));
+            View controlsOnOpen = toggleRow(activity, "Hide controls on open",
+                    "Pictures, GIFs and videos open without icons or the seekbar. Tap to show them.",
+                    ModernUi.hideControlsOnOpen(activity),
+                    (btn, checked) -> ModernUi.setHideControlsOnOpen(activity, checked));
+            controlsOnOpen.setVisibility(ModernUi.fullscreenMedia(activity) ? View.VISIBLE : View.GONE);
+            View fullscreen = toggleRow(activity, "Full screen media",
+                    "Media fills the whole screen, including the camera area.",
+                    ModernUi.fullscreenMedia(activity),
+                    (btn, checked) -> {
+                        ModernUi.setFullscreenMedia(activity, checked);
+                        controlsOnOpen.setVisibility(checked ? View.VISIBLE : View.GONE);
+                    });
             View albums = toggleRow(activity, "Swipe albums closed",
                     "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
                     ModernUi.albumSwipe(activity),
@@ -148,13 +161,17 @@ public final class MorpheSettingsActivity extends Activity {
                     "Hide the Joey bird?",
                     checked -> ModernUi.setSidebarBird(activity, checked));
             greyRow(theme, !classic);
+            greyRow(fonts, !classic);
             greyRow(posts, !classic);
             greyRow(image, !classic);
             greyRow(details, !classic);
             greyRow(chips, !classic);
             greyRow(downloads, !classic);
+            greyRow(fullscreen, !classic);
+            greyRow(controlsOnOpen, !classic);
             greyRow(albums, !classic);
             themeCard.addView(theme);
+            themeCard.addView(fonts);
             themeCard.addView(posts);
             themeCard.addView(image);
             if (!MorpheSettings.showHideControls()) {
@@ -162,17 +179,24 @@ public final class MorpheSettingsActivity extends Activity {
                 themeCard.addView(chips);
             }
             themeCard.addView(downloads);
+            themeCard.addView(fullscreen);
+            themeCard.addView(controlsOnOpen);
             themeCard.addView(albums);
-            if (!classic) themeCard.addView(bird);
+            if (SeasonalBanner.isEnabled()) themeCard.addView(seasonalRow(activity));
+            else if (!classic) themeCard.addView(bird);
             if (MorpheSplash.isEnabled()) themeCard.addView(splashRow(activity));
             column.addView(themeCard);
-        } else if (MorpheSplash.isEnabled()) {
-            LinearLayout splashCard = new LinearLayout(activity);
-            splashCard.setOrientation(LinearLayout.VERTICAL);
-            applyCardContainer(splashCard, activity, density);
-            splashCard.setLayoutParams(cardLayoutParams(activity, density));
-            splashCard.addView(splashRow(activity));
-            column.addView(splashCard);
+        } else {
+            if (MorpheSplash.isEnabled() || SeasonalBanner.isEnabled()) {
+                LinearLayout appearance = new LinearLayout(activity);
+                appearance.setOrientation(LinearLayout.VERTICAL);
+                applyCardContainer(appearance, activity, density);
+                appearance.setLayoutParams(cardLayoutParams(activity, density));
+                appearance.addView(sectionTitle(activity, "Appearance"));
+                if (SeasonalBanner.isEnabled()) appearance.addView(seasonalRow(activity));
+                if (MorpheSplash.isEnabled()) appearance.addView(splashRow(activity));
+                column.addView(appearance);
+            }
         }
         if (MorpheSettings.showHideControls()) {
             LinearLayout showHide = new LinearLayout(activity);
@@ -195,7 +219,7 @@ public final class MorpheSettingsActivity extends Activity {
                 showHide.addView(chipOrder);
                 showHide.addView(detailOrder);
             }
-            View postBar = actionRow(activity, "Post bar", "What stays on a post, and what moves into its menu.",
+            View postBar = actionRow(activity, "Post actions", "What is on the post bar, what is in its \u22ee menu, and how the menu opens.",
                     () -> PostLayout.showActions(activity));
             if (MorpheSettings.modernUiControls()) greyRow(postBar, ModernUi.isModernUiEnabled(activity));
             showHide.addView(postBar);
@@ -214,10 +238,6 @@ public final class MorpheSettingsActivity extends Activity {
                     () -> MorpheBackup.restore(activity)));
             column.addView(backup);
         }
-
-        // Modern UI owns the viewer and does not offer this toggle. Another patch must not
-        // delete a row on Modern UI's behalf: that fails if the patches are not both applied.
-        if (!MorpheSettings.modernUiControls()) dropRow(column, "Full screen media");
 
         ScrollView scroll = new ScrollView(activity);
         scroll.setFillViewport(true);
@@ -326,7 +346,6 @@ public final class MorpheSettingsActivity extends Activity {
             for (int i = 0; i < group.getChildCount(); i++) {
                 View child = group.getChildAt(i);
                 child.setEnabled(enabled);
-                child.setClickable(enabled);
             }
         }
     }
@@ -437,27 +456,6 @@ public final class MorpheSettingsActivity extends Activity {
         shown[0] = MorpheDialog.show(activity, page);
     }
 
-    /** Drops a settings row by its title. Missing rows are left alone. */
-    private static void dropRow(ViewGroup group, String title) {
-        for (int i = group.getChildCount() - 1; i >= 0; i--) {
-            View child = group.getChildAt(i);
-            if (!(child instanceof ViewGroup)) continue;
-            boolean row = child instanceof LinearLayout
-                    && ((LinearLayout) child).getOrientation() == LinearLayout.HORIZONTAL;
-            if (row && hasText((ViewGroup) child, title)) group.removeViewAt(i);
-            else dropRow((ViewGroup) child, title);
-        }
-    }
-
-    private static boolean hasText(ViewGroup group, String title) {
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View child = group.getChildAt(i);
-            if (child instanceof TextView && title.contentEquals(((TextView) child).getText())) return true;
-            if (child instanceof ViewGroup && hasText((ViewGroup) child, title)) return true;
-        }
-        return false;
-    }
-
     private LinearLayout labels(String titleText, String subtitle) {
         float density = getResources().getDisplayMetrics().density;
         int margin = Math.round(16 * density);
@@ -534,8 +532,13 @@ public final class MorpheSettingsActivity extends Activity {
         return mark;
     }
 
+    /** Joey's own colours unless the Modern UI patch is installed and Classic is off. */
+    private static boolean modernTheme(Activity activity) {
+        return MorpheSettings.modernUiControls() && ModernUi.isModernUiEnabled(activity);
+    }
+
     private void readTheme(Activity activity) {
-        if (ModernUi.isModernUiEnabled(activity)) {
+        if (modernTheme(activity)) {
             ModernUi.Palette palette = ModernUi.getPalette(activity);
             canvas = palette.canvas;
             card = palette.container;
@@ -557,7 +560,7 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private void applyCardContainer(View view, Activity activity, float density) {
-        if (ModernUi.isModernUiEnabled(activity)) {
+        if (modernTheme(activity)) {
             ModernUi.Palette palette = ModernUi.getPalette(activity);
             GradientDrawable gd = new GradientDrawable();
             gd.setCornerRadius(16f * density);
@@ -575,7 +578,7 @@ public final class MorpheSettingsActivity extends Activity {
     private LinearLayout.LayoutParams cardLayoutParams(Activity activity, float density) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (ModernUi.isModernUiEnabled(activity)) {
+        if (modernTheme(activity)) {
             int marginH = Math.round(12 * density);
             int marginV = Math.round(6 * density);
             params.setMargins(marginH, marginV, marginH, marginV);
@@ -593,6 +596,43 @@ public final class MorpheSettingsActivity extends Activity {
         }
         return fallback;
     }
+    private View seasonalRow(Activity activity) {
+        LinearLayout row = rowShell(activity);
+        TextView value = new TextView(activity);
+        value.setTextColor(title);
+        value.setTextSize(15);
+        value.setGravity(Gravity.CENTER_VERTICAL);
+        value.setText(SeasonalBanner.summary(activity));
+        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        value.setPadding(0, 0, pad, 0);
+        row.addView(labels("Seasonal sidebar banner", "Hide it, use Joey's picture, or a bundled one."),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(value);
+        row.addView(chevron(activity));
+        row.setOnClickListener(v -> SeasonalBanner.show(activity, () ->
+                value.setText(SeasonalBanner.summary(activity))));
+        return row;
+    }
+
+    /** Modern's own fonts and sizes. Joey's Font settings row stays hidden in Modern. */
+    private View fontsRow(Activity activity) {
+        LinearLayout row = rowShell(activity);
+        TextView value = new TextView(activity);
+        value.setTextColor(title);
+        value.setTextSize(15);
+        value.setGravity(Gravity.CENTER_VERTICAL);
+        value.setText(ModernFonts.summary(activity));
+        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        value.setPadding(0, 0, pad, 0);
+        row.addView(labels("Fonts", "Font and size for titles, comments, and post info."),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(value);
+        row.addView(chevron(activity));
+        row.setOnClickListener(v -> ModernFonts.show(activity, () ->
+                value.setText(ModernFonts.summary(activity))));
+        return row;
+    }
+
     private View splashRow(Activity activity) {
         LinearLayout row = rowShell(activity);
         TextView value = new TextView(activity);

@@ -314,7 +314,9 @@ switch ($Stage) {
         $zip = [IO.Compression.ZipFile]::OpenRead($bundle)
         try { $hasDex = @($zip.Entries | Where-Object { $_.FullName -ceq 'classes.dex' }).Count -eq 1 } finally { $zip.Dispose() }
         if (-not $hasDex) { throw 'The bundle has no classes.dex, so Manager would load no patches from it.' }
-        Write-ReleaseStep "bundle $(Split-Path -Leaf $bundle) is pinned to $commit and carries its dex"
+        # Manager pins the first key it sees, so an unsigned bundle, or one signed by another key, stops here.
+        Invoke-ReleaseText -Root $Root -What 'The bundle signature check' -Arguments @('signed', '--version', $Version)
+        Write-ReleaseStep "bundle $(Split-Path -Leaf $bundle) is pinned to $commit, carries its dex and is signed"
 
         $fixtures = Get-DeclaredFixtures -Root $Root
         $store = Get-AppliedRecordStore
@@ -338,6 +340,9 @@ switch ($Stage) {
         if (Test-Path -LiteralPath $assets) { Remove-Item -LiteralPath $assets -Recurse -Force }
         New-Item -ItemType Directory -Force -Path $assets | Out-Null
         Copy-Item -LiteralPath $bundle, $sbom, $receiptPath -Destination $assets
+        # The copy is what gets tagged, so its signature is checked too.
+        Invoke-ReleaseText -Root $Root -What 'The tagged bundle signature check' `
+            -Arguments @('signed', '--version', $Version, '--bundle', (Join-Path $assets "patches-$Version.mpp"))
         $names = Get-ReleaseUploadNames $Version
         & (Join-Path $Root 'scripts/sign-release-checksums.ps1') -AssetDirectory $assets -AssetNames $names `
             -GpgHome $signing.GpgHome -SigningFingerprint $signing.Fingerprint -TrustedPublicKeyPath $signing.PublicKey -Gpg $Gpg

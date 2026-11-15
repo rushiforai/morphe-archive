@@ -9,6 +9,7 @@ package app.morphe.patches.ather.misc.integrity
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
@@ -27,6 +28,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
  * "You cannot use this app on your device. It looks like the device that you are
  * using has a modified operating system." dialog, which blocks custom ROMs such as
  * GrapheneOS even when the device is not rooted.
+ *
+ * Ather 13.6.0 moved the verifier to `startupintegrity.c` and the verdict enum to
+ * `startupintegrity.b`, and added a second method `c.b` for the periodic re-check.
+ * All three methods are patched when they are present.
  */
 internal object StartupVerdictFingerprint : Fingerprint(
     definingClass = "Lcom/athermobileapp/startupintegrity/d;",
@@ -34,6 +39,42 @@ internal object StartupVerdictFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/Enum;",
     parameters = listOf("Lkotlin/coroutines/jvm/internal/c;"),
+)
+
+/**
+ * Matches the startup verdict coroutine in Ather 13.6.0.
+ *
+ * ```
+ * public final a(kotlin.coroutines.jvm.internal.d): Enum
+ * ```
+ *
+ * The verifier moved from `startupintegrity.d` to `startupintegrity.c`; `d` is now the
+ * continuation class. The verdict enum moved from `startupintegrity.a` to
+ * `startupintegrity.b`.
+ */
+internal object StartupVerdict1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/athermobileapp/startupintegrity/c;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Enum;",
+    parameters = listOf("Lkotlin/coroutines/jvm/internal/d;"),
+)
+
+/**
+ * Matches the periodic re-check added in Ather 13.6.0.
+ *
+ * ```
+ * public final b(kotlin.coroutines.jvm.internal.d): Enum
+ * ```
+ *
+ * The app re-runs the same verdict while it is open, so both methods must pass.
+ */
+internal object StartupVerdictWhenOnline1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/athermobileapp/startupintegrity/c;",
+    name = "b",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Enum;",
+    parameters = listOf("Lkotlin/coroutines/jvm/internal/d;"),
 )
 
 /**
@@ -52,6 +93,45 @@ internal object NativeRuntimeGuardFingerprint : Fingerprint(
     name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
+)
+
+/**
+ * Matches the continuous device-integrity monitor added in Ather 13.6.0.
+ *
+ * ```
+ * public final invokeSuspend(Object): Object
+ * ```
+ *
+ * `DeviceIntegrityMonitor$start$1` loops every 30-120 seconds, re-runs the local
+ * checks and, when they fail, asks Firebase App Check for a Play Integrity verdict.
+ * A rejection clears the startup gate and emits `true`, which the main screen maps
+ * to `IntegrityRejected`.
+ */
+internal object DeviceIntegrityMonitorFingerprint : Fingerprint(
+    definingClass = "Lcom/athermobileapp/integrity/a;",
+    name = "invokeSuspend",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+)
+
+/**
+ * Matches the only method that enters the blocking integrity screen.
+ *
+ * ```
+ * public static final i(MainViewModel): void
+ * ```
+ *
+ * It sets `IntegrityRejected` and the second blocking state. Patching it is a
+ * defence-in-depth guard: even if a future check reaches the same method, the UI
+ * cannot switch to the rejection screen.
+ */
+internal object IntegrityRejectedUiFingerprint : Fingerprint(
+    definingClass = "Lcom/athermobileapp/ui/main/w1;",
+    name = "i",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Lcom/athermobileapp/ui/main/w1;"),
 )
 
 /**
@@ -80,14 +160,30 @@ val startupIntegrityPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        StartupVerdictFingerprint.matchOrNull()?.method?.addInstructions(
-            0,
-            """
-                sget-object v0, Lcom/athermobileapp/startupintegrity/a;->Passed:Lcom/athermobileapp/startupintegrity/a;
-                return-object v0
-            """,
-        )
+        StartupVerdictFingerprint.matchOrNull()?.method?.patchVerdict("Lcom/athermobileapp/startupintegrity/a;")
+        StartupVerdict1360Fingerprint.matchOrNull()?.method?.patchVerdict("Lcom/athermobileapp/startupintegrity/b;")
+        StartupVerdictWhenOnline1360Fingerprint.matchOrNull()?.method
+            ?.patchVerdict("Lcom/athermobileapp/startupintegrity/b;")
 
         NativeRuntimeGuardFingerprint.matchOrNull()?.method?.addInstructions(0, "const/4 p0, 0x1\nreturn p0")
+
+        DeviceIntegrityMonitorFingerprint.matchOrNull()?.method?.addInstructions(
+            0,
+            "sget-object v0, Lkotlin/b0;->a:Lkotlin/b0;\nreturn-object v0",
+        )
+        IntegrityRejectedUiFingerprint.matchOrNull()?.method?.addInstructions(0, "return-void")
     }
+}
+
+/**
+ * Returns the `Passed` constant of the given verdict enum at the method's first instruction.
+ */
+private fun MutableMethod.patchVerdict(verdictType: String) {
+    addInstructions(
+        0,
+        """
+            sget-object v0, $verdictType->Passed:$verdictType
+            return-object v0
+        """.trimIndent(),
+    )
 }

@@ -516,7 +516,7 @@ foreach ($finding in @(Get-CastLintFindings (Join-Path $Root 'patches\src'))) {
 if (-not $SkipXml) {
     $jadx = (Get-Command jadx -ErrorAction SilentlyContinue).Source
     if (-not $jadx) {
-        # The README's tooling table says "on PATH"; in practice it is usually unpacked under tools\.
+        # AGENTS.md's requirements table says "on PATH"; in practice it is usually unpacked under tools\.
         foreach ($candidate in @(
                 (Join-Path $env:USERPROFILE 'tools\jadx\bin\jadx.bat'),
                 (Join-Path $env:USERPROFILE 'tools\jadx\bin\jadx'))) {

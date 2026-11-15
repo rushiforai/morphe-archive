@@ -66,7 +66,7 @@ public final class CustomFontContext extends ContextThemeWrapper {
             if (view instanceof TextView) {
                 TextView textView = (TextView) view;
                 Typeface current = textView.getTypeface();
-                Typeface replacement = CustomFont.forxboyrexView(current);
+                Typeface replacement = CustomFont.forRexView(current);
                 if (replacement != current) {
                     textView.setTypeface(replacement);
                 }

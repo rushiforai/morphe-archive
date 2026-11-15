@@ -24,8 +24,11 @@ parameter types, return type). The patch must call exactly that signature.
 Do not assume `Listing.children` covers everything. In Reddit 2026.42.0:
 
 - Feed/listings: `Lcom/reddit/domain/model/listing/Listing;` in `classes6.dex`
-- Comment threads: `Lc5l0;` TreeData in `classes8.dex`, emitted by the
-  obfuscated comment tree store `com.reddit.comments.tree.c`
+- Comment threads: a `TreeData` class in `classes8.dex`, emitted by the
+  obfuscated comment tree store `com.reddit.comments.tree.c`. Its R8 name is
+  build-specific and 2026.42.0 ships multiple versionCodes: vc 2642001 uses
+  `Lm5l0;`, while another build uses `Lc5l0;` (an interface — never hook it).
+  Discover it by constructor shape, not by name.
 - Every GraphQL/REST comment object: full
   `Lcom/reddit/domain/model/Comment;<init>` in `classes6.dex`
 
@@ -50,8 +53,12 @@ internal val SomeFingerprint = Fingerprint(
 
 Rules:
 
-- Use the DEX descriptor, not the jadx `defpackage` name. `Lc5l0;` is not
-  `Ldefpackage/c5l0;`.
+- Use the DEX descriptor, not the jadx `defpackage` name. `Lm5l0;` is not
+  `Ldefpackage/m5l0;`.
+- Prefer a class-shape predicate over a hard-coded obfuscated name when the
+  class is R8 output. For comment threads, match a concrete class whose
+  4-argument constructor takes `(…, List, Map, Map)` and writes those fields in
+  that order (see `reddit/shared/RedditCommentTree.kt`).
 - Include every field write that makes the match unique.
 - Resolve instruction indexes from the current instruction list. Other patches
   may have inserted instructions before the same field write.

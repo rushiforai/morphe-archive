@@ -342,6 +342,16 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/PostMenuItems.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postmenu/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 587 for issues #473 and #475. The post menu sheet hook finds the one static method that sorts a post's three-dot menu into the sheet's parts by the enum of row kinds that names SEE_MORE, SEE_LESS, TUNE_YOUR_ALGORITHM, SAVE and REPORT, adds a helper to its class and hands the holder it returns to the extension in front of each return, with the row metadata class, its kind field and the first page list read from the method. Post menu items takes rows of the picked kinds out of every part of the holder and writes down the kinds this phone has shown. Keep the reel speed's Playback speed row, which has no kind and lands under More options, moves to the end of the first page while its switch is on."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ShareSheetItems.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ShareSheetGroups.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ShareSheetPeople.java",
@@ -439,12 +449,23 @@
     },
     {
       "paths": [
+        "extensions/shared/library/src/main/l10n/th.tsv"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/MangaThatsFine/HushFacebook",
+      "commit": "d1c82fe65fe6cd4e59968ad474adcd9076634343",
+      "license": "GPL-3.0-only",
+      "changes": "Thai translation contributed by MangaThatsFine in pull request 436. The submitted translations are preserved with contributor credit. Rows whose English changed after the pull request were brought up to the current wording, and rows for strings added since were translated to match."
+    },
+    {
+      "paths": [
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTranslations.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableDe.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableEs.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableIn.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTablePt_rBR.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableRu.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableTh.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableTr.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableVi.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTableZh_rCN.java",
@@ -892,7 +913,16 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook for issue #396: the Follow a collab post or a partnership ad adds after its second name. In Facebook 585 CollabFollowTitleTextPlugin and FBPADualHeaderFollowTextPlugin (kept class names) each build that \" · Follow\" text themselves and hand it to the title segment's (click, CharSequence) constructor as their last step, outside the follow check Hide the Follow link on posts already answers. The patch hands the text to the extension right before that constructor, and the extension answers an empty text of the same kind while the switch is on, so the header has no dot, no word and nothing to tap."
+      "changes": "Written for Hushfacebook for issue #396: the Follow a collab post or a partnership ad adds after its second name. In Facebook 585 CollabFollowTitleTextPlugin and FBPADualHeaderFollowTextPlugin (kept class names) each build that \" · Follow\" text themselves and hand it to the title segment's (click, CharSequence) constructor as their last step, outside the follow check Hide the Follow link on posts already answers. The patch hands the text to the extension right before that constructor, and the extension answers an empty text of the same kind while the switch is on, so the header has no dot, no word and nothing to tap. For issue #434, read from Facebook 586 and 587, the header's plugin picker gets a second hook: it asks the follow check and, on a no, takes its own Follow route, so the patch calls the extension at that route's first instruction, and the picker answers no while Hide the Follow link on posts is on or the check's hook just held a Subscribe link."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/SubscribeLinkSetting.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #434: Hide the Subscribe link on posts, split off the Follow switch. With no value of its own yet, it takes the Follow switch's stored yes once and the main process stores it, so someone who had the one switch on keeps the Subscribe link hidden, and from then on the two switches don't move each other."
     },
     {
       "paths": [
@@ -1891,6 +1921,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook for issue #448: Choose quality on each save. With the switch on, a reel's Download button and a video's Download to phone show a single-choice list of the Download quality values first, checked at the current one. A pick starts that save with the picked quality held in a thread-local that MediaDownload.quality() reads on the tap, so Download quality itself keeps its value. Cancel saves nothing."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/RefreshRate.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #480: Refresh rate. As each Facebook activity is created and resumes, its window asks for a display mode through preferredDisplayModeId: the screen's fastest mode at its current resolution, or the one within 1.5 Hz of a fixed rate. Facebook's own choice, a paused Hushfacebook and a rate the screen lacks ask for nothing, and they put Facebook's value back only on a window this class changed."
     }
   ]
 }

@@ -153,7 +153,7 @@ public final class Settings {
     }
 
     static boolean liquidGlass() {
-        return glassNavigationBar() && get(LIQUID_GLASS, true);
+        return glassNavigationBar() && get(LIQUID_GLASS, false);
     }
 
     public static boolean isAlwaysShowNavigationBarIncluded() {
@@ -202,7 +202,7 @@ public final class Settings {
     }
 
     static boolean pitchBlack() {
-        return isAmoledBlackIncluded() && get(PITCH_BLACK, true);
+        return isAmoledBlackIncluded() && get(PITCH_BLACK, false);
     }
 
     public static boolean isMoreMenuIncluded() {
@@ -288,7 +288,7 @@ public final class Settings {
 
     /** Off by default. */
     static boolean blockTracking() {
-        return isBlockTrackingIncluded() && get(BLOCK_TRACKING, false);
+        return isBlockTrackingIncluded() && get(BLOCK_TRACKING, true);
     }
 
     public static boolean isAnonymousProfileViewingIncluded() {
@@ -297,7 +297,7 @@ public final class Settings {
 
     /** Off by default. */
     static boolean anonymousProfileViewing() {
-        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, false);
+        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, true);
     }
 
     public static boolean isSwipeTabsIncluded() {

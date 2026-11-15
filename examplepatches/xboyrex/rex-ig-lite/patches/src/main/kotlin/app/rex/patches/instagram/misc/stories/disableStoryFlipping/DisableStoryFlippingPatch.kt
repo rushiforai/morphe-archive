@@ -13,19 +13,19 @@ import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 
 internal object StoryFlippingMethodFingerprint : Fingerprint(
     returnType = "V",
     definingClass = "Linstagram/features/stories/fragment/ReelViewerFragment;",
     strings = listOf("userSession"),
-    parameters = listOf("Ljava/lang/Object;"),
+    parameters = listOf("Lcom/instagram/model/reels/ReelItem;"),
 )
 
 @Suppress("unused")
 val disableStoryFlippingPatch =
-    bytecodePatch(
+    patch(
         name = "Disable story flipping",
         description = "Disable automatic flipping/moving to next story",
     ) {
@@ -34,6 +34,8 @@ val disableStoryFlippingPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching { enableSettings("disableStoryFlipping") }
+            runCatching {
             StoryFlippingMethodFingerprint.method.apply {
                 addInstructionsWithLabels(
                     0,
@@ -46,6 +48,6 @@ val disableStoryFlippingPatch =
                     ExternalLabel("rex", getInstruction(0)),
                 )
             }
-            enableSettings("disableStoryFlipping")
+                        }
         }
     }

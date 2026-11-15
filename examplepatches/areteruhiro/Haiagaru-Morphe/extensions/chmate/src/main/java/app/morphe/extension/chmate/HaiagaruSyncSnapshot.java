@@ -52,7 +52,7 @@ final class HaiagaruSyncSnapshot {
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String[] EXTRA_SETTINGS = {"haiagaru_thread_commands", "haiagaru_replace_str",
             "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history",LocalAutoBackup.PREFS,
-            BackupOptionSettings.LOCAL,BackupOptionSettings.MEGA,SharedNgReporterBlocks.PREFS};
+            BackupOptionSettings.LOCAL,BackupOptionSettings.MEGA,SharedNgReporterBlocks.PREFS,HomeThreadOrder.PREFS};
 
     private HaiagaruSyncSnapshot() {}
 

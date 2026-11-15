@@ -9,6 +9,8 @@ fun disableAdsPatch(block: BytecodePatchBuilder.() -> Unit = {}) = bytecodePatch
     description = "Removes the ads shown between posts.",
     default = true
 ) {
+    category("1. Essentials")
+
     execute {
         isAdsEnabledFingerprint.method.returnEarly(false)
     }

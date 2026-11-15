@@ -47,6 +47,13 @@ final class EdgeBlurView extends View {
         maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
     }
 
+    /** Copies of the video surfaces under the bar, drawn into their holes; null for none. */
+    private SurfaceSnapshots snapshots;
+
+    void setSnapshots(SurfaceSnapshots snapshots) {
+        this.snapshots = snapshots;
+    }
+
     void setDark(boolean dark) {
         if (this.dark == dark) return;
         this.dark = dark;
@@ -74,6 +81,7 @@ final class EdgeBlurView extends View {
 
         if (backdrop == null) {
             backdrop = new RenderNode("LiquidGlassEdgeBlur");
+            backdrop.setUseCompositingLayer(true, null);
             blur = RenderEffect.createBlurEffect(blurRadiusPx, blurRadiusPx, Shader.TileMode.CLAMP);
         }
 
@@ -82,7 +90,6 @@ final class EdgeBlurView extends View {
         backdrop.setPosition(0, 0, w, h);
         RecordingCanvas rc = backdrop.beginRecording(w, h);
         try {
-            rc.drawColor(dark ? Color.BLACK : Color.WHITE);
             rc.translate(-originX, -originY);
             for (int i = 0; i < index; i++) {
                 View child = parent.getChildAt(i);
@@ -92,6 +99,14 @@ final class EdgeBlurView extends View {
                 rc.translate(child.getLeft() + child.getTranslationX(), child.getTop() + child.getTranslationY());
                 child.draw(rc);
                 rc.restoreToCount(save);
+            }
+            // Videos are holes in the recording: fill them with copies where those work, then
+            // the base color (for the window's background) everywhere but uncopied videos.
+            if (snapshots != null) {
+                snapshots.draw(rc);
+                snapshots.drawBase(rc, dark ? Color.BLACK : Color.WHITE);
+            } else {
+                rc.drawColor(dark ? Color.BLACK : Color.WHITE, PorterDuff.Mode.DST_OVER);
             }
         } finally {
             backdrop.endRecording();

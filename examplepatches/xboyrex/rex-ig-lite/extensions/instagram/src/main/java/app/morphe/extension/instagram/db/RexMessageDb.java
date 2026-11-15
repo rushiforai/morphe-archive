@@ -408,7 +408,7 @@ public class RexMessageDb extends SQLiteOpenHelper {
         if (username != null && !username.isEmpty()) return username;
         if (senderId == null || senderId.isEmpty()) return null;
         String directoryUsername = getUsername(senderId);
-        return directoryUsername != null ? directoryUsername : senderId;
+        return directoryUsername;
     }
 
     /** Returns the stored message type, or null when it is unknown. */
@@ -426,6 +426,16 @@ public class RexMessageDb extends SQLiteOpenHelper {
     public String getSenderId(String messageId) {
         if (messageId == null) return null;
         Cursor c = getReadableDatabase().query(TABLE, new String[]{"sender_id"},
+                "message_id = ?", new String[]{messageId}, null, null, null);
+        String r = c.moveToFirst() ? c.getString(0) : null;
+        c.close();
+        return (r != null && !r.isEmpty()) ? r : null;
+    }
+
+    /** thread_id stored for a message, or null. */
+    public String getThreadId(String messageId) {
+        if (messageId == null) return null;
+        Cursor c = getReadableDatabase().query(TABLE, new String[]{"thread_id"},
                 "message_id = ?", new String[]{messageId}, null, null, null);
         String r = c.moveToFirst() ? c.getString(0) : null;
         c.close();
@@ -499,12 +509,6 @@ public class RexMessageDb extends SQLiteOpenHelper {
         };
     }
 
-    /**
-     * The display username for a row: the stored sender_username if present, otherwise the
-     * sender_id → username directory (populated from thread loads / 1:1 chats). Returns the
-     * stored value (possibly empty) when the directory has no entry, so the caller's existing
-     * numeric-id fallback still applies for a sender we have never seen named.
-     */
     private String resolveUsername(String storedUsername, String senderId, java.util.Map<String, String> directory) {
         if (storedUsername != null && !storedUsername.isEmpty()) return storedUsername;
         if (senderId != null && !senderId.isEmpty()) {
@@ -514,19 +518,4 @@ public class RexMessageDb extends SQLiteOpenHelper {
         return storedUsername;
     }
 
-
-    /** Returns the count of deleted messages stored in the vault. */
-    public int getDeletedCount() {
-        int count = 0;
-        try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor c = db.rawQuery("SELECT COUNT(*) FROM " + TABLE + " WHERE is_deleted = 1" + HAS_CONTENT, null);
-            if (c.moveToFirst()) {
-                count = c.getInt(0);
-            }
-            c.close();
-        } catch (Exception ignored) {
-        }
-        return count;
-    }
 }

@@ -18,6 +18,8 @@ val redirectGfycatPatch = bytecodePatch(
             "its own proxy for.",
     default = true
 ) {
+    category("2. Media")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
 
     compatibleWith(*SyncForRedditCompatible)

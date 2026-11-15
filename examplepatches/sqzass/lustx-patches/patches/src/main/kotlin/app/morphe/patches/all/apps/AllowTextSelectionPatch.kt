@@ -13,21 +13,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 
-private fun argRegisters(ins: Instruction): List<Int>? =
-        when (ins) {
-            is FiveRegisterInstruction ->
-                    listOf(
-                                    ins.registerC,
-                                    ins.registerD,
-                                    ins.registerE,
-                                    ins.registerF,
-                                    ins.registerG
-                            )
-                            .take(ins.registerCount)
-            is RegisterRangeInstruction ->
-                    (ins.startRegister until ins.startRegister + ins.registerCount).toList()
-            else -> null
-        }
+private fun argRegisters(ins: Instruction): List<Int>? = when (ins) {
+    is FiveRegisterInstruction ->
+        listOf(
+            ins.registerC,
+            ins.registerD,
+            ins.registerE,
+            ins.registerF,
+            ins.registerG,
+        )
+            .take(ins.registerCount)
+    is RegisterRangeInstruction ->
+        (ins.startRegister until ins.startRegister + ins.registerCount).toList()
+    else -> null
+}
 
 /** Backward-scan to the boolean const feeding [reg] and force it true. */
 private fun forceTrueBool(method: MutableMethod, invokeIndex: Int, reg: Int) {
@@ -40,42 +39,43 @@ private fun forceTrueBool(method: MutableMethod, invokeIndex: Int, reg: Int) {
             return
         }
         if (op == Opcode.GOTO ||
-                        op == Opcode.GOTO_16 ||
-                        op == Opcode.GOTO_32 ||
-                        op == Opcode.PACKED_SWITCH ||
-                        op == Opcode.SPARSE_SWITCH ||
-                        op.name.startsWith("if-") ||
-                        op.name.startsWith("return")
-        )
-                return
+            op == Opcode.GOTO_16 ||
+            op == Opcode.GOTO_32 ||
+            op == Opcode.PACKED_SWITCH ||
+            op == Opcode.SPARSE_SWITCH ||
+            op.name.startsWith("if-") ||
+            op.name.startsWith("return")
+        ) {
+            return
+        }
         if (ins is OneRegisterInstruction && ins.registerA == reg) return
     }
 }
 
 @Suppress("unused")
 val allowTextSelectionPatch =
-        bytecodePatch(
-                name = "Allow text selection",
-                description =
-                        "Flips setTextIsSelectable(false)/setLongClickable(false) to true so text can be " +
-                                "selected and copied.",
-                default = false,
-        ) {
-            execute {
-                listOf(
-                                "setTextIsSelectable", // TextView
-                                "setLongClickable", // View / TextView
-                        )
-                        .forEach { name ->
-                            // definingClass = null: match by name+signature on any receiver type
-                            // (TextView, EditText, View...).
-                            methodCall(name = name, parameters = listOf("Z"), returnType = "V")
-                                    .matchAllMethodIndicesForEach(requireMatches = false) { index ->
-                                        val regs =
-                                                argRegisters(getInstruction(index))
-                                                        ?: return@matchAllMethodIndicesForEach
-                                        if (regs.size >= 2) forceTrueBool(this, index, regs[1])
-                                    }
+    bytecodePatch(
+        name = "Allow text selection",
+        description =
+        "Flips setTextIsSelectable(false)/setLongClickable(false) to true so text can be " +
+            "selected and copied.",
+        default = false,
+    ) {
+        execute {
+            listOf(
+                "setTextIsSelectable", // TextView
+                "setLongClickable", // View / TextView
+            )
+                .forEach { name ->
+                    // definingClass = null: match by name+signature on any receiver type
+                    // (TextView, EditText, View...).
+                    methodCall(name = name, parameters = listOf("Z"), returnType = "V")
+                        .matchAllMethodIndicesForEach(requireMatches = false) { index ->
+                            val regs =
+                                argRegisters(getInstruction(index))
+                                    ?: return@matchAllMethodIndicesForEach
+                            if (regs.size >= 2) forceTrueBool(this, index, regs[1])
                         }
-            }
+                }
         }
+    }

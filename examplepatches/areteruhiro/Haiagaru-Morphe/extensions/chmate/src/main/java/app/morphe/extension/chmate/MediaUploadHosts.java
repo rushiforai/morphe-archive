@@ -116,10 +116,10 @@ public final class MediaUploadHosts {
         Destination initial=reply==null?new Destination(p):reply;
         LinearLayout root=new LinearLayout(activity); root.setOrientation(LinearLayout.VERTICAL);
         int pad=(int)(20*activity.getResources().getDisplayMetrics().density);root.setPadding(pad,pad,pad,pad);
-        String[] imageIds={"native","imgbox","imgpile-web","imgpile"},videoIds={"native","imgpile-web","imgpile","sendvid"};
-        Spinner image=choice(activity,root,"画像のアップロード先",new String[]{"Imgur（従来の設定）","imgbox（10MB）","imgpile（API不要・100MB）","imgpile API（97MB）"},
+        String[] imageIds={"native","imgbox","imgpile-web","imgpile","uguu"},videoIds={"native","imgpile-web","imgpile","sendvid","uguu"};
+        Spinner image=choice(activity,root,"画像のアップロード先",new String[]{"Imgur（従来の設定）","imgbox（10MB）","imgpile（API不要・100MB）","imgpile API（97MB）","uguu.se（128MiB・3時間で削除）"},
                 imageIds,initial.image);
-        Spinner video=choice(activity,root,"動画のアップロード先",new String[]{"Imgur（従来の設定）","imgpile（API不要・100MB）","imgpile API（97MB）","Sendvid（API不要）"},
+        Spinner video=choice(activity,root,"動画のアップロード先",new String[]{"Imgur（従来の設定）","imgpile（API不要・100MB）","imgpile API（97MB）","Sendvid（API不要）","uguu.se（128MiB・3時間で削除）"},
                 videoIds,initial.video);
         TextView keyLabel=new TextView(activity);keyLabel.setText("imgpile APIキー（サイトのSettingsで発行）");root.addView(keyLabel);
         EditText key=new EditText(activity);key.setSingleLine(true);
@@ -132,7 +132,7 @@ public final class MediaUploadHosts {
         TextView onceHelp=new TextView(activity);
         onceHelp.setText(editor==null?"レス限定の変更は書き込み画面から設定できます。":"オンにすると、この書き込み画面の画像・動画すべてに適用します。書き込み完了・画面を閉じると解除し、保存済みのアップロード先は変更しません。");root.addView(onceHelp);
         TextView help=new TextView(activity);
-        help.setText("標準添付は選択したサイトへ送信し、URLと標準履歴を自動で登録します。アクセス確認が出る場合は下のWeb画面で確認してください。手動Web送信とは別です。認証情報を含むバックアップは共有しないでください。");root.addView(help);
+        help.setText("uguu.seは一時共有用で、現在は3時間で自動削除されます。保存期間・上限はサイト側で変更される場合があります。\n\n標準添付は選択したサイトへ送信し、URLと標準履歴を自動で登録します。アクセス確認が出る場合は下のWeb画面で確認してください。手動Web送信とは別です。認証情報を含むバックアップは共有しないでください。");root.addView(help);
         Button guide = new Button(activity);guide.setText("使い方・制限を見る（GitHub）");
         guide.setOnClickListener(v -> {
             try {

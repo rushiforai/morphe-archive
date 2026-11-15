@@ -127,6 +127,13 @@ public final class HissiMenuCompatibility {
         // An external-board host need not have a matching manifest filter.
         // Preserve explicit routes and deliberately external browser intents.
         Context owner = Haiagaru.applicationContextForExtension();
+        if (owner != null && uri != null && intent.getComponent()==null
+                && (intent.getPackage()==null||owner.getPackageName().equals(intent.getPackage()))
+                && "bbs.animanch.com".equalsIgnoreCase(uri.getHost())
+                && AnimanchProtocol.threadId(uri.toString())!=null) {
+            intent.setClass(owner,OpenUrlActivity.class);
+            return;
+        }
         if (owner != null && intent.getComponent() == null
                 && owner.getPackageName().equals(intent.getPackage()) && uri != null
                 && HissiLinkRouting.isThreadUrl(uri.toString())) {

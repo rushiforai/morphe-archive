@@ -449,7 +449,7 @@ public final class SettingsSearchUIController {
                             return proxy == (args == null ? null : args[0]);
                         }
                         if ("toString".equals(methodName) && parameterCount == 0) {
-                            return "xboyrexSettingsSearchBackCallback";
+                            return "RexSettingsSearchBackCallback";
                         }
                         if ("onBackInvoked".equals(methodName)
                                 && settingsSearchStateOwner.current() == activity) {

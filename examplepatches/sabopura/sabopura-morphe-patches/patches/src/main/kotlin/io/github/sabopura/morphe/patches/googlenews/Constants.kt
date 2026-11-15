@@ -23,9 +23,9 @@ internal object Constants {
                 description = "Patched with all three patches and the modified methods and manifest checked in the output; launched to its home screen on API 36 (the emulator then exits while the feed loads, also with the stock app). This version no longer has NSContentProvider.",
             ),
             AppTarget(
-                version = "5.168.0.982359681",
+                version = "5.171.0.1009119516",
                 minSdk = 24,
-                description = "Patched, installed and launched on API 36.",
+                description = "Applied without changes; the four modified methods checked in the output; launched to its home screen on API 36 without fatal errors.",
             ),
         ),
     )

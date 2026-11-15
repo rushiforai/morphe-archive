@@ -30,6 +30,11 @@ public final class SiteThreadDatesTest {
         var ani=SiteBoardProtocol.address("https://bbs.animanch.com/board/7596018/");
         String aniHtml=Files.readString(Path.of("build/site-boards-inst/assets/animanchThread.html"));
         ok(SiteThreadDates.opening(ani,"7596018",aniHtml)>0,"actual Animanch opening date selector");
+        String archived="<link rel=canonical href=/board/2265309/><div id=breadcrumb><a href=/category4/>カテゴリ『その他ジャンル』</a></div><ul id=resList></ul>";
+        var category=AnimanchCategories.identify(archived,"2265309");
+        ok(category!=null&&"/category4/".equals(category.path)&&"その他ジャンル".equals(category.name),"a thread outside the catalogue can recover its category from the original breadcrumb");
+        ok(AnimanchCategories.identify(archived,"2265310")==null,"another thread cannot supply category metadata");
+        ok(AnimanchCategories.identify(archived.replace("/category4/","https://example.invalid/category4/"),"2265309")==null,"foreign board paths cannot supply a category");
         var fut=SiteBoardProtocol.address("https://dat.2chan.net/t/");
         String futHtml=Files.readString(Path.of("build/site-boards-inst/assets/futabaCookingReplies.txt"));
         var doc=org.jsoup.Jsoup.parse(futHtml);String id=doc.selectFirst(".thre[data-res]").attr("data-res");

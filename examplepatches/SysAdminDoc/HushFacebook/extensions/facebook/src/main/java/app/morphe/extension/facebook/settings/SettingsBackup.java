@@ -56,7 +56,9 @@ import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.misc.HeaderText;
 import app.morphe.extension.facebook.misc.LogoEmoji;
 import app.morphe.extension.facebook.misc.OpeningPause;
+import app.morphe.extension.facebook.misc.PostMenuItems;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
+import app.morphe.extension.facebook.misc.RefreshRate;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.theme.AccentColor;
@@ -172,6 +174,7 @@ public final class SettingsBackup {
             Settings.HIDE_OTHER_LANGUAGES,
             Settings.HIDE_POST_PROMPTS,
             Settings.HIDE_POST_FOLLOW_LINK,
+            Settings.HIDE_POST_SUBSCRIBE_LINK,
             Settings.HIDE_POST_JOIN_BUTTON,
             Settings.HIDE_POST_X,
             Settings.HIDE_POST_COUNTS,
@@ -186,6 +189,7 @@ public final class SettingsBackup {
             Settings.SHOW_FULL_POST_TEXT,
             Settings.SHOW_FULL_REEL_CAPTIONS,
             Settings.DIM_OPEN_REEL_CAPTIONS,
+            Settings.DIM_FOLDED_REEL_CAPTIONS,
             Settings.TRANSLATE_POST_LINK,
             Settings.TRANSLATE_POSTS_BY_THEMSELVES,
             Settings.SEE_WHO_SHARED,
@@ -250,6 +254,7 @@ public final class SettingsBackup {
             Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.HIDE_REEL_THREADS_CARDS,
+            Settings.HIDE_REEL_POST_CARDS,
             Settings.FOLLOWED_REELS_ONLY,
             Settings.REEL_CLEAN_MODE,
             Settings.REEL_CLEAN_BUTTON,
@@ -277,11 +282,13 @@ public final class SettingsBackup {
             Settings.HIDE_SLOW_CONNECTION_MESSAGE,
             Settings.HIDE_UP_NEXT,
             Settings.HIDE_REEL_FULLSCREEN_PILL,
+            Settings.HIDE_FEED_VIDEO_BUTTONS,
             Settings.FEED_VIDEOS_ALONE,
             Settings.SHARED_REELS_ALONE,
             Settings.WATCH_AGAIN_IN_PLACE,
             Settings.SAVED_VIDEOS_IN_PLAYER,
             Settings.SAVED_VIDEOS_IN_ORDER,
+            Settings.SAVED_VIDEOS_STAY_ON_END,
             Settings.SKIP_STILL_WATCHING,
             Settings.FILL_REELS,
             Settings.PLAY_FEED_REELS_WHOLE,
@@ -306,18 +313,23 @@ public final class SettingsBackup {
             Settings.ASK_BEFORE_LIKING_POSTS,
             Settings.ASK_BEFORE_LIKING_REELS,
             Settings.ASK_BEFORE_LIKING_COMMENTS,
+            Settings.ASK_BEFORE_FOLLOWING_POSTS,
+            Settings.ASK_BEFORE_FOLLOWING_REELS,
             Settings.DOUBLE_TAP_SKIP,
+            Settings.HIDE_SKIP_SECONDS,
             Settings.TAP_SHOWS_CONTROLS,
             Settings.DOUBLE_TAP_OPENS_COMMENTS,
             Settings.LONG_PRESS_OPENS_COMMENTS,
             Settings.SELECT_POST_TEXT,
-            Settings.HOLD_POST_TO_REACT,
+            Settings.HOLD_PHOTO_TO_REACT,
+            Settings.HOLD_VIDEO_TO_REACT,
             Settings.KEEP_REEL_SPEED,
             Settings.KEEP_VIDEO_SPEED,
             Settings.SLOWER_REEL_SPEEDS,
             Settings.FASTER_REEL_SPEEDS,
             Settings.SPEED_ON_REPLAYS,
             Settings.POST_MENU_SPEED,
+            Settings.POST_MENU_SPEED_ON_TOP,
             Settings.HOLD_REEL_FOR_2X,
             Settings.HOLD_REEL_RIGHT_EDGE,
             Settings.HOLD_FEED_VIDEO_FOR_2X,
@@ -329,6 +341,7 @@ public final class SettingsBackup {
             Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
             Settings.HIDE_COMMENT_EMOJI_ROW,
             Settings.HIDE_COMMENT_BOX_LINE,
+            Settings.HIDE_COMMENT_BOX,
             Settings.OPEN_REPLY_THREADS,
             Settings.LOAD_WHOLE_REPLY_THREADS,
             Settings.HIDE_REPLIES_BUTTON,
@@ -681,7 +694,7 @@ public final class SettingsBackup {
     static final EnumSetting<BurnInWait> BURN_IN_WAIT = Settings.BURN_IN_WAIT;
 
     /**
-     * Hold a post to react's Reaction (#454), held in a file as its {@link HoldReaction#fileValue}.
+     * Hold to react's Reaction (#454), held in a file as its {@link HoldReaction#fileValue}.
      * Anything else refuses the whole file, as a Dim after wait does.
      */
     static final EnumSetting<HoldReaction> HOLD_REACTION = Settings.HOLD_REACTION;
@@ -760,6 +773,13 @@ public final class SettingsBackup {
     static final EnumSetting<NewRowMark> NEW_ROW_MARK = Settings.NEW_ROW_MARK;
 
     /**
+     * Refresh rate (#480), held in a file as its {@link RefreshRate.Rate#fileValue}. Anything else
+     * refuses the whole file, as a text size does. A fixed rate the next phone's screen doesn't
+     * offer still comes in, and that screen keeps Facebook's own rate.
+     */
+    static final EnumSetting<RefreshRate.Rate> REFRESH_RATE = Settings.REFRESH_RATE;
+
+    /**
      * The accent color, held in a file as its {@link AccentColor.Preset#fileValue}. Anything else
      * refuses the whole file, as a text size does.
      */
@@ -779,6 +799,14 @@ public final class SettingsBackup {
      * stay on it.
      */
     static final StringSetting SHARE_ITEMS = Settings.HIDDEN_SHARE_ITEMS;
+
+    /**
+     * The kinds of 3-dot menu row to hide, held in a file exactly as their row stores them: Facebook's
+     * kind names, commas between. A kind this build doesn't name is carried like any other. A list
+     * {@link PostMenuItems#clean} would change refuses the whole file, as a share items list does. The
+     * kinds Facebook has shown on this phone stay on it.
+     */
+    static final StringSetting POST_MENU_ITEMS = Settings.HIDDEN_POST_MENU_ITEMS;
 
     /**
      * The Menu tiles to hide, held in a file exactly as their row stores them: the first word of each
@@ -802,9 +830,9 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
-                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
+                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, REFRESH_RATE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
                     BADGE, LOGO, TAB));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
@@ -915,6 +943,7 @@ public final class SettingsBackup {
         private static final String ACCENT_NAME = "accent_color";
         private static final String CEILING_NAME = "hide_posts_over_reactions";
         private static final String SHARE_ITEMS_NAME = "hidden_share_items";
+        private static final String POST_MENU_ITEMS_NAME = "hidden_post_menu_items";
         private static final String MENU_TILES_NAME = "hidden_menu_tiles";
         private static final String FEED_TYPES_NAME = "hidden_feed_types";
         private static final String TAB_ORDER_NAME = "tab_order";
@@ -933,6 +962,7 @@ public final class SettingsBackup {
         private static final String HOLD_REACTION_NAME = "hold_reaction";
         private static final String GRAY_OVER_NAME = "gray_reels_over";
         private static final String NEW_ROW_MARK_NAME = "new_row_mark";
+        private static final String REFRESH_RATE_NAME = "refresh_rate";
         private static final String DATE_STYLE_NAME = "reel_post_date_style";
         private static final String COMMENTS_HEIGHT_NAME = "comments_height";
 
@@ -1028,6 +1058,9 @@ public final class SettingsBackup {
         /** The clean list of share sheet items to hide the file holds, or null when it names none. Set once, as it's read. */
         @Nullable
         String shareItems;
+        /** The clean list of 3-dot menu rows to hide the file holds, or null when it names none. Set once, as it's read. */
+        @Nullable
+        String postMenuItems;
         /** The clean list of Menu tiles to hide the file holds, or null when it names none. Set once, as it's read. */
         @Nullable
         String menuTiles;
@@ -1073,7 +1106,7 @@ public final class SettingsBackup {
         /** The Dim after wait the file holds, the same way. */
         @Nullable
         BurnInWait burnInWait;
-        /** The Hold a post to react choice the file holds, the same way. */
+        /** The Hold to react choice the file holds, the same way. */
         @Nullable
         HoldReaction holdReaction;
         /** The Turn gray over choice the file holds, the same way. */
@@ -1082,6 +1115,9 @@ public final class SettingsBackup {
         /** The Mark new settings choice the file holds, the same way. */
         @Nullable
         NewRowMark newRowMark;
+        /** The refresh rate the file holds, the same way. */
+        @Nullable
+        RefreshRate.Rate refreshRate;
         /** How the file says a reel's post date reads, the same way. */
         @Nullable
         ReelDateStyle dateStyle;
@@ -1303,6 +1339,8 @@ public final class SettingsBackup {
             if (ceilingChange != null) changes.put(CEILING, ceilingChange);
             String shareItemsChange = shareItemsChange();
             if (shareItemsChange != null) changes.put(SHARE_ITEMS, shareItemsChange);
+            String postMenuItemsChange = postMenuItemsChange();
+            if (postMenuItemsChange != null) changes.put(POST_MENU_ITEMS, postMenuItemsChange);
             String menuTilesChange = menuTilesChange();
             if (menuTilesChange != null) changes.put(MENU_TILES, menuTilesChange);
             String feedTypesChange = feedTypesChange();
@@ -1340,6 +1378,8 @@ public final class SettingsBackup {
             if (grayOverChange != null) changes.put(GRAY_OVER, grayOverChange);
             NewRowMark newRowMarkChange = newRowMarkChange();
             if (newRowMarkChange != null) changes.put(NEW_ROW_MARK, newRowMarkChange);
+            RefreshRate.Rate refreshRateChange = refreshRateChange();
+            if (refreshRateChange != null) changes.put(REFRESH_RATE, refreshRateChange);
             ReelDateStyle dateStyleChange = dateStyleChange();
             if (dateStyleChange != null) changes.put(DATE_STYLE, dateStyleChange);
             CommentsHeight commentsHeightChange = commentsHeightChange();
@@ -1537,6 +1577,13 @@ public final class SettingsBackup {
             return shareItems.equals(ShareSheetItems.clean(SHARE_ITEMS.savedValue())) ? null : shareItems;
         }
 
+        /** The 3-dot menu rows to hide this file sets, or null when it names none or the ones already set. */
+        @Nullable
+        String postMenuItemsChange() {
+            if (postMenuItems == null) return null;
+            return postMenuItems.equals(PostMenuItems.clean(POST_MENU_ITEMS.savedValue())) ? null : postMenuItems;
+        }
+
         /** The Menu tiles to hide this file sets, or null when it names none or the ones already set. */
         @Nullable
         String menuTilesChange() {
@@ -1638,7 +1685,7 @@ public final class SettingsBackup {
             return burnInWait == null || burnInWait == BURN_IN_WAIT.savedValue() ? null : burnInWait;
         }
 
-        /** The Hold a post to react choice after this file, the same way. */
+        /** The Hold to react choice after this file, the same way. */
         @Nullable
         HoldReaction holdReactionChange() {
             return holdReaction == null || holdReaction == HOLD_REACTION.savedValue() ? null : holdReaction;
@@ -1654,6 +1701,12 @@ public final class SettingsBackup {
         @Nullable
         NewRowMark newRowMarkChange() {
             return newRowMark == null || newRowMark == NEW_ROW_MARK.savedValue() ? null : newRowMark;
+        }
+
+        /** The refresh rate after this file, the same way. */
+        @Nullable
+        RefreshRate.Rate refreshRateChange() {
+            return refreshRate == null || refreshRate == REFRESH_RATE.savedValue() ? null : refreshRate;
         }
 
         /** How a reel's post date reads after this file, the same way. */
@@ -1712,6 +1765,7 @@ public final class SettingsBackup {
             if (breakLength != null) state.putString(BREAK_LENGTH_NAME, breakLength.fileValue);
             if (watchedKeep != null) state.putString(WATCHED_KEEP_NAME, watchedKeep.fileValue);
             if (shareItems != null) state.putString(SHARE_ITEMS_NAME, shareItems);
+            if (postMenuItems != null) state.putString(POST_MENU_ITEMS_NAME, postMenuItems);
             if (menuTiles != null) state.putString(MENU_TILES_NAME, menuTiles);
             if (feedTypes != null) state.putString(FEED_TYPES_NAME, feedTypes);
             if (tabOrder != null) state.putString(TAB_ORDER_NAME, tabOrder);
@@ -1730,6 +1784,7 @@ public final class SettingsBackup {
             if (holdReaction != null) state.putString(HOLD_REACTION_NAME, holdReaction.fileValue);
             if (grayOver != null) state.putString(GRAY_OVER_NAME, grayOver.fileValue);
             if (newRowMark != null) state.putString(NEW_ROW_MARK_NAME, newRowMark.fileValue);
+            if (refreshRate != null) state.putString(REFRESH_RATE_NAME, refreshRate.fileValue);
             if (dateStyle != null) state.putString(DATE_STYLE_NAME, dateStyle.fileValue);
             if (commentsHeight != null) state.putString(COMMENTS_HEIGHT_NAME, commentsHeight.fileValue);
             state.putInt(UNKNOWN, unknown);
@@ -1792,6 +1847,9 @@ public final class SettingsBackup {
             Object shareItems = state.get(SHARE_ITEMS_NAME);
             read.shareItems = shareItems instanceof String && ShareSheetItems.isClean((String) shareItems)
                     ? (String) shareItems : null;
+            Object postMenuItems = state.get(POST_MENU_ITEMS_NAME);
+            read.postMenuItems = postMenuItems instanceof String && PostMenuItems.isClean((String) postMenuItems)
+                    ? (String) postMenuItems : null;
             Object menuTiles = state.get(MENU_TILES_NAME);
             read.menuTiles = menuTiles instanceof String && MenuTiles.isClean((String) menuTiles)
                     ? (String) menuTiles : null;
@@ -1808,6 +1866,7 @@ public final class SettingsBackup {
             read.holdReaction = HoldReaction.fromFile(state.get(HOLD_REACTION_NAME));
             read.grayOver = GrayOver.fromFile(state.get(GRAY_OVER_NAME));
             read.newRowMark = NewRowMark.fromFile(state.get(NEW_ROW_MARK_NAME));
+            read.refreshRate = RefreshRate.Rate.fromFile(state.get(REFRESH_RATE_NAME));
             read.dateStyle = ReelDateStyle.fromFile(state.get(DATE_STYLE_NAME));
             read.commentsHeight = CommentsHeight.fromFile(state.get(COMMENTS_HEIGHT_NAME));
             Object background = state.get(BACKGROUND_NAME);
@@ -1896,6 +1955,7 @@ public final class SettingsBackup {
             switches.put(SEEN_KEEP.key, of(SEEN_KEEP).fileValue);
             switches.put(TEXT_SIZE.key, of(TEXT_SIZE).fileValue);
             switches.put(NEW_ROW_MARK.key, of(NEW_ROW_MARK).fileValue);
+            switches.put(REFRESH_RATE.key, of(REFRESH_RATE).fileValue);
             switches.put(ACCENT.key, of(ACCENT).fileValue);
             switches.put(CEILING.key, of(CEILING).fileValue);
             switches.put(ACTION.key, of(ACTION).fileValue);
@@ -1906,6 +1966,7 @@ public final class SettingsBackup {
             switches.put(KEPT.key, PostWords.clean(of(KEPT)));
             switches.put(SOURCES.key, PostSources.clean(of(SOURCES)));
             switches.put(SHARE_ITEMS.key, ShareSheetItems.clean(of(SHARE_ITEMS)));
+            switches.put(POST_MENU_ITEMS.key, PostMenuItems.clean(of(POST_MENU_ITEMS)));
             switches.put(MENU_TILES.key, MenuTiles.clean(of(MENU_TILES)));
             switches.put(FEED_TYPES.key, FeedTypeNames.clean(of(FEED_TYPES)));
             switches.put(TAB_ORDER.key, TabOrder.clean(of(TAB_ORDER)));
@@ -2022,6 +2083,7 @@ public final class SettingsBackup {
         for (BooleanSetting setting : ALLOWLIST) known.put(setting.key, setting);
         Map<BooleanSetting, Boolean> found = new HashMap<>();
         Boolean legacyStories = null;
+        Boolean legacyHoldToReact = null;
         String folder = null;
         DownloadQuality quality = null;
         String fileName = null;
@@ -2052,6 +2114,7 @@ public final class SettingsBackup {
         AccentColor.Preset accent = null;
         ReactionCeiling ceiling = null;
         String shareItems = null;
+        String postMenuItems = null;
         String menuTiles = null;
         String feedTypes = null;
         String tabOrder = null;
@@ -2070,6 +2133,7 @@ public final class SettingsBackup {
         HoldReaction holdReaction = null;
         GrayOver grayOver = null;
         NewRowMark newRowMark = null;
+        RefreshRate.Rate refreshRate = null;
         ReelDateStyle dateStyle = null;
         CommentsHeight commentsHeight = null;
         Boolean legacyFullHeight = null;
@@ -2082,6 +2146,14 @@ public final class SettingsBackup {
                     throw new Rejected(Reason.VALUE, "Not true or false: " + name);
                 }
                 legacyStories = (Boolean) value;
+                continue;
+            }
+            if (HoldReactSetting.LEGACY_KEY.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof Boolean)) {
+                    throw new Rejected(Reason.VALUE, "Not true or false: " + name);
+                }
+                legacyHoldToReact = (Boolean) value;
                 continue;
             }
             if (CommentsHeightSetting.LEGACY_KEY.equals(name)) {
@@ -2239,6 +2311,11 @@ public final class SettingsBackup {
                 if (newRowMark == null) throw new Rejected(Reason.VALUE, "Not a new settings mark: " + name);
                 continue;
             }
+            if (REFRESH_RATE.key.equals(name)) {
+                refreshRate = RefreshRate.Rate.fromFile(values.opt(name));
+                if (refreshRate == null) throw new Rejected(Reason.VALUE, "Not a refresh rate: " + name);
+                continue;
+            }
             if (DATE_STYLE.key.equals(name)) {
                 dateStyle = ReelDateStyle.fromFile(values.opt(name));
                 if (dateStyle == null) throw new Rejected(Reason.VALUE, "Not a post date style: " + name);
@@ -2347,6 +2424,14 @@ public final class SettingsBackup {
                 shareItems = (String) value;
                 continue;
             }
+            if (POST_MENU_ITEMS.key.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof String) || !PostMenuItems.isClean((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not one clean list of 3-dot menu items: " + name);
+                }
+                postMenuItems = (String) value;
+                continue;
+            }
             if (MENU_TILES.key.equals(name)) {
                 Object value = values.opt(name);
                 if (!(value instanceof String) || !MenuTiles.isClean((String) value)) {
@@ -2390,6 +2475,18 @@ public final class SettingsBackup {
             found.putIfAbsent(Settings.HIDE_TOP_STORIES_TRAY, legacyStories);
             found.putIfAbsent(Settings.HIDE_STORIES_BETWEEN_POSTS, legacyStories);
         }
+        if (legacyHoldToReact != null) {
+            // A file from before the split (#454): the old Hold a post to react supplies both, and
+            // either new key the file also carries wins, whatever order the JSON object uses.
+            found.putIfAbsent(Settings.HOLD_PHOTO_TO_REACT, legacyHoldToReact);
+            found.putIfAbsent(Settings.HOLD_VIDEO_TO_REACT, legacyHoldToReact);
+        }
+        Boolean followLink = found.get(Settings.HIDE_POST_FOLLOW_LINK);
+        if (followLink != null) {
+            // A file from before the split (#434) has the Follow key only, which then hid the Subscribe
+            // link too. A file written since carries the Subscribe key, and that one wins.
+            found.putIfAbsent(Settings.HIDE_POST_SUBSCRIBE_LINK, followLink);
+        }
         if (commentsHeight == null && legacyFullHeight != null) {
             // A file from before the list: the old switch on is full height, off Facebook's
             // height. The list's own key wins whatever order the JSON object uses.
@@ -2415,6 +2512,7 @@ public final class SettingsBackup {
         read.breakLength = breakLength;
         read.watchedKeep = watchedKeep;
         read.shareItems = shareItems;
+        read.postMenuItems = postMenuItems;
         read.menuTiles = menuTiles;
         read.feedTypes = feedTypes;
         read.tabOrder = tabOrder;
@@ -2433,6 +2531,7 @@ public final class SettingsBackup {
         read.holdReaction = holdReaction;
         read.grayOver = grayOver;
         read.newRowMark = newRowMark;
+        read.refreshRate = refreshRate;
         read.dateStyle = dateStyle;
         read.commentsHeight = commentsHeight;
         return read;
@@ -2477,6 +2576,7 @@ public final class SettingsBackup {
                 if (changes.isEmpty()) return 0;
                 StoriesSetting.finishMigration();
                 CommentsHeightSetting.finishMigration();
+                HoldReactSetting.finishMigration();
                 Setting.saveAll(changes);
                 return changes.size();
             } catch (Setting.BatchFailed failed) {

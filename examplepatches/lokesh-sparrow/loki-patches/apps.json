@@ -1,0 +1,56 @@
+{
+  "_about": "One entry per app. The release builds the README app index and docs/apps/<slug>.md from this file and the bundle. A release fails when an app in the bundle has no entry or no icon in assets/icons. \"featured\" is the position in the Featured row (omit to leave an app out).",
+  "legend": {
+    "💎": "premium",
+    "🚫": "ads",
+    "🛡️": "tracking",
+    "🎨": "look",
+    "⬇️": "downloads",
+    "🧹": "clutter",
+    "📵": "call screens",
+    "👯": "clone",
+    "🔑": "Google sign-in"
+  },
+  "apps": {
+    "com.linkedin.android": {
+      "name": "LinkedIn",
+      "slug": "linkedin",
+      "category": "Social & work",
+      "file": "APK (Android 10+)",
+      "menu": "Me panel",
+      "highlights": "🚫 🛡️ 🎨 ⬇️ 🔑",
+      "featured": 1,
+      "blurb": "Copy text, downloads, ad-free feed, ghost chat"
+    },
+    "com.Splitwise.SplitwiseMobile": {
+      "name": "Splitwise",
+      "slug": "splitwise",
+      "category": "Finance",
+      "file": "APK",
+      "menu": "Account tab",
+      "highlights": "💎 🚫 🛡️ 🎨 🔑",
+      "featured": 2,
+      "blurb": "Pro features, no upsells, AMOLED black"
+    },
+    "com.truecaller": {
+      "name": "Truecaller",
+      "slug": "truecaller",
+      "category": "Calls & messaging",
+      "file": "APKM",
+      "menu": "Profile menu · Settings",
+      "highlights": "💎 📵 🔑",
+      "featured": 3,
+      "blurb": "Premium features, no after-call screen"
+    },
+    "com.cv.docscanner": {
+      "name": "Doc Scanner",
+      "slug": "doc-scanner",
+      "category": "Productivity",
+      "file": "APKM",
+      "menu": "Side menu",
+      "highlights": "💎 🧹 👯 🔑",
+      "featured": 4,
+      "blurb": "Full version, no clutter, clone"
+    }
+  }
+}

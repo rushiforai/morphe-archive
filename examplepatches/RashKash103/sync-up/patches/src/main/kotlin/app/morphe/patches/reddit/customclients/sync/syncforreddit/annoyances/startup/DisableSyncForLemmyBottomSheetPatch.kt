@@ -10,6 +10,8 @@ val disableSyncForLemmyBottomSheetPatch = bytecodePatch(
     description = "Disables the bottom sheet at the startup that asks you to signup to \"Sync for Lemmy\".",
     default = true
 ) {
+    category("1. Essentials")
+
     compatibleWith(*SyncForRedditCompatible)
 
     execute {

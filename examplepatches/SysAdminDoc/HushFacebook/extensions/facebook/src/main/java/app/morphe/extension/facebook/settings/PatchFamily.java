@@ -67,7 +67,8 @@ public enum PatchFamily {
             Settings.HIDE_BACKGROUND_POSTS, Settings.HIDE_REPOSTS, Settings.HIDE_PAGE_POSTS,
             Settings.ONLY_FRIENDS_POSTS, Settings.HIDE_OTHER_LANGUAGES),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
-            Settings.HIDE_POST_PROMPTS, Settings.HIDE_POST_FOLLOW_LINK, Settings.HIDE_POST_JOIN_BUTTON, Settings.HIDE_POST_X,
+            Settings.HIDE_POST_PROMPTS, Settings.HIDE_POST_FOLLOW_LINK, Settings.HIDE_POST_SUBSCRIBE_LINK,
+            Settings.HIDE_POST_JOIN_BUTTON, Settings.HIDE_POST_X,
             Settings.HIDE_POST_COUNTS, Settings.HIDE_POST_REACTIONS, Settings.HIDE_COMMENT_REACTIONS),
     PROFILE_PICTURES(FamilyNames.PROFILE_PICTURES, "profilePictures", null,
             Settings.HIDE_FEED_PROFILE_PICTURES, Settings.HIDE_COMMENT_PROFILE_PICTURES),
@@ -78,7 +79,8 @@ public enum PatchFamily {
     POST_DATES(FamilyNames.POST_DATES, "postDates", null,
             Settings.KEEP_POST_DATES),
     FULL_POST_TEXT(FamilyNames.FULL_POST_TEXT, "fullPostText", null,
-            Settings.SHOW_FULL_POST_TEXT, Settings.SHOW_FULL_REEL_CAPTIONS, Settings.DIM_OPEN_REEL_CAPTIONS),
+            Settings.SHOW_FULL_POST_TEXT, Settings.SHOW_FULL_REEL_CAPTIONS, Settings.DIM_OPEN_REEL_CAPTIONS,
+            Settings.DIM_FOLDED_REEL_CAPTIONS),
     TRANSLATE_POSTS(FamilyNames.TRANSLATE_POSTS, "translatePosts", null,
             Settings.TRANSLATE_POST_LINK, Settings.TRANSLATE_POSTS_BY_THEMSELVES),
     WHO_SHARED(FamilyNames.WHO_SHARED, "whoShared", null,
@@ -138,7 +140,8 @@ public enum PatchFamily {
             Settings.HIDE_AFFILIATE_LINKS, Settings.HIDE_COMMISSION_LABEL),
     REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null,
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON,
-            Settings.HIDE_REEL_SOCIAL_FOOTER, Settings.HIDE_REEL_THREADS_CARDS, Settings.FOLLOWED_REELS_ONLY,
+            Settings.HIDE_REEL_SOCIAL_FOOTER, Settings.HIDE_REEL_THREADS_CARDS, Settings.HIDE_REEL_POST_CARDS,
+            Settings.FOLLOWED_REELS_ONLY,
             Settings.REEL_CLEAN_MODE, Settings.REEL_CLEAN_BUTTON, Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO, Settings.HIDE_REEL_SEARCH_PILL, Settings.HIDE_VIEWER_TOP_BUTTONS, Settings.HIDE_REELS_TAB_TITLE,
             Settings.HIDE_VIEWER_BACK_BUTTON, Settings.BURN_IN_STAY_DIM,
@@ -148,9 +151,10 @@ public enum PatchFamily {
             Settings.SHOW_REEL_COMMENT_BUTTON,
             Settings.SHOW_REEL_POST_DATE,
             Settings.HIDE_REEL_SOUND_BUTTON, Settings.REEL_SPEAKER_ABOVE_MENU, Settings.HIDE_REEL_AUDIO_LINE,
-            Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.HIDE_UP_NEXT, Settings.HIDE_REEL_FULLSCREEN_PILL,
+            Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.HIDE_UP_NEXT, Settings.HIDE_REEL_FULLSCREEN_PILL, Settings.HIDE_FEED_VIDEO_BUTTONS,
             Settings.FEED_VIDEOS_ALONE, Settings.SHARED_REELS_ALONE, Settings.WATCH_AGAIN_IN_PLACE,
-            Settings.SAVED_VIDEOS_IN_PLAYER, Settings.SAVED_VIDEOS_IN_ORDER, Settings.SKIP_STILL_WATCHING,
+            Settings.SAVED_VIDEOS_IN_PLAYER, Settings.SAVED_VIDEOS_IN_ORDER, Settings.SAVED_VIDEOS_STAY_ON_END,
+            Settings.SKIP_STILL_WATCHING,
             Settings.FILL_REELS, Settings.PLAY_FEED_REELS_WHOLE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
@@ -161,17 +165,19 @@ public enum PatchFamily {
     DOUBLE_TAP_LIKE(FamilyNames.DOUBLE_TAP_LIKE, "doubleTapLike", null,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE),
     ASK_BEFORE_LIKE(FamilyNames.ASK_BEFORE_LIKE, "askBeforeLike", null,
-            Settings.ASK_BEFORE_LIKING_POSTS, Settings.ASK_BEFORE_LIKING_REELS, Settings.ASK_BEFORE_LIKING_COMMENTS),
+            Settings.ASK_BEFORE_LIKING_POSTS, Settings.ASK_BEFORE_LIKING_REELS, Settings.ASK_BEFORE_LIKING_COMMENTS,
+            Settings.ASK_BEFORE_FOLLOWING_POSTS, Settings.ASK_BEFORE_FOLLOWING_REELS),
     DOUBLE_TAP_SKIP(FamilyNames.DOUBLE_TAP_SKIP, "doubleTapSkip", null,
-            Settings.DOUBLE_TAP_SKIP),
+            Settings.DOUBLE_TAP_SKIP, Settings.HIDE_SKIP_SECONDS),
     TAP_SHOWS_CONTROLS(FamilyNames.TAP_SHOWS_CONTROLS, "tapShowsControls", null,
             Settings.TAP_SHOWS_CONTROLS),
     REEL_GESTURES(FamilyNames.REEL_GESTURES, "reelGestures", null,
             Settings.DOUBLE_TAP_OPENS_COMMENTS, Settings.LONG_PRESS_OPENS_COMMENTS, Settings.SELECT_POST_TEXT,
-            Settings.HOLD_POST_TO_REACT),
+            Settings.HOLD_PHOTO_TO_REACT, Settings.HOLD_VIDEO_TO_REACT),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null,
             Settings.KEEP_REEL_SPEED, Settings.KEEP_VIDEO_SPEED, Settings.SLOWER_REEL_SPEEDS,
-            Settings.FASTER_REEL_SPEEDS, Settings.SPEED_ON_REPLAYS, Settings.POST_MENU_SPEED),
+            Settings.FASTER_REEL_SPEEDS, Settings.SPEED_ON_REPLAYS, Settings.POST_MENU_SPEED,
+            Settings.POST_MENU_SPEED_ON_TOP),
     REEL_HOLD(FamilyNames.HOLD_REEL_FOR_2X, "reelHold", null,
             Settings.HOLD_REEL_FOR_2X, Settings.HOLD_REEL_RIGHT_EDGE, Settings.HOLD_FEED_VIDEO_FOR_2X,
             Settings.HIDE_2X_LOCK_HINT, Settings.HIDE_2X_POPUPS),
@@ -187,6 +193,7 @@ public enum PatchFamily {
             Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
             Settings.HIDE_POST_COMMENT_PREVIEWS, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
             Settings.HIDE_COMMENT_LIKE_BUTTON, Settings.HIDE_COMMENT_REPLY_BUTTON, Settings.HIDE_COMMENT_EMOJI_ROW, Settings.HIDE_COMMENT_BOX_LINE,
+            Settings.HIDE_COMMENT_BOX,
             Settings.COMMENT_BLOCK_BUTTON, Settings.REACTOR_BLOCK_BUTTON, Settings.FILTER_COMMENT_SEARCH),
     // Open comments at is a list, Facebook's height, full or half (#179); the rest are switches.
     FULL_HEIGHT_COMMENTS(FamilyNames.FULL_HEIGHT_COMMENTS, "fullHeightComments", Settings.COMMENTS_HEIGHT,
@@ -299,6 +306,7 @@ public enum PatchFamily {
             Settings.HIDE_META_AI_POST_BUTTONS),
     SHARE_SHEET_ITEMS(FamilyNames.SHARE_SHEET_ITEMS, "shareSheetItems", Settings.HIDDEN_SHARE_ITEMS,
             new BooleanSetting[]{Settings.HIDE_SHARE_GROUP_BUTTONS, Settings.HIDE_SHARE_PEOPLE_ROW}),
+    POST_MENU_ITEMS(FamilyNames.POST_MENU_ITEMS, "postMenuItems", Settings.HIDDEN_POST_MENU_ITEMS),
     META_AI_SEARCH(FamilyNames.META_AI_SEARCH, "metaAiSearch", null,
             Settings.HIDE_META_AI_IN_SEARCH),
     SEARCH_HISTORY(FamilyNames.SEARCH_HISTORY, "searchHistory", null,
@@ -638,8 +646,8 @@ public enum PatchFamily {
                 line.append(", ").append(Settings.REEL_POST_DATE_STYLE.key).append('=')
                         .append(Settings.REEL_POST_DATE_STYLE.savedValue());
             }
-            // What a hold gives follows its switch (#454).
-            if (setting == Settings.HOLD_POST_TO_REACT) {
+            // What a hold gives follows its two switches, once after the second (#454).
+            if (setting == Settings.HOLD_VIDEO_TO_REACT) {
                 line.append(", ").append(Settings.HOLD_REACTION.key).append('=')
                         .append(Settings.HOLD_REACTION.savedValue());
             }

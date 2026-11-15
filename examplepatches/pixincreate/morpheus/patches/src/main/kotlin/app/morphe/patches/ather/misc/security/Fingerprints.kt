@@ -35,6 +35,24 @@ internal object SecurityCheckFingerprint : Fingerprint(
 )
 
 /**
+ * Matches the same check in Ather 13.6.0, where the factory moved to `i0`.
+ *
+ * ```
+ * public static i0.a b(boolean developerOptionsEnabled)
+ * ```
+ *
+ * The result is `i0.a.a` (`Compromised`), `i0.a.b` (`DeveloperOptionsEnabled`) or
+ * `i0.a.c` (`Secure`). The old `coreUtils.w` class is now an unrelated enum.
+ */
+internal object SecurityCheck1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/ather/common/utils/coreUtils/i0;",
+    name = "b",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Lcom/ather/common/utils/coreUtils/i0\$a;",
+    parameters = listOf("Z"),
+)
+
+/**
  * Matches [com.ather.common.utils.coreUtils.SecurityCheck.performSecurityCheck].
  *
  * ```
@@ -70,7 +88,9 @@ internal object SignatureGuardFingerprint : Fingerprint(
     name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
-    parameters = listOf("Lcom/athermobileapp/navigation/c;"),
+    // The callback type is obfuscated and renamed between releases (`navigation.c` in
+    // 13.5.1, `ui.main.x` in 13.6.0), so only the single-parameter shape is pinned.
+    custom = { method, _ -> method.parameterTypes.size == 1 },
 )
 
 /**
@@ -89,6 +109,22 @@ internal object SignatureGuardFingerprint : Fingerprint(
 internal object PackageCertificateHashFingerprint : Fingerprint(
     definingClass = "Lcom/google/android/gms/common/util/c;",
     name = "e",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "[B",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
+)
+
+/**
+ * Matches the same helper in Ather 13.6.0, where Play services moved it to
+ * `com.google.android.gms.common.util.a` and left `c` as an interface.
+ *
+ * ```
+ * public static byte[] a(Context context, String packageName)
+ * ```
+ */
+internal object PackageCertificateHash1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/gms/common/util/a;",
+    name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "[B",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),

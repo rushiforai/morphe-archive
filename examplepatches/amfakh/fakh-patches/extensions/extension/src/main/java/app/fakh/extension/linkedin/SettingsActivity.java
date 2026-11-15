@@ -243,7 +243,7 @@ public final class SettingsActivity extends Activity {
             if (Settings.isGlassNavigationBarIncluded()) {
                 navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Liquid Glass navigation bar",
                         "A floating, translucent navigation bar.");
-                navigation.toggle(Settings.LIQUID_GLASS, true, "Background blur",
+                navigation.toggle(Settings.LIQUID_GLASS, false, "Background blur",
                         "Blurs what's behind the glass. Uses more battery and might stutter.");
             }
             if (Settings.isAlwaysShowNavigationBarIncluded()) {
@@ -286,7 +286,7 @@ public final class SettingsActivity extends Activity {
                         "Colors from your wallpaper across the app.");
             }
             if (Settings.isAmoledBlackIncluded()) {
-                appearance.toggle(Settings.PITCH_BLACK, true, "Pitch black",
+                appearance.toggle(Settings.PITCH_BLACK, false, "Pitch black",
                         "Black backgrounds in dark mode.");
             }
             categories.add(appearance);
@@ -366,11 +366,11 @@ public final class SettingsActivity extends Activity {
                         "Strip tracking from LinkedIn links you copy or share.");
             }
             if (Settings.isBlockTrackingIncluded()) {
-                privacy.toggle(Settings.BLOCK_TRACKING, false, "Disable analytics",
+                privacy.toggle(Settings.BLOCK_TRACKING, true, "Disable analytics",
                         "Stop most analytics events. Turn off if something breaks.");
             }
             if (Settings.isAnonymousProfileViewingIncluded()) {
-                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
+                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, true, "Anonymous profile viewing",
                         "Visit profiles without being listed in Who viewed your profile.");
             }
             categories.add(privacy);

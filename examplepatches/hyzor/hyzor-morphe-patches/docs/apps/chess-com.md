@@ -75,6 +75,21 @@ grid colours mismatched. The patch replaces that one palette read with `Accent.P
 the other tiers build their backgrounds from non-green palette colours and literals, which the
 accent never touched.
 
+## Board colors
+
+The patch replaces the theme's board background with the app's own plain-colour
+`DarkAndLightSquares` instance: `BoardColors.background` builds it through the constructor
+whose class name the patch writes into `BoardColors.squaresClass()`, so pieces, highlights and
+the rest of the board keep the app's drawing.
+
+The coordinates are hooked in `ChessBoardTheme`'s constructor, which takes the background and
+the two coordinate colours. Those parameters are named `darkSquareCoordinateColor` and
+`lightSquareCoordinateColor`, but they name the two coordinate *shades*, not the squares they
+are drawn on: the canvas layer paints the dark shade on the light squares and the light shade
+on the dark squares. `BoardColors` therefore hands the dark shade the chosen dark colour and
+the light shade the chosen light colour. Reversed, every coordinate takes the colour of the
+square under it and disappears — the bug reported upstream as issue #28.
+
 ## Caveats
 
 - **One target, no fallbacks.** The patches name the supported build's classes and methods

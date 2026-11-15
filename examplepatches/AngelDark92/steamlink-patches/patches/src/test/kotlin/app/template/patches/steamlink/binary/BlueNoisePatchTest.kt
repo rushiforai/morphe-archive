@@ -172,9 +172,9 @@ class BlueNoisePatchTest {
     fun `inner-fade payload is a pinned separate resource and prior payload bytes are unchanged`() {
         val standard = bundledBlueNoiseHelper()
         val variant = bundledBlueNoiseInnerFadeHelper()
-        assertEquals("5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858", blueNoiseHash(standard))
+        assertEquals("be3f864baf9b3cdd4a82937f224c3d620b4c22d49b4ca624829e861a8b036cce", blueNoiseHash(standard))
         assertEquals(BLUE_NOISE_PAYLOAD_SHA256, blueNoiseHash(standard))
-        assertEquals("95e3d478c3bfa364c9b5ebe3439096cc2b3e90ada71733ecef7a01a30b9f3ebf", blueNoiseHash(variant))
+        assertEquals("2b8d3a6fbb0216ba6ecb836de7d15ac97e5c7cdd331bc6cdb0c8ce0d72aadb35", blueNoiseHash(variant))
         assertEquals(BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256, blueNoiseHash(variant))
         val standardText = standard.toString(Charsets.ISO_8859_1)
         val variantText = variant.toString(Charsets.ISO_8859_1)

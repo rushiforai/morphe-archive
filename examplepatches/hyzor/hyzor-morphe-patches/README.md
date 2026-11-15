@@ -4,12 +4,15 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 
 | App | Package | Supported versions |
 |---|---|---|
-| [Sleep as Android](docs/apps/sleep-as-android.md) | `com.urbandroid.sleep` | `20261006` |
-| [SnoreLab](docs/apps/snorelab.md) | `com.snorelab.app` | `2.33.5.7814` |
-| [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.48.0` |
+| [Sleep as Android](docs/apps/sleep-as-android.md) | `com.urbandroid.sleep` | `20261016` |
+| [SnoreLab](docs/apps/snorelab.md) | `com.snorelab.app` | `2.33.7.7953` |
+| [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.50.0` |
 | [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.23` |
 | [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.3` |
-| [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.6` |
+| [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.7` |
+| [FolderSync](docs/apps/foldersync.md) | `dk.tacit.android.foldersync.lite` | `4.14.0` |
+| [Projectivy Launcher](docs/apps/projectivy-launcher.md) | `com.spocky.projengmenu` | `4.73` |
+| [Solid Explorer](docs/apps/solidexplorer.md) | `pl.solidexplorer2` | `3.6.4` |
 
 ### How to use these patches
 
@@ -26,14 +29,14 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.2](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.6.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v1.7.0](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 6.48.0 |
+| 6.50.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -101,7 +104,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 20261006 |
+| 20261016 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -117,7 +120,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 2.33.5.7814 |
+| 2.33.7.7953 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -132,7 +135,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 89600 (8.9.6) |
+| 89700 (8.9.7) |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -141,11 +144,56 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 </details>
 
+<details open>
+<summary>📦 Solid Explorer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.6.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Enables the features locked behind the Pro subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 FolderSync&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.14.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks FolderSync's premium without the in-app purchase and removes the ads, so you get unlimited sync pairs and the advanced options. |  |
+
+</details>
+
+<details open>
+<summary>📦 Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.73 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Projectivy Launcher's premium features by starting the app in its registered state, so the purchase prompts and feature locks are gone. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ## 📱 Sleep as Android
 
-Supported target: `20261006`.
+Supported target: `20261016`.
 
 | Patch | Default | What it does |
 |---|---|---|
@@ -164,13 +212,13 @@ fails.
 
 ## 📱 SnoreLab
 
-Supported target: `2.33.5.7814` (XAPK).
+Supported target: `2.33.7.7953` (XAPK).
 
 | Patch | Default | What it does |
 |---|---|---|
 | Enable Premium | on | Unlocks the in-app premium features. |
 
-The patch forces the local premium source (`vp.h.q()` and `mp.d.p(...)`) to `true`, so the
+The patch forces the local premium source (`up.h.q()` and `mp.d.p(...)`) to `true`, so the
 billing merge always reports `Premium`; the backend still sees the real account.
 
 Recording needs microphone access: without it, **Start** silently bounces back to the
@@ -183,7 +231,7 @@ every install — reinstalling forgets runtime permissions.
 
 ## 📱 NYT Games
 
-Supported target: `6.48.0` (APKM).
+Supported target: `6.50.0` (APKM).
 
 | Patch | Default | What it does |
 |---|---|---|
@@ -233,15 +281,15 @@ patch depends on.
 
 ## 📱 Nova Launcher
 
-Supported target: `89600 (8.9.6)` (APK, versionCode `89600`).
+Supported target: `89700 (8.9.7)` (APK, versionCode `89700`).
 
 | Patch | Default | What it does |
 |---|---|---|
 | Enable Prime | on | Unlocks the features gated on Nova Prime. |
 
 Nova keeps the Prime decision on the device. The patch returns `true` from the static Prime
-gate (`qx.b1.b()`), forces the persisted `"1"` value read at startup to `0x200` (the app's own
-"direct licence" state), and returns `true` from the active-subscription check (`gy.d0.w()`),
+gate (`ix.i1.b()`), forces the persisted `"1"` value read at startup to `0x200` (the app's own
+"direct licence" state), and returns `true` from the active-subscription check (`xx.b0.w()`),
 which also keeps the Play licence revocation path from starting. Client-side only: anything
 Nova asks its backend for still needs a real account.
 
@@ -314,14 +362,20 @@ attribution:
 - **Nova Launcher:** port of
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (both GPLv3),
-  re-resolved for 8.9.6.
+  re-resolved for 8.9.7.
+- **FolderSync:** port of
+  [arandomhooman/hoomans-morphe-patches](https://github.com/arandomhooman/hoomans-morphe-patches)
+  (GPLv3), re-resolved for 4.14.0.
+- **Solid Explorer:** port of
+  [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3), re-resolved
+  for 3.6.4.
 
 Original patch code is © the upstream authors and contributors — ImNoammm, hoo-dles,
-rushiranpise, Entree3k, PrathxmOp and their contributors. New code in this repository is
-© hyzor.
+rushiranpise, Entree3k, PrathxmOp, arandomhooman and their contributors. New code in this
+repository is © hyzor.
 
 Not affiliated with Urbandroid, The New York Times, Duolingo, Chess.com, Nova Launcher,
-TeslaCoil Software, the Morphe project, or the above authors.
+TeslaCoil Software, Tacit Dynamics, the Morphe project, or the above authors.
 
 ## ⚠️ Disclaimer
 

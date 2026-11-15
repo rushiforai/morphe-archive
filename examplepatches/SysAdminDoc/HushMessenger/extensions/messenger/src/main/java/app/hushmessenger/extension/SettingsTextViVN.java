@@ -21,6 +21,7 @@ final class SettingsTextViVN {
         {"preview_title", "Xem trước giao diện HushMessenger"},
         {"preview_notice", "Xem trước giao diện. Các điều khiển này sẽ không làm thay đổi Messenger."},
         {"mounted_build_mismatch", "Bản này được vá từ Messenger %1$d, nhưng Android đang cài bản %2$d. Hãy vá bản %2$d để dùng Root Mount, nếu không bong bóng chat và các màn hình khác có thể bị lỗi."},
+        {"gmscore_without_microg", "Bản này đã vá GmsCore support, nhưng microG-RE chưa được cài hoặc đang bị tắt. Vì vậy Messenger không nhận được thông báo qua dịch vụ đẩy của Google. Hãy cài microG-RE, hoặc vá lại mà không chọn GmsCore support."},
         {"open", "Mở"},
         {"open_messenger", "Mở Messenger"},
         {"back", "Quay lại"},
@@ -699,9 +700,9 @@ final class SettingsTextViVN {
         {"call_captions.title", "Phụ đề trực tiếp khi gọi"},
         {"call_captions.description", "Hiện lời người kia nói trong cuộc gọi thành phụ đề trên Messenger. Điện thoại tự tạo phụ đề, và có thể dịch sang ngôn ngữ của bạn rồi đọc to. Cần Android 13 trở lên và nhận dạng giọng nói trên điện thoại. Khi bật, cuộc gọi dùng đường âm thanh thông thường của Android thay vì của Messenger, và cần khởi động lại Messenger sau khi thay đổi."},
         {"hide_call_buttons.title", "Ẩn nút gọi"},
-        {"hide_call_buttons.description", "Bỏ nút gọi thoại và gọi video khỏi thanh trên cùng của đoạn chat để bạn không bấm nhầm. Cuộc gọi đến vẫn đổ chuông, và bạn vẫn có thể tham gia cuộc gọi đang diễn ra."},
+        {"hide_call_buttons.description", "Bỏ nút gọi thoại và gọi video khỏi thanh trên cùng của đoạn chat, đoạn chat với doanh nghiệp và màn hình Tin nhắn mới để bạn không bấm nhầm. Cuộc gọi đến vẫn đổ chuông, và bạn vẫn có thể tham gia cuộc gọi đang diễn ra."},
         {"call_confirm.title", "Hỏi trước khi gọi"},
-        {"call_confirm.description", "Khi bấm nút gọi thoại hoặc gọi video trên thanh trên cùng của đoạn chat, bạn sẽ được hỏi trước để không lỡ gọi cho ai. Gọi sẽ bắt đầu cuộc gọi, Hủy thì không. Cuộc gọi đến không bị ảnh hưởng."},
+        {"call_confirm.description", "Khi bấm nút gọi thoại hoặc gọi video, bạn sẽ được hỏi trước để không lỡ gọi cho ai. Áp dụng cho thanh trên cùng của đoạn chat, đoạn chat với doanh nghiệp và màn hình Tin nhắn mới. Gọi sẽ bắt đầu cuộc gọi, Hủy thì không. Cuộc gọi đến không bị ảnh hưởng."},
         {"original_photo.title", "Gửi ảnh với chất lượng gốc"},
         {"original_photo.description", "Khi bật HD, hãy gửi ảnh JPEG với kích thước đầy đủ, không còn thu nhỏ nữa. Thông tin vị trí sẽ vẫn bị xóa. Ảnh lớn hơn 20 MB vẫn sẽ bị thu nhỏ."},
         {"original_video.title", "Gửi video mà không mã hóa lại"},
@@ -771,6 +772,6 @@ final class SettingsTextViVN {
         {"custom_font.title", "Sử dụng phông chữ tùy chỉnh"},
         {"custom_font.description", "Thay thế phông chữ Meta bằng phông chữ điện thoại để hiển thị văn bản Messenger, hoặc bạn có thể sử dụng tệp phông chữ .ttf hoặc .otf được chọn bên dưới, đồng thời điều chỉnh kích thước hoặc vị trí lên xuống. Biểu tượng cảm xúc không bị ảnh hưởng. Có thể thấy thay đổi sau khi khởi động lại Messenger."},
         {"menu_blur.title", "Làm mờ phía sau menu"},
-        {"menu_blur.description", "Làm mờ màn hình phía sau menu hiện ra khi bạn nhấn giữ một đoạn chat, cùng các menu và bảng bật lên khác của Messenger, giống như trên iPhone. Cần Android 12 trở lên."},
+        {"menu_blur.description", "Làm mờ màn hình phía sau menu hiện ra khi bạn nhấn giữ một đoạn chat hoặc một tin nhắn, cùng các menu và bảng bật lên khác của Messenger, giống như trên iPhone. Cần Android 12 trở lên."},
     };
 }

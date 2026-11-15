@@ -1,3 +1,9 @@
+## [1.14.1](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.14.0...v1.14.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **LastWave:** send the start times of the lyrics on version 5.2 ([a4d3780](https://github.com/JacksonJones2003/origin-island-patches/commit/a4d3780e7760e952fb0bb27c4180efc0c95be522))
+
 ## [1.14.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.13.3...v1.14.0) (2026-11-10)
 
 ### ✨ New Features

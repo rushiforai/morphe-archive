@@ -18,9 +18,9 @@ private const val BLACK = 0xFF000000L
 private const val BLACK_HEX = "#ff000000"
 
 /**
- * The dark-theme page greys used by the games design system in 6.48.0.
+ * The dark-theme greys used by the games design system in 6.50.0.
  *
- * `#121212` is the page background, `#2A2A2A` the modal / subdued page background.
+ * `#2A2A2A` is the page / sheet background, `#121212` one of the darker card backgrounds.
  */
 private val DARK_GREYS = setOf(0xFF121212L, 0xFF2A2A2AL)
 

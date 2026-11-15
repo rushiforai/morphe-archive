@@ -430,20 +430,28 @@ class CloneInstallPatchTest {
         assertEquals(CLONE_PATCH_NAME, cloneInstallPatch.name)
         assertFalse(cloneInstallPatch.default)
         assertTrue(installBesideMetaAppsPatch in cloneInstallPatch.dependencies)
-        val packageName = assertNotNull(cloneInstallPatch.options["clonePackageName"])
+        val packageName = assertNotNull(cloneInstallPatch.options[CLONE_PACKAGE_OPTION])
         val label = assertNotNull(cloneInstallPatch.options["cloneAppName"])
         assertEquals(CLONE_DEFAULT_PACKAGE, packageName.default)
         assertEquals(CLONE_DEFAULT_LABEL, label.default)
         assertTrue(packageName.required && label.required)
         try {
-            cloneInstallPatch.options.set("clonePackageName", COPY)
+            cloneInstallPatch.options.set(CLONE_PACKAGE_OPTION, COPY)
             assertEquals(COPY, packageName.value)
-            assertFailsWith<Exception> { cloneInstallPatch.options.set("clonePackageName", "com.facebook.orca") }
+            assertFailsWith<Exception> { cloneInstallPatch.options.set(CLONE_PACKAGE_OPTION, "com.facebook.orca") }
             assertFailsWith<Exception> { cloneInstallPatch.options.set("cloneAppName", "@string/app_name") }
         } finally {
             packageName.reset()
             label.reset()
         }
+    }
+
+    @Test fun morpheManagerCanTellTheCopyIsAClone() {
+        // Manager's PACKAGE_NAME_OPTION_KEY: any other key and the copy's card shows no Clone chip and repatches as Messenger.
+        assertEquals("packageName", CLONE_PACKAGE_OPTION)
+        assertEquals(CLONE_DEFAULT_PACKAGE, assertNotNull(cloneInstallPatch.options["packageName"]).default)
+        // The app name and Facebook package keep their keys so saved choices survive the change.
+        assertEquals(setOf("packageName", "cloneAppName", "cloneFacebookPackage"), cloneInstallPatch.options.keys)
     }
 
     @Test fun shortcutsFollowTheCloneAndOtherTargetsStay() {

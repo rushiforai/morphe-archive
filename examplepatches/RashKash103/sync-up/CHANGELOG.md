@@ -1,3 +1,55 @@
+## [1.14.1](https://github.com/RashKash103/sync-up/compare/v1.14.0...v1.14.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Stop the video position bar falling behind ([0a6d9c8](https://github.com/RashKash103/sync-up/commit/0a6d9c862b06da5b375b5908bcc7c4d98f039bfb))
+
+## [1.14.1-dev.1](https://github.com/RashKash103/sync-up/compare/v1.14.0...v1.14.1-dev.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Stop the video position bar falling behind ([0a6d9c8](https://github.com/RashKash103/sync-up/commit/0a6d9c862b06da5b375b5908bcc7c4d98f039bfb))
+
+## [1.14.0](https://github.com/RashKash103/sync-up/compare/v1.13.0...v1.14.0) (2026-11-14)
+
+### ✨ New Features
+
+* Repair a gallery Reddit says has failed ([d4775f9](https://github.com/RashKash103/sync-up/commit/d4775f9c21e47eb0251d9e2db87397aa4a14b936)), closes [#49](https://github.com/RashKash103/sync-up/issues/49)
+
+## [1.14.0-dev.1](https://github.com/RashKash103/sync-up/compare/v1.13.0...v1.14.0-dev.1) (2026-11-14)
+
+### ✨ New Features
+
+* Repair a gallery Reddit says has failed ([d4775f9](https://github.com/RashKash103/sync-up/commit/d4775f9c21e47eb0251d9e2db87397aa4a14b936)), closes [#49](https://github.com/RashKash103/sync-up/issues/49)
+
+## [1.13.0](https://github.com/RashKash103/sync-up/compare/v1.12.0...v1.13.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* Number the patch groups so they are read in the order they matter ([d499859](https://github.com/RashKash103/sync-up/commit/d499859e01899f86ffe94832ae19db1395f1bbdc))
+
+### ✨ New Features
+
+* Clone the Sync app in a way that leaves it able to read its own data ([4f43859](https://github.com/RashKash103/sync-up/commit/4f43859e3636e599d826060bdecbbc8a5964d42e))
+* Play a YouTube video where Sync's player cannot ([e441dc3](https://github.com/RashKash103/sync-up/commit/e441dc33c7e072b4a616ee0a206f40489c6cebb9))
+* Put every patch in a group ([edd2ad8](https://github.com/RashKash103/sync-up/commit/edd2ad8afbdfbbc5072dd61e4736a0dd0328cac3))
+* Stack a link post's picture over its title in columns ([d11e74a](https://github.com/RashKash103/sync-up/commit/d11e74a407d7eed49365159c3a0b80d0f8aa7387))
+
+## [1.13.0-dev.2](https://github.com/RashKash103/sync-up/compare/v1.13.0-dev.1...v1.13.0-dev.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* Number the patch groups so they are read in the order they matter ([d499859](https://github.com/RashKash103/sync-up/commit/d499859e01899f86ffe94832ae19db1395f1bbdc))
+
+## [1.13.0-dev.1](https://github.com/RashKash103/sync-up/compare/v1.12.0...v1.13.0-dev.1) (2026-11-14)
+
+### ✨ New Features
+
+* Clone the Sync app in a way that leaves it able to read its own data ([4f43859](https://github.com/RashKash103/sync-up/commit/4f43859e3636e599d826060bdecbbc8a5964d42e))
+* Play a YouTube video where Sync's player cannot ([e441dc3](https://github.com/RashKash103/sync-up/commit/e441dc33c7e072b4a616ee0a206f40489c6cebb9))
+* Put every patch in a group ([edd2ad8](https://github.com/RashKash103/sync-up/commit/edd2ad8afbdfbbc5072dd61e4736a0dd0328cac3))
+* Stack a link post's picture over its title in columns ([d11e74a](https://github.com/RashKash103/sync-up/commit/d11e74a407d7eed49365159c3a0b80d0f8aa7387))
+
 ## [1.12.0](https://github.com/RashKash103/sync-up/compare/v1.11.0...v1.12.0) (2026-11-13)
 
 ### ✨ New Features

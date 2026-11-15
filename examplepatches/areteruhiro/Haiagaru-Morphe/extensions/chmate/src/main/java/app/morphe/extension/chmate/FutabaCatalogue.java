@@ -27,7 +27,7 @@ final class FutabaCatalogue {
                 Element opening=thread.clone();opening.select("table").remove();
                 Element subject=opening.selectFirst(".csb"),body=opening.selectFirst("blockquote");
                 String title=subject==null?"":subject.text().trim();
-                if(title.isEmpty()||title.equals("無題"))title=body==null?"":body.text().trim();
+                if(title.isEmpty()||title.equals("無題")||title.equals("無念"))title=body==null?"":body.text().trim();
                 if(!title.isEmpty()){title=title.length()>120?title.substring(0,120):title;titles.put(id,title);TITLES.put(board.url+id,title);}
                 if(!wanted.contains(id)&&topics.size()+discovered.size()<limit)discovered.putIfAbsent(id,new SiteBoardProtocol.Topic(id,title.isEmpty()?"No."+id:title,Math.min(999999,thread.select("td.rtd").size()+1)));
             }

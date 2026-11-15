@@ -45,7 +45,7 @@ import app.morphe.patches.shared.Constants
  */
 @Suppress("SpellCheckingInspection")
 val bejeweledTelemetryDisabled = bytecodePatch(
-    name = "Telemetry-disabled",
+    name = "[Experimental] Telemetry-disabled",
     description = "Stops Nimble/Synergy, Firebase, GLUAnalytics (incl. privacy flags), Facebook/Unity, popcap, and IronSource mediation telemetry.",
     default = true
 ) {

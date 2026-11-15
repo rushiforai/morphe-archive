@@ -62,7 +62,8 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
         val swap = proved.flatMap { found.getValue(it) }.filter { it.implementation != null }.associateWith { it.starved() }
         if (swap.isNotEmpty()) {
             val starved = list.map { it.withMethods(swap) }
-            val saved = listOf(messageTextGetterName, messageIdGetterName, messageIsUnsentGetterName)
+            val saved = listOf(messageTextGetterName, messageIdGetterName, messageIsUnsentGetterName, messageOtidGetterName, messageRowInterface,
+                messageTimestampGetterName, messageSenderGetterName, messageContentTypeGetterName, messageContentSubtypeGetterName)
             val savedLog = messageLogContract
             val savedQuiet = quietChatContract
             val savedThreads = readReceiptThreadFields
@@ -86,6 +87,12 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
                 messageTextGetterName = saved[0]
                 messageIdGetterName = saved[1]
                 messageIsUnsentGetterName = saved[2]
+                messageOtidGetterName = saved[3]
+                messageRowInterface = saved[4]
+                messageTimestampGetterName = saved[5]
+                messageSenderGetterName = saved[6]
+                messageContentTypeGetterName = saved[7]
+                messageContentSubtypeGetterName = saved[8]
                 messageLogContract = savedLog
                 quietChatContract = savedQuiet
                 readReceiptThreadFields = savedThreads

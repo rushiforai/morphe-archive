@@ -24,7 +24,7 @@ import org.w3c.dom.Element
  */
 @Suppress("SpellCheckingInspection")
 val bejeweledNetworkCut = resourcePatch(
-    name = "Network-cut",
+    name = "[Experimental] Network-cut",
     description = "Removes android.permission.INTERNET, disabling the network entirely (fail-closed). All telemetry and ads are structurally severed.",
     default = true
 ) {

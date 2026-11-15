@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/RikoDEV/morphed-pl/compare/v1.7.1...v1.7.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* add Lidl Plus 17.14.6 support ([1683bb1](https://github.com/RikoDEV/morphed-pl/commit/1683bb1489f53b6828e0c088d4c725ad7638a4f1))
+* add universal MicroG-RE maps support patch ([7fccc2f](https://github.com/RikoDEV/morphed-pl/commit/7fccc2feb5df0ba2ce65e25df22ec1762a94f5f7))
+
 ## [1.7.1](https://github.com/RikoDEV/morphed-pl/compare/v1.7.0...v1.7.1) (2026-11-11)
 
 ### 🐛 Bug Fixes

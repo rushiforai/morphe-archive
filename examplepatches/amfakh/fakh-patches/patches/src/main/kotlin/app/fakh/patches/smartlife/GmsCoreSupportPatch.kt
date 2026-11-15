@@ -52,7 +52,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     dependsOn(gmsCoreSupportResourcePatch(SIGNATURES))
 
     execute {
-        redirectToGmsCore()
+        redirectToGmsCore(SIGNATURES.getValue(packageMetadata.packageName))
 
         // Without the framework provider, Credential Manager falls back to its Play services one, which
         // redirectToGmsCore already points at GmsCore.

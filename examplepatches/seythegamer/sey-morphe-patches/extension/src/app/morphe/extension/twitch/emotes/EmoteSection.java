@@ -73,29 +73,18 @@ public final class EmoteSection implements SeyttingsSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean enabled = enable.isChecked();
-                EmotePrefs.setEnabled(enabled);
-                setReloadEnabled(reload, enabled);
-                status.setText(valueText());
-                EmoteInjector.setEnabled(enabled);
-            }
+        enable.setOnClickListener(v -> {
+            boolean enabled = enable.isChecked();
+            EmotePrefs.setEnabled(enabled);
+            setReloadEnabled(reload, enabled);
+            status.setText(valueText());
+            EmoteInjector.setEnabled(enabled);
         });
 
-        reload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                status.setText("Reloading 7TV, BTTV and FFZ sets...");
-                EmoteInjector.reload();
-                reload.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        status.setText(valueText());
-                    }
-                }, 4000L);
-            }
+        reload.setOnClickListener(v -> {
+            status.setText("Reloading 7TV, BTTV and FFZ sets...");
+            EmoteInjector.reload();
+            reload.postDelayed(() -> status.setText(valueText()), 4000L);
         });
     }
 

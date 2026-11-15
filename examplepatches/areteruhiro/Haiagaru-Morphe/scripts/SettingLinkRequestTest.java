@@ -3,6 +3,7 @@ public final class SettingLinkRequestTest {
  static int n;static void ok(boolean b,String s){if(!b)throw new AssertionError(s);n++;}
  static void bad(String text){try{SettingLinkRequest.parse(text);throw new AssertionError("accepted: "+text);}catch(IllegalArgumentException expected){n++;}}
  public static void main(String[] args){
+  ok(SettingLinkRequest.alias("全スレで赤いIDのレスを自動で非表示にする").equals("全スレで赤いIDのレスを自動であぼーん表示にする"),"old red ID setting link alias");
   for(Boolean value:new Boolean[]{null,Boolean.TRUE,Boolean.FALSE}){
    SettingLinkRequest made=new SettingLinkRequest("スレ内検索にIDを含める","DISPLAY",value),url=SettingLinkRequest.parse(made.url()),command=SettingLinkRequest.parse(made.command());
    ok(url.name.equals(made.name)&&url.category.equals("DISPLAY")&&java.util.Objects.equals(url.value,value),"URI round trip "+value);

@@ -35,7 +35,7 @@ private val ORDER = listOf(
     // Home
     "fakh_hide_plus", "fakh_hide_recommended", "fakh_hide_ai_bar",
     // Navigation bar
-    "fakh_hide_explore", "fakh_hide_mall_tab",
+    "fakh_hide_explore", "fakh_hide_mall_tab", "fakh_hide_tab_labels",
     // Me tab
     "fakh_hide_rewards", "fakh_hide_orders", "fakh_hide_ai_web", "fakh_hide_me_banner", "fakh_hide_app_mall",
     // Appearance

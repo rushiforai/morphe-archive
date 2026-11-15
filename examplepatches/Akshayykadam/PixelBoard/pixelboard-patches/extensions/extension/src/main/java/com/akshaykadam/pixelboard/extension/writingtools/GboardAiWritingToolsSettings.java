@@ -33,6 +33,19 @@ public final class GboardAiWritingToolsSettings {
         if (lookupContext == null) {
             return null;
         }
+        if (android.os.Build.VERSION.SDK_INT >= 24) {
+            try {
+                android.os.UserManager um =
+                        (android.os.UserManager) lookupContext.getSystemService(Context.USER_SERVICE);
+                if (um != null && !um.isUserUnlocked()) {
+                    Context dpsContext = lookupContext.createDeviceProtectedStorageContext();
+                    if (dpsContext != null) {
+                        return dpsContext.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
         return lookupContext.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
     }
 
@@ -68,11 +81,12 @@ public final class GboardAiWritingToolsSettings {
             editor.putString(PREF_KEY_BACKEND_TYPE, DEFAULT_BACKEND_TYPE);
             editor.putBoolean(PREF_KEY_BACKEND_RESET_MIGRATED, true);
         }
-        if (!preferences.contains(PREF_KEY_V2_ENABLED)) {
+        if (!preferences.getBoolean("pref_v2_force_disabled_v1", false)) {
             if (editor == null) {
                 editor = preferences.edit();
             }
-            editor.putBoolean(PREF_KEY_V2_ENABLED, DEFAULT_V2_ENABLED);
+            editor.putBoolean(PREF_KEY_V2_ENABLED, false);
+            editor.putBoolean("pref_v2_force_disabled_v1", true);
         }
         if (editor != null) {
             editor.apply();
@@ -215,7 +229,7 @@ public final class GboardAiWritingToolsSettings {
             this.featureEnabled = featureEnabled;
             this.allKeyboardsEnabled = featureEnabled && allKeyboardsEnabled;
             this.backendType = sanitizeBackendType(backendType);
-            this.v2Enabled = featureEnabled && v2Enabled;
+            this.v2Enabled = false;
         }
     }
 }

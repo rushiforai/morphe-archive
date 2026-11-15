@@ -445,11 +445,16 @@ public final class MaterialYou {
 
     /** A Fakh Patches switch that is off unless turned on. */
     static boolean flag(String key) {
+        return flag(key, false);
+    }
+
+    /** A Fakh Patches switch with the given state until the user changes it. */
+    static boolean flag(String key, boolean def) {
         if (appContext == null) {
             // Static initializers of the app's classes can run before the first activity exists.
             appContext = AppRuntime.application();
         }
-        return appContext != null && prefs(appContext).getBoolean(key, false);
+        return appContext != null ? prefs(appContext).getBoolean(key, def) : false;
     }
 
     /** GitHub's settings file, where the Fakh Patches switches save their state. */

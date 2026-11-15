@@ -24,7 +24,10 @@ internal const val PHONE_ID_PROVIDER = ".provider.phoneid"
 /** The ordered broadcast Meta's apps answer with their ID. */
 internal const val GET_PHONE_ID = "com.facebook.GET_PHONE_ID"
 
-internal const val INSTALLED_PACKAGES = "Landroid/content/pm/PackageManager;->getInstalledPackages(I)Ljava/util/List;"
+private const val INSTALLED_PACKAGES_CALL = "getInstalledPackages(I)Ljava/util/List;"
+
+/** The app list's read as Messenger writes it. */
+internal const val INSTALLED_PACKAGES = "$PACKAGE_MANAGER_TYPE->$INSTALLED_PACKAGES_CALL"
 
 private fun phoneIdChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the device ID sync changed ($detail)")
@@ -35,15 +38,23 @@ private fun Method.strings() =
 private fun Method.calls() =
     implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
 
-/** The requester's app list: a static (requester)ArrayList holding one getInstalledPackages call. */
+/**
+ * The requester's app list: a static (requester)ArrayList holding one getInstalledPackages call, made straight or
+ * through Morphe's Spoof signature wrapper.
+ */
 internal fun Method.isPhoneIdAppList() =
     AccessFlags.STATIC.isSet(accessFlags) && returnType == "Ljava/util/ArrayList;" &&
-        parameterTypes.map { it.toString() } == listOf(definingClass) && calls().count { it.toString() == INSTALLED_PACKAGES } == 1
+        parameterTypes.map { it.toString() } == listOf(definingClass) &&
+        implementation?.instructions?.count { it.packageManagerCall() == INSTALLED_PACKAGES_CALL } == 1
 
 /** The requester's sync: an instance (String)V that sends GET_PHONE_ID as an ordered broadcast. */
 internal fun Method.isPhoneIdBroadcast() =
     !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" && parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") &&
         GET_PHONE_ID in strings() && calls().any { it.name == "sendOrderedBroadcast" }
+
+internal val phoneIdRequesters = ClassCheck(loadsString(PHONE_ID_PROVIDER))
+
+internal val phoneIdSenders = MethodCheck(loadsString(GET_PHONE_ID))
 
 /**
  * The requester's app list and its sync, but only while they're the whole exchange. One class holds the phoneid
@@ -53,16 +64,9 @@ internal fun Method.isPhoneIdBroadcast() =
  * switch never claims more than it stops.
  */
 internal fun findPhoneIdSync(classes: Iterable<ClassDef>): List<Method> {
-    val all = classes.toList()
-    val requesters = mutableSetOf<ClassDef>()
-    val senders = mutableListOf<Method>()
-    val provider = StringMatch(PHONE_ID_PROVIDER)
-    val getPhoneId = StringMatch(GET_PHONE_ID)
-    for (cls in all) for (method in cls.methods) {
-        val refs = method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference }.orEmpty()
-        if (refs.any { provider.matches(it) }) requesters.add(cls)
-        if (refs.any { getPhoneId.matches(it) }) senders.add(method)
-    }
+    // A set, as before: a class two dex files both carry counts once.
+    val requesters = phoneIdRequesters.classes(classes).distinct()
+    val senders = phoneIdSenders.methods(classes)
     val requester = requesters.singleOrNull() ?: return emptyList()
     val list = requester.methods.singleOrNull { it.isPhoneIdAppList() } ?: return emptyList()
     val sync = requester.methods.singleOrNull { it.isPhoneIdBroadcast() } ?: return emptyList()
@@ -73,7 +77,7 @@ internal fun findPhoneIdSync(classes: Iterable<ClassDef>): List<Method> {
     val queryCalls = queries.map(::MemberMatch)
     val listCall = MemberMatch(listId)
     val syncId = sync.hookId()
-    for (cls in all) for (method in cls.methods) {
+    for ((_, method) in codeReferrers(classes, methods = queries)) {
         val called = method.calls()
         if (called.none { ref -> queryCalls.any { it.matches(ref) } }) continue
         val id = method.hookId()

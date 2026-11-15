@@ -311,6 +311,8 @@ Hide comment and reaction previews	Ẩn bản xem trước bình luận và cả
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	Bình luận Facebook xem trước dưới reel và bong bóng của bạn bè đã bày tỏ cảm xúc. Mở phần bình luận để xem tất cả.
 Hide Threads cards between reels	Ẩn thẻ Threads giữa các reel
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Ẩn thẻ "Threads bạn có thể thích" giữa các reel. Mặc định tắt vì chưa được thử trên tài khoản thật.
+Hide post cards between reels	Ẩn thẻ bài viết giữa các reel
+Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	Ẩn các dải bài viết Facebook chèn giữa các reel, như "Bắt kịp các cuộc trò chuyện" từ nhóm của bạn. Mặc định tắt.
 Only reels from accounts I follow	Chỉ reel từ tài khoản tôi theo dõi
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Tab Reels chỉ hiện reel của những người và Trang bạn theo dõi, bắt đầu từ đợt tiếp theo Facebook tải. Tab có thể lâu đầy hơn. Mặc định tắt.
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook không còn reel nào mà bộ lọc của bạn giữ lại, nên tạm thời các reel này không được lọc.
@@ -865,12 +867,26 @@ Like or unlike this post?	Thích hoặc bỏ thích bài viết này?
 Like or unlike this reel?	Thích hoặc bỏ thích reel này?
 # context: the same question for a comment
 Like or unlike this comment?	Thích hoặc bỏ thích bình luận này?
+# context: switch title on the News feed page, under Ask before liking a post; on, a tap on Follow in a post asks first
+Ask before following from a post	Hỏi trước khi theo dõi từ bài viết
+# context: summary of that switch; Follow is Facebook's own button as Facebook shows it in this language, here the link beside the name of whoever posted and the Follow button on a shared Page or profile; Continue is the question's button
+A tap on Follow in a post, beside the poster's name or on its Follow button, asks first, and only Continue follows or unfollows.	Nhấn nút Theo dõi trong bài viết, cạnh tên người đăng hoặc trên nút Theo dõi của bài viết, sẽ hỏi trước, và chỉ Tiếp tục mới theo dõi hoặc bỏ theo dõi.
+# context: switch title under Reels and Watch, under Ask before liking a reel; on, a tap on Follow beside a reel's author asks first
+Ask before following from a reel	Hỏi trước khi theo dõi từ reel
+# context: summary of that switch
+A tap on Follow beside a reel's author asks first, and only Continue follows or unfollows.	Nhấn nút Theo dõi cạnh người đăng reel sẽ hỏi trước, và chỉ Tiếp tục mới theo dõi hoặc bỏ theo dõi.
+# context: the question shown after a tap on Follow in a post or beside a reel; Continue goes ahead with the follow or unfollow, Cancel leaves it
+Follow or unfollow this account?	Theo dõi hoặc bỏ theo dõi tài khoản này?
 # context: the question's button that goes ahead
 Continue	Tiếp tục
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	Nhấn đúp để tua
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
 A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, or 5 on one under 30 seconds. A double tap in the middle works as before.	Nhấn đúp vào cạnh trái hoặc phải của reel hoặc video sẽ tua lùi hoặc tới 10 giây, hoặc 5 giây với video dưới 30 giây. Nhấn đúp ở giữa vẫn hoạt động như trước.
+# context: switch title under Reels and Watch, right under Double tap to skip; on, the "+5s" or "-10s" Facebook shows over the player when a double tap skips stays hidden
+Hide the skip seconds	Ẩn số giây khi tua
+# context: description of that switch; keep +5s and -10s as written, they're what Facebook shows on screen; Facebook can give an account the skip on its own, without the switch above
+A double tap on the edge still skips, but the +5s or -10s over the reel or video stays hidden. It also works when Facebook turned the skip on for you.	Nhấn đúp vào cạnh vẫn tua, nhưng +5s hoặc -10s trên reel hoặc video sẽ được ẩn. Cũng hoạt động khi Facebook tự bật tính năng tua cho bạn.
 # context: switch title under Reels and Watch; on, a tap on a playing reel shows its controls without pausing it
 Tap shows the controls	Nhấn để hiện nút điều khiển
 # context: summary of that switch; the button in the middle is the play and pause button in the reel's controls
@@ -1003,9 +1019,13 @@ Hide post prompts	Ẩn lời nhắc dưới bài viết
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	Ẩn dải trên một số bài viết, như "Bạn có quan tâm đến bài viết này không?" hoặc ai vừa bình luận, cùng gợi ý theo dõi và chat ở đó. Bài viết vẫn giữ nguyên.
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow and Subscribe links on posts	Ẩn liên kết Theo dõi và Đăng ký trên bài viết
+Hide the Follow link on posts	Ẩn liên kết Theo dõi trên bài viết
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Ẩn liên kết "Theo dõi" hoặc "Đăng ký" cạnh tên trên bài viết và video từ Trang và người bạn không theo dõi. Nhấn vào tên vẫn mở trang cá nhân. Thay đổi hiện trên các bài viết hiển thị sau đó.
+Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Ẩn liên kết "Theo dõi" cạnh tên trên bài viết từ Trang và người bạn không theo dõi. Nhấn vào tên vẫn mở trang cá nhân. Thay đổi hiện trên các bài viết hiển thị sau đó.
+# context: switch title under News feed, right under Hide the Follow link on posts; the Subscribe link is the small "Subscribe" text after a creator's name in a post's header, use Facebook's own word for it
+Hide the Subscribe link on posts	Ẩn liên kết Đăng ký trên bài viết
+# context: description of that switch; "Subscribe" is Facebook's own word for the link
+Hides the "Subscribe" link next to a creator's name on posts and videos. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Ẩn liên kết "Đăng ký" cạnh tên nhà sáng tạo trên bài viết và video. Nhấn vào tên vẫn mở trang cá nhân. Thay đổi hiện trên các bài viết hiển thị sau đó.
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	Ẩn câu hỏi Meta AI dưới bài viết
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1038,6 +1058,8 @@ Long captions on reels show all of their text right away. Tap the caption to fol
 Dark box behind open captions	Nền tối sau chú thích đang mở
 # context: summary of that switch
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Chú thích thước phim đang mở nằm trên một khung tối, giống phụ đề, để dễ đọc trên video sáng. Thay đổi áp dụng từ thước phim tiếp theo.
+Dark box behind folded captions	Nền tối sau chú thích đang thu gọn
+A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Chú thích thước phim đang thu gọn, loại ngắn có Xem thêm ở cuối, nằm trên cùng khung tối đó. Bật cả hai để mọi chú thích đều có khung. Thay đổi áp dụng từ thước phim tiếp theo.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Xem ai đã chia sẻ
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Thêm Xem ai đã chia sẻ vào menu của bài viết. Mục này mở danh sách của Facebook gồm những người đã chia sẻ bài viết.
@@ -2009,7 +2031,11 @@ A video you tap in Saved plays in the video player instead of Reels, where the n
 # context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
 Play saved videos in a row	Phát liên tiếp các video đã lưu
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
-A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Video bạn mở từ mục Đã lưu sẽ chuyển sang video tiếp theo trong Đã lưu khi kết thúc hoặc khi bạn vuốt lên, thay vì một thước phim được đề xuất.
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel. Swipe down to go back one.	Video bạn mở từ mục Đã lưu sẽ chuyển sang video tiếp theo trong Đã lưu khi kết thúc hoặc khi bạn vuốt lên, thay vì một thước phim được đề xuất. Vuốt xuống để quay lại video trước.
+# context: switch title under Play saved videos in a row; on, a saved video that ends stays where it is instead of moving on to the next saved one
+Stay on a saved video when it ends	Ở lại video đã lưu khi phát xong
+# context: summary of that switch
+A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	Video đã lưu khi phát xong sẽ ở lại trên màn hình thay vì mở video tiếp theo. Vuốt lên khi bạn muốn xem video tiếp theo.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Bỏ qua "Bạn vẫn đang xem chứ?"
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2324,8 +2350,10 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Giữ nút Bình luận trên các reel đã tắt bình luận, để bạn vẫn đọc được các bình luận đã có. Thay đổi có hiệu lực từ reel tiếp theo.
 Select part of a post's text	Chọn một phần văn bản của bài viết
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Nhấn giữ văn bản của bài viết sẽ mở nó trong một hộp để bạn chọn đúng phần mình muốn và sao chép, hoặc sao chép tất cả. Chỉ nhấn giữ thì không sao chép gì.
-Hold a post to react	Nhấn giữ bài viết để bày tỏ cảm xúc
-Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	Nhấn giữ ảnh hoặc video của bài viết sẽ mở các cảm xúc, giống như nhấn giữ nút Thích. Trên bài viết trong bảng tin, điều này được ưu tiên trước Nhấn giữ mở bình luận.
+Hold a feed photo to react	Nhấn giữ ảnh trên bảng tin để bày tỏ cảm xúc
+Hold a feed video to react	Nhấn giữ video trên bảng tin để bày tỏ cảm xúc
+Holding a post's photo opens its reactions, as holding Like does. It comes before Long press opens comments.	Nhấn giữ ảnh của bài viết sẽ mở các cảm xúc, giống như nhấn giữ nút Thích. Điều này được ưu tiên trước Nhấn giữ mở bình luận.
+Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Nhấn giữ video của bài viết cũng mở các cảm xúc. Điều này được ưu tiên trước Nhấn giữ mở bình luận. Khi Nhấn giữ video trên bảng tin để phát 2x đang bật, công tắc đó được ưu tiên và video phát nhanh.
 Reaction	Cảm xúc
 Pick one each time	Chọn mỗi lần
 Like	Thích
@@ -2337,8 +2365,8 @@ Sad	Buồn
 Angry	Phẫn nộ
 Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Chọn mỗi lần. Các cảm xúc mở ra trên bài viết, nên hãy trượt đến một cảm xúc rồi thả tay, hoặc thả tay rồi chạm vào một cảm xúc.
 %1$s. Holding a post gives it straight away.	%1$s. Nhấn giữ bài viết sẽ bày tỏ cảm xúc đó ngay.
-Hold a post to react will open the reactions to pick from.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ mở các cảm xúc để chọn.
-Hold a post to react will give %1$s.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ chọn %1$s.
+Holding a post to react will open the reactions to pick from.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ mở các cảm xúc để chọn.
+Holding a post to react will give %1$s.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ chọn %1$s.
 Select text	Chọn văn bản
 Done	Xong
 Copy all	Sao chép tất cả
@@ -2626,6 +2654,7 @@ Pick Custom color again to change it.	Chọn lại Màu tùy chỉnh để thay 
 Switches that are on	Công tắc đang bật
 Every switch you have on, in one list. Turn one off here and it's off everywhere.	Mọi công tắc bạn đang bật, trong một danh sách. Tắt một công tắc ở đây thì nó tắt ở mọi nơi.
 No switches are on yet.	Chưa có công tắc nào được bật.
+Turned off lately	Mới tắt gần đây
 Emoji after the logo	Biểu tượng cảm xúc sau logo
 An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Một biểu tượng cảm xúc nằm ngay sau logo Facebook ở đầu Trang chủ, giữ nguyên màu riêng của nó. Để trống nếu không muốn có.
 No emoji after the logo. Type one to show it there.	Chưa có biểu tượng cảm xúc sau logo. Nhập một biểu tượng để hiển thị ở đó.
@@ -2687,6 +2716,10 @@ Open chats in Messenger	Mở đoạn chat trong Messenger
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	Mở đoạn chat trong ứng dụng Messenger thay vì trong Facebook, kể cả từ nút Nhắn tin trên trang cá nhân, khi Messenger đã được cài và bật. Nếu không có Messenger, đoạn chat vẫn ở trong Facebook. Hãy khởi động lại Facebook sau khi thay đổi.
 Hide the Fullscreen button	Ẩn nút Toàn màn hình
 Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	Gỡ nút Toàn màn hình khỏi khoảng trống bên dưới video ngang trong Reels. Thay đổi có hiệu lực từ video tiếp theo.
+# context: switch title under Reels and Watch, right under Hide the Fullscreen button; on, a video playing in the feed or in search results loses its full-screen arrows and its picture-in-picture (PiP) button
+Hide the full-screen and PiP buttons	Ẩn nút Toàn màn hình và hình trong hình
+# context: description of that switch; "a live video that has ended" is a past Facebook Live shown as a video; the video still plays, only the two buttons go
+Takes the full-screen and picture-in-picture buttons off videos that play in the feed and in search results, like a live video that has ended. A change shows from the next video.	Gỡ nút toàn màn hình và nút hình trong hình khỏi video phát trong bảng tin và kết quả tìm kiếm, như video trực tiếp đã kết thúc. Thay đổi có hiệu lực từ video tiếp theo.
 Hide rings in the feed	Ẩn vòng trong bảng tin
 Hide rings in comments	Ẩn vòng trong bình luận
 Hide rings on profiles	Ẩn vòng trên trang cá nhân
@@ -2789,3 +2822,54 @@ Use the Hushfacebook logo	Dùng logo Hushfacebook
 Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	Hiện logo Hushfacebook ở đầu Trang chủ thay cho chữ của bạn và logo Facebook. Khởi động lại Facebook để thấy.
 # context: the name Home header picture shows once the logo is picked
 Hushfacebook logo	logo Hushfacebook
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for more posts like this one
+Interested	Quan tâm
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
+Not interested	Không quan tâm
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
+Manage your Feed	Quản lý bảng feed
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
+Report	Báo cáo
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
+Cast	Truyền
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that adds the poster to Favorites
+Add to Favorites	Thêm vào Yêu thích
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Why am I seeing this post?	Tại sao tôi nhìn thấy bài viết này?
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Turn on notifications for this post	Bật thông báo cho bài viết này
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Hide post	Ẩn bài viết
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that hides a poster for 30 days
+Snooze	Tạm ẩn 30 ngày
+# context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide
+Unfollow	Bỏ theo dõi
+# context: switch title under Playback speed in the post menu
+Playback speed on the menu's first page	Tốc độ phát ở trang đầu của menu
+# context: summary of that switch; Playback speed, Save, Report and More options are rows of the menu
+Puts Playback speed on the menu's first page, with Save and Report, so it's one tap away. Off, it stays under More options.	Đưa Tốc độ phát lên trang đầu của menu, cạnh Lưu và Báo cáo, chỉ cần một lần chạm. Khi tắt, mục này vẫn nằm trong Tùy chọn khác.
+# context: row title in News feed settings: the rows of a post's 3-dot menu the user picks to hide
+3-dot menu items to hide	Mục cần ẩn trong menu ba chấm
+# context: title of that row's list of checkboxes
+Hide from the 3-dot menus of posts and reels	Ẩn khỏi menu ba chấm của bài viết và thước phim
+# context: import preview and toast, no 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will be empty.	Danh sách mục cần ẩn trong menu ba chấm sẽ trống.
+# context: import preview and toast, one 3-dot menu row will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d item.	Danh sách mục cần ẩn trong menu ba chấm sẽ có %1$d mục.
+# context: import preview and toast, several 3-dot menu rows will be in that list after the import
+Your list of 3-dot menu items to hide will hold %1$d items.	Danh sách mục cần ẩn trong menu ba chấm sẽ có %1$d mục.
+Refresh rate	Tần số quét
+Highest your screen offers	Cao nhất màn hình hỗ trợ
+Facebook runs at whatever refresh rate your phone picks for it.	Facebook chạy ở tần số quét mà điện thoại của bạn chọn cho nó.
+Facebook asks for your screen's highest refresh rate, so scrolling and reels look smoother. It uses a bit more battery, and your phone's own refresh rate setting still caps it.	Facebook yêu cầu tần số quét cao nhất của màn hình, để cuộn và xem reels mượt hơn. Việc này tốn pin hơn một chút, và cài đặt tần số quét của điện thoại vẫn là mức tối đa.
+Facebook asks your screen for %1$s. Your phone's own refresh rate setting still caps it.	Facebook yêu cầu màn hình chạy ở %1$s. Cài đặt tần số quét của điện thoại vẫn là mức tối đa.
+Facebook will run at the refresh rate your phone picks for it.	Facebook sẽ chạy ở tần số quét mà điện thoại của bạn chọn cho nó.
+Facebook will ask for your screen's highest refresh rate.	Facebook sẽ yêu cầu tần số quét cao nhất của màn hình.
+Facebook will ask your screen for %1$s.	Facebook sẽ yêu cầu màn hình chạy ở %1$s.
+Hide the comment box	Ẩn ô bình luận
+The Write a comment box under a post's comments goes away. You can still read every comment.	Ô Viết bình luận bên dưới phần bình luận của bài viết biến mất. Bạn vẫn đọc được mọi bình luận.
+Captions	Phụ đề
+Clear mode	Chế độ xem gọn
+Scroll to next reel automatically	Tự động cuộn đến thước phim tiếp theo
+Transcript	Bản chép lời
+Audio and language	Âm thanh và ngôn ngữ

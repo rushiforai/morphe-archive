@@ -70,8 +70,8 @@ class MaterialYouPatchTest {
     }
 
     @Test fun compatReportChecksWhatThePatchRewrites() {
-        // scripts/CompatReport.java checks every build for these; a value changed on one side only fails here.
-        val report = Path.of("../scripts/CompatReport.java").readText()
+        // The compat report (its tables in scripts/compat/CompatReport.java) checks every build for these; a value changed on one side only fails here.
+        val report = Path.of("../scripts/compat/CompatReport.java").readText()
         assertContains(report, "DARK_SCHEME = \"$DARK_SCHEME\";")
         assertContains(report, "LIGHT_SCHEME = \"$LIGHT_SCHEME\";")
         assertContains(report, "FDS_COLORS = \"$FDS_COLORS\";")

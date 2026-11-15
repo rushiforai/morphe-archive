@@ -16,7 +16,7 @@ public final class MediaUploadClient {
 
     public JSONObject upload(String provider,File file,String mime,String apiKey,boolean adult) throws Exception {
         MediaUploadPolicy.validate(provider,mime,file.length(),apiKey);
-        JSONObject data = provider.equals(MediaUploadPolicy.IMGBOX) ? imgbox(file,mime,adult) : imgpile(file,mime,apiKey);
+        JSONObject data = provider.equals(MediaUploadPolicy.UGUU)?uguu(file,mime):provider.equals(MediaUploadPolicy.IMGBOX) ? imgbox(file,mime,adult) : imgpile(file,mime,apiKey);
         if (!MediaUploadPolicy.mediaUrl(provider,data.optString("link")))
             throw new IOException("送信済みですが安全な直接URLを確認できません。再送せずサイトを確認してください");
         // Never pass a foreign deletion token to ChMate's Imgur DELETE implementation.
@@ -32,6 +32,25 @@ public final class MediaUploadClient {
         c.setRequestProperty("Accept","application/json");
         if(method.equals("POST")) c.setDoOutput(true);
         return c;
+    }
+    private JSONObject uguu(File file,String mime)throws Exception{
+        String boundary="Haiagaru"+UUID.randomUUID().toString().replace("-","");
+        byte[] head=("--"+boundary+"\r\nContent-Disposition: form-data; name=\"files[]\"; filename=\"upload."+MediaUploadPolicy.extension(mime)+"\"\r\nContent-Type: "+mime+"\r\n\r\n").getBytes(StandardCharsets.UTF_8);
+        byte[] tail=("\r\n--"+boundary+"--\r\n").getBytes(StandardCharsets.US_ASCII);
+        HttpURLConnection c=open("https://uguu.se/upload","POST");
+        c.setRequestProperty("Content-Type","multipart/form-data; boundary="+boundary);
+        c.setFixedLengthStreamingMode(file.length()+head.length+tail.length);
+        try{try(OutputStream output=c.getOutputStream()){output.write(head);copy(file,output);output.write(tail);}
+            return parseUguu(json(body(c,true)),mime);
+        }finally{c.disconnect();}
+    }
+    static JSONObject parseUguu(JSONObject root,String mime)throws Exception{
+        JSONArray files=root.optJSONArray("files");JSONObject f=files!=null&&files.length()==1?files.optJSONObject(0):null;
+        if(!root.optBoolean("success")||f==null)throw new IOException("uguu.seで送信を確認できません。再送前にサイトを確認してください");
+        String link=f.optString("url");
+        if(!MediaUploadPolicy.mediaUrl(MediaUploadPolicy.UGUU,link))throw new IOException("uguu.seの直接URLを確認できません。再送前にサイトを確認してください");
+        return new JSONObject().put("id",f.optString("name")).put("link",link).put("type",mime)
+                .put("animated",mime.startsWith("video/")||mime.equals("image/gif")).put("haiagaruProvider",MediaUploadPolicy.UGUU);
     }
     private JSONObject imgpile(File file,String mime,String key) throws Exception {
         HttpURLConnection c=open("https://imgpile.com/uploads?filename=upload."+MediaUploadPolicy.extension(mime),"POST");

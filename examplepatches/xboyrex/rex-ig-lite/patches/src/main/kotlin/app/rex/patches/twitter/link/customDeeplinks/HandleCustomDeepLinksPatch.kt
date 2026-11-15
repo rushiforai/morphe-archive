@@ -3,7 +3,7 @@ package app.rex.patches.twitter.link.customDeeplinks
 import app.rex.patches.twitter.utils.Constants.PATCHES_DESCRIPTOR
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private object UrlInterpreterActivityCreateFingerprint : Fingerprint(
@@ -13,7 +13,7 @@ private object UrlInterpreterActivityCreateFingerprint : Fingerprint(
 )
 
 val handleCustomDeepLinksPatch =
-    bytecodePatch(
+    patch(
         description = "handle custom deeplink",
     ) {
         execute {

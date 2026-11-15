@@ -28,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,8 +141,15 @@ public class PausedHooksTest {
         boolean changedTumblr();
     }
 
+    /** A new run: no family has held a feature flag off yet (FeatureSwitches). */
+    @Before
+    public void aNewRun() {
+        resetHook(FeatureSwitches.class);
+    }
+
     @After
     public void restore() {
+        resetHook(FeatureSwitches.class);
         PauseForTests.resume();
         for (BooleanSetting setting : settingsSwitches()) setting.resetToDefault();
         TextSettings.HIDDEN_WORDS.resetToDefault();
@@ -600,6 +608,7 @@ public class PausedHooksTest {
                 HushTumblrPause.Reason.SWITCH, HushTumblrPause.Reason.CRASH_LOOP,
                 HushTumblrPause.Reason.MARKER_FILE}) {
             PauseForTests.pause(why);
+            resetHook(FeatureSwitches.class);
             everyProbe(probes, false, "paused by " + why, wrong);
             everyEntryProbe(entry, false, "paused by " + why, wrong);
         }

@@ -145,6 +145,12 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     static final String PHONE_FONT_ROW = "action_phone_font";
     /** The font picker's request. The settings file's two are in {@link SettingsBackupPreference}. */
     static final int FONT_FILE = 7313;
+    /**
+     * One font file change at a time. Picks share the staged file, and a pick that ran alongside
+     * another, or alongside going back to the phone's font, could leave a name saved over a mixed
+     * or missing file. A second pick waits for the first, and the later one stays.
+     */
+    private static final Object FONT_FILES = new Object();
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -363,7 +369,7 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     }
 
     @Nullable
-    private SettingsFeedback feedbackFor(String key) {
+    SettingsFeedback feedbackFor(String key) {
         SettingsFeedback[] found = {null};
         forEachFeedback(getPreferenceScreen(), (rowKey, feedback) -> {
             if (rowKey.equals(key)) found[0] = feedback;
@@ -552,6 +558,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        // Picked or cancelled, a screen reader goes back to the row that opened the picker.
+        if (navigation != null) {
+            navigation.focusOnReturn(requestCode == FONT_FILE ? FONT_FILE_ROW : SettingsBackupPreference.rowFor(requestCode));
+        }
         if (requestCode == FONT_FILE) {
             onFontFilePicked(resultCode, data);
             return;
@@ -1378,18 +1388,28 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         feedback.setTextSize(14);
         feedback.setTextColor(ScreenColors.DEFAULT.summary);
         feedback.setPaddingRelative(0, Math.round(8 * context.getResources().getDisplayMetrics().density), 0, 0);
-        feedback.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        SpokenLine spoken = new SpokenLine(feedback);
         editor.addView(feedback);
         editor.addView(WordPreviewSection.build(context, editingAllowedWords, field));
         ScreenColors.startSide(label);
         ScreenColors.startSide(field);
         ScreenColors.startSide(feedback);
+        // While a save runs. The field stays on, as a field switched off lets go of focus and the
+        // caret leaves the draft. It takes no edits instead, and the buttons check this.
+        boolean[] saving = {false};
+        // The line under the field says why the last Save didn't keep the words, until an edit.
+        boolean[] lineSaysWhy = {false};
+        android.text.InputFilter[] filters = field.getFilters();
+        android.text.InputFilter[] held = java.util.Arrays.copyOf(filters, filters.length + 1);
+        held[filters.length] = (source, start, end, dest, dstart, dend) ->
+                saving[0] ? dest.subSequence(dstart, dend) : null;
+        field.setFilters(held);
         field.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                if (field.getError() != null) {
-                    field.setError(null);
-                    feedback.setText(L10n.t("Changes are saved only when you tap Save."));
+                if (lineSaysWhy[0]) {
+                    lineSaysWhy[0] = false;
+                    spoken.show(L10n.t("Changes are saved only when you tap Save."));
                 }
             }
             @Override public void afterTextChanged(android.text.Editable text) { }
@@ -1413,6 +1433,7 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         restoreWordsEditor = false;
         dialog.setOnDismissListener(ignored -> {
             shownDialogs.remove(dialog);
+            spoken.cancel();
             if (wordsDialog == dialog) {
                 wordsDialog = null;
                 wordsField = null;
@@ -1422,17 +1443,18 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             if (wordsDialog == dialog) clearWordsDraft();
         });
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(ignored -> {
-            if (wordsDialog != dialog || !isAdded()) return;
+            if (saving[0] || wordsDialog != dialog || !isAdded()) return;
             clearWordsDraft();
             dialog.dismiss();
         });
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(ignored -> {
-            if (wordsDialog != dialog || !dialog.isShowing() || !isAdded() || !field.isEnabled()) return;
+            if (saving[0] || wordsDialog != dialog || !dialog.isShowing() || !isAdded()) return;
             String words = field.getText().toString().trim();
             rememberWordsDraft();
-            field.setEnabled(false);
+            saving[0] = true;
             setEditorBusy(dialog, true);
-            feedback.setText(L10n.t("Saving changes"));
+            lineSaysWhy[0] = false;
+            spoken.busy(L10n.t("Saving changes"));
             if (!submitEdit(() -> {
                 String error = null;
                 try {
@@ -1451,38 +1473,46 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                 Utils.runOnMainThreadNowOrLater(() -> {
                     SettingsBackupPreference.refreshCurrentPage();
                     if (wordsDialog != dialog || !dialog.isShowing() || !isAdded()) return;
-                    field.setEnabled(true);
+                    saving[0] = false;
                     setEditorBusy(dialog, false);
                     if (outcome != null) {
-                        field.setError(outcome);
-                        feedback.setText(outcome);
-                        Utils.showToastLong(outcome);
+                        showRefusal(spoken, feedback, outcome, lineSaysWhy);
                         return;
                     }
+                    spoken.cancel();
                     row.setSummary(wordsSummary(setting.savedValue()));
                     clearWordsDraft();
                     dialog.dismiss();
                     Utils.showToastShort(L10n.t("Words saved"));
                 });
             })) {
-                field.setEnabled(true);
+                saving[0] = false;
                 setEditorBusy(dialog, false);
-                String error = L10n.t("Couldn't start that. Try again in a moment.");
-                field.setError(error);
-                feedback.setText(error);
-                Utils.showToastLong(error);
+                showRefusal(spoken, feedback, L10n.t("Couldn't start that. Try again in a moment."), lineSaysWhy);
             }
         });
     }
 
+    /**
+     * Says [message] on the line under the words field and scrolls the line into view, as the
+     * keyboard can cover it. That line is the one place it's said: an error on the field and a
+     * toast each had a screen reader read it again.
+     */
+    private static void showRefusal(SpokenLine spoken, TextView feedback, String message, boolean[] lineSaysWhy) {
+        spoken.say(message);
+        lineSaysWhy[0] = true;
+        feedback.post(() -> feedback.requestRectangleOnScreen(
+                new android.graphics.Rect(0, 0, feedback.getWidth(), feedback.getHeight()), true));
+    }
+
+    /**
+     * A saving editor can't be closed with Back or a tap outside. Its buttons stay on, as a button
+     * switched off lets go of keyboard focus and Android hands it to the next one. Their listeners
+     * check the save instead.
+     */
     private static void setEditorBusy(AlertDialog dialog, boolean busy) {
         dialog.setCancelable(!busy);
         dialog.setCanceledOnTouchOutside(!busy);
-        for (int button : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE,
-                AlertDialog.BUTTON_NEUTRAL}) {
-            Button action = dialog.getButton(button);
-            if (action != null) action.setEnabled(!busy);
-        }
     }
 
     private void rememberWordsDraft() {
@@ -1639,17 +1669,61 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
      * logs its class alone, as its message can name the file.
      */
     private static String installFontFile(Context context, Uri uri, boolean[] saved) {
+        synchronized (FONT_FILES) {
+            return installFontFileNow(context, uri, saved);
+        }
+    }
+
+    private static String installFontFileNow(Context context, Uri uri, boolean[] saved) {
         ContentResolver resolver = context.getContentResolver();
-        try (InputStream source = resolver.openInputStream(uri)) {
-            if (source == null) throw new IOException("no stream");
-            saveFontFile(AppFont.install(context, source, fontFileName(resolver, uri)));
+        try {
+            String value;
+            try (InputStream source = resolver.openInputStream(uri)) {
+                if (source == null) throw new IOException("no stream");
+                value = AppFont.stage(context, source, fontFileName(resolver, uri));
+            } catch (AppFont.Refused refused) {
+                return refused.getMessage();
+            } catch (AppFont.Unwritable unwritable) {
+                Logger.printInfo(() -> "Could not copy the font file: " + unwritable.getClass().getSimpleName());
+                return L10n.t("Couldn't change the font. Try again.");
+            } catch (IOException | RuntimeException failure) {
+                Logger.printInfo(() -> "Could not take the font file: " + failure.getClass().getSimpleName());
+                return L10n.t("Couldn't read that file. Try again.");
+            }
+            try {
+                keepFontFile(context, value);
+            } catch (IOException | RuntimeException failure) {
+                Logger.printInfo(() -> "Could not keep the font file: " + failure.getClass().getSimpleName());
+                return L10n.t("Couldn't change the font. Try again.");
+            }
             saved[0] = true;
             return Settings.APP_FONT.savedValue() ? L10n.t("Font file saved.") : L10n.t("Font file saved. Turn on App font to use it.");
-        } catch (AppFont.Refused refused) {
-            return refused.getMessage();
-        } catch (IOException | RuntimeException failure) {
-            Logger.printInfo(() -> "Could not take the font file: " + failure.getClass().getSimpleName());
-            return L10n.t("Couldn't read that file. Try again.");
+        } finally {
+            AppFont.discard(context);
+        }
+    }
+
+    /**
+     * Saves the staged file's [value], then puts the file in place. A refused save leaves the font
+     * in use alone. Anything that fails once the value is saved takes the earlier value back, so a
+     * name never stays saved over another file.
+     */
+    private static void keepFontFile(Context context, String value) throws IOException {
+        synchronized (app.hushtumblr.extension.shared.settings.Setting.class) {
+            String before = TextSettings.APP_FONT_FILE.persistedValue();
+            try {
+                saveFontFile(value);
+                AppFont.place(context);
+            } catch (IOException | RuntimeException failure) {
+                if (!before.equals(TextSettings.APP_FONT_FILE.persistedValue())) {
+                    try {
+                        saveFontFile(before);
+                    } catch (IOException | RuntimeException undone) {
+                        Logger.printInfo(() -> "Could not take the font file's name back: " + undone.getClass().getSimpleName());
+                    }
+                }
+                throw failure;
+            }
         }
     }
 
@@ -1669,15 +1743,17 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         String[] outcome = new String[1];
         boolean[] saved = new boolean[1];
         if (!submitEdit(() -> {
-            try {
-                // An empty value stops the file being read, so a delete that fails does no harm.
-                saveFontFile("");
-                AppFont.forget(app);
-                saved[0] = true;
-                outcome[0] = L10n.t("Back to the phone's font.");
-            } catch (IOException | RuntimeException failure) {
-                Logger.printInfo(() -> "Could not forget the font file: " + failure.getClass().getSimpleName());
-                outcome[0] = L10n.t("Couldn't change the font. Try again.");
+            synchronized (FONT_FILES) {
+                try {
+                    // An empty value stops the file being read, so a delete that fails does no harm.
+                    saveFontFile("");
+                    AppFont.forget(app);
+                    saved[0] = true;
+                    outcome[0] = L10n.t("Back to the phone's font.");
+                } catch (IOException | RuntimeException failure) {
+                    Logger.printInfo(() -> "Could not forget the font file: " + failure.getClass().getSimpleName());
+                    outcome[0] = L10n.t("Couldn't change the font. Try again.");
+                }
             }
         }, () -> showFontOutcome(PHONE_FONT_ROW, outcome[0], saved[0]))) {
             rowResult(PHONE_FONT_ROW, L10n.t("Couldn't start that. Try again in a moment."));
@@ -1893,8 +1969,12 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             saving[0] = false;
             order.clear();
             order.addAll(BottomBarTabs.choices(TextSettings.TAB_ORDER.savedValue()));
+            // One change, never an empty list in between: an empty list can't hold focus, and the
+            // keyboard's focus would go to the buttons.
+            labels.setNotifyOnChange(false);
             labels.clear();
             labels.addAll(tabLabels(order));
+            labels.notifyDataSetChanged();
             row.setSummary(tabOrderSummary(TextSettings.TAB_ORDER.savedValue()));
             retry.setVisibility(tabOrderDraft == null ? View.GONE : View.VISIBLE);
             // A failure already said so under the list. A save says where the tab went and what a
@@ -1985,7 +2065,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         tabOrderDraft = value;
         tabOrderDraftBase = TextSettings.TAB_ORDER.savedValue();
         setEditorBusy(dialog, true);
-        dialog.getListView().setEnabled(false);
+        // The list stays on, as a list switched off lets go of keyboard focus and Android hands it
+        // to the buttons. The tab taps check `saving` instead.
         // Under the list until the save answers. A save done within the frame replaces it unread.
         feedback.show(L10n.t("Saving changes"));
         if (!submitEdit(() -> {
@@ -2008,14 +2089,12 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                 SettingsBackupPreference.refreshCurrentPage();
                 if (!dialog.isShowing() || !isAdded() || !shownDialogs.contains(dialog)) return;
                 setEditorBusy(dialog, false);
-                dialog.getListView().setEnabled(true);
                 if (!outcome) feedback.show(L10n.t("Couldn't save the tab order. Your earlier order is unchanged. Try again."));
                 else onRestartPendingChanged();
                 done.accept(outcome);
             });
         })) {
             setEditorBusy(dialog, false);
-            dialog.getListView().setEnabled(true);
             feedback.show(L10n.t("Couldn't start that. Try again in a moment."));
             done.accept(false);
         }
@@ -2507,6 +2586,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Switch.class));
+            // The row says it's a switch and whether it's on, so the switch drawn in it said both
+            // again ("on, Switch, Hide ads, ... ON, Switch").
+            View drawn = view.findViewById(android.R.id.switch_widget);
+            if (drawn != null) drawn.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             feedback.bind(view);
         }
     }

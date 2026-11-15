@@ -36,7 +36,12 @@ public final class HideAdsPatch {
             new SettingsGroup("Hide",
                     "Changes apply to newly loaded posts. Ads loaded earlier may still show once.",
                     HIDE_SPONSORED, HIDE_FEED_UNITS))
-            .icon(Icons.Glyph.NO_ADS, 0xFFFF9500);
+            .icon(Icons.Glyph.NO_ADS, 0xFFFF9500)
+            .about("Removes sponsored posts, stories and reels, and the ad carousels and \"Why am I seeing ads\" "
+                    + "prompts in the home feed. Each part can be switched off on its own. Ads Instagram had "
+                    + "already loaded may still show once.",
+                    "So your feed only shows the people you follow and the posts you chose to see, without paid "
+                    + "content in between.");
 
     /** The patch makes this return true, so the menu only shows patches that were applied. */
     public static boolean isIncluded() {

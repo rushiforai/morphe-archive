@@ -13,11 +13,11 @@ import app.rex.patches.twitter.misc.shareMenu.hooks.shareMenuButtonInjection
 import app.rex.patches.twitter.misc.shareMenu.hooks.shareMenuButtonOnClickHook
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.versionCheckPatch
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val nativeDownloaderPatch =
-    bytecodePatch(
+    patch(
         name = "Native downloader",
         description = "Requires X 11.0.0-release.0 or higher.",
     ) {

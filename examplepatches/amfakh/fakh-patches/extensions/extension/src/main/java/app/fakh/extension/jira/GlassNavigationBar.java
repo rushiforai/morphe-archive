@@ -36,6 +36,9 @@ public final class GlassNavigationBar {
     /** How opaque the capsule is; the page shows through the rest. */
     private static final float FILL_ALPHA = 0.8f;
 
+    /** NavigationBarView.LABEL_VISIBILITY_UNLABELED: no tab shows its label. */
+    private static final int LABEL_VISIBILITY_UNLABELED = 2;
+
     private GlassNavigationBar() {
     }
 
@@ -46,7 +49,17 @@ public final class GlassNavigationBar {
      * @param view the FoldableBottomNav being built
      */
     public static void install(final View view) {
-        if (!MaterialYou.glassNavigationBar()) return;
+        if (!MaterialYou.glassNavigationBar()) {
+            // The labels switch does not depend on the glass: the library's own bar shows icons only.
+            if (MaterialYou.hideTabLabels(view.getContext())) {
+                try {
+                    view.getClass().getMethod("setLabelVisibilityMode", int.class).invoke(view, LABEL_VISIBILITY_UNLABELED);
+                } catch (ReflectiveOperationException ignored) {
+                    // A bar without the Material call keeps its labels.
+                }
+            }
+            return;
+        }
         view.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             private Selection selection;
 

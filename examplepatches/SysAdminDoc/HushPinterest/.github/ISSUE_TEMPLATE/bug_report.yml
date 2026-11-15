@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushPinterest and Pinterest versions
       description: Long-press the Pinterest icon and tap HushPinterest, or open Pinterest's App info page and tap Additional settings in the app. Then open About and copy the Version line.
-      placeholder: HushPinterest 0.0.13 on Pinterest 14.41.0
+      placeholder: HushPinterest 0.0.14 on Pinterest 14.44.0
     validations:
       required: true
   - type: input
@@ -25,7 +25,7 @@ body:
     attributes:
       label: Which Pinterest file did you patch?
       description: Where it came from, such as APKMirror, whether it was one APK or a bundle (.apkm), and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: APKMirror bundle (.apkm), 14.41.0 (14418010)
+      placeholder: APKMirror APK (.apk), 14.44.0 (14448030)
   - type: dropdown
     id: manager
     attributes:
@@ -41,7 +41,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.0.0
+      placeholder: Morphe Manager 2.5.0
     validations:
       required: true
   - type: dropdown
@@ -66,16 +66,18 @@ body:
     id: selected_patches
     attributes:
       label: Which patches were in your build?
-      description: Every patch but GmsCore support and Spoof signature for Google sign-in is selected by default. Those two are only in your build if you picked them in Expert mode.
+      description: Every patch but GmsCore support, Spoof signature for Google sign-in and Change package name is selected by default. Those three are only in your build if you picked them in Expert mode.
       multiple: true
       options:
         - AMOLED black
+        - Change package name
         - Disable analytics
         - Disable update nag
         - Download board
         - Download pins
         - Filter feed
         - Filter pin menu
+        - Expand board list
         - Fix push notifications
         - GmsCore support
         - Hide AI-labeled pins
@@ -90,6 +92,7 @@ body:
         - Hide save toasts
         - Hide search history
         - Hide shopping and product pins
+        - Hide suggested boards
         - Hide survey prompts
         - Hide topic suggestions
         - HushPinterest settings

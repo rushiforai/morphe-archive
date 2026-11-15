@@ -206,6 +206,13 @@ private fun BytecodePatchContext.blockDisplayAdParser() {
 
 // ---- ③ ad server requests of the React Native screens ----
 
+/**
+ * `AdMetadataCueRouter.route(String)`; 32.0.0 added a trailing boolean that Twitch only passes on
+ * to TwitchAdStateModule. The hook reads the cue text alone, so both shapes are accepted.
+ */
+internal fun isAdCueRoute(method: Method) = method.name == "route" && method.returnType == "V" &&
+    method.parameterTypes.map { it.toString() } in listOf(listOf("Ljava/lang/String;"), listOf("Ljava/lang/String;", "Z"))
+
 private fun BytecodePatchContext.blockReactNativeAds() {
     val send = mutableClassDefBy(NETWORKING).methods.filter {
         it.name == "sendRequestInternalReal" && it.parameterTypes.size >= 3 &&
@@ -219,9 +226,8 @@ private fun BytecodePatchContext.blockReactNativeAds() {
         return-void
     """, ExternalLabel("original", send.getInstruction(0)))
 
-    val route = mutableClassDefBy(CUE_ROUTER).methods.filter {
-        it.name == "route" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") && it.returnType == "V"
-    }.uniqueContract("Block ads: AdMetadataCueRouter.route")
+    val route = mutableClassDefBy(CUE_ROUTER).methods.filter(::isAdCueRoute)
+        .uniqueContract("Block ads: AdMetadataCueRouter.route")
     route.requireScratch("AdMetadataCueRouter.route")
     route.addInstructionsWithLabels(0, """
         invoke-static/range {p1 .. p1}, $AD_BLOCK->dropReactCue(Ljava/lang/String;)Z

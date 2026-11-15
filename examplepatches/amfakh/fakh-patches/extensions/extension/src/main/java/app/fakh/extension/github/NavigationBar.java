@@ -560,7 +560,7 @@ public final class NavigationBar {
     }
 
     private static boolean glass() {
-        return MaterialYou.flag(GLASS);
+        return MaterialYou.flag(GLASS, true);
     }
 
     /**

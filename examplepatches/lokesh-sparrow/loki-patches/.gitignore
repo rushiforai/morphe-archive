@@ -81,3 +81,8 @@ local.properties
 gradle-app.setting
 # Scratch work
 _work/
+
+# Local agent tooling
+.claude/
+.mcp.json
+AGENTS.md

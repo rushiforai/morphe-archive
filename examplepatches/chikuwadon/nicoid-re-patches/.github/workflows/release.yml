@@ -40,12 +40,12 @@ jobs:
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version: '26'
           package-manager-cache: false
 
       - name: Validate workflow action pinning and release safeguards
@@ -58,6 +58,10 @@ jobs:
             python3 porting/revisions/v2.0.1-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.2-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.3[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.3-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.4[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.4-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -94,7 +98,7 @@ jobs:
           java -cp /tmp/nicoid-performance-tests e.e.a.PerformanceTest
       - name: Check paid metadata and badge reuse
         run: |
-          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-json.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-json.jar
           javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-paid-tests $(find porting/tests/paid-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PaidVideos.java extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/PaidVideosTest.java
           java -cp /tmp/nicoid-paid-tests:/tmp/nicoid-json.jar e.e.a.PaidVideosTest porting/tests/paid-list-fixture.json porting/tests/paid-watch-fixture.json
       - name: Check comment storage failure recovery
@@ -150,12 +154,12 @@ jobs:
       - name: Install lockfile-pinned release dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
 
-      - name: Verify fixed npm release dependency
+      - name: Verify locked release-tool dependencies
         run: node .github/scripts/verify-release-npm.cjs
 
       - name: Make Gradle dependency downloads resilient
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
@@ -202,6 +206,10 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh
           elif grep -Fq "version = 2.0.2" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh
+          elif grep -Fq "version = 2.0.3" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.3-mpp.sh
+          elif grep -Fq "version = 2.0.4" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.4-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

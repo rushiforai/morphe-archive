@@ -6,9 +6,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.matchAllMethodIndicesForEach
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -27,7 +27,8 @@ private fun argRegisters(ins: Instruction): List<Int>? = when (ins) {
 /** True if [reg] is loaded with the literal "android_id" (const-string or the ANDROID_ID constant). */
 private fun isAndroidIdArg(method: MutableMethod, invokeIndex: Int, reg: Int): Boolean {
     for (j in invokeIndex - 1 downTo 0) {
-        val ins = method.getInstruction(j); val op = ins.opcode
+        val ins = method.getInstruction(j)
+        val op = ins.opcode
         if (ins is OneRegisterInstruction && ins.registerA == reg) {
             if (op == Opcode.CONST_STRING || op == Opcode.CONST_STRING_JUMBO) {
                 return ins.getReference<StringReference>()?.string == "android_id"
@@ -38,10 +39,16 @@ private fun isAndroidIdArg(method: MutableMethod, invokeIndex: Int, reg: Int): B
             }
             return false
         }
-        if (op == Opcode.GOTO || op == Opcode.GOTO_16 || op == Opcode.GOTO_32 ||
-            op == Opcode.PACKED_SWITCH || op == Opcode.SPARSE_SWITCH ||
-            op.name.startsWith("if-") || op.name.startsWith("return")
-        ) return false
+        if (op == Opcode.GOTO ||
+            op == Opcode.GOTO_16 ||
+            op == Opcode.GOTO_32 ||
+            op == Opcode.PACKED_SWITCH ||
+            op == Opcode.SPARSE_SWITCH ||
+            op.name.startsWith("if-") ||
+            op.name.startsWith("return")
+        ) {
+            return false
+        }
     }
     return false
 }
@@ -55,7 +62,8 @@ val androidIdSpoofPatch = bytecodePatch(
     default = false,
 ) {
     val idOption = stringOption(
-        key = "androidId", default = "Random",
+        key = "androidId",
+        default = "Random",
         values = mapOf("Random" to "Random"),
         title = "Android ID",
         description = "16 hex chars, or 'Random' to generate one per build.",

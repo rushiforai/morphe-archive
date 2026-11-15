@@ -185,12 +185,23 @@ internal fun Method.isFontInput() = AccessFlags.STATIC.isSet(accessFlags) && ret
  * Each font hook by its kind. The layout, the repository and the Roboto builder count only as the one holder of their
  * string, and the by-name lookup only while it asks that repository.
  */
+private val FONT_ANCHORS = setOf(FONT_LAYOUT_ANCHOR, FONT_REPOSITORY_ANCHOR, FONT_ROBOTO_ANCHOR)
+
+/** The methods the loop in [findCustomFont] adds anywhere: an anchor's holders, the by-name lookups, the inputs and the monospace makers. */
+internal val fontSites = MethodCheck {
+    val anchors = FONT_ANCHORS.map(::StringMatch)
+    val test: MethodTest = { _, method ->
+        anchors.any { it.inCode(method) } || method.isFontByName() || method.isFontInput() || method.isMonospaceMaker()
+    }
+    test
+}
+
 internal fun findCustomFont(classes: Iterable<ClassDef>): Map<String, List<Method>> {
     val holders = listOf(FONT_LAYOUT_ANCHOR, FONT_REPOSITORY_ANCHOR, FONT_ROBOTO_ANCHOR).associateWith { linkedSetOf<Method>() }
     val byName = mutableListOf<Method>()
     val inputs = mutableListOf<Method>()
     val makers = mutableSetOf<String>()
-    for (method in classes.flatMap { it.methods }) {
+    for (method in fontSites.methods(classes)) {
         val code = method.implementation?.instructions ?: continue
         for (insn in code) insn.fontString()?.let { holders[it]?.add(method) }
         if (method.isFontByName()) byName.add(method)

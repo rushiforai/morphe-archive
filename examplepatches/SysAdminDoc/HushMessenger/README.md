@@ -1,10 +1,10 @@
 ![HushMessenger. Keep the conversation. Cut the friction.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0"><img src="https://img.shields.io/badge/version-0.29.0-0084FF" alt="Version 0.29.0"></a>
+  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0"><img src="https://img.shields.io/badge/version-0.30.0-0084FF" alt="Version 0.30.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B%20arm64%20%7C%20armv7-3DDC84" alt="Platform Android 9 or newer, arm64 and armv7">
-  <img src="https://img.shields.io/badge/Messenger-586.0.0.55.92-0084FF" alt="Messenger 586.0.0.55.92">
+  <img src="https://img.shields.io/badge/Messenger-587.0.0.54.96-0084FF" alt="Messenger 587.0.0.54.96">
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 
 HushMessenger is a set of [Morphe](https://morphe.software) patches for Facebook Messenger. You bring the Messenger APK, Morphe patches it on your phone, and you get a Messenger with a settings screen full of switches that stock Messenger doesn't have. Hide the ads, the suggested people, the stories row and Meta AI. Stop sending read receipts and typing indicators. Watch stories without showing up in the viewer list. Keep a log of messages so an unsend can't take them back. Send photos at their real quality, use your own font, let Material You color the app, and more.
 
-Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 88 patches. What changed in each version is in the [changelog](CHANGELOG.md).
+Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 98 patches. What changed in each version is in the [changelog](CHANGELOG.md).
 
 **[Add HushMessenger to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushMessenger)**
 
@@ -30,12 +30,12 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 
 ## Install
 
-1. **Get the APK.** The current release, v0.29.0, patches Messenger 586.0.0.55.92. Download it from [APKMirror's 586.0.0.55.92 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-586-0-0-55-92-release/). APKMirror lists more builds of that version than v0.29.0 takes, so check the version code before you download. Most phones (arm64) should take `347215257` or `347215343`, the `nodpi` ones. A 32-bit (armv7) phone takes `347215341`. The other arm64 builds that work are `347215330`, `347215344` and `347215348`. Skip `347215273`, `347215275` and `347215277` for now.
-2. **Add the source.** Open the link above on your phone with Morphe Manager (2.4.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **88 patches**. If it shows an older version, tap its refresh button. Manager also shows **Signed by `4d8d c2b3 fbcd 3ab6`** on the card. That's this project's key, and [Verify a download](#verify-a-download) has more on it.
+1. **Get the APK.** The current release, v0.30.0, patches Messenger 587.0.0.54.96. Download it from [APKMirror's 587.0.0.54.96 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-587-0-0-54-96-release/). All 19 builds APKMirror had for that version on November 14 work, and [Supported Messenger builds](#supported-messenger-builds) lists them. Most phones (arm64) should take a `nodpi` one, `347415280`, `347415333` or `347415350`. A 32-bit (armv7) phone takes `347415262`, `347415295` or `347415348`.
+2. **Add the source.** Open the link above on your phone with Morphe Manager (2.5.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **98 patches**. If it shows an older version, tap its refresh button. Manager also shows **Signed by `4d8d c2b3 fbcd 3ab6`** on the card. That's this project's key, and [Verify a download](#verify-a-download) has more on it.
 3. **Patch Messenger.** The default selection includes every switch. Five patches start unselected because they change the app itself, with no switch to undo them: **Clone install under another package name**, **Spoof package version**, **Custom new-message sound**, **Custom launcher icon** and **GmsCore support**. To add one, turn on **Settings → Advanced → Expert mode** in Manager and use **Choose patches**.
 4. **Keep one source.** Don't add the remote source and a local copy together, and don't mix in Messenger patches from other sources.
 
-Prefer a local source? Download [`patches-0.29.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.0.0 or newer can load the same source too.
+Prefer a local source? Download [`patches-0.30.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.1.0 or newer can load the same source too.
 
 ## Settings
 
@@ -71,7 +71,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Hide the tab bar while scrolling | The tab bar at the bottom slides away as you scroll down your chats and comes back when you scroll up. Takes a Messenger restart. |
 | Floating tab bar | Switches the bottom tab bar to the floating style Messenger is testing, which sits over your chats. Takes a Messenger restart. |
 | Keep the search bar | Brings back the search bar above your chats when Messenger has swapped it for a search icon. Takes effect after a restart, and nothing changes if you never got the icon. Experimental. |
-| Preview chats on long press | Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it. Experimental. |
+| Preview chats on long press | Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it. A peek leaves the chat unread, and the other person doesn't see Seen until you open it (checked in an encrypted one-to-one chat). Experimental. |
 | Bigger chat preview | The long-press preview takes most of the screen and scrolls back through the chat. The menu under it stays short and scrolls. Experimental. |
 | Hide chat menu items | Press and hold any chat once, then pick which of that menu's items to hide here. Messenger keeps at least one of its own. Experimental. |
 | Hide Mark as read | Takes Mark as read out of the menu you get when you press and hold a chat, so you can't mark one read by accident. Mark as unread stays. |
@@ -113,14 +113,14 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Allow landscape | Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it. Experimental. |
 | Record calls | Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Needs Android 10 or newer. |
 | Live captions on calls | Shows what the other people say as captions over a call. Your phone's own speech recognition makes them, and it can translate them into your language and read them aloud (wear earphones for that). Pick the language they speak and the one you want under the switch. It needs Android 13 or newer, and translation needs a phone that can translate on the device. Like Record calls, it moves calls to Android's regular audio path and needs a Messenger restart. Experimental. |
-| Hide call buttons | Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going. |
+| Hide call buttons | Takes the audio and video call buttons out of a chat's top bar, a business chat and the New message screen, so you can't tap one by accident. Calls still ring, and you can still join one that's going. |
 | Ask before a call | Tapping an audio or video call button asks first, so a stray tap doesn't ring anyone. That covers a chat's top bar, a business chat and the New message screen. **Call** starts it, **Cancel** doesn't. |
 | Hide read receipts | Opening a chat no longer sends Seen. The chat stays unread on your phone until you reply or mark it read. Group chats haven't been checked. |
 | Mark as read button | Works with Hide read receipts. A chat's top bar gets Messenger's own Mark as read icon, and tapping it sends the Seen that opening the chat held back. When the bar is full it replaces the chat details button (tapping the chat's name opens the same page), or another button that isn't for calls when a chat doesn't have one. Experimental. |
 | View stories anonymously | Opens other people's stories without adding you to their viewer list. |
 | Mark as seen button | Works with View stories anonymously. Stories you open get an eye with a slash through it, and tapping it adds you to that story's viewer list. The next story stays anonymous. Experimental. |
 | Save any story | Adds **Save** to the **More options** menu on other people's stories. |
-| Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". An encrypted chat can't keep the message itself, so its notification stays up instead. |
+| Keep unsent messages | Keeps messages in the chat after someone unsends them, marked "[unsent]". In an encrypted chat it keeps the words Messenger already showed you, in the chat or in a notification, until Messenger restarts. |
 | Allow screenshots | Lets you screenshot protected photos and media, view-once included, with no screenshot notice to the sender. |
 | Hide pictures on the Blocked list | The list of people you've blocked, under Privacy and safety, shows their names and Unblock without their profile pictures. |
 | Notify for restricted chats | Messages from people you've restricted notify you like any other chat, unless you've muted that chat or it's end-to-end encrypted. They still can't see when you're active or when you've read their messages. A restricted encrypted chat also drops out of your chat list, so search the person's name in Messenger and open it from the results. |
@@ -147,7 +147,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Your own home header | Puts your own words or picture at the top of the chat list where the "messenger" wordmark is. Words take the wordmark's colors, so they follow dark mode, and a picture shows instead of the words when you've set both. Restart Messenger after a change. |
 | Material You theme | In dark mode on Android 12 and newer, Messenger takes the accent color from your wallpaper. A **Pure black dark mode** switch sits under Appearance. You can paste your own colors there too, as text like `{"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418"}`, and share them with **Copy theme**. **Light mode accent** gives Messenger's blues in light mode your accent too, from the row of colors in Appearance or your wallpaper's. |
 | Use your own font | Replaces Meta's font with your phone's, or with a .ttf or .otf file you pick, with size and position adjustments. Restart Messenger after a change. |
-| Blur behind menus | The screen behind the press-and-hold menu on a chat, and behind Messenger's other pop-up menus and sheets, blurs the way it does on an iPhone. Android 12 and newer. If your phone can't blur behind a window (some Samsungs can't, and battery saver can turn it off), Messenger blurs its own screen under the menu instead. The **iPhone look** quick setup turns it on too. Experimental. |
+| Blur behind menus | The screen behind the press-and-hold menu on a chat or a message, and behind Messenger's other pop-up menus and sheets, blurs the way it does on an iPhone. Android 12 and newer. If your phone can't blur behind a window (some Samsungs can't, and battery saver can turn it off), Messenger blurs its own screen under the menu instead. The **iPhone look** quick setup turns it on too. Experimental. |
 | Bold and italic text | Adds Bold and Italic to the text selection menu. They change the letters A to Z, accented ones included, and Bold changes digits too. Other alphabets stay as they are. |
 | Open settings from menu | Adds the HushMessenger row to Messenger's Menu tab and side menu, and makes a long press on the Messenger logo at the top of Chats or the Menu tab's title open settings. On by default. The App tab can turn off each way in, as long as one stays on. |
 
@@ -161,7 +161,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 - **Spoof package version** gives Messenger a very high version code (2147483647 unless you pick another) so the Play Store stops offering updates. Keep it selected with the same number when you patch a later build, since Android won't install a lower code over a higher one.
 - **Custom new-message sound** plays a sound file you pick when you patch (.ogg, .mp3, .m4a or .wav, 1 MB or less) in place of Messenger's new-message sound.
 - **Custom launcher icon** makes Messenger's home screen icon white on black (the default) or black on white. Pick the style in its option. Patch again without it to get the normal icon back.
-- **GmsCore support** is for phones that run [microG-RE](https://github.com/MorpheApp/MicroG-RE) instead of Google Play services. Messenger then gets its push token from microG-RE and keeps your login. Without microG-RE installed, Messenger gets no Google push at all, so leave it out on a phone with Play services.
+- **GmsCore support** is for phones that run [microG-RE](https://github.com/MorpheApp/MicroG-RE) instead of Google Play services. Messenger then gets its push token from microG-RE and keeps your login. Without microG-RE installed, Messenger can't get notifications through Google's push service at all. Leave it out on a phone with Play services. When it's patched in and microG-RE is missing or turned off, the top of the HushMessenger settings tells you.
 
 ## Help
 
@@ -183,6 +183,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 - **Uninstalling the settings icon removes Messenger.** Both icons belong to one app. Hide the icon with **App > Hide app drawer icon** instead.
 - **A cloned Messenger brings back the settings icon.** A clone made by your phone's dual apps or app cloner keeps its own copy of the settings. Open the clone's settings icon and turn on **App > Hide app drawer icon** there too.
 - **Messages or calls stop popping up.** Check that `Quiet incoming calls` is off and that **Allow chat bubbles** is on Stock. A reinstall resets your phone's own notification permissions, and Xiaomi, Redmi and POCO phones also want **Floating notifications** on for each Messenger category plus **Display pop-up windows while running in the background** under Other permissions for calls. **App > Report a problem** then lists any notification channel that still can't pop up.
+- **Your phone says Messenger uses a lot of battery in the background.** Open an issue and paste what **App > Copy setup** gives you. It lists your switches, and its `Push:` line shows which push service Messenger is set up to use.
 - **Every chat and call notifies twice.** The second one comes from the Facebook app, which doesn't treat the patched Messenger as the real one. In [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) turn on **Leave calls and chats to Messenger**. With regular Facebook, turn off its chat and call notifications in Android's app settings for Facebook.
 - **Facebook's Messenger button opens Facebook's own Chats.** Regular Facebook doesn't treat the patched Messenger as the real one, so it keeps you in its Chats. In [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) turn on **Open Messenger from the top bar** under Chats and Messenger.
 - **Restoring chats ends in an error.** The Google Drive restore only works in Meta's own signed Messenger. Use your PIN or a one-time code from another device you're signed in on. No PIN yet? Set one up in another Meta app first, such as Facebook Lite.
@@ -202,8 +203,6 @@ Messenger and Android handle this without a switch. In Messenger's app info, set
 With **Hide read receipts** on, a chat you open stays unread on your phone, because Messenger marks a chat read and sends Seen in one step. **Mark as read** and replying still mark it read and show Seen. If you'd rather have chats marked read without anyone seeing Seen, leave the switch off and turn off **Show read receipts** in Messenger's Settings > Privacy & safety > Read receipts.
 
 ## Supported Messenger builds
-
-This table is for the next release. v0.29.0, the current one, takes 586.0.0.55.92.
 
 | Field | Value |
 | --- | --- |
@@ -246,10 +245,10 @@ On Windows, compare your file with `Get-FileHash -Algorithm SHA256 .\messenger.a
 
 ## Verify a download
 
-The [v0.29.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
+The [v0.30.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
 
 ```text
-46c43c6a817e9f4dc8262ad881b1f8a6c9237c8691eb234d4f2ef33d98326a61  patches-0.29.0.mpp
+de5870f82a4aa0bcf2b9808e66ae8839b95f2168582ffba8024604d71b758e4a  patches-0.30.0.mpp
 ```
 
 `SHA256SUMS.txt.sig` is an SSH signature made with the project's release key. Its fingerprint is `SHA256:Z+UfHy7IUbtgNRO/wHkIr68+u4I+SIKPY9avfx/VAPU` and its public half is in [`scripts/release_signers`](scripts/release_signers). Morphe doesn't check this signature, so checking it is up to you. Download the three files from the same tag and run this in a terminal (OpenSSH 8.1 or newer, which Windows 10 and later include). In PowerShell, wrap it in `cmd /c "..."`.
@@ -299,7 +298,7 @@ Where things live:
 - `patches-list.json` is the generated patch catalog (`:patches:generatePatchCatalog`). `patches-bundle.json` is the Morphe source index and only changes at release time.
 - `scripts/release/release.ps1` runs a release in five stages: `prepare`, `preflight`, `build`, `publish` and `index`.
 
-To add a control, find its hook in the stock APK with `:patches:inspectDex -PapkPath=<apk> -Ptarget=<query>` (queries like `class:LX/Foo;`, `method:LX/Foo;->A01`, `callers:`, `strings:<text>`, `reads:`, `writes:` and `impl:`). Define it under `controls/` so discovery validates every site before the first edit, add the row in `SettingsActivity.java` with its text in `SettingsText.java` and `SettingsTranslations.java`, mirror the hook in `CompatReport.java`, and add tests for the expected shape and for a missing or ambiguous one.
+To add a control, find its hook in the stock APK with `:patches:inspectDex -PapkPath=<apk> -Ptarget=<query>` (queries like `class:LX/Foo;`, `method:LX/Foo;->A01`, `callers:`, `strings:<text>`, `reads:`, `writes:` and `impl:`). Define it under `controls/` so discovery validates every site before the first edit, add the row in `SettingsActivity.java` with its text in `SettingsText.java` and `SettingsTranslations.java`, mirror the hook in its family's file under `scripts/compat/`, and add tests for the expected shape and for a missing or ambiguous one.
 
 Translations are welcome. A language is one Java table of text pairs registered with one line in `SettingsTranslations.java`, and `SettingsTranslationTest` fails the build when a text is missing or a placeholder changed.
 

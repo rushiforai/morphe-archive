@@ -29,9 +29,10 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # hook/builder name/anchor triples, "*" for a builder of any name, and all of a rule's triples are one surface.
 # The clean APK supplies the callers. Final flags do not excuse missing, duplicated or misplaced calls.
 # Feed ownership is shared. Ad views and the Play Core update prompt can be absent in a supported target.
-# An empty capability column is a family that changes no bytecode (a manifest-only patch): only its
-# installed flag is checked against the selected patches.
-family|hideAds|Hide ads|feedAds,adViews,googleAds,metaAds
+# An empty capability column is a family applied whole when patching, or the patch fails: its
+# installed flag is checked against the selected patches, and a mutation rule may name that flag in
+# its capability column when the family changes bytecode too (Change package name does).
+family|hideAds|Hide ads|feedAds,adViews,googleAds,metaAds,interstitialAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
 family|filterFeed|Filter feed|feedVideoPins,feedMutedWords,feedSavedPins,feedHomeSuggestions,feedbackFlyout
@@ -42,6 +43,7 @@ family|hideAdvertisingId|Hide advertising ID|advertisingId,browserId
 family|removeAdTrackingPermissions|Remove ad tracking permissions|
 family|spoofSignature|Spoof signature for Google sign-in|
 family|gmsCoreSupport|GmsCore support|signInFailure
+family|changePackageName|Change package name|
 family|downloadPins|Download pins|pinDownloads,copyImage,shareImage,saveAndDownload
 family|downloadBoard|Download board|boardMenu,boardPins
 family|longPressDownload|Long-press download|longPressMenu,longPressChoices
@@ -52,10 +54,10 @@ family|hideAssistant|Hide Assistant|assistantEntries
 family|hideSearchHistory|Hide search history|searchHistory,recentSearchRows,recentSearchHeading
 family|hideNavigationButtons|Hide navigation buttons|navigationButtons
 family|hideHeaderButtons|Hide header buttons|headerButtons
-family|amoledBlack|AMOLED black|blackBottomBar,blackComments,blackPinMenu
+family|amoledBlack|AMOLED black|blackBottomBar,blackComments,blackPinMenu,blackSaveSheet
 family|hideCloseupButtons|Hide closeup buttons|closeupButtons,closeupSearchLabel,closeupActionBar,closeupRemix,closeupVisitSite,closeupSaveButton
 family|hidePinMenuItems|Filter pin menu|pinMenuItems
-family|hideComments|Hide comments|comments,suggestedReplies
+family|hideComments|Hide comments|comments,suggestedReplies,commentPreviews
 family|hideTopicSuggestions|Hide topic suggestions|topicSuggestions
 family|hideInboxUpdates|Hide Inbox updates|inboxUpdates
 family|quietEmailReminder|Quiet email reminders|emailReminder
@@ -63,6 +65,8 @@ family|hideSurveyPrompts|Hide survey prompts|surveyPrompts
 family|hideSaveToasts|Hide save toasts|saveToasts
 family|originalImages|Original-quality images|imageChooser,closeupImage
 family|showPostedDate|Show posted date|postedDate
+family|hideSuggestedBoards|Hide suggested boards|suggestedBoards
+family|expandBoardList|Expand board list|boardListHeight
 family|disableUpdateNag|Disable update nag|updateNag
 family|fixPushNotifications|Fix push notifications|firebaseCertificate
 
@@ -71,6 +75,7 @@ mutation|feedAds,feedAiPins,feedShopping,feedVideoPins,feedMutedWords,feedHomeSu
 mutation|adViews|views|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewMeasureSpec(I)I|Lcom/pinterest/featurelibrary/textads/TextAdView;,Lcom/pinterest/activity/pin/view/modules/LegacyPromotedCloseupActionButtonModule;,Lcom/pinterest/feature/pin/closeup/view/PromotedPinCloseupFloatingActionBarModule;,Lcom/pinterest/feature/board/detail/header/view/lego/BoardSponsoredCuratorView;
 mutation|googleAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipGoogleAds()Z|googleAds
 mutation|metaAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipMetaConsent(Ljava/lang/Object;)Z|metaAds
+mutation|interstitialAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->killInterstitials()Z|interstitialKillswitch|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipInterstitials()Z|interstitialExperiment
 mutation|homeFeed|guard|Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdResumeRefresh(J)Z|homeResume|Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdHomeRefresh(Ljava/util/Map;I)Z|homeRefresh
 mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockTask(Ljava/lang/Object;)Z|Ljava/net/URL;->openConnection()Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockUpload()Z|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->engageService(Ljava/lang/Object;)Ljava/lang/Object;
 mutation|linkTracking|links|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putStringExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putTextExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Landroid/content/ClipData;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;
@@ -83,7 +88,7 @@ mutation|longPressMenu|longPress|Lapp/hushpinterest/extension/pinterest/actions/
 mutation|longPressChoices|longPressChoices|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->buttonKind(Ljava/lang/Object;)I
 mutation|visitLinks|guard|Lapp/hushpinterest/extension/pinterest/actions/ExternalBrowser;->open(Ljava/lang/String;Ljava/lang/Object;)Z|visit|Lapp/hushpinterest/extension/pinterest/actions/ExternalBrowser;->openProfile(Ljava/lang/String;)Z|profileWebsite
 mutation|pinShare|guard|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z|share|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z|shareCloseup
-mutation|screenshotShare|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshot
+mutation|screenshotShare|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshot|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshotCallback|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshotReceiver
 mutation|assistantEntries|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideAssistant()Z|assistant
 mutation|searchHistory|views|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryMeasureSpec(I)I|Lcom/pinterest/feature/search/landing/view/SlpRecentSearchCell;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchesCarouselView;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchPillView;
 mutation|navigationButtons|navigation|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->bindNavigation(Landroid/view/View;Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->refreshNavigation(Landroid/view/View;)V
@@ -98,9 +103,13 @@ mutation|closeupActionBar|closeupActionBar|Lapp/hushpinterest/extension/pinteres
 mutation|closeupVisitSite|closeupVisitSite|Lapp/hushpinterest/extension/pinterest/ui/CloseupButtons;->visitSite(Landroid/view/View;)V|Lapp/hushpinterest/extension/pinterest/ui/CloseupButtons;->visibility(Landroid/view/View;I)I
 mutation|closeupSaveButton|closeupSaveButton|Lapp/hushpinterest/extension/pinterest/ui/CloseupButtons;->saveButton(Landroid/view/View;)V
 mutation|postedDate|postedDate|Lapp/hushpinterest/extension/pinterest/ui/PostedDate;->show(Landroid/view/View;Ljava/lang/Object;)V
+mutation|blackSaveSheet|saveSheet|Lapp/hushpinterest/extension/pinterest/ui/AmoledBlack;->saveSheet(Landroid/view/View;)V
+mutation|suggestedBoards|suggestedBoard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->suggestedBoard(Ljava/util/Collection;Ljava/lang/Object;)V
+mutation|boardListHeight|boardListHeight|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->saveSheetHeight(I)I
 mutation|pinMenuItems|menu|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->pinMenuItem(Landroid/view/View;Ljava/lang/String;)V|overflow_menu_add_to_collage,overflow_menu_remix_collage,contextmenu_visual_search_image,overflow_menu_pin_boost
-mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsMeasureSpec(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisible(Z)Z|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentPreviewView;|Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;
+mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsMeasureSpec(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisible(Z)Z|Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentPreviewsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentPreviewsMeasureSpec(I)I|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentsImagesView;
 mutation|suggestedReplies|views|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->suggestedRepliesVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->suggestedRepliesMeasureSpec(I)I|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentsQuickReplies;
+mutation|commentPreviews|views|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentPreviewsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentPreviewsMeasureSpec(I)I|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentPreviewView;
 mutation|topicSuggestions|topicSuggestions|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestions(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestionsMeasureSpec(Landroid/view/View;I)I
 mutation|inboxUpdates|inboxUpdates|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideInboxUpdates()Z|news_hub/feed/|addDataSources
 mutation|recentSearchRows|recentSearchRows|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->recentSearchRow(Landroid/view/View;Z)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->recentSearchRowMeasureSpec(Landroid/view/View;I)I
@@ -111,8 +120,11 @@ mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hi
 mutation|imageChooser|imageOrder|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->originalImages()Z
 mutation|closeupImage|closeupImage|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->imageSizes(Ljava/util/Set;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->closeupImage(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 mutation|updateNag|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->disableUpdateNag()Z|update
-mutation|signInFailure|signInFailure|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->requestFailed(Ljava/lang/Exception;)V
+mutation|signInFailure|signInFailure|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->requestFailed(Ljava/lang/Exception;)V|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->signsInThroughMicroG()Z|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->isGoogleIdOption(Ljava/lang/String;)Z
 mutation|saveAndDownload|saveAndDownload|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saving(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saver(Ljava/lang/Object;)V|Lcom/pinterest/feature/pin/closeup/presenter/OrganicPinCloseupPresenter;
 mutation|feedSavedPins|homePage|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->homePage(Ljava/lang/Object;)V|Lcom/pinterest/feature/home/model/|Lcom/pinterest/legacy/feeds/DynamicFeed;
 mutation|feedbackFlyout|feedbackFlyout|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->feedbackFlyout(Ljava/lang/Boolean;)Ljava/lang/Boolean;|show_feedback_flyout
 mutation|firebaseCertificate|firebaseCertificate|Lapp/hushpinterest/extension/pinterest/notifications/PushNotifications;->certificateHeader(Ljava/net/URLConnection;Ljava/lang/String;)Ljava/lang/String;
+# Change package name hands each load of a literal naming one of Pinterest's own providers to the
+# extension, which answers the running copy's authority.
+mutation|changePackageName|ownAuthorities|Lapp/hushpinterest/extension/pinterest/coexist/OwnAuthorities;->name(Ljava/lang/String;)Ljava/lang/String;

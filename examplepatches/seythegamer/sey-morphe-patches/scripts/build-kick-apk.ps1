@@ -5,7 +5,7 @@
 param(
     [string]$InputApk,
     [string]$OutputApk,
-    [string]$Version = '1.2.4'
+    [string]$Version = '1.2.5'
 )
 
 $ErrorActionPreference = 'Stop'

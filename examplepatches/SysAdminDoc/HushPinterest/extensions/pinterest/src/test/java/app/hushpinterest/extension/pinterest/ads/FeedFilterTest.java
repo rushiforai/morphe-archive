@@ -625,6 +625,29 @@ public class FeedFilterTest {
         assertFalse(Ads.skipMetaConsent(ConsentVendor.META_AUDIENCE_NETWORK));
     }
 
+    /**
+     * Pinterest 14.44.0 can show a full-screen ad when a pin is tapped. With Hide ads on, its
+     * killswitch read answers that interstitials are off and its experiment check answers no, so the
+     * pin opens at once; off or paused, both questions get Pinterest's own answer.
+     */
+    @Test
+    public void hideAdsAnswersBothInterstitialQuestionsOnlyWhileOn() {
+        assertTrue(Ads.killInterstitials());
+        assertTrue(Ads.skipInterstitials());
+        String report = report();
+        assertTrue(report, report.contains("Interstitial killswitch read as on"));
+        assertTrue(report, report.contains("Interstitial experiment answered no"));
+
+        Settings.HIDE_ADS.save(false);
+        assertFalse(Ads.killInterstitials());
+        assertFalse(Ads.skipInterstitials());
+
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(Ads.killInterstitials());
+        assertFalse(Ads.skipInterstitials());
+    }
+
     @Test
     public void hideAdsTakesTheAdsOutOfAModuleThatStays() {
         Settings.HIDE_AI_PINS.save(false);

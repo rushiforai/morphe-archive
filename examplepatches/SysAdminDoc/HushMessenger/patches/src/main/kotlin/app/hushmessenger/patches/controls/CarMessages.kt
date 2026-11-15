@@ -63,14 +63,15 @@ internal fun Method.carExtend(): CarExtend? {
 }
 
 /** The app's only method that writes both car_conversation and android.car.EXTENSIONS, when it has that shape. */
+internal val carBundleWriters = MethodCheck {
+    val conversation = StringMatch(CAR_CONVERSATION)
+    val extensions = StringMatch(CAR_EXTENSIONS)
+    val test: MethodTest = { _, method -> conversation.inCode(method) && extensions.inCode(method) }
+    test
+}
+
 internal fun findCarMessages(classes: Iterable<ClassDef>): List<Method> {
-    val writers = classes.flatMap { cls ->
-        cls.methods.filter { method ->
-            val strings = method.implementation?.instructions?.mapNotNull { it.string() }.orEmpty()
-            CAR_CONVERSATION in strings && CAR_EXTENSIONS in strings
-        }
-    }
-    val writer = writers.singleOrNull() ?: return emptyList()
+    val writer = carBundleWriters.methods(classes).singleOrNull() ?: return emptyList()
     return if (writer.carExtend() != null) listOf(writer) else emptyList()
 }
 
@@ -129,14 +130,10 @@ internal fun Method.carExtensionGate(): CarGate? {
 }
 
 /** The app's only method that logs add_android_auto_extension, when its flag check has that shape. */
+internal val carExtensionSteps = MethodCheck(loadsString(CAR_EXTENSION_STEP))
+
 internal fun findCarExtensionGate(classes: Iterable<ClassDef>): List<Method> {
-    val carExtensionStep = StringMatch(CAR_EXTENSION_STEP)
-    val steps = classes.flatMap { cls ->
-        cls.methods.filter { method ->
-            method.implementation?.instructions?.any { carExtensionStep.matches((it as? ReferenceInstruction)?.reference) } == true
-        }
-    }
-    val gate = steps.singleOrNull() ?: return emptyList()
+    val gate = carExtensionSteps.methods(classes).singleOrNull() ?: return emptyList()
     return if (gate.carExtensionGate() != null) listOf(gate) else emptyList()
 }
 

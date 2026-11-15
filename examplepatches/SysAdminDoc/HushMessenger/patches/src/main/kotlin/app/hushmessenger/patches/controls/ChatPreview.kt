@@ -81,13 +81,13 @@ internal fun Method.chatPreviewSites(): List<ChatPreviewSite> {
  * long-press handler and the chat list's other preview path call after asking the flag. Taken only when every read has
  * the tested shape and one of them asks the encrypted-chat flag too.
  */
+internal val chatPreviewBuilders = methodCheck { _, method -> method.buildsChatPreview() }
+
+internal val chatPreviewReaders = methodCheck { _, method -> method.readsChatPreviewFlag() }
+
 internal fun findChatPreview(classes: Iterable<ClassDef>): List<Method> {
-    val builders = mutableListOf<Method>()
-    val readers = mutableListOf<Method>()
-    for (cls in classes) for (method in cls.methods) {
-        if (method.buildsChatPreview()) builders.add(method)
-        if (method.readsChatPreviewFlag()) readers.add(method)
-    }
+    val builders = chatPreviewBuilders.methods(classes)
+    val readers = chatPreviewReaders.methods(classes)
     val builder = builders.singleOrNull()?.hookId() ?: return emptyList()
     val linked = readers.any { reader ->
         reader.hookId() == builder || reader.implementation!!.instructions.any {

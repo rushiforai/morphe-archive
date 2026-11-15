@@ -18,8 +18,7 @@
     also lists the commits in this checkout that change patches-bundle.json and haven't reached
     the branch on GitHub, which is what was missing for 0.0.5.
 
-    Dot-sourcing it defines the functions alone, for the offline contracts in
-    test-published-index.ps1.
+    Dot-sourcing it defines the functions alone.
 #>
 [CmdletBinding()]
 param(

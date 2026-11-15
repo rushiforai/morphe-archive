@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="54" viewBox="0 0 250 54" fill="none">
+  <rect x="1" y="1" width="248" height="52" rx="16" fill="#111517" stroke="#88C2CE" stroke-width="2"/>
+  <circle cx="32" cy="27" r="14" fill="#1A282B"/>
+  <path d="M32 17L40.66 22V32L32 37L23.34 32V22L32 17Z" stroke="#88C2CE" stroke-width="2.2" fill="none"/>
+  <circle cx="32" cy="27" r="3" fill="#FFFFFF"/>
+  <text x="58" y="24" fill="#88C2CE" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">ONE-CLICK INSTALL</text>
+  <text x="58" y="40" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800">Add to Morphe</text>
+</svg>

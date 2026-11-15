@@ -33,10 +33,13 @@ permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
 permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION
 component-removed {"owner":"application","declaration":{"tag":"property","attributes":{"android:name":"android.adservices.AD_SERVICES_CONFIG"},"children":[]}}
 
-# Two application metadata entries are added, naming Pinterest's own signing certificate for
-# signature spoofing: its SHA-1 for microG-RE and the whole DER certificate in hex for modules such
-# as XSpoofSignatures. No permission is added or requested, FAKE_PACKAGE_SIGNATURE included.
+# Three application metadata entries are added, naming Pinterest's own package and signing
+# certificate for signature spoofing: the package and the certificate's SHA-1 for microG-RE, and
+# the whole DER certificate in hex for modules such as XSpoofSignatures. The package stays
+# com.pinterest on a renamed copy. No permission is added or requested, FAKE_PACKAGE_SIGNATURE
+# included.
 [Spoof signature for Google sign-in]
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"app.revanced.android.gms.SPOOFED_PACKAGE_NAME","android:value":"com.pinterest"},"children":[]}}
 metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE","android:value":"b6a74dbcb894b0f73d8c485c72eb1247a8f027ca"},"children":[]}}
 metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"fake-signature","android:value":"3082024f308201b8a00302010202044f96d518300d06092a864886f70d0101050500306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c2052696365301e170d3132303432343136333031365a170d3337303431383136333031365a306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c205269636530819f300d06092a864886f70d010101050003818d0030818902818100bd8b325a2eb8ade0e16e44971e75130ec98f2c37c8a477044382a1c5c18aa3078bede3c1a49776441617f3bb6711d1a7d764785ea20bf8c694d78fdc82d575f88f340fc87b948558385636f80dba536481a9c8bf03505781adbbca1ef65b2f59281ca92e352d9f685d04024c19cb3b4e3e14e6eb69ca113e55b55d766ea860170203010001300d06092a864886f70d0101050500038181009e6766c1071e383b75c520221b502e4701d7a110933a9fe7e7417679be71581ad24a09c42bb5190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714"},"children":[]}}
 
@@ -57,7 +60,8 @@ query-added {"owner":"queries#0","declaration":{"tag":"intent","attributes":{},"
 # Firebase messaging's c2dm names move to microG-RE's: the receive permission Pinterest asks for,
 # the send permission its Firebase receiver demands of a sender, and the receive action that
 # receiver listens for. microG-RE's package joins the first query block so Pinterest can see it
-# on Android 11 and later. The signature metadata comes along with it, as Spoof signature adds it.
+# on Android 11 and later. The package and signature metadata come along with it, as Spoof signature
+# adds them.
 [GmsCore support]
 permission-removed com.google.android.c2dm.permission.RECEIVE
 permission-added app.revanced.android.c2dm.permission.RECEIVE
@@ -67,5 +71,30 @@ filter-removed {"owner":"receiver:com.google.firebase.iid.FirebaseInstanceIdRece
 filter-added {"owner":"receiver:com.google.firebase.iid.FirebaseInstanceIdReceiver","declaration":{"tag":"intent-filter","attributes":{},"children":[{"tag":"action","attributes":{"android:name":"app.revanced.android.c2dm.intent.RECEIVE"},"children":[]}]}}
 query-added {"owner":"queries#0","declaration":{"tag":"queries","attributes":{},"children":[]}}
 query-added {"owner":"queries#0","declaration":{"tag":"package","attributes":{"android:name":"app.revanced.android.gms"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"app.revanced.android.gms.SPOOFED_PACKAGE_NAME","android:value":"com.pinterest"},"children":[]}}
 metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE","android:value":"b6a74dbcb894b0f73d8c485c72eb1247a8f027ca"},"children":[]}}
 metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"fake-signature","android:value":"3082024f308201b8a00302010202044f96d518300d06092a864886f70d0101050500306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c2052696365301e170d3132303432343136333031365a170d3337303431383136333031365a306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c205269636530819f300d06092a864886f70d010101050003818d0030818902818100bd8b325a2eb8ade0e16e44971e75130ec98f2c37c8a477044382a1c5c18aa3078bede3c1a49776441617f3bb6711d1a7d764785ea20bf8c694d78fdc82d575f88f340fc87b948558385636f80dba536481a9c8bf03505781adbbca1ef65b2f59281ca92e352d9f685d04024c19cb3b4e3e14e6eb69ca113e55b55d766ea860170203010001300d06092a864886f70d0101050500038181009e6766c1071e383b75c520221b502e4701d7a110933a9fe7e7417679be71581ad24a09c42bb5190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714"},"children":[]}}
+
+# Change package name (opt-in, never in the default selection) moves the copy to its own package,
+# com.pinterest.hushpinterest by default, so it installs beside Pinterest. Pinterest's own
+# signature permissions are named after its package, and so are its provider authorities, so both
+# move with it: where they're asked for, where a provider requires one, and every authority under
+# the package, Download pins' share provider included. The application and the launcher alias are
+# labeled HushPinterest. Each move is approved by its owner and the attributes it changes, since the
+# declarations around them differ between builds, and a label by its new value alone, since the
+# stock one is a resource id. The package itself may change only with this patch selected.
+[Change package name]
+permission-removed com.pinterest.account.Credentials
+permission-added com.pinterest.hushpinterest.account.Credentials
+permission-removed com.pinterest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permission-added com.pinterest.hushpinterest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+component-removed {"owner":"provider:androidx.startup.InitializationProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.androidx-startup"},"children":[]}}
+component-added {"owner":"provider:androidx.startup.InitializationProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.hushpinterest.androidx-startup"},"children":[]}}
+component-removed {"owner":"provider:com.pinterest.account.CredentialsContentProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.CredentialsProvider","android:permission":"com.pinterest.account.Credentials"},"children":[]}}
+component-added {"owner":"provider:com.pinterest.account.CredentialsContentProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.hushpinterest.CredentialsProvider","android:permission":"com.pinterest.hushpinterest.account.Credentials"},"children":[]}}
+component-removed {"owner":"provider:androidx.core.content.FileProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.provider"},"children":[]}}
+component-added {"owner":"provider:androidx.core.content.FileProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.hushpinterest.provider"},"children":[]}}
+component-removed {"owner":"provider:app.hushpinterest.extension.pinterest.actions.SharePreviewProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.hushpinterest.share"},"children":[]}}
+component-added {"owner":"provider:app.hushpinterest.extension.pinterest.actions.SharePreviewProvider","declaration":{"tag":"provider","attributes":{"android:authorities":"com.pinterest.hushpinterest.hushpinterest.share"},"children":[]}}
+component-added {"owner":"activity-alias:com.pinterest.activity.PinterestActivity","declaration":{"tag":"activity-alias","attributes":{"android:label":"HushPinterest"},"children":[]}}
+component-added {"owner":"application","declaration":{"tag":"application","attributes":{"android:label":"HushPinterest"},"children":[]}}

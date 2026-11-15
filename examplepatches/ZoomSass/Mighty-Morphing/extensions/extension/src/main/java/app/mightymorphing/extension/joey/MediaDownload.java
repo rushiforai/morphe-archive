@@ -61,6 +61,11 @@ public final class MediaDownload {
             {"date", "Date"},
     };
     private static final Map<String, String> NAMES = new ConcurrentHashMap<>();
+    private static final Map<String, Object> METHODS = new ConcurrentHashMap<>();
+    private static final Object MISSING = new Object();
+    private static final Map<String, Integer> IDS = new ConcurrentHashMap<>();
+    private static final android.util.SparseArray<Bitmap> FLOPPIES = new android.util.SparseArray<>();
+    private static final int SAVE_ICON = 0x4d4f0041;
     private static final ConcurrentLinkedQueue<String> VIDEOS = new ConcurrentLinkedQueue<>();
     private static final Map<String, Boolean> ARMED = new ConcurrentHashMap<>();
     private static boolean naming;
@@ -125,8 +130,8 @@ public final class MediaDownload {
     /** The feed is opening this post in the viewer. Keep it for the viewer's download button. */
     public static void note(Object submission) {
         if (submission == null) return;
-        catalog(submission);
         List<File> files = files(submission);
+        catalog(submission, files);
         current = files.isEmpty() ? describe(submission, text(submission, "g0")) : files.get(0);
     }
 
@@ -164,7 +169,8 @@ public final class MediaDownload {
 
     public static void attach(View item, Object submission) {
         if (item == null) return;
-        catalog(submission);
+        List<File> files = submission == null ? Collections.<File>emptyList() : files(submission);
+        catalog(submission, files);
         View barView = find(item, "actionbar_layout");
         if (!(barView instanceof ViewGroup)) return;
         ViewGroup bar = (ViewGroup) barView;
@@ -195,16 +201,22 @@ public final class MediaDownload {
             paintFloppy(button, sample);
         }
         POSTS.put(button, submission);
-        button.setVisibility(showButton(item, submission) ? View.VISIBLE : View.GONE);
+        int shown = showButton(item, submission, files) ? View.VISIBLE : View.GONE;
+        if (button.getVisibility() != shown) button.setVisibility(shown);
         restoreSave(item);
     }
 
     /** Joey already shows the link icon for a non-text post. Keep web links and YouTube off the button. */
-    private static boolean showButton(View item, Object submission) {
+    private static boolean showButton(View item, Object submission, List<File> files) {
         if (submission == null || album(submission)) return false;
         View link = find(item, "link_icon");
-        if (link == null || link.getVisibility() != View.VISIBLE) return false;
-        if (!files(submission).isEmpty()) return true;
+        if (link == null) return false;
+        // Post bar may have hidden the link button. Joey's own visibility is kept in a tag.
+        int key = resId(item.getContext(), "actionbar_layout", "id");
+        Object kept = key == 0 ? null : link.getTag(key);
+        int visibility = kept instanceof Integer ? (Integer) kept : link.getVisibility();
+        if (visibility != View.VISIBLE) return false;
+        if (!files.isEmpty()) return true;
         String url = text(submission, "g0");
         String domain = text(submission, "R");
         if (url != null && (url.contains("v.redd.it") || direct(url)
@@ -230,29 +242,51 @@ public final class MediaDownload {
         List<String> order = order(activity);
         JSONObject on = included(activity);
         LinearLayout page = MorpheDialog.page(activity, "Downloads",
-                "A picture, GIF, or video saves straight away. "
-                        + "Drag a part to build the file name. Add keeps that part in the name.");
-        TextView sample = new TextView(activity);
-        sample.setTextColor(MorpheDialog.sub(activity));
-        sample.setTextSize(13);
-        sample.setTypeface(sample.getTypeface(), android.graphics.Typeface.ITALIC);
-        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
-        sample.setPadding(pad, 0, pad, pad);
-        page.addView(sample);
+                "A picture, GIF, or video saves straight away, with no prompt.");
+        float density = activity.getResources().getDisplayMetrics().density;
+        int pad = Math.round(16 * density);
+        int text0 = MorpheDialog.text(activity);
+        int sub = MorpheDialog.sub(activity);
+
+        // Folder: one row, the folder on the left and Change on the right.
+        page.addView(MorpheDialog.section(activity, "Folder", MorpheDialog.accent(activity)));
+        LinearLayout folderRow = new LinearLayout(activity);
+        folderRow.setOrientation(LinearLayout.HORIZONTAL);
+        folderRow.setGravity(Gravity.CENTER_VERTICAL);
+        folderRow.setMinimumHeight(Math.round(52 * density));
+        ImageView folderIcon = BarPreview.icon(activity, "folder_outline", sub, 22);
+        if (folderIcon.getDrawable() == null) folderIcon = BarPreview.icon(activity, "folder", sub, 22);
+        folderRow.addView(folderIcon);
         TextView folder = new TextView(activity);
-        folder.setTextColor(MorpheDialog.text(activity));
+        folder.setTextColor(text0);
         folder.setTextSize(15);
         folder.setText(folderLabel());
-        folder.setPadding(pad, 0, pad, 0);
-        page.addView(folder);
-        TextView change = MorpheDialog.action(activity, "Change folder", MorpheDialog.TEXT);
+        folder.setPadding(Math.round(8 * density), 0, Math.round(8 * density), 0);
+        folderRow.addView(folder, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        TextView change = MorpheDialog.action(activity, "Change", MorpheDialog.TEXT);
         change.setOnClickListener(v -> pickFolder(activity, folder));
-        LinearLayout.LayoutParams changeLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        changeLp.leftMargin = pad;
-        changeLp.topMargin = Math.round(8 * activity.getResources().getDisplayMetrics().density);
-        changeLp.bottomMargin = pad;
-        page.addView(change, changeLp);
+        folderRow.addView(change);
+        page.addView(folderRow);
+
+        // File name: the result first, then the parts that build it.
+        page.addView(MorpheDialog.section(activity, "File name", MorpheDialog.accent(activity)));
+        TextView sample = new TextView(activity);
+        sample.setTextColor(text0);
+        sample.setTextSize(13);
+        sample.setTypeface(android.graphics.Typeface.MONOSPACE);
+        sample.setPadding(Math.round(12 * density), Math.round(10 * density), Math.round(12 * density),
+                Math.round(10 * density));
+        android.graphics.drawable.GradientDrawable box = new android.graphics.drawable.GradientDrawable();
+        box.setCornerRadius(10 * density);
+        box.setColor(BarPreview.canvas(activity));
+        sample.setBackground(box);
+        page.addView(sample);
+        TextView how = new TextView(activity);
+        how.setText("Tick the parts to use. Drag the handle to change their order.");
+        how.setTextColor(sub);
+        how.setTextSize(12);
+        how.setPadding(0, Math.round(8 * density), 0, Math.round(4 * density));
+        page.addView(how);
         LinearLayout rows = new LinearLayout(activity);
         rows.setOrientation(LinearLayout.VERTICAL);
         int text = MorpheDialog.text(activity);
@@ -269,22 +303,14 @@ public final class MediaDownload {
                 line.setGravity(Gravity.CENTER_VERTICAL);
                 line.setTag(id);
                 line.setMinimumHeight(Math.round(48 * activity.getResources().getDisplayMetrics().density));
-                TextView label = new TextView(activity);
-                label.setText(def[1]);
-                label.setTextColor(text);
-                label.setTextSize(15);
-                line.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-                TextView hide = MorpheDialog.action(activity, "Add", MorpheDialog.TEXT);
-                MorpheDialog.setFilled(activity, hide, shown);
-                hide.setOnClickListener(v -> {
-                    put(on, id, !on.optBoolean(id, false));
+                // A tick box per part. Ticked parts are in the file name.
+                android.widget.CheckBox tick = MorpheDialog.check(activity, def[1], shown, null);
+                tick.setOnCheckedChangeListener((button, checked) -> {
+                    put(on, id, checked);
                     save(activity, order, on);
-                    rebuild[0].run();
+                    sample.setText(example(order, on));
                 });
-                LinearLayout.LayoutParams gap = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                gap.leftMargin = Math.round(12 * activity.getResources().getDisplayMetrics().density);
-                line.addView(hide, gap);
+                line.addView(tick, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
                 line.addView(DragOrder.handle(activity, rows, (from, to) -> {
                     if (from < 0 || to < 0 || from >= rows.getChildCount() || to >= rows.getChildCount()) return false;
                     int ia = order.indexOf(String.valueOf(rows.getChildAt(from).getTag()));
@@ -541,11 +567,11 @@ public final class MediaDownload {
             if (node != null && bool(get(node, "is_gallery"))) {
                 Object meta = get(node, "media_metadata");
                 if (meta != null) {
-                    Iterator<?> fields = (Iterator<?>) meta.getClass().getMethod("fields").invoke(meta);
+                    Iterator<?> fields = (Iterator<?>) method(meta.getClass(), "fields").invoke(meta);
                     int n = 1;
                     while (fields != null && fields.hasNext()) {
                         Object entry = fields.next();
-                        Object item = entry.getClass().getMethod("getValue").invoke(entry);
+                        Object item = method(entry.getClass(), "getValue").invoke(entry);
                         Object source = get(item, "s");
                         String url = firstText(source, "u", "gif", "mp4");
                         if (url == null) continue;
@@ -595,10 +621,9 @@ public final class MediaDownload {
         return false;
     }
 
-    private static void catalog(Object submission) {
+    private static void catalog(Object submission, List<File> files) {
         if (submission == null) return;
         try {
-            List<File> files = files(submission);
             for (File file : files) keep(file);
             String page = text(submission, "g0");
             if (page != null && !files.isEmpty()) {
@@ -663,9 +688,15 @@ public final class MediaDownload {
     private static void restoreSave(View item) {
         View save = find(item, "save");
         if (!(save instanceof ImageView)) return;
-        String drawable = ((ImageView) save).isSelected() ? "star" : "star_outline";
-        int id = item.getResources().getIdentifier(drawable, "drawable", item.getContext().getPackageName());
-        if (id != 0) ((ImageView) save).setImageResource(id);
+        ImageView star = (ImageView) save;
+        int id = resId(item.getContext(), star.isSelected() ? "star" : "star_outline", "drawable");
+        if (id == 0) return;
+        // Joey puts its own star back on a bind. Only reload ours when the picture or state moved.
+        Object applied = star.getTag(SAVE_ICON);
+        if (applied instanceof SaveIcon && ((SaveIcon) applied).id == id
+                && ((SaveIcon) applied).drawable == star.getDrawable()) return;
+        star.setImageResource(id);
+        star.setTag(SAVE_ICON, new SaveIcon(id, star.getDrawable()));
     }
 
     static View glyph(Context context, int color) {
@@ -674,7 +705,7 @@ public final class MediaDownload {
         view.setLayoutParams(new ViewGroup.LayoutParams(size, size));
         int pad = Math.round(6 * context.getResources().getDisplayMetrics().density);
         view.setPadding(pad, pad, pad, pad);
-        view.setImageBitmap(floppyBitmap(Math.round(24 * context.getResources().getDisplayMetrics().density)));
+        view.setImageBitmap(sharedFloppy(Math.round(24 * context.getResources().getDisplayMetrics().density)));
         view.setColorFilter(color);
         return view;
     }
@@ -689,14 +720,43 @@ public final class MediaDownload {
         }
     }
 
+    private static final class SaveIcon {
+        final int id;
+        final Drawable drawable;
+
+        SaveIcon(int id, Drawable drawable) {
+            this.id = id;
+            this.drawable = drawable;
+        }
+    }
+
+    private static final android.graphics.ColorFilter WHITE_FILTER =
+            new android.graphics.PorterDuffColorFilter(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_ATOP);
+
+    /** Runs on every bind. The bitmap is shared per size and only set when it changes. */
     private static void paintFloppy(ImageView button, View sample) {
         int size = sample != null && sample.getWidth() > 0 ? sample.getWidth()
                 : Math.round(24 * button.getResources().getDisplayMetrics().density);
-        button.setImageBitmap(floppyBitmap(size));
-        if (sample instanceof ImageView && ((ImageView) sample).getColorFilter() != null) {
-            button.setColorFilter(((ImageView) sample).getColorFilter());
-        } else {
-            button.setColorFilter(Color.WHITE);
+        Bitmap bitmap = sharedFloppy(size);
+        Drawable current = button.getDrawable();
+        if (!(current instanceof android.graphics.drawable.BitmapDrawable)
+                || ((android.graphics.drawable.BitmapDrawable) current).getBitmap() != bitmap) {
+            button.setImageBitmap(bitmap);
+        }
+        android.graphics.ColorFilter filter = sample instanceof ImageView && ((ImageView) sample).getColorFilter() != null
+                ? ((ImageView) sample).getColorFilter() : WHITE_FILTER;
+        if (button.getColorFilter() != filter) button.setColorFilter(filter);
+    }
+
+    private static Bitmap sharedFloppy(int size) {
+        int n = Math.max(24, size);
+        synchronized (FLOPPIES) {
+            Bitmap bitmap = FLOPPIES.get(n);
+            if (bitmap == null) {
+                bitmap = floppyBitmap(n);
+                FLOPPIES.put(n, bitmap);
+            }
+            return bitmap;
         }
     }
 
@@ -718,7 +778,7 @@ public final class MediaDownload {
     }
 
     private static int iconId(Context context) {
-        return context.getResources().getIdentifier("morphe_download", "drawable", context.getPackageName());
+        return resId(context, "morphe_download", "drawable");
     }
 
     private static ViewGroup.LayoutParams iconParams(ViewGroup bar, View sample) {
@@ -827,21 +887,21 @@ public final class MediaDownload {
 
     private static Object get(Object node, String field) throws Exception {
         if (node == null) return null;
-        Object child = node.getClass().getMethod("get", String.class).invoke(node, field);
+        Object child = method(node.getClass(), "get", String.class).invoke(node, field);
         if (child == null) return null;
-        if (Boolean.TRUE.equals(child.getClass().getMethod("isNull").invoke(child))) return null;
-        if (Boolean.TRUE.equals(child.getClass().getMethod("isMissingNode").invoke(child))) return null;
+        if (Boolean.TRUE.equals(method(child.getClass(), "isNull").invoke(child))) return null;
+        if (Boolean.TRUE.equals(method(child.getClass(), "isMissingNode").invoke(child))) return null;
         return child;
     }
 
     private static Object get(Object node, int index) throws Exception {
         if (node == null) return null;
-        return node.getClass().getMethod("get", int.class).invoke(node, index);
+        return method(node.getClass(), "get", int.class).invoke(node, index);
     }
 
     private static String text(Object target, String method) {
         try {
-            Method found = target.getClass().getMethod(method);
+            Method found = method(target.getClass(), method);
             Object value = found.invoke(target);
             return value == null ? null : String.valueOf(value);
         } catch (Throwable ignored) {
@@ -851,7 +911,7 @@ public final class MediaDownload {
 
     private static String textOf(Object node) throws Exception {
         if (node == null) return null;
-        Object value = node.getClass().getMethod("asText").invoke(node);
+        Object value = method(node.getClass(), "asText").invoke(node);
         return value == null || String.valueOf(value).isEmpty() ? null : String.valueOf(value);
     }
 
@@ -865,7 +925,7 @@ public final class MediaDownload {
 
     private static Boolean flag(Object target, String method) {
         try {
-            Object value = target.getClass().getMethod(method).invoke(target);
+            Object value = method(target.getClass(), method).invoke(target);
             return value instanceof Boolean ? (Boolean) value : null;
         } catch (Throwable ignored) {
             return null;
@@ -874,7 +934,7 @@ public final class MediaDownload {
 
     private static boolean bool(Object node) throws Exception {
         if (node == null) return false;
-        Object value = node.getClass().getMethod("asBoolean").invoke(node);
+        Object value = method(node.getClass(), "asBoolean").invoke(node);
         return Boolean.TRUE.equals(value);
     }
 
@@ -887,7 +947,7 @@ public final class MediaDownload {
     private static long longOf(Object node) {
         if (node == null) return 0;
         try {
-            Object value = node.getClass().getMethod("asLong").invoke(node);
+            Object value = method(node.getClass(), "asLong").invoke(node);
             return value instanceof Number ? ((Number) value).longValue() : 0;
         } catch (Throwable ignored) {
             return 0;
@@ -920,19 +980,19 @@ public final class MediaDownload {
         if (submission == null || file == null) return;
         if (file.created <= 0) {
             try {
-                Object date = submission.getClass().getMethod("x").invoke(submission);
+                Object date = method(submission.getClass(), "x").invoke(submission);
                 if (date instanceof Date) file.created = ((Date) date).getTime() / 1000L;
             } catch (Throwable ignored) {
             }
         }
         if (file.width > 0 && file.height > 0) return;
         try {
-            Object thumbs = submission.getClass().getMethod("c0").invoke(submission);
+            Object thumbs = method(submission.getClass(), "c0").invoke(submission);
             if (thumbs != null) {
-                Object source = thumbs.getClass().getMethod("r").invoke(thumbs);
+                Object source = method(thumbs.getClass(), "r").invoke(thumbs);
                 if (source != null) {
-                    Object width = source.getClass().getMethod("c").invoke(source);
-                    Object height = source.getClass().getMethod("a").invoke(source);
+                    Object width = method(source.getClass(), "c").invoke(source);
+                    Object height = method(source.getClass(), "a").invoke(source);
                     if (width instanceof Number) file.width = ((Number) width).intValue();
                     if (height instanceof Number) file.height = ((Number) height).intValue();
                 }
@@ -952,7 +1012,7 @@ public final class MediaDownload {
     private static String field(Object submission, String key, String method) {
         if (submission == null) return null;
         try {
-            Object value = submission.getClass().getMethod("m", String.class).invoke(submission, key);
+            Object value = method(submission.getClass(), "m", String.class).invoke(submission, key);
             if (value != null && !String.valueOf(value).isEmpty()) return String.valueOf(value);
         } catch (Throwable ignored) {
         }
@@ -962,7 +1022,7 @@ public final class MediaDownload {
     private static Object nodeOf(Object submission) {
         if (submission == null) return null;
         try {
-            Object node = submission.getClass().getMethod("n").invoke(submission);
+            Object node = method(submission.getClass(), "n").invoke(submission);
             if (node != null) return node;
         } catch (Throwable ignored) {
         }
@@ -980,9 +1040,9 @@ public final class MediaDownload {
     private static String folderLabel() {
         try {
             Object manager = Class.forName("mb.k").getMethod("e").invoke(null);
-            Object uri = manager.getClass().getMethod("d").invoke(manager);
+            Object uri = method(manager.getClass(), "d").invoke(manager);
             if (uri == null) return "No folder selected";
-            Object segment = uri.getClass().getMethod("getLastPathSegment").invoke(uri);
+            Object segment = method(uri.getClass(), "getLastPathSegment").invoke(uri);
             String name = segment == null ? "" : String.valueOf(segment);
             int colon = name.lastIndexOf(':');
             if (colon >= 0) name = name.substring(colon + 1);
@@ -1034,8 +1094,36 @@ public final class MediaDownload {
     }
 
     private static View find(View root, String name) {
-        int id = root.getResources().getIdentifier(name, "id", root.getContext().getPackageName());
+        int id = resId(root.getContext(), name, "id");
         return id == 0 ? null : root.findViewById(id);
+    }
+
+    /** Resource ids are fixed for the app, so each name is looked up once. */
+    private static int resId(Context context, String name, String type) {
+        String key = type + "/" + name;
+        Integer cached = IDS.get(key);
+        if (cached != null) return cached;
+        int found = context.getResources().getIdentifier(name, type, context.getPackageName());
+        IDS.put(key, found);
+        return found;
+    }
+
+    /** Reflection lookups run on every post bind, so each method is found once per class. */
+    private static Method method(Class<?> type, String name, Class<?>... params) throws NoSuchMethodException {
+        StringBuilder key = new StringBuilder(type.getName()).append('#').append(name);
+        for (Class<?> param : params) key.append(',').append(param.getName());
+        String id = key.toString();
+        Object cached = METHODS.get(id);
+        if (cached instanceof Method) return (Method) cached;
+        if (cached == MISSING) throw new NoSuchMethodException(id);
+        try {
+            Method found = type.getMethod(name, params);
+            METHODS.put(id, found);
+            return found;
+        } catch (NoSuchMethodException e) {
+            METHODS.put(id, MISSING);
+            throw e;
+        }
     }
 
     private static List<String> order(Context context) {

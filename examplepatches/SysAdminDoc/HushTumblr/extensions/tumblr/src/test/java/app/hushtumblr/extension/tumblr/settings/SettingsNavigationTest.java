@@ -26,7 +26,9 @@ import android.graphics.Canvas;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.SwitchPreference;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -82,6 +84,9 @@ public class SettingsNavigationTest {
     private boolean touch;
 
     @Before public void open() {
+        // Saves run in line. On the real worker a save finished whenever it did, before or after
+        // the test's next layout, and what was said under a switch depended on which.
+        HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PauseForTests.resume();
         controller = Robolectric.buildActivity(Activity.class).setup().visible();
@@ -97,6 +102,9 @@ public class SettingsNavigationTest {
         Settings.HIDE_ADVERTISING_ID.resetToDefault();
         Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
         Settings.HIDE_TUMBLR_TV.resetToDefault();
+        Settings.HIDE_ADS.resetToDefault();
+        app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
+                Settings.HIDE_ADS.key);
         SettingsNavigation.HIDE_QUICK_SETUPS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
@@ -362,6 +370,74 @@ public class SettingsNavigationTest {
         assertEquals(0, list().getFirstVisiblePosition());
         assertEquals(SettingsNavigation.PAGE_STATUS, ((Preference) list().getItemAtPosition(0)).getKey());
         assertTrue("a key still lands on the first setting", list().getSelectedItemPosition() > 0);
+    }
+
+    /**
+     * Seen with a D-pad: a switch flipped with the center key handed the selection to the switch
+     * under it while it saved, so the next press flipped that one. The keys stay on the switch.
+     */
+    @Test public void aSwitchFlippedByKeyKeepsTheSelection() {
+        page.navigation.navigate("Feed");
+        flipBannerByKey(false);
+    }
+
+    /**
+     * Seen with a D-pad on search results scrolled down: the restart row came in above the rows
+     * in view, the list held its first row in place, and holding it took the selection there.
+     */
+    @Test public void aSwitchFlippedByKeyBelowTheTopOfScrolledResultsKeepsTheSelection() {
+        findSearch(dialog.getView()).setText("hide");
+        ShadowLooper.idleMainLooper();
+        flipBannerByKey(true);
+    }
+
+    private void flipBannerByKey(boolean belowTheTop) {
+        assertFalse("the list is driven by keys here", list().isInTouchMode());
+        layout(dialog.getView());
+        int at = position(Settings.HIDE_AD_FREE_BANNER.key);
+        assertTrue(at >= 0);
+        Preference banner = (Preference) list().getItemAtPosition(at);
+        assertTrue("a switch sits under it", list().getItemAtPosition(at + 1) instanceof HushTumblrPreferenceFragment.Toggle);
+        boolean before = Settings.HIDE_AD_FREE_BANNER.savedValue();
+        List<Runnable> writes = new ArrayList<>();
+        HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        try {
+            assertTrue(list().requestFocus());
+            list().setSelection(at);
+            layout(dialog.getView());
+            // The row above it shows at the top, part-way.
+            if (belowTheTop) list().scrollListBy(-40);
+            layout(dialog.getView());
+            assertEquals(at, list().getSelectedItemPosition());
+            if (belowTheTop) assertTrue("the restart row comes in above the rows in view, and another row is at the top: first "
+                    + list().getFirstVisiblePosition() + ", switch " + at,
+                    list().getFirstVisiblePosition() > 0 && list().getFirstVisiblePosition() < at);
+            int top = list().getSelectedView().getTop();
+            assertTrue(list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)));
+            assertTrue(list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER)));
+            assertEquals("the key flipped nothing", 1, writes.size());
+            layout(dialog.getView());
+            assertEquals("the selection left the switch while it saved", at, list().getSelectedItemPosition());
+            list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER));
+            list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER));
+            ShadowLooper.idleMainLooper();
+            assertEquals("a press while it saved flipped it again", 1, writes.size());
+            assertEquals(before, Settings.HIDE_AD_FREE_BANNER.savedValue());
+            writes.remove(0).run();
+            ShadowLooper.idleMainLooper();
+            layout(dialog.getView());
+            assertEquals(!before, Settings.HIDE_AD_FREE_BANNER.savedValue());
+            // Its restart row may come in above it once it saved, so it's found by the row.
+            assertSame("the selection left the switch once it saved", banner, list().getSelectedItem());
+            if (belowTheTop) assertEquals("the switch moved on screen", top, list().getSelectedView().getTop());
+            assertTrue(list().hasFocus());
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            Settings.HIDE_AD_FREE_BANNER.save(before);
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
+                    Settings.HIDE_AD_FREE_BANNER.key);
+        }
     }
 
     /**
@@ -1796,6 +1872,646 @@ public class SettingsNavigationTest {
     }
 
     /**
+     * Seen with TalkBack: back from the file picker that Choose a font file opened, focus started
+     * at the page's header, as the picker took the reader's focus with it and the rows were rebuilt
+     * while it was up. The row that opened the picker gets it back, picked or not, and the backup
+     * rows' pickers do the same.
+     */
+    @Test public void backFromAFilePickerPutsScreenReaderFocusOnTheRowThatOpenedIt() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        page.navigation.navigate("Interface");
+        layout(dialog.getView());
+        page.onActivityResult(HushTumblrPreferenceFragment.FONT_FILE, android.app.Activity.RESULT_CANCELED, null);
+        // One pass may scroll the row into view, the next draws it and focuses it.
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals("Choose a font file", focusedTitle(a11y));
+
+        page.navigation.navigate("");
+        layout(dialog.getView());
+        page.navigation.navigate("Pause, backup and diagnostics");
+        layout(dialog.getView());
+        String importTitle = String.valueOf(page.findPreference("action_import_settings").getTitle());
+        page.onActivityResult(SettingsBackupPreference.IMPORT, android.app.Activity.RESULT_CANCELED, null);
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals(importTitle, focusedTitle(a11y));
+    }
+
+    /**
+     * A small settings file can be read before the list lays out again back from the picker. Its
+     * preview then opens first, and the focus meant for the Import row went to it behind the dialog.
+     */
+    @Test public void aPreviewOpenedBeforeTheListLaysOutKeepsFocusOffTheRowsBehindIt() throws Exception {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        page.navigation.navigate("Pause, backup and diagnostics");
+        layout(dialog.getView());
+        int before = focusedTitles(a11y).size();
+        page.onActivityResult(SettingsBackupPreference.IMPORT, android.app.Activity.RESULT_CANCELED, null);
+        page.pendingImport = SettingsBackup.parse(SettingsBackup.create()).toBundle();
+        SettingsBackupPreference.showPreview(page);
+        assertNotNull(page.importPreview);
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals("a row behind the preview took focus", before, focusedTitles(a11y).size());
+        SettingsBackupPreference.closePreview(page);
+    }
+
+    /** Without a screen reader nothing moves back from a picker: the list stays where it was left. */
+    @Test public void withoutAScreenReaderBackFromAFilePickerLeavesTheListWhereItWas() {
+        layout(dialog.getView());
+        page.navigation.navigate("Interface");
+        layout(dialog.getView());
+        int left = list().getFirstVisiblePosition();
+        assertTrue("the font row starts off screen", position(HushTumblrPreferenceFragment.FONT_FILE_ROW) > list().getLastVisiblePosition());
+        page.onActivityResult(HushTumblrPreferenceFragment.FONT_FILE, android.app.Activity.RESULT_CANCELED, null);
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals(left, list().getFirstVisiblePosition());
+    }
+
+    /**
+     * Seen on the lab emulator: arrow keys did nothing on the settings page. Its root holds focus
+     * so a new screen doesn't give it to the search box and raise the keyboard, and it kept it when
+     * touch ended, where no arrow key moves from a view that covers every row.
+     */
+    @Test public void arrowKeysReachTheRowsOnceTouchEnds() {
+        View decor = dialog.getDialog().getWindow().getDecorView();
+        touchMode(true);
+        layout(dialog.getView());
+        assertFalse("the search box took focus", decor.findFocus() instanceof EditText);
+        touchMode(false);
+        layout(dialog.getView());
+        View focused = decor.findFocus();
+        assertNotNull(focused);
+        assertNotEquals("the page's root kept focus", dialog.getView(), focused);
+        assertNotNull("no arrow key moves from " + focused, focused.focusSearch(View.FOCUS_DOWN));
+        touchMode(true);
+        layout(dialog.getView());
+        assertEquals("the root holds focus again under touch", dialog.getView(), decor.findFocus());
+    }
+
+    /**
+     * With TalkBack and a keyboard, Back scrolled the row above into view by selecting it, so the
+     * next key press started on that row while TalkBack read the one below. The keys stay on the row.
+     */
+    @Test public void withoutTouchBackLeavesTheKeysOnTheRowTheReaderIsOn() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(false);
+        layout(dialog.getView());
+        int about = position("section_About");
+        assertTrue("About starts off screen", about > list().getLastVisiblePosition());
+        assertTrue("the row above About takes keys", list().getAdapter().isEnabled(about - 1));
+        page.navigation.navigate("About");
+        layout(dialog.getView());
+        page.navigation.back();
+        // One pass scrolls, the next draws and focuses the row, the last moves the keys onto it.
+        layout(dialog.getView());
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals("About", focusedTitle(a11y));
+        assertTrue("About is on screen", about >= list().getFirstVisiblePosition() && about <= list().getLastVisiblePosition());
+        assertTrue("the row above shows too", about - 1 >= list().getFirstVisiblePosition());
+        assertEquals(about, list().getSelectedItemPosition());
+    }
+
+    /**
+     * Seen on the lab emulator with TalkBack and a keyboard: Back put home where it was left, with
+     * the keys on the first row in view, while TalkBack read the row that opened the page. The next
+     * Down went to a row far above it. The keys go back to that row, as TalkBack does.
+     */
+    @Test public void withoutTouchBackGivesTheKeysToTheRowThatOpenedThePage() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(false);
+        layout(dialog.getView());
+        int about = keysTwoRowsAboveAbout();
+        page.navigation.navigate("About");
+        layout(dialog.getView());
+        page.navigation.back();
+        layout(dialog.getView());
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals("About", focusedTitle(a11y));
+        assertEquals(about, list().getSelectedItemPosition());
+    }
+
+    /** Without a screen reader too: Enter on a row and then Back leave the keys on that row, and the list where it was. */
+    @Test public void withoutAScreenReaderBackGivesTheKeysToTheRowThatOpenedThePage() {
+        touchMode(false);
+        layout(dialog.getView());
+        int about = keysTwoRowsAboveAbout();
+        int left = list().getFirstVisiblePosition();
+        page.navigation.navigate("About");
+        layout(dialog.getView());
+        page.navigation.back();
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals(about, list().getSelectedItemPosition());
+        assertEquals(left, list().getFirstVisiblePosition());
+    }
+
+    /**
+     * Seen on the lab emulator: a larger font remade the screen on a page with the keys on the
+     * header's Back button. Back read the page's row on home, and Down went from the header. Moved
+     * into the list later, the keys made TalkBack read the row they were about to leave.
+     */
+    @Test public void backFromTheHeaderGivesTheKeysToTheRowThatOpenedThePage() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(false);
+        layout(dialog.getView());
+        int about = keysTwoRowsAboveAbout();
+        page.navigation.navigate("About");
+        layout(dialog.getView());
+        View back = findBack(dialog.getView());
+        assertNotNull(back);
+        assertTrue(back.requestFocus());
+        int sent = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents().size();
+        page.navigation.back();
+        layout(dialog.getView());
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertTrue("the keys stayed in the header", list().hasFocus());
+        assertEquals(about, list().getSelectedItemPosition());
+        assertEquals("About", focusedTitle(a11y));
+        List<android.view.accessibility.AccessibilityEvent> events = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents();
+        for (android.view.accessibility.AccessibilityEvent event : events.subList(sent, events.size())) {
+            if (event.getEventType() != android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED) continue;
+            String said = event.getText().isEmpty() ? "" : String.valueOf(event.getText().get(0));
+            assertTrue("the list's focus read " + said, said.isEmpty() || said.startsWith("About"));
+        }
+    }
+
+    /**
+     * Seen on the lab emulator with TalkBack and a keyboard: after a touch, Down from the search
+     * box put the first row a key lands on where the status card was, so the card went off
+     * screen, and TalkBack read nothing as the keys came into the list.
+     */
+    @Test public void theFirstKeyIntoTheRowsAfterATouchKeepsTheStatusCardAndReadsTheRow() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        // Home drawn again by touch, as on a phone: into a page whose row shows at the top, and back.
+        page.navigation.navigate("Feed");
+        layout(dialog.getView());
+        page.navigation.back();
+        layout(dialog.getView());
+        assertEquals(0, list().getFirstVisiblePosition());
+        assertFalse("the status card takes no keys", list().getAdapter().isEnabled(0));
+        int cardTop = list().getChildAt(0).getTop();
+        int firstKey = 1;
+        while (!list().getAdapter().isEnabled(firstKey)) firstKey++;
+        String title = String.valueOf(((Preference) list().getAdapter().getItem(firstKey)).getTitle());
+        touchMode(false);
+        assertFalse(list().hasFocus());
+        int sent = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents().size();
+        // Focus coming down from the search box above the list.
+        assertTrue(list().requestFocus(View.FOCUS_DOWN, new android.graphics.Rect(0, -60, list().getWidth(), -10)));
+        layout(dialog.getView());
+        assertEquals("the status card went off screen", 0, list().getFirstVisiblePosition());
+        assertEquals(cardTop, list().getChildAt(0).getTop());
+        assertEquals(firstKey, list().getSelectedItemPosition());
+        String said = null;
+        List<android.view.accessibility.AccessibilityEvent> events = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents();
+        for (android.view.accessibility.AccessibilityEvent event : events.subList(sent, events.size())) {
+            if (event.getEventType() != android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED
+                    || !android.widget.ListView.class.getName().equals(String.valueOf(event.getClassName()))) continue;
+            said = String.valueOf(event.getText());
+        }
+        assertNotNull("the list sent no focus event", said);
+        assertTrue("the list's focus read " + said, said.contains(title));
+    }
+
+    /**
+     * Seen on the lab emulator with TalkBack and a keyboard: Up from the first row put the keys on
+     * the status card's Pause, and TalkBack said "Pause. Button", but the list's next layout took
+     * the keys back to the row, so Enter opened Quick setups.
+     */
+    @Test public void upFromTheFirstRowLeavesTheListRatherThanStoppingOnTheCardsPause() {
+        touchMode(false);
+        layout(dialog.getView());
+        assertTrue(list().requestFocus());
+        layout(dialog.getView());
+        int firstKey = 1;
+        while (!list().getAdapter().isEnabled(firstKey)) firstKey++;
+        assertEquals(firstKey, list().getSelectedItemPosition());
+        assertFalse("the list moved up from its first key row",
+                list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP)));
+        // What the window does with an arrow key nothing used: the next view that way takes focus.
+        ViewGroup root = (ViewGroup) dialog.getDialog().getWindow().getDecorView();
+        View next = list().focusSearch(View.FOCUS_UP);
+        assertNotNull(next);
+        android.graphics.Rect from = new android.graphics.Rect();
+        list().getFocusedRect(from);
+        root.offsetDescendantRectToMyCoords(list(), from);
+        root.offsetRectIntoDescendantCoords(next, from);
+        assertTrue(next.requestFocus(View.FOCUS_UP, from));
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertFalse("the list took the keys back from " + next, list().hasFocus());
+        // A screen reader still reaches and presses it.
+        android.widget.Button pause = statusAction();
+        assertTrue(pause.isClickable());
+        assertTrue(pause.createAccessibilityNodeInfo().getActionList()
+                .contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
+    }
+
+    /**
+     * Seen on the lab emulator with TalkBack and a keyboard: with the keys on Quick setups, pressing
+     * the card's Pause put the restart row in above that row, and the list kept the keys' row where
+     * it was, so the card went up off screen.
+     */
+    @Test public void pausingFromTheCardWithTheKeysOnARowKeepsTheCardInView() {
+        pauseFromTheCardWithTheKeysOnARow(false, false);
+    }
+
+    /** The same press made by a screen reader, which then stays on the card rather than the restart row. */
+    @Test public void pausingFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheCardInView() {
+        pauseFromTheCardWithTheKeysOnARow(true, false);
+    }
+
+    /**
+     * Seen on the lab emulator after the fix above: the save finished on its worker after the list
+     * had laid out the press, so the restart row came in a layout later and still sent the card off.
+     */
+    @Test public void pausingFromTheCardWithTheKeysOnARowKeepsTheCardInViewWhenTheSaveLandsLater() {
+        pauseFromTheCardWithTheKeysOnARow(false, true);
+    }
+
+    @Test public void pausingFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheCardInViewWhenTheSaveLandsLater() {
+        pauseFromTheCardWithTheKeysOnARow(true, true);
+    }
+
+    /**
+     * Seen on the lab emulator after both fixes above: a pause rebuilds the page many times, and
+     * one that came between a layout and the move it asked for measured the rows already pushed,
+     * so the next layout sent the card back off.
+     */
+    @Test public void pausingFromTheCardWithTheKeysOnARowKeepsTheCardInViewThroughARebuildBeforeTheMove() {
+        pauseFromTheCardWithTheKeysOnARow(false, false, true);
+    }
+
+    /**
+     * The same, with TalkBack, which also left the card's button for Quick setups: the list said
+     * that row was selected again at its new place, though the keys never left it.
+     */
+    @Test public void pausingFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheCardInViewThroughARebuildBeforeTheMove() {
+        pauseFromTheCardWithTheKeysOnARow(true, false, true);
+    }
+
+    /**
+     * Seen on the lab emulator: Undo after that pause took the restart row away above the keys'
+     * row, the list said that row was selected again at its new place, and TalkBack left Pause for
+     * Quick setups.
+     */
+    @Test public void undoingAPauseFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheReaderOnTheCard() {
+        pauseFromTheCardWithTheKeysOnARow(true, false, false, true);
+    }
+
+    @Test public void undoingAPauseFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheReaderOnTheCardWhenTheSaveLandsLater() {
+        pauseFromTheCardWithTheKeysOnARow(true, true, false, true);
+    }
+
+    @Test public void undoingAPauseFromTheCardWithTheKeysOnARowKeepsTheCardInView() {
+        pauseFromTheCardWithTheKeysOnARow(false, true, false, true);
+    }
+
+    /**
+     * On a phone the list's word that its keys' row is selected at its new place is posted, and the
+     * save landing rebuilt the page before it ran. The list then held that word for its next layout,
+     * and by then the row's new place was taken for the place the keys stayed at, so it was said.
+     */
+    @Test public void undoingAPauseFromTheCardWithAScreenReaderAndTheKeysOnARowKeepsTheReaderOnTheCardThroughARebuildBeforeTheListSaysSo() {
+        pauseFromTheCardWithTheKeysOnARow(true, false, false, true, true);
+    }
+
+    private void pauseFromTheCardWithTheKeysOnARow(boolean reader, boolean saveLater) {
+        pauseFromTheCardWithTheKeysOnARow(reader, saveLater, false, false);
+    }
+
+    private void pauseFromTheCardWithTheKeysOnARow(boolean reader, boolean saveLater, boolean rebuildBeforeTheMove) {
+        pauseFromTheCardWithTheKeysOnARow(reader, saveLater, rebuildBeforeTheMove, false);
+    }
+
+    private void pauseFromTheCardWithTheKeysOnARow(boolean reader, boolean saveLater, boolean rebuildBeforeTheMove, boolean undo) {
+        pauseFromTheCardWithTheKeysOnARow(reader, saveLater, rebuildBeforeTheMove, undo, false);
+    }
+
+    private void pauseFromTheCardWithTheKeysOnARow(boolean reader, boolean saveLater, boolean rebuildBeforeTheMove, boolean undo,
+            boolean rebuildBeforeTheUndoIsSaid) {
+        List<Runnable> writes = new ArrayList<>();
+        if (saveLater) HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        try {
+            pauseFromTheCardWithTheKeysOnARow(reader, writes, rebuildBeforeTheMove, undo, rebuildBeforeTheUndoIsSaid);
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+        }
+    }
+
+    private void pauseFromTheCardWithTheKeysOnARow(boolean reader, List<Runnable> writes, boolean rebuildBeforeTheMove, boolean undo,
+            boolean rebuildBeforeTheUndoIsSaid) {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        if (reader) {
+            org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+            org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+            showWindow();
+        }
+        touchMode(false);
+        layout(dialog.getView());
+        assertTrue(list().requestFocus());
+        layout(dialog.getView());
+        int firstKey = 1;
+        while (!list().getAdapter().isEnabled(firstKey)) firstKey++;
+        assertEquals(firstKey, list().getSelectedItemPosition());
+        Object keyed = list().getAdapter().getItem(firstKey);
+        assertEquals(0, list().getFirstVisiblePosition());
+        int cardTop = list().getChildAt(0).getTop();
+        assertFalse(contains(SettingsNavigation.RESTART));
+        android.widget.Button pause = statusAction();
+        assertEquals("Pause", pause.getText().toString());
+        ShadowLooper.idleMainLooper();
+        int sent = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents().size();
+        boolean[] rebuilt = {false};
+        if (rebuildBeforeTheMove) {
+            // A phone's frame waits for the display, so what's already posted runs first. Here a
+            // frame comes the moment a layout is asked for, unless frames are paused.
+            org.robolectric.shadows.ShadowChoreographer.setPaused(true);
+            // The list lays out the press with the card pushed up and asks for the move, and the
+            // page rebuilds again before that runs.
+            list().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    if (list().getChildAt(0).getTop() == cardTop) return;
+                    list().removeOnLayoutChangeListener(this);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postAtFrontOfQueue(() -> {
+                        rebuilt[0] = true;
+                        page.navigation.restartChanged();
+                    });
+                }
+            });
+        }
+        try {
+            if (reader) {
+                assertTrue(pause.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+                assertTrue(pause.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
+            } else {
+                assertTrue(pause.performClick());
+            }
+            ShadowLooper.idleMainLooper();
+            for (int frame = 0; rebuildBeforeTheMove && frame < 6; frame++) {
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+            }
+        } finally {
+            org.robolectric.shadows.ShadowChoreographer.setPaused(false);
+        }
+        assertEquals("the page rebuilt between the layout and the move", rebuildBeforeTheMove, rebuilt[0]);
+        if (rebuildBeforeTheMove) {
+            assertEquals("the status card went off screen", 0, list().getFirstVisiblePosition());
+            assertEquals(cardTop, list().getChildAt(0).getTop());
+        }
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView());
+        // A save on its worker finishes after the press is laid out.
+        while (!writes.isEmpty()) {
+            writes.remove(0).run();
+            ShadowLooper.idleMainLooper();
+            layout(dialog.getView());
+        }
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView());
+        assertTrue(contains(SettingsNavigation.RESTART));
+        assertEquals("the status card went off screen", 0, list().getFirstVisiblePosition());
+        assertEquals(cardTop, list().getChildAt(0).getTop());
+        assertEquals("Undo", statusAction().getText().toString());
+        assertSame("the keys left " + keyed, keyed, list().getSelectedItem());
+        if (reader) assertReaderStayedOnTheCard(a11y, sent, keyed);
+        if (!undo) return;
+        android.widget.Button undoButton = statusAction();
+        ShadowLooper.idleMainLooper();
+        sent = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents().size();
+        int keysAt = list().getSelectedItemPosition();
+        boolean[] rebuiltBeforeSaid = {false};
+        if (rebuildBeforeTheUndoIsSaid) {
+            org.robolectric.shadows.ShadowChoreographer.setPaused(true);
+            // The layout that gives the keys' row its new place posts the list's word on it, and
+            // the page rebuilds before that runs.
+            list().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    if (list().getSelectedItemPosition() == keysAt) return;
+                    list().removeOnLayoutChangeListener(this);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postAtFrontOfQueue(() -> {
+                        rebuiltBeforeSaid[0] = true;
+                        page.navigation.restartChanged();
+                    });
+                }
+            });
+        }
+        try {
+            if (reader) {
+                // Still on it from the pause.
+                assertSame(undoButton, readerFocus(list()));
+                assertTrue(undoButton.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
+            } else {
+                assertTrue(undoButton.performClick());
+            }
+            ShadowLooper.idleMainLooper();
+            layout(dialog.getView());
+            for (int frame = 0; rebuildBeforeTheUndoIsSaid && frame < 6; frame++) {
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+                layout(dialog.getView());
+            }
+        } finally {
+            org.robolectric.shadows.ShadowChoreographer.setPaused(false);
+        }
+        assertEquals("the page rebuilt before the list said its keys' row moved", rebuildBeforeTheUndoIsSaid, rebuiltBeforeSaid[0]);
+        while (!writes.isEmpty()) {
+            writes.remove(0).run();
+            ShadowLooper.idleMainLooper();
+            layout(dialog.getView());
+        }
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView());
+        assertFalse(contains(SettingsNavigation.RESTART));
+        assertEquals("the status card went off screen", 0, list().getFirstVisiblePosition());
+        assertEquals(cardTop, list().getChildAt(0).getTop());
+        assertEquals("Pause", statusAction().getText().toString());
+        assertSame("the keys left " + keyed, keyed, list().getSelectedItem());
+        if (reader) assertReaderStayedOnTheCard(a11y, sent, keyed);
+    }
+
+    /** The reader is on the card's button it pressed, and the list never said its keys' row was selected again. */
+    private void assertReaderStayedOnTheCard(android.view.accessibility.AccessibilityManager a11y, int sent, Object keyed) {
+        View on = readerFocus(list());
+        assertNotNull("the screen reader lost its place", on);
+        assertSame("the screen reader went to " + on, statusAction(), on);
+        List<android.view.accessibility.AccessibilityEvent> events = org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents();
+        for (android.view.accessibility.AccessibilityEvent event : events.subList(sent, events.size())) {
+            assertFalse("the list said " + keyed + " was selected again, which takes TalkBack to it ("
+                            + event.getClassName() + ": " + event.getText() + ")",
+                    event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED);
+        }
+    }
+
+    /**
+     * Without touch the restart row came in above the first row, the switch flipped by key, and
+     * the list kept that switch at the top, so the row asking for a restart was never seen. As
+     * with touch, a row added at the top of what's in view pushes the rows down.
+     */
+    @Test public void theRestartRowAboveASwitchFlippedByKeyAtTheTopIsSeen() {
+        page.navigation.navigate("Feed");
+        touchMode(false);
+        layout(dialog.getView());
+        int at = position(Settings.HIDE_ADS.key);
+        assertEquals("Hide ads is the page's first row", 0, at);
+        Preference hideAds = (Preference) list().getItemAtPosition(at);
+        boolean before = Settings.HIDE_ADS.savedValue();
+        List<Runnable> writes = new ArrayList<>();
+        HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        try {
+            assertTrue(list().requestFocus());
+            list().setSelectionFromTop(at, 0);
+            layout(dialog.getView());
+            assertEquals(at, list().getSelectedItemPosition());
+            int top = list().getSelectedView().getTop();
+            assertFalse(contains(SettingsNavigation.RESTART));
+            assertTrue(list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)));
+            assertTrue(list().dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER)));
+            assertEquals(1, writes.size());
+            writes.remove(0).run();
+            for (int i = 0; i < 4; i++) {
+                ShadowLooper.idleMainLooper();
+                layout(dialog.getView());
+            }
+            assertEquals(!before, Settings.HIDE_ADS.savedValue());
+            assertEquals("the restart row is first", SettingsNavigation.RESTART,
+                    ((Preference) list().getItemAtPosition(0)).getKey());
+            assertEquals("the restart row is above the rows in view", 0, list().getFirstVisiblePosition());
+            assertEquals(top, list().getChildAt(0).getTop());
+            assertSame("the keys left Hide ads", hideAds, list().getSelectedItem());
+            assertEquals("Hide ads sits under the restart row", list().getChildAt(0).getBottom() + list().getDividerHeight(),
+                    list().getSelectedView().getTop());
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            Settings.HIDE_ADS.save(before);
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
+                    Settings.HIDE_ADS.key);
+        }
+    }
+
+    /** With touch, a screen reader that pressed the card's Pause is back on that button, now Undo. */
+    @Test public void aScreenReaderThatPressedTheCardsPauseStaysOnItsButton() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        int cardTop = list().getChildAt(0).getTop();
+        android.widget.Button pause = statusAction();
+        assertEquals("Pause", pause.getText().toString());
+        assertTrue(pause.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        assertTrue(pause.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView());
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView());
+        assertTrue(contains(SettingsNavigation.RESTART));
+        assertEquals(0, list().getFirstVisiblePosition());
+        assertEquals(cardTop, list().getChildAt(0).getTop());
+        assertEquals("Undo", statusAction().getText().toString());
+        assertSame("the screen reader went to " + readerFocus(list()), statusAction(), readerFocus(list()));
+    }
+
+    /**
+     * Robolectric never tells the dialog's window that the app is visible, and a hidden window
+     * drops a screen reader's focus on every traversal. On a phone the dialog is shown, and a
+     * layout that moves the rows leaves the reader where it was.
+     */
+    private void showWindow() {
+        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(list(), "getViewRootImpl");
+        org.robolectric.util.ReflectionHelpers.setField(root, "mAppVisible", true);
+        list().getRootView().requestLayout();
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.VISIBLE, list().getWindowVisibility());
+    }
+
+    private static View readerFocus(View view) {
+        if (view.isAccessibilityFocused()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+            View found = readerFocus(((ViewGroup) view).getChildAt(i));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /**
+     * Seen on the lab emulator at a larger font: the row Back went to was cut off at the list's
+     * bottom edge, so the first Down only scrolled the rest of it in and read nothing.
+     */
+    @Test public void backGivesTheKeysToARowCutOffAtTheEdgeWithAllOfItInView() {
+        touchMode(false);
+        layout(dialog.getView());
+        int about = position("section_About");
+        list().setSelectionFromTop(about, 0);
+        layout(dialog.getView());
+        int height = list().getChildAt(about - list().getFirstVisiblePosition()).getHeight();
+        int area = list().getHeight() - list().getListPaddingTop() - list().getListPaddingBottom();
+        list().setSelectionFromTop(about - 2, area - 2 * height - height / 2);
+        layout(dialog.getView());
+        int bottom = list().getHeight() - list().getListPaddingBottom();
+        View cut = list().getChildAt(about - list().getFirstVisiblePosition());
+        assertTrue("About is cut off at the bottom", cut != null && cut.getTop() < bottom && cut.getBottom() > bottom);
+        page.navigation.navigate("About");
+        layout(dialog.getView());
+        page.navigation.back();
+        layout(dialog.getView());
+        layout(dialog.getView());
+        assertEquals(about, list().getSelectedItemPosition());
+        View shown = list().getChildAt(about - list().getFirstVisiblePosition());
+        assertTrue("About is still cut off", shown.getTop() >= list().getListPaddingTop() && shown.getBottom() <= bottom);
+    }
+
+    private static android.widget.ImageButton findBack(View view) {
+        if (view instanceof android.widget.ImageButton) return (android.widget.ImageButton) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.widget.ImageButton found = findBack(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    /** Puts home's keys two rows above About with About in view, and answers About's position. */
+    private int keysTwoRowsAboveAbout() {
+        int about = position("section_About");
+        list().setSelectionFromTop(about - 2, 0);
+        layout(dialog.getView());
+        assertEquals("the keys are two rows above About", about - 2, list().getSelectedItemPosition());
+        assertTrue("About shows", about <= list().getLastVisiblePosition());
+        return about;
+    }
+
+    /**
      * A page opened with home never scrolled to its row, as after a restart or from search, leaves
      * that row off screen. Back scrolls it into view, and focus lands on it then rather than
      * whenever it was scrolled to later.
@@ -1825,6 +2541,125 @@ public class SettingsNavigationTest {
         layout(dialog.getView());
         assertEquals(0, list().getFirstVisiblePosition());
         assertEquals("Feed", focusedTitle(a11y));
+    }
+
+    /**
+     * With TalkBack on the lab emulator, flipping Hide ads brought the restart row in above it and
+     * the list gave focus back by position: TalkBack read the restart row, then the switch's saved
+     * note, so the restart was said twice and the switch's new state never. Focus stays on the
+     * switch, whose read carries the note, and the note isn't read again on its own.
+     */
+    @Test public void aFlippedSwitchKeepsScreenReaderFocusWhenTheRestartRowComesAboveIt() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        page.navigation.navigate("Feed");
+        layout(dialog.getView());
+        int at = position(Settings.HIDE_ADS.key);
+        assertTrue("Hide ads is in view", at >= list().getFirstVisiblePosition() && at <= list().getLastVisiblePosition());
+        View row = list().getChildAt(at - list().getFirstVisiblePosition());
+        assertEquals("the row says it's a switch and its state, so the drawn switch stays quiet",
+                View.IMPORTANT_FOR_ACCESSIBILITY_NO, row.findViewById(android.R.id.switch_widget).getImportantForAccessibility());
+        assertTrue(row.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        int before = focusedTitles(a11y).size();
+
+        // A phone measures the list with room to spare as soon as its rows change, before it lays
+        // them out, and that measure takes rows for the top of the page from the adapter and
+        // throws them away undrawn.
+        android.database.DataSetObserver measuresFirst = new android.database.DataSetObserver() {
+            @Override public void onChanged() {
+                list().measure(View.MeasureSpec.makeMeasureSpec(780, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(1688, View.MeasureSpec.AT_MOST));
+            }
+        };
+        list().getAdapter().registerDataSetObserver(measuresFirst);
+        try {
+            assertTrue(list().performItemClick(row, at, list().getAdapter().getItemId(at)));
+            ShadowLooper.idleMainLooper();
+            layout(dialog.getView());
+            ShadowLooper.idleMainLooper();
+        } finally {
+            list().getAdapter().unregisterDataSetObserver(measuresFirst);
+        }
+
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertTrue("the restart row came in above the switch",
+                contains(SettingsNavigation.RESTART) && position(SettingsNavigation.RESTART) < position(Settings.HIDE_ADS.key));
+        List<String> after = focusedTitles(a11y).subList(before, focusedTitles(a11y).size());
+        assertFalse("focus went back to the switch", after.isEmpty());
+        // The flip and then the finished save each rebuild the page, and each hands focus to the
+        // switch's new row: "Saving the setting" is read, then the switch's state.
+        assertEquals("and only there", java.util.Collections.singleton("Hide ads"), new java.util.HashSet<>(after));
+        View flipped = list().getChildAt(position(Settings.HIDE_ADS.key) - list().getFirstVisiblePosition());
+        TextView note = flipped.findViewWithTag(SettingsFeedback.MESSAGE_TAG);
+        assertEquals("Saved. Restart Tumblr to apply this change.", note.getText().toString());
+        assertEquals("the note is read with the row, not again on its own",
+                View.ACCESSIBILITY_LIVE_REGION_NONE, note.getAccessibilityLiveRegion());
+    }
+
+    /**
+     * A switch at the bottom of the screen is pushed off it by the restart row coming in at the top
+     * of the page. The list scrolls back to it, and focus lands on it then rather than whenever it
+     * was scrolled to later.
+     */
+    @Test public void aFlippedSwitchPushedOffScreenByTheRestartRowIsBroughtBackForItsFocus() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        touchMode(true);
+        layout(dialog.getView());
+        page.navigation.navigate("Interface");
+        layout(dialog.getView());
+        int at = position(Settings.TURN_OFF_SCREENSHOT_SHARING.key);
+        assertTrue("the switch sits a few rows down its page", at >= 2);
+        // The tallest screen that shows no more than a sliver of the switch at its bottom, with the
+        // page's top in view.
+        int low = 200;
+        int high = 6000;
+        while (high - low > 1) {
+            int mid = (low + high) / 2;
+            layout(dialog.getView(), mid);
+            int last = list().getLastVisiblePosition();
+            boolean tooTall = last > at || last == at
+                    && list().getHeight() - list().getChildAt(at - list().getFirstVisiblePosition()).getTop() > 8;
+            if (tooTall) high = mid;
+            else low = mid;
+        }
+        int height = low;
+        layout(dialog.getView(), height);
+        assertEquals(0, list().getFirstVisiblePosition());
+        assertEquals("the switch is the last row in view", at, list().getLastVisiblePosition());
+        View row = list().getChildAt(at);
+        assertTrue(row.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        int before = focusedTitles(a11y).size();
+
+        assertTrue(list().performItemClick(row, at, list().getAdapter().getItemId(at)));
+        ShadowLooper.idleMainLooper();
+        // One pass finds the switch pushed off screen and scrolls, the next draws it and focuses it.
+        layout(dialog.getView(), height);
+        ShadowLooper.idleMainLooper();
+        layout(dialog.getView(), height);
+        ShadowLooper.idleMainLooper();
+
+        int now = position(Settings.TURN_OFF_SCREENSHOT_SHARING.key);
+        assertTrue("the restart row came in above the switch", contains(SettingsNavigation.RESTART)
+                && position(SettingsNavigation.RESTART) < now);
+        assertTrue("the switch is on screen", now >= list().getFirstVisiblePosition() && now <= list().getLastVisiblePosition());
+        List<String> after = focusedTitles(a11y).subList(before, focusedTitles(a11y).size());
+        assertFalse("focus went back to the switch", after.isEmpty());
+        assertEquals("and only there", java.util.Collections.singleton("Turn off screenshot sharing"), new java.util.HashSet<>(after));
+    }
+
+    /** The first text of each row that took accessibility focus, in order. */
+    private static List<String> focusedTitles(android.view.accessibility.AccessibilityManager a11y) {
+        List<String> titles = new ArrayList<>();
+        for (android.view.accessibility.AccessibilityEvent event : org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents()) {
+            if (event.getEventType() != android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED) continue;
+            titles.add(event.getText().isEmpty() ? null : String.valueOf(event.getText().get(0)));
+        }
+        return titles;
     }
 
     /** The first text of the last row that took accessibility focus. */

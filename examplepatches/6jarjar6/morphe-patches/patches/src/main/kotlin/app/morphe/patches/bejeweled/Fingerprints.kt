@@ -944,3 +944,28 @@ object XpromoItemLaunchFingerprint : Fingerprint(
         string("store")
     )
 )
+
+/**
+ * com.ea.blast.SystemAndroidDelegate.IntentView(String) -> Z
+ *
+ * The Blast engine's native->Java bridge: the game's native code passes ANY
+ * url (store links, deep links, ...) and this builds
+ * `Intent(ACTION_VIEW, Uri.parse(url))` + startActivity, bypassing
+ * openURL/showWebView/Item.launch entirely. This is the "Get Stars" path:
+ * native -> IntentView("market://details?id=com.ea.gp.bejeweldedskies").
+ *
+ * Layout: registers=4, ins=2 (p0=this, p1=url, v0=scratch Intent). No free
+ * register for the probe id — the patch uses getFreeRegisterProvider(0,1).
+ * The method is the only IntentView in the class; it anchors on the
+ * characteristic ACTION_VIEW string (unique to this method).
+ */
+object SystemAndroidDelegateIntentViewFingerprint : Fingerprint(
+    definingClass = "Lcom/ea/blast/" + "SystemAndroidDelegate;",
+    name = "IntentView",
+    isStatic = false,
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;"),
+    filters = listOf(
+        string("android.intent.action.VIEW")
+    )
+)

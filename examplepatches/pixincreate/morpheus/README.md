@@ -5,12 +5,21 @@
 Morpheus is a [Morphe](https://github.com/MorpheApp/morphe-patches) patch set for Android apps that assume Google Play Services.
 It patches two apps:
 
-- The Ather app (`com.athermobileapp`), verified against 13.5.1.
-- The Nothing X app (`com.nothing.smartcenter`), verified against 3.8.0.
+- The Ather app (`com.athermobileapp`), verified against 13.5.1 and 13.6.0.
+- The Nothing X app (`com.nothing.smartcenter`), verified against 3.8.0 and 3.10.2.
 
 The repository ships patches only.
 It never ships patched APKs or vendor binaries.
 You build your own copy from your own APK.
+
+> [!WARNING]
+> The Ather patches are present and work on the client side.
+> The app launches, PairIP and the local integrity gate are bypassed, and the integrity dialog no longer appears.
+> The server-side Firebase App Check restriction remains.
+> Login fails on GrapheneOS.
+> On a re-signed build, login also fails unless Ather enabled `allowUnrecognizedVersion`.
+> Ather's written support response limits compatibility to certified Android and iOS, and it does not offer a GrapheneOS fix.
+> See [Login limitation](#login-limitation).
 
 ## Lore
 
@@ -104,6 +113,16 @@ The screen holds:
 Push notifications from Ather's servers need Google Play Services.
 The local notifications derived from the app's own connection are the substitute.
 
+### Login limitation
+
+The patched app is signed with the Morphe key.
+Play Integrity reports `UNRECOGNIZED_VERSION` for a re-signed APK.
+Firebase App Check requires `PLAY_RECOGNIZED` by default.
+The patched app cannot log in on a certified device unless Ather enabled `allowUnrecognizedVersion`.
+The APK does not show this server-side setting.
+The patches do not bypass the server-side App Check requirement.
+Use the original app for login.
+
 ### Nothing X
 
 1. Install the patched Nothing X app.
@@ -142,8 +161,8 @@ The Ather patches:
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bypass security check              | Stops the Developer Options warning and the root/Frida block.                                                                                                                                                                                                        |
 | Bypass signature guard             | Stops the native signature check that closes the app when the APK is not signed by Ather.                                                                                                                                                                            |
-| Report Ather's signing certificate | Reports the original Ather certificate hash to Google APIs, so Firebase login works after re-signing.                                                                                                                                                                |
-| Bypass PairIP licence check        | Skips the Play license check that the re-signed app cannot pass. The 13.5.1 build dropped PairIP, so the patch is a no-op there.                                                                                                                                     |
+| Report Ather's signing certificate | Reports the original Ather certificate hash to Google APIs that read `X-Android-Cert`. It does not change the Play Integrity app verdict.                                                                                                                              |
+| Bypass PairIP licence check        | Skips the Play license check that the re-signed app cannot pass. The 13.5.1 build dropped PairIP, so the patch is a no-op there; Ather 13.6.0 bundles PairIP again.                                                                                                    |
 | Permission filter                  | Drops phone-location (and call log, contacts, SMS) from the request list at the single dialog choke point, so the app never asks for permissions it cannot use here. Nothing is faked; the OS permissions stay ungranted.                                            |
 | Pairing wizard                     | The setup wizard now asks only for Nearby device access, so scooter pairing can complete.                                                                                                                                                                            |
 | Analytics toggle                   | Blocks MoEngage, PostHog and Firebase events from the Morphe settings screen. Crashlytics is untouched so bugs stay reportable.                                                                                                                                      |
@@ -157,7 +176,7 @@ The Ather patches:
 | Morphe screens                     | Registers the Morphe screens, the optional background ride service and its boot receiver in the app manifest. The service keeps the app's process alive so rides are recorded with real start and end times even while the app is closed.                            |
 
 The `Show K1 token(s)` patch targets Nothing X.
-It hooks the `flutter_secure_storage` plugin inside the app process, because the token is encrypted at rest on 3.8.0.
+It hooks the `flutter_secure_storage` plugin inside the app process, because the token is encrypted at rest on 3.8.0 and 3.10.2.
 
 More detail:
 

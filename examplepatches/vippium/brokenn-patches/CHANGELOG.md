@@ -1,3 +1,47 @@
+## [1.3.0](https://github.com/vippium/brokenn-patches/compare/v1.2.0...v1.3.0) (2026-11-14)
+
+### ✨ New Features
+
+* **octogram:** add anti-delete messages patch ([fee5a43](https://github.com/vippium/brokenn-patches/commit/fee5a43162c8395f3bdc05eff455c1241cf9338a))
+* **octogram:** add anti-disappearing media patch ([1d9ee8f](https://github.com/vippium/brokenn-patches/commit/1d9ee8fc319e1f2e060bc311723cf2e986dd0c86))
+* **octogram:** add bypass content restrictions patch ([24384e5](https://github.com/vippium/brokenn-patches/commit/24384e5cc40828416c5e06cf055ba96b00b8577c))
+* **octogram:** add enable premium patch ([17e787b](https://github.com/vippium/brokenn-patches/commit/17e787b2ecc02edb47bf9233b1a0e49c3d24b296))
+* **octogram:** add hide typing indicator patch ([813c9e2](https://github.com/vippium/brokenn-patches/commit/813c9e2292dc8e2031e67bc84f0d50813b58d05a))
+* **octogram:** add remove sponsored messages patch ([a63222a](https://github.com/vippium/brokenn-patches/commit/a63222a5e985ca3016761591779ec7084d070d9e))
+* **octogram:** add shared constants and anchor matchers ([3c8d267](https://github.com/vippium/brokenn-patches/commit/3c8d26774e1b1a17626b82cd13f8f89cf9cd5c0b))
+* **universal:** add disable play store updates patch ([e9188fd](https://github.com/vippium/brokenn-patches/commit/e9188fdf017c5205c1fd83feeb1339a47dc25fc0))
+
+### 🐛 Bug Fixes
+
+* **octogram:** anti delete message patch ([09e62cf](https://github.com/vippium/brokenn-patches/commit/09e62cfde7b239f5e8a9f92b692da7c06fcfecee))
+* **octogram:** anti delete message patch ([450cc5e](https://github.com/vippium/brokenn-patches/commit/450cc5e098d026ac1683d4bb12d3be344901b70e))
+
+## [1.3.0-dev.2](https://github.com/vippium/brokenn-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **octogram:** anti delete message patch ([09e62cf](https://github.com/vippium/brokenn-patches/commit/09e62cfde7b239f5e8a9f92b692da7c06fcfecee))
+* **octogram:** anti delete message patch ([450cc5e](https://github.com/vippium/brokenn-patches/commit/450cc5e098d026ac1683d4bb12d3be344901b70e))
+
+## [1.3.0-dev.2](https://github.com/vippium/brokenn-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **octogram:** anti delete message patch ([450cc5e](https://github.com/vippium/brokenn-patches/commit/450cc5e098d026ac1683d4bb12d3be344901b70e))
+
+## [1.3.0-dev.1](https://github.com/vippium/brokenn-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-14)
+
+### ✨ New Features
+
+* **octogram:** add anti-delete messages patch ([fee5a43](https://github.com/vippium/brokenn-patches/commit/fee5a43162c8395f3bdc05eff455c1241cf9338a))
+* **octogram:** add anti-disappearing media patch ([1d9ee8f](https://github.com/vippium/brokenn-patches/commit/1d9ee8fc319e1f2e060bc311723cf2e986dd0c86))
+* **octogram:** add bypass content restrictions patch ([24384e5](https://github.com/vippium/brokenn-patches/commit/24384e5cc40828416c5e06cf055ba96b00b8577c))
+* **octogram:** add enable premium patch ([17e787b](https://github.com/vippium/brokenn-patches/commit/17e787b2ecc02edb47bf9233b1a0e49c3d24b296))
+* **octogram:** add hide typing indicator patch ([813c9e2](https://github.com/vippium/brokenn-patches/commit/813c9e2292dc8e2031e67bc84f0d50813b58d05a))
+* **octogram:** add remove sponsored messages patch ([a63222a](https://github.com/vippium/brokenn-patches/commit/a63222a5e985ca3016761591779ec7084d070d9e))
+* **octogram:** add shared constants and anchor matchers ([3c8d267](https://github.com/vippium/brokenn-patches/commit/3c8d26774e1b1a17626b82cd13f8f89cf9cd5c0b))
+* **universal:** add disable play store updates patch ([e9188fd](https://github.com/vippium/brokenn-patches/commit/e9188fdf017c5205c1fd83feeb1339a47dc25fc0))
+
 ## [1.2.0](https://github.com/vippium/brokenn-patches/compare/v1.1.0...v1.2.0) (2026-11-10)
 
 ### ✨ New Features

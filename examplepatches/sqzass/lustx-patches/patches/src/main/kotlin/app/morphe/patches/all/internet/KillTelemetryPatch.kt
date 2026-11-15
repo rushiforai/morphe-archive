@@ -7,7 +7,6 @@ import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.mutableClassDefByOrNull
 import app.morphe.patcher.util.findMutableMethodOf
 import app.morphe.patcher.util.returnEarly
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 
 private val SDK_KEYWORDS = listOf(
     "firebase", "crashlytics", "gms/analytics", "googleanalytics", "adjust", "sentry",
@@ -50,7 +49,8 @@ val telemetryKillPatch = bytecodePatch(
     default = false,
 ) {
     val killInit by booleanOption(
-        key = "killInit", default = false,
+        key = "killInit",
+        default = false,
         title = "Also kill SDK initialization",
         description = "Aggressive: no-ops init/activate/start in SDK classes. May break apps that " +
             "require SDK init to run. Off by default.",
@@ -63,12 +63,12 @@ val telemetryKillPatch = bytecodePatch(
 
         // Tier B + C: generic keyword+verb sweep over bundled SDK dex.
         classDefForEach { classDef ->
-            if (!isSdkClass(classDef.type)) return@forEach
+            if (!isSdkClass(classDef.type)) return@classDefForEach
             val targets = classDef.methods.filter { m ->
                 (VERB_RE.matches(m.name) && (m.returnType == "V" || m.returnType == "Z")) ||
                     (killInit == true && INIT_RE.matches(m.name) && m.returnType == "V")
             }
-            if (targets.isEmpty()) return@forEach
+            if (targets.isEmpty()) return@classDefForEach
             val mc = mutableClassDefBy(classDef)
             targets.forEach { mc.findMutableMethodOf(it).let(::noOpSafe) }
         }

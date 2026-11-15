@@ -1,0 +1,1104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.1.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.0)" variant="all" version="9.1.0">
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="474"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="GestureBackNavigation"
+        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
+        errorLine1="    public void onBackPressed() {"
+        errorLine2="                ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsActivity.java"
+            line="516"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="CheckResult"
+        message="The result of `intersect` is not used. If the rectangles do not intersect, no change is made and the original rectangle is not modified. These methods return false to indicate that this has happened."
+        errorLine1="            region.intersect(0, 0, decor.getWidth(), decor.getHeight());"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="392"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="            boolean profile = name.contains(&quot;ProfileView&quot;) || (page != null &amp;&amp; page.toLowerCase().contains(&quot;profile&quot;));"
+        errorLine2="                                                                                    ~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/LokiPatches.java"
+            line="88"
+            column="85"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="        TextView view = label(title.toUpperCase(), 12, muted, true);"
+        errorLine2="                                    ~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="374"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="DiscouragedPrivateApi"
+        message="Reflective access to currentApplication, which is not part of the public SDK and therefore likely to change in future Android releases"
+        errorLine1="            java.lang.reflect.Method m = at.getDeclaredMethod(&quot;currentApplication&quot;);"
+        errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/DrawerSupport.java"
+            line="133"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_10`"
+        errorLine1="    private static final int T10 = android.R.color.system_accent1_10;"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="30"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_50`"
+        errorLine1="    private static final int T50 = android.R.color.system_accent1_50;"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="31"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_100`"
+        errorLine1="    private static final int T100 = android.R.color.system_accent1_100;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="32"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_200`"
+        errorLine1="    private static final int T200 = android.R.color.system_accent1_200;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="33"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_300`"
+        errorLine1="    private static final int T300 = android.R.color.system_accent1_300;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="34"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_400`"
+        errorLine1="    private static final int T400 = android.R.color.system_accent1_400;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="35"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_500`"
+        errorLine1="    private static final int T500 = android.R.color.system_accent1_500;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="36"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_600`"
+        errorLine1="    private static final int T600 = android.R.color.system_accent1_600;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="37"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_700`"
+        errorLine1="    private static final int T700 = android.R.color.system_accent1_700;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="38"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_800`"
+        errorLine1="    private static final int T800 = android.R.color.system_accent1_800;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="39"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_accent1_900`"
+        errorLine1="    private static final int T900 = android.R.color.system_accent1_900;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="40"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_50`"
+        errorLine1="    private static final int CARD_LIGHT = role(android.R.color.system_surface_light, android.R.color.system_neutral2_50);"
+        errorLine2="                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="63"
+            column="86"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_light`"
+        errorLine1="    private static final int CARD_LIGHT = role(android.R.color.system_surface_light, android.R.color.system_neutral2_50);"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="63"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_100`"
+        errorLine1="            role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100);"
+        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="65"
+            column="70"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_low_light`"
+        errorLine1="            role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="65"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_100`"
+        errorLine1="            role(android.R.color.system_surface_container_high_light, android.R.color.system_neutral2_100);"
+        errorLine2="                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="67"
+            column="71"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_high_light`"
+        errorLine1="            role(android.R.color.system_surface_container_high_light, android.R.color.system_neutral2_100);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="67"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_100`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_100);"
+        errorLine2="                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="69"
+            column="74"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_highest_light`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_100);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="69"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_200`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_200);"
+        errorLine2="                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="71"
+            column="74"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_highest_light`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_200);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="71"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral1_900`"
+        errorLine1="            role(android.R.color.system_surface_container_dark, android.R.color.system_neutral1_900);"
+        errorLine2="                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="73"
+            column="65"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_dark`"
+        errorLine1="            role(android.R.color.system_surface_container_dark, android.R.color.system_neutral1_900);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="73"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_800`"
+        errorLine1="            role(android.R.color.system_surface_container_high_dark, android.R.color.system_neutral2_800);"
+        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="75"
+            column="70"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_high_dark`"
+        errorLine1="            role(android.R.color.system_surface_container_high_dark, android.R.color.system_neutral2_800);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="75"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral1_1000`"
+        errorLine1="            role(android.R.color.system_surface_dark, android.R.color.system_neutral1_1000);"
+        errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="77"
+            column="55"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_dark`"
+        errorLine1="            role(android.R.color.system_surface_dark, android.R.color.system_neutral1_1000);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="77"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 23): `android.R.color#system_neutral2_700`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_dark, android.R.color.system_neutral2_700);"
+        errorLine2="                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="79"
+            column="73"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 34 (current min is 23): `android.R.color#system_surface_container_highest_dark`"
+        errorLine1="            role(android.R.color.system_surface_container_highest_dark, android.R.color.system_neutral2_700);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/MaterialYou.java"
+            line="79"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 23): `android.view.View#SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR`"
+        errorLine1="                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);"
+        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsActivity.java"
+            line="489"
+            column="60"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 23): `android.view.accessibility.AccessibilityNodeInfo#EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY`"
+        errorLine1="        String key = AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY;"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="257"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 23): `android.view.accessibility.AccessibilityNodeInfo#EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX`"
+        errorLine1="        arguments.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0);"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="259"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 23): `android.view.accessibility.AccessibilityNodeInfo#EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH`"
+        errorLine1="        arguments.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, text.length());"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="260"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="        byte[] whole = Files.readAllBytes(file.toPath());"
+        errorLine2="                                               ~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="127"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#readAllBytes`"
+        errorLine1="        byte[] whole = Files.readAllBytes(file.toPath());"
+        errorLine2="                             ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="127"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="        Files.write(file.toPath(), newest);"
+        errorLine2="                         ~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="132"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#write`"
+        errorLine1="        Files.write(file.toPath(), newest);"
+        errorLine2="              ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="132"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="            List&lt;String> whole = Files.readAllLines(source.toPath(), StandardCharsets.UTF_8);"
+        errorLine2="                                                           ~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="196"
+            column="60"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#readAllLines`"
+        errorLine1="            List&lt;String> whole = Files.readAllLines(source.toPath(), StandardCharsets.UTF_8);"
+        errorLine2="                                       ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Diagnostics.java"
+            line="196"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="        byte[] whole = Files.readAllBytes(file.toPath());"
+        errorLine2="                                               ~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="76"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#readAllBytes`"
+        errorLine1="        byte[] whole = Files.readAllBytes(file.toPath());"
+        errorLine2="                             ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="76"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="        Files.write(file.toPath(), newest);"
+        errorLine2="                         ~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="81"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#write`"
+        errorLine1="        Files.write(file.toPath(), newest);"
+        errorLine2="              ~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="81"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.io.File#toPath`"
+        errorLine1="            List&lt;String> whole = Files.readAllLines(source.toPath(), StandardCharsets.UTF_8);"
+        errorLine2="                                                           ~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="133"
+            column="60"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26, or core library desugaring (current min is 23): `java.nio.file.Files#readAllLines`"
+        errorLine1="            List&lt;String> whole = Files.readAllLines(source.toPath(), StandardCharsets.UTF_8);"
+        errorLine2="                                       ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/LokiLog.java"
+            line="133"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Map#computeIfAbsent`"
+        errorLine1="        Optional&lt;Method> handle = GETTERS.computeIfAbsent(key, ignored -> find(type, getter));"
+        errorLine2="                                          ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Proto.java"
+            line="32"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#isPresent`"
+        errorLine1="        if (!handle.isPresent()) return null;"
+        errorLine2="                    ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Proto.java"
+            line="33"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#get`"
+        errorLine1="        Method method = handle.get();"
+        errorLine2="                               ~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Proto.java"
+            line="34"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#of`"
+        errorLine1="            return Optional.of(method);"
+        errorLine2="                            ~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Proto.java"
+            line="46"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#empty`"
+        errorLine1="            return Optional.empty();"
+        errorLine2="                            ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Proto.java"
+            line="48"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#isPresent`"
+        errorLine1="        if (!handle.isPresent()) return null;"
+        errorLine2="                    ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="30"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#get`"
+        errorLine1="            return handle.get().get(target);"
+        errorLine2="                          ~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="32"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#get`"
+        errorLine1="        return handle.isPresent() ? handle.get() : null;"
+        errorLine2="                                           ~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="42"
+            column="44"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#isPresent`"
+        errorLine1="        return handle.isPresent() ? handle.get() : null;"
+        errorLine2="                      ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="42"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Map#computeIfAbsent`"
+        errorLine1="        return LOOKUP.computeIfAbsent(key, ignored -> locate(type, name));"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="47"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#of`"
+        errorLine1="                return Optional.of(declared);"
+        errorLine2="                                ~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="57"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Optional#empty`"
+        errorLine1="        return Optional.empty();"
+        errorLine2="                        ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Reflect.java"
+            line="62"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.concurrent.ConcurrentHashMap#newKeySet`"
+        errorLine1="    private static final Set&lt;String> loggedNames = ConcurrentHashMap.newKeySet();"
+        errorLine2="                                                                     ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SduiComponentFilter.java"
+            line="56"
+            column="70"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Class requires API level 25 (current min is 23): `android.content.pm.ShortcutManager`"
+        errorLine1="            ShortcutManager shortcuts = appContext.getSystemService(ShortcutManager.class);"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="74"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutManager#addDynamicShortcuts`"
+        errorLine1="            shortcuts.addDynamicShortcuts(Collections.singletonList(shortcut));"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="79"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutManager#getDynamicShortcuts`"
+        errorLine1="        for (ShortcutInfo existing : shortcuts.getDynamicShortcuts()) {"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="92"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo#getIntent`"
+        errorLine1="            Intent intent = existing.getIntent();"
+        errorLine2="                                     ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="93"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo#getId`"
+        errorLine1="            if (opensSettings &amp;&amp; !SHORTCUT_ID.equals(existing.getId())) stale.add(existing.getId());"
+        errorLine2="                                                              ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="96"
+            column="63"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo#getId`"
+        errorLine1="            if (opensSettings &amp;&amp; !SHORTCUT_ID.equals(existing.getId())) stale.add(existing.getId());"
+        errorLine2="                                                                                           ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="96"
+            column="92"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutManager#removeDynamicShortcuts`"
+        errorLine1="        if (!stale.isEmpty()) shortcuts.removeDynamicShortcuts(stale);"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="98"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `new android.content.pm.ShortcutInfo.Builder`"
+        errorLine1="        return new ShortcutInfo.Builder(appContext, SHORTCUT_ID)"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="107"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#setShortLabel`"
+        errorLine1="                .setShortLabel(SHORTCUT_LABEL)"
+        errorLine2="                 ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="108"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#setLongLabel`"
+        errorLine1="                .setLongLabel(SHORTCUT_LABEL)"
+        errorLine2="                 ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="109"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#setIcon`"
+        errorLine1="                .setIcon(icon)"
+        errorLine2="                 ~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="110"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#setIntent`"
+        errorLine1="                .setIntent(open)"
+        errorLine2="                 ~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="111"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#setRank`"
+        errorLine1="                .setRank(0)"
+        errorLine2="                 ~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="112"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 25 (current min is 23): `android.content.pm.ShortcutInfo.Builder#build`"
+        errorLine1="                .build();"
+        errorLine2="                 ~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="113"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24, or core library desugaring (current min is 23): `java.util.Map#putIfAbsent`"
+        errorLine1="        if (IN_FLIGHT.putIfAbsent(key, Boolean.TRUE) != null) return;"
+        errorLine2="                      ~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/ShortLinkResolver.java"
+            line="65"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 23): `android.view.accessibility.AccessibilityNodeProvider#addExtraDataToAccessibilityNodeInfo`"
+        errorLine1="        provider.addExtraDataToAccessibilityNodeInfo(id, info, key, arguments);"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="261"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 26 (current min is 23): `android.view.PixelCopy#request`"
+        errorLine1="            PixelCopy.request(window, region, bitmap, result -> {"
+        errorLine2="                      ~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="398"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            Class&lt;?> at = Class.forName(&quot;android.app.ActivityThread&quot;);"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/DrawerSupport.java"
+            line="132"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="WrongConstant"
+        message="Must be one of: Typeface.NORMAL, Typeface.BOLD, Typeface.ITALIC, Typeface.BOLD_ITALIC"
+        errorLine1="        if (bold) view.setTypeface(view.getTypeface(), 1);"
+        errorLine2="                                                       ~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="503"
+            column="56"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="        return context.getResources().getIdentifier(name, type, context.getPackageName());"
+        errorLine2="                                      ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/DrawerSupport.java"
+            line="145"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields; this is a memory leak"
+        errorLine1="    private static Context baseContext;"
+        errorLine2="            ~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/Settings.java"
+            line="517"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `Active` which has field `root` pointing to `FrameLayout`); this is a memory leak"
+        errorLine1="    private static Active active;"
+        errorLine2="            ~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/TextSelectionOverlay.java"
+            line="150"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ReportShortcutUsage"
+        message="Calling this method indicates use of dynamic shortcuts, but there are no calls to methods that track shortcut usage, such as `pushDynamicShortcut` or `reportShortcutUsed`. Calling these methods is recommended, as they track shortcut usage and allow launchers to adjust which shortcuts appear based on activation history. Please see https://developer.android.com/develop/ui/views/launch/shortcuts/managing-shortcuts#track-usage"
+        errorLine1="            shortcuts.setDynamicShortcuts(Collections.singletonList("
+        errorLine2="            ^">
+        <location
+            file="src/main/java/app/loki/extension/MenuProvider.java"
+            line="32"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ReportShortcutUsage"
+        message="Calling this method indicates use of dynamic shortcuts, but there are no calls to methods that track shortcut usage, such as `pushDynamicShortcut` or `reportShortcutUsed`. Calling these methods is recommended, as they track shortcut usage and allow launchers to adjust which shortcuts appear based on activation history. Please see https://developer.android.com/develop/ui/views/launch/shortcuts/managing-shortcuts#track-usage"
+        errorLine1="            shortcuts.addDynamicShortcuts(Collections.singletonList(shortcut));"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsShortcut.java"
+            line="79"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                        title.setText(&quot;Update available&quot;);"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="333"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="                        body.setText(&quot;Installed: &quot; + MenuInfo.patchesVersion() + &quot;\nNewer: &quot; + latest"
+        errorLine2="                                     ^">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="334"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                        body.setText(&quot;Installed: &quot; + MenuInfo.patchesVersion() + &quot;\nNewer: &quot; + latest"
+        errorLine2="                                     ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="334"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                        title.setText(&quot;Up to date&quot;);"
+        errorLine2="                                      ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="338"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                        title.setText(&quot;No stable release yet&quot;);"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="342"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="                        body.setText(installed + &quot;\n\nGitHub has no stable release to compare against yet.&quot;);"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="343"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="                        title.setText(&quot;Can&apos;t connect&quot;);"
+        errorLine2="                                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="346"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="                        body.setText(installed + &quot;\n\nCouldn&apos;t reach GitHub. Check your connection.&quot;);"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/loki/extension/MenuActivity.java"
+            line="347"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="        caption.setText((position + 1) + &quot;. &quot; + name);"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SduiMediaDownload.java"
+            line="417"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="        caption.setText((position + 1) + &quot;. &quot; + name);"
+        errorLine2="                         ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/app/linkedin/extension/SduiMediaDownload.java"
+            line="417"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="                    updateBody.setText(thisBuild + &quot;\n\n&quot;"
+        errorLine2="                                       ^">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsActivity.java"
+            line="774"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="                    updateBody.setText(thisBuild + &quot;\n\n&quot;"
+        errorLine2="                                       ^">
+        <location
+            file="src/main/java/app/linkedin/extension/SettingsActivity.java"
+            line="779"
+            column="40"/>
+    </issue>
+
+</issues>

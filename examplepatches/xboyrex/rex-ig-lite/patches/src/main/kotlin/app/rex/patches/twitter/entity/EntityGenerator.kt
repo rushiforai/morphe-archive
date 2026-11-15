@@ -9,10 +9,10 @@ package app.rex.patches.twitter.entity
 import app.rex.patches.twitter.entity.extMedia.extMediaEntityPatch
 import app.rex.patches.twitter.entity.tweet.tweetEntityPatch
 import app.rex.patches.twitter.entity.tweetInfo.tweetInfoEntityPatch
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 val entityGenerator =
-    bytecodePatch(
+    patch(
         description = "Reflect entity patch generator",
     ) {
         dependsOn(tweetEntityPatch, tweetInfoEntityPatch, extMediaEntityPatch)

@@ -202,14 +202,11 @@ public final class EmoteStore {
         }
 
         // Longest names first so "LONGEMOTE" wins over "LONG".
-        Collections.sort(names, new Comparator<String>() {
-            @Override
-            public int compare(String a, String b) {
-                if (a.length() != b.length()) {
-                    return b.length() - a.length();
-                }
-                return a.compareTo(b);
+        Collections.sort(names, (a, b) -> {
+            if (a.length() != b.length()) {
+                return b.length() - a.length();
             }
+            return a.compareTo(b);
         });
 
         // Emote names are whole whitespace-separated tokens, exactly like the

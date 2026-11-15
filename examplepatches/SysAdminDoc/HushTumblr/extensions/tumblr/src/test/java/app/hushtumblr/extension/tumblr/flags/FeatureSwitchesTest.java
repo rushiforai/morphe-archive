@@ -12,10 +12,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ import java.util.List;
 import app.hushtumblr.extension.shared.SettingsContextRule;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
 import app.hushtumblr.extension.shared.settings.BooleanSetting;
+import app.hushtumblr.extension.tumblr.privacy.SdkStartup;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
@@ -38,8 +41,14 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
 public class FeatureSwitchesTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    @Before
+    public void aNewRun() {
+        FeatureSwitches.resetForTests();
+    }
+
     @After
     public void restore() {
+        FeatureSwitches.resetForTests();
         HookStatus.clear();
     }
 
@@ -92,6 +101,7 @@ public class FeatureSwitchesTest {
                 if (FeatureSwitches.isEnabled(flag(flag), true)) wrong.add(flag + " stayed on with its switch on");
                 if (FeatureSwitches.isEnabled(flag(flag), false)) wrong.add(flag + " turned on");
                 for (BooleanSetting setting : family.switches) setting.save(false);
+                FeatureSwitches.resetForTests();
                 if (!FeatureSwitches.isEnabled(flag(flag), true)) wrong.add(flag + " went off with its switch off");
                 for (BooleanSetting setting : family.switches) setting.save(true);
                 PatchFamilyForTests.inBuild(EnumSet.complementOf(EnumSet.of(family)));
@@ -140,6 +150,7 @@ public class FeatureSwitchesTest {
                 Settings.HIDE_ADS.save(true);
                 assertFalse(flag + " with Hide ads on", FeatureSwitches.isEnabled(flag(flag), true));
                 Settings.HIDE_ADS.save(false);
+                FeatureSwitches.resetForTests();
                 assertTrue(flag + " with Hide ads off", FeatureSwitches.isEnabled(flag(flag), true));
                 assertFalse(flag + " Tumblr had off", FeatureSwitches.isEnabled(flag(flag), false));
             }
@@ -149,6 +160,64 @@ public class FeatureSwitchesTest {
         } finally {
             Settings.HIDE_ADS.resetToDefault();
             PatchFamilyForTests.inBuild(null);
+        }
+    }
+
+    /**
+     * Tumblr asks SMART_BANNER_ADS again whenever a feed builds its ad sources, and it only set
+     * Smart's SDK up at launch if the answer was on then. With Hide ads on at launch and then
+     * switched off, a feed rebuilt by a font size change built Smart's banner source anyway, which
+     * threw "The Smart Display SDK is not yet configured" and closed Tumblr. Every flag of the
+     * family stays off until the restart the settings screen asks for. Switched on during a run,
+     * the flags asked after it go off at once.
+     */
+    @Test
+    public void hideAdsSwitchedOffDuringARunKeepsTheAdFlagsOffUntilRestart() {
+        try {
+            PatchFamilyForTests.inBuild(EnumSet.allOf(PatchFamily.class));
+            Settings.DISABLE_ANALYTICS.save(false);
+            Settings.HIDE_ADS.save(true);
+            assertFalse("at launch", FeatureSwitches.isEnabled(flag("SMART_BANNER_ADS"), true));
+            Settings.HIDE_ADS.save(false);
+            assertFalse("the feed's ad sources after Hide ads went off",
+                    FeatureSwitches.isEnabled(flag("SMART_BANNER_ADS"), true));
+            assertFalse("a flag of the family not asked before", FeatureSwitches.isEnabled(flag("GOOGLE_BANNER_ADS"), true));
+            assertFalse("Tumblr's own off stays off", FeatureSwitches.isEnabled(flag("SMART_BANNER_ADS"), false));
+            assertTrue("another family's flag", FeatureSwitches.isEnabled(flag("LIVERAMP_ATS"), true));
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(FeatureSwitches.HELD_OFF));
+
+            FeatureSwitches.resetForTests();
+            assertTrue("after a restart with Hide ads off", FeatureSwitches.isEnabled(flag("SMART_BANNER_ADS"), true));
+            Settings.HIDE_ADS.save(true);
+            assertFalse("Hide ads switched on during the run", FeatureSwitches.isEnabled(flag("SMART_BANNER_ADS"), true));
+        } finally {
+            Settings.HIDE_ADS.resetToDefault();
+            Settings.DISABLE_ANALYTICS.resetToDefault();
+            PatchFamilyForTests.inBuild(null);
+        }
+    }
+
+    /**
+     * An ad network whose start was skipped at launch stays unstarted for the run, so Hide ads'
+     * flags stay off with it even if none of them was asked before the switch went off.
+     */
+    @Test
+    public void anAdNetworkSkippedAtLaunchKeepsTheAdFlagsOffUntilRestart() {
+        try {
+            PatchFamilyForTests.inBuild(EnumSet.allOf(PatchFamily.class));
+            PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+            Settings.DISABLE_ANALYTICS.save(false);
+            Settings.HIDE_ADS.save(true);
+            assertNull("Google Mobile Ads didn't start", SdkStartup.mobileAds(RuntimeEnvironment.getApplication()));
+            Settings.HIDE_ADS.save(false);
+            assertFalse(FeatureSwitches.isEnabled(flag("GOOGLE_BANNER_ADS"), true));
+            assertTrue("Disable analytics' flags are their own", FeatureSwitches.isEnabled(flag("LIVERAMP_ATS"), true));
+        } finally {
+            Settings.HIDE_ADS.resetToDefault();
+            Settings.DISABLE_ANALYTICS.resetToDefault();
+            PatchFamilyForTests.inBuild(null);
+            PatchFamilyForTests.capabilities(null);
         }
     }
 

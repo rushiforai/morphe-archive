@@ -68,9 +68,9 @@ class UiFixtureTest {
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
         "amoledBlack" to "blackBottomBar", "hideInboxUpdates" to "inboxUpdates",
         // Capabilities past here have no patch of their own at the same index.
-        "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
+        "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu", "amoledBlack" to "blackSaveSheet",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
-        "hideComments" to "suggestedReplies",
+        "hideComments" to "suggestedReplies", "hideComments" to "commentPreviews",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -87,12 +87,22 @@ class UiFixtureTest {
             assertFlag(rejectedComments, "comments", false)
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val inbox = context.inboxUpdates()
+            val saveSheet = PatchContexts.of(ExtensionDex.classes() + classes).boardPickerViewCreated("test")
             val warnings = PatchLogCapture.warnings { patches.forEach { it.execute(context) } }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             for ((family, capability) in flags) {
                 assertFlag(context, family, true)
                 assertFlag(context, capability, true)
             }
+            // The Save to sheet hands its whole view over first, before Pinterest's own onViewCreated
+            // runs: the view is the method's first parameter after the fragment.
+            val created = context.mutable(saveSheet).implementation!!
+            val handOver = created.instructions.first()
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, handOver.opcode)
+            assertEquals(build.name, SAVE_SHEET_HOOK, (handOver as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the sheet's view", created.registerCount - 2, (handOver as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 1, handOver.registerCount)
+            assertEquals(build.name, saveSheet.instructions().map { it.opcode }, created.instructions.drop(1).map { it.opcode })
             // The Inbox asks the hook right before it adds Updates, and a yes jumps past that one call.
             val sections = context.mutable(inbox.presenter).instructions()
             val inboxAsked = sections.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == INBOX_UPDATES_HOOK }
@@ -116,6 +126,23 @@ class UiFixtureTest {
                 assertTrue("${build.name}: $type answers to the suggested replies switch", context.mutableClassDefBy(type).methods
                     .none { method -> method.calls().any { it.definingClass == UI_HOOKS && it.name.startsWith("suggestedReplies") } })
             }
+            // The previews, the comment photos and the module that shows only a quoted comment fold
+            // through the preview hooks, which either switch turns on, and the unified module itself
+            // answers only to Hide comments.
+            val insightModule = commentsModules.single { it.type != unifiedComments.type }
+            for (type in listOf(COMMENT_PREVIEW, COMMENTS_IMAGES, insightModule.type)) {
+                val view = context.mutableClassDefBy(type)
+                for ((name, hook) in listOf("setVisibility" to "commentPreviewsVisibility", "onMeasure" to "commentPreviewsMeasureSpec")) {
+                    assertEquals("${build.name}: $type->$name", listOf(hook), view.methods.single { it.name == name && it.returnType == "V" }
+                        .calls().filter { it.definingClass == UI_HOOKS }.map { it.name }.distinct())
+                }
+            }
+            for ((name, hook) in listOf("setVisibility" to "commentsVisibility", "onMeasure" to "commentsMeasureSpec")) {
+                assertEquals("${build.name}: ${unifiedComments.type}->$name", listOf(hook), context.mutableClassDefBy(unifiedComments.type)
+                    .methods.single { it.name == name && it.returnType == "V" }.calls().filter { it.definingClass == UI_HOOKS }.map { it.name }.distinct())
+            }
+            assertTrue("${build.name}: the unified module answers to the comment previews switch", context.mutableClassDefBy(unifiedComments.type)
+                .methods.none { method -> method.calls().any { it.definingClass == UI_HOOKS && it.name.startsWith("commentPreviews") } })
             val wasReplies = classes.single { it.type == COMMENTS_QUICK_REPLIES }
             val replies = context.mutableClassDefBy(COMMENTS_QUICK_REPLIES)
             assertEquals("${build.name}: the suggested replies row gained two overrides, nothing else",
@@ -304,6 +331,22 @@ class UiFixtureTest {
     private fun asksForAssistant(method: Method) = method.returnType == "Z" && method.parameterTypes.isEmpty() &&
         !AccessFlags.STATIC.isSet(method.accessFlags) && "ai_fwd_android_assistant_ask_mode" in method.strings()
 
+    @Test fun `a comments module without its photo strip keeps the preview switch and says the photos stay`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val module = classes.filter { it.isCommentsModule() }.single { it.fields.any { field -> field.type == COMMENT_PREVIEW } }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            context.mutableClassDefBy(module.type).fields.removeAll { it.type == COMMENTS_IMAGES }
+            val warnings = PatchLogCapture.warnings { hideCommentsPatch.execute(context) }
+            assertEquals("${build.name}: $warnings", 1, warnings.size)
+            assertTrue("${build.name}: $warnings", warnings.single().contains("Hide comment previews leaves comment photos"))
+            assertFlag(context, "comments", true)
+            assertFlag(context, "commentPreviews", true)
+            assertTrue("${build.name}: the photo strip got a hook anyway", context.mutableClassDefBy(COMMENTS_IMAGES).methods
+                .none { method -> method.calls().any { it.definingClass == UI_HOOKS } })
+        }
+    }
+
     @Test fun `the Assistant's availability answers no only when the switch says so and keeps its own body`() {
         for (build in Fixtures.declaredBuilds()) {
             val classes = read(build)
@@ -334,6 +377,96 @@ class UiFixtureTest {
         assertTrue(refused.message, refused.message.orEmpty().contains("Assistant availability"))
         assertFlag(context, "hideAssistant", false)
         assertFlag(context, "assistantEntries", false)
+    }
+
+    /** The observers that read the newest image's path and age to spot a screenshot file. */
+    private fun photosWatchers(classes: List<ClassDef>) = classes.filter { it.superclass == CONTENT_OBSERVER }
+        .flatMap { owner -> owner.methods.filter { it.name == "onChange" && "date_added" in it.strings() && "_data" in it.strings() } }
+
+    /** Android 14's callbacks, then every bus handler for the event the photos watchers post. */
+    private fun screenshotListeners(classes: List<ClassDef>): List<Method> {
+        val events = photosWatchers(classes).flatMap { it.instructions() }.filter { it.opcode == Opcode.NEW_INSTANCE }
+            .map { (it as ReferenceInstruction).reference.toString() }.toSet()
+        return classes.filter { SCREEN_CAPTURE_CALLBACK in it.interfaces }.flatMap { owner -> owner.methods.filter { it.name == "onScreenCaptured" } } +
+            classes.flatMap { owner -> owner.methods.filter { it.name == "onEventMainThread" && it.parameterTypes.size == 1 &&
+                it.parameterTypes.single().toString() in events } }
+    }
+
+    @Test fun `a pin closeup's screenshot callback and every screenshot event handler return at once only when the switch says so`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = screenshotListeners(classes)
+            // 14.44.0: the one callback lambda, then Home, both pin closeups, boards and two Pear screens (dex probe 2026-11-14).
+            assertEquals("${build.name}: one screen capture callback and six screenshot event handlers", 7, stock.size)
+            val watchers = photosWatchers(classes)
+            assertEquals("${build.name}: Pinterest's watcher and the merged observer's screenshot case", 2, watchers.size)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val warnings = PatchLogCapture.warnings { hideScreenshotSharePatch.execute(context) }
+            assertEquals("${build.name} warnings", emptyList<String>(), warnings)
+            for (listener in stock) {
+                val body = context.mutable(listener).instructions()
+                val where = "${build.name}: ${listener.definingClass}->${listener.name}"
+                assertEquals("$where, the guard's shape", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    body.take(4).map { it.opcode })
+                assertEquals("$where, the hook", SCREENSHOT_HOOK, (body[0] as ReferenceInstruction).reference.toString())
+                // A switch payload has to start on an even code unit, so the guard can add a NOP pad in front of it.
+                assertEquals("$where, the rest is Pinterest's own", listener.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                    body.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
+            }
+            // The merged observer's other cases serve unrelated observers, so no watcher is touched.
+            for (watcher in watchers) assertEquals("${build.name}: ${watcher.definingClass} stays Pinterest's own",
+                watcher.instructions().map { it.opcode }, context.mutable(watcher).instructions().map { it.opcode })
+        }
+    }
+
+    @Test fun `a build without the screen capture callback keeps the other screenshot listeners and names the one it lacks`() {
+        val classes = read(Fixtures.declaredBuilds().first()).filter { SCREEN_CAPTURE_CALLBACK !in it.interfaces }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        val warnings = PatchLogCapture.warnings { hideScreenshotSharePatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("screen capture callback"))
+        assertFlag(context, "hideScreenshotShare", true)
+        assertFlag(context, "screenshotShare", true)
+        val handlers = screenshotListeners(classes)
+        assertEquals(6, handlers.size)
+        for (handler in handlers) assertEquals("${handler.definingClass}", SCREENSHOT_HOOK,
+            (context.mutable(handler).instructions()[0] as ReferenceInstruction).reference.toString())
+    }
+
+    @Test fun `a build whose screenshot event has no handler keeps the callback and names what it lacks`() {
+        val full = read(Fixtures.declaredBuilds().first())
+        val handlers = screenshotListeners(full).filter { it.name == "onEventMainThread" }.map { it.definingClass }.toSet()
+        val classes = full.filter { it.type !in handlers }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        val warnings = PatchLogCapture.warnings { hideScreenshotSharePatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("screenshot event's receivers"))
+        assertFlag(context, "hideScreenshotShare", true)
+        val callback = screenshotListeners(classes).single()
+        assertEquals(SCREENSHOT_HOOK, (context.mutable(callback).instructions()[0] as ReferenceInstruction).reference.toString())
+    }
+
+    @Test fun `a screenshot handler with no free register stays as it is and is named, and the rest are still guarded`() {
+        val full = read(Fixtures.declaredBuilds().first())
+        val event = photosWatchers(full).flatMap { it.instructions() }.filter { it.opcode == Opcode.NEW_INSTANCE }
+            .map { (it as ReferenceInstruction).reference.toString() }.toSet().single()
+        // An R8 forwarder can be this tight: p0 and the event, with nothing left over for the hook's answer.
+        val tight = "Lhush/test/TightScreenshotForwarder;"
+        val forwarder = ImmutableClassDef(tight, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(), null, setOf(), listOf(),
+            listOf(ImmutableMethod(tight, "onEventMainThread", listOf(ImmutableMethodParameter(event, null, null)), "V",
+                AccessFlags.PUBLIC.value, null, null, ImmutableMethodImplementation(2, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null))))
+        val classes = full + forwarder
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        val warnings = PatchLogCapture.warnings { hideScreenshotSharePatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("$tight->onEventMainThread"))
+        assertFlag(context, "hideScreenshotShare", true)
+        assertFlag(context, "screenshotShare", true)
+        assertEquals(listOf(Opcode.RETURN_VOID), context.mutable(forwarder.methods.single()).instructions().map { it.opcode })
+        val guarded = screenshotListeners(full)
+        assertEquals(7, guarded.size)
+        for (listener in guarded) assertEquals("${listener.definingClass}", SCREENSHOT_HOOK,
+            (context.mutable(listener).instructions()[0] as ReferenceInstruction).reference.toString())
     }
 
     @Test fun `a missing family status refuses before changing any vendor method`() {
@@ -509,11 +642,17 @@ class UiFixtureTest {
                 assertTrue("$reason left a hook in the suggested replies row", context.mutableClassDefBy(COMMENTS_QUICK_REPLIES).methods
                     .none { method -> method.calls().any { it.definingClass == UI_HOOKS } })
             }
-            assertTrue("$reason took Hide comments out with it", context.mutableClassDefBy(COMMENT_PREVIEW).methods.any { method ->
-                method.name == "onMeasure" && method.calls().any { it.definingClass == UI_HOOKS && it.name == "commentsMeasureSpec" }
-            })
+            val stays = input.filter { it.isCommentsModule() }.map { module ->
+                module.type to if (module.fields.any { it.type == COMMENT_PREVIEW }) "commentsMeasureSpec" else "commentPreviewsMeasureSpec"
+            } + listOf(COMMENT_PREVIEW to "commentPreviewsMeasureSpec", COMMENTS_IMAGES to "commentPreviewsMeasureSpec")
+            for ((type, hook) in stays) {
+                assertTrue("$reason took $hook out of $type with it", context.mutableClassDefBy(type).methods.any { method ->
+                    method.name == "onMeasure" && method.calls().any { it.definingClass == UI_HOOKS && it.name == hook }
+                })
+            }
             assertFlag(context, "hideComments", true)
             assertFlag(context, "comments", true)
+            assertFlag(context, "commentPreviews", true)
             assertFlag(context, "suggestedReplies", false)
         }
     }
@@ -541,7 +680,7 @@ class UiFixtureTest {
         val anchors = setOf("sg_android_new_screenshot_api_14", "ai_fwd_android_assistant_ask_mode", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED)
-        val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
+        val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_IMAGES + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
             BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
         // Every class with a section adder, kept below only when it holds the Updates feed.
@@ -550,6 +689,8 @@ class UiFixtureTest {
             for (owner in dex.classes) {
                 if (owner.methods.any { it.name == INBOX_ADD_SECTIONS }) adders += ImmutableClassDef.of(owner)
                 val match = owner.type in required || owner.isCommentsModule() || owner.methods.any { it.buildsRecentSearchCell() } ||
+                    SCREEN_CAPTURE_CALLBACK in owner.interfaces || owner.superclass == CONTENT_OBSERVER ||
+                    owner.methods.any { it.name == "onEventMainThread" } ||
                     (owner.superclass == "Ljava/lang/Enum;" && owner.fields.map { it.name }
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
@@ -563,6 +704,10 @@ class UiFixtureTest {
         val feeds = found.values.filter { owner -> owner.methods.any { it.name == "<init>" && INBOX_UPDATES_FEED in it.strings() } }
             .map { it.type }.toSet()
         adders.filter { owner -> owner.fields.any { it.type in feeds } }.forEach { found[it.type] = it }
+        // The event the photos watchers post, which No screenshot share menu checks is Pinterest's own class.
+        found += FixtureDex.classes(build, photosWatchers(found.values.toList()).flatMap { it.instructions() }
+            .filter { it.opcode == Opcode.NEW_INSTANCE }.map { (it as ReferenceInstruction).reference.toString() }
+            .toSet() - found.keys)
         // The greeting header's ids class, which Hide navigation buttons checks for Create's id.
         found += FixtureDex.classes(build, found.values.flatMap { it.methods }.flatMap { it.fields() }
             .filter { it.name == GREETING_NEWSHUB }.map { it.definingClass }.toSet() - found.keys)
@@ -572,6 +717,8 @@ class UiFixtureTest {
         // The search page's Recent searches block is the view whose cell list the cell builder reads.
         found += FixtureDex.classes(build, found.values.flatMap { it.methods }.filter { it.buildsRecentSearchCell() }
             .flatMap { it.fields() }.filter { it.type == ARRAY_LIST }.map { it.definingClass }.toSet() - found.keys)
+        // The Save to sheet, which Black Save to sheet hands over.
+        boardPickerClasses(build).forEach { (type, owner) -> found.putIfAbsent(type, owner) }
         // Include every application superclass so final inherited methods are checked before an override is added.
         // The sheet a pin's menu is built into comes along too, so the patch can tell it's a view.
         val sheets = found[PIN_MENU]?.methods?.filter { it.name == "createModalView" }?.map { it.returnType }.orEmpty()

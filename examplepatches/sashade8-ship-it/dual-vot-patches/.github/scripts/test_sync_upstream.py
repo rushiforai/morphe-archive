@@ -19,6 +19,57 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev234_streaming_keeps_dual_clients_and_web_fallback(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev234-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        prefix, suffix = "unchanged Dual direct fetch\n", "unchanged upstream web session\n"
+        merged = sync_upstream.merge_streaming_data_request_dev234(prefix + conflict + suffix)
+        self.assertEqual(merged, prefix
+                         + "        for (ClientType clientType : clients) {\n"
+                         + "            if (skipClient(clientType) || skipWebClient(clientType, videoId)) {\n"
+                         + suffix)
+        ours, theirs = re.findall(
+            r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n", conflict, re.DOTALL
+        )[0]
+        for invalid in ("", conflict + conflict, conflict + "<<<<<<< extra\n",
+                        conflict.replace(ours, ours + "changed ours\n"),
+                        conflict.replace(theirs, theirs + "changed theirs\n")):
+            with self.subTest(invalid=invalid[:60]), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev234(invalid)
+
+    def test_dev234_and_dev235_resolver_reject_unknown_blob_at_every_stage(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev234-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        path = sync_upstream.STREAMING_DATA_REQUEST_PATH
+        for blobs in (sync_upstream.STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS,
+                      sync_upstream.STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS):
+            destination, root = mock.Mock(), mock.Mock()
+            destination.read_text.return_value = conflict
+            root.__truediv__ = mock.Mock(return_value=destination)
+            with (self.subTest(blobs=blobs),
+                  mock.patch.object(sync_upstream, "ROOT", root),
+                  mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+                  mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+                  mock.patch.object(sync_upstream, "run") as run):
+                sync_upstream.resolve_streaming_data_request_conflict()
+                destination.write_text.assert_called_once_with(
+                    sync_upstream.merge_streaming_data_request_dev234(conflict), encoding="utf-8", newline="")
+                run.assert_called_once_with("git", "add", "--", path)
+            for stage in range(3):
+                unknown = list(blobs)
+                unknown[stage] = "unknown"
+                destination.reset_mock()
+                with (self.subTest(blobs=blobs, stage=stage + 1),
+                      mock.patch.object(sync_upstream, "ROOT", root),
+                      mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+                      mock.patch.object(sync_upstream, "output_of", side_effect=unknown),
+                      mock.patch.object(sync_upstream, "run") as run):
+                    sync_upstream.resolve_streaming_data_request_conflict()
+                    destination.write_text.assert_not_called()
+                    run.assert_not_called()
+
     def test_dev230_streaming_keeps_playback_gate_and_independent_direct_audio(self):
         conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev230-conflicts.txt").read_text(
             encoding="utf-8"

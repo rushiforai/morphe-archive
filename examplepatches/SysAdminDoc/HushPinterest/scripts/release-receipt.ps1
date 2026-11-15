@@ -21,6 +21,11 @@
     The SBOM :patches:releaseSbom writes beside the bundle says what the bundle carries: every
     library and the version it resolved to. The receipt records its hash, and the SBOM records the
     bundle's, so neither can be swapped for another build's without the pair coming apart.
+
+    From schema 5 each target also records its native library alignment for 16 KB memory pages
+    (native-alignment.ps1): the ELF load alignment of every library, zipalign -c -P 16 on both
+    APKs, and whether anything patching did moved or changed a library. What Pinterest ships
+    unaligned is a host finding; what repackaging broke stops the build.
 #>
 
 function Get-ReleaseReceiptSchemaVersion {
@@ -37,8 +42,9 @@ function Get-ReleaseReceiptSchemaVersion {
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
         3 added each target's stock and patched binary minSdk, held to max(stock, 29) (28 before the Android 10 floor of 2026-10-10).
         4 added canonical stock/patched manifest facts and full declaration deltas, checked per target.
+        5 added each target's native library alignment for 16 KB pages (native-alignment.ps1).
     #>
-    return 4
+    return 5
 }
 
 function Resolve-ReceiptSchema {
@@ -47,8 +53,9 @@ function Resolve-ReceiptSchema {
         The schema a receipt should be held to: the one its own commit's builder wrote.
     .DESCRIPTION
         A receipt describes a release that has shipped. One cut before schema 2 has no SBOM,
-        one cut before schema 3 has no binary SDK facts, and one before 4 has no compiled
-        declaration attestation. Holding it to today's schema would
+        one cut before schema 3 has no binary SDK facts, one before 4 has no compiled
+        declaration attestation, and one before 5 has no native library alignment. Holding it
+        to today's schema would
         refuse every later push from the checkout that cut it, which is the trap
         Resolve-ReceiptToolchain describes for the patcher pin. So the
         number is read out of scripts/release-receipt.ps1 at the receipt's commit. On a release
@@ -80,7 +87,8 @@ function Resolve-ReceiptSchema {
         Note = ("the receipt is held to schema $version, which its own commit $short wrote, so " +
             $(if ($version -lt 2) { 'it names no SBOM, binary SDK or compiled declaration facts and those are not checked for its release' }
               elseif ($version -lt 3) { 'it names no binary SDK or compiled declaration facts and those are not checked for its release' }
-              else { 'it names no compiled declaration facts and those are not checked for its release' }))
+              elseif ($version -lt 4) { 'it names no compiled declaration facts and those are not checked for its release' }
+              else { 'it names no native library alignment and that is not checked for its release' }))
     }
 }
 
@@ -557,6 +565,100 @@ function Test-PatchedMinSdk {
     return [pscustomobject]@{ Valid = $true; Reason = 'ok' }
 }
 
+function Get-ManifestExtractNativeLibs {
+    <# android:extractNativeLibs off Get-ApkManifestFacts' application declaration: 'true', 'false' or 'unset'. #>
+    param([Parameter(Mandatory = $true)]$Manifest)
+
+    foreach ($declaration in @($Manifest.components)) {
+        $parsed = "$declaration" | ConvertFrom-Json
+        if ($parsed.tag -cne 'application') { continue }
+        $property = $parsed.attributes.PSObject.Properties['android:extractNativeLibs']
+        if ($null -eq $property) { return 'unset' }
+        $value = "$($property.Value)".Trim()
+        if ($value -cmatch '^(true|(\(type 0x12\))?0xffffffff|-1)$') { return 'true' }
+        if ($value -cmatch '^(false|(\(type 0x12\))?0x0+|0)$') { return 'false' }
+        return $value
+    }
+    return 'unset'
+}
+
+function Test-NativeAlignmentRecord {
+    <#
+    .SYNOPSIS
+        Whether a recorded native library alignment (native-alignment.ps1) holds together and
+        shows no damage from repackaging.
+    .DESCRIPTION
+        Answers @{ Valid; Reason }. The record is the builder's own measurement of the stock and
+        patched APKs, so what can be held here is that zipalign ran on both, that the verdict is
+        the one its findings give, that its counts agree, and that the extractNativeLibs it read
+        is what the recorded manifest facts declare. Host findings pass: they describe libraries
+        Pinterest ships, which this project doesn't rebuild.
+    #>
+    param([AllowNull()]$Record, $StockManifest, $PatchedManifest, [string]$Label = 'the target')
+
+    function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason } }
+    function Test-Count { param($Value) return ($Value -is [int] -or $Value -is [long]) -and $Value -ge 0 }
+
+    if ($null -eq $Record) { return Fail "The receipt records no native library alignment for $Label." }
+    if ($Record.schema -ne 1 -or $Record.pageSize -ne 16384) {
+        return Fail "The native library alignment for $Label isn't schema 1 measured against 16384-byte pages."
+    }
+    foreach ($list in @('damage', 'hostFindings')) {
+        $values = $Record.$list
+        if ($values -isnot [array] -or @($values | Where-Object { $_ -isnot [string] -or [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+            return Fail "The native library alignment for $Label records no valid $list list."
+        }
+    }
+    if (@($Record.damage).Count -gt 0) {
+        return Fail "Patching damaged the native libraries of ${Label}: $(@($Record.damage) -join '; ')"
+    }
+    $findings = @($Record.hostFindings).Count
+    $verdict = if ($findings -gt 0) { 'host not 16 KB ready' } else { 'aligned' }
+    if ($Record.verdict -cne $verdict) {
+        return Fail "The native library alignment for $Label says '$($Record.verdict)', and its findings make it '$verdict'."
+    }
+    foreach ($side in @('stock', 'patched')) {
+        if ($null -eq $Record.zipalign -or @('pass', 'fail') -cnotcontains [string]$Record.zipalign.$side) {
+            return Fail "zipalign -c -P 16 4 didn't run on the $side APK of $Label."
+        }
+    }
+    if ($Record.zipalign.patched -ceq 'fail' -and $Record.zipalign.stock -ceq 'pass') {
+        return Fail "zipalign -c -P 16 4 fails on the patched APK of $Label and passes on the stock one."
+    }
+    if ($Record.zipalign.stock -ceq 'fail' -and $findings -eq 0) {
+        return Fail "zipalign fails on the stock APK of $Label, and the alignment records no host finding for it."
+    }
+    $extract = $Record.extractNativeLibs
+    if ($null -eq $extract -or [string]::IsNullOrWhiteSpace([string]$extract.stock) -or [string]$extract.stock -cne [string]$extract.patched) {
+        return Fail "The native library alignment for $Label records extractNativeLibs '$($extract.stock)' stock and '$($extract.patched)' patched."
+    }
+    foreach ($pair in @(@('stock', $StockManifest), @('patched', $PatchedManifest))) {
+        if ($null -ne $pair[1] -and (Get-ManifestExtractNativeLibs -Manifest $pair[1]) -cne [string]$extract.($pair[0])) {
+            return Fail "The $($pair[0]) manifest facts of $Label declare another extractNativeLibs than the alignment read."
+        }
+    }
+    foreach ($count in @('libraries', 'identical', 'sixtyFourBit', 'sixtyFourBitAligned')) {
+        if (-not (Test-Count $Record.$count)) { return Fail "The native library alignment for $Label records no $count count." }
+    }
+    if ($Record.identical -ne $Record.libraries -or $Record.sixtyFourBit -gt $Record.libraries -or
+        $Record.sixtyFourBitAligned -gt $Record.sixtyFourBit) {
+        return Fail ("The native library counts for $Label don't add up: $($Record.identical) of $($Record.libraries) identical, " +
+            "$($Record.sixtyFourBitAligned) of $($Record.sixtyFourBit) 64-bit libraries aligned.")
+    }
+    if ($Record.sixtyFourBitAligned -lt $Record.sixtyFourBit -and $findings -eq 0) {
+        return Fail "$Label has 64-bit libraries under 16 KB alignment, and the alignment records no host finding for them."
+    }
+    # 'pending' until a 16 KB device has run the build. A pass names the device it ran on.
+    if (@('pending', 'passed', 'failed') -cnotcontains [string]$Record.runtime) {
+        return Fail "The native library alignment for $Label doesn't say whether it was checked on a 16 KB device."
+    }
+    if ($Record.runtime -ceq 'failed') { return Fail "$Label failed its check on a 16 KB device." }
+    if ($Record.runtime -ceq 'passed' -and ($Record.runtimeDevice -isnot [string] -or [string]::IsNullOrWhiteSpace($Record.runtimeDevice))) {
+        return Fail "The native library alignment for $Label says it passed on a 16 KB device without naming the device."
+    }
+    return [pscustomobject]@{ Valid = $true; Reason = 'ok' }
+}
+
 function Get-ManifestDelta {
     <#
     .SYNOPSIS
@@ -682,11 +784,15 @@ function Test-ManifestDelta {
         authorize only these transformations. Existing matching browser queries are retained,
         Analytics may change only its application metadata values and remove their resources, and
         Remove ad tracking permissions may drop only its three permissions and the application's
-        ad services configuration property. Spoof signature for Google sign-in may add only its two
-        application metadata entries, and only to a manifest that has neither. GmsCore support adds
-        the same two, moves every com.google.android.c2dm. name to app.revanced.android.c2dm., and
+        ad services configuration property. Spoof signature for Google sign-in may add only its three
+        application metadata entries, and only to a manifest that has none of them. GmsCore support adds
+        the same three, moves every com.google.android.c2dm. name to app.revanced.android.c2dm., and
         adds a package query for app.revanced.android.gms to the first query block. Download pins
         may add only its unexported share preview provider, under the package's own authority.
+        Change package name may give the build a package of its own. Every permission asked for
+        under the stock package then moves under the new one wherever a declaration names it, as
+        does every provider authority under the stock package. The application and each activity
+        or alias a launcher lists take the copy's name as their label.
         All other declarations, including duplicates and separate vendor query blocks, survive.
     #>
     param(
@@ -719,10 +825,16 @@ function Test-ManifestDelta {
             }
         }
     }
+    $selected = [System.Collections.Generic.HashSet[string]]::new([string[]]$SelectedPatchNames, [StringComparer]::Ordinal)
+    $copy = $selected.Contains('Change package name')
     foreach ($field in @('package', 'versionName', 'versionCode')) {
+        if ($copy -and $field -ceq 'package') { continue }
         if ([string]$Stock.$field -cne [string]$Patched.$field) { return Fail "The patched manifest changed $field." }
     }
-    $selected = [System.Collections.Generic.HashSet[string]]::new([string[]]$SelectedPatchNames, [StringComparer]::Ordinal)
+    if ($copy -and ([string]$Patched.package -ceq [string]$Stock.package -or
+            [string]$Patched.package -cnotmatch '\A[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+\z')) {
+        return Fail "Change package name left the build as $($Patched.package), not a package of its own."
+    }
     $settings = $selected.Contains('HushPinterest settings')
     $analytics = $selected.Contains('Disable analytics')
     $browser = $selected.Contains('Open links in your browser')
@@ -730,7 +842,7 @@ function Test-ManifestDelta {
     $signature = $selected.Contains('Spoof signature for Google sign-in')
     $downloads = $selected.Contains('Download pins')
     $gmsCore = $selected.Contains('GmsCore support')
-    if (($analytics -or $browser -or $adTracking -or $signature -or $downloads -or $gmsCore) -and -not $settings) {
+    if (($analytics -or $browser -or $adTracking -or $signature -or $downloads -or $gmsCore -or $copy) -and -not $settings) {
         return Fail 'The selection omits the HushPinterest settings dependency.'
     }
     if ($settings) {
@@ -815,10 +927,13 @@ function Test-ManifestDelta {
         }
     }
     if ($signature -or $gmsCore) {
-        # Pinterest's own certificate, by SHA-1 for microG-RE and as DER hex for signature modules.
-        # The input names neither, so both are new application metadata and nothing else changes.
-        # GmsCore support brings the same two along, once whichever of the pair is selected.
+        # Pinterest's own package and certificate: the package and the certificate's SHA-1 for
+        # microG-RE, the certificate as DER hex for signature modules. The package stays
+        # com.pinterest on a renamed copy (#28). The input names none of them, so all three are new
+        # application metadata and nothing else changes. GmsCore support brings the same three
+        # along, once whichever of the pair is selected.
         $spoofed = [ordered]@{
+            'app.revanced.android.gms.SPOOFED_PACKAGE_NAME' = 'com.pinterest'
             'app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE' = 'b6a74dbcb894b0f73d8c485c72eb1247a8f027ca'
             'fake-signature' = '3082024f308201b8a00302010202044f96d518300d06092a864886f70d0101050500306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c2052696365301e170d3132303432343136333031365a170d3337303431383136333031365a306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c205269636530819f300d06092a864886f70d010101050003818d0030818902818100bd8b325a2eb8ade0e16e44971e75130ec98f2c37c8a477044382a1c5c18aa3078bede3c1a49776441617f3bb6711d1a7d764785ea20bf8c694d78fdc82d575f88f340fc87b948558385636f80dba536481a9c8bf03505781adbbca1ef65b2f59281ca92e352d9f685d04024c19cb3b4e3e14e6eb69ca113e55b55d766ea860170203010001300d06092a864886f70d0101050500038181009e6766c1071e383b75c520221b502e4701d7a110933a9fe7e7417679be71581ad24a09c42bb5190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714'
         }
@@ -918,6 +1033,96 @@ function Test-ManifestDelta {
         }
         $package = ConvertTo-ManifestDeclaration -Owner 'queries#0' -Node (Node 'package' @{ 'android:name' = $gmsPackage })
         $policies.Add("query-added $package"); $expected.queries.Add($package)
+    }
+    if ($copy) {
+        # Change package name renames the manifest last, after every other patch made its changes
+        # under the stock name. Pinterest's own permissions are signature permissions named after
+        # its package, and its provider authorities sit under it, so both move to the copy's
+        # package or Android refuses a copy beside Pinterest. Each move is approved by its owner
+        # and the attributes it changes, since the declarations around them differ between builds,
+        # and a label by its new value alone, since the stock one is a resource id.
+        $stockPrefix = "$($Stock.package)."
+        $copyPackage = [string]$Patched.package
+        function Move-Own([string]$name) { return $copyPackage + $name.Substring(([string]$Stock.package).Length) }
+        $ownPermissions = @($expected.permissions | Where-Object { $_.StartsWith($stockPrefix, [StringComparison]::Ordinal) })
+        foreach ($permission in $ownPermissions) {
+            $policies.Add("permission-removed $permission"); $policies.Add("permission-added $(Move-Own $permission)")
+            [void]$expected.permissions.Remove($permission); $expected.permissions.Add((Move-Own $permission))
+        }
+        $applications = @($Patched.components | Where-Object { ($_ | ConvertFrom-Json).tag -ceq 'application' })
+        if ($applications.Count -ne 1) { return Fail 'Change package name needs one application in the patched manifest.' }
+        $label = [string](($applications[0] | ConvertFrom-Json).attributes.'android:label')
+        if ($label.Length -eq 0 -or $label.Length -gt 30 -or $label -cne $label.Trim() -or $label[0] -in @('@', '?')) {
+            return Fail "Change package name gave the copy the label '$label', not a name of its own."
+        }
+        # The activities and aliases a launcher lists: any of their intent filters has the category.
+        $launchers = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($entry in $expected.intentFilters) {
+            $filter = $entry | ConvertFrom-Json
+            if ([string]$filter.owner -cnotmatch '\Aactivity(-alias)?:') { continue }
+            if (@($filter.declaration.children | Where-Object { $_.tag -ceq 'category' -and
+                        $_.attributes.'android:name' -ceq 'android.intent.category.LAUNCHER' }).Count -gt 0) {
+                [void]$launchers.Add([string]$filter.owner)
+            }
+        }
+        function Move-OwnNames($node, [bool]$provider) {
+            foreach ($attribute in @($node.attributes.PSObject.Properties | Where-Object { $null -ne $_ })) {
+                $value = [string]$attribute.Value
+                if ($ownPermissions -ccontains $value) { $attribute.Value = Move-Own $value; continue }
+                if (-not $provider -or $attribute.Name -cne 'android:authorities') { continue }
+                $attribute.Value = (@($value.Split(';') | ForEach-Object {
+                    $authority = $_.Trim()
+                    if ($authority.StartsWith($stockPrefix, [StringComparison]::Ordinal)) { $_.Replace($authority, (Move-Own $authority)) } else { $_ }
+                }) -join ';')
+            }
+            foreach ($child in @($node.children)) { if ($null -ne $child) { Move-OwnNames $child $false } }
+        }
+        # Only what changed: the attributes with their old values on the removed side (a label's
+        # left out) and their new ones on the added side, plus any child declaration that changed.
+        function Get-MoveTemplates([string]$kind, [string]$owner, $before, $after) {
+            $old = [ordered]@{}; $new = [ordered]@{}
+            foreach ($property in @($after.attributes.PSObject.Properties | Where-Object { $null -ne $_ })) {
+                $was = $before.attributes.PSObject.Properties[$property.Name]
+                if ($null -ne $was -and [string]$was.Value -ceq [string]$property.Value) { continue }
+                if ($property.Name -cne 'android:label' -and $null -ne $was) { $old[$property.Name] = [string]$was.Value }
+                $new[$property.Name] = [string]$property.Value
+            }
+            $beforeChildren = @(@($before.children) | Where-Object { $null -ne $_ })
+            $afterChildren = @(@($after.children) | Where-Object { $null -ne $_ })
+            $beforeForms = @($beforeChildren | ForEach-Object { ConvertTo-ManifestDeclaration -Node $_ })
+            $afterForms = @($afterChildren | ForEach-Object { ConvertTo-ManifestDeclaration -Node $_ })
+            $gone = @($beforeChildren | Where-Object { $afterForms -cnotcontains (ConvertTo-ManifestDeclaration -Node $_) })
+            $came = @($afterChildren | Where-Object { $beforeForms -cnotcontains (ConvertTo-ManifestDeclaration -Node $_) })
+            if ($old.Count -gt 0 -or $gone.Count -gt 0) {
+                "$kind-removed " + (ConvertTo-ManifestDeclaration -Owner $owner -Node (Node $before.tag $old $gone))
+            }
+            "$kind-added " + (ConvertTo-ManifestDeclaration -Owner $owner -Node (Node $after.tag $new $came))
+        }
+        foreach ($entry in @($expected.components.ToArray())) {
+            $before = $entry | ConvertFrom-Json
+            $after = $entry | ConvertFrom-Json
+            Move-OwnNames $after ($after.tag -ceq 'provider')
+            $owner = if ($after.tag -ceq 'application') { 'application' } else { "$($after.tag):$($after.attributes.'android:name')" }
+            if ($after.tag -ceq 'application' -or $launchers.Contains($owner)) {
+                $after.attributes | Add-Member -MemberType NoteProperty -Name 'android:label' -Value $label -Force
+            }
+            $moved = ConvertTo-ManifestDeclaration -Node $after
+            if ($moved -ceq $entry) { continue }
+            foreach ($template in @(Get-MoveTemplates 'component' $owner $before $after)) { $policies.Add($template) }
+            [void]$expected.components.Remove($entry); $expected.components.Add($moved)
+        }
+        # Elsewhere a mention of an own permission is approved as the whole declaration, the way
+        # GmsCore support's c2dm moves are. Pinterest's declared builds have none.
+        foreach ($pair in @(@('metadata', 'metadata'), @('query', 'queries'), @('filter', 'intentFilters'))) {
+            foreach ($entry in @($expected.($pair[1]).ToArray())) {
+                $parsed = $entry | ConvertFrom-Json
+                Move-OwnNames $parsed.declaration $false
+                $moved = ConvertTo-ManifestDeclaration -Node $parsed.declaration -Owner ([string]$parsed.owner)
+                if ($moved -ceq $entry) { continue }
+                $policies.Add("$($pair[0])-removed $entry"); $policies.Add("$($pair[0])-added $moved")
+                [void]$expected.($pair[1]).Remove($entry); $expected.($pair[1]).Add($moved)
+            }
+        }
     }
     foreach ($policy in $policies) {
         if (-not $reviewed.Contains($policy)) { return Fail "The selected manifest edit has no exact reviewed template: $policy" }
@@ -1426,7 +1631,8 @@ function Test-ReleaseReceipt {
         # receipt legitimately describes the commit it was generated at, not HEAD.
         [string]$ExpectedCommit,
         # The schema the receipt's own commit writes (Resolve-ReceiptSchema). From 2 a receipt
-        # names the release SBOM; 3 proves the SDK floor; 4 attests compiled declarations.
+        # names the release SBOM; 3 proves the SDK floor; 4 attests compiled declarations; 5 records
+        # native library alignment for 16 KB pages.
         [int]$ExpectedSchemaVersion = (Get-ReleaseReceiptSchemaVersion),
         # The SBOM itself, when the caller has it: its hash and component count have to be what
         # the receipt records, and with -BundlePath it has to describe that bundle.
@@ -1668,6 +1874,12 @@ function Test-ReleaseReceipt {
                     @(Compare-Sets -Left $property.Value -Right $recorded.Value -PreserveDuplicates).Count -gt 0) {
                     return Fail "The recorded $($property.Name) manifest delta disagrees with compiled facts for $label."
                 }
+            }
+            if ($ExpectedSchemaVersion -ge 5) {
+                $alignmentProperty = $target.PSObject.Properties['nativeAlignment']
+                $alignment = Test-NativeAlignmentRecord -Record $(if ($alignmentProperty) { $alignmentProperty.Value } else { $null }) `
+                    -StockManifest $target.manifest.stock -PatchedManifest $target.manifest.patched -Label $label
+                if (-not $alignment.Valid) { return $alignment }
             }
         } else {
             foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta -SchemaVersion $ExpectedSchemaVersion) {

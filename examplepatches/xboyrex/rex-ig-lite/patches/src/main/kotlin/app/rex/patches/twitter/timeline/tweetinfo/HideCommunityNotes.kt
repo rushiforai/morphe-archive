@@ -9,11 +9,11 @@ package app.rex.patches.twitter.timeline.tweetinfo
 import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val hideCommunityNotes =
-    bytecodePatch(
+    patch(
         name = "Hide Community Notes",
     ) {
         compatibleWith(COMPATIBILITY_X)

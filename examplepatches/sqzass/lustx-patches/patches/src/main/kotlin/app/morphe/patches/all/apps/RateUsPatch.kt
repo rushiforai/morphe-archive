@@ -27,7 +27,8 @@ val rateUsPatch = bytecodePatch(
     default = false,
 ) {
     val blockSystemReview by booleanOption(
-        key = "blockSystemReview", default = false,
+        key = "blockSystemReview",
+        default = false,
         title = "Block Play Core review dialog",
         description = "No-ops ReviewManager.requestReviewFlow/launchReviewFlow. Off by default: " +
             "some apps NPE on the null Task. Enable only if you see the system dialog.",
@@ -39,7 +40,7 @@ val rateUsPatch = bytecodePatch(
                 (m.returnType == "V" && VOID_RE.matches(m.name)) ||
                     (m.returnType == "Z" && BOOL_RE.matches(m.name))
             }
-            if (targets.isEmpty()) return@forEach
+            if (targets.isEmpty()) return@classDefForEach
             val mc = mutableClassDefBy(classDef)
             targets.forEach { m ->
                 val mm = mc.findMutableMethodOf(m)

@@ -6,14 +6,16 @@
 
 package app.rex.patches.twitter.misc.settings
 
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 import app.morphe.util.getNode
 import org.w3c.dom.Element
 
 internal val settingsResourcePatch =
-    resourcePatch {
+    patch {
         execute {
             // replace the keyword `ripped` from version name back to original format.
             val versionName = packageMetadata.versionName
@@ -57,7 +59,7 @@ internal val settingsResourcePatch =
                 parent.appendChild(sideBtn)
             }
 
-            // Add rex settings to the launcher icon long-press shortcuts
+            // Add xboyrex Settings to the launcher icon long-press shortcuts
             document("res/xml/shortcuts.xml").use {
                 val extraElement =
                     it.createElement("extra").apply {

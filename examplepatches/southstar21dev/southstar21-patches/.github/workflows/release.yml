@@ -5,8 +5,18 @@ on:
   push:
 
 jobs:
+  # Nothing is released unless every patch applies to the supported versions.
+  verify:
+    name: Verify patches
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/verify.yml
+    secrets: inherit
+
   release:
     name: Release
+    needs: verify
     permissions:
       contents: write
       packages: write

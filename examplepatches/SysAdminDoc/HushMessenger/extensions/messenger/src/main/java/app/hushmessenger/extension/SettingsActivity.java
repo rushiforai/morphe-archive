@@ -49,7 +49,7 @@ public final class SettingsActivity extends Activity {
     private LinearLayout controlsPage, appPage;
     private LinearLayout header, brand, controlsContent, appContent, pageHeader;
     private ScrollView controlsScroll, appScroll;
-    private TextView reminder, wordmark, headerName;
+    private TextView reminder, wordmark, headerName, gmsCoreNotice;
     /** The bar title's visibility as last set here, so it changes only when what it should show does. */
     private int barTitleShown = -1;
     private EditText search;
@@ -193,8 +193,8 @@ public final class SettingsActivity extends Activity {
         {"quiet_calls", "Quiet incoming calls", "Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. The call waits in the notification shade with Answer and Decline. A call you miss still shows in the chat. Only chosen chats keeps this to the chats you pick, and every other call rings. If the Facebook app is on your phone, it can still ring for the same call.", "calls"},
         {"call_recording", "Record calls", "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "calls"},
         {"call_captions", "Live captions on calls", "Shows what the other people say during a call as captions over Messenger. Your phone makes them itself, and it can translate them into your language and read them aloud. It needs Android 13 or newer with speech recognition on the phone. While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it.", "calls"},
-        {"hide_call_buttons", "Hide call buttons", "Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going.", "calls"},
-        {"call_confirm", "Ask before a call", "Tapping the audio or video call button in a chat's top bar asks first, so a stray tap doesn't ring anyone. Call starts it, Cancel doesn't. Calls coming in aren't affected.", "calls"},
+        {"hide_call_buttons", "Hide call buttons", "Takes the audio and video call buttons out of a chat's top bar, business chats and the New message screen, so you can't tap one by accident. Calls still ring, and you can still join one that's going.", "calls"},
+        {"call_confirm", "Ask before a call", "Tapping an audio or video call button asks first, so a stray tap doesn't ring anyone. That covers a chat's top bar, business chats and the New message screen. Call starts it, Cancel doesn't. Calls coming in aren't affected.", "calls"},
         {"original_photo", "Send photos at original quality", "With HD on, sends JPEG photos at their full size, not a smaller copy. Location is still removed. Photos over 20 MB are still made smaller.", "photos_videos"},
         {"original_video", "Send videos without re-encoding", "Sends a video as the original file when Messenger allows it, instead of a recompressed copy. Videos over 25 MB and edited videos are still compressed.", "photos_videos"},
         {"xhe_audio", "Fix videos that won't send", "Some videos fail with \"Unable to send\", even in stock Messenger, because of a newer sound format (xHE-AAC) or a tag Samsung's screen recorder adds. This fixes the sound or drops the tag before the video goes out, whether you share it into Messenger or pick it in a chat. The picture isn't touched.", "photos_videos"},
@@ -218,7 +218,7 @@ public final class SettingsActivity extends Activity {
         {"allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, such as view-once photos and Quicksnap, and stops screenshot notices. It doesn't add replay or saving.", "privacy"},
         {"hide_read_receipts", "Hide read receipts", "Opening a chat no longer tells people you read their message, and the chat stays unread here. Marking it read yourself or replying marks it read and shows Seen, like Messenger does. Group chats aren't tested. Messenger's own Read receipts setting under Privacy & safety marks chats read without Seen.", "privacy"},
         {"mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing. Tap the icon when you want the sender to see Seen, and the chat turns read here too. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put.", "privacy"},
-        {"keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, in chats where it works. In encrypted chats the message stays in its notification instead. Group chats aren't tested. Your own unsends may be limited.", "privacy"},
+        {"keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them. In encrypted chats it keeps the words you already saw in the chat or a notification, until Messenger restarts. Group chats aren't tested. Your own unsends may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Messenger still marks them as seen on your side.", "privacy"},
         {"save_stories", "Save any story", "Adds Save to the More options menu on other people's stories, so you can keep the photo or video on your phone.", "privacy"},
         {"blocked_list_pictures", "Hide pictures on the Blocked list", "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay.", "privacy"},
@@ -229,7 +229,7 @@ public final class SettingsActivity extends Activity {
         {"avatar_shape", "Square profile pictures", "Shows people's profile pictures as squares instead of circles. Turn on Round the corners below for rounded squares. Restart Messenger to see the change.", "theme"},
         {"home_header", "Your own home header", "Puts words or a picture of your own at the top of the chat list in place of Messenger's wordmark. Type the words or choose the picture below. With neither, the wordmark stays. Restart Messenger to see a change.", "theme"},
         {"custom_font", "Use your own font", "Shows Messenger's text in your phone's font instead of Meta's, or in a .ttf or .otf font file you choose below, which you can also make larger or smaller and move up or down. Emoji don't change. Restart Messenger to see a change.", "theme"},
-        {"menu_blur", "Blur behind menus", "Blurs the screen behind the menu you get when you press and hold a chat, and behind Messenger's other pop-up menus and sheets, like on an iPhone. It needs Android 12 or newer.", "theme"},
+        {"menu_blur", "Blur behind menus", "Blurs the screen behind the menu you get when you press and hold a chat or a message, and behind Messenger's other pop-up menus and sheets, like on an iPhone. It needs Android 12 or newer.", "theme"},
     };
 
     static final String DRAWER_ALIAS = "app.hushmessenger.extension.SettingsLauncher";
@@ -416,6 +416,11 @@ public final class SettingsActivity extends Activity {
         chatMenuItems.fill(null);
         specialContacts.fill(null);
         updates.syncUpdateChoice(false);
+        showGmsCoreNotice();
+    }
+
+    private void showGmsCoreNotice() {
+        if (gmsCoreNotice != null) gmsCoreNotice.setVisibility(GmsCore.withoutPush(this) ? View.VISIBLE : View.GONE);
     }
 
     @Override protected void onPause() {
@@ -691,7 +696,8 @@ public final class SettingsActivity extends Activity {
         title.setAutoSizeTextTypeUniformWithConfiguration(14, 20, 1, TypedValue.COMPLEX_UNIT_SP);
         ui.add(wordmarkColumn, title, 0);
         wordmark = title;
-        // Only a preview build or a Root Mount over the wrong build says anything under the name, since those are warnings.
+        // Only a preview build, a Root Mount over the wrong build or GmsCore support without microG-RE says anything
+        // under the name, since those are warnings.
         if (Settings.preview) {
             TextView notice = ui.text(text.get("preview_notice"), 13, ui.warning, false);
             notice.setTag("preview_notice");
@@ -700,6 +706,13 @@ public final class SettingsActivity extends Activity {
             TextView notice = ui.text(MountedBuild.notice(text), 13, ui.warning, false);
             notice.setTag("mounted_build_mismatch");
             ui.add(wordmarkColumn, notice, 4);
+        } else if (GmsCore.patchedIn(this)) {
+            // Added whenever the patch is in and shown only while microG-RE is missing, so installing it and coming
+            // back clears the warning (onResume).
+            gmsCoreNotice = ui.text(text.get("gmscore_without_microg"), 13, ui.warning, false);
+            gmsCoreNotice.setTag("gmscore_without_microg");
+            ui.add(wordmarkColumn, gmsCoreNotice, 4);
+            showGmsCoreNotice();
         }
         bar.addView(wordmarkColumn, new LinearLayout.LayoutParams(0, -2, 1));
         brand.addView(bar, new LinearLayout.LayoutParams(ui.largeText ? -1 : 0, -2, ui.largeText ? 0 : 1));

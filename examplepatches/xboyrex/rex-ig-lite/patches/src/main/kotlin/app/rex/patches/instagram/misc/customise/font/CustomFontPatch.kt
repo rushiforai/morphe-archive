@@ -11,19 +11,20 @@ import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.getMutableMethod
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.Method
 
 @Suppress("unused")
 val customFontPatch =
-    bytecodePatch(
+    patch(
         name = "Custom font",
         description = "Adds an option to replace the app font with a font file from the device storage.",
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(settingsPatch)
         execute {
+            runCatching { enableSettings("customFont") }
+            runCatching {
             // Whether there is a font to draw in, and which, is settled once when the app starts:
             // applying a font restarts the app, so nothing about it can change while it runs. Every
             // hook below then costs a single boolean read when the feature is switched off.
@@ -45,46 +46,15 @@ val customFontPatch =
             ComposePlatformTypefacesFingerprint.method.hookWrappedTypeface()
 
             // React Native's "Optimistic VF App Lite" variable font, resolved on its own.
-            val registrationIndex = ReactNativeFontRegistrationFingerprint.stringMatches.single().index
-            ReactNativeFontRegistrationFingerprint.method.hookReactNativeFontRegistration(registrationIndex)
-
-            // Collected in one pass and edited after, so classes are not rewritten while read:
-            // resolvers of fonts the user picks inside the app (they take the repository as their
-            // first parameter), the app's own text views, Paint.setTypeface calls, creations of
-            // platform spans that set their font inside the framework, and the plain text widgets
-            // rex's own code creates.
-            val contentFontResolvers = mutableListOf<Method>()
-            val textViewClasses = mutableListOf<String>()
-            val paintTypefaceCallers = mutableListOf<Method>()
-            val platformSpanCreators = mutableListOf<Method>()
-            val rexWidgetCreators = mutableListOf<Method>()
-            classDefForEach { classDef ->
-                // The font classes call CustomFont and extend the widgets, so must not be hooked.
-                if (classDef.type.startsWith(FONT_EXTENSION_PACKAGE)) return@classDefForEach
-                val isxboyrexClass = classDef.type.startsWith(EXTENSION_PACKAGE)
-                if (classDef.superclass in PLATFORM_TEXT_WIDGETS) {
-                    textViewClasses += classDef.type
-                }
-                classDef.methods.forEach { method ->
-                    if (method.returnsTypeface() &&
-                        method.parameterTypes.firstOrNull() == typefaceRepository
-                    ) {
-                        contentFontResolvers += method
-                    }
-                    var callsPaintTypeface = false
-                    var createsPlatformSpan = false
-                    var createsxboyrexWidget = false
-                    method.implementation?.instructions?.forEach {
-                        callsPaintTypeface = callsPaintTypeface || it.isPaintTypefaceCall()
-                        createsPlatformSpan = createsPlatformSpan || it.createsOneOf(PLATFORM_TYPEFACE_SPANS)
-                        createsxboyrexWidget = createsxboyrexWidget || (isxboyrexClass && it.createsOneOf(REX_TEXT_WIDGETS))
-                    }
-                    if (callsPaintTypeface) paintTypefaceCallers += method
-                    if (createsPlatformSpan) platformSpanCreators += method
-                    if (createsxboyrexWidget) rexWidgetCreators += method
-                }
+            ReactNativeFontRegistrationFingerprint.let {
+                it.method.hookReactNativeFontRegistration(it.instructionMatches[1])
             }
-            contentFontResolvers.forEach { it.getMutableMethod().markAsContentFontResolver() }
+
+            // Resolvers of fonts the user picks inside the app (they take the repository as their
+            // first parameter), the app's own text views, and the plain text widgets
+            // rex's own code creates.
+            val contentFontResolvers = contentFontResolverFingerprint(typefaceRepository).matchAll()
+            contentFontResolvers.forEach { it.method.markAsContentFontResolver() }
 
             // The story text styles of the older editor resolve their font from an enum instead,
             // and reach the repository without taking it as a parameter.
@@ -92,25 +62,28 @@ val customFontPatch =
                 .filter { it.returnsTypeface() }
                 .forEach { it.markAsContentFontResolver() }
 
-            textViewClasses.forEach { mutableClassDefBy(it).overrideTypefaceAssignment() }
+            PlatformTextWidgetFingerprint.matchAll().distinctBy { it.classDef.type }.forEach {
+                it.classDef.overrideTypefaceAssignment()
+            }
 
             // Creative text drawn by the content font resolvers themselves keeps its font.
             val contentFontClasses =
-                contentFontResolvers.map { it.definingClass }.toSet() +
+                contentFontResolvers.map { it.originalClassDef.type }.toSet() +
                     LegacyStoryFontFingerprint.classDef.type
-            paintTypefaceCallers
-                .filter { it.definingClass !in contentFontClasses }
-                .forEach { it.getMutableMethod().hookPaintTypefaceCalls() }
-            platformSpanCreators
-                .filter { it.definingClass !in contentFontClasses }
-                .forEach { it.getMutableMethod().replaceCreations(PLATFORM_TYPEFACE_SPANS) }
-            rexWidgetCreators.forEach { it.getMutableMethod().replaceCreations(REX_TEXT_WIDGETS) }
+            paintTypefaceFingerprint(contentFontClasses).matchAll().forEach {
+                it.method.hookPaintTypefaceCalls()
+            }
 
-            enableSettings("customFont")
+            PlatformSpanFingerprint.matchAll().forEach {
+                it.method.replaceCreations(PLATFORM_TYPEFACE_SPANS)
+            }
+            RexWidgetCreatorFingerprint.matchAllOrNull()?.forEach {
+                it.method.replaceCreations(REX_TEXT_WIDGETS)
+            }
+
+                        }
         }
     }
-
-private const val EXTENSION_PACKAGE = "Lapp/morphe/extension/"
 
 /** Abstract and native methods have no returns to hook, so they are never of interest. */
 private fun Method.returnsTypeface() = returnType == TYPEFACE_CLASS && implementation != null

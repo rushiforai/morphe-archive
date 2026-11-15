@@ -223,18 +223,27 @@ internal fun Method.isInternalFileOpen(): Boolean = AccessFlags.STATIC.isSet(acc
  * while that same reader also reads the chat camera's request code, so the photo goes back to the chat that asked for it.
  */
 internal fun findSystemCamera(classes: Iterable<ClassDef>): List<Method> {
-    val methods = classes.flatMap { it.methods }
-    val readers = methods.filter { it.isComposerResult() }
+    val readers = composerResults.methods(classes)
     if (readers.size != 1) return emptyList()
-    val listeners = methods.filter { it.isCameraLaunch() }
+    val listeners = cameraLaunches.methods(classes)
     if (readers.single().implementation!!.instructions.none { it.literal() == CHAT_CAMERA_REQUEST }) return listeners
-    val factories = methods.filter { it.isChatCameraFactory() }
+    val factories = chatCameraFactories.methods(classes)
     val launcher = factories.singleOrNull()?.chatCameraLauncherType()
     val launcherInterface = factories.singleOrNull()?.returnType
-    return listeners + factories + methods.filter { launcherInterface != null && it.captureLauncherType() == launcherInterface } +
-        methods.filter { it.definingClass == launcher && it.isLauncherStart() } +
-        methods.filter { it.isThirdPartyUriCheck() || it.isMetaUriCheck() } + methods.filter { it.isInternalFileOpen() }
+    return listeners + factories + captureLaunchers.methods(classes).filter { launcherInterface != null && it.captureLauncherType() == launcherInterface } +
+        launcherStarts.methods(classes).filter { it.definingClass == launcher } +
+        cameraUriChecks.methods(classes) + internalFileOpens.methods(classes)
 }
+
+internal val composerResults = methodCheck { _, method -> method.isComposerResult() }
+internal val cameraLaunches = methodCheck { _, method -> method.isCameraLaunch() }
+internal val chatCameraFactories = methodCheck { _, method -> method.isChatCameraFactory() }
+
+/** Every capture event's launcher call, before it's matched to the chat camera factory's launcher. */
+internal val captureLaunchers = methodCheck { _, method -> method.captureLauncherType() != null }
+internal val launcherStarts = methodCheck { _, method -> method.isLauncherStart() }
+internal val cameraUriChecks = methodCheck { _, method -> method.isThirdPartyUriCheck() || method.isMetaUriCheck() }
+internal val internalFileOpens = methodCheck { _, method -> method.isInternalFileOpen() }
 
 /**
  * Index of the launcher call that starts Messenger's camera:

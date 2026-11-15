@@ -130,22 +130,27 @@ public class GridSortTest {
     private boolean gridSortEnabled;
     private boolean likedGridSortEnabled;
     private boolean soundGridSortEnabled;
+    private boolean collectionGridSortEnabled;
 
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         gridSortEnabled = SettingsStatus.gridSortEnabled;
         likedGridSortEnabled = SettingsStatus.likedGridSortEnabled;
         soundGridSortEnabled = SettingsStatus.soundGridSortEnabled;
+        collectionGridSortEnabled = SettingsStatus.collectionGridSortEnabled;
     }
 
     @After public void tearDown() {
         setPaused(false);
         Settings.PROFILE_GRID_SORT.resetToDefault();
         Settings.LIKED_GRID_SORT.resetToDefault();
+        Settings.FAVORITES_GRID_SORT.resetToDefault();
+        Settings.COLLECTION_GRID_SORT.resetToDefault();
         Settings.SOUND_GRID_SORT.resetToDefault();
         SettingsStatus.gridSortEnabled = gridSortEnabled;
         SettingsStatus.likedGridSortEnabled = likedGridSortEnabled;
         SettingsStatus.soundGridSortEnabled = soundGridSortEnabled;
+        SettingsStatus.collectionGridSortEnabled = collectionGridSortEnabled;
         SettingsStatus.alwaysShowPublishDateEnabled = false;
         HookStatus.clear();
         GridSort.resetForTests();
@@ -735,6 +740,219 @@ public class GridSortTest {
         assertEquals("Original order on Liked stays original", "off", GridSort.orderFor(liked));
         Settings.LIKED_GRID_SORT.save("sideways");
         assertEquals("an unknown value follows the profile grids", "newest", GridSort.orderFor(liked));
+    }
+
+    /** Bookmarks get their own order too (#180), on both of TikTok's Favorites tab numbers. */
+    @Test public void theFavoritesGridsFollowTheProfileOrderUntilTheyHaveTheirOwn() {
+        assertEquals("favorites_grid_sort", Settings.FAVORITES_GRID_SORT.key);
+        assertEquals("profile", Settings.FAVORITES_GRID_SORT.defaultValue);
+        Object favorites = new GridAdapter();
+        Object favoriteVideos = new GridAdapter();
+        Object liked = new GridAdapter();
+        Object posts = new GridAdapter();
+        GridSort.tab(favorites, GridSort.TAB_FAVORITES);
+        GridSort.tab(favoriteVideos, GridSort.TAB_FAVORITE_VIDEOS);
+        GridSort.tab(liked, GridSort.TAB_LIKED);
+        GridSort.tab(posts, GridSort.TAB_POSTS);
+        Settings.PROFILE_GRID_SORT.save("newest");
+
+        assertEquals("the default follows the profile grids", "newest", GridSort.orderFor(favorites));
+        assertEquals("newest", GridSort.orderFor(favoriteVideos));
+        Settings.FAVORITES_GRID_SORT.save("most_viewed");
+        assertEquals("most_viewed", GridSort.orderFor(favorites));
+        assertEquals("most_viewed", GridSort.orderFor(favoriteVideos));
+        assertEquals("the Liked tab keeps following the profile grids", "newest", GridSort.orderFor(liked));
+        assertEquals("newest", GridSort.orderFor(posts));
+        Settings.LIKED_GRID_SORT.save("oldest");
+        assertEquals("a Liked order leaves Favorites alone", "most_viewed", GridSort.orderFor(favorites));
+        Settings.FAVORITES_GRID_SORT.save("off");
+        assertEquals("Original order on Favorites stays original", "off", GridSort.orderFor(favoriteVideos));
+        Settings.FAVORITES_GRID_SORT.save("sideways");
+        assertEquals("an unknown value follows the profile grids", "newest", GridSort.orderFor(favorites));
+    }
+
+    @Test public void theChipOnAFavoritesGridChangesOnlyTheFavoritesOrder() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter adapter = gridOnScreen(controller.get());
+            GridSort.tab(adapter, GridSort.TAB_FAVORITE_VIDEOS);
+            Settings.PROFILE_GRID_SORT.save("newest");
+            Settings.LIKED_GRID_SORT.save("oldest");
+            List<Aweme> model = grid();
+            adapter.mmItems = GridSort.data(adapter, model);
+            idle(0);
+            assertEquals("apecdfb", ids(adapter.mmItems));
+
+            selectOrder(adapter, "least_liked");
+
+            assertEquals("least_liked", Settings.FAVORITES_GRID_SORT.get());
+            assertEquals("the profile grids keep theirs", "newest", Settings.PROFILE_GRID_SORT.get());
+            assertEquals("the Liked grids keep theirs", "oldest", Settings.LIKED_GRID_SORT.get());
+            assertEquals("apcdfeb", ids(adapter.mmItems));
+            assertEquals("Least liked first", String.valueOf(chip(adapter).getText()));
+        }
+    }
+
+    /** A collection folder's row, as 47.7.3's X/1KK6 holds it: its video and its kind. A header's video is empty. */
+    public static final class Row {
+        public final Aweme LIZ;
+        public final int LIZIZ;
+        final String label;
+
+        Row(Aweme post, int kind, String label) {
+            LIZ = post;
+            LIZIZ = kind;
+            this.label = label;
+        }
+
+        @Override public String toString() { return label; }
+    }
+
+    private static Row header(String label) {
+        return new Row(new Post(null, 0, 0, 0, 0, false), 1, label);
+    }
+
+    private static List<Object> rows(List<Aweme> posts) {
+        List<Object> out = new ArrayList<>();
+        for (Aweme post : posts) out.add(new Row(post, 0, post.toString()));
+        return out;
+    }
+
+    /** A folder's list as TikTok hands it over: its two header rows, then grid()'s videos. */
+    private static List<Object> folder() {
+        List<Object> out = new ArrayList<>(Arrays.asList(header("X"), header("Y")));
+        out.addAll(rows(grid()));
+        return out;
+    }
+
+    /** The list a folder's cell hands the video page: the rows' videos, in TikTok's order, no headers. */
+    private static List<Aweme> played(List<?> rows) {
+        List<Aweme> out = new ArrayList<>();
+        for (Object row : rows) {
+            Aweme post = ((Row) row).LIZ;
+            if (post.getAid() != null) out.add(post);
+        }
+        return out;
+    }
+
+    /** #180: bookmarks and collections asked for their own order. */
+    @Test public void collectionsFollowTheFavoritesOrderUntilTheyHaveTheirOwn() {
+        assertEquals("collection_grid_sort", Settings.COLLECTION_GRID_SORT.key);
+        assertEquals("favorites", Settings.COLLECTION_GRID_SORT.defaultValue);
+        GridAdapter folder = new GridAdapter();
+        GridAdapter favorites = new GridAdapter();
+        GridSort.tab(folder, GridSort.TAB_COLLECTION);
+        GridSort.tab(favorites, GridSort.TAB_FAVORITE_VIDEOS);
+        Settings.PROFILE_GRID_SORT.save("newest");
+
+        assertEquals("Favorites follows the profile grids, and a folder follows Favorites", "newest", GridSort.orderFor(folder));
+        Settings.FAVORITES_GRID_SORT.save("most_viewed");
+        assertEquals("most_viewed", GridSort.orderFor(folder));
+        Settings.COLLECTION_GRID_SORT.save("oldest");
+        assertEquals("oldest", GridSort.orderFor(folder));
+        assertEquals("a folder's order leaves the Favorites grids alone", "most_viewed", GridSort.orderFor(favorites));
+        Settings.COLLECTION_GRID_SORT.save("off");
+        assertEquals("Original order in a folder stays original", "off", GridSort.orderFor(folder));
+        Settings.COLLECTION_GRID_SORT.save("sideways");
+        assertEquals("an unknown value follows Favorites", "most_viewed", GridSort.orderFor(folder));
+        assertSame(Settings.COLLECTION_GRID_SORT, GridSort.settingFor(folder));
+    }
+
+    @Test public void aFolderSortsItsRowsByTheirVideosAndKeepsItsHeadersInFront() {
+        GridAdapter folder = new GridAdapter();
+        List<Object> untouched = folder();
+        assertSame("Original order, as Favorites and the profile grids start", untouched,
+                GridSort.collectionData(folder, untouched));
+
+        Settings.COLLECTION_GRID_SORT.save("newest");
+        List<Object> rows = folder();
+        List<?> out = GridSort.collectionData(folder, rows);
+        assertEquals("the headers first, then newest, with a creator's pinned videos sorted in like the rest",
+                "XYecdfapb", ids(out));
+        assertEquals("TikTok's list stays as it came", "XYabcdefp", ids(rows));
+        Settings.COLLECTION_GRID_SORT.save("least_liked");
+        assertEquals("XYapcdfeb", ids(GridSort.collectionData(folder, folder())));
+        assertNull("a call with no adapter changes nothing", GridSort.collectionData(null, null));
+        idle(0);
+    }
+
+    /** TikTok empties a folder and hands every row over again for each page, so its list is a page while it keeps every row. */
+    @Test public void aFolderOnScreenLoadsItsPagesUntilItsListStopsGrowingAndStartsOverWhenItShrinks() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter folder = gridOnScreen(controller.get());
+            Settings.COLLECTION_GRID_SORT.save("newest");
+            List<Object> rows = rows(posts(30));
+            folder.mmItems = GridSort.collectionData(folder, rows);
+            assertHeld(folder);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("the first rows ask for the next page", 1, folder.listener.calls);
+
+            rows = new ArrayList<>(rows);
+            rows.addAll(rows(posts(30)));
+            folder.mmItems = GridSort.collectionData(folder, rows);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("a list that grew asks for the next", 2, folder.listener.calls);
+            assertHeld(folder);
+            assertEquals("60", holdCount(folder).getText().toString());
+
+            folder.mmItems = GridSort.collectionData(folder, new ArrayList<>(rows));
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("the same rows again end the loading", 2, folder.listener.calls);
+            assertInSight(folder);
+            idle(5_000);
+            assertEquals(2, folder.listener.calls);
+
+            folder.mmItems = GridSort.collectionData(folder, rows(posts(30)));
+            assertHeld(folder);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("fewer rows, a pull to refresh, start the loading over", 3, folder.listener.calls);
+        }
+    }
+
+    @Test public void theChipInAFolderChangesOnlyTheCollectionOrder() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter folder = gridOnScreen(controller.get());
+            Settings.PROFILE_GRID_SORT.save("newest");
+            Settings.FAVORITES_GRID_SORT.save("oldest");
+            folder.mmItems = GridSort.collectionData(folder, folder());
+            idle(0);
+            assertEquals("a creator's pinned videos take no place in a folder", "XYpafcdeb", ids(folder.mmItems));
+            assertEquals("Oldest first", String.valueOf(chip(folder).getText()));
+
+            selectOrder(folder, "least_liked");
+
+            assertEquals("least_liked", Settings.COLLECTION_GRID_SORT.get());
+            assertEquals("the Favorites grids keep theirs", "oldest", Settings.FAVORITES_GRID_SORT.get());
+            assertEquals("the profile grids keep theirs", "newest", Settings.PROFILE_GRID_SORT.get());
+            assertEquals("XYapcdfeb", ids(folder.mmItems));
+        }
+    }
+
+    /** A folder's video page opens the tapped video by its id, then swipes through the list it was handed. */
+    @Test public void openingAVideoFromASortedFolderSwipesInTheFoldersOrder() {
+        GridAdapter folder = new GridAdapter();
+        Settings.COLLECTION_GRID_SORT.save("newest");
+        List<Object> rows = folder();
+        folder.mmItems = GridSort.collectionData(folder, rows);
+
+        List<Aweme> played = played(rows);
+        List<Aweme> posts = new ArrayList<>(played);
+        GridSort.collectionPlay(played);
+        assertEquals("the video page plays the folder's order", "ecdfapb", ids(played));
+        assertEquals(posts.size(), played.size());
+        for (Aweme post : posts) assertTrue("the same video objects", played.contains(post));
+        GridSort.collectionPlay(played);
+        assertEquals("a second open changes nothing", "ecdfapb", ids(played));
+
+        List<Aweme> elsewhere = grid();
+        GridSort.collectionPlay(elsewhere);
+        assertEquals("videos from no sorted folder keep TikTok's order", "abcdefp", ids(elsewhere));
+
+        Settings.COLLECTION_GRID_SORT.save("off");
+        List<Aweme> original = played(rows);
+        GridSort.collectionPlay(original);
+        assertEquals("Original order plays TikTok's", "abcdefp", ids(original));
+        GridSort.collectionPlay(null);
+        idle(0);
     }
 
     @Test public void eachGridSortsByItsOwnTabsOrder() {
@@ -2217,6 +2435,56 @@ public class GridSortTest {
             ListPreference list = (ListPreference) row;
             assertEquals("Same as profile grids", String.valueOf(list.getEntries()[0]));
             assertEquals("profile", String.valueOf(list.getEntryValues()[0]));
+            assertEquals(GridSort.ORDERS.length + 1, list.getEntryValues().length);
+            for (int i = 0; i < GridSort.ORDERS.length; i++) {
+                assertEquals(GridSort.ORDERS[i], String.valueOf(list.getEntryValues()[i + 1]));
+                assertEquals(GridSort.LABELS[i], String.valueOf(list.getEntries()[i + 1]));
+            }
+        }
+    }
+
+    @Test public void theFavoritesRowShowsWithTheLikedOneAndStartsAtTheProfileOrder() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            SettingsStatus.alwaysShowPublishDateEnabled = true;
+            SettingsStatus.gridSortEnabled = true;
+
+            SettingsStatus.likedGridSortEnabled = false;
+            assertEquals(null, build(activity).findPreference(Settings.FAVORITES_GRID_SORT.key));
+
+            SettingsStatus.likedGridSortEnabled = true;
+            Preference row = build(activity).findPreference(Settings.FAVORITES_GRID_SORT.key);
+            assertTrue(row instanceof ListPreference);
+            assertEquals("Sort loaded videos on Favorites grids", String.valueOf(row.getTitle()));
+            ListPreference list = (ListPreference) row;
+            assertEquals("Same as profile grids", String.valueOf(list.getEntries()[0]));
+            assertEquals("profile", String.valueOf(list.getEntryValues()[0]));
+            assertEquals(GridSort.ORDERS.length + 1, list.getEntryValues().length);
+            for (int i = 0; i < GridSort.ORDERS.length; i++) {
+                assertEquals(GridSort.ORDERS[i], String.valueOf(list.getEntryValues()[i + 1]));
+                assertEquals(GridSort.LABELS[i], String.valueOf(list.getEntries()[i + 1]));
+            }
+        }
+    }
+
+    @Test public void theCollectionRowShowsOnlyWhereTheFolderWasHookedAndStartsAtTheFavoritesOrder() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            SettingsStatus.alwaysShowPublishDateEnabled = true;
+            SettingsStatus.gridSortEnabled = true;
+
+            SettingsStatus.collectionGridSortEnabled = false;
+            assertEquals(null, build(activity).findPreference(Settings.COLLECTION_GRID_SORT.key));
+
+            SettingsStatus.collectionGridSortEnabled = true;
+            Preference row = build(activity).findPreference(Settings.COLLECTION_GRID_SORT.key);
+            assertTrue(row instanceof ListPreference);
+            assertEquals("Sort loaded videos in collections", String.valueOf(row.getTitle()));
+            ListPreference list = (ListPreference) row;
+            assertEquals("Same as Favorites grids", String.valueOf(list.getEntries()[0]));
+            assertEquals("favorites", String.valueOf(list.getEntryValues()[0]));
             assertEquals(GridSort.ORDERS.length + 1, list.getEntryValues().length);
             for (int i = 0; i < GridSort.ORDERS.length; i++) {
                 assertEquals(GridSort.ORDERS[i], String.valueOf(list.getEntryValues()[i + 1]));

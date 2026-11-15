@@ -419,10 +419,7 @@ function Assert-UrlReachable {
         A HEAD request that has to answer 200, or a throw naming the address and what it said.
     .DESCRIPTION
         validate-release-facts.ps1 fetches the indexed bundle and the Morphe add-source page
-        with this on every run. It lives here so the contract tests can call it on its own:
-        through the release check, an address has to pass the shape, scheme and host checks
-        before it is fetched, and the one case that meant to try a dead link tripped the shape
-        check first and never reached the fetch.
+        with this on every run.
     #>
     param(
         [Uri]$Uri,
@@ -496,8 +493,7 @@ function Find-MachineNames {
     param(
         [Parameter(Mandatory = $true)][string]$Root,
         [string[]]$Commit,
-        # A hundred commits to a git grep keeps its command line inside what Windows allows. The
-        # contract tests pass a smaller one, to reach every batch with a handful of commits.
+        # A hundred commits to a git grep keeps its command line inside what Windows allows.
         [int]$BatchSize = 100
     )
 
@@ -590,8 +586,8 @@ function Get-AppliedRecordVerifierFiles {
         The scripts that patch and check (verify-all-patches.ps1 and everything it dot-sources or
         runs), the Java checks they start, DexDiff.java among them, and the contract and allowlist
         files those read. An applied record's key hashes every one, so an edit to any of them
-        makes a kept result useless and the next run patches again. The contract tests hold this
-        list to what verify-all-patches.ps1 and verify-injected-registers.ps1 actually load.
+        makes a kept result useless and the next run patches again. Keep this list in step with
+        what verify-all-patches.ps1 and verify-injected-registers.ps1 actually load.
     #>
     return @(
         'verify-all-patches.ps1', 'verify-injected-registers.ps1', 'injected-register-contracts.ps1',

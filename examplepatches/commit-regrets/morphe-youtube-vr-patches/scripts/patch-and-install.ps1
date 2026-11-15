@@ -398,7 +398,7 @@ if ($IdentityProbe -and -not $Diagnostics) {
     Fail ("-IdentityProbe needs -Diagnostics: the probe's output is only readable next to the " +
         "route log, and the patch refuses to install it on its own. It also costs ~14 " +
         "unauthenticated requests per launch, which is what gets an IP refused by YouTube's " +
-        "bot gate (docs/SABR-SPOOF-PLAN.md, 2026-10-11).")
+        "bot gate, measured 2026-10-11)")
 }
 
 if ($NoClone -and $OfficialClone) {

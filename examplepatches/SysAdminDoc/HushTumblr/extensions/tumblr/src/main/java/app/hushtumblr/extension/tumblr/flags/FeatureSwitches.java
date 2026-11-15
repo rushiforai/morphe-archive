@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import app.hushtumblr.extension.shared.Utils;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
@@ -23,9 +24,17 @@ import app.hushtumblr.extension.tumblr.settings.PatchFamily;
  * <p>Every boolean feature check in Tumblr ends in one method: it reads the server's value for the
  * flag, compares it with "true", logs the answer and returns it. The patch puts {@link #isEnabled}
  * right after that comparison, so a family whose switch is on can answer off for the flags it
- * claims here. Tumblr keeps the first answer for each flag until it restarts, so a switch that
- * only works this way is a restart-needing setting, and the settings screen shows its shared
- * restart line and toast when it changes.
+ * claims here. A switch that only works this way is a restart-needing setting, and the settings
+ * screen shows its shared restart line and toast when it changes.
+ *
+ * <p>Tumblr doesn't keep every answer, though: it asks SMART_BANNER_ADS again each time a feed
+ * builds its ad sources. Answered off at launch, Tumblr never configured Smart's SDK, so a feed
+ * rebuilt after Hide ads went off (a font size change will do it) built Smart's banner source and
+ * it threw "The Smart Display SDK is not yet configured", which closed Tumblr. So a family that has
+ * turned a flag off in this run keeps every flag it claims off until Tumblr restarts, whatever its
+ * switch says by then. A family whose ad network or tracker start {@link
+ * app.hushtumblr.extension.tumblr.privacy.SdkStartup} skipped is held off the same way. A switch
+ * turned on during a run still takes effect for the flags asked after it.
  *
  * <p>Tumblr checks flags while it starts, before HushTumblr has a context. Nothing here loads the
  * settings until {@link Utils#settingsReady()} says it may: the table names each family by its
@@ -39,10 +48,19 @@ public final class FeatureSwitches {
     private FeatureSwitches() {}
 
     /**
-     * The count a claimed flag asked before the settings are ready lands under. Tumblr keeps its
-     * first answer, so that flag stays on until the next start whatever the switch says.
+     * The count a claimed flag asked before the settings are ready lands under. Tumblr may keep its
+     * first answer, so that flag can stay on until the next start whatever the switch says.
      */
     static final String READ_EARLY = "flag read before HushTumblr started";
+
+    /** The count for a flag held off because its family turned it off earlier in this run. */
+    static final String HELD_OFF = "Tumblr feature kept off until restart";
+
+    /**
+     * The {@link PatchFamily} constants, by name, that turned a flag off or skipped a start in this
+     * run. Names rather than the enum, so loading this class never loads the settings.
+     */
+    private static final Set<String> OFF_THIS_RUN = ConcurrentHashMap.newKeySet();
 
     /** The family that forces a flag off: its {@link PatchFamily} constant and its patch name. */
     static final class Claim {
@@ -134,9 +152,10 @@ public final class FeatureSwitches {
 
     /**
      * Placed right after Tumblr's feature check compares a flag's server value with "true". Answers
-     * false for a flag that a family in this build claims while that family's switch is on, and
-     * Tumblr's own answer otherwise: for every other flag, before the settings are ready, while
-     * paused, and when anything here fails. Never throws.
+     * false for a flag that a family in this build claims while that family's switch is on, or
+     * once that family has turned a flag off in this run, and Tumblr's own answer otherwise: for
+     * every other flag, before the settings are ready, while paused, and when anything here fails.
+     * Never throws.
      */
     public static boolean isEnabled(Enum<?> feature, boolean server) {
         Claim claim = null;
@@ -154,14 +173,34 @@ public final class FeatureSwitches {
             PatchFamily family = PatchFamily.valueOf(claim.family);
             if (!family.inBuild()) return server;
             HookStatus.invoked(claim.patchName);
-            if (!server || !anyOn(family)) return server;
-            HookStatus.counted(claim.patchName, "Tumblr feature turned off");
+            if (!server) return false;
+            if (anyOn(family)) {
+                OFF_THIS_RUN.add(claim.family);
+                HookStatus.counted(claim.patchName, "Tumblr feature turned off");
+                return false;
+            }
+            if (!OFF_THIS_RUN.contains(claim.family)) return true;
+            HookStatus.counted(claim.patchName, HELD_OFF);
             return false;
         } catch (Throwable failure) {
             // Only a claimed flag gets past the table lookup, so a failure always has a family.
             if (claim != null) HookStatus.threw(claim.patchName, "feature flag", failure);
             return server;
         }
+    }
+
+    /**
+     * Holds every flag [family] claims off for the rest of this run, for a family that skipped
+     * the start of something those flags lead to. [family] is a {@link PatchFamily} constant's
+     * name.
+     */
+    public static void keepOffThisRun(String family) {
+        OFF_THIS_RUN.add(family);
+    }
+
+    /** A new run, for tests: no family has turned anything off yet. */
+    static void resetForTests() {
+        OFF_THIS_RUN.clear();
     }
 
     /**

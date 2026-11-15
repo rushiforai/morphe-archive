@@ -12,11 +12,11 @@ import app.rex.patches.instagram.misc.actionBar.userProfileActionBarButton.userP
 import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val profileMoreOptionsPatch =
-    bytecodePatch(
+    patch(
         name = "More options on profile",
         description = "Adds a new button to handle user related data like copy handle, download profile picture etc",
     ) {
@@ -25,6 +25,9 @@ val profileMoreOptionsPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             enableSettings("moreOptionsOnProfile")
+        
+            }
         }
     }

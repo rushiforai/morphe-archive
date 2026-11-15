@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.rex.sharedPreference.BaseSharedPref;
-import app.morphe.extension.rex.settings.StringSetting;
+import app.morphe.extension.instagram.settings.StringSetting;
 
 import app.morphe.extension.instagram.constants.Constants;
 

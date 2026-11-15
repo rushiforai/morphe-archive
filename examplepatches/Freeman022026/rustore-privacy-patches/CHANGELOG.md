@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.3.0...v1.4.0) (2026-11-14)
+
+- Added RuStore 1.114.0.3 support.
+- Added a patch that disables web games.
+- Blocked post-view ad requests and VPN state in ad requests.
+
 ## [1.3.0](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.2.0...v1.3.0) (2026-11-04)
 
 - Added RuStore 1.113.2.0 support.

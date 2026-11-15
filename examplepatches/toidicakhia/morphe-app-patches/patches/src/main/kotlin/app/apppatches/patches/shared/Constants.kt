@@ -106,7 +106,7 @@ object Constants {
         )
     )
 
-    // VTVGo 12.11.05 (version code 260933), distributed as XAPK/APKM bundles with
+    // VTVGo 12.11.13 (version code 260935), distributed as XAPK/APKM bundles with
     // arm64-v8a, armeabi-v7a and x86_64 splits (Android 7.0+).
     val VTVGO_COMPATIBILITY = Compatibility(
         name = "VTVGo",
@@ -118,8 +118,8 @@ object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "12.11.05",
-                versionCode = 260933,
+                version = "12.11.13",
+                versionCode = 260935,
                 minSdk = 24
             )
         )

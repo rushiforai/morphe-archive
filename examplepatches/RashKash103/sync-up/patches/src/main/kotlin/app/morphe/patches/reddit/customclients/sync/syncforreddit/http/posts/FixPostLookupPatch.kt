@@ -17,6 +17,8 @@ val fixPostLookupPatch = bytecodePatch(
             "stopped answering, which is what an album is opened by.",
     default = true
 ) {
+    category("1. Essentials")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
 
     compatibleWith(*SyncForRedditCompatible)

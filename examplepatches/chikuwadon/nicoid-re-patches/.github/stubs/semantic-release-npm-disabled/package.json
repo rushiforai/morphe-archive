@@ -1,0 +1,8 @@
+{
+  "name": "@semantic-release/npm",
+  "version": "13.1.5",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.cjs",
+  "description": "Local guard for unused npm publishing plugin; never publish this stub"
+}

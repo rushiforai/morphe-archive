@@ -1,15 +1,23 @@
         50  ./.env
         22  ./.gitignore
-      4182  ./download/INSTALL-AND-TEST.md
- 151188029  ./download/OperaBeta-104.0.5262.91143-custom-v4-universal.apk
-   1201575  ./download/OperaBeta-104.0.5262.91143-custom-v4-universal.apk.idsig
-      3681  ./download/PATCH-NOTES-v4.md
+ 151249469  ./build-cache/OperaBeta-104.0.5262.91143-custom-v6-universal.apk
+      2616  ./build-cache/morphe.keystore
+ 154436314  ./download/OperaBeta-104.0.5262.91143-custom-v8-universal.apk
+   1226151  ./download/OperaBeta-104.0.5262.91143-custom-v8-universal.apk.idsig
+      7889  ./download/PATCH-NOTES-v8.md
         34  ./download/README.md
-       287  ./download/V4-SHA256SUMS.txt
-      4438  ./scripts/apply_v4_patches.py
-      6447  ./scripts/build_v4_universal.sh
-      2791  ./scripts/restore_env.sh
-      2568  ./scripts/v4_substrate.sh
+     15031  ./download/V8-VPN-DESIGN-AND-RECOVERY.md
+    170596  ./download/v8-vpnkit/hev-socks5-tunnel-android-armeabi-v7a
+    617551  ./download/v8-vpnkit/hev-socks5-tunnel.aar
+   7505536  ./download/v8-vpnkit/opera-proxy.android-arm
+   7569888  ./download/v8-vpnkit/opera-proxy.android-arm64
+     17384  ./scripts/apply_v8_patches.py
+      5576  ./scripts/build_v8_universal.sh
+      6375  ./scripts/v8_splice.py
+     17213  ./scripts/v8src/com/kape/vpnservicemanager/data/externals/Service.java
+       916  ./scripts/v8src/com/zai/sysvpn/Res.java
+      4270  ./scripts/v8src/com/zai/sysvpn/VpnController.java
+      7340  ./scripts/verify_v8_markers.py
       1080  ./skills/ASR/LICENSE.txt
      15470  ./skills/ASR/SKILL.md
        650  ./skills/ASR/scripts/asr.ts

@@ -1,3 +1,8 @@
+## 1.3.0 (2026-11-14)
+
+- Added HeyMelody to SARVO-Patches.
+- Added Dark Mode Patch.
+
 ## 1.2.0 (2026-11-04)
 
 - Add Samsung Good Lock to SARVO Patches.

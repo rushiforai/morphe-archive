@@ -16,6 +16,8 @@ val tappableLinksPatch = bytecodePatch(
     description = "Draws a bare address in a post's body as a link.",
     default = true
 ) {
+    category("6. Text")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
 
     compatibleWith(*SyncForRedditCompatible)

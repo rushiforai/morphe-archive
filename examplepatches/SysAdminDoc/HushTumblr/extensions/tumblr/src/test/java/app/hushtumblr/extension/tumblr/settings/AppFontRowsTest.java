@@ -5,6 +5,7 @@
  */
 package app.hushtumblr.extension.tumblr.settings;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -35,10 +36,14 @@ import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.EnumSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import app.hushtumblr.extension.shared.SettingsContextRule;
 import app.hushtumblr.extension.shared.Utils;
+import app.hushtumblr.extension.shared.settings.FailingStore;
 import app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushtumblr.extension.tumblr.ui.AppFont;
 
@@ -167,6 +172,122 @@ public class AppFontRowsTest {
         }
     }
 
+    /** Seen with Tumblr's settings file read-only: the new file took the old one's place under the old name. */
+    @Test
+    public void aRefusedSaveKeepsTheFontInUseAndSaysTheFontDidntChange() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            pick(activity, page, "a", font());
+            String saved = TextSettings.APP_FONT_FILE.savedValue();
+
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                pick(activity, page, "b", otherFont());
+            }
+
+            assertEquals("Couldn't change the font. Try again.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertEquals(saved, TextSettings.APP_FONT_FILE.savedValue());
+            assertArrayEquals("the refused file took the place of the one in use", font(), Files.readAllBytes(chosenFile().toPath()));
+            assertFalse(new File(chosenFile().getParentFile(), "font.incoming").exists());
+        }
+    }
+
+    @Test
+    public void aFirstPickWhoseSaveIsRefusedLeavesNoFileBehind() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                pick(activity, page, "a", font());
+            }
+
+            assertEquals("Couldn't change the font. Try again.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertEquals("", TextSettings.APP_FONT_FILE.savedValue());
+            assertFalse(chosenFile().exists());
+            assertFalse(new File(chosenFile().getParentFile(), "font.incoming").exists());
+        }
+    }
+
+    /** The name is saved before the file moves, so a move that fails takes the old name back. */
+    @Test
+    public void aFileThatCantTakeThePlaceOfTheOldOneKeepsTheOldName() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            pick(activity, page, "a", font());
+            String saved = TextSettings.APP_FONT_FILE.savedValue();
+            File inUse = chosenFile();
+            assertTrue(inUse.delete());
+            assertTrue(new File(inUse, "blocker").mkdirs());
+
+            pick(activity, page, "b", otherFont());
+
+            assertEquals("Couldn't change the font. Try again.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertEquals(saved, TextSettings.APP_FONT_FILE.savedValue());
+            assertFalse(new File(inUse.getParentFile(), "font.incoming").exists());
+            assertTrue(new File(inUse, "blocker").delete());
+            assertTrue(inUse.delete());
+        }
+    }
+
+    /**
+     * Picks shared the staged file, so one that finished while an earlier one was still copying
+     * could save its name over a file the earlier one went on writing. The later pick waits now.
+     */
+    @Test
+    public void aSecondPickWaitsForTheFirstAndTheLaterOneStays() throws Exception {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            Uri first = SettingsFileProvider.put(AUTHORITY, "a", font());
+            Uri second = SettingsFileProvider.put(AUTHORITY, "b", otherFont());
+            CountDownLatch held = new CountDownLatch(1);
+            SettingsFileProvider.stall = held;
+            // Real workers. An earlier test can leave picks running on this thread.
+            java.util.function.Consumer<Runnable> worker = HushTumblrPreferenceFragment.editWorkerForTests;
+            HushTumblrPreferenceFragment.editWorkerForTests = null;
+            try {
+                shadowOf(activity).receiveResult(tap(activity, page).intent, Activity.RESULT_OK, new Intent().setData(first));
+                assertTrue("the first pick never opened its file", SettingsFileProvider.holding.tryAcquire(5, TimeUnit.SECONDS));
+                // Only the first open is held. The second pick's file opens at once.
+                SettingsFileProvider.stall = null;
+                shadowOf(activity).receiveResult(tap(activity, page).intent, Activity.RESULT_OK, new Intent().setData(second));
+                long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(300);
+                while (System.nanoTime() < deadline && TextSettings.APP_FONT_FILE.persistedValue().isEmpty()) Thread.sleep(10);
+                assertEquals("the second pick saved while the first was still under way", "", TextSettings.APP_FONT_FILE.persistedValue());
+            } finally {
+                SettingsFileProvider.stall = null;
+                held.countDown();
+                settle();
+                HushTumblrPreferenceFragment.editWorkerForTests = worker;
+            }
+
+            assertEquals("Font file saved. Turn on App font to use it.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertArrayEquals("the earlier pick's file stayed", otherFont(), Files.readAllBytes(chosenFile().toPath()));
+            assertFalse(new File(chosenFile().getParentFile(), "font.incoming").exists());
+        }
+    }
+
+    /** A copy that can't be written here isn't the file's fault, and the row doesn't say it is. */
+    @Test
+    public void aCopyThatCantBeWrittenSaysTheFontDidntChange() throws Exception {
+        File folder = chosenFile().getParentFile();
+        assertTrue(folder.getParentFile().isDirectory() || folder.getParentFile().mkdirs());
+        assertTrue("a file where the font folder goes", folder.createNewFile());
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+
+            pick(activity, page, "a", font());
+
+            assertEquals("Couldn't change the font. Try again.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertEquals("", TextSettings.APP_FONT_FILE.savedValue());
+        } finally {
+            assertTrue(folder.delete());
+        }
+    }
+
     @Test
     public void aCancelledPickChangesNothing() throws Exception {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -260,6 +381,12 @@ public class AppFontRowsTest {
     private static byte[] font() {
         byte[] whole = new byte[64];
         System.arraycopy("OTTO".getBytes(StandardCharsets.ISO_8859_1), 0, whole, 0, 4);
+        return whole;
+    }
+
+    private static byte[] otherFont() {
+        byte[] whole = font();
+        whole[whole.length - 1] = 1;
         return whole;
     }
 }

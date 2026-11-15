@@ -668,6 +668,7 @@ public final class ReportPatch {
             case SafeMode.LANGUAGE: return thai ? "ภาษา (Language)" : "Language";
             case SafeMode.DRIVER_SIDE: return thai ? "ฝั่งพวงมาลัย (Driver side)" : "Driver side";
             case SafeMode.COLOR_SCHEME: return thai ? "รูปแบบสี (Color scheme)" : "Color scheme";
+            case SafeMode.CLUSTER_SATELLITE: return thai ? "ดาวเทียมบนแผนที่หน้าปัด" : "Satellite on the cluster map";
             case SafeMode.BUILDINGS_3D: return thai ? "อาคาร 3 มิติ (3D buildings)" : "3D buildings";
             case SafeMode.BYD_BATTERY: return thai ? "แบตเตอรี่รถ BYD (EV)" : "BYD battery (EV)";
             case SafeMode.SEND_TO_CAR: return "Send to car";
@@ -685,6 +686,7 @@ public final class ReportPatch {
             case SafeMode.LANGUAGE: return thai ? "ใช้ภาษาของระบบ" : "the system language";
             case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง" : "Maps picks the cards' side";
             case SafeMode.COLOR_SCHEME: return thai ? "ใช้สีของ Maps" : "Maps' colors";
+            case SafeMode.CLUSTER_SATELLITE: return thai ? "แผนที่หน้าปัดไม่แสดงดาวเทียม" : "no satellite on the cluster map";
             case SafeMode.BUILDINGS_3D: return thai ? "ชั้นแผนที่ไม่มีอาคาร 3 มิติ" : "no 3D buildings in the map layers";
             case SafeMode.BYD_BATTERY: return thai ? "ไม่ส่งแบตเตอรี่ให้ Maps ไม่มีหน้าจอ EV" : "no battery for Maps, no EV screens";
             case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้ และมือถือเห็นชื่อรถของ Maps" : "trips from the phone do not arrive, and phone Maps shows Maps' car name";

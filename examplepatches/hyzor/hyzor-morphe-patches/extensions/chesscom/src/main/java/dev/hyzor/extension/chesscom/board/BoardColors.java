@@ -84,13 +84,16 @@ public final class BoardColors {
         return background;
     }
 
-    /** Coordinates written on dark squares take the light colour... */
+    /**
+     * The theme's darkSquareCoordinateColor is the dark shade of the coordinates, which chess.com
+     * writes on the light squares. It takes the dark square colour...
+     */
     public static int darkSquareCoordinates(int original) {
-        return enabled() ? light() : original;
+        return enabled() ? dark() : original;
     }
 
-    /** ...and those on light squares the dark one. */
+    /** ...and lightSquareCoordinateColor is the light shade, written on the dark squares. */
     public static int lightSquareCoordinates(int original) {
-        return enabled() ? dark() : original;
+        return enabled() ? light() : original;
     }
 }

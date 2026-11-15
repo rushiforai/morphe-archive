@@ -53,12 +53,17 @@ struct Shader {
 struct Program {
     sl_blue_noise::Layer layer = sl_blue_noise::Layer::None;
     bool warned = false;
+    // Resolved once at link time; glGetUniformLocation is a name lookup that cannot change
+    // while the program object lives.
+    GLint tex0 = -1;
 };
 struct Group {
     std::map<GLuint, Shader> shaders;
     std::map<GLuint, Program> programs;
     std::set<std::string> unknown;
     GLuint texture = 0;
+    // GL_MAX_TEXTURE_IMAGE_UNITS is a context constant; 0 means "not read yet".
+    GLint units = 0;
 };
 struct Context {
     std::shared_ptr<Group> group;
@@ -69,12 +74,40 @@ using ContextKey = std::pair<EGLDisplay,EGLContext>;
 std::mutex mutex;
 std::map<ContextKey,Context> contexts;
 thread_local ContextKey current{EGL_NO_DISPLAY,EGL_NO_CONTEXT};
+// Bumped under the mutex whenever a tracked map changes shape. Every per-thread cache is
+// validated against it, so a context/program created, re-linked or released on one thread
+// can never leave a stale hit on another thread.
+unsigned long stateEpoch = 1;
+// Last (display,context) -> Group resolution for this thread. Avoids the map lookup on the
+// per-draw path without trusting a stale entry: the epoch changes on every map mutation.
+struct ContextCache {
+    EGLDisplay display = EGL_NO_DISPLAY;
+    EGLContext context = EGL_NO_CONTEXT;
+    Group* group = nullptr;
+    unsigned long epoch = 0;
+};
+thread_local ContextCache contextCache{};
+// Last current-program -> Program resolution for this thread. A miss is cached too: unknown
+// programs are the common case (every draw of every other program passes through here).
+struct ProgramCache {
+    Group* group = nullptr;
+    GLuint id = 0;
+    unsigned long epoch = 0;
+    Program* program = nullptr;
+};
+thread_local ProgramCache programCache{};
 Group* group() {
     auto& a = api();
-    ContextKey key{a.eglGetCurrentDisplay(), a.eglGetCurrentContext()};
-    auto found = contexts.find(key);
+    const EGLDisplay display = a.eglGetCurrentDisplay();
+    const EGLContext context = a.eglGetCurrentContext();
+    auto& cache = contextCache;
+    if (cache.epoch == stateEpoch && cache.display == display && cache.context == context)
+        return cache.group;
+    auto found = contexts.find(ContextKey{display,context});
     // Only scene-created contexts are eligible; unrelated/unknown contexts pass through.
-    return found == contexts.end() ? nullptr : found->second.group.get();
+    Group* result = found == contexts.end() ? nullptr : found->second.group.get();
+    cache = ContextCache{display,context,result,stateEpoch};
+    return result;
 }
 bool disabled() {
     char value[PROP_VALUE_MAX]{};
@@ -103,18 +136,22 @@ bool extension(const char* name) {
     return false;
 }
 struct TextureState {
-    GLint active{}, texture{}, sampler{};
-    explicit TextureState(GLint unit) {
+    GLint active{}, texture{}, sampler{}, unit{};
+    explicit TextureState(GLint unit_) : unit(unit_) {
         auto& a = api(); a.glGetIntegerv(GL_ACTIVE_TEXTURE,&active);
-        a.glActiveTexture(GL_TEXTURE0+unit);
+        if (active != GL_TEXTURE0+unit) a.glActiveTexture(GL_TEXTURE0+unit);
         a.glGetIntegerv(GL_TEXTURE_BINDING_2D,&texture);
         a.glGetIntegerv(GL_SAMPLER_BINDING,&sampler);
-        a.glBindSampler(unit,0);
+        // Binding 0 over 0 is a no-op; skip the driver call when the unit is already clean.
+        if (sampler) a.glBindSampler(static_cast<GLuint>(unit),0);
     }
     ~TextureState() {
-        auto& a = api(); GLint unit{}; a.glGetIntegerv(GL_ACTIVE_TEXTURE,&unit);
-        a.glBindTexture(GL_TEXTURE_2D,texture); a.glBindSampler(unit-GL_TEXTURE0,sampler);
-        a.glActiveTexture(active);
+        // The constructor left this unit active and glDrawArrays never changes it, so the
+        // restore target is the unit we were given, not a second GL_ACTIVE_TEXTURE query.
+        auto& a = api();
+        a.glBindTexture(GL_TEXTURE_2D,static_cast<GLuint>(texture));
+        if (sampler) a.glBindSampler(static_cast<GLuint>(unit),static_cast<GLuint>(sampler));
+        a.glActiveTexture(static_cast<GLenum>(active));
     }
 };
 bool texture(Group& g) {
@@ -140,7 +177,7 @@ bool texture(Group& g) {
     if (immutable && g.texture != 0) return true;
     a.glDeleteTextures(1,&g.texture); g.texture=0; return false;
 }
-bool uniformContract(GLuint program) {
+bool uniformContract(GLuint program, GLint& tex0) {
     auto& a = api();
     if (a.glGetUniformLocation(program,"SL_blueNoise") != SL_NOISE_LOCATION || a.glGetUniformLocation(program,"SL_enabled") != SL_ENABLE_LOCATION) return false;
     GLint count{}; a.glGetProgramiv(program,GL_ACTIVE_UNIFORMS,&count);
@@ -160,6 +197,8 @@ bool uniformContract(GLuint program) {
         if (std::strcmp(name,"SL_blueNoise") != 0 && std::strcmp(name,"SL_enabled") != 0) {
             const GLint location=a.glGetUniformLocation(program,name);
             if (location < 0 || size < 1 || location+size-1 > SL_MAX_HOST_LOCATION) return false;
+            // Reuse the resolved location instead of a per-draw name lookup.
+            if (std::strcmp(name,"tex0") == 0) tex0 = location;
         }
     }
     return samplers == 2;
@@ -232,7 +271,7 @@ EXPORT void gxCompileShader(GLuint shader) {
 EXPORT void gxLinkProgram(GLuint program) {
     auto& a=api(); std::lock_guard<std::mutex> lock(mutex); Group* g=group();
     if (!g) { a.glLinkProgram(program); return; }
-    g->programs.erase(program);
+    g->programs.erase(program); ++stateEpoch;
     GLint count{}; a.glGetProgramiv(program,GL_ATTACHED_SHADERS,&count);
     std::vector<GLuint> shaders(std::max(0,count)); GLsizei actual{};
     if (count) a.glGetAttachedShaders(program,count,&actual,shaders.data());
@@ -248,10 +287,14 @@ EXPORT void gxLinkProgram(GLuint program) {
     }
     a.glLinkProgram(program); if (!modified) return;
     GLint ok{}; a.glGetProgramiv(program,GL_LINK_STATUS,&ok);
-    if (ok && !mixedLayers && layer != sl_blue_noise::Layer::None && uniformContract(program) && texture(*g)) {
+    GLint tex0 = -1;
+    if (ok && !mixedLayers && layer != sl_blue_noise::Layer::None && uniformContract(program,tex0) && texture(*g)) {
+        if (tex0 < 0) tex0=a.glGetUniformLocation(program,"tex0");
+        GLint units{}; a.glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&units); g->units=units;
         GLint previous{}; a.glGetIntegerv(GL_CURRENT_PROGRAM,&previous);
         a.glUseProgram(program); a.glUniform1i(SL_NOISE_LOCATION,1); a.glUniform1i(SL_ENABLE_LOCATION,0); a.glUseProgram(previous);
-        g->programs.emplace(program,Program{layer,false});
+        g->programs.emplace(program,Program{layer,false,tex0});
+        ++stateEpoch;
         note(layer == sl_blue_noise::Layer::Fovea
             ? "Foveal blue-noise program linked; guarded per-draw enable active."
             : "Background blue-noise program linked; guarded per-draw enable active."); return;
@@ -267,21 +310,38 @@ EXPORT void gxDeleteShader(GLuint shader) {
 }
 EXPORT void gxDeleteProgram(GLuint program) {
     std::lock_guard<std::mutex> lock(mutex); api().glDeleteProgram(program);
-    if (Group* g=group()) { g->programs.erase(program); reap(*g); }
+    if (Group* g=group()) { g->programs.erase(program); ++stateEpoch; reap(*g); }
 }
 EXPORT void gxDrawArrays(GLenum mode, GLint first, GLsizei count) {
     void* caller=__builtin_return_address(0);
     auto& a=api(); std::lock_guard<std::mutex> lock(mutex); Group* g=group();
     GLint id{}; a.glGetIntegerv(GL_CURRENT_PROGRAM,&id);
-    auto it=g ? g->programs.find(id) : std::map<GLuint,Program>::iterator{};
-    if (!g || it==g->programs.end()) { a.glDrawArrays(mode,first,count); return; }
-    GLint units{}, videoUnit{}; a.glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&units);
-    a.glGetUniformiv(id,a.glGetUniformLocation(id,"tex0"),&videoUnit);
+    const GLuint programId = static_cast<GLuint>(id);
+    // Per-thread last-hit cache; the epoch invalidates it whenever any tracked map changes, so
+    // a program linked, re-linked or deleted on another sharing thread cannot be reused.
+    Program* program=nullptr;
+    if (g) {
+        auto& cache=programCache;
+        if (cache.epoch==stateEpoch && cache.group==g && cache.id==programId) program=cache.program;
+        else {
+            auto it=g->programs.find(programId);
+            program = it==g->programs.end() ? nullptr : &it->second;
+            cache = ProgramCache{g,programId,stateEpoch,program};
+        }
+    }
+    if (!program) { a.glDrawArrays(mode,first,count); return; }
+    const Program& info=*program;
+    GLint units=g->units;
+    if (units<=0) { a.glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&units); g->units=units; }
+    GLint videoUnit{}; a.glGetUniformiv(id,info.tex0,&videoUnit);
     GLint unit=units-1; if (unit==videoUnit) --unit;
     if (unit>=0) a.glUniform1i(SL_NOISE_LOCATION,unit);
-    if (unit<0 || !layerCaller(caller,it->second.layer) || !targetFramebuffer() || !g->texture || !a.glIsTexture(g->texture)) {
+    // The owned texture is the cheapest precondition, so it is tested before the dynamic
+    // linker lookup and the framebuffer queries.
+    if (unit<0 || !g->texture || !a.glIsTexture(g->texture) ||
+        !layerCaller(caller,info.layer) || !targetFramebuffer()) {
         a.glUniform1i(SL_ENABLE_LOCATION,0); a.glDrawArrays(mode,first,count);
-        if (!it->second.warned) { note("Video draw left undithered: layer/framebuffer/resource precondition failed."); it->second.warned=true; }
+        if (!info.warned) { note("Video draw left undithered: layer/framebuffer/resource precondition failed."); program->warned=true; }
         return;
     }
     TextureState state(unit); a.glBindTexture(GL_TEXTURE_2D,g->texture);
@@ -298,6 +358,7 @@ EXPORT EGLContext gxdCreateContext(EGLDisplay display,EGLConfig config,EGLContex
         auto it=contexts.find({display,share});
         auto shared=it==contexts.end() ? std::make_shared<Group>() : it->second.group;
         contexts[{display,ctx}]=Context{std::move(shared),false,0};
+        ++stateEpoch;
     }
     return ctx;
 }
@@ -306,7 +367,7 @@ EXPORT EGLBoolean gxdMakeCurrent(EGLDisplay display,EGLSurface draw,EGLSurface r
     if (ok) {
         std::lock_guard<std::mutex> lock(mutex);
         auto it=contexts.find(current);
-        if (it!=contexts.end()) { if (it->second.current) --it->second.current; if (it->second.pendingDestroy && !it->second.current) contexts.erase(it); }
+        if (it!=contexts.end()) { if (it->second.current) --it->second.current; if (it->second.pendingDestroy && !it->second.current) { contexts.erase(it); ++stateEpoch; } }
         current={display,ctx}; it=contexts.find(current); if (it!=contexts.end()) ++it->second.current;
     }
     return ok;
@@ -314,14 +375,14 @@ EXPORT EGLBoolean gxdMakeCurrent(EGLDisplay display,EGLSurface draw,EGLSurface r
 EXPORT EGLBoolean gxdDestroyContext(EGLDisplay display,EGLContext ctx) {
     auto& a=api(); EGLBoolean ok=a.eglDestroyContext(display,ctx);
     if (ok) { std::lock_guard<std::mutex> lock(mutex); auto it=contexts.find({display,ctx});
-        if (it!=contexts.end()) { if (it->second.current) it->second.pendingDestroy=true; else contexts.erase(it); } }
+        if (it!=contexts.end()) { if (it->second.current) it->second.pendingDestroy=true; else { contexts.erase(it); ++stateEpoch; } } }
     return ok;
 }
 EXPORT EGLBoolean gxdTerminate(EGLDisplay display) {
     auto& a=api(); EGLBoolean ok=a.eglTerminate(display);
     if (ok) { std::lock_guard<std::mutex> lock(mutex);
         for (auto it=contexts.begin(); it!=contexts.end();) {
-            if (it->first.first==display) { if (it->second.current) { it->second.pendingDestroy=true; ++it; } else it=contexts.erase(it); } else ++it;
+            if (it->first.first==display) { if (it->second.current) { it->second.pendingDestroy=true; ++it; } else { it=contexts.erase(it); ++stateEpoch; } } else ++it;
         }
     }
     return ok;

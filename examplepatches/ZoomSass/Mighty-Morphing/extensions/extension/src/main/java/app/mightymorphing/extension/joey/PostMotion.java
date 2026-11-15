@@ -53,9 +53,17 @@ public final class PostMotion {
     }
 
     /** Joey sets no touch listener on these, and this one never consumes the touch. */
+    private static int[] sPopIds;
+
     static void wireTaps(View item) {
-        for (String name : POP) {
-            int id = item.getResources().getIdentifier(name, "id", item.getContext().getPackageName());
+        if (sPopIds == null) {
+            int[] ids = new int[POP.length];
+            for (int i = 0; i < POP.length; i++) {
+                ids[i] = item.getResources().getIdentifier(POP[i], "id", item.getContext().getPackageName());
+            }
+            sPopIds = ids;
+        }
+        for (int id : sPopIds) {
             View view = id == 0 ? null : item.findViewById(id);
             if (view != null) view.setOnTouchListener(TOUCH);
         }

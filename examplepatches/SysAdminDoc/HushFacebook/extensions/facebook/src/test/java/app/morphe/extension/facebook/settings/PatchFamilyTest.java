@@ -442,7 +442,7 @@ public class PatchFamilyTest {
                         + "feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide the Reels "
                         + "tab, Hide the Reels tab dot, Hide tab badges, Hide tabs, Tab bar at the bottom, Force dark "
                         + "mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open Messenger from the "
-                        + "top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Hide Meta AI in search, "
+                        + "top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Post menu items, Hide Meta AI in search, "
                         + "Don't save search history, Search date range, Search posts tab, Saved button in search, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Hide typing indicator, "
                         + "Hide read receipts, Send chat photos and videos at original quality, Block promotional "
                         + "notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material "
@@ -466,7 +466,7 @@ public class PatchFamilyTest {
                         + "Following feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide "
                         + "the Reels tab, Hide the Reels tab dot, Hide tab badges, Hide tabs, Tab bar at the bottom, "
                         + "Force dark mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open "
-                        + "Messenger from the top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Hide "
+                        + "Messenger from the top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Post menu items, Hide "
                         + "Meta AI in search, Don't save search history, Search date range, Search posts tab, Saved button in search, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Hide "
                         + "typing indicator, Hide read receipts, Send chat photos and videos at original quality, "
                         + "Block promotional notifications, Block ad telemetry, Disable Audience Network, Accent "
@@ -477,7 +477,7 @@ public class PatchFamilyTest {
         Settings.HIDE_REEL_FOLLOW_BUTTON.save(true);
         assertEquals("Clean up Reels: on (hushfacebook_hide_reel_chips=off, hushfacebook_hide_reel_follow_button=on, "
                         + "hushfacebook_hide_video_subscribe_button=off, hushfacebook_hide_reel_social_footer=off, hushfacebook_hide_reel_threads_cards=off, "
-                        + "hushfacebook_followed_reels_only=off, hushfacebook_reel_clean_mode=off, hushfacebook_reel_clean_button=off, "
+                        + "hushfacebook_hide_reel_post_cards=off, hushfacebook_followed_reels_only=off, hushfacebook_reel_clean_mode=off, hushfacebook_reel_clean_button=off, "
                         + "hushfacebook_play_reels_once=off, "
                         + "hushfacebook_original_audio=off, hushfacebook_hide_reel_search_pill=off, "
                         + "hushfacebook_hide_viewer_top_buttons=off, hushfacebook_hide_reels_tab_title=off, "
@@ -491,9 +491,10 @@ public class PatchFamilyTest {
                         + "hushfacebook_reel_post_date_style=AGO, hushfacebook_hide_reel_sound_button=off, hushfacebook_reel_speaker_above_menu=off, "
                         + "hushfacebook_hide_reel_audio_line=off, "
                         + "hushfacebook_hide_slow_connection_message=off, hushfacebook_hide_up_next=off, "
-                        + "hushfacebook_hide_reel_fullscreen_pill=off, hushfacebook_feed_videos_alone=off, "
+                        + "hushfacebook_hide_reel_fullscreen_pill=off, hushfacebook_hide_feed_video_buttons=off, hushfacebook_feed_videos_alone=off, "
                         + "hushfacebook_shared_reels_alone=off, hushfacebook_watch_again_in_place=off, "
                         + "hushfacebook_saved_videos_in_player=off, hushfacebook_saved_videos_in_order=off, "
+                        + "hushfacebook_saved_videos_stay_on_end=off, "
                         + "hushfacebook_skip_still_watching=off, hushfacebook_fill_reels=off, "
                         + "hushfacebook_play_feed_reels_whole=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));

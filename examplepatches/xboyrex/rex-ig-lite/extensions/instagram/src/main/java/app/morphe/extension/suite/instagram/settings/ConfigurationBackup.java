@@ -1,0 +1,756 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.settings;
+
+import android.content.Context;
+import android.os.Build;
+import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import androidx.annotation.Nullable;
+
+import app.morphe.extension.suite.instagram.download.FileNameTemplate;
+import app.morphe.extension.suite.instagram.download.SaveFolder;
+import app.morphe.extension.suite.instagram.download.SavedProfiles;
+import app.morphe.extension.suite.instagram.direct.MessageBox;
+import app.morphe.extension.suite.instagram.profile.ProfileTabs;
+import app.morphe.extension.suite.instagram.misc.GlassBlur;
+import app.morphe.extension.suite.instagram.misc.GlassOpacity;
+import app.morphe.extension.suite.instagram.misc.HeaderText;
+import app.morphe.extension.suite.instagram.misc.NotificationGroups;
+import app.morphe.extension.suite.instagram.misc.SettingsRows;
+import app.morphe.extension.suite.instagram.misc.SpoofLocation;
+import app.morphe.extension.suite.instagram.misc.AppProxy;
+import app.morphe.extension.suite.instagram.misc.CustomAccent;
+import app.morphe.extension.suite.instagram.reels.TabOrder;
+import app.morphe.extension.suite.instagram.share.ShareSheetActions;
+import app.morphe.extension.suite.instagram.share.SharingDomain;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.settings.BaseSettings;
+import app.morphe.extension.suite.shared.settings.IntegerSetting;
+import app.morphe.extension.suite.shared.settings.Setting;
+import app.morphe.extension.suite.shared.settings.SettingsJson;
+import app.morphe.extension.suite.shared.settings.preference.AbstractPreferenceFragment;
+
+/**
+ * A portable, typed settings file. It never reads the host's preferences or private ledgers. Of
+ * xboyrex's own lists it carries only Saved profiles, under {@link #PROFILES} and only when
+ * something is saved, so a file without them still opens in a build from before (#629).
+ */
+public final class ConfigurationBackup {
+    /** Room for a full Saved profiles list beside the settings. */
+    public static final int MAX_BYTES = 1024 * 1024;
+    public static final int MAX_ENTRIES = 512;
+    static final String PROFILES = "profiles";
+    public static final long UNDO_WINDOW_MS = 10_000;
+    /** The ordinary text bound. Selection and blocked-word lists have the larger bound below. */
+    static final int MAX_TEXT = 256;
+    /**
+     * The bounded reader's longest string, also used by blocked words and native settings-row
+     * selections. The current native row ids join to 2,953 characters.
+     */
+    public static final int MAX_WORDS_TEXT = 4096;
+    /**
+     * The settings' own 2,048 values, and room for every saved profile's fields, a few more than
+     * this build writes. The only array is the profiles.
+     */
+    private static final SettingsJson.Limits LIMITS = new SettingsJson.Limits(4,
+            2048 + 8 * SavedProfiles.MAX_PROFILES, MAX_WORDS_TEXT, SavedProfiles.MAX_PROFILES, MAX_BYTES);
+    /**
+     * Guards the Undo state below. It's a lock of its own, never the class's: an import holds the class
+     * lock from its validation through its disk commit, and the page reads whether Undo is on offer, and
+     * its deadline, on the main thread, which mustn't wait on that.
+     */
+    private static final Object UNDO = new Object();
+    private static Map<Setting<?>, Object> undoValues;
+    private static Map<Setting<?>, Object> importedValues;
+    private static Map<Setting<?>, Long> importedRevisions;
+    private static SavedProfiles.Merged undoProfiles;
+    private static long undoUntil;
+    private static long undoId;
+
+    private ConfigurationBackup() {}
+
+    /** The suggested document name, with optional local time in safe, locale-independent digits. */
+    static String fileName(Date when, boolean dated) {
+        return "xboyrex-settings" + (dated
+                ? "-" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(when) : "") + ".json";
+    }
+
+    /** The page no longer permits a queued change. Nothing was written or consumed. */
+    public static final class Held extends IOException {
+        private Held() { super("The settings change is no longer permitted"); }
+    }
+
+    /** Counts are safe for feedback. Neither keys nor values reach a report. */
+    public static final class Result {
+        public final int applied;
+        public final int skipped;
+        /**
+         * Lock switches the file (or Undo) would have changed but {@link #heldByLock} kept as they
+         * are. They're known settings, so they aren't counted with the skipped ones.
+         */
+        public final int held;
+        public final boolean restart;
+        /**
+         * Each setting this changed, with the value it held before, so the page can offer Restart
+         * now for the ones that wait on a restart, as it does when their own rows are flipped.
+         */
+        public final Map<Setting<?>, Object> before;
+        /** Saved profiles an import added to the list, or an Undo took back off it. */
+        public final int profiles;
+
+        Result(int applied, int skipped, int held, boolean restart, Map<Setting<?>, Object> before, int profiles) {
+            this.applied = applied;
+            this.skipped = skipped;
+            this.held = held;
+            this.restart = restart;
+            this.before = Collections.unmodifiableMap(before);
+            this.profiles = profiles;
+        }
+    }
+
+    /** Deliberate allowlist: installed switches, their value controls, shared save choices, Debug. */
+    static Map<String, Setting<?>> eligible() {
+        Map<String, Setting<?>> settings = new LinkedHashMap<>();
+        for (PatchFamily family : PatchFamily.inThisBuild()) {
+            for (Setting<?> setting : family.switches) settings.put(setting.key, setting);
+        }
+        if (PatchFamily.STORY_RING.inBuild()) {
+            settings.put(Settings.STORY_RING_SCALE.key, Settings.STORY_RING_SCALE);
+            settings.put(Settings.STORY_RING_COLOR.key, Settings.STORY_RING_COLOR);
+        }
+        if (PatchFamily.STORY_UPLOAD_QUALITY.inBuild()) {
+            settings.put(Settings.UPLOAD_QUALITY_APPLIES_TO.key, Settings.UPLOAD_QUALITY_APPLIES_TO);
+            settings.put(Settings.UPLOAD_VIDEO_BITRATE.key, Settings.UPLOAD_VIDEO_BITRATE);
+            settings.put(Settings.UPLOAD_VIDEO_RESOLUTION.key, Settings.UPLOAD_VIDEO_RESOLUTION);
+            settings.put(Settings.UPLOAD_FRAME_RATE.key, Settings.UPLOAD_FRAME_RATE);
+            settings.put(Settings.UPLOAD_PHOTO_QUALITY.key, Settings.UPLOAD_PHOTO_QUALITY);
+            settings.put(Settings.UPLOAD_PHOTO_SIZE.key, Settings.UPLOAD_PHOTO_SIZE);
+        }
+        if (PatchFamily.ROUNDED_POST_CORNERS.inBuild()) settings.put(Settings.ROUNDED_CORNER_SIZE.key, Settings.ROUNDED_CORNER_SIZE);
+        if (PatchFamily.AMBIENT_LIGHT.inBuild()) {
+            settings.put(Settings.AMBIENT_LIGHT_SPREAD.key, Settings.AMBIENT_LIGHT_SPREAD);
+            settings.put(Settings.AMBIENT_LIGHT_SPEED.key, Settings.AMBIENT_LIGHT_SPEED);
+            settings.put(Settings.AMBIENT_LIGHT_BLEND.key, Settings.AMBIENT_LIGHT_BLEND);
+        }
+        if (PatchFamily.STORY_PROGRESS_BAR.inBuild()) settings.put(Settings.STORY_BAR_THICKNESS.key, Settings.STORY_BAR_THICKNESS);
+        if (PatchFamily.STORIES_TRAY.inBuild()) settings.put(Settings.TRAY_BADGE.key, Settings.TRAY_BADGE);
+        if (PatchFamily.SPOOF_LOCATION.inBuild()) settings.put(Settings.SPOOF_LOCATION_PLACE.key, Settings.SPOOF_LOCATION_PLACE);
+        if (PatchFamily.APP_PROXY.inBuild()) settings.put(Settings.APP_PROXY_SERVER.key, Settings.APP_PROXY_SERVER);
+        if (PatchFamily.CAPTION_WORD_REELS.inBuild()) {
+            settings.put(Settings.REELS_BLOCKED_WORDS.key, Settings.REELS_BLOCKED_WORDS);
+            settings.put(Settings.REELS_KEPT_LANGUAGES.key, Settings.REELS_KEPT_LANGUAGES);
+            // Also on Home, both of them: their rows show only with Home's reads in the build.
+            if (PatchFamily.feedTypesInBuild()) {
+                settings.put(Settings.HIDE_CAPTION_WORD_HOME.key, Settings.HIDE_CAPTION_WORD_HOME);
+                settings.put(Settings.HIDE_OTHER_LANGUAGE_HOME.key, Settings.HIDE_OTHER_LANGUAGE_HOME);
+            }
+        }
+        if (PatchFamily.LOW_VIEW_REELS.inBuild()) {
+            settings.put(Settings.MIN_REEL_VIEWS.key, Settings.MIN_REEL_VIEWS);
+            settings.put(Settings.MIN_REEL_LIKES.key, Settings.MIN_REEL_LIKES);
+        }
+        if (PatchFamily.STORY_PRIORITY.inBuild()) settings.put(Settings.STORY_PRIORITY_ACCOUNTS.key, Settings.STORY_PRIORITY_ACCOUNTS);
+        if (PatchFamily.CALL_BLOCKER.inBuild()) {
+            settings.put(Settings.CALL_BLOCK_MODE.key, Settings.CALL_BLOCK_MODE);
+            settings.put(Settings.CALL_BLOCK_ACCOUNTS.key, Settings.CALL_BLOCK_ACCOUNTS);
+        }
+        if (PatchFamily.SANITIZE_SHARING_LINKS.inBuild()) settings.put(Settings.SHARING_DOMAIN.key, Settings.SHARING_DOMAIN);
+        if (PatchFamily.LIKE_ANIMATION.inBuild()) settings.put(Settings.LIKE_ANIMATION.key, Settings.LIKE_ANIMATION);
+        if (PatchFamily.LIKE_ANIMATION.inBuild()) settings.put(Settings.GROW_LIKE_HEART.key, Settings.GROW_LIKE_HEART);
+        if (PatchFamily.HEADER_TEXT.inBuild()) settings.put(Settings.HEADER_TEXT.key, Settings.HEADER_TEXT);
+        if (PatchFamily.NOTIFICATION_GROUPS.inBuild()) {
+            settings.put(Settings.GROUP_NOTIFICATIONS_BY_TYPE.key, Settings.GROUP_NOTIFICATIONS_BY_TYPE);
+            settings.put(Settings.MUTED_NOTIFICATION_CHANNELS.key, Settings.MUTED_NOTIFICATION_CHANNELS);
+        }
+        if (PatchFamily.PLAYBACK_QUALITY.inBuild()) {
+            settings.put(Settings.PLAYBACK_QUALITY.key, Settings.PLAYBACK_QUALITY);
+            settings.put(Settings.QUALITY_TAB_TARGET.key, Settings.QUALITY_TAB_TARGET);
+        }
+        if (PatchFamily.DATA_SAVER.inBuild()) {
+            settings.put(Settings.DATA_SAVER_MOBILE_DATA_ONLY.key, Settings.DATA_SAVER_MOBILE_DATA_ONLY);
+        }
+        if (PatchFamily.TAP_TO_PLAY.inBuild()) {
+            settings.put(Settings.TAP_TO_PLAY_SCOPE.key, Settings.TAP_TO_PLAY_SCOPE);
+            settings.put(Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS.key, Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS);
+        }
+        if (PatchFamily.REEL_TAP_AND_VOLUME.inBuild()) settings.put(Settings.REEL_TAP_CHOICE.key, Settings.REEL_TAP_CHOICE);
+        if (PatchFamily.REEL_SCROLLING.inBuild()) {
+            settings.put(Settings.SCROLL_BREAK.key, Settings.SCROLL_BREAK);
+            settings.put(Settings.SCROLL_BREAK_LENGTH.key, Settings.SCROLL_BREAK_LENGTH);
+            settings.put(Settings.REEL_CAP_COUNT.key, Settings.REEL_CAP_COUNT);
+            settings.put(Settings.REEL_CAP_BREAK.key, Settings.REEL_CAP_BREAK);
+        }
+        if (PatchFamily.REEL_DECLUTTER.inBuild()) {
+            settings.put(Settings.FRIENDS_TAB_PICKS.key, Settings.FRIENDS_TAB_PICKS);
+            settings.put(Settings.BURN_IN_GUARD.key, Settings.BURN_IN_GUARD);
+            settings.put(Settings.BURN_IN_WAIT.key, Settings.BURN_IN_WAIT);
+            settings.put(Settings.BURN_IN_STAY_DIM.key, Settings.BURN_IN_STAY_DIM);
+            settings.put(Settings.BURN_IN_LIGHT_WHEN_PAUSED.key, Settings.BURN_IN_LIGHT_WHEN_PAUSED);
+            settings.put(Settings.BURN_IN_STORIES.key, Settings.BURN_IN_STORIES);
+            settings.put(Settings.START_REEL_CLEAR_MODE.key, Settings.START_REEL_CLEAR_MODE);
+        }
+        if (GhostMode.offered(GhostMode.switches(PatchFamily.inThisBuild()))) {
+            settings.put(Settings.GHOST_MODE_PICKS.key, Settings.GHOST_MODE_PICKS);
+            settings.put(Settings.GHOST_TAB_TARGET.key, Settings.GHOST_TAB_TARGET);
+        }
+        if (PatchFamily.PROFILE_PICTURE.inBuild()) {
+            settings.put(Settings.SAVED_PROFILES_TAB_TARGET.key, Settings.SAVED_PROFILES_TAB_TARGET);
+        }
+        if (PatchFamily.favoritesFeedInBuild()) settings.put(Settings.FAVORITES_TAB_TARGET.key, Settings.FAVORITES_TAB_TARGET);
+        if (PatchFamily.MESSAGE_BOX.inBuild()) settings.put(Settings.HIDDEN_MESSAGE_BOX_BUTTONS.key, Settings.HIDDEN_MESSAGE_BOX_BUTTONS);
+        if (PatchFamily.PROFILE_TABS.inBuild()) {
+            settings.put(Settings.HIDDEN_OWN_PROFILE_TABS.key, Settings.HIDDEN_OWN_PROFILE_TABS);
+            settings.put(Settings.HIDDEN_PROFILE_TABS.key, Settings.HIDDEN_PROFILE_TABS);
+        }
+        if (PatchFamily.STORY_TIME.inBuild()) settings.put(Settings.STORY_TIME_MODE.key, Settings.STORY_TIME_MODE);
+        if (PatchFamily.STORY_MENTIONS.inBuild()) settings.put(Settings.STORY_MENTIONS_LOOK.key, Settings.STORY_MENTIONS_LOOK);
+        if (PatchFamily.CAROUSEL_ARROWS.inBuild()) settings.put(Settings.CAROUSEL_PILL_LOOK.key, Settings.CAROUSEL_PILL_LOOK);
+        if (PatchFamily.FEED_SEEK_BAR.inBuild()) {
+            settings.put(Settings.FEED_SEEK_BAR_LOOK.key, Settings.FEED_SEEK_BAR_LOOK);
+            settings.put(Settings.SEEK_BAR_SHAPE.key, Settings.SEEK_BAR_SHAPE);
+            settings.put(Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key, Settings.FEED_DOUBLE_TAP_SKIP_SECONDS);
+        }
+        if (PatchFamily.REEL_DOUBLE_TAP_SKIP.inBuild()) {
+            settings.put(Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key, Settings.DOUBLE_TAP_SKIP_REELS_SECONDS);
+        }
+        if (PatchFamily.FEED_AUTO_SCROLL.inBuild()) {
+            settings.put(Settings.FEED_AUTO_SCROLL_SECONDS.key, Settings.FEED_AUTO_SCROLL_SECONDS);
+        }
+        if (PatchFamily.STORY_SEEK_BAR.inBuild()) {
+            settings.put(Settings.STORY_SEEK_BAR_LOOK.key, Settings.STORY_SEEK_BAR_LOOK);
+            settings.put(Settings.STORY_SEEK_BAR_POSITION.key, Settings.STORY_SEEK_BAR_POSITION);
+        }
+        if (PatchFamily.FRIENDSHIP_STATUS.inBuild()) settings.put(Settings.FOLLOW_LABEL_PLACE.key, Settings.FOLLOW_LABEL_PLACE);
+        if (PatchFamily.FULL_SCREEN_BARS.inBuild()) settings.put(Settings.FULL_SCREEN_HIDES.key, Settings.FULL_SCREEN_HIDES);
+        if (PatchFamily.TAB_BAR_LAYOUT.inBuild()) settings.put(Settings.TAB_BAR_LAYOUT.key, Settings.TAB_BAR_LAYOUT);
+        if (PatchFamily.SWIPE_TO_CREATE.inBuild()) settings.put(Settings.HOME_SWIPE_OPENS.key, Settings.HOME_SWIPE_OPENS);
+        if (PatchFamily.REELS_TAB.inBuild()) {
+            settings.put(Settings.START_TAB.key, Settings.START_TAB);
+            settings.put(Settings.TAB_ORDER.key, Settings.TAB_ORDER);
+            settings.put(Settings.TAB_ICON_SIZE.key, Settings.TAB_ICON_SIZE);
+        }
+        if (PatchFamily.GLASS_TAB_BAR.inBuild()) {
+            settings.put(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE);
+            settings.put(Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.key, Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH);
+            settings.put(Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.key, Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME);
+            settings.put(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS);
+            settings.put(Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_OPACITY);
+            settings.put(Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.key, Settings.GLASS_TAB_BAR_REFRACT_STRENGTH);
+            settings.put(Settings.GLASS_TAB_BAR_HEIGHT.key, Settings.GLASS_TAB_BAR_HEIGHT);
+            settings.put(Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_CORNERS);
+            settings.put(Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_LIFT);
+            settings.put(Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.GLASS_TAB_BAR_REELS_HIDE);
+        }
+        if (PatchFamily.SHARE_SHEET.inBuild()) {
+            settings.put(Settings.HIDDEN_SHARE_SHEET_BUTTONS.key, Settings.HIDDEN_SHARE_SHEET_BUTTONS);
+        }
+        if (PatchFamily.ACCENT_COLOR.inBuild()) {
+            settings.put(Settings.ACCENT_HUE.key, Settings.ACCENT_HUE);
+            settings.put(Settings.ACCENT_CUSTOM.key, Settings.ACCENT_CUSTOM);
+        }
+        if (PatchFamily.FONT.inBuild()) settings.put(Settings.FONT.key, Settings.FONT);
+        if (PatchFamily.EMOJI_STYLE.inBuild()) settings.put(Settings.EMOJI_FONT.key, Settings.EMOJI_FONT);
+        if (PatchFamily.APP_ICON.inBuild()) settings.put(Settings.APP_ICON.key, Settings.APP_ICON);
+        if (PatchFamily.SETTINGS_ROWS.inBuild()) settings.put(Settings.HIDDEN_SETTINGS_ROWS.key, Settings.HIDDEN_SETTINGS_ROWS);
+        if (PatchFamily.REEL_DOWNLOAD.inBuild()) {
+            settings.put(Settings.DOWNLOAD_REEL_COVER.key, Settings.DOWNLOAD_REEL_COVER);
+            settings.put(Settings.DOWNLOAD_REEL_AUDIO.key, Settings.DOWNLOAD_REEL_AUDIO);
+            settings.put(Settings.REEL_DOWNLOAD_BUTTON.key, Settings.REEL_DOWNLOAD_BUTTON);
+            settings.put(Settings.REEL_DOWNLOAD_BUTTON_ASKS.key, Settings.REEL_DOWNLOAD_BUTTON_ASKS);
+            settings.put(Settings.REEL_NOT_INTERESTED_BUTTON.key, Settings.REEL_NOT_INTERESTED_BUTTON);
+            settings.put(Settings.REEL_BLOCK_BUTTON.key, Settings.REEL_BLOCK_BUTTON);
+            settings.put(Settings.HIDE_SOUND_REELS.key, Settings.HIDE_SOUND_REELS);
+            settings.put(Settings.TEXT_BUTTON_ON_REELS.key, Settings.TEXT_BUTTON_ON_REELS);
+            if (PatchFamily.KEEP_REEL_SPEED.inBuild()) {
+                settings.put(Settings.SPEED_BUTTON_ON_REELS.key, Settings.SPEED_BUTTON_ON_REELS);
+                settings.put(Settings.SPEED_IN_REEL_MENU.key, Settings.SPEED_IN_REEL_MENU);
+            }
+            if (PatchFamily.REEL_DECLUTTER.inBuild()) {
+                settings.put(Settings.FULL_SCREEN_BUTTON_ON_REELS.key, Settings.FULL_SCREEN_BUTTON_ON_REELS);
+            }
+            if (PatchFamily.REEL_TAP_AND_VOLUME.inBuild()) {
+                settings.put(Settings.MUTE_BUTTON_ON_REELS.key, Settings.MUTE_BUTTON_ON_REELS);
+                settings.put(Settings.MUTE_BUTTON_IN_CLEAR_MODE.key, Settings.MUTE_BUTTON_IN_CLEAR_MODE);
+            }
+        }
+        if (PatchFamily.REEL_POST_TIME.inBuild()) {
+            settings.put(Settings.REEL_POST_TIME_SECONDS.key, Settings.REEL_POST_TIME_SECONDS);
+            settings.put(Settings.REEL_POST_TIME_AGO.key, Settings.REEL_POST_TIME_AGO);
+        }
+        if (PatchFamily.VIDEO_DOWNLOAD.inBuild()) settings.put(Settings.DOWNLOAD_FEED_COVER.key, Settings.DOWNLOAD_FEED_COVER);
+        if (PatchFamily.VIDEO_DOWNLOAD.inBuild()) settings.put(Settings.DOWNLOAD_CHOOSE_PAGES.key, Settings.DOWNLOAD_CHOOSE_PAGES);
+        if (PatchFamily.VIDEO_DOWNLOAD.inBuild()) {
+            settings.put(Settings.FEED_DOWNLOAD_BUTTON.key, Settings.FEED_DOWNLOAD_BUTTON);
+            settings.put(Settings.FEED_DOWNLOAD_ALL_PAGES.key, Settings.FEED_DOWNLOAD_ALL_PAGES);
+            settings.put(Settings.HOLD_TO_DOWNLOAD.key, Settings.HOLD_TO_DOWNLOAD);
+            settings.put(Settings.HOLD_FINGERS.key, Settings.HOLD_FINGERS);
+            settings.put(Settings.HOLD_TIME.key, Settings.HOLD_TIME);
+        }
+        if (PatchFamily.REEL_DOWNLOAD.inBuild() || PatchFamily.VIDEO_DOWNLOAD.inBuild()) {
+            settings.put(Settings.OPEN_IN_PLAYER.key, Settings.OPEN_IN_PLAYER);
+        }
+        if (PatchFamily.REEL_DOWNLOAD.inBuild() || PatchFamily.STORY_DOWNLOAD.inBuild()
+                || PatchFamily.VIDEO_DOWNLOAD.inBuild()) {
+            settings.put(Settings.DOWNLOAD_COMPATIBLE.key, Settings.DOWNLOAD_COMPATIBLE);
+            settings.put(Settings.DOWNLOAD_CONVERT.key, Settings.DOWNLOAD_CONVERT);
+            // The switch only. What it remembered stays in DownloadHistory's own file, never exported.
+            settings.put(Settings.DOWNLOAD_SKIP_SAVED.key, Settings.DOWNLOAD_SKIP_SAVED);
+            // The switch only, like the one above. The list itself stays on the phone and is never exported.
+            settings.put(Settings.VIEWING_HISTORY.key, Settings.VIEWING_HISTORY);
+            settings.put(Settings.SEND_DOWNLOADS_TO_APP.key, Settings.SEND_DOWNLOADS_TO_APP);
+            settings.put(Settings.DOWNLOAD_QUALITY.key, Settings.DOWNLOAD_QUALITY);
+            settings.put(Settings.SAVE_FOLDER.key, Settings.SAVE_FOLDER);
+            settings.put(Settings.SAVE_FOLDER_PER_ACCOUNT.key, Settings.SAVE_FOLDER_PER_ACCOUNT);
+            settings.put(Settings.SAVE_NAME_BY_POST.key, Settings.SAVE_NAME_BY_POST);
+            settings.put(Settings.FILENAME_TEMPLATE.key, Settings.FILENAME_TEMPLATE);
+        }
+        settings.put(BaseSettings.DEBUG.key, BaseSettings.DEBUG);
+        settings.put(Settings.NAVIGATION_SETTINGS_TARGET.key, Settings.NAVIGATION_SETTINGS_TARGET);
+        settings.put(Settings.HIDE_MENU_ROW.key, Settings.HIDE_MENU_ROW);
+        settings.put(Settings.PROFILE_MENU_LONG_PRESS.key, Settings.PROFILE_MENU_LONG_PRESS);
+        // A backup with every way in off still leaves the menu row ({@link SettingsEntry#menuRowLeftOut}).
+        settings.put(Settings.SETTINGS_SHORTCUT.key, Settings.SETTINGS_SHORTCUT);
+        settings.put(Settings.SETTINGS_LOGO_PRESS.key, Settings.SETTINGS_LOGO_PRESS);
+        settings.put(Settings.CATEGORY_PAGES.key, Settings.CATEGORY_PAGES);
+        settings.put(Settings.CATEGORY_OWN_PAGE.key, Settings.CATEGORY_OWN_PAGE);
+        settings.put(Settings.CATEGORY_GRID.key, Settings.CATEGORY_GRID);
+        settings.put(Settings.DESCRIPTIONS_BEHIND_INFO.key, Settings.DESCRIPTIONS_BEHIND_INFO);
+        settings.put(Settings.SETTINGS_BLACK_LOOK.key, Settings.SETTINGS_BLACK_LOOK);
+        settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
+        return settings;
+    }
+
+    /**
+     * Export saved choices even during Pause, never the neutral answers the hooks see, and the
+     * saved profiles while Saved profiles is in the build.
+     */
+    public static synchronized byte[] export() throws IOException {
+        synchronized (Setting.class) {
+            try {
+                Map<String, Setting<?>> allowed = eligible();
+                JSONObject values = new JSONObject();
+                for (Setting<?> setting : allowed.values()) {
+                    Object value = setting.savedValue();
+                    values.put(setting.key, new JSONObject().put("type", type(value))
+                            .put("value", value instanceof Enum ? ((Enum<?>) value).name() : value));
+                }
+                JSONObject root = new JSONObject().put("project", "xboyrex").put("schema", 1).put("settings", values);
+                Context context = allowed.containsKey(Settings.SAVED_PROFILES.key) ? Utils.getContext() : null;
+                JSONArray profiles = context == null ? new JSONArray() : SavedProfiles.backup(context, true);
+                if (profiles.length() > 0) root.put(PROFILES, profiles);
+                byte[] bytes = root.toString(2).getBytes(StandardCharsets.UTF_8);
+                // Picture addresses are most of a long list, and Instagram stops answering them within days anyway.
+                if (bytes.length > MAX_BYTES && profiles.length() > 0) {
+                    bytes = root.put(PROFILES, SavedProfiles.backup(context, false)).toString(2).getBytes(StandardCharsets.UTF_8);
+                }
+                if (bytes.length > MAX_BYTES || values.length() > MAX_ENTRIES) throw invalid();
+                return bytes;
+            } catch (JSONException failure) {
+                throw invalid();
+            }
+        }
+    }
+
+    /** Read at most the bound plus one byte; a dishonest provider cannot grow an unbounded buffer. */
+    public static byte[] read(InputStream input) throws IOException {
+        if (input == null) throw invalid();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        while (true) {
+            int count = input.read(buffer, 0, Math.min(buffer.length, MAX_BYTES + 1 - bytes.size()));
+            if (count == -1) return bytes.toByteArray();
+            if (count == 0) throw invalid();
+            bytes.write(buffer, 0, count);
+            if (bytes.size() > MAX_BYTES) throw invalid();
+        }
+    }
+
+    /**
+     * Validate every entry before starting the only write transaction. A file whose shape is wrong
+     * is refused whole. An entry this build can't take is skipped and counted: an unknown or
+     * ineligible key, a value of another type than its setting's, an enum constant this build
+     * doesn't have, or text its setting's own check refuses. A file from a newer xboyrex can carry
+     * any of these, and one of them no longer costs every other choice in it.
+     */
+    public static synchronized Result restore(byte[] bytes) throws IOException {
+        return restore(bytes, () -> true);
+    }
+
+    /** Rechecks the calling page's permission at the transaction boundary, after file validation. */
+    public static synchronized Result restore(byte[] bytes, java.util.function.BooleanSupplier mayCommit) throws IOException {
+        final Map<Setting<?>, Object> updates = new LinkedHashMap<>();
+        final Map<String, Setting<?>> allowed = eligible();
+        final List<SavedProfiles.Profile> profiles = new ArrayList<>();
+        int skipped = 0;
+        int held = 0;
+        try {
+            JSONObject root = SettingsJson.parseObject(bytes, LIMITS);
+            boolean listed = root.has(PROFILES);
+            if (root.length() != (listed ? 4 : 3) || !"xboyrex".equals(root.get("project"))
+                    || !(root.get("schema") instanceof Integer) || root.getInt("schema") != 1
+                    || !(root.get("settings") instanceof JSONObject)
+                    || listed && !(root.get(PROFILES) instanceof JSONArray)) throw invalid();
+            JSONObject values = root.getJSONObject("settings");
+            if (values.length() > MAX_ENTRIES) throw invalid();
+            for (java.util.Iterator<String> keys = values.keys(); keys.hasNext();) {
+                String key = keys.next();
+                if (!key.matches("[A-Za-z0-9_.-]{1,128}") || !(values.get(key) instanceof JSONObject)) throw invalid();
+                JSONObject entry = values.getJSONObject(key);
+                if (entry.length() != 2 || !(entry.get("type") instanceof String) || !entry.has("value")) throw invalid();
+                Setting<?> setting = allowed.get(key);
+                Object value = setting == null ? null : accepted(setting, entry.getString("type"), entry.get("value"));
+                if (setting == null) {
+                    // A file from before the glass sliders carries a step, which comes back as the value it drew (#391).
+                    Map.Entry<Setting<?>, Object> step = oldGlassStep(key, entry.getString("type"), entry.get("value"), allowed);
+                    if (step != null) {
+                        setting = step.getKey();
+                        value = step.getValue();
+                        // A file with both the step and the slider is a hand-made one; the slider wins.
+                        if (values.has(setting.key)) {
+                            skipped++;
+                            continue;
+                        }
+                    }
+                }
+                if (value == null || !setting.includeWithImportExport) {
+                    skipped++;
+                    continue;
+                }
+                if (heldByLock(setting)) {
+                    // Counted only when the file asked for a change: one matching what's saved changed nothing.
+                    if (!value.equals(setting.savedValue())) held++;
+                    continue;
+                }
+                updates.put(setting, value);
+            }
+            if (listed) {
+                // An entry that isn't an account is a file of the wrong shape. One the list couldn't
+                // have saved is left out, and so is the whole list without Saved profiles in the build.
+                JSONArray entries = root.getJSONArray(PROFILES);
+                boolean taken = allowed.containsKey(Settings.SAVED_PROFILES.key);
+                for (int at = 0; at < entries.length(); at++) {
+                    if (!(entries.get(at) instanceof JSONObject)) throw invalid();
+                    SavedProfiles.Profile profile = taken ? SavedProfiles.fromBackup(entries.getJSONObject(at)) : null;
+                    if (profile != null) profiles.add(profile);
+                }
+            }
+        } catch (JSONException | IllegalArgumentException failure) {
+            throw invalid();
+        }
+        Context context = Utils.getContext();
+        synchronized (Setting.class) {
+            requirePermission(mayCommit);
+            // Authentication can change while a file is being validated. Hold lock switches at
+            // the same boundary as the writes, even when the calling page itself stays open.
+            for (var entries = updates.entrySet().iterator(); entries.hasNext();) {
+                var entry = entries.next();
+                if (heldByLock(entry.getKey())) {
+                    if (!entry.getValue().equals(entry.getKey().savedValue())) held++;
+                    entries.remove();
+                }
+            }
+            Map<Setting<?>, Object> before = new LinkedHashMap<>();
+            boolean restart = false;
+            for (var entry : updates.entrySet()) {
+                Setting<?> setting = entry.getKey();
+                if (!entry.getValue().equals(setting.savedValue())) {
+                    before.put(setting, setting.savedValue());
+                    restart |= setting.rebootApp;
+                }
+            }
+            if (!before.isEmpty()) {
+                forgetUndo();
+                for (var changed : before.entrySet()) AbstractPreferenceFragment.noteRunningValue(changed.getKey(), changed.getValue());
+                try {
+                    Setting.saveAll(updates);
+                } catch (Setting.BatchFailed failure) {
+                    if (!failure.restored) offerUndo(before, new SavedProfiles.Merged());
+                    throw failure;
+                }
+            }
+            // The accounts go on the list once the settings are saved, so a save that fails adds none.
+            SavedProfiles.Merged merged = profiles.isEmpty() || context == null
+                    ? new SavedProfiles.Merged() : SavedProfiles.merge(context, profiles);
+            if (!before.isEmpty() || !merged.isEmpty()) offerUndo(before, merged);
+            return new Result(updates.size(), skipped, held, restart, before, merged.added.size());
+        }
+    }
+
+    /**
+     * [value] as [setting] would save it, declared as [declared], or null when this build can't take
+     * it: another type than the setting's, an enum constant it doesn't have, text over
+     * {@link #MAX_TEXT} characters ({@link #MAX_WORDS_TEXT} for blocked words, settings rows and muted
+     * notification types) or text {@link #textAllowed} refuses.
+     */
+    @Nullable
+    static Object accepted(Setting<?> setting, String declared, Object value) {
+        Object fallback = setting.defaultValue;
+        if (fallback instanceof Boolean) return "boolean".equals(declared) && value instanceof Boolean ? value : null;
+        // A slider's whole number, inside the range its row offers.
+        if (setting instanceof IntegerSetting) {
+            IntegerSetting number = (IntegerSetting) setting;
+            if (!"integer".equals(declared) || !(value instanceof Integer)) return null;
+            int given = (Integer) value;
+            return given < number.minimum() || given > number.maximum() ? null : value;
+        }
+        int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.REELS_KEPT_LANGUAGES
+                || setting == Settings.STORY_PRIORITY_ACCOUNTS || setting == Settings.FRIENDS_TAB_PICKS
+                || setting == Settings.CALL_BLOCK_ACCOUNTS || setting == Settings.HIDDEN_SETTINGS_ROWS
+                || setting == Settings.MUTED_NOTIFICATION_CHANNELS ? MAX_WORDS_TEXT : MAX_TEXT;
+        if (!(value instanceof String) || ((String) value).length() > longest) return null;
+        if (fallback instanceof Enum) {
+            if (!"enum".equals(declared)) return null;
+            for (Object choice : ((Enum<?>) fallback).getDeclaringClass().getEnumConstants()) {
+                if (((Enum<?>) choice).name().equals(value)) return choice;
+            }
+            return null;
+        }
+        if (fallback instanceof String) return "string".equals(declared) && textAllowed(setting, (String) value) ? value : null;
+        return null;
+    }
+
+    /**
+     * The slider and its value for an entry under the key a glass step had before its slider, from a file
+     * an older build exported, or null for any other entry or a step this build never had (#391).
+     */
+    @Nullable
+    static Map.Entry<Setting<?>, Object> oldGlassStep(String key, String declared, Object value,
+                                                       Map<String, Setting<?>> allowed) {
+        if (!"enum".equals(declared) || !(value instanceof String)) return null;
+        IntegerSetting slider = null;
+        Integer drawn = null;
+        if (Settings.OLD_GLASS_BLUR_KEY.equals(key)) {
+            slider = Settings.GLASS_TAB_BAR_BLUR_RADIUS;
+            drawn = GlassBlur.dpOf((String) value);
+        } else if (Settings.OLD_GLASS_OPACITY_KEY.equals(key)) {
+            slider = Settings.GLASS_TAB_BAR_OPACITY;
+            drawn = GlassOpacity.percentOf((String) value);
+        }
+        if (slider == null || drawn == null || allowed.get(slider.key) != slider) return null;
+        return new AbstractMap.SimpleImmutableEntry<>(slider, drawn);
+    }
+
+    /** Whether [text] is a list of blocked words its row could have saved: no control characters but line breaks. */
+    static boolean blockedWordsAllowed(String text) {
+        for (int at = 0; at < text.length(); at++) {
+            char character = text.charAt(at);
+            if (Character.isISOControl(character) && character != '\n' && character != '\r') return false;
+        }
+        return true;
+    }
+
+    /**
+     * Whether [text] may be saved as [setting], by the same rule that setting's own reader or row
+     * uses. A text setting with no check here isn't taken from a file at all.
+     */
+    static boolean textAllowed(Setting<?> setting, String text) {
+        if (setting == Settings.SAVE_FOLDER) return SaveFolder.isImportable(text);
+        if (setting == Settings.FILENAME_TEMPLATE) return FileNameTemplate.isImportable(text);
+        if (setting == Settings.SHARING_DOMAIN) return SharingDomain.normalize(text) != null;
+        // The row saves the header text cleaned, so a file holds it that way or blank.
+        if (setting == Settings.HEADER_TEXT) return text.equals(HeaderText.clean(text));
+        // The Place row keeps what was typed, spaces too, and takes blank as no place.
+        if (setting == Settings.SPOOF_LOCATION_PLACE) return text.trim().isEmpty() || SpoofLocation.parse(text) != null;
+        // The row saves the server as host:port, so a file holds it that way or blank.
+        if (setting == Settings.APP_PROXY_SERVER) return text.equals(AppProxy.normalize(text));
+        // The row saves the custom color as #RRGGBB, so a file holds it that way or blank.
+        if (setting == Settings.ACCENT_CUSTOM) return text.isEmpty() || text.equals(CustomAccent.normalize(text));
+        if (setting == Settings.TAB_ORDER) return text.equals(TabOrder.join(TabOrder.parse(text)));
+        // The share sheet buttons to leave out, as Instagram's names for them with commas between.
+        if (setting == Settings.HIDDEN_SHARE_SHEET_BUTTONS) {
+            return text.equals(ShareSheetActions.join(ShareSheetActions.hidden(text)));
+        }
+        // The message box buttons left off, as the names of Instagram's enum with commas between, in the order the dialog lists them.
+        if (setting == Settings.HIDDEN_MESSAGE_BOX_BUTTONS) return text.equals(MessageBox.join(MessageBox.parse(text)));
+        // The rows of Instagram's settings left off, as the names of Instagram's row ids with commas between, in name order.
+        if (setting == Settings.HIDDEN_SETTINGS_ROWS) return text.equals(SettingsRows.join(SettingsRows.parse(text)));
+        // The notification channels muted, as Instagram's channel ids with commas between, in id order.
+        if (setting == Settings.MUTED_NOTIFICATION_CHANNELS) {
+            return text.equals(NotificationGroups.joinChannels(NotificationGroups.mutedChannels(text)));
+        }
+        // The profile tabs left off, as Instagram's keys with commas between, in the order the dialog lists them.
+        if (setting == Settings.HIDDEN_PROFILE_TABS) return text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
+        // The same for your own profile, or the mark that it still follows other profiles.
+        if (setting == Settings.HIDDEN_OWN_PROFILE_TABS) {
+            return text.equals(ProfileTabs.SAME_AS_OTHERS) || text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
+        }
+        // The words Hide reels by caption words looks for: any text without control characters but line breaks.
+        if (setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.REELS_KEPT_LANGUAGES
+                || setting == Settings.STORY_PRIORITY_ACCOUNTS || setting == Settings.FRIENDS_TAB_PICKS
+                || setting == Settings.CALL_BLOCK_ACCOUNTS) {
+            return blockedWordsAllowed(text);
+        }
+        // An enum constant name of Instagram's; a name this Instagram lacks keeps its heart.
+        if (setting == Settings.LIKE_ANIMATION) return text.matches("[A-Za-z0-9_$]{0,64}");
+        // The ghost switches Ghost mode turns, as their keys with commas between; blank means all of them.
+        if (setting == Settings.GHOST_MODE_PICKS) return text.matches("[a-z0-9_,]{0,2048}");
+        return false;
+    }
+
+    /**
+     * With a xboyrex PIN behind the locks, a file (or an Undo) can't switch Lock your messages,
+     * Lock all of Instagram, Lock Saved or Ask for each chat, so a backup can't be a way round the
+     * PIN. With the phone's lock behind them, it can't while they're locked either: settings left
+     * open from before the lock came back ask for a new unlock first, and this holds at the write itself.
+     */
+    private static boolean heldByLock(Setting<?> setting) {
+        return (setting == Settings.LOCK_MESSAGES || setting == Settings.LOCK_APP || setting == Settings.LOCK_SAVED
+                || setting == Settings.LOCK_EACH_CHAT)
+                && (app.morphe.extension.suite.instagram.direct.PinLock.protects()
+                        || app.morphe.extension.suite.instagram.direct.MessagesLock.locked());
+    }
+
+    /** Expiry and process lifetime bound the snapshot; there is no disk copy of Undo. */
+    public static boolean canUndo() {
+        synchronized (UNDO) {
+            if (undoValues != null && SystemClock.elapsedRealtime() >= undoUntil) forgetUndo();
+            return undoValues != null;
+        }
+    }
+
+    /** Consumed before a commit, including a failed Undo. The caller reports rollback explicitly. */
+    public static synchronized Result undo() throws IOException {
+        return undo(undoToken());
+    }
+
+    public static long undoToken() {
+        synchronized (UNDO) {
+            return canUndo() ? undoId : 0;
+        }
+    }
+
+    public static long undoDeadline(long token) {
+        synchronized (UNDO) {
+            return token != 0 && token == undoToken() ? undoUntil : 0;
+        }
+    }
+
+    /** A queued action belongs to the import it offered, never a later restore point. */
+    public static synchronized Result undo(long token) throws IOException {
+        return undo(token, () -> true);
+    }
+
+    /** A refused page keeps its still-valid Undo token and deadline. */
+    public static synchronized Result undo(long token, java.util.function.BooleanSupplier mayCommit) throws IOException {
+        if (undoDeadline(token) == 0) return null;
+        synchronized (Setting.class) {
+            requirePermission(mayCommit);
+            Map<Setting<?>, Object> values;
+            Map<Setting<?>, Object> expected;
+            Map<Setting<?>, Long> revisions;
+            SavedProfiles.Merged profiles;
+            synchronized (UNDO) {
+                // The deadline can pass while the page's permission is checked.
+                if (undoDeadline(token) == 0) return null;
+                values = undoValues;
+                expected = importedValues;
+                revisions = importedRevisions;
+                profiles = undoProfiles;
+                forgetUndo();
+            }
+            Map<Setting<?>, Object> before = new LinkedHashMap<>();
+            boolean restart = false;
+            int skipped = 0;
+            int held = 0;
+            for (var entries = values.entrySet().iterator(); entries.hasNext();) {
+                var entry = entries.next();
+                Setting<?> setting = entry.getKey();
+                if (heldByLock(setting)) {
+                    entries.remove();
+                    if (!entry.getValue().equals(setting.savedValue())) held++;
+                } else if (revisions.get(setting) != setting.savedRevision()
+                        || !expected.get(setting).equals(setting.savedValue())) {
+                    entries.remove();
+                    skipped++;
+                } else if (!entry.getValue().equals(setting.savedValue())) {
+                    before.put(setting, setting.savedValue());
+                    restart |= setting.rebootApp;
+                }
+            }
+            for (var changed : before.entrySet()) AbstractPreferenceFragment.noteRunningValue(changed.getKey(), changed.getValue());
+            Setting.saveAll(values);
+            Context context = Utils.getContext();
+            int gone = profiles.isEmpty() || context == null ? 0 : SavedProfiles.takeBack(context, profiles);
+            return new Result(values.size(), skipped, held, restart, before, gone);
+        }
+    }
+
+    private static void offerUndo(Map<Setting<?>, Object> values, SavedProfiles.Merged profiles) {
+        Map<Setting<?>, Object> imported = new LinkedHashMap<>();
+        Map<Setting<?>, Long> revisions = new LinkedHashMap<>();
+        for (Setting<?> setting : values.keySet()) {
+            imported.put(setting, setting.savedValue());
+            revisions.put(setting, setting.savedRevision());
+        }
+        int timeout = (int) UNDO_WINDOW_MS;
+        Context context = Utils.getContext();
+        if (Build.VERSION.SDK_INT >= 29 && context != null) {
+            AccessibilityManager accessibility = context.getSystemService(AccessibilityManager.class);
+            if (accessibility != null) timeout = accessibility.getRecommendedTimeoutMillis(timeout,
+                    AccessibilityManager.FLAG_CONTENT_TEXT | AccessibilityManager.FLAG_CONTENT_CONTROLS);
+        }
+        synchronized (UNDO) {
+            undoValues = values;
+            importedValues = imported;
+            importedRevisions = revisions;
+            undoProfiles = profiles;
+            undoId++;
+            undoUntil = SystemClock.elapsedRealtime() + timeout;
+        }
+        Utils.runOnMainThreadDelayed(ConfigurationBackup::canUndo, timeout);
+    }
+
+    static void forgetUndo() {
+        synchronized (UNDO) {
+            undoValues = null;
+            importedValues = null;
+            importedRevisions = null;
+            undoProfiles = null;
+            undoUntil = 0;
+        }
+    }
+
+    private static String type(Object value) throws IOException {
+        if (value instanceof Boolean) return "boolean";
+        if (value instanceof Integer) return "integer";
+        if (value instanceof Enum) return "enum";
+        if (value instanceof String) return "string";
+        throw invalid();
+    }
+
+    private static IOException invalid() {
+        // Parser causes can carry input values. Keep untrusted content out of diagnostic logs.
+        return new IOException("Invalid xboyrex configuration file");
+    }
+
+    private static void requirePermission(java.util.function.BooleanSupplier mayCommit) throws Held {
+        try {
+            if (mayCommit != null && mayCommit.getAsBoolean()) return;
+        } catch (RuntimeException unavailable) {
+            // Unreadable authorization must never grant a queued write.
+        }
+        throw new Held();
+    }
+}

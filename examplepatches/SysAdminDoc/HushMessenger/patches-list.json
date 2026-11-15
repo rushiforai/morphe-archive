@@ -1,6 +1,6 @@
 {
     "NOTE": "Generated locally from the built MPP with :patches:generatePatchCatalog. Do not edit by hand.",
-    "version": "0.29.0",
+    "version": "0.30.0",
     "patches": [
         {
             "name": "Allow chat bubbles",
@@ -232,7 +232,7 @@
         },
         {
             "name": "Ask before a call",
-            "description": "Tapping the audio or video call button in a chat's top bar asks first, so a stray tap doesn't ring anyone. Call starts it, Cancel doesn't. Calls coming in aren't affected. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Tapping an audio or video call button asks first, so a stray tap doesn't ring anyone. That covers a chat's top bar, business chats and the New message screen. Call starts it, Cancel doesn't. Calls coming in aren't affected. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Calls",
             "dependencies": [
@@ -403,7 +403,7 @@
         },
         {
             "name": "Blur behind menus",
-            "description": "Blurs the screen behind the menu you get when you press and hold a chat, and behind Messenger's other pop-up menus and sheets, like on an iPhone. Needs Android 12 or newer. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Blurs the screen behind the menu you get when you press and hold a chat or a message, and behind Messenger's other pop-up menus and sheets, like on an iPhone. Needs Android 12 or newer. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Theme",
             "dependencies": [
@@ -590,7 +590,7 @@
                     "values": {}
                 },
                 {
-                    "key": "clonePackageName",
+                    "key": "packageName",
                     "title": "Package name",
                     "description": "The copy's unique app ID, like com.facebook.orca.hush. Use words joined by dots, each starting with a letter. It can't match Messenger or another Meta app.",
                     "required": true,
@@ -1812,7 +1812,7 @@
         },
         {
             "name": "Hide call buttons",
-            "description": "Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Takes the audio and video call buttons out of a chat's top bar, business chats and the New message screen, so you can't tap one by accident. Calls still ring, and you can still join one that's going. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Calls",
             "dependencies": [
@@ -3268,7 +3268,7 @@
         },
         {
             "name": "Keep unsent messages",
-            "description": "Keeps messages on screen after someone unsends them, in chats where it works. In end-to-end encrypted chats the message stays in its notification instead, since the chat itself can't keep it. Group chats aren't tested. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Keeps messages on screen after someone unsends them, marked [unsent]. In end-to-end encrypted chats it keeps the words Messenger already showed you, in the chat or a notification, until Messenger restarts. Group chats aren't tested. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Privacy",
             "dependencies": [

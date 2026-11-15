@@ -13,6 +13,15 @@ extension {
 
 android {
     namespace = "app.linkedin.extension"
+
+    // The Doc Scanner menu (app.loki.extension) was written against newer APIs than this
+    // extension's minimum. Its 45 findings are recorded here instead of being fixed twice:
+    // that menu is temporary, Loki's own settings screen replaces it during the 3.0 merge.
+    // Regenerate with `:extensions:extension:updateLintBaseline` and delete the file once
+    // app/loki/extension is gone.
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 // The settings screen is translated in JSON: one file per

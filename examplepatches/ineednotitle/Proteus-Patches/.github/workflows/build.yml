@@ -48,11 +48,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Test Pinterest video URLs
-        run: bash .github/scripts/test_pinterest_video_urls.sh
+      - name: Test Pinterest video URLs and Instagram extension helpers
+        run: |
+          bash .github/scripts/test_pinterest_video_urls.sh
+          bash .github/scripts/test_instagram_extension.sh
 
-      - name: Test permission removal and Brave helpers
-        run: ./gradlew :patches:testPermissionRemoval :patches:testBravePrivacy --stacktrace
+      - name: Test permission removal, Brave, Instagram, and Reddit helpers
+        run: ./gradlew :patches:testPermissionRemoval :patches:testBravePrivacy :patches:testInstagram :patches:testRedditCommentTree --stacktrace
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

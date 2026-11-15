@@ -24,9 +24,17 @@ public final class SettingsProfiles {
         // Expert is a projection of these same controls, not a second catalog.
         for(SettingsSections.Category c:SettingsSections.Category.values())if(c!=SettingsSections.Category.EXPERT)Haiagaru.settingsCategory(activity,c.name());
         booleanKey(ExpertSettings.KEY);
+        booleanKey(ThumbnailAppearance.GRAY);defaultValue(ThumbnailAppearance.GRAY,false);
+        booleanKey(ThumbnailAppearance.MOSAIC);defaultValue(ThumbnailAppearance.MOSAIC,false);
+        numberKey(ThumbnailAppearance.STRENGTH,1,5);defaultValue(ThumbnailAppearance.STRENGTH,3);
+        numberKey(ThumbnailAppearance.SENSITIVITY,0,2);defaultValue(ThumbnailAppearance.SENSITIVITY,1);
+        booleanKey(PostingSettingLinks.KEY);defaultValue(PostingSettingLinks.KEY,false);
+        booleanKey(StockChmatePosting.ALWAYS);defaultValue(StockChmatePosting.ALWAYS,false);
+        for(String key:new String[]{ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH}){booleanKey(key);defaultValue(key,true);}
         booleanKey(StockChmatePosting.LONG_PRESS);defaultValue(StockChmatePosting.LONG_PRESS,false);
         booleanKey(StockChmatePosting.SKIP_CONFIRM);defaultValue(StockChmatePosting.SKIP_CONFIRM,false);
         booleanKey(StockChmatePosting.SHOW_MENU);defaultValue(StockChmatePosting.SHOW_MENU,true);
+        numberKey(StockChmatePosting.DISPLAY_MODE,0,1);defaultValue(StockChmatePosting.DISPLAY_MODE,1);
         booleanKey(ThreadPostingNames.ENABLED);defaultValue(ThreadPostingNames.ENABLED,false);
         for(String key:new String[]{"settingsOptionLinksEnabled","reporterSearchEnabled","videoLandscapeImmersive"}){
             booleanKey(key);defaultValue(key,true);
@@ -34,6 +42,9 @@ public final class SettingsProfiles {
         booleanKey(ExternalBoardGroups.KEY);defaultValue(ExternalBoardGroups.KEY,false);
         booleanKey(BrowserUaTemplates.ENABLED);defaultValue(BrowserUaTemplates.ENABLED,false);
         booleanKey(BoardCookies.KEY);defaultValue(BoardCookies.KEY,false);
+        booleanKey(NativeImagePaging.ENABLED);defaultValue(NativeImagePaging.ENABLED,true);
+        numberKey(NativeImagePaging.NEXT,0,4);defaultValue(NativeImagePaging.NEXT,NativeImagePaging.UP);
+        numberKey(NativeImagePaging.PREVIOUS,0,4);defaultValue(NativeImagePaging.PREVIOUS,NativeImagePaging.DOWN);
         numberKey(ViewerCornerControls.BACK,0,3);defaultValue(ViewerCornerControls.BACK,1);
         numberKey(ViewerCornerControls.MORE,0,3);defaultValue(ViewerCornerControls.MORE,0);
         numberKey(VideoViewerSettings.INLINE_LIMIT,1,8);defaultValue(VideoViewerSettings.INLINE_LIMIT,2);
@@ -99,6 +110,9 @@ public final class SettingsProfiles {
         defaultValue(SiteCards.MAX_PER_RESPONSE_KEY,2);
         numberKey(SiteCards.CACHE_HOURS_KEY,1,168);
         defaultValue(SiteCards.CACHE_HOURS_KEY,24);
+        RULES.put(SiteCardExclusions.KEY,v->{if(!(v instanceof String))return false;
+            try{SiteCardExclusions.parse((String)v);return true;}catch(IllegalArgumentException invalid){return false;}});
+        defaultValue(SiteCardExclusions.KEY,SiteCardExclusions.DEFAULT);
         booleanKey(XPostPreviewPosition.ENABLED);
         defaultValue(XPostPreviewPosition.ENABLED,true);
         booleanKey(ReadingPosition.ENABLED);
@@ -111,6 +125,7 @@ public final class SettingsProfiles {
         defaultValue(NativeToolTabs.HEADER_HEIGHT_KEY,48);
         defaultValue("hissiViewerShowAdjust",true);
         numberKey("hissiViewerTextZoom",100,130);
+        booleanKey(PopularReplies.CUSTOM_THRESHOLD);defaultValue(PopularReplies.CUSTOM_THRESHOLD,false);
         numberKey("popularReplyThreshold",1,9999);
         numberKey("popularReplyStandardThreshold",1,9999);
         for(String key:new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies",HiddenNgUnread.KEY})booleanKey(key);
@@ -185,7 +200,7 @@ public final class SettingsProfiles {
         }boolean saved=e.commit();
         if(saved&&values.containsKey("imageVpnDomains")){ImageVpnController.reloadDomains();SiteCards.clear(()->{});}
         if(saved&&(values.containsKey(SiteCards.MAX_PER_RESPONSE_KEY)||values.containsKey(SiteCards.CACHE_HOURS_KEY)
-                ||values.containsKey("siteCardsEnabled")||values.containsKey("siteCardImages")))SiteCards.changed();
+                ||values.containsKey("siteCardsEnabled")||values.containsKey("siteCardImages")||values.containsKey(SiteCardExclusions.KEY)))SiteCards.changed();
         if(saved&&values.containsKey(XPostPreviewPosition.ENABLED))XPostPreviewPosition.settingsChanged();
         return saved;
     }

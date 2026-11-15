@@ -14,11 +14,11 @@ import app.rex.patches.instagram.misc.overflowMenuButton.reels.hookReelOverflowM
 import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val externalDownloaderPatch =
-    bytecodePatch(
+    patch(
         name = "External downloader",
         description = "Adds support to share post links directly to external downloader",
         default = true,
@@ -26,9 +26,11 @@ val externalDownloaderPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(settingsPatch, mediaDataEntity, hookOverflowMenuButton, debugOverflowMenuButtonPatch, hookReelOverflowMenuButton)
         execute {
-
-            addOverflowMenuButtonAttributes("REX_EXTERNAL_DOWNLOADER", "externalDownloaderOverflowButton")
+            runCatching {
+            runCatching { addOverflowMenuButtonAttributes("REX_EXTERNAL_DOWNLOADER", "externalDownloaderOverflowButton") }
 
             enableSettings("downloadWithExternalDownloader")
+        
+            }
         }
     }

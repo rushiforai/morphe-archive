@@ -319,6 +319,8 @@ Stop swipe to create	Wischen zum Erstellen stoppen
 Full resolution photos	Fotos in voller Auflösung
 Loads photos in your feed, carousels and opened posts at the largest size Instagram offers. This can use more data.	Lädt Fotos in deinem Feed, in Karussells und in geöffneten Beiträgen in der größten Größe, die Instagram anbietet. Das kann mehr Daten verbrauchen.
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Ein seitliches Wischen auf der Startseite öffnet die Kamera nicht mehr. Die Schaltfläche + und alle anderen Wege zur Kamera funktionieren weiterhin.
+Swipe left for Messages	Nach links wischen für Nachrichten
+Swiping left on Home opens Messages, like Instagram used to. Carousels and the stories row still slide as before.	Nach links wischen auf der Startseite öffnet Nachrichten, wie früher bei Instagram. Karussells und die Story-Leiste lassen sich weiter wie gewohnt wischen.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Meta AI in der Suche und oben auf der Startseite ausblenden
 Gives Search and your messages a plain search bar and removes Meta AI's buttons, follow-up bar and inbox row. Restart Instagram to see the change.	Gibt der Suche und deinen Nachrichten eine schlichte Suchleiste und entfernt die Buttons, die Folgefrage-Leiste und die Posteingangszeile von Meta AI. Starte Instagram neu, um die Änderung zu sehen.
@@ -900,6 +902,8 @@ Solid story rings	Einfarbige Story-Ringe
 Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	Story-Ringe haben einen einheitlichen Ton der Farbe, die du ausgewählt hast, statt von hell nach dunkel zu verlaufen. Starte Instagram neu, um die Änderung zu sehen.
 Backgrounds in the accent color	Hintergründe in der Akzentfarbe
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Bildschirme, Bereiche, Karten und Menüs nehmen einen dunklen oder hellen Ton der Farbe an, die du ausgewählt hast. Story- und Reel-Ansichten behalten ihren eigenen Hintergrund. Hat Vorrang vor Pure black dark mode. Starte Instagram neu, um die Änderung zu sehen.
+Classic colors	Klassische Farben
+Dark mode turns navy blue with charcoal gray panels, and light mode turns off-white. Story and reel viewers keep their own background. Wins over Pure black dark mode and Backgrounds in the accent color. Restart Instagram to see the change.	Der Dunkelmodus wird marineblau mit anthrazitgrauen Bereichen, der helle Modus wird cremeweiß. Story- und Reel-Ansichten behalten ihren eigenen Hintergrund. Hat Vorrang vor Pure black dark mode und „Hintergründe in der Akzentfarbe“. Starte Instagram neu, um die Änderung zu sehen.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Farbe
 Instagram blue	Instagram-Blau

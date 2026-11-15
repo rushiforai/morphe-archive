@@ -18,6 +18,13 @@ private val liquidGlassSwitchPatch = resourcePatch {
     }
 }
 
+/** The Hide tab labels switch in Settings, which hides the text under the icons of the glass bar. */
+private val hideTabLabelsSwitchPatch = resourcePatch {
+    execute {
+        addSettingsSwitch("fakh_hide_tab_labels")
+    }
+}
+
 /**
  * `ThingFragmentTabHost.a(ViewGroup, View, Fragment, boolean, boolean)`: adds one tab to the bottom bar. The tab
  * widget exists only after the host's setup, so the capsule goes in here instead of when the host is attached. Found
@@ -38,7 +45,7 @@ val glassNavigationBarPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
     category("Theme")
     extendWith("extensions/extension.mpe")
-    dependsOn(liquidGlassSwitchPatch, settingsSwitchesPatch)
+    dependsOn(liquidGlassSwitchPatch, hideTabLabelsSwitchPatch, settingsSwitchesPatch)
 
     execute {
         val method = AddTabFingerprint.method

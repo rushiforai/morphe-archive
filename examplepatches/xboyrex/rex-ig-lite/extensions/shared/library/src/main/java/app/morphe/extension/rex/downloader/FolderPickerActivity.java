@@ -7,6 +7,7 @@
 
 package app.morphe.extension.rex.downloader;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class FolderPickerActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressLint("WrongConstant")
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -44,10 +46,11 @@ public class FolderPickerActivity extends AppCompatActivity {
             Uri treeUri = data.getData();
             if (treeUri != null) {
                 try {
-                    int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    getContentResolver().takePersistableUriPermission(treeUri,
-                            flags);
+                    // Keep only the READ/WRITE grant modes accepted by ContentResolver.
+                    getContentResolver().takePersistableUriPermission(
+                            treeUri,
+                            data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
 
                     StorageUtils.saveCustomTreeUri(treeUri);
                     StorageUtils.saveCustomPath(DocumentsContract.getTreeDocumentId(treeUri));

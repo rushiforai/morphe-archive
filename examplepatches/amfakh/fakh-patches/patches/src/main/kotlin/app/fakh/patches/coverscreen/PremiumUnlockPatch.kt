@@ -75,14 +75,14 @@ private val adsInitFingerprint = Fingerprint(
 )
 
 /**
- * The two-boolean state holder (`a`, `b`) behind the timeout dialog: its text
+ * The two-boolean state holder (`a`, `b`) behind the timeout dialog (`b14`): its text
  * and second button depend on `a`. See the execute block note.
  */
-private val az5HolderFingerprint = Fingerprint(
+private val timeoutStateFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf("Z", "Z"),
     custom = { method, classDef ->
-        classDef.type == "Laz5;" && method.name == "<init>" && method.implementation != null
+        classDef.type == "Lq16;" && method.name == "<init>" && method.implementation != null
     },
 )
 
@@ -172,11 +172,11 @@ val premiumUnlockPatch = bytecodePatch(
             """,
         )
 
-        // The timeout dialog (`lz3`) reads `az5.a` off a StateFlow to pick its
+        // The timeout dialog (`b14`) reads `q16.a` off a StateFlow to pick its
         // text and to show or hide its second button. Force `a` true for every
         // instance; the class is a plain data holder with exactly three
         // consumers (the dialog, one flow mapper and one flow producer).
         // The constructor has no locals, so v0 is `this`: overwrite the parameter instead.
-        az5HolderFingerprint.method.addInstructions(0, "const/4 p1, 0x1")
+        timeoutStateFingerprint.method.addInstructions(0, "const/4 p1, 0x1")
     }
 }

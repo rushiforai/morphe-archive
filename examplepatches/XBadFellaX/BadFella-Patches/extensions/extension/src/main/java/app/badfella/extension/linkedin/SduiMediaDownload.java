@@ -215,7 +215,7 @@ public final class SduiMediaDownload {
         ImageButton button = new ImageButton(context);
         button.setTag(DOWNLOAD_TAG);
         button.setImageResource(android.R.drawable.stat_sys_download);
-        button.setContentDescription("Download");
+        button.setContentDescription(I18n.tr("Download"));
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.OVAL);
         background.setColor(0x99000000);

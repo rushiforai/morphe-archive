@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.8...v1.4.0) (2026-11-14)
+
+### ✨ New Features
+
+* Seasonal sidebar banner, post actions, full screen media and new album viewer ([4c7a6ad](https://github.com/ZoomSass/Mighty-Morphing/commit/4c7a6adf5b84e0cddb120621b587847be654d754))
+
 ## [1.3.8](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.7...v1.3.8) (2026-11-13)
 
 ### 🐛 Bug Fixes

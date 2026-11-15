@@ -1,21 +1,32 @@
 package app.mightymorphing.patches.joey
 
 import app.mightymorphing.patches.shared.Constants.JOEY
+import app.mightymorphing.patches.shared.filterBoolean
 import app.mightymorphing.patches.shared.indexOfReference
+import app.mightymorphing.patches.shared.indexOfString
 import app.mightymorphing.patches.shared.insertAt
+import app.mightymorphing.patches.shared.nextReference
+import app.mightymorphing.patches.shared.returnVoid
+import app.mightymorphing.patches.shared.writeBody
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val SETTINGS = "Lapp/mightymorphing/extension/joey/MorpheSettings;"
 private const val MODERN_UI = "Lapp/mightymorphing/extension/joey/ModernUi;"
 private const val POSTS = "Lapp/mightymorphing/extension/joey/PostLayout;"
 private const val DOWNLOADS = "Lapp/mightymorphing/extension/joey/MediaDownload;"
 private const val MOTION = "Lapp/mightymorphing/extension/joey/PostMotion;"
+private const val ALBUM = "Lapp/mightymorphing/extension/joey/AlbumChrome;"
 private const val SIDEBAR = "Lapp/mightymorphing/extension/joey/Sidebar;"
+private const val FONTS = "Lapp/mightymorphing/extension/joey/ModernFonts;"
 
 private const val ANIM_HEAD = """<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android" android:shareInterpolator="true""""
@@ -79,7 +90,7 @@ private val modernMotionResources = resourcePatch {
 @Suppress("unused")
 val modernUiPatch = bytecodePatch(
     name = "Modern UI",
-    description = "[v1.3.7: AMOLED black now appears in settings. v1.3.6: Classic Joey can be turned back on. The Joey bird image in sidebar can be toggled on when using ModernUI. Performance improvements for Modern UI. Post style settings are back, without post layout, thumbnail side, or corner roundness. Thumbnail post style ui fixes.] With ModernUI layout turned on (on by default) Joey's own themes and colour changes are turned off. ModernUI layout patch includes Aqua (default), Blue, Purple, Coral, Mint, Gold, Amber, Black, Sky, and AMOLED black themes and can be set in Joey Settings - Morphe Settings. Posts use one compact list, so card and compact are no longer separate. Various customisable UI options are in Morphe Settings. The media viewer has its first UI tweaks in this release, including bigger icons and a full screen view.",
+    description = "[v1.4.0: Post actions editor for the post bar and ⋮ menu. Full screen media, optionally opening without controls. New album viewer with thumbnails, grid and captions. Separate Modern fonts. Sidebar subreddit search keyboard fixed. Performance improvements, comparably smooth to Joey or better.] A cleaner layout for Joey, on by default, with a choice of themes. Joey's own themes and colours are off while it's on, and Classic Joey can be switched back on any time. Posts use one compact list with adjustable post style, details and images. Settings in Joey Settings - Morphe Settings.",
     default = true,
 ) {
     compatibleWith(JOEY)
@@ -222,6 +233,8 @@ val modernUiPatch = bytecodePatch(
         )
 
         // Marking a post seen rebuilds the info line (G) and the comment count (C) outside u(Z).
+        // C returns early when Joey hides the comment count, so every return gets the call.
+        // Neither method's returns are branch targets, so no path can jump past the call.
         for (rebuild in listOf("G", "C")) {
             val method = Fingerprint(
                 definingClass = "Ljc/d;",
@@ -229,13 +242,167 @@ val modernUiPatch = bytecodePatch(
                 returnType = "V",
                 parameters = emptyList(),
             ).method
-            method.insertAt(
-                method.instructions.lastIndex,
+            val returns = method.instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_VOID }
+                .map { it.index }
+            for (index in returns.reversed()) {
+                method.insertAt(
+                    index,
+                    """
+                    invoke-static {p0}, $POSTS->refresh(Ljava/lang/Object;)V
+                    """,
+                )
+            }
+        }
+
+        // Post bar and Post details. In Modern, Joey sets up every bar item and puts every
+        // piece on the info line. PostLayout then orders them, hides them, or moves bar items
+        // to Joey's menu. Classic reads Joey's own switches as before. Every insert below sits
+        // on an instruction no branch jumps to, so no path skips it.
+        val joeyBar = "$POSTS->joeyBar(Z)Z"
+        val joeyLine = "$POSTS->joeyLine(Z)Z"
+
+        // Bar: save (R), share (T), and hide (k0, shared by the bar and the menu).
+        val saveBind = Fingerprint(definingClass = "Ljc/d;", name = "R", returnType = "V", parameters = emptyList()).method
+        saveBind.filterBoolean(saveBind.indexOfReference("Lza/a;->e:Z"), joeyBar)
+        val shareBind = Fingerprint(definingClass = "Ljc/d;", name = "T", returnType = "V", parameters = emptyList()).method
+        shareBind.filterBoolean(shareBind.indexOfReference("Lmb/o;->A0()Z") + 1, joeyBar)
+        val hideAllowed = Fingerprint(definingClass = "Ljc/i;", name = "k0", returnType = "Z", parameters = listOf("Ljc/l;")).method
+        hideAllowed.filterBoolean(hideAllowed.indexOfReference("Lza/a;->a0:Z"), joeyBar)
+
+        // Joey's "compact thumbnail action bar" setting hides the link button (H) and moves the
+        // comment count off the bar (C). In Modern, Post bar and Post details decide.
+        val minimal = "$POSTS->joeyMinimalBar(Z)Z"
+        val linkBind = Fingerprint(definingClass = "Ljc/d;", name = "H", returnType = "V", parameters = emptyList()).method
+        linkBind.filterBoolean(linkBind.indexOfReference("Lmb/o;->g()Z") + 1, minimal)
+        val countBind = Fingerprint(definingClass = "Ljc/d;", name = "C", returnType = "V", parameters = emptyList()).method
+        countBind.filterBoolean(countBind.indexOfReference("Lud/b;->n(Ljc/l;)Z") + 1, minimal)
+
+        // Joey's menu adds save, share and hide when they are not on the bar.
+        val menuSave = Fingerprint(definingClass = "Ljc/i;", name = "F", returnType = "V", parameters = listOf("Lh9/a;", "Landroid/view/ViewGroup;")).method
+        menuSave.filterBoolean(menuSave.indexOfReference("Lza/a;->e:Z"), "$POSTS->onBarSave(Z)Z")
+        val menuShare = Fingerprint(definingClass = "Ljc/i;", name = "G", returnType = "V", parameters = listOf("Lh9/a;", "Landroid/view/ViewGroup;")).method
+        menuShare.filterBoolean(menuShare.indexOfReference("Lmb/o;->A0()Z") + 1, "$POSTS->onBarShare(Z)Z")
+        val menuHide = Fingerprint(definingClass = "Ljc/i;", name = "l0", returnType = "Z", parameters = emptyList()).method
+        menuHide.filterBoolean(menuHide.indexOfReference("Ljc/i;->k0(") + 1, "$POSTS->onBarHide(Z)Z")
+
+        // The menu is built (q): each item comes from its own jc.i method, called as
+        // invoke-direct {p0, p1, v2}, jc.i->X(Lh9/a;Landroid/view/ViewGroup;)V with v2 the row.
+        // Each call is wrapped so the cells it adds are tagged with that method's name. v3 only
+        // holds the column count for the row lookup just before, so it is free here.
+        val menu = Fingerprint(definingClass = "Ljc/i;", name = "q", returnType = "Landroid/view/View;", parameters = listOf("Lh9/a;")).method
+        val builders = menu.instructions.withIndex().filter { (_, instruction) ->
+            if (instruction.opcode != Opcode.INVOKE_DIRECT) return@filter false
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@filter false
+            reference.definingClass == "Ljc/i;" &&
+                reference.parameterTypes.map { it.toString() } == listOf("Lh9/a;", "Landroid/view/ViewGroup;")
+        }.map { it.index }
+        if (builders.size < 15) throw PatchException("jc/i->q has ${builders.size} menu items, expected 21")
+        for (index in builders.reversed()) {
+            val call = menu.instructions[index] as FiveRegisterInstruction
+            val row = call.registerE
+            if (row > 15) throw PatchException("jc/i->q row register v$row is out of reach")
+            val name = ((call as ReferenceInstruction).reference as MethodReference).name
+            menu.insertAt(
+                index + 1,
                 """
-                invoke-static {p0}, $POSTS->refresh(Ljava/lang/Object;)V
+                invoke-static {v$row}, $POSTS->menuAfter(Ljava/lang/Object;)V
+                """,
+            )
+            menu.insertAt(
+                index,
+                """
+                const-string v3, "$name"
+                invoke-static {v$row, v3}, $POSTS->menuBefore(Ljava/lang/Object;Ljava/lang/String;)V
                 """,
             )
         }
+
+        // Joey's column switch (B0, true is one column) for the row size (W) and the final
+        // packing (f0). In Modern the Post actions setting decides once it is set.
+        val oneColumn = "$POSTS->joeyOneColumn(Z)Z"
+        for (name in listOf("W", "f0")) {
+            val method = Fingerprint(
+                definingClass = "Ljc/i;",
+                name = name,
+                returnType = if (name == "W") "I" else "V",
+                parameters = if (name == "W") emptyList() else listOf("Landroid/widget/TableLayout;"),
+            ).method
+            method.filterBoolean(method.indexOfReference("Lmb/o;->B0()Z") + 1, oneColumn)
+        }
+
+        // Before Joey packs the last row (f0), add the bar items moved to Menu and lay every
+        // item out in the Post actions order. f0 takes the menu's table.
+        val pad = menu.indexOfReference("Ljc/i;->f0(Landroid/widget/TableLayout;)")
+        val table = (menu.instructions[pad] as FiveRegisterInstruction).registerD
+        if (table > 15) throw PatchException("jc/i->q table register v$table is out of reach")
+        menu.insertAt(
+            pad,
+            """
+            invoke-static {p0, p1, v$table}, $POSTS->sheet(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+            """,
+        )
+
+        // The post on the comments screen uses the feed's layout in Modern.
+        val sameStyle = Fingerprint(definingClass = "Lud/b;", name = "d", returnType = "Z", parameters = listOf("Ljc/l;")).method
+        sameStyle.filterBoolean(sameStyle.indexOfReference("Lmb/o;->B()Z") + 1, joeyLine)
+
+        // The author's flair on the info line (zd.n.P reads SHOW_POST_AUTHOR_FLAIR). The post
+        // flair chip above the line (zd.n.Q) stays on Joey's own Show flair switch.
+        val flair = Fingerprint(
+            definingClass = "Lzd/n;",
+            name = "P",
+            returnType = "Landroid/text/SpannableStringBuilder;",
+            parameters = listOf("Lnet/dean/jraw/models/Submission;", "I", "I"),
+        ).method
+        flair.filterBoolean(flair.indexOfReference("Lmb/o;->D0()Z") + 1, joeyLine)
+
+        // SubmissionInfoProvider.f builds the info line in v1 and adds it to v0, after the tags.
+        // Each piece is marked where it starts, separator included. The marks are placed
+        // bottom to top so each index is found in the method as it stands.
+        val info = Fingerprint(
+            definingClass = "Lud/a;",
+            name = "f",
+            returnType = "Landroid/text/SpannableStringBuilder;",
+            parameters = listOf("Lnet/dean/jraw/models/Submission;", "Ljc/l;", "Z", "Landroid/view/View;"),
+        ).method
+        fun markAt(index: Int, piece: String) = info.insertAt(
+            index,
+            """
+            invoke-static {v1}, $POSTS->mark$piece(Landroid/text/SpannableStringBuilder;)V
+            """,
+        )
+        val separator = "Lud/b;->b(Landroid/text/SpannableStringBuilder;)"
+        info.insertAt(
+            info.indexOfReference("Lud/a;->e(Lnet/dean/jraw/models/Submission;Landroid/view/View;)"),
+            """
+            invoke-static {v0, v1, p0}, $POSTS->details(Landroid/text/SpannableStringBuilder;Landroid/text/SpannableStringBuilder;Ljava/lang/Object;)V
+            """,
+        )
+        markAt(info.nextReference(info.indexOfReference("Lzd/n;->o("), separator), "Other")
+        markAt(
+            info.nextReference(info.indexOfReference("Lnet/dean/jraw/models/Submission;->R()"), "Lzd/n;->C("),
+            "Domain",
+        )
+        info.filterBoolean(info.indexOfReference("Lza/a;->g:Z"), joeyLine)
+        markAt(info.nextReference(info.indexOfReference("Lnet/dean/jraw/models/Submission;->f0()"), separator), "Percent")
+        val type = info.indexOfReference("Lud/a;->d(Lnet/dean/jraw/models/Submission;)") - 1
+        if (info.instructions[type].opcode != Opcode.NEW_INSTANCE) {
+            throw PatchException("ud/a->f post type is not where it was")
+        }
+        markAt(type, "Type")
+        markAt(info.nextReference(info.indexOfString("view_count"), separator), "Views")
+        markAt(
+            info.nextReference(info.indexOfReference("Lzd/n;->P("), "Landroid/text/SpannableStringBuilder;->append("),
+            "Flair",
+        )
+        markAt(info.nextReference(info.indexOfReference("Lzd/n;->t("), separator), "Author")
+        info.filterBoolean(info.indexOfReference("Lza/a;->f:Z"), joeyLine)
+        markAt(info.nextReference(info.indexOfReference("Lzd/n;->W("), separator), "Time")
+        val commentCount = info.indexOfReference("Lud/b;->n(Ljc/l;)")
+        markAt(info.nextReference(commentCount, separator), "Comments")
+        info.filterBoolean(commentCount + 1, "$POSTS->joeyComments(Z)Z")
+        markAt(info.indexOfReference("Lud/b;->c(Ljc/l;)"), "Subreddit")
 
         val postStyle = Fingerprint(
             definingClass = "Lo/o/joey/SettingActivities/PostStyleSettings;",
@@ -301,12 +468,14 @@ val modernUiPatch = bytecodePatch(
             ExternalLabel("image_settings_joey", imageSettings.instructions[0]),
         )
 
-        // 5. System font matching (Typeface.DEFAULT)
+        // 5. Fonts. Modern keeps its own copy of Joey's font settings (ModernFonts).
+
+        // Joey's fixed fonts by number (labels, tags, flair). Font 5 is the icon font.
         val fontMethod = TypefaceFingerprint.method
         fontMethod.insertAt(
             0,
             """
-            invoke-static {p0}, $MODERN_UI->getTypefaceOverride(I)Landroid/graphics/Typeface;
+            invoke-static {p0}, $FONTS->fixed(I)Landroid/graphics/Typeface;
             move-result-object v0
             if-eqz v0, :font_skip
             return-object v0
@@ -314,10 +483,104 @@ val modernUiPatch = bytecodePatch(
             ExternalLabel("font_skip", fontMethod.instructions[0]),
         )
 
+        // FontGuy.x(): every font and size read goes through it. Points it at the file for
+        // the current mode. x() ends with return-object v0, the FontGuy.
+        val fontGuy = Fingerprint(
+            definingClass = "Lya/c;",
+            name = "x",
+            returnType = "Lya/c;",
+            parameters = emptyList(),
+        ).method
+        fontGuy.insertAt(
+            fontGuy.instructions.lastIndex,
+            """
+            invoke-static {v0}, $FONTS->bind(Ljava/lang/Object;)V
+            """,
+        )
+
+        // FontGuy.c() deletes every downloaded font the current settings do not use. With
+        // separate Classic and Modern settings, that would delete fonts the other mode uses.
+        // FontGuy.b(), which drops broken font files, stays.
+        returnVoid(
+            Fingerprint(
+                definingClass = "Lya/c;",
+                name = "c",
+                returnType = "V",
+                parameters = emptyList(),
+            ).method,
+        )
+
+        // A built-in font the user picked always loads Joey's real font.
+        writeBody(
+            Fingerprint(
+                definingClass = "Lya/c\$a;",
+                name = "c",
+                returnType = "Landroid/graphics/Typeface;",
+                parameters = emptyList(),
+            ).method,
+            2,
+            """
+            iget v0, p0, Lya/c${'$'}a;->b:I
+            invoke-static {v0}, $FONTS->joey(I)Landroid/graphics/Typeface;
+            move-result-object v0
+            return-object v0
+            """,
+        )
+
+        // Joey's font-file loader serves Modern's corrected system fonts. .locals 3.
+        val fontFile = Fingerprint(
+            definingClass = "Lzd/o1;",
+            name = "c",
+            returnType = "Landroid/graphics/Typeface;",
+            parameters = listOf("Ljava/lang/String;"),
+        ).method
+        fontFile.insertAt(
+            0,
+            """
+            invoke-static {p0}, $FONTS->special(Ljava/lang/String;)Landroid/graphics/Typeface;
+            move-result-object v0
+            if-eqz v0, :font_file_skip
+            return-object v0
+            """,
+            ExternalLabel("font_file_skip", fontFile.instructions[0]),
+        )
+
+        // After a text view gets its font and size (ConfigTextViewAttr.a, .locals 2, one
+        // return-void at the end): keep Joey's line height for the corrected system fonts.
+        val textAttr = Fingerprint(
+            definingClass = "Lq9/b;",
+            name = "a",
+            returnType = "V",
+            parameters = emptyList(),
+        ).method
+        textAttr.insertAt(
+            textAttr.instructions.lastIndex,
+            """
+            iget-object v0, p0, Lq9/b;->f:Landroid/widget/TextView;
+            iget v1, p0, Lq9/b;->c:I
+            invoke-static {v0, v1}, $FONTS->fit(Landroid/widget/TextView;I)V
+            """,
+        )
+
+        // The comment and post body text sets its own font and size.
+        val bodyStyle = Fingerprint(
+            definingClass = "Lo/o/joey/CustomViews/HtmlDispaly;",
+            name = "setStyle",
+            returnType = "V",
+            parameters = listOf("Lo/o/joey/CustomViews/HTMLTextView;"),
+        ).method
+        bodyStyle.insertAt(
+            bodyStyle.instructions.lastIndex,
+            """
+            invoke-static {p1}, $FONTS->fitBody(Landroid/widget/TextView;)V
+            """,
+        )
+
         val home = HomeActivityOnCreateFingerprint.method
         home.insertAt(
             home.indexOfReference("setContentView") + 1,
             """
+            invoke-static {}, $SETTINGS->enableModernUi()V
             invoke-static {p0}, $MODERN_UI->setupNavigation(Landroid/app/Activity;)V
             """,
         )
@@ -431,6 +694,65 @@ val modernUiPatch = bytecodePatch(
             invoke-static {p0}, $MODERN_UI->setupAlbumViewer(Landroid/app/Activity;)V
             """,
         )
+
+        // Joey leaves fullscreen when a screen opens with its Immersive mode off (BaseActivity.B1),
+        // and its picture viewer resets the system bars on every tap (ja.v.T0). In Modern the
+        // viewers stay fullscreen, so both return early there. Both have v0 free at the start.
+        val leaveFullscreen = Fingerprint(
+            definingClass = "Lo/o/joey/Activities/BaseActivity;",
+            name = "B1",
+            returnType = "V",
+            parameters = emptyList(),
+        ).method
+        leaveFullscreen.insertAt(
+            0,
+            """
+            invoke-static {p0}, $MODERN_UI->keepViewerFullscreen(Landroid/app/Activity;)Z
+            move-result v0
+            if-eqz v0, :leave_fullscreen_joey
+            return-void
+            """,
+            ExternalLabel("leave_fullscreen_joey", leaveFullscreen.instructions[0]),
+        )
+        val viewerBars = Fingerprint(
+            definingClass = "Lja/v;",
+            name = "T0",
+            returnType = "V",
+            parameters = listOf("Z"),
+        ).method
+        viewerBars.insertAt(
+            0,
+            """
+            invoke-static {p0}, $MODERN_UI->ownsViewerBars(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :viewer_bars_joey
+            return-void
+            """,
+            ExternalLabel("viewer_bars_joey", viewerBars.instructions[0]),
+        )
+
+        // Joey's album grid overview (J3) opens as a small dialog. In Modern the same grid view,
+        // adapter and tap handler are shown full screen by AlbumChrome, and Joey's dialog is not
+        // shown. v0 is Joey's dialog, v1 its GridView; v2 is free after the tap handler is set.
+        for (album in listOf("RedditGalleryActivity", "IAActivity")) {
+            val overview = Fingerprint(
+                definingClass = "Lo/o/joey/Activities/$album;",
+                name = "J3",
+                returnType = "V",
+                parameters = emptyList(),
+            ).method
+            val show = overview.indexOfReference("Lzd/c;->e0(Landroid/app/Dialog;)V")
+            overview.insertAt(
+                show,
+                """
+                invoke-static {p0, v0, v1}, $ALBUM->grid(Landroid/app/Activity;Landroid/app/Dialog;Landroid/widget/GridView;)Z
+                move-result v2
+                if-eqz v2, :album_grid_joey
+                return-void
+                """,
+                ExternalLabel("album_grid_joey", overview.instructions[show]),
+            )
+        }
 
         VActivityFingerprint.method.insertAt(
             0,

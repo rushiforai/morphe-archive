@@ -117,6 +117,8 @@ val inlineCommentMediaPatch = bytecodePatch(
             "as a chip naming where it goes.",
     default = true
 ) {
+    category("2. Media")
+
     dependsOn(
         sharedExtensionPatch,
         inlineCommentMediaSettingsPatch,

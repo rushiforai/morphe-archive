@@ -4,10 +4,10 @@ The changes were verified at three levels: the patch sources, the patched APK, a
 
 ## Patch sources
 
-Every Ather patch records the smali it produces, checked against the Ather 13.5.1 base APK, versionCode 324.
+Every Ather patch records the smali it produces, checked against the Ather 13.5.1 base APK (versionCode 324) and the Ather 13.6.0 base APK (versionCode 327).
 Every fingerprint pins the defining class, the method name, the access flags, the return type and the parameter list.
 When a target changes, the patch fails with an error instead of writing a broken APK.
-The Nothing X fingerprints were checked against Nothing X 3.8.0.
+The Nothing X fingerprints were checked against Nothing X 3.8.0 and Nothing X 3.10.2.
 
 ## CLI application
 
@@ -16,7 +16,9 @@ The CLI reports an error when a fingerprint does not match, so a successful buil
 
 ## dexdump checks
 
-The patched APK was disassembled with `dexdump`, and the injected code was found at the expected places:
+The patched APK was disassembled with `dexdump`, and the injected code was found at the expected places.
+The table shows the 13.5.1 target names.
+The 13.6.0 target names are in `docs/ather-patches.md`; the same checks were run there.
 
 | Patch                              | Check                                                                                                                             |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |

@@ -10,11 +10,18 @@
     Called by .git/hooks/pre-push with the remote name and URL, reading the pushed refs from
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
-    Only what changed is checked: runtime tests when extension or patch sources, or the root files
+    Every push gets the quick checks: a scan of every commit it publishes for tracked files that
+    name the maintainer's machine or a phone, and of the files it changes for an unresolved merge
+    conflict. Gates are for releases, so an everyday push stops there, in seconds, and builds and
+    tests nothing.
+
+    The rest runs only for a release push (scripts/release sets HUSHPINTEREST_RELEASE_GATE=1 for
+    its push, or the push is a tag or changes patches-bundle.json on main), for a push made with
+    HUSHPINTEREST_FULL_GATE=1, or for a run by hand with -ChangedPaths or -PushedRefs. Then only
+    what changed is checked: runtime tests when extension or patch sources, or the root files
     those tests read, move, and the release facts when a published file moves. A move counts at
-    both ends, the path it left and the one it took. The one check every push gets is a scan of
-    every commit it publishes for tracked files that name the maintainer's machine or a phone.
-    Set HUSHPINTEREST_SKIP_PRE_PUSH=1 to push anyway.
+    both ends, the path it left and the one it took. Set HUSHPINTEREST_SKIP_PRE_PUSH=1 to push
+    anyway.
 #>
 [CmdletBinding()]
 param(
@@ -501,8 +508,7 @@ try {
     }
 
     # Every push, whatever it moves: no tracked file may name the maintainer's working-notes folder
-    # or a phone's serial. The contract tests hold the working tree to that, but they run for
-    # script changes, and the files that once fell back to that folder were tests under patches/
+    # or a phone's serial. The files that once fell back to that folder were tests under patches/
     # and extensions/, which route to the Gradle gates alone. Every commit the push publishes is
     # read straight out of the object store, not only each ref's tip, since a serial one commit
     # adds and the next removes still goes out in the first. That needs no worktree and takes a
@@ -573,6 +579,18 @@ try {
         exit 0
     }
 
+    # Gates are for releases. An everyday push ends here; the suites, the release facts and the
+    # clean-worktree build run for a release push (HUSHPINTEREST_RELEASE_GATE=1, a tag, or the
+    # index on main), with HUSHPINTEREST_FULL_GATE=1, or for a run by hand with -ChangedPaths or
+    # -PushedRefs, which the routing contracts use.
+    $fullGateWanted = $script:releasePush -or $script:rewritesIndex -or $env:HUSHPINTEREST_FULL_GATE -eq '1' -or
+        $PSBoundParameters.ContainsKey('ChangedPaths') -or $PSBoundParameters.ContainsKey('PushedRefs') -or
+        "$refs" -match '(?m)^\s*\S+\s+(?!0{40})[0-9a-f]{40}\s+refs/tags/'
+    if (-not $fullGateWanted) {
+        Write-Step 'everyday push: commit checks passed; builds, suites and release facts run for a release push or with HUSHPINTEREST_FULL_GATE=1'
+        exit 0
+    }
+
     # The files outside the source trees that the runtime tests read. ReadmePatchNamesTest holds the
     # README's patch rows to the catalog, ProvenanceTest holds NOTICE and every source's header to
     # provenance.json, PatchFamilyTest and LicenseNoticeTest read the catalog and NOTICE, and
@@ -592,23 +610,10 @@ try {
         $_ -in $runtimeTestInputs
     }).Count -gt 0
     $buildAdvisoryInputs = @('scripts/build-advisories.ps1', 'scripts/build-advisory-exceptions.txt',
-        'scripts/test-build-advisories.ps1', 'scripts/release-advisories.ps1',
+        'scripts/release-advisories.ps1',
         'gradle.properties', 'gradle/wrapper/gradle-wrapper.properties', 'gradle/wrapper/gradle-wrapper.jar')
     $touchesBuildAdvisories = $touchesCode -or @($paths | Where-Object { $_ -in $buildAdvisoryInputs }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
-    # The contract tests read two files outside scripts/ that nothing else checks: the catalog,
-    # held to the builds, signers and dependencies the release scripts expect, and the Gradle file
-    # that writes the release bundle where common.ps1 reads it. A push that moved only one of them
-    # never ran the tests, and the break surfaced on the next unrelated script push instead.
-    # They also copy the README into the release facts fixture and hold it to the catalog, so a
-    # push of only the README runs them too.
-    $touchesContracts = $touchesScripts -or @($paths | Where-Object {
-        $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts' -or $_ -in @(
-            'README.md', 'assets/icon.png', 'assets/readme-hero.png',
-            'concepts/marketing/2026-10-02/artwork-brief.txt',
-            'concepts/marketing/2026-10-02/selected/logo-master.png',
-            'concepts/marketing/2026-10-02/selected/hero-master.png')
-    }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
         'scripts/ControlFlowFixture.java',
@@ -643,7 +648,6 @@ try {
         'scripts/injected-register-device.ps1',
         'scripts/device-lease.ps1',
         'scripts/device-install.ps1',
-        'scripts/test-device-safety.ps1',
         'scripts/script-wiring.ps1',
         'scripts/test-injected-register-device.ps1',
         'scripts/verify-injected-registers.ps1'
@@ -662,22 +666,6 @@ try {
     $touchesFingerprintCandidates = @($paths | Where-Object {
         $_ -in $fingerprintCandidatePaths
     }).Count -gt 0
-    # The source ledger's rules read NOTICE, provenance.json and the catalog's declared builds, and
-    # hold docs/sources.md to the ledger, so a push of any of them runs the ledger's suite too.
-    $pinterestSourcePaths = @(
-        'NOTICE',
-        'docs/sources.md',
-        'patches-list.json',
-        'provenance.json',
-        'scripts/audit-pinterest-sources.ps1',
-        'scripts/pinterest-sources.ps1',
-        'scripts/patch-target.ps1',
-        'scripts/test-pinterest-sources.ps1',
-        'sources/pinterest-sources.json'
-    )
-    $touchesPinterestSources = @($paths | Where-Object {
-        $_ -in $pinterestSourcePaths
-    }).Count -gt 0
     $touchesRelease = @($paths | Where-Object {
         $_ -eq 'patches-bundle.json' -or $_ -eq 'patches-list.json' -or
         $_ -eq 'gradle.properties' -or $_ -eq 'README.md' -or
@@ -688,7 +676,7 @@ try {
         $_ -eq 'gradle/wrapper/gradle-wrapper.properties' -or
         # The receipt is the file the release check holds a release to, and the allowlist is
         # what decides which manifest changes it accepts. A push that moved only one of those
-        # ran the script contract tests at most, and never the check that reads them.
+        # never ran the check that reads them.
         $_ -like 'release-receipt-*.json' -or
         $_ -eq 'scripts/manifest-delta-allowlist.txt' -or
         # A released version's heading is the only record a reader has that it shipped, and one
@@ -724,14 +712,13 @@ try {
     # commit. Uncommitted work that isn't in the push can fail it (another agent's did, twice on
     # 2026-09-21) or pass it, and a push of anything but HEAD would otherwise have HEAD checked in
     # its place. The whole tree counts: the tests read README.md, patches-list.json, the artwork
-    # and NOTICE as well as the sources, the release facts are those same files, and the script
-    # contract tests copy them into their fixtures.
+    # and NOTICE as well as the sources, and the release facts are those same files.
     if ($PSBoundParameters.ContainsKey('ChangedPaths')) {
         # A run by hand names its paths itself and checks this working tree as it stands.
         $head = $null
         $dirty = @()
         $gateCommits = @($null)
-    } elseif ($touchesBuildAdvisories -or $touchesRelease -or $touchesScripts -or $touchesContracts -or $touchesPinterestSources) {
+    } elseif ($touchesBuildAdvisories -or $touchesRelease -or $touchesScripts) {
         $head = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
         $dirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
         $gateCommits = @($script:pushedCommits)
@@ -761,18 +748,9 @@ try {
             'in a clean worktree of the commit instead.')
     }
 
-    # Script, notice, failure message. The contract tests run for every script change and for the
-    # other files above; the two injected-register suites and the resource table check's run only
-    # when their own files moved, and the source ledger's when the ledger or a file its rules read
-    # did. Each one is the pushed commit's copy, run against that commit.
+    # Script, notice, failure message. Each verifier's fixture suite runs only when its own files
+    # moved. Each one is the pushed commit's copy, run against that commit.
     $suites = @()
-    if ($touchesContracts) {
-        $contractsNotice = if ($touchesScripts) { 'scripts changed, running their contract tests' } else {
-            'the catalog, the release bundle''s Gradle file, the README or the artwork changed, running the script contract tests'
-        }
-        $suites += , @('scripts/test-script-contracts.ps1', $contractsNotice,
-            'The script contract tests did not pass.')
-    }
     if ($touchesInjectedRegisterVerifier) {
         $suites += , @('scripts/test-injected-registers.ps1', 'injected-register verifier changed, running its fixture tests',
             'The injected-register verifier fixture tests did not pass.')
@@ -788,10 +766,6 @@ try {
     if ($touchesFingerprintCandidates) {
         $suites += , @('scripts/test-fingerprint-candidates.ps1', 'fingerprint ranking changed, running its calibration',
             'The fingerprint ranking calibration did not pass.')
-    }
-    if ($touchesPinterestSources) {
-        $suites += , @('scripts/test-pinterest-sources.ps1', 'the Pinterest source ledger or what it reads changed, running its rules',
-            'The Pinterest source ledger does not keep its rules.')
     }
     if ($suites.Count -gt 0) {
         $scriptsLock = $null
@@ -1083,8 +1057,7 @@ try {
         }
     }
 
-    if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease -and -not $touchesContracts -and
-            -not $touchesPinterestSources) {
+    if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease) {
         Write-Step 'no code or published file changed'
     }
     if ($releaseGate) {

@@ -1,3 +1,77 @@
+## [1.7.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.6.2...v1.7.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** show board coordinates with Board colors on ([97f2ff0](https://github.com/hyzor/hyzor-morphe-patches/commit/97f2ff01348dca1e93557f98693b1dab72fb2dc6))
+* **projectivy:** make the patched APK install on 16 KB page devices ([27ec7cd](https://github.com/hyzor/hyzor-morphe-patches/commit/27ec7cd6ed3839113fcf5528fb0f6fc281a1252c)), closes [#42](https://github.com/hyzor/hyzor-morphe-patches/issues/42)
+
+### ✨ New Features
+
+* **foldersync:** add Unlock Premium patch for 4.14.0 ([d2ec435](https://github.com/hyzor/hyzor-morphe-patches/commit/d2ec435ad2a185f0fa21703e81d34c85a83ac5ad))
+* **projectivy:** add Projectivy Launcher 4.73 Unlock Premium patch ([b54622c](https://github.com/hyzor/hyzor-morphe-patches/commit/b54622c5a65f642ccaaefa208857c4a92791b299))
+* **solidexplorer:** add Solid Explorer 3.6.4 Enable Pro patch ([d12e56d](https://github.com/hyzor/hyzor-morphe-patches/commit/d12e56d91f39d33c488573e4bf5c594ab3e153fe))
+
+### 🚀 Updated App Support
+
+* **nova:** support 8.9.7 ([5be3bb3](https://github.com/hyzor/hyzor-morphe-patches/commit/5be3bb315d27fbfaa98793a14e61c3f5fe121278))
+* **nytgames:** support 6.50.0 ([261e65d](https://github.com/hyzor/hyzor-morphe-patches/commit/261e65dbc14f61d7699f3b919b26a0d2dab7f117)), closes [#000000](https://github.com/hyzor/hyzor-morphe-patches/issues/000000)
+* **sleep:** support 20261016 ([e3648d0](https://github.com/hyzor/hyzor-morphe-patches/commit/e3648d0320ec49d0e530d728af593567a6f5dae9))
+* **snorelab:** support 2.33.7 ([9b4f7e3](https://github.com/hyzor/hyzor-morphe-patches/commit/9b4f7e343a2865d769894b3bac7f22fe6206cbe6))
+
+## [1.7.0-dev.9](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.8...v1.7.0-dev.9) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **projectivy:** make the patched APK install on 16 KB page devices ([27ec7cd](https://github.com/hyzor/hyzor-morphe-patches/commit/27ec7cd6ed3839113fcf5528fb0f6fc281a1252c)), closes [#42](https://github.com/hyzor/hyzor-morphe-patches/issues/42)
+
+## [1.7.0-dev.8](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.7...v1.7.0-dev.8) (2026-11-13)
+
+### 🚀 Updated App Support
+
+* **nytgames:** support 6.50.0 ([261e65d](https://github.com/hyzor/hyzor-morphe-patches/commit/261e65dbc14f61d7699f3b919b26a0d2dab7f117)), closes [#000000](https://github.com/hyzor/hyzor-morphe-patches/issues/000000)
+
+## [1.7.0-dev.7](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.6...v1.7.0-dev.7) (2026-11-13)
+
+### 🚀 Updated App Support
+
+* **nova:** support 8.9.7 ([5be3bb3](https://github.com/hyzor/hyzor-morphe-patches/commit/5be3bb315d27fbfaa98793a14e61c3f5fe121278))
+
+## [1.7.0-dev.6](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.5...v1.7.0-dev.6) (2026-11-13)
+
+### 🚀 Updated App Support
+
+* **sleep:** support 20261016 ([e3648d0](https://github.com/hyzor/hyzor-morphe-patches/commit/e3648d0320ec49d0e530d728af593567a6f5dae9))
+
+## [1.7.0-dev.5](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.4...v1.7.0-dev.5) (2026-11-13)
+
+### ✨ New Features
+
+* **solidexplorer:** add Solid Explorer 3.6.4 Enable Pro patch ([d12e56d](https://github.com/hyzor/hyzor-morphe-patches/commit/d12e56d91f39d33c488573e4bf5c594ab3e153fe))
+
+## [1.7.0-dev.4](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** show board coordinates with Board colors on ([97f2ff0](https://github.com/hyzor/hyzor-morphe-patches/commit/97f2ff01348dca1e93557f98693b1dab72fb2dc6))
+
+## [1.7.0-dev.3](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-11-13)
+
+### ✨ New Features
+
+* **projectivy:** add Projectivy Launcher 4.73 Unlock Premium patch ([b54622c](https://github.com/hyzor/hyzor-morphe-patches/commit/b54622c5a65f642ccaaefa208857c4a92791b299))
+
+## [1.7.0-dev.2](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-11-13)
+
+### 🚀 Updated App Support
+
+* **snorelab:** support 2.33.7 ([9b4f7e3](https://github.com/hyzor/hyzor-morphe-patches/commit/9b4f7e343a2865d769894b3bac7f22fe6206cbe6))
+
+## [1.7.0-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.6.2...v1.7.0-dev.1) (2026-11-13)
+
+### ✨ New Features
+
+* **foldersync:** add Unlock Premium patch for 4.14.0 ([d2ec435](https://github.com/hyzor/hyzor-morphe-patches/commit/d2ec435ad2a185f0fa21703e81d34c85a83ac5ad))
+
 ## [1.6.2](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.6.1...v1.6.2) (2026-11-05)
 
 ### 🐛 Bug Fixes

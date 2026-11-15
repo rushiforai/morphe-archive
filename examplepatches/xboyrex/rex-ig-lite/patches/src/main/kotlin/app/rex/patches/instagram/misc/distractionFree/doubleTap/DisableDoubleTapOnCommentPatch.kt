@@ -12,7 +12,7 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchFirst
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.opcode
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object CommentOnDoubleTap1Fingerprint : Fingerprint(
@@ -40,12 +40,13 @@ internal object CommentOnDoubleTap2Fingerprint : Fingerprint(
 
 @Suppress("unused")
 val disableDoubleTapOnCommentPatch =
-    bytecodePatch(
+    patch(
         description = "Disable double tap like on comment",
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
 
             val fingerprints = listOf(CommentOnDoubleTap1Fingerprint, CommentOnDoubleTap2Fingerprint)
 
@@ -56,6 +57,8 @@ val disableDoubleTapOnCommentPatch =
                         DOUBLE_TAP_PREF_DESCRIPTOR.format("disableDoubleTapComment"),
                     )
                 }
+            }
+        
             }
         }
     }

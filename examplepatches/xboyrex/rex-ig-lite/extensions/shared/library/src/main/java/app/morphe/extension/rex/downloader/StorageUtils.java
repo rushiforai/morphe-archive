@@ -1,31 +1,33 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
- *
- * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
-*/
-
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
+ * GNU General Public License v3.0
+ */
 
 package app.morphe.extension.rex.downloader;
 
 import android.app.LocaleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.UriPermission;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.content.UriPermission;
 import android.os.Build;
+import android.os.Environment;
 import android.os.LocaleList;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 
-import app.morphe.extension.rex.sharedPreference.SharedPref;
-import app.morphe.extension.rex.constants.ExtensionStrings;
+import java.io.File;
+
 import app.morphe.extension.rex.RexUtils;
+import app.morphe.extension.rex.constants.ExtensionStrings;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
 
 public class StorageUtils {
     private static final String KEY_BASE_PATH = "custom_download_path";
     private static final String KEY_TREE_URI = "custom_download_tree_uri";
+    public static final String DEFAULT_FOLDER_NAME = "xboyrex";
 
     public static void saveCustomPath(String path) {
         SharedPref.setStringPref(KEY_BASE_PATH, path);
@@ -33,6 +35,9 @@ public class StorageUtils {
 
     public static String getCustomPathForDisplay() {
         String storedPath = SharedPref.getStringPref(KEY_BASE_PATH, "");
+        if (storedPath == null || storedPath.trim().isEmpty()) {
+            return "/storage/emulated/0/Download/" + DEFAULT_FOLDER_NAME;
+        }
         int separatorIndex = storedPath.indexOf(':');
         if (separatorIndex < 0) {
             return storedPath;
@@ -155,8 +160,36 @@ public class StorageUtils {
         SharedPref.setStringPref(KEY_TREE_URI, treeUri.toString());
     }
 
+    public static void clearCustomPath() {
+        SharedPref.setStringPref(KEY_BASE_PATH, "");
+        SharedPref.setStringPref(KEY_TREE_URI, "");
+    }
+
+    /**
+     * Returns true if either a custom SAF tree URI is persisted OR Android 10+ MediaStore
+     * direct download is available (so downloads work immediately without SAF prompts on Redmi/HyperOS).
+     */
     public static boolean checkStoragePermissions() {
+        if (getDownloadTreeUri() != null) {
+            return true;
+        }
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || canWriteDefaultDownloadDir();
+    }
+
+    public static boolean hasCustomSafTreeUri() {
         return getDownloadTreeUri() != null;
+    }
+
+    private static boolean canWriteDefaultDownloadDir() {
+        try {
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), DEFAULT_FOLDER_NAME);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            return dir.exists() && dir.canWrite();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     public static Uri getDownloadTreeUri() {
@@ -180,9 +213,24 @@ public class StorageUtils {
         return null;
     }
 
+    public interface StorageAccessLauncher {
+        void launchStorageAccess(Context context);
+    }
+
+    private static StorageAccessLauncher storageAccessLauncher;
+
+    public static void setStorageAccessLauncher(StorageAccessLauncher launcher) {
+        storageAccessLauncher = launcher;
+    }
+
     public static void allowStorageAccess() {
         try {
             Context context = RexUtils.getContext();
+            if (storageAccessLauncher != null) {
+                storageAccessLauncher.launchStorageAccess(context);
+                RexUtils.toast(ExtensionStrings.DOWNLOAD_GRANT_PERMISSION);
+                return;
+            }
             Intent intent = new Intent(context, FolderPickerActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);

@@ -19,8 +19,7 @@ work — read it first), `INTERNALS.md`, `SPONSORBLOCK-NOTES.md`.
 
 ## Requirements
 
-The full table (with where each tool is expected) is in
-[README.md](README.md#-requirements-and-tooling); the short version, because a missing one fails in a
+The short version below is the full table, because a missing one fails in a
 confusing place:
 
 | tool | why it matters | where it is looked for |
@@ -30,8 +29,9 @@ confusing place:
 | `r8.jar` | dexes the extension into the `.mpp` | `-Pr8Jar`, `$R8_JAR`, else `~/tools/r8/r8.jar` |
 | Morphe Desktop jar | applies the bundle to the APK | see the pipeline below |
 | `adb` | the only way to test anything | `PATH` |
+| `d8` (Android SDK build-tools) | dexes the extension into `ytvr-extension.dex` inside the `.mpp` | `PATH` |
 | jadx | reading the app's bytecode and checking the patched dex | `PATH` |
-| REA | device integration + APK analysis (optional) | `PATH`, see [README](README.md#-requirements-and-tooling) |
+| REA | device integration + APK analysis (optional) | `PATH` |
 
 ## Working loop
 
@@ -71,8 +71,7 @@ pwsh -NoProfile -File scripts\patch-and-install.ps1 -Apk apk\com.google.android.
 ## Device access
 
 Both recipes below come from **[REA](https://github.com/morluto/rea)**'s device integration
-documentation (listed with the other tooling in
-[README.md](README.md#-requirements-and-tooling)); plain `adb` is what actually executes them. One
+documentation; plain `adb` is what actually executes them. One
 caveat if you reach for REA's CLI here: `rea capture-adb-screen` failed in this environment (a schema
 error demanding an output directory, then `unreadable_output` once given one), so use the `screencap`
 route below instead.
@@ -430,8 +429,8 @@ report ("there is no clone option", "my stock app is gone"):
   resolves to `<original>.morphe`; this project uses `app.morphe.android.youtube`.
 
 Manager filters patches before any patch executes within a pass, so a rename there cannot filter other
-patches out of that pass. The README's note that the *official* `Clone app` has to be its own pass
-belongs to our two-pass CLI script, not to Manager.
+patches out of that pass. The constraint that the *official* `Clone app` has to be its own pass belongs
+to our two-pass CLI script, not to Manager.
 
 **Never select both renamers in one run.** With this bundle's **Install as clone** and the official
 **Clone app** both ticked, both finalise and the **official one wins**: patches execute alphabetically

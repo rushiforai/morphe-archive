@@ -17,6 +17,8 @@ val fixMoreCommentsPatch = bytecodePatch(
             "endpoint Reddit stopped answering.",
     default = true
 ) {
+    category("1. Essentials")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
 
     compatibleWith(*SyncForRedditCompatible)

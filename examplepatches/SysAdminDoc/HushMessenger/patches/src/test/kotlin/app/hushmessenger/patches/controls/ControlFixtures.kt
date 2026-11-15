@@ -432,12 +432,33 @@ internal fun storyCardKeyHolder() = fixtureClass("LX/JVI;", listOf(fixtureMethod
     return-void
 """.trimIndent(), flags = AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value)))
 
+/** The row's time, sender, content type and subtype as 587's message row interface and its list wrapper name them. */
+internal val ROW_STAMP_GETTERS = listOf(Triple("CsH", "CsI", "J"), Triple("CcZ", "Cca", "J"), Triple("BxQ", "BxR", "I"),
+    Triple("BxO", "BxP", "I"))
+
 internal fun debugDumperFixture(
     textGetter: String = "BWn",
     idGetter: String = "B9c",
     unsentGetter: String = "Btc",
     itemType: String = "Lfixture/KKn;",
+    otidGetter: String? = null,
+    stampGetters: Boolean = false,
 ): MutableClass {
+    // 587 writes the offline threading id between the message id and the text.
+    val otid = otidGetter?.let { """
+        invoke-interface {p1}, $itemType->$it()Ljava/lang/String;
+        move-result-object v0
+        if-eqz v0, :skip_otid
+        const-string v0, "offline_threading_id="
+        invoke-static {v0, v1, v2}, Lfixture/Helper;->A1V(Ljava/lang/String;Ljava/lang/String;Ljava/util/AbstractCollection;)V
+        :skip_otid
+    """.trimIndent().prependIndent("        ").trimStart() }.orEmpty()
+    // Each read before its label, the way 587's writer has them.
+    val labels = listOf("timestamp_ms=", "sender_id=", "message_content_type=", "message_content_subtype=")
+    val stamps = if (!stampGetters) "" else ROW_STAMP_GETTERS.zip(labels).joinToString("\n") { (getter, label) -> """
+        invoke-interface {p1}, $itemType->${getter.first}()${getter.third}
+        const-string v0, "$label"
+    """.trimIndent() }.prependIndent("        ").trimStart()
     val method = fixtureMethod("Lfixture/Dumper;->A02(Lfixture/MessageRow;)Ljava/lang/String;", """
         invoke-interface {p1}, $itemType->$unsentGetter()Z
         move-result v0
@@ -449,6 +470,8 @@ internal fun debugDumperFixture(
         const-string v0, "message_id="
         invoke-static {v0, v1, v2}, Lfixture/Helper;->A1V(Ljava/lang/String;Ljava/lang/String;Ljava/util/AbstractCollection;)V
         :skip_id
+        $otid
+        $stamps
         invoke-interface {p1}, $itemType->$textGetter()Ljava/lang/String;
         move-result-object v0
         if-eqz v0, :skip_text
@@ -466,7 +489,28 @@ internal fun messageWrapperFixture(
     textGetter: String = "BWo",
     idGetter: String = "B9d",
     unsentGetter: String = "Btd",
+    otidGetter: String? = null,
+    stampGetters: Boolean = false,
 ): MutableClass {
+    val otidMethod = otidGetter?.let {
+        fixtureMethod("$type->$it(I)Ljava/lang/String;", """
+            invoke-static {p0, p1}, $type->A00(${type}I)Lfixture/KKn;
+            move-result-object v0
+            invoke-interface {v0}, Lfixture/KKn;->CA2()Ljava/lang/String;
+            move-result-object v0
+            return-object v0
+        """.trimIndent(), registers = 3)
+    }
+    val stampMethods = if (!stampGetters) emptyList() else ROW_STAMP_GETTERS.map { (raw, name, ret) ->
+        val (move, back) = if (ret == "J") "move-result-wide" to "return-wide" else "move-result" to "return"
+        fixtureMethod("$type->$name(I)$ret", """
+            invoke-static {p0, p1}, $type->A00(${type}I)Lfixture/KKn;
+            move-result-object v0
+            invoke-interface {v0}, Lfixture/KKn;->$raw()$ret
+            $move v0
+            $back v0
+        """.trimIndent(), registers = 4)
+    }
     // 583 reads the text getter's row straight from the list; the other getters still go through the helper.
     val bwoMethod = fixtureMethod("$type->$textGetter(I)Ljava/lang/String;", """
         iget-object v0, p0, $type->A00:Ljava/util/List;
@@ -501,7 +545,56 @@ internal fun messageWrapperFixture(
     return MutableClass(ImmutableClassDef(type,
         AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value,
         "Ljava/lang/Object;", listOf(interfaceType), null, emptySet(), fields,
-        listOf(bwoMethod, b9dMethod, btdMethod, getCountMethod)))
+        listOfNotNull(bwoMethod, b9dMethod, btdMethod, getCountMethod, otidMethod) + stampMethods))
+}
+
+/** One getter of an encrypted chat's row class: one column of its CQL result set, the way every 587 build reads it. */
+internal fun cqlGetterBody(type: String, column: String, read: String = "getString(II)Ljava/lang/String;"): String {
+    val (move, back) = when (read.substringAfterLast(')')) {
+        "Z", "I" -> "move-result" to "return"
+        "J" -> "move-result-wide" to "return-wide"
+        else -> "move-result-object" to "return-object"
+    }
+    return """
+        iget-object v1, p0, $type->resultSet:Lcom/facebook/msys/mci/CQLResultSet;
+        const/16 v0, $column
+        invoke-interface {v1, p1, v0}, Lcom/facebook/msys/mci/CQLResultSet;->$read
+        $move v0
+        $back v0
+    """.trimIndent()
+}
+
+/** An encrypted chat's row class, built on a CQL result set and serving the row interface the wrapper does. */
+internal fun cqlRowFixture(
+    type: String = "Lfixture/CqlRow;",
+    interfaceType: String = "Lfixture/MessageRow;",
+    textGetter: String = "BWo",
+    idGetter: String = "B9d",
+    unsentGetter: String = "Btd",
+    otidGetter: String? = "CA3",
+    init: String = "Lcom/facebook/msys/mci/CQLResultSet;",
+    stampGetters: Boolean = true,
+): MutableClass {
+    // Columns and reads as 587's 5hn serves them.
+    val stampReads = mapOf("CsI" to ("0x4a" to "getLong(II)J"), "Cca" to ("0x44" to "getLong(II)J"), "BxR" to ("0x52" to "getInteger(II)I"),
+        "BxP" to ("0x53" to "getInteger(II)I"))
+    val stamps = if (!stampGetters) emptyList() else ROW_STAMP_GETTERS.map { (_, name, ret) ->
+        val (column, read) = stampReads.getValue(name)
+        fixtureMethod("$type->$name(I)$ret", cqlGetterBody(type, column, read), registers = 4)
+    }
+    val methods = stamps + listOfNotNull(
+        fixtureMethod("$type-><init>($init)V", """
+            invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+            return-void
+        """.trimIndent(), registers = 2, flags = AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value),
+        fixtureMethod("$type->$textGetter(I)Ljava/lang/String;", cqlGetterBody(type, "0x46"), registers = 4),
+        fixtureMethod("$type->$idGetter(I)Ljava/lang/String;", cqlGetterBody(type, "0x13"), registers = 4),
+        fixtureMethod("$type->$unsentGetter(I)Z", cqlGetterBody(type, "0xe", "getBoolean(II)Z"), registers = 4),
+        otidGetter?.let { fixtureMethod("$type->$it(I)Ljava/lang/String;", cqlGetterBody(type, "0x22"), registers = 4) },
+    )
+    val fields = listOf(ImmutableField(type, "resultSet", "Lcom/facebook/msys/mci/CQLResultSet;", 0, null, null, null))
+    return MutableClass(ImmutableClassDef(type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        "Ljava/lang/Object;", listOf(interfaceType), null, emptySet(), fields, methods))
 }
 
 internal fun pluginBody(anchor: String, branch: String = "if-eq") = """

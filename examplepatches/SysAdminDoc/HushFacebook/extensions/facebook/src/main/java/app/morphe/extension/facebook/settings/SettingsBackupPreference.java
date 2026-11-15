@@ -68,6 +68,8 @@ import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.misc.OpeningPause;
+import app.morphe.extension.facebook.misc.PostMenuItems;
+import app.morphe.extension.facebook.misc.RefreshRate;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
@@ -418,6 +420,7 @@ public class SettingsBackupPreference extends Preference {
                     snapshot.lockAfterChange(), snapshot.textSizeChange(), snapshot.accentChange()));
             if (snapshot.ceilingChange() != null) parts.add(ceilingSentence(snapshot.ceilingChange()));
             if (snapshot.shareItemsChange() != null) parts.add(shareItemsSentence(snapshot.shareItemsChange()));
+            if (snapshot.postMenuItemsChange() != null) parts.add(postMenuItemsSentence(snapshot.postMenuItemsChange()));
             if (snapshot.menuTilesChange() != null) parts.add(menuTilesSentence(snapshot.menuTilesChange()));
             if (snapshot.feedTypesChange() != null) parts.add(feedTypesSentence(snapshot.feedTypesChange()));
             if (snapshot.tabOrderChange() != null) parts.add(tabOrderSentence(snapshot.tabOrderChange()));
@@ -428,6 +431,7 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.holdReactionChange() != null) parts.add(holdReactionSentence(snapshot.holdReactionChange()));
             if (snapshot.grayOverChange() != null) parts.add(grayOverSentence(snapshot.grayOverChange()));
             if (snapshot.newRowMarkChange() != null) parts.add(newRowMarkSentence(snapshot.newRowMarkChange()));
+            if (snapshot.refreshRateChange() != null) parts.add(refreshRateSentence(snapshot.refreshRateChange()));
             if (snapshot.dateStyleChange() != null) parts.add(dateStyleSentence(snapshot.dateStyleChange()));
             if (snapshot.commentsHeightChange() != null) parts.add(commentsHeightSentence(snapshot.commentsHeightChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
@@ -627,16 +631,23 @@ public class SettingsBackupPreference extends Preference {
                 HushfacebookPreferenceFragment.newRowMarkLabel(mark));
     }
 
+    /** The sentence that says what refresh rate Facebook asks for after an import (#480). */
+    static String refreshRateSentence(RefreshRate.Rate rate) {
+        if (rate == RefreshRate.Rate.FACEBOOK) return L10n.t("Facebook will run at the refresh rate your phone picks for it.");
+        if (rate == RefreshRate.Rate.HIGHEST) return L10n.t("Facebook will ask for your screen's highest refresh rate.");
+        return L10n.f("Facebook will ask your screen for %1$s.", rate.hertzLabel());
+    }
+
     /** The sentence that says how long Burn-in guard waits after an import (#288). */
     static String burnInWaitSentence(BurnInWait wait) {
         if (wait == BurnInWait.AT_ONCE) return L10n.t("Burn-in guard will dim the Reels screen as soon as you stop touching it.");
         return L10n.f("Burn-in guard will dim the Reels screen after %1$d seconds without a touch.", (int) (wait.millis / 1000));
     }
 
-    /** The sentence that says what Hold a post to react gives after an import (#454). */
+    /** The sentence that says what a hold to react gives after an import, for a photo and a video alike (#454). */
     static String holdReactionSentence(HoldReaction reaction) {
-        if (reaction == HoldReaction.PICK) return L10n.t("Hold a post to react will open the reactions to pick from.");
-        return L10n.f("Hold a post to react will give %1$s.", HushfacebookPreferenceFragment.holdReactionLabel(reaction));
+        if (reaction == HoldReaction.PICK) return L10n.t("Holding a post to react will open the reactions to pick from.");
+        return L10n.f("Holding a post to react will give %1$s.", HushfacebookPreferenceFragment.holdReactionLabel(reaction));
     }
 
     /** The sentence that says how Show Reels in gray takes the color out after an import. */
@@ -865,6 +876,14 @@ public class SettingsBackupPreference extends Preference {
         if (items == 0) return L10n.t("Your list of share sheet items to hide will be empty.");
         return L10n.quantity(items, "Your list of share sheet items to hide will hold %1$d item.",
                 "Your list of share sheet items to hide will hold %1$d items.", items);
+    }
+
+    /** The sentence that says how many kinds of 3-dot menu row will be hidden after an import. */
+    static String postMenuItemsSentence(String list) {
+        int items = PostMenuItems.count(list);
+        if (items == 0) return L10n.t("Your list of 3-dot menu items to hide will be empty.");
+        return L10n.quantity(items, "Your list of 3-dot menu items to hide will hold %1$d item.",
+                "Your list of 3-dot menu items to hide will hold %1$d items.", items);
     }
 
     /** The sentence that says how many Menu tiles will be hidden after an import. */
@@ -1103,6 +1122,7 @@ public class SettingsBackupPreference extends Preference {
                     snapshot.lockAfterChange(), snapshot.textSizeChange(), snapshot.accentChange())
                     + (snapshot.ceilingChange() == null ? "" : " " + ceilingSentence(snapshot.ceilingChange()))
                     + (snapshot.shareItemsChange() == null ? "" : " " + shareItemsSentence(snapshot.shareItemsChange()))
+                    + (snapshot.postMenuItemsChange() == null ? "" : " " + postMenuItemsSentence(snapshot.postMenuItemsChange()))
                     + (snapshot.menuTilesChange() == null ? "" : " " + menuTilesSentence(snapshot.menuTilesChange()))
                     + (snapshot.feedTypesChange() == null ? "" : " " + feedTypesSentence(snapshot.feedTypesChange()))
                     + (snapshot.tabOrderChange() == null ? "" : " " + tabOrderSentence(snapshot.tabOrderChange()))
@@ -1113,6 +1133,7 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.holdReactionChange() == null ? "" : " " + holdReactionSentence(snapshot.holdReactionChange()))
                     + (snapshot.grayOverChange() == null ? "" : " " + grayOverSentence(snapshot.grayOverChange()))
                     + (snapshot.newRowMarkChange() == null ? "" : " " + newRowMarkSentence(snapshot.newRowMarkChange()))
+                    + (snapshot.refreshRateChange() == null ? "" : " " + refreshRateSentence(snapshot.refreshRateChange()))
                     + (snapshot.dateStyleChange() == null ? "" : " " + dateStyleSentence(snapshot.dateStyleChange()))
                     + (snapshot.commentsHeightChange() == null ? "" : " " + commentsHeightSentence(snapshot.commentsHeightChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))

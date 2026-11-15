@@ -123,12 +123,15 @@ internal val SHORTCUT_WRITES = mapOf(
     "$SHORTCUT_MANAGER->setDynamicShortcuts(Ljava/util/List;)Z" to "$HOST_SCREENS->messengerSet(${SHORTCUT_MANAGER}Ljava/util/List;)Z",
 )
 
+/** SHORTCUT_WRITES by reference, so the scan of every method only builds an id for a call with one of their names. */
+private val shortcutWriteCalls = MemberTable(SHORTCUT_WRITES)
+
 /** The shortcut writes in this method by index, each with its replacement on the same registers. */
 internal fun Method.shortcutWrites(): Map<Int, String> {
     val writes = linkedMapOf<Int, String>()
     for ((index, instruction) in implementation?.instructions?.toList().orEmpty().withIndex()) {
         if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) continue
-        val helper = SHORTCUT_WRITES[(instruction as ReferenceInstruction).reference.toString()] ?: continue
+        val helper = shortcutWriteCalls[(instruction as ReferenceInstruction).reference] ?: continue
         writes[index] = when (instruction) {
             is RegisterRangeInstruction ->
                 "invoke-static/range {v${instruction.startRegister} .. v${instruction.startRegister + instruction.registerCount - 1}}, $helper"

@@ -1,0 +1,1808 @@
+/*
+ * Forked from:
+ * https://github.com/andrewliang25/morphe-patches/blob/5db2e57e133aede5297c48b419168cf30fd89953/extensions/extension/src/main/java/app/andrewliang/extension/MediaDownload.java
+ * Copyright 2026 Andrew Liang (GPL-3.0).
+ *
+ * Modified for xboyrex (Facebook), 2026.
+ * Modified for xboyrex (Instagram), 2026.
+ */
+package app.morphe.extension.suite.instagram.download;
+
+import android.content.Context;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.instagram.settings.Settings;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.DiagnosticCategory;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+
+/**
+ * Saves a photo or a video from the addresses the app already holds, without asking the app to do
+ * it.
+ *
+ * <p>This is xboyrex's MediaDownload without its Facebook hooks. What a hook read out of the
+ * app (the single files a post names, the DASH manifest its player streams, who posted it) is
+ * handed in as plain values: a list of {@link Rendition}s, the manifest's text or null, and
+ * {@link PostDetails} for the file name. So the hook that reads an Instagram reel's
+ * {@code video_versions} and {@code video_dash_manifest} only has to call {@link #saveVideo}, and
+ * everything after that (the pick against the Download quality, the join of a DASH picture and its
+ * sound, the checks on every address, the gallery row, the notification with Cancel, the toast at
+ * the end) is here and app-agnostic.
+ *
+ * <p>The caller hands over the item that was tapped, and nothing else. There is deliberately
+ * <b>no static holding the last address seen</b>. Meta's apps prepare the next reels while the
+ * current one plays, and anything remembered rather than passed in saves the wrong video and still
+ * reports success.
+ *
+ * <p>No switch is read here. The patch that calls in owns its switch and checks it before it calls;
+ * the Download quality, the folder, the file name and Saves other apps can open are read per save.
+ *
+ * <p>Every step goes to the diagnostic report under Downloads, and to logcat as
+ * {@code morphe: MediaSave}. Addresses are logged as kind of file and quality only.
+ */
+public final class MediaSave {
+
+    private MediaSave() {}
+
+    /** The source every save event carries in the diagnostic report. */
+    static final String SOURCE = "MediaSave";
+
+    /** A step of a save, always kept: a save is rare and each one is worth a line. */
+    static void info(Logger.LogMessage message) {
+        Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, message);
+    }
+
+    /** A save that ended without a file, or a step that failed. */
+    static void failure(Logger.LogMessage message, Throwable cause) {
+        Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, message, cause);
+    }
+
+    /** A guard against a rapid tap, not a work queue. */
+    private static final int MAX_IN_FLIGHT = 3;
+
+    private static final AtomicInteger IN_FLIGHT = new AtomicInteger();
+
+    /** Saves still running, and Download all requests waiting their turn. A test waits on this for the ones it started. */
+    static int savesInFlight() {
+        synchronized (WAITING) {
+            return IN_FLIGHT.get() + WAITING.size() + handingOver;
+        }
+    }
+
+    /**
+     * Download all requests waiting for the one saving now, in the order they were asked for
+     * (#115). Each post's pages are all saved before the next post's first, instead of two posts
+     * running side by side and mixing in the gallery. At most this many wait.
+     */
+    static final int MAX_WAITING = 10;
+
+    private static final ArrayDeque<BooleanSupplier> WAITING = new ArrayDeque<>();
+
+    /** Whether a Download all holds the turn: it's saving, or the next one is being started. */
+    private static boolean batchTurn;
+
+    /** Requests taken off the line whose save isn't counted in flight yet, so a test never sees none. */
+    private static int handingOver;
+
+    /** Download all requests waiting their turn. */
+    static int batchesWaiting() {
+        synchronized (WAITING) {
+            return WAITING.size();
+        }
+    }
+
+    /** A batch is one in-flight save, with this many ordered pages at most. */
+    public static final int MAX_BATCH_PAGES = 32;
+
+    /** Plain values read on the tap. No Instagram object or Activity survives into the worker. */
+    public static final class Item {
+        final boolean video;
+        final List<Rendition> renditions;
+        final String manifest;
+        final PostDetails details;
+        /** A photo page built into a video with the post's music, else null. */
+        final MusicVideo.Music music;
+        final Rendition picture;
+
+        public Item(boolean video, List<Rendition> renditions, String manifest, PostDetails details) {
+            this(video, renditions, manifest, details, null, null);
+        }
+
+        /** A photo page saved as a video: [picture] held for [music]'s part of the track (#78). */
+        static Item musicVideo(Rendition picture, MusicVideo.Music music, PostDetails details) {
+            return new Item(true, Collections.emptyList(), null, details, music, picture);
+        }
+
+        private Item(boolean video, List<Rendition> renditions, String manifest, PostDetails details,
+                MusicVideo.Music music, Rendition picture) {
+            this.music = music;
+            this.picture = picture;
+            this.video = video;
+            this.renditions = Collections.unmodifiableList(usable(renditions));
+            this.manifest = video ? manifest : null;
+            this.details = details == null ? PostDetails.NONE : details.snapshot();
+        }
+    }
+
+    /**
+     * Each selected page ends exactly once. Cancelled and unattempted pages count as skipped, and
+     * pages Skip what's already saved passed over count as skipped and as [already].
+     */
+    public static final class BatchResult {
+        public final int saved;
+        public final int failed;
+        public final int skipped;
+        public final int lower;
+        /** Of [lower], the saves that fell back for want of free storage (#348). */
+        public final int lowStorage;
+        public final boolean cancelled;
+        /** Of [skipped], the pages left out because they were saved before (#150). */
+        public final int already;
+
+        BatchResult(int saved, int failed, int skipped, int lower, boolean cancelled) {
+            this(saved, failed, skipped, lower, cancelled, 0);
+        }
+
+        BatchResult(int saved, int failed, int skipped, int lower, boolean cancelled, int already) {
+            this(saved, failed, skipped, lower, 0, cancelled, already);
+        }
+
+        BatchResult(int saved, int failed, int skipped, int lower, int lowStorage, boolean cancelled, int already) {
+            this.saved = saved;
+            this.failed = failed;
+            this.skipped = skipped;
+            this.lower = lower;
+            this.lowStorage = lowStorage;
+            this.cancelled = cancelled;
+            this.already = already;
+        }
+
+        String message(Context application) {
+            String text = cancelled
+                    ? L10n.f(application, "Carousel canceled. Saved %1$d. Failed %2$d. Skipped %3$d.", saved, failed, skipped)
+                    : L10n.f(application, "Saved %1$d. Failed %2$d. Skipped %3$d.", saved, failed, skipped);
+            if (lower > 0) text += "\n" + L10n.f(application, "%1$d saved in lower quality than on Instagram.", lower);
+            if (lowStorage > 0) {
+                text += "\n" + L10n.f(application, "%1$d of them because storage is low.", lowStorage);
+            }
+            if (already > 0) {
+                text += "\n" + L10n.f(application,
+                        "Already saved %1$d. Download again within 30 seconds for those.", already);
+            }
+            return text;
+        }
+    }
+
+    /**
+     * Saves a bounded snapshot in order, with one worker, Cancel and durable logical-job marker.
+     * Null entries are skipped. Quality and compatibility choices are frozen for the whole batch
+     * when it starts. The optional completion runs after cleanup, including the terminal marker and
+     * in-flight slot. While another batch is saving, this one waits its turn and starts when that
+     * one ends. Answers true when it started, is waiting, or said why it can't wait (a full line),
+     * and false when it couldn't start.
+     */
+    public static boolean saveBatch(Context context, List<Item> pages, Consumer<BatchResult> completion) {
+        try {
+            if (pages == null || pages.isEmpty()) return false;
+            if (pages.size() > MAX_BATCH_PAGES) {
+                if (context != null) Feedback.show(context, L10n.f(context,
+                        "Not saved: a carousel can have at most %1$d pages", MAX_BATCH_PAGES), true);
+                return false;
+            }
+            List<Item> snapshot = new ArrayList<>(pages);
+            // Check the copy too, if the caller changed its list while it was being read.
+            if (snapshot.size() > MAX_BATCH_PAGES) {
+                if (context != null) Feedback.show(context, L10n.f(context,
+                        "Not saved: a carousel can have at most %1$d pages", MAX_BATCH_PAGES), true);
+                return false;
+            }
+            if (snapshot.isEmpty()) return false;
+            Context application = ready(context);
+            if (application == null) return false;
+            // Read on the tap: the account in front now is the one asking, even for a save that waits.
+            String owner = DownloadHistory.ownerIfOn();
+            synchronized (WAITING) {
+                if (batchTurn) {
+                    if (WAITING.size() >= MAX_WAITING) {
+                        info(() -> "carousel not queued: " + MAX_WAITING + " already waiting");
+                        Feedback.show(application, L10n.f(application, "Not saved: %1$d posts are already waiting", MAX_WAITING), true);
+                        return true;
+                    }
+                    WAITING.add(() -> {
+                        // Whoever asked has moved on, so a waiting save that can't start says so itself.
+                        boolean started = startBatch(application, snapshot, owner, completion);
+                        if (!started) Feedback.show(application, L10n.t(application, "Download failed"), true);
+                        return started;
+                    });
+                    final int ahead = WAITING.size();
+                    info(() -> "carousel queued, " + ahead + " waiting");
+                    Feedback.show(application, L10n.t(application, "Queued. It starts once the post before it is saved."), true);
+                    return true;
+                }
+                batchTurn = true;
+            }
+            if (startBatch(application, snapshot, owner, completion)) return true;
+            nextBatch();
+            return false;
+        } catch (Throwable failure) {
+            failure(() -> "the carousel save could not start", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Starts the next waiting Download all, or gives up the turn when none waits. One that can't
+     * start says so and the one after it gets the turn.
+     */
+    private static void nextBatch() {
+        while (true) {
+            BooleanSupplier next;
+            synchronized (WAITING) {
+                next = WAITING.poll();
+                if (next == null) {
+                    batchTurn = false;
+                    return;
+                }
+                handingOver++;
+            }
+            boolean started;
+            try {
+                started = next.getAsBoolean();
+            } catch (Throwable failure) {
+                failure(() -> "a waiting carousel could not start", failure);
+                started = false;
+            } finally {
+                synchronized (WAITING) {
+                    handingOver--;
+                }
+            }
+            if (started) return;
+        }
+    }
+
+    /**
+     * Starts saving [snapshot] now and answers whether it started. [owner] is the account part of
+     * the history's keys ({@link DownloadHistory#owner}) read when it was asked for, or null when
+     * Skip what's already saved was off then: pages saved before are passed over only with it.
+     */
+    private static boolean startBatch(Context application, List<Item> snapshot, String owner,
+            Consumer<BatchResult> completion) {
+        try {
+            DownloadQuality quality = quality();
+            boolean compatible = compatibleSaves();
+            boolean convert = convertSaves();
+            BatchResult[] outcome = new BatchResult[1];
+            List<String> passedOver = new ArrayList<>();
+            // The pages the check let through, each held until the carousel ends.
+            List<String> held = new ArrayList<>();
+            boolean started = launch(application, false, snapshot.size(), save -> {
+                int saved = 0, failed = 0, skipped = 0, lower = 0, lowStorage = 0, already = 0;
+                boolean cancelled = false;
+                for (int index = 0; index < snapshot.size(); index++) {
+                    if (save.cancelled()) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    }
+                    Item page = snapshot.get(index);
+                    if (page == null) { skipped++; continue; }
+                    String key = DownloadHistory.key(owner, page.details,
+                            page.video ? DownloadHistory.Kind.VIDEO : DownloadHistory.Kind.PHOTO);
+                    if (DownloadHistory.saved(application, key)) {
+                        skipped++;
+                        already++;
+                        passedOver.add(key);
+                        final int number = index + 1;
+                        info(() -> "carousel page " + number + " skipped: already saved");
+                        continue;
+                    }
+                    if (key != null) held.add(key);
+                    save.page(index + 1, page.video);
+                    if (save.cancelled()) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    }
+                    Downloader.Result result;
+                    MediaStoreWriter writer = null;
+                    try {
+                        observeDetails(page.details);
+                        writer = new MediaStoreWriter(application, page.video, page.details);
+                        Job job = page.music != null
+                                ? (into, progress) -> MusicVideo.save(application, page.picture, page.music, into,
+                                        policyFor(application), cap(), progress)
+                                : page.manifest == null
+                                ? singleJob(application, page.renditions, page.video, !page.video, quality)
+                                : (into, progress) -> saveDash(application, "the carousel page", page.manifest,
+                                        page.renditions, into, progress, quality, compatible, convert);
+                        result = job == null ? Downloader.Result.fail(Downloader.Status.BUILD_ERROR, "nothing to save")
+                                : job.run(writer, save);
+                    } catch (Throwable failure) {
+                        failure(() -> "a carousel page could not be saved", failure);
+                        result = Downloader.Result.fail(Downloader.Status.BUILD_ERROR, "the page could not be saved");
+                    }
+                    final int number = index + 1;
+                    final Downloader.Result ended = result;
+                    info(() -> "carousel page " + number + " finished: " + ended);
+                    if (result.ok()) {
+                        saved++;
+                        if (result.lower) lower++;
+                        if (result.lower && result.lowStorage) lowStorage++;
+                        DownloadHistory.record(application, key, writer, page.details);
+                        PostMetadata.tag(application, writer, page.details);
+                    } else if (result.status == Downloader.Status.CANCELLED) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    } else failed++;
+                }
+                outcome[0] = new BatchResult(saved, failed, skipped, lower, lowStorage, cancelled || save.cancelled(), already);
+            }, save -> {
+                BatchResult result = outcome[0] != null ? outcome[0]
+                        : save.cancelled() ? new BatchResult(0, 0, snapshot.size(), 0, true)
+                        : new BatchResult(0, snapshot.size(), 0, 0, false);
+                outcome[0] = result;
+                DownloadHistory.release(held);
+                // Asked again within the time the message gives, the pages passed over are saved.
+                DownloadHistory.offerAgain(passedOver);
+                // The settings can show the complete outcome when Android clips a long toast.
+                SaveControl.batchFinished(result);
+                info(() -> "carousel finished: saved " + result.saved + ", failed " + result.failed
+                        + ", skipped " + result.skipped + (result.already > 0 ? ", already saved " + result.already : "")
+                        + (result.cancelled ? ", cancelled" : ""));
+                Feedback.show(application, result.message(application), true);
+            }, () -> {
+                try {
+                    if (completion != null) completion.accept(outcome[0]);
+                } finally {
+                    nextBatch();
+                }
+            }) != null;
+            return started;
+        } catch (Throwable failure) {
+            failure(() -> "the carousel save could not start", failure);
+            return false;
+        }
+    }
+
+    /**
+     * One single file of a photo or a video as the app lists it: its address and, when the app
+     * says, its size and bitrate. Instagram's {@code video_versions} and
+     * {@code image_versions2.candidates} carry the width and height beside each address.
+     *
+     * <p>A size the app states outranks whatever the address hints at, since an address's marker
+     * is a guess read out of its name. 0 means unknown, and then the address is read the way it
+     * always was ({@link RenditionPicker#qualityOf(String)}).
+     */
+    public static final class Rendition {
+        /** The address, fetched as it is. Checked by {@link MediaUrlPolicy} before any byte moves. */
+        public final String url;
+        /** Width and height in pixels, or 0 when the app doesn't say. */
+        public final int width;
+        public final int height;
+        /** Bits per second, or 0 when the app doesn't say. Breaks a tie between two of one size. */
+        public final long bitrate;
+
+        public Rendition(String url, int width, int height, long bitrate) {
+            this.url = url;
+            this.width = Math.max(0, width);
+            this.height = Math.max(0, height);
+            this.bitrate = Math.max(0L, bitrate);
+        }
+
+        /** An address and nothing else about it. */
+        public static Rendition of(String url) {
+            return new Rendition(url, 0, 0, 0);
+        }
+
+        /** The short side the app states, in the {@code 720p} unit, or 0 when it states no size. */
+        int declaredShortSide() {
+            return width > 0 && height > 0 ? Math.min(width, height) : 0;
+        }
+
+        @Override
+        public String toString() {
+            // Never the address: a rendition can end up in a diagnostic line.
+            return "Rendition(" + (width > 0 && height > 0 ? width + "x" + height : "size unknown")
+                + (bitrate > 0 ? ", " + (bitrate / 1000) + "kbps" : "") + ")";
+        }
+    }
+
+    // ---------------------------------------------------------------- entry points
+
+    /**
+     * Save a video. [renditions] are the single files the app lists for it, in any order, and
+     * [manifest] is its DASH manifest as text, or null. The manifest goes first when it lists a
+     * better track than the single files, as it usually does; the single files are the fallback, and
+     * the whole answer when there is no manifest. A picture is never saved in place of a video, so a
+     * thumbnail among [renditions] can't look like a successful save. [details] names the file, or
+     * null. [context] may be an Activity: only its application is kept.
+     *
+     * @return whether a save started. {@code false} means nothing was saved, and the report says
+     *     why. Never throws.
+     */
+    public static boolean saveVideo(Context context, List<Rendition> renditions, String manifest,
+            PostDetails details) {
+        try {
+            List<Rendition> usable = usable(renditions);
+            if (manifest != null) return beginDash(context, "the video", manifest, usable, details);
+            return begin(context, usable, true, false, details);
+        } catch (Throwable t) {
+            // Throwable and not Exception: a LinkageError that reaches the app's click handler
+            // ends the app.
+            failure(() -> "the video save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save a photo: the largest of [renditions], the candidates the app lists for one picture, by
+     * the sizes it states ({@link #pictureOf}). [details] names and files it as a video's do, or
+     * null: without Name saves by account and post time, a photo's name is
+     * {@link FileNameTemplate#PHOTO_PREFIX} and the time.
+     *
+     * @return whether a save started. Never throws.
+     */
+    public static boolean savePhoto(Context context, List<Rendition> renditions, PostDetails details) {
+        try {
+            return begin(context, usable(renditions), false, true, details);
+        } catch (Throwable t) {
+            failure(() -> "the photo save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save whichever an item is, for a caller that can't tell a photo from a video, such as a story
+     * read by value: a video when [manifest] is there or any of [renditions] is one, else the best
+     * picture.
+     *
+     * @return whether a save started. Never throws.
+     */
+    public static boolean saveItem(Context context, List<Rendition> renditions, String manifest,
+            PostDetails details) {
+        try {
+            List<Rendition> usable = usable(renditions);
+            if (manifest != null) return beginDash(context, "the item", manifest, usable, details);
+            return begin(context, usable, true, true, details);
+        } catch (Throwable t) {
+            failure(() -> "the save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save a picture by the sizes the app states for it: the largest of [renditions] on Meta's
+     * media servers. For a picture whose address names its size, such as a profile picture, which
+     * {@link #savePhoto}'s ranking takes for a thumbnail's and ranks below any that doesn't. A rendition with no
+     * stated size loses to any with one, and between two with none the size the address names
+     * decides, so a list that starts with its smallest doesn't save that (#155).
+     *
+     * @return whether a save started. Never throws.
+     */
+    public static boolean savePictureBySize(Context context, List<Rendition> renditions, PostDetails details) {
+        return savePictureBySize(context, renditions, details, null);
+    }
+
+    /**
+     * As above, then hands [published] the gallery entry the save published, on the save's own
+     * thread, once the file is there. Not called when the save fails or is cancelled.
+     */
+    public static boolean savePictureBySize(Context context, List<Rendition> renditions, PostDetails details,
+            Consumer<String> published) {
+        try {
+            Context safe = ready(context);
+            if (safe == null) return false;
+            List<Rendition> found = metaOnly(usable(renditions));
+            Rendition chosen = null;
+            for (Rendition rendition : found) {
+                if (chosen == null || biggerPicture(rendition, chosen)) chosen = rendition;
+            }
+            if (chosen == null) {
+                failure(() -> "nothing to save: no picture address on Meta's media servers", null);
+                return false;
+            }
+            saving(false, chosen, found, null, Dash.SINGLE_FILE, null);
+            return startPicture(safe, details, fileJob(safe, chosen.url, Downloader.Kind.IMAGE), published) != null;
+        } catch (Throwable t) {
+            failure(() -> "the picture save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save a video's cover, the sizes [cover] lists of it, as {@link #savePictureBySize} does. When
+     * the cover is the video's first frame and [videos] or [manifest] has a larger picture, the
+     * frame is taken from that video instead ({@link CoverFrame}, #214), and the largest still is
+     * saved should that fail. [videos] and [manifest] may be null.
+     *
+     * @return whether a save started. Never throws.
+     */
+    static boolean saveCover(Context context, StoryDownload.Cover cover, List<Rendition> videos, String manifest,
+            PostDetails details) {
+        try {
+            Rendition still = null;
+            List<Rendition> stills = metaOnly(usable(cover.sizes));
+            for (Rendition rendition : stills) {
+                if (still == null || biggerPicture(rendition, still)) still = rendition;
+            }
+            Rendition video = still == null || !cover.firstFrame() ? null : CoverFrame.source(videos, manifest, still);
+            if (video == null) return savePictureBySize(context, cover.sizes, details);
+            return saveFrame(context, video, still, stills, details, FamilyNames.REEL_DOWNLOAD, "cover");
+        } catch (Throwable t) {
+            failure(() -> "the cover save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save the picture of a story that has a video, for Download as photo. Instagram lists it at 640
+     * wide most of the time while the video is 1080 (#214), so when [videos] or [manifest] has a
+     * larger picture of the same shape, its first frame saves instead, and the largest of [sizes]
+     * should that fail. Of another shape the video isn't this picture: a photo with music can sit on
+     * a background. [videos] and [manifest] may be null.
+     *
+     * @return whether a save started. Never throws.
+     */
+    static boolean saveStoryPicture(Context context, List<Rendition> sizes, List<Rendition> videos, String manifest,
+            PostDetails details) {
+        try {
+            List<Rendition> found = metaOnly(usable(sizes));
+            Rendition still = pictureOf(found);
+            Rendition video = still == null ? null : CoverFrame.sameShapeSource(videos, manifest, still);
+            if (video == null) return savePhoto(context, sizes, details);
+            return saveFrame(context, video, still, found, details, FamilyNames.STORY_DOWNLOAD, "story picture");
+        } catch (Throwable t) {
+            failure(() -> "the story picture save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * Save [video]'s first frame in place of [still], or [still] when the frame fails. [name] is what
+     * the report calls the picture, and [family] what the frame is counted under.
+     */
+    private static boolean saveFrame(Context context, Rendition video, Rendition still, List<Rendition> sizes,
+            PostDetails details, String family, String name) {
+        Context safe = ready(context);
+        if (safe == null) return false;
+        info(() -> "the " + name + " is the first frame, taking it from the video at " + video.width + "x" + video.height
+            + " over the still at " + still.width + "x" + still.height
+            + ", from " + sizes.size() + " candidate(s): " + picturesOf(sizes));
+        Job stillJob = fileJob(safe, still.url, Downloader.Kind.IMAGE);
+        return startPicture(safe, details, (writer, progress) -> {
+            Downloader.Result result = CoverFrame.save(safe, video, writer, policyFor(safe), cap(), progress, family);
+            if (result.ok() || result.status == Downloader.Status.CANCELLED) return result;
+            HookStatus.counted(family, CoverFrame.FRAME_FAILED);
+            failure(() -> "the " + name + " frame ended with " + result + ", saving the still as it is", null);
+            return stillJob.run(writer, progress);
+        }) != null;
+    }
+
+    /**
+     * Save a sound recording, such as a voice message, from [url] on Meta's media servers. It goes
+     * to the phone's audio files ({@link MediaStoreWriter#audioDirectory}) as an M4A file, named as
+     * a photo is, by [details] when Name saves by account and post time is on and it knows enough,
+     * or else {@link MediaStoreWriter#AUDIO_PREFIX} and the time. [details] may be null.
+     *
+     * @return whether a save started. Never throws.
+     */
+    public static boolean saveAudio(Context context, String url, PostDetails details) {
+        try {
+            Context safe = ready(context);
+            if (safe == null) return false;
+            List<Rendition> found = url == null ? Collections.emptyList()
+                : metaOnly(usable(Collections.singletonList(Rendition.of(url))));
+            if (found.isEmpty()) {
+                failure(() -> "nothing to save: no recording address on Meta's media servers", null);
+                return false;
+            }
+            String address = found.get(0).url;
+            info(() -> "saving a recording, " + describe(address));
+            return startAudio(safe, details, fileJob(safe, address, Downloader.Kind.AUDIO)) != null;
+        } catch (Throwable t) {
+            failure(() -> "the recording save could not start", t);
+            return false;
+        }
+    }
+
+    /**
+     * The single file a save of [renditions] would fetch: for a [video] the one that suits the
+     * Download quality setting, and for a picture the largest. Only addresses on Meta's media
+     * servers count. Null when none does. A video save can still take a better track from its
+     * manifest; this is the file that has an address of its own.
+     */
+    static Rendition picked(List<Rendition> renditions, boolean video) {
+        List<Rendition> found = metaOnly(usable(renditions));
+        return video ? RenditionPicker.pickVideo(found, quality()) : pictureOf(found);
+    }
+
+    /**
+     * The picture a photo save fetches of [renditions], all on Meta's media servers: the one that
+     * states the most pixels. They're the sizes of the one picture on screen, so what the app states
+     * beats what an address looks like: a 3072x4096 whose address names its size is the photo, not a
+     * thumbnail, and 1080x1440 beats its own 1080x1080 crop (#500). An address that names less than
+     * its stated size is a thumbnail, though, and one that states nothing can't be weighed, so
+     * {@link RenditionPicker#pickImage}'s pick stands when it states nothing. When every address
+     * names its size, as on a phone whose screen is 720 pixels wide, the largest saves, where the
+     * save once failed with nothing to save (#261). Null when there's no picture.
+     */
+    static Rendition pictureOf(List<Rendition> renditions) {
+        Rendition pick = RenditionPicker.pickImage(renditions);
+        if (pick != null && pixels(pick) == 0) return pick;
+        Rendition image = pick;
+        for (Rendition rendition : renditions) {
+            if (rendition == null) continue;
+            boolean sized = RenditionPicker.namesASize(rendition.url);
+            if (!sized && RenditionPicker.imageTier(rendition.url) == RenditionPicker.TIER_NONE) continue;
+            if (pick != null && sized && RenditionPicker.qualityOf(rendition.url) < rendition.declaredShortSide()) continue;
+            if (image == null || biggerPicture(rendition, image)) image = rendition;
+        }
+        return image;
+    }
+
+    private static long pixels(Rendition rendition) {
+        return (long) rendition.width * rendition.height;
+    }
+
+    /**
+     * Whether [a] is a bigger picture than [b] for {@link #savePictureBySize}: by the sizes the app
+     * states, and when neither states one, by the size each address names. A tie keeps [b].
+     */
+    static boolean biggerPicture(Rendition a, Rendition b) {
+        long stated = pixels(a) - pixels(b);
+        if (stated != 0) return stated > 0;
+        return pixels(a) == 0 && RenditionPicker.qualityOf(a.url) > RenditionPicker.qualityOf(b.url);
+    }
+
+    // ---------------------------------------------------------------- internals
+
+    /** The renditions whose address {@code HttpURLConnection} can fetch at all. Never null. */
+    private static List<Rendition> usable(List<Rendition> renditions) {
+        List<Rendition> usable = new ArrayList<>();
+        if (renditions == null) return usable;
+        for (Rendition rendition : renditions) {
+            if (rendition != null && RenditionPicker.isHttpUrl(rendition.url)) usable.add(rendition);
+        }
+        return usable;
+    }
+
+    /**
+     * Pick the best address of those found and fetch it.
+     *
+     * <p>This ranks the item as a video when [videos] and as a picture when [images], and keeps a
+     * video when there is one. It doesn't ask the app what the item is: an enum constant mistaken
+     * for another saves the wrong file without a word. [details] is what the save knows of the post
+     * for the file name.
+     */
+    private static boolean begin(Context context, List<Rendition> found, boolean videos, boolean images,
+            PostDetails details) {
+        Context safe = ready(context);
+        if (safe == null) return false;
+        DownloadQuality quality = quality();
+        Job job = singleJob(safe, found, videos, images, quality);
+        return job != null && start(safe, videos && RenditionPicker.pickVideo(metaOnly(found), quality) != null,
+                details, job) != null;
+    }
+
+    /** The existing single-file selection and validation, shared by individual and batch saves. */
+    private static Job singleJob(Context application, List<Rendition> found, boolean videos, boolean images,
+            DownloadQuality quality) {
+        if (found == null || found.isEmpty()) {
+            failure(() -> "nothing to save: the item carried no address", null);
+            return null;
+        }
+
+        // Only Meta's media servers are candidates, so a foreign address can't outrank a real one.
+        final int count = found.size();
+        List<Rendition> renditions = metaOnly(found);
+        if (renditions.isEmpty()) {
+            failure(() -> "nothing to save: none of the " + count + " addresses was on Meta's media servers", null);
+            return null;
+        }
+
+        Rendition video = videos ? RenditionPicker.pickVideo(renditions, quality) : null;
+        Rendition image = images && video == null ? pictureOf(renditions) : null;
+
+        boolean isVideo = video != null;
+        Rendition chosen = isVideo ? video : image;
+
+        if (chosen == null) {
+            final int candidates = renditions.size();
+            final String kind = videos && images ? "a file" : videos ? "a video file" : "a picture";
+            failure(() -> "nothing to save: none of the " + candidates + " addresses was " + kind, null);
+            return null;
+        }
+
+        saving(isVideo, chosen, renditions, quality, Dash.SINGLE_FILE, null);
+        Downloader.Kind kind = isVideo ? Downloader.Kind.VIDEO : Downloader.Kind.IMAGE;
+        return fileJob(application, chosen.url, kind, quality);
+    }
+
+    /**
+     * The report line of a single file's save: [chosen] and every candidate of [renditions]. Every
+     * one, so a saved file that is smaller than expected can be told apart from a ranking that chose
+     * badly. Each as its kind of file and quality, or a picture's whole stated size, never its name
+     * or address: a whole address is a signed, working handle to the user's content, a CDN file name
+     * carries the object's id, and the report is pasted into public issues. [better] is the
+     * manifest's picture the file is below, or null.
+     */
+    private static void saving(boolean isVideo, Rendition chosen, List<Rendition> renditions, DownloadQuality quality,
+            Dash dash, DashManifest.Track better) {
+        StringBuilder all = new StringBuilder();
+        if (isVideo) {
+            for (Rendition rendition : renditions) {
+                if (all.length() > 0) all.append(", ");
+                all.append(describe(rendition));
+            }
+        } else {
+            all.append(picturesOf(renditions));
+        }
+
+        final int candidates = renditions.size();
+        info(() -> "saving " + (isVideo ? "video" : "image")
+            + " " + (isVideo ? describe(chosen) : describePicture(chosen))
+            + " from " + candidates + " candidate(s): " + all
+            + (isVideo ? qualityNote(quality) + singleFileNote(dash) + belowNote(better) : ""));
+    }
+
+    /** Every one of [renditions] by {@link #describePicture}, for a report line. */
+    private static String picturesOf(List<Rendition> renditions) {
+        StringBuilder all = new StringBuilder();
+        for (Rendition rendition : renditions) {
+            if (all.length() > 0) all.append(", ");
+            all.append(describePicture(rendition));
+        }
+        return all.toString();
+    }
+
+    /** What the report adds to a save line whose picture is below the manifest's [better], or nothing. */
+    private static String belowNote(DashManifest.Track better) {
+        return better == null ? "" : ", below the manifest's " + better + ", the best it offers within the Download quality";
+    }
+
+    /**
+     * What the report adds to a save line when Never save AV1 video (#379) passed over an AV1
+     * picture of [tracks] larger than the [saved] one within [quality], or nothing. So a report
+     * shows the switch, not the phone or the quality, is why a smaller picture was saved.
+     */
+    private static String av1Note(boolean skipAv1, List<DashManifest.Track> tracks, int saved, DownloadQuality quality) {
+        if (!skipAv1) return "";
+        DashManifest.Track passed = better(av1Split(tracks, true), saved, quality);
+        return passed == null ? "" : ", passing over the manifest's " + passed + " as Never save AV1 video is on";
+    }
+
+    /** [tracks] without its AV1 pictures: what a save with Never save AV1 video on is weighed against (#379). */
+    private static List<DashManifest.Track> withoutAv1(List<DashManifest.Track> tracks) {
+        return av1Split(tracks, false);
+    }
+
+    /** The AV1 pictures of [tracks] when [av1], else everything but them. Sound tracks stay with the latter. */
+    private static List<DashManifest.Track> av1Split(List<DashManifest.Track> tracks, boolean av1) {
+        List<DashManifest.Track> kept = new ArrayList<>(tracks.size());
+        for (DashManifest.Track track : tracks) {
+            if (track.codecs.startsWith("av01") == av1) kept.add(track);
+        }
+        return kept;
+    }
+
+    /**
+     * What the report adds to a save line when Never save HDR video (#352) passed over an HDR
+     * picture of [tracks] larger than the [saved] one within [quality], or nothing.
+     */
+    private static String hdrNote(boolean skipHdr, List<DashManifest.Track> tracks, int saved, DownloadQuality quality) {
+        if (!skipHdr) return "";
+        DashManifest.Track passed = better(hdrSplit(tracks, true), saved, quality);
+        return passed == null ? "" : ", passing over the manifest's " + passed + " as Never save HDR video is on";
+    }
+
+    /** [tracks] without its HDR pictures: what a save with Never save HDR video on picks from (#352). */
+    private static List<DashManifest.Track> withoutHdr(List<DashManifest.Track> tracks) {
+        return hdrSplit(tracks, false);
+    }
+
+    /** The HDR pictures of [tracks] when [hdr], else everything but them. Sound tracks stay with the latter. */
+    private static List<DashManifest.Track> hdrSplit(List<DashManifest.Track> tracks, boolean hdr) {
+        List<DashManifest.Track> kept = new ArrayList<>(tracks.size());
+        for (DashManifest.Track track : tracks) {
+            if (track.hdr == hdr) kept.add(track);
+        }
+        return kept;
+    }
+
+    /**
+     * What "has no track to save" adds when a switch is why: the switches that took a track out of
+     * [tracks], leaving [picks], or nothing.
+     */
+    private static String switchesNote(List<DashManifest.Track> tracks, List<DashManifest.Track> picks,
+            boolean skipAv1, boolean skipHdr) {
+        boolean av1 = skipAv1 && withoutAv1(picks).size() < picks.size();
+        boolean hdr = skipHdr && picks.size() < tracks.size();
+        if (av1 && hdr) return " with Never save AV1 video and Never save HDR video on";
+        if (av1) return " with Never save AV1 video on";
+        if (hdr) return " with Never save HDR video on";
+        return "";
+    }
+
+    /**
+     * The largest picture of [tracks] that fits [quality] and is larger than a saved one of quality
+     * [saved], whatever its format, or null: the picture the app's player can show that the save
+     * didn't keep. AV1 on a phone with no AV1 decoder is one, and so is any picture of a DASH save
+     * that failed and fell back to the single file. For the smallest file there's never one, and a
+     * saved quality nobody stated has none either. Purely informational: this doesn't ask whether
+     * the phone could have written [better], only whether the manifest offered it.
+     * {@link #noticeablyLower} is what decides whether the person saving is told.
+     */
+    static DashManifest.Track better(List<DashManifest.Track> tracks, int saved, DownloadQuality quality) {
+        DashManifest.Track better = null;
+        for (DashManifest.Track track : tracks) {
+            if (!track.isVideo()) continue;
+            int picture = picture(track, quality);
+            if (saved <= 0 || picture <= saved || picture > quality.ceiling) continue;
+            if (better == null || picture > picture(better, quality)) better = track;
+        }
+        return better;
+    }
+
+    /** A track's quality as [quality] weighs it: its short side at the best, else its label. */
+    static int picture(DashManifest.Track track, DownloadQuality quality) {
+        return quality == DownloadQuality.BEST ? track.shortSide() : track.quality();
+    }
+
+    /**
+     * Whether a saved picture of [saved] pixels on its short side is far enough below [best], the
+     * manifest's best within the Download quality, that the person saving should be told. Below
+     * 720, or below two thirds of [best]: a 720p save whose only bigger rendition is a codec nothing
+     * on the phone could turn into a file isn't told, since 720 is what the phone would have saved
+     * either way, but a 360p save with a real 1080p rendition on offer is. The gap is what's judged,
+     * never whether the phone could write [best]: {@link #better} already found it regardless of
+     * that, and the report names it either way.
+     */
+    static boolean noticeablyLower(int saved, int best) {
+        return saved > 0 && best > saved && (saved < 720 || (long) saved * 3 < (long) best * 2);
+    }
+
+    /**
+     * The quality the save starting now asks for. Read once per save, when it starts, so a save
+     * already running keeps the one it began with. Never throws: before the settings are ready,
+     * or when they can't be read, it's the best.
+     */
+    static DownloadQuality quality() {
+        try {
+            if (!Utils.settingsReady()) return DownloadQuality.BEST;
+            DownloadQuality chosen = Settings.DOWNLOAD_QUALITY.get();
+            return chosen == null ? DownloadQuality.BEST : chosen;
+        } catch (Throwable t) {
+            return DownloadQuality.BEST;
+        }
+    }
+
+    /** What the report adds to a save line for a quality below the best. */
+    private static String qualityNote(DownloadQuality quality) {
+        return quality == DownloadQuality.BEST ? "" : ", quality setting " + quality.fileValue;
+    }
+
+    /**
+     * Whether the save starting now keeps to files other apps can open
+     * ({@link Settings#DOWNLOAD_COMPATIBLE}, or {@link Settings#DOWNLOAD_CONVERT}, which saves them
+     * at full size). Read when the save starts, like the quality. Never throws: before the settings
+     * are ready, or when they can't be read, it's off.
+     */
+    static boolean compatibleSaves() {
+        try {
+            return Utils.settingsReady() && (Settings.DOWNLOAD_COMPATIBLE.get() || Settings.DOWNLOAD_CONVERT.get());
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether the save starting now converts a full size VP9 or AV1 picture to H.264
+     * ({@link Settings#DOWNLOAD_CONVERT}), which turns on {@link #compatibleSaves} by itself too
+     * (#236). Read when the save starts. Never throws: before the settings are ready, or when they
+     * can't be read, it's off.
+     */
+    static boolean convertSaves() {
+        try {
+            return compatibleSaves() && Settings.DOWNLOAD_CONVERT.get();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether the save starting now passes AV1 tracks over ({@link Settings#DOWNLOAD_NO_AV1}), the
+     * way a phone with no AV1 decoder does (#379). Read when the save starts. Never throws: before
+     * the settings are ready, or when they can't be read, it's off.
+     */
+    static boolean skipsAv1() {
+        try {
+            return Utils.settingsReady() && Settings.DOWNLOAD_NO_AV1.get();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether the save starting now passes HDR tracks over ({@link Settings#DOWNLOAD_NO_HDR}), for
+     * an app that plays them with a yellow or green cast (#352). Read when the save starts. Never
+     * throws: before the settings are ready, or when they can't be read, it's off.
+     */
+    static boolean skipsHdr() {
+        try {
+            return Utils.settingsReady() && Settings.DOWNLOAD_NO_HDR.get();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** What the phone can convert for a save that converts, else null. */
+    private static Predicate<DashManifest.Track> convertible(boolean convert) {
+        return convert ? VideoConvert::canConvert : null;
+    }
+
+    /** What the report adds to a DASH save line whose tracks were kept to what other apps can open. */
+    private static String compatibleNote(boolean compatible) {
+        return compatible ? ", kept to files other apps can open" : "";
+    }
+
+    /**
+     * What the report adds to a DASH save line whose sound is xHE-AAC ({@code mp4a.40.42}).
+     * {@link DashManifest#bestAudio} takes it only when the manifest offers no AAC-LC or HE-AAC, and
+     * some players can't play it.
+     */
+    private static String soundNote(DashManifest.Track audio) {
+        return audio != null && audio.codecs.trim().equals("mp4a.40.42")
+            ? ", the sound is xHE-AAC because the manifest offers no AAC-LC or HE-AAC, and some players can't play xHE-AAC"
+            : "";
+    }
+
+    /**
+     * What the report adds to a single file's save line when saves other apps can open took it over
+     * tracks the manifest would otherwise have saved. The single file's own formats aren't read, so
+     * the line says why it was taken, not what it holds.
+     */
+    private static String singleFileNote(Dash dash) {
+        return dash == Dash.SINGLE_FILE_FOR_OTHER_APPS
+            ? ", taken over the manifest's better tracks, which aren't H.264 with AAC-LC or HE-AAC sound"
+            : "";
+    }
+
+    /** Why a save with a manifest took the single file. */
+    enum Dash {
+        /** As it would with saves other apps can open off. */
+        SINGLE_FILE,
+        /** It's left to the single file because saves other apps can open ruled out the tracks that beat it. */
+        SINGLE_FILE_FOR_OTHER_APPS
+    }
+
+    /** The save of one single file at [url]: the job every save of a single file runs. */
+    static Job fileJob(Context application, String url, Downloader.Kind kind) {
+        return fileJob(application, url, kind, quality());
+    }
+
+    private static Job fileJob(Context application, String url, Downloader.Kind kind, DownloadQuality quality) {
+        return (writer, progress) -> saveFile(application, url, kind, null, Collections.emptyList(), null,
+            quality, writer, progress);
+    }
+
+    /**
+     * One checked file, fetched into the cache and then published. Its work file keeps, with those
+     * of every other running save, to the free space ({@link DashSave#fetchWork}). A saved video's
+     * report line says what the file holds, and [why] when a manifest's tracks were passed over
+     * for it (bounded; null when the file was simply the pick). [offered] is what the person saving
+     * is told against, once the file is down: the saved picture is measured from the file itself,
+     * never guessed from its address, and named in the report whenever it beats what was saved,
+     * whatever wrote it. [writable] is the one track, if any, the phone is known to be able to
+     * write, such as the manifest's own pick passed over for this file: a shortfall against it, by
+     * its measured pixels rather than a label, is flagged without {@link #noticeablyLower}'s
+     * tolerance for a picture nothing could have written, since that excuse doesn't apply here, but
+     * only when the file was actually read back, [writable] itself fits [quality]'s ceiling, and the
+     * gap clears a small pixel margin a rounding or a container quirk could otherwise trip.
+     * [quality] is the setting read when the save began, so a change while a long fetch runs can't
+     * move what this file is judged against.
+     */
+    private static Downloader.Result saveFile(Context application, String url, Downloader.Kind kind, String why,
+            List<DashManifest.Track> offered, DashManifest.Track writable, DownloadQuality quality,
+            MediaStoreWriter writer, Downloader.Progress progress) {
+        java.io.File folder = DashSave.workFolder(application);
+        if (folder == null) return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "no cache folder");
+        java.io.File file = null;
+        try {
+            file = java.io.File.createTempFile(kind.name().toLowerCase(Locale.US), ".part", folder);
+            Downloader.Result fetched = DashSave.fetchWork(url, kind, file, policyFor(application), cap(), progress);
+            if (!fetched.ok()) return fetched;
+            Downloader.Result published = Downloader.publish(file, fetched.mime, writer, progress);
+            boolean lower = false;
+            if (published.ok() && kind == Downloader.Kind.VIDEO) {
+                String holds = DashSave.savedFormat(file);
+                info(() -> "the saved file holds " + holds + (why == null ? "" : ". Saved in place of the manifest's "
+                    + "tracks because " + bounded(why)));
+                if (!offered.isEmpty() || writable != null) {
+                    int savedShortSide = DashSave.savedVideoShortSide(file);
+                    DashManifest.Track better = offered.isEmpty() ? null : better(offered, savedShortSide, quality);
+                    if (better != null) {
+                        final DashManifest.Track shown = better;
+                        info(() -> "the save measures " + savedShortSide + "p, below the manifest's " + shown
+                            + ", the best it offers within the Download quality");
+                        lower = noticeablyLower(savedShortSide, better.shortSide());
+                    }
+                    // A file the phone couldn't read back measures 0, never a shortfall. A track
+                    // above the ceiling isn't a real alternative for this setting, whatever its
+                    // picture. And the compare itself is pixels on both sides: writable.quality()
+                    // is picture()'s label below the best, which an unusually shaped video can
+                    // carry far above what it actually measures. A small gap, kept to 16 pixels,
+                    // is a rounding or a container quirk, not a shortfall worth a nag.
+                    if (!lower && writable != null && quality != DownloadQuality.SMALLEST && savedShortSide > 0
+                            && writable.quality() <= quality.ceiling
+                            && writable.shortSide() - savedShortSide > 16) {
+                        lower = true;
+                    }
+                }
+            }
+            return published.ok() && lower ? published.lower() : published;
+        } catch (Throwable t) {
+            return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "the cache could not hold the file");
+        } finally {
+            DashSave.discard(file);
+        }
+    }
+
+    /** The policy every save a test drives uses in place of the real one. Never set on a phone. */
+    static volatile MediaUrlPolicy policyForTests;
+
+    /**
+     * Meta's address rules, with the lookup fence up only while the socket goes straight to the
+     * answer: no proxy for the address and no VPN on the network. See {@link MediaUrlPolicy}.
+     */
+    static MediaUrlPolicy policyFor(Context application) {
+        MediaUrlPolicy forced = policyForTests;
+        if (forced != null) return forced;
+        return new MediaUrlPolicy(MediaUrlPolicy.DNS, url -> !MediaUrlPolicy.proxied(url) && !onVpn(application));
+    }
+
+    /**
+     * The cap every save a test drives holds its files to in place of the real one, so a test can
+     * reach it with small files. Never set on a phone.
+     */
+    static volatile long capForTests;
+
+    /** The most one save may put in the gallery: {@link Downloader#MAX_BYTES} on a phone. */
+    static long cap() {
+        long forced = capForTests;
+        return forced > 0 ? forced : Downloader.MAX_BYTES;
+    }
+
+    /**
+     * Whether the network a save would use runs through a VPN, a fake-IP proxy client's among
+     * them. Instagram holds ACCESS_NETWORK_STATE. No answer keeps the fence up.
+     */
+    private static boolean onVpn(Context context) {
+        try {
+            android.net.ConnectivityManager manager =
+                (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (manager == null) return false;
+            android.net.Network active = manager.getActiveNetwork();
+            android.net.NetworkCapabilities capabilities = active == null ? null : manager.getNetworkCapabilities(active);
+            return capabilities != null && capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static List<Rendition> metaOnly(List<Rendition> renditions) {
+        List<Rendition> kept = new ArrayList<>();
+        for (Rendition rendition : renditions) {
+            if (MediaUrlPolicy.shapeRefusal(rendition.url) == null) kept.add(rendition);
+        }
+        return kept;
+    }
+
+    /**
+     * Save the best video track and audio track of a DASH manifest, if the video track is larger
+     * than all single files of the item.
+     *
+     * <p>The manifest can list tracks that no single file has. The device joins the two tracks into
+     * one file. If this fails, the save gets the best single file, so the user still gets a file.
+     *
+     * <p>Below the best quality, the track and the single file are each the one that suits the
+     * setting ({@link DashManifest#pickVideo}, {@link RenditionPicker#pickVideo}), and the manifest
+     * is used only when its track suits it better than the file does. On a tie the single file
+     * wins: one fetch and no join.
+     *
+     * <p>With saves other apps can open on ({@link #compatibleSaves}), a known H.264 and AAC-LC or
+     * HE-AAC pair ({@link DashManifest#pick}) wins over the unchecked single file, even if that
+     * file has a higher quality label. A manifest with no such pair leaves the save to the single
+     * file, the app's own MP4, whose formats aren't read here. With no single file either, the save
+     * takes the tracks it would take with the switch off and the report says so, since a file some
+     * apps turn down beats no file.
+     *
+     * <p>All of that happens on the save's own worker. Read on the tap, the manifest held the thread
+     * that draws the app for as long as the parse took. One over {@link DashManifest#withinLimits}
+     * isn't read at all, and the single file is saved.
+     *
+     * @return whether a save started. With a manifest there's always something to try, so only too
+     *     many saves at once stops one. A manifest that turns out to offer nothing, beside no single
+     *     file, then ends as a failed save.
+     */
+    private static boolean beginDash(Context context, String label, String manifest, List<Rendition> renditions,
+            PostDetails details) {
+        Context safe = ready(context);
+        if (safe == null) return false;
+        List<Rendition> candidates = new ArrayList<>(renditions);
+        DownloadQuality quality = quality();
+        boolean compatible = compatibleSaves();
+        boolean convert = convertSaves();
+        return start(safe, true, details, (writer, progress) -> saveDash(safe, label, manifest, candidates, writer,
+                progress, quality, compatible, convert)) != null;
+    }
+
+    /**
+     * {@link #beginDash}'s save, on the worker: the manifest's tracks or the single file. The
+     * quality, compatibility and conversion choices were read on the tap and are passed to every
+     * helper, so a later setting change can't judge the fallback against a different quality.
+     */
+    private static Downloader.Result saveDash(Context application, String label, String manifest,
+            List<Rendition> renditions, MediaStoreWriter writer, Downloader.Progress progress,
+            DownloadQuality quality, boolean compatible, boolean convert) {
+        if (!DashManifest.withinLimits(manifest)) {
+            info(() -> "the manifest of " + label + " is over the limits a save reads (" + manifest.length()
+                + " characters), saving the single file");
+            return saveSingleVideo(application, renditions, Collections.emptyList(), Dash.SINGLE_FILE,
+                "the manifest is over the limits a save reads", null, quality, writer, progress);
+        }
+        List<DashManifest.Track> tracks = new ArrayList<>();
+        for (DashManifest.Track track : DashManifest.parse(manifest)) {
+            if (MediaUrlPolicy.shapeRefusal(track.url) == null) tracks.add(track);
+        }
+        renditions = metaOnly(renditions);
+        boolean skipAv1 = skipsAv1();
+        boolean skipHdr = skipsHdr();
+        boolean allowAv1 = DashSave.canWriteAv1() && !skipAv1;
+        // Never save HDR video (#352) takes the HDR pictures out before the pick, so no choice
+        // below ever sees them. The report still lists every track the manifest offered.
+        List<DashManifest.Track> picks = skipHdr ? withoutHdr(tracks) : tracks;
+        // What a save below is weighed against when it tells the person it's lower. Not with saves
+        // other apps can open on: that switch passes better pictures over by choice, and its own
+        // report lines say so. Nor an AV1 picture with Never save AV1 video on (#379), nor an HDR
+        // one with Never save HDR video on: the save line names what the switch passed over, and a
+        // choice isn't a shortfall.
+        List<DashManifest.Track> offered = compatible ? Collections.emptyList()
+            : skipAv1 ? withoutAv1(picks) : picks;
+
+        // What the pick below chose from, as each track's type, codec, size and bitrate. Never its
+        // address: the report is pasted into public issues.
+        Logger.diagnosticDebug(DiagnosticCategory.DOWNLOADS, SOURCE,
+            () -> "the manifest of " + label + " offers " + tracks.size() + " track(s): " + tracks);
+
+        DashChoice choice = DashChoice.of(picks, renditions, quality, compatible, allowAv1, convertible(convert));
+        Rendition fallback = choice.fallback;
+        DashManifest.Pick kept = choice.kept;
+        DashManifest.Pick usual = choice.usual;
+        // When the switch off's pick beats the single file and the kept pick doesn't, the switch is
+        // why the single file is saved.
+        Dash leftToFile = compatible && usual != null && beatsFile(usual.video, fallback, choice.fallbackQuality, quality)
+            ? Dash.SINGLE_FILE_FOR_OTHER_APPS : Dash.SINGLE_FILE;
+        if (convert && !choice.converts) noConversion(label, tracks, allowAv1, skipHdr);
+
+        if (choice.taken == null && kept == null && usual != null) {
+            info(() -> "the manifest of " + label + " has no H.264 video with AAC-LC or HE-AAC sound, "
+                + "saving the single file instead");
+            return saveSingleVideo(application, renditions, offered, leftToFile,
+                "the manifest has no H.264 video with AAC-LC or HE-AAC sound", null, quality, writer, progress);
+        }
+        if (choice.taken == null && kept == null) {
+            info(() -> "the manifest of " + label + " has no track to save"
+                + switchesNote(tracks, picks, skipAv1, skipHdr) + ": " + tracks);
+            return saveSingleVideo(application, renditions, offered, Dash.SINGLE_FILE,
+                "the manifest has no track to save", null, quality, writer, progress);
+        }
+        if (choice.taken == null) {
+            // kept.video already passed the writability check that picked it: if the fallback's
+            // address overstated its own quality, the shortfall against it is held to a plain test,
+            // not noticeablyLower's tolerance for a picture nothing could have written.
+            return saveSingleVideo(application, renditions, offered, Dash.SINGLE_FILE, null, kept.video, quality,
+                writer, progress);
+        }
+        if (choice.taken != kept && !choice.converts && !choice.soundFromFile) {
+            info(() -> "nothing of " + label + " is in a format other apps can open, saving it as the switch "
+                + "off would: " + usual.video + (usual.audio == null ? "" : " + " + usual.audio));
+        }
+
+        DashManifest.Track video = choice.taken.video;
+        DashManifest.Track audio = choice.taken.audio;
+        boolean keptCompatible = kept != null && compatible;
+        // What a conversion that fails saves in its place: the H.264 pair, or with neither that nor
+        // a single file, what the switch off would.
+        DashManifest.Pick instead = !choice.converts ? null : kept != null ? kept : fallback == null ? usual : null;
+
+        // A track the muxer can't write can be a larger picture than the one saved.
+        DashManifest.Track better = better(offered, picture(video, quality), quality);
+        info(() -> "saving " + label + " from its DASH manifest: " + video
+            + (choice.soundFromFile ? " + the sound of " + describe(fallback)
+                : audio == null ? ", no sound track" : " + " + audio)
+            + ", instead of " + (fallback == null ? "nothing" : describe(fallback))
+            + qualityNote(quality)
+            + (choice.converts ? ", converted to H.264 for other apps" : compatibleNote(keptCompatible))
+            + (choice.soundFromFile ? ", the manifest's sound being only xHE-AAC" : soundNote(audio))
+            + belowNote(better)
+            + av1Note(skipAv1, picks, picture(video, quality), quality)
+            + hdrNote(skipHdr, tracks, picture(video, quality), quality));
+
+        Downloader.Result result = dashJob(application, video, audio, fallback, quality, choice.converts, instead,
+            choice.soundFromFile).run(writer, progress);
+        boolean lower = better != null && noticeablyLower(picture(video, quality), better.shortSide());
+        return result.ok() && lower ? result.lower() : result;
+    }
+
+    /**
+     * Tells the report why a save that converts didn't convert [tracks]' largest VP9 or AV1 picture
+     * (#236), so a report shows whether the phone or the pick passed it over.
+     */
+    private static void noConversion(String label, List<DashManifest.Track> tracks, boolean allowAv1, boolean skipHdr) {
+        DashManifest.Track largest = null;
+        for (DashManifest.Track track : tracks) {
+            if (track.isVideo() && VideoConvert.needsConversion(track.codecs)
+                    && (largest == null || track.shortSide() > largest.shortSide())) {
+                largest = track;
+            }
+        }
+        if (largest == null) return;
+        DashManifest.Track picture = largest;
+        String why = picture.codecs.startsWith("av01") && skipsAv1() ? "Never save AV1 video is on"
+            : picture.hdr && skipHdr ? "Never save HDR video is on"
+            : VideoConvert.whyNot(picture, allowAv1);
+        info(() -> "not converting " + label + "'s " + picture + ": "
+            + (why != null ? why : "what's saved suits the quality as well"));
+    }
+
+    /**
+     * The best single video file of [renditions], for a save whose manifest didn't win: [dash] says
+     * why for the save line, and [why] for the line of what was saved, or null when the file was
+     * simply the better pick. [writable] is the manifest's own picked track when this file was
+     * chosen over it by a guess rather than for a deliberate compatibility trade-off:
+     * {@link #saveFile} holds a shortfall against it to a plain test, since the phone could write it.
+     * A video only, since the save was started as one. The save line below reports against the
+     * file's stated or guessed quality, since nothing has been fetched yet to measure; once the file
+     * is down, {@link #saveFile} weighs the "lower" note against what it actually measures.
+     * [quality] is the choice already handed to {@link #saveDash}, not read again here.
+     */
+    private static Downloader.Result saveSingleVideo(Context application, List<Rendition> renditions,
+            List<DashManifest.Track> tracks, Dash dash, String why, DashManifest.Track writable,
+            DownloadQuality quality, MediaStoreWriter writer, Downloader.Progress progress) {
+        List<Rendition> meta = metaOnly(renditions);
+        Rendition video = RenditionPicker.pickVideo(meta, quality);
+        if (video == null) {
+            final int found = renditions.size();
+            failure(() -> "nothing to save: the manifest gave no track and none of the " + found
+                + " addresses was a video file on Meta's media servers", null);
+            return Downloader.Result.fail(Downloader.Status.BUILD_ERROR, "nothing to save");
+        }
+        DashManifest.Track better = better(tracks, RenditionPicker.qualityOf(video), quality);
+        saving(true, video, meta, quality, dash, better);
+        return saveFile(application, video.url, Downloader.Kind.VIDEO, why, tracks, writable, quality, writer,
+            progress);
+    }
+
+    /**
+     * Which way a video save with a manifest goes: the manifest's tracks, [taken], or the single
+     * file [fallback] when that's null. Decided in one place for the save and for Details, so what
+     * Details says a Download saves is what it saves.
+     */
+    static final class DashChoice {
+        /** The single file that suits the quality, or null. */
+        final Rendition fallback;
+        final int fallbackQuality;
+        /** The manifest's pick for the settings as they stand, or null. */
+        final DashManifest.Pick kept;
+        /** The pick with saves other apps can open on switched off; [kept] when it's off. */
+        final DashManifest.Pick usual;
+        /** The tracks the save joins, or null when it saves [fallback]. */
+        final DashManifest.Pick taken;
+        /** Whether [taken]'s picture is converted to H.264 before the join. */
+        final boolean converts;
+        /**
+         * Whether the picture takes its sound from [fallback], converted ([converts]) or as it is
+         * (#242): the manifest's sound is all xHE-AAC, which apps that take AAC refuse, and the single
+         * file's is the sound a save of it keeps.
+         */
+        final boolean soundFromFile;
+
+        private DashChoice(Rendition fallback, DashManifest.Pick kept, DashManifest.Pick usual, DashManifest.Pick taken,
+                boolean converts, boolean soundFromFile) {
+            this.fallback = fallback;
+            this.fallbackQuality = fallback == null ? 0 : RenditionPicker.qualityOf(fallback);
+            this.kept = kept;
+            this.usual = usual;
+            this.taken = taken;
+            this.converts = converts;
+            this.soundFromFile = soundFromFile;
+        }
+
+        /**
+         * The choice between [tracks], the manifest's usable tracks, and [renditions], the single
+         * files on Meta's servers. With saves other apps can open on and no pair they can, the
+         * single file is saved, or with none, the tracks the switch off would take. The manifest's
+         * own pick has to beat the single file, unless it's the pair other apps can open.
+         */
+        static DashChoice of(List<DashManifest.Track> tracks, List<Rendition> renditions, DownloadQuality quality,
+                boolean compatible, boolean allowAv1) {
+            return of(tracks, renditions, quality, compatible, allowAv1, null);
+        }
+
+        /**
+         * As above. With saves other apps can open on and [convertible] given, a VP9 or AV1 picture
+         * it passes is converted to H.264 (#236) when it suits [quality] better than the H.264 pair,
+         * or with no such pair, better than the single file. With only xHE-AAC sound, a picture that
+         * beats the single file is converted and joined with that file's sound. With both switches
+         * off, that same join keeps the picture as it is and takes the file's sound, with no
+         * transcode, so a default save of such a reel isn't silent in apps that take AAC (#242).
+         */
+        static DashChoice of(List<DashManifest.Track> tracks, List<Rendition> renditions, DownloadQuality quality,
+                boolean compatible, boolean allowAv1, Predicate<DashManifest.Track> convertible) {
+            Rendition fallback = RenditionPicker.pickVideo(renditions, quality);
+            DashManifest.Pick kept = DashManifest.pick(tracks, allowAv1, quality, compatible);
+            DashManifest.Pick usual = compatible ? DashManifest.pick(tracks, allowAv1, quality, false) : kept;
+            int fallbackQuality = fallback == null ? 0 : RenditionPicker.qualityOf(fallback);
+            DashManifest.Pick convert = compatible && convertible != null
+                ? DashManifest.pickToConvert(tracks, allowAv1, quality, convertible, fallback != null) : null;
+            if (convert != null && (kept != null ? suitsBetter(convert.video, kept.video, quality)
+                    : beatsFile(convert.video, fallback, fallbackQuality, quality))) {
+                return new DashChoice(fallback, kept, usual, convert, true,
+                    convert.audio == null && DashManifest.hasSound(tracks));
+            }
+            DashManifest.Pick pick = kept != null || fallback != null ? kept : usual;
+            boolean keptCompatible = kept != null && compatible;
+            DashManifest.Pick taken = pick != null && (keptCompatible || beatsFile(pick.video, fallback, fallbackQuality, quality))
+                ? pick : null;
+            // The picture to keep beats the single file, but the manifest's only sound is xHE-AAC,
+            // which apps that take AAC play silent, and a single file is offered. Keep the picture as
+            // it is and take that file's sound, the join the convert path uses but with no transcode
+            // (#242). Only when the two switches are off: with saves other apps can open on, [kept] is
+            // null for such a manifest and the single file is saved whole instead.
+            if (taken != null && fallback != null && taken.audio != null
+                    && DashManifest.bestCompatibleAudio(tracks) == null && DashManifest.hasSound(tracks)) {
+                return new DashChoice(fallback, kept, usual, new DashManifest.Pick(taken.video, null), false, true);
+            }
+            return new DashChoice(fallback, kept, usual, taken, false, false);
+        }
+    }
+
+    /** Whether [video] suits [quality] better than [other]: at the best quality a larger picture, below it a nearer fit. */
+    private static boolean suitsBetter(DashManifest.Track video, DashManifest.Track other, DownloadQuality quality) {
+        if (quality == DownloadQuality.BEST) return video.shortSide() > other.shortSide();
+        return quality.compare(video.quality(), other.quality()) < 0;
+    }
+
+    /**
+     * What a save of the video [renditions] and [manifest] writes, as {@link #saveVideo} decides it
+     * with the settings as they stand: the manifest's video track when the save joins its tracks,
+     * else the single file. For Details, which shows what a Download saves. A manifest is parsed,
+     * so this is for a worker, not the thread that draws the app. Never null.
+     */
+    static Planned plannedVideo(List<Rendition> renditions, String manifest) {
+        List<Rendition> files = metaOnly(usable(renditions));
+        DownloadQuality quality = quality();
+        if (manifest == null || !DashManifest.withinLimits(manifest)) {
+            return new Planned(RenditionPicker.pickVideo(files, quality), null);
+        }
+        List<DashManifest.Track> tracks = new ArrayList<>();
+        for (DashManifest.Track track : DashManifest.parse(manifest)) {
+            if (MediaUrlPolicy.shapeRefusal(track.url) == null) tracks.add(track);
+        }
+        if (skipsHdr()) tracks = withoutHdr(tracks);
+        DashChoice choice = DashChoice.of(tracks, files, quality, compatibleSaves(), DashSave.canWriteAv1() && !skipsAv1(),
+            convertible(convertSaves()));
+        return new Planned(choice.fallback, choice.taken == null ? null : choice.taken.video);
+    }
+
+    /** What {@link #plannedVideo} found: the single file, and the manifest's track when the save joins tracks. */
+    static final class Planned {
+        /** The single file, the one with an address of its own, or null. */
+        final Rendition file;
+        /** The video track a save joins with its sound, or null when it saves [file]. */
+        final DashManifest.Track joined;
+
+        Planned(Rendition file, DashManifest.Track joined) {
+            this.file = file;
+            this.joined = joined;
+        }
+
+        /** The width of what's saved, or 0 when it isn't known. */
+        int width() {
+            return joined != null ? joined.width : file != null ? file.width : 0;
+        }
+
+        /** The height of what's saved, or 0 when it isn't known. */
+        int height() {
+            return joined != null ? joined.height : file != null ? file.height : 0;
+        }
+    }
+
+    /**
+     * Whether [video] suits [quality] better than the single file [fallback] of quality
+     * [fallbackQuality]: at the best quality a larger picture, below it a nearer fit. On a tie the
+     * single file wins, one fetch and no join, unless the picture runs smoother than
+     * [FILE_FRAME_RATE]: a single file doesn't say its frame rate, and a 60 fps story or reel's
+     * file of the same size saves at 30 (#546).
+     */
+    private static boolean beatsFile(DashManifest.Track video, Rendition fallback, int fallbackQuality,
+            DownloadQuality quality) {
+        boolean smoother = video.frameRate > FILE_FRAME_RATE;
+        if (quality == DownloadQuality.BEST) {
+            return video.shortSide() > fallbackQuality || (smoother && video.shortSide() == fallbackQuality);
+        }
+        if (fallback == null) return true;
+        int nearer = quality.compare(video.quality(), fallbackQuality);
+        return nearer < 0 || (smoother && nearer == 0);
+    }
+
+    /** The frame rate a single file is taken to run at, which it never states (#546). */
+    static final int FILE_FRAME_RATE = 30;
+
+    /**
+     * The DASH save of [video] and [audio], then the single file [fallback] when that fails. Not
+     * when the person cancelled it, though: the fallback would start the save over. A fallback
+     * below [video]'s picture says so, held to a plain test: [video] already passed the writability
+     * check that picked it, so there's no picture-nothing-could-write excuse to make room for here.
+     * The quality setting is read once, when this job is built, so a change while the DASH save
+     * runs can't move what the fallback is judged against.
+     */
+    static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio, String fallback) {
+        return dashJob(application, video, audio, fallback == null ? null : Rendition.of(fallback), quality());
+    }
+
+    /** As above, with [quality] already handed to {@link #saveDash} rather than read again here. */
+    private static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
+            Rendition fallback, DownloadQuality quality) {
+        return dashJob(application, video, audio, fallback, quality, false, null, false);
+    }
+
+    /**
+     * As above. With [convert], [video] is converted to H.264 before the join, and when that fails
+     * the save takes [instead]'s tracks as they are, or with none, [fallback]. When [instead] has
+     * [video]'s own picture, that picture is joined as it was fetched, never fetched again.
+     */
+    static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
+            Rendition fallback, DownloadQuality quality, boolean convert, DashManifest.Pick instead) {
+        return dashJob(application, video, audio, fallback, quality, convert, instead, false);
+    }
+
+    /** As above. With [soundFromFile], the sound joined is [fallback]'s, not [audio] (#236). */
+    static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
+            Rendition fallback, DownloadQuality quality, boolean convert, DashManifest.Pick instead,
+            boolean soundFromFile) {
+        boolean asItIs = convert && instead != null && instead.video.url.equals(video.url);
+        DashManifest.Pick otherwise = asItIs ? null : instead;
+        String soundFrom = soundFromFile && fallback != null ? fallback.url : null;
+        return (writer, progress) -> {
+            Downloader.Result result = DashSave.save(application, video, audio, soundFrom, convert, asItIs, writer,
+                policyFor(application), cap(), progress);
+            if (result.ok() || result.status == Downloader.Status.CANCELLED) return result;
+            if (otherwise != null) {
+                failure(() -> "the DASH save ended with " + result + ", saving the tracks as they are: " + otherwise.video
+                    + (otherwise.audio == null ? "" : " + " + otherwise.audio), null);
+                return dashJob(application, otherwise.video, otherwise.audio, fallback, quality).run(writer, progress);
+            }
+            if (fallback == null) return result;
+
+            DashManifest.Track better = better(Collections.singletonList(video),
+                RenditionPicker.qualityOf(fallback), quality);
+            failure(() -> "the DASH save ended with " + result + ", saving " + describe(fallback) + belowNote(better),
+                null);
+            Downloader.Result single = saveFile(application, fallback.url, Downloader.Kind.VIDEO,
+                "the DASH save ended with " + result, Collections.singletonList(video), video, quality, writer,
+                progress);
+            // The tracks had no room to be fetched or joined: the smaller picture is for want of storage (#348).
+            return result.noRoom && single.ok() && single.lower ? single.lowerForStorage() : single;
+        };
+    }
+
+    /**
+     * The context to save with, or {@code null} when a save cannot start now.
+     *
+     * <p>Never the Activity. A download outlives the screen that started it, and holding the
+     * Activity across it is a leak.
+     */
+    private static Context ready(Context context) {
+        if (context == null) return null;
+
+        Context application = context.getApplicationContext();
+        return application != null ? application : context;
+    }
+
+    /**
+     * One save on the worker thread. It writes through [writer], tells [progress] how far it has
+     * got, stops when [progress] says it was cancelled, and returns the result.
+     */
+    interface Job {
+        Downloader.Result run(MediaStoreWriter writer, Downloader.Progress progress);
+    }
+
+    /**
+     * Runs [job] on its own worker thread, and hands the thread back so a test can wait for it.
+     * The save shows a notification with its progress and a Cancel button while it runs.
+     */
+    static Thread start(Context application, boolean video, Job job) {
+        return start(application, video, PostDetails.NONE, job);
+    }
+
+    /** As above, naming a video from [videoId] when the file name asks for it. */
+    static Thread start(Context application, boolean video, String videoId, Job job) {
+        return start(application, video, PostDetails.of(videoId), job);
+    }
+
+    /** Hands each save's details to a test, which can't see the name of a save that fails. Never set on a phone. */
+    static volatile java.util.function.Consumer<PostDetails> detailsForTests;
+
+    private static void observeDetails(PostDetails known) {
+        Consumer<PostDetails> watching = detailsForTests;
+        if (watching != null) watching.accept(known);
+    }
+
+    /** As above, naming the video from whatever of the post [details] holds and the file name asks for. */
+    static Thread start(Context application, boolean video, PostDetails details, Job job) {
+        return start(application, video, false, details,
+                video ? DownloadHistory.Kind.VIDEO : DownloadHistory.Kind.PHOTO, job);
+    }
+
+    /** As above, for a sound recording, which goes to the phone's audio files. */
+    static Thread startAudio(Context application, PostDetails details, Job job) {
+        return start(application, false, true, details, DownloadHistory.Kind.AUDIO, job);
+    }
+
+    /**
+     * As above, for a picture saved by its stated size, such as a video's cover, which Skip what's
+     * already saved keeps apart from the video and from a photo of the same post.
+     */
+    static Thread startPicture(Context application, PostDetails details, Job job) {
+        return startPicture(application, details, job, null);
+    }
+
+    /** As above, handing [published] the gallery entry once the picture is saved. */
+    static Thread startPicture(Context application, PostDetails details, Job job, Consumer<String> published) {
+        return start(application, false, false, details, DownloadHistory.Kind.PICTURE, job, published);
+    }
+
+    private static Thread start(Context application, boolean video, boolean audio, PostDetails details,
+            DownloadHistory.Kind kind, Job job) {
+        return start(application, video, audio, details, kind, job, null);
+    }
+
+    private static Thread start(Context application, boolean video, boolean audio, PostDetails details,
+            DownloadHistory.Kind kind, Job job, Consumer<String> published) {
+        final PostDetails known = details == null ? PostDetails.NONE : details;
+        // Read on the tap, for the account in front now. Null with Skip what's already saved off,
+        // or for a save that doesn't know the media's id: it's saved as it always was.
+        final String key = DownloadHistory.key(DownloadHistory.ownerIfOn(), known, kind);
+        return launch(application, video, audio, 0, key != null, save -> {
+            if (key != null && DownloadHistory.saved(application, key)) {
+                info(() -> "save skipped: already saved");
+                DownloadHistory.offerAgain(Collections.singletonList(key));
+                Feedback.show(application, L10n.t(application,
+                        "Already saved. Download again within 30 seconds for a copy."), true);
+                return;
+            }
+            try {
+                if (key != null) announce(application, save);
+                observeDetails(known);
+                MediaStoreWriter writer = audio ? MediaStoreWriter.forAudio(application, known)
+                    : new MediaStoreWriter(application, video, known);
+                Downloader.Result result = job.run(writer, save);
+                boolean cancelled = result.status == Downloader.Status.CANCELLED;
+                if (result.ok() || cancelled) info(() -> "save finished: " + result);
+                else failure(() -> "save finished: " + result, null);
+                if (result.ok()) {
+                    DownloadHistory.record(application, key, writer, known);
+                    // A photo or a video, after the file is published: tag it with where it came from.
+                    if (!audio) PostMetadata.tag(application, writer, known);
+                    if (published != null) published(published, writer.publishedItem());
+                }
+                Feedback.show(application, message(application, result.status, writer.savedLocation(), result.lower,
+                        result.lowStorage),
+                        !result.ok() && !cancelled);
+            } finally {
+                // The check let this save through and held its key, so a double tap saves it once.
+                DownloadHistory.release(key);
+            }
+        }, save -> {}, () -> {});
+    }
+
+    /** Hands [published] the saved [item]. What it does after the save can't fail the save. */
+    private static void published(Consumer<String> published, String item) {
+        try {
+            if (item != null) published.accept(item);
+        } catch (Throwable t) {
+            failure(() -> "after the save", t);
+        }
+    }
+
+    private interface Work { void run(SaveControl.Save save); }
+
+    /** Atomically admits one logical save and retires it for every normal result. */
+    private static Thread launch(Context application, boolean video, int pages, Work work,
+            Consumer<SaveControl.Save> finishing, Runnable finished) {
+        return launch(application, video, false, pages, false, work, finishing, finished);
+    }
+
+    /**
+     * The start's toast. With no notification to cancel it from, the list of saves in the settings
+     * is the only way to stop it, so the start says where that is, for long enough to read.
+     */
+    private static void announce(Context application, SaveControl.Save save) {
+        save.reveal();
+        if (save.manager != null) {
+            Feedback.show(application, L10n.t(application, "Saving..."), false);
+        } else {
+            Feedback.show(application,
+                L10n.t(application, "Saving... You can cancel from Downloads in xboyrex settings."), true);
+        }
+    }
+
+    /**
+     * As above. [quiet] leaves the start's toast to [work], for a save that may turn out to be
+     * one already saved and should say only that.
+     */
+    private static Thread launch(Context application, boolean video, boolean audio, int pages, boolean quiet,
+            Work work, Consumer<SaveControl.Save> finishing, Runnable finished) {
+        int running;
+        do {
+            running = IN_FLIGHT.get();
+            if (running >= MAX_IN_FLIGHT) {
+                failure(() -> "too many saves at once", null);
+                return null;
+            }
+        } while (!IN_FLIGHT.compareAndSet(running, running + 1));
+        SaveControl.Save save;
+        try {
+            // A quiet save shows its notification once announce() says it's going ahead.
+            save = SaveControl.begin(application, video && !audio, audio, pages, !quiet);
+        } catch (Throwable failure) {
+            IN_FLIGHT.decrementAndGet();
+            throw failure;
+        }
+        if (!quiet) announce(application, save);
+
+        Thread worker = new Thread(() -> {
+            String marker = null;
+            try {
+                // What a save in a process Android ended left behind goes before this one makes
+                // anything. It runs once per process.
+                SaveLeftovers.sweepOnce(application);
+                marker = SaveLeftovers.beginJob(application);
+                work.run(save);
+            } catch (Throwable t) {
+                // Nothing can leave this thread. The app installs its own handler for uncaught
+                // exceptions and reports them as its own crashes.
+                failure(() -> "the save failed", t);
+                if (pages == 0) Feedback.show(application, L10n.t(application, "Download failed"), true);
+            } finally {
+                // Each step is guarded on its own: one that throws must not keep the in-flight slot
+                // or the Download all turn, or every later Download all would wait forever (#115).
+                try { SaveLeftovers.finishJob(application, marker); }
+                catch (Throwable failure) { failure(() -> "could not close a save's job marker", failure); }
+                // Publish the batch outcome before the end notification asks the settings to redraw.
+                if (pages > 0) {
+                    try { finishing.accept(save); }
+                    catch (Throwable failure) { failure(() -> "could not deliver a save's completion", failure); }
+                }
+                try { save.end(); }
+                catch (Throwable failure) { failure(() -> "could not end a save", failure); }
+                IN_FLIGHT.decrementAndGet();
+                try { finished.run(); }
+                catch (Throwable failure) { failure(() -> "could not deliver a save's completion", failure); }
+            }
+        }, "xboyrex-save");
+
+        // A thread that ends when the copy ends leaves nothing behind in a process that is not
+        // ours. A pool parks a thread there for as long as the app runs.
+        worker.setDaemon(true);
+        worker.setPriority(Thread.NORM_PRIORITY - 1);
+        try { worker.start(); }
+        catch (Throwable failure) {
+            save.end();
+            IN_FLIGHT.decrementAndGet();
+            throw failure;
+        }
+        return worker;
+    }
+
+    /** A reason for the report, cut to 160 characters. */
+    private static String bounded(String reason) {
+        return reason.length() <= 160 ? reason : reason.substring(0, 157) + "...";
+    }
+
+    /**
+     * What the toast at the end of a save says, in the phone's language. [lower] when the saved
+     * picture is below the best one Instagram offered within the quality setting.
+     */
+    static String message(Context application, Downloader.Status status, String location, boolean lower) {
+        return message(application, status, location, lower, false);
+    }
+
+    /** As above. With [lowStorage] a lower save says the phone's low storage is the reason (#348). */
+    static String message(Context application, Downloader.Status status, String location, boolean lower,
+            boolean lowStorage) {
+        switch (status) {
+            case OK:
+                if (lower && lowStorage) {
+                    return location == null
+                        ? L10n.t(application, "Saved to the gallery in lower quality because storage is low")
+                        : L10n.f(application, "Saved to %1$s in lower quality because storage is low", L10n.isolate(location));
+                }
+                if (lower) {
+                    return location == null
+                        ? L10n.t(application, "Saved to the gallery in lower quality than on Instagram")
+                        : L10n.f(application, "Saved to %1$s in lower quality than on Instagram", L10n.isolate(location));
+                }
+                return location == null
+                    ? L10n.t(application, "Saved to the gallery")
+                    : L10n.f(application, "Saved to %1$s", L10n.isolate(location));
+            case EXPIRED:
+                return L10n.t(application, "Link expired. Reopen the item and try again.");
+            case REFUSED:
+                return L10n.t(application, "Not saved: that isn't an Instagram photo or video");
+            case TOO_LARGE:
+                return L10n.t(application, "Not saved: the file is over 512 MB");
+            case CANCELLED:
+                return L10n.t(application, "Save canceled");
+            case NETWORK_ERROR:
+                return L10n.t(application, "Download failed. Check your connection and try again.");
+            case WRITE_ERROR:
+                return L10n.t(application, "Download didn't finish. Check your connection and free storage, then try again.");
+            default:
+                return L10n.t(application, "Download failed");
+        }
+    }
+
+    /**
+     * Enough of an address to tell one candidate from another in a report: its kind of file and
+     * its quality, and no more.
+     *
+     * <p>A whole address is a signed, working handle to the content of the user, and the log can
+     * be read by anything else on the device. The file name isn't safe either: on Meta's CDN it
+     * carries the object's own id ({@code 475148478_1134540631592283_..._n.jpg}), and the report
+     * is pasted into public issues.
+     */
+    static String describe(String url) {
+        return describe(Rendition.of(url));
+    }
+
+    /** As above, with the size the app stated for it, when it did, as its quality. */
+    static String describe(Rendition rendition) {
+        int quality = RenditionPicker.qualityOf(rendition);
+        return extensionOf(rendition.url) + " (" + (quality > 0 ? quality + "p" : "unknown") + ")";
+    }
+
+    /**
+     * As above for a picture, with both sides of the size the app stated, so a report tells a photo
+     * from its crop of one width and shows what the server listed (#500).
+     */
+    static String describePicture(Rendition rendition) {
+        if (pixels(rendition) == 0) return describe(rendition);
+        return extensionOf(rendition.url) + " (" + rendition.width + "x" + rendition.height + ")";
+    }
+
+    private static String extensionOf(String url) {
+        int query = url.indexOf('?');
+        String withoutQuery = query < 0 ? url : url.substring(0, query);
+
+        int slash = withoutQuery.lastIndexOf('/');
+        String file = slash < 0 ? withoutQuery : withoutQuery.substring(slash + 1);
+        int dot = file.lastIndexOf('.');
+        String extension = dot < 0 ? "" : file.substring(dot + 1).toLowerCase(Locale.US);
+        return extension.matches("[a-z0-9]{1,5}") ? extension : "file";
+    }
+}

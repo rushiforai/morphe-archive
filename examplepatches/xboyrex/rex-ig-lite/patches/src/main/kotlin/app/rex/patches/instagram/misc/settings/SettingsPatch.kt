@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -12,10 +12,11 @@ import app.rex.patches.instagram.entity.instagramButton.instagramButtonEntity
 import app.rex.patches.instagram.entity.profileinfo.profileInfoEntity
 import app.rex.patches.instagram.entity.userdata.userDataEntity
 import app.rex.patches.instagram.links.validateLinks.validateLinksPatch
-import app.rex.patches.instagram.misc.buildExpiredPopup.removeBuildExpiredPopupPatch
-import app.rex.patches.instagram.misc.actionBar.mainFeedActionBarButton.mainFeedActionBarButtonPatch
 import app.rex.patches.instagram.misc.actionBar.mainFeedActionBarButton.hideHomeActionButtonsPatch
+import app.rex.patches.instagram.misc.actionBar.mainFeedActionBarButton.mainFeedActionBarButtonPatch
 import app.rex.patches.instagram.misc.actionBar.userProfileActionBarButton.userProfileActionBarButtonPatch
+import app.rex.patches.instagram.misc.buildExpiredPopup.removeBuildExpiredPopupPatch
+import app.rex.patches.instagram.misc.dm.hideChatCallButtonsPatch
 import app.rex.patches.instagram.misc.extension.hooks.instagramInitHook
 import app.rex.patches.instagram.misc.extension.sharedExtensionPatch
 import app.rex.patches.instagram.misc.hookFlags.hookFlagsPatch
@@ -23,29 +24,81 @@ import app.rex.patches.instagram.misc.notification.fixDirectNotificationActionCr
 import app.rex.patches.instagram.misc.notification.fixNotificationRegistrationCrashPatch
 import app.rex.patches.instagram.misc.userProfile.preserveUnknownFriendshipStatusPatch
 import app.rex.patches.instagram.misc.userProfile.userProfileButtonPatch
+import app.rex.patches.instagram.utils.Constants.ACTIVITY_SETTINGS_CLASS
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.Constants.CONSTANTS_DESCRIPTOR
 import app.rex.patches.instagram.utils.Constants.LOAD_FLAGS_DESCRIPTOR
 import app.rex.patches.instagram.utils.Constants.PATCHES_DESCRIPTOR
 import app.rex.patches.instagram.utils.Constants.SSTS_DESCRIPTOR
+import app.rex.patches.instagram.utils.enableSettings
+import app.rex.patches.shared.parameterRegisterStart
+import app.rex.utils.InitMethod
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.registersUsed
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.util.smali.toInstruction
+import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
-import app.morphe.util.findFreeRegister
-import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstruction
-import app.morphe.util.registersUsed
+import app.morphe.util.indexOfFirstInstructionOrThrow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.HiddenApiRestriction
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MethodImplementationBuilder
+import com.android.tools.smali.dexlib2.iface.Annotation
+import com.android.tools.smali.dexlib2.iface.MethodParameter
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private object WhitehatIndicatorFingerprint : Fingerprint(
+    definingClass = "Lcom/instagram/base/activity/BaseFragmentActivity;",
+    returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "whitehat_indicator_stub"),
+        methodCall(smali = "Landroid/app/Activity;->requireViewById(I)Landroid/view/View;"),
+    ),
+)
+
+internal val whitehatIndicatorPatch = patch {
+    dependsOn(sharedExtensionPatch)
+    execute {
+            runCatching {
+        runCatching {
+            WhitehatIndicatorFingerprint.method.apply {
+                val activityRegister = parameterRegisterStart(this)
+                val freeRegister = findFreeRegister(0, activityRegister)
+
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static/range {v$activityRegister .. v$activityRegister}, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
+                        move-result v$freeRegister
+                        if-eqz v$freeRegister, :instagram_indicator
+                        return-void
+                    """.trimIndent(),
+                    ExternalLabel("instagram_indicator", getInstruction(0)),
+                )
+            }
+        }
+    
+            }
+        }
+}
 
 @Suppress("unused")
 val settingsPatch =
-    bytecodePatch(
+    patch(
         name = "Add settings",
         description = "Adds settings to control preferences are patching",
         default = true,
@@ -53,10 +106,13 @@ val settingsPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(
             sharedExtensionPatch,
-            addSettingsActivityPatch,
+            settingsResourcePatch,
             nativeSettingsSwitchStylePatch,
+            whitehatIndicatorPatch,
+            settingsTaskRemovalPatch,
             mainFeedActionBarButtonPatch,
             hideHomeActionButtonsPatch,
+            hideChatCallButtonsPatch,
             userProfileActionBarButtonPatch,
             userDataEntity,
             userProfileButtonPatch,
@@ -64,6 +120,7 @@ val settingsPatch =
             fixNotificationRegistrationCrashPatch,
             fixDirectNotificationActionCrashPatch,
             validateLinksPatch,
+            spoofSignaturePatch,
             removeBuildExpiredPopupPatch,
             preserveUnknownFriendshipStatusPatch,
             profileInfoEntity,
@@ -73,65 +130,192 @@ val settingsPatch =
             addResourcesPatch,
         )
         execute {
+            runCatching {
             addAppResources("shared")
             addAppResources("instagram")
+            runCatching { enableSettings("addSettings") }
 
-            // Returning from a modal must restore the activity used for native themes.
-            for (method in listOf(IgFragmentActivityOnCreate.method, IgFragmentActivityOnResume.method)) {
-
-                val returnVoidIndex = method.indexOfFirstInstruction(Opcode.RETURN_VOID)
-
-                method.addInstruction(
-                    returnVoidIndex,
-                    """
-                    invoke-static {p0}, Lapp/morphe/extension/shared/Utils;->setActivity(Landroid/app/Activity;)V
-                    """.trimIndent(),
-                )
-            }
-
-            instagramInitHook.fingerprint.method.apply {
-
-                val firstInvokeSuperIndex = indexOfFirstInstruction(Opcode.INVOKE_SUPER)
-                val contextRegister = getInstruction(firstInvokeSuperIndex).registersUsed[0]
-                val freeRegister = findFreeRegister(firstInvokeSuperIndex, listOf(firstInvokeSuperIndex))
-
-                addInstructions(
-                    firstInvokeSuperIndex + 1,
-                    """
-                    new-instance v$freeRegister, Lapp/morphe/extension/rex/CustomCrashHandler;
-                    invoke-direct {v$freeRegister, v$contextRegister}, Lapp/morphe/extension/rex/CustomCrashHandler;-><init>(Landroid/content/Context;)V
-                    invoke-static {v$freeRegister}, Ljava/lang/Thread;->setDefaultUncaughtExceptionHandler(Ljava/lang/Thread${'$'}UncaughtExceptionHandler;)V
-                    
-                    ${SSTS_DESCRIPTOR.format("load")}
-                    ${LOAD_FLAGS_DESCRIPTOR.format("load")}
-                    ${LOAD_FLAGS_DESCRIPTOR.format("load")}
-                    invoke-static {}, $CONSTANTS_DESCRIPTOR/Constants;->load()V
-                    """.trimIndent(),
-                )
-            }
-
-            // For welcome message.
-            MainFeedFragmentOnCreateFingerprint.matchAll(1..1).single().method.apply {
-                val code = instructions
-                val contextIndex = code.withIndex().singleOrNull { (_, instruction) ->
-                    val reference = instruction.getReference<MethodReference>()
-                    instruction.opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) &&
-                        reference?.definingClass == "Landroidx/fragment/app/Fragment;" &&
-                        reference.name == "requireContext" &&
-                        reference.parameterTypes.isEmpty() &&
-                        reference.returnType == "Landroid/content/Context;"
-                }?.index ?: throw PatchException("Could not uniquely resolve main feed welcome context")
-                val contextResult = code.getOrNull(contextIndex + 1)
-                if (contextResult?.opcode != Opcode.MOVE_RESULT_OBJECT) {
-                    throw PatchException("Main feed welcome context has no object result")
+            for (fingerprint in listOf(IgFragmentActivityOnCreate, IgFragmentActivityOnResume)) {
+                runCatching {
+                    fingerprint.method.addInstruction(
+                        fingerprint.instructionMatches.first().index,
+                        """
+                        invoke-static {p0}, Lapp/morphe/extension/shared/Utils;->setActivity(Landroid/app/Activity;)V
+                        """.trimIndent(),
+                    )
                 }
-                val contextRegister = contextResult.registersUsed.single()
+            }
 
-                addInstruction(
-                    contextIndex + 2,
-                    "invoke-static/range {v$contextRegister .. v$contextRegister}, " +
-                        "$PATCHES_DESCRIPTOR/WelcomeMessage;->openWelcomeMessage(Landroid/content/Context;)V",
-                )
+            runCatching {
+                ModalActivityOnCreate.method.apply {
+                    val overrideIndex = indexOfFirstInstructionOrThrow {
+                        opcode == Opcode.INVOKE_SUPER &&
+                            getReference<MethodReference>()?.name == "onCreate"
+                    } + 1
+
+                    val thisRegister = parameterRegisterStart(this)
+                    val freeRegister = findFreeRegister(overrideIndex, thisRegister)
+
+                    addInstructionsWithLabels(
+                        overrideIndex,
+                        """
+                            invoke-static/range { v$thisRegister .. v${thisRegister + 1} }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->create(Landroid/app/Activity;Landroid/os/Bundle;)Z
+                            move-result v$freeRegister
+                            if-eqz v$freeRegister, :not_rex
+                            return-void
+                            :not_rex
+                            nop
+                        """,
+                    )
+                }
+            }
+
+            runCatching {
+                ModalActivityOnPostCreate.method.apply {
+                    val overrideIndex = indexOfFirstInstructionOrThrow {
+                        opcode == Opcode.INVOKE_SUPER &&
+                            getReference<MethodReference>()?.name == "onPostCreate"
+                    } + 1
+
+                    val thisRegister = parameterRegisterStart(this)
+                    val freeRegister = findFreeRegister(overrideIndex, thisRegister)
+
+                    addInstructionsWithLabels(
+                        overrideIndex,
+                        """
+                            invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
+                            move-result v$freeRegister
+                            if-eqz v$freeRegister, :not_rex_post_create
+                            return-void
+                            :not_rex_post_create
+                            nop
+                        """,
+                    )
+                }
+            }
+
+            runCatching {
+                ModalActivityInitStartingFragment.method.apply {
+                    val thisRegister = parameterRegisterStart(this)
+                    val freeRegister = findFreeRegister(0, thisRegister)
+
+                    addInstructionsWithLabels(
+                        0,
+                        """
+                            invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
+                            move-result v$freeRegister
+                            if-eqz v$freeRegister, :not_rex_init
+                            return-void
+                            :not_rex_init
+                            nop
+                        """,
+                    )
+                }
+            }
+
+            runCatching {
+                ModalActivityOnCreate.classDef.apply {
+                    val activityClass = type
+                    val existingOnBackPressed = methods.firstOrNull {
+                        it.name == "onBackPressed" && it.parameterTypes.isEmpty() && it.returnType == "V"
+                    }
+                    if (existingOnBackPressed != null) {
+                        runCatching {
+                            existingOnBackPressed.apply {
+                                val activityRegister = implementation!!.registerCount - 1
+                                val freeRegister = findFreeRegister(0, activityRegister)
+
+                                addInstructionsWithLabels(
+                                    0,
+                                    """
+                                        invoke-static/range { v$activityRegister .. v$activityRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
+                                        move-result v$freeRegister
+                                        if-eqz v$freeRegister, :continue_back_press
+                                        return-void
+                                        :continue_back_press
+                                        nop
+                                    """,
+                                )
+                            }
+                        }
+                    } else {
+                        val implementationBuilder = MethodImplementationBuilder(2)
+                        implementationBuilder.addInstruction("return-void".toInstruction())
+
+                        val method =
+                            MutableMethod(
+                                InitMethod(
+                                    validator = {},
+                                    compare = { other ->
+                                        when {
+                                            activityClass != other.definingClass -> activityClass.compareTo(other.definingClass)
+                                            "onBackPressed" != other.name -> "onBackPressed".compareTo(other.name)
+                                            else -> 0
+                                        }
+                                    },
+                                    definingClass = activityClass,
+                                    name = "onBackPressed",
+                                    parameterTypes = mutableListOf<CharSequence>(),
+                                    returnType = "V",
+                                    annotations = mutableSetOf<Annotation>(),
+                                    accessFlags = AccessFlags.PUBLIC.value,
+                                    hiddenApiRestrictions = mutableSetOf<HiddenApiRestriction>(),
+                                    parameters = mutableListOf<MethodParameter>(),
+                                    implementation = implementationBuilder.methodImplementation,
+                                ),
+                            )
+
+                        method.addInstructionsWithLabels(
+                            0,
+                            """
+                                invoke-static { v1 }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
+                                move-result v0
+                                if-eqz v0, :continue_back_press
+                                return-void
+                                :continue_back_press
+                                invoke-super { v1 }, $superclass->onBackPressed()V
+                            """,
+                        )
+                        methods.add(method)
+                    }
+                }
+            }
+
+            runCatching {
+                instagramInitHook.fingerprint.method.apply {
+                    val firstInvokeSuperIndex = indexOfFirstInstructionOrThrow(Opcode.INVOKE_SUPER)
+                    val contextRegister = getInstruction(firstInvokeSuperIndex).registersUsed[0]
+                    val freeRegister = findFreeRegister(firstInvokeSuperIndex, listOf(firstInvokeSuperIndex))
+
+                    addInstructions(
+                        firstInvokeSuperIndex + 1,
+                        """
+                        new-instance v$freeRegister, Lapp/morphe/extension/rex/CustomCrashHandler;
+                        invoke-direct {v$freeRegister, v$contextRegister}, Lapp/morphe/extension/rex/CustomCrashHandler;-><init>(Landroid/content/Context;)V
+                        invoke-static {v$freeRegister}, Ljava/lang/Thread;->setDefaultUncaughtExceptionHandler(Ljava/lang/Thread${'$'}UncaughtExceptionHandler;)V
+                        
+                        ${SSTS_DESCRIPTOR.format("load")}
+                        ${LOAD_FLAGS_DESCRIPTOR.format("load")}
+                        ${LOAD_FLAGS_DESCRIPTOR.format("load")}
+                        invoke-static {}, $CONSTANTS_DESCRIPTOR/Constants;->load()V
+                        """.trimIndent(),
+                    )
+                }
+            }
+
+            runCatching {
+                MainFeedFragmentOnCreateFingerprint.let {
+                    val contextResultIndex = it.instructionMatches.last().index
+                    val contextRegister = it.instructionMatches.last().getInstruction<OneRegisterInstruction>().registerA
+
+                    it.method.addInstruction(
+                        contextResultIndex + 1,
+                        "invoke-static/range {v$contextRegister .. v$contextRegister}, " +
+                            "$PATCHES_DESCRIPTOR/WelcomeMessage;->openWelcomeMessage(Landroid/content/Context;)V",
+                    )
+                }
+            }
+        
             }
         }
     }

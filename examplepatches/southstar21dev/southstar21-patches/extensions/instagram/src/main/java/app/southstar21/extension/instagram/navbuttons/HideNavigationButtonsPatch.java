@@ -38,7 +38,12 @@ public final class HideNavigationButtonsPatch {
             new SettingsGroup("Hide",
                     "Home and Profile always stay, the southstar21 Patches menu lives on Profile.",
                     HIDE_SEARCH, HIDE_REELS, HIDE_CREATE, HIDE_MESSAGES, HIDE_ACTIVITY, HIDE_DYNAMIC))
-            .icon(Icons.Glyph.TABS, 0xFF34C759);
+            .icon(Icons.Glyph.TABS, 0xFF34C759)
+            .about("Hides the tabs you pick from the bottom bar: Search and Explore, Reels, Create, Messages, "
+                    + "Activity and the tab Instagram rotates between features. Home and Profile always stay. "
+                    + "Messages are still reachable from the home page. Changes apply after Instagram restarts.",
+                    "Fewer buttons means fewer ways to drift into something you didn't open Instagram for. Hide "
+                    + "Reels and Search, and the bar is just your feed, your messages and your profile.");
 
     /** The patch makes this return true, so the menu only shows patches that were applied. */
     public static boolean isIncluded() {

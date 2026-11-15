@@ -16,14 +16,14 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
+                version = "4.29",
+                minSdk = 24,
+                description = "rc103; welcome.sankaku.app/apk/sankaku-app-4.29-rc103.apk",
+            ),
+            AppTarget(
                 version = "4.28",
                 minSdk = 24,
                 description = "rc100; welcome.sankaku.app/apk/sankaku-app-4.28-rc100.apk",
-            ),
-            AppTarget(
-                version = "4.27",
-                minSdk = 24,
-                description = "rc98; welcome.sankaku.app/apk/sankaku-app-4.27-rc98.apk",
             ),
         ),
     )

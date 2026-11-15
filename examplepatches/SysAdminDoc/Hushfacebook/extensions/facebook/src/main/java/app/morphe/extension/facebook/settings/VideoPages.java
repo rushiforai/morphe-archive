@@ -135,6 +135,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_THREADS_CARDS,
                     L10n.t("Hides the \"Threads you might like\" card between reels. Off by default, since it hasn't "
                             + "been tried on a real account yet.")));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_POST_CARDS,
+                    L10n.t("Hides the carousels of posts Facebook puts between reels, like \"Catch up on "
+                            + "conversations\" from your groups. Off by default.")));
             // Read as each batch of reels arrives, so a change shows from the next batch.
             reels.addPreference(toggle(context, Settings.FOLLOWED_REELS_ONLY,
                     L10n.t("The Reels tab only shows reels from people and Pages you follow, starting with the next "
@@ -239,6 +242,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_FULLSCREEN_PILL,
                     L10n.t("Takes the Fullscreen button off the space under a wide video in Reels. "
                             + "A change shows from the next video.")));
+            // Asked as a feed or search video's player adds its buttons, so a change shows from the next video (#478).
+            reels.addPreference(toggle(context, Settings.HIDE_FEED_VIDEO_BUTTONS,
+                    L10n.t("Takes the full-screen and picture-in-picture buttons off videos that play in the feed "
+                            + "and in search results, like a live video that has ended. A change shows from the next video.")));
             // Asked as a feed video's player asks for more, so a change shows from the next feed video.
             reels.addPreference(toggle(context, Settings.FEED_VIDEOS_ALONE,
                     L10n.t("A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. "
@@ -256,10 +263,14 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_IN_PLAYER,
                     L10n.t("A video you tap in Saved plays in the video player instead of Reels, where the next "
                             + "swipe is a suggested reel.")));
-            // Asked as a reel opened from Saved ends or is swiped past (#404).
+            // Asked as a reel opened from Saved ends or is swiped (#404).
             reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_IN_ORDER,
                     L10n.t("A video you open from Saved goes on to the next one in Saved when it ends or when you "
-                            + "swipe up, instead of a suggested reel.")));
+                            + "swipe up, instead of a suggested reel. Swipe down to go back one.")));
+            // Asked as each saved video ends (#404).
+            reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_STAY_ON_END,
+                    L10n.t("A saved video that ends stays on screen instead of opening the next one. Swipe up when "
+                            + "you want the next.")));
             // Asked before each next video, so a change shows from the next one (#427).
             reels.addPreference(toggle(context, Settings.SKIP_STILL_WATCHING,
                     L10n.t("Reels and videos keep going to the next one without pausing to ask if you're still "
@@ -285,6 +296,10 @@ final class VideoPages {
                 reels.addPreference(toggle(context, Settings.DIM_OPEN_REEL_CAPTIONS,
                         L10n.t("An open reel caption sits on a dark box, like subtitles, so it's easy to read over a "
                                 + "bright video. A change shows from the next reel.")));
+                // The folded caption's box, from the same hook (#472).
+                reels.addPreference(toggle(context, Settings.DIM_FOLDED_REEL_CAPTIONS,
+                        L10n.t("A folded reel caption, the short one with more at the end, sits on the same dark box. "
+                                + "Turn on both to box every caption. A change shows from the next reel.")));
             }
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
@@ -317,12 +332,18 @@ final class VideoPages {
             // Read on each tap, so a change shows on the next one.
             reels.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_REELS,
                     L10n.t("A tap on Like beside a reel asks first, and only Continue likes or unlikes it.")));
+            reels.addPreference(toggle(context, Settings.ASK_BEFORE_FOLLOWING_REELS,
+                    L10n.t("A tap on Follow beside a reel's author asks first, and only Continue follows or unfollows.")));
         }
         if (build.contains(PatchFamily.DOUBLE_TAP_SKIP)) {
             // Read as each player is set up, so a change shows on the next reel or video.
             reels.addPreference(toggle(context, Settings.DOUBLE_TAP_SKIP,
                     L10n.t("A double tap on the left or right edge of a reel or video skips back or forward 10 seconds, "
                             + "or 5 on one under 30 seconds. A double tap in the middle works as before.")));
+            // Read on each skip, so a change shows on the next one.
+            reels.addPreference(toggle(context, Settings.HIDE_SKIP_SECONDS,
+                    L10n.t("A double tap on the edge still skips, but the +5s or -10s over the reel or video stays "
+                            + "hidden. It also works when Facebook turned the skip on for you.")));
         }
         if (build.contains(PatchFamily.TAP_SHOWS_CONTROLS)) {
             // Read on each tap, so a change shows on the next one.
@@ -360,6 +381,9 @@ final class VideoPages {
                 reels.addPreference(toggle(context, Settings.POST_MENU_SPEED,
                         L10n.t("A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos "
                                 + "too. Off by default, since it hasn't been tried on a real account yet.")));
+                reels.addPreference(toggle(context, Settings.POST_MENU_SPEED_ON_TOP,
+                        L10n.t("Puts Playback speed on the menu's first page, with Save and Report, so it's one tap "
+                                + "away. Off, it stays under More options.")));
             }
         }
         if (build.contains(PatchFamily.REEL_HOLD)) {

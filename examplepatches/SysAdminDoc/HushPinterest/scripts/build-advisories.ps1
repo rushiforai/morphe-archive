@@ -63,7 +63,45 @@ function Read-BuildDependencyReport {
             Purl = $component.purl; Configurations = @($component.configurations)
         })
     }
-    return [pscustomobject]@{ Path = $Path; Libraries = $libraries.ToArray(); Configurations = @($report.configurations) }
+    return [pscustomobject]@{
+        Path = $Path; Gradle = $report.gradleVersion; Libraries = $libraries.ToArray(); Configurations = @($report.configurations)
+    }
+}
+
+function Assert-GradleDistribution {
+    param([Parameter(Mandatory = $true)]$Report)
+    # The distribution isn't a Maven component, so OSV's component results never cover it. These
+    # maintainer records (2026-10-07) cover daemon and worker deserialization and the SSL repository
+    # fallback. The public fixes are 8.14.6 and 9.8.1; the table also names subscription backports on
+    # 7.6 and 9.1 through 9.7, which must not be mistaken for affected distributions.
+    # https://github.com/gradle/gradle/security/advisories/GHSA-xwqc-3h47-hg64
+    # https://github.com/gradle/gradle/security/advisories/GHSA-mvvg-497x-hmj8
+    # https://github.com/gradle/gradle/security/advisories/GHSA-j5m7-59rp-24f5
+    $name = Split-Path -Leaf $Report.Path
+    if ($Report.Gradle -isnot [string] -or $Report.Gradle -cnotmatch '^[0-9]{1,4}\.[0-9]{1,4}(\.[0-9]{1,4})?$') {
+        throw "$name doesn't name a stable Gradle distribution version. Build again with the supported wrapper."
+    }
+    $gradle = [version]$Report.Gradle
+    $backport = ($gradle.Major -eq 7 -and $gradle.Minor -eq 6 -and $gradle.Build -ge 7) -or
+        ($gradle.Major -eq 9 -and $gradle.Minor -ge 1 -and $gradle.Minor -le 7 -and $gradle.Build -ge 2)
+    if (-not $backport -and ($gradle -lt [version]'8.14.6' -or
+            ($gradle -ge [version]'9.0' -and $gradle -lt [version]'9.8.1'))) {
+        throw ("Gradle $($Report.Gradle) is affected by the high distribution advisories GHSA-xwqc-3h47-hg64, " +
+            'GHSA-mvvg-497x-hmj8 and GHSA-j5m7-59rp-24f5. Build with the wrapper (Gradle 9.8.1 or later). ' +
+            'Component OSV results and dependency checksums do not fix daemon deserialization.')
+    }
+    # The maintainer records of 2026-11-10: version catalog values running as code in generated
+    # accessors (critical) and the client trusting the daemon registry, stale entries included (high).
+    # They name 8.14.7 and 9.9.1 as the only fixes, so the October backports above are affected too.
+    # https://github.com/gradle/gradle/security/advisories/GHSA-3cfg-jpcr-gfp3
+    # https://github.com/gradle/gradle/security/advisories/GHSA-gqrr-4j89-5267
+    # https://github.com/gradle/gradle/security/advisories/GHSA-pcp8-98xm-c6pr
+    if ($gradle -lt [version]'8.14.7' -or ($gradle -ge [version]'9.0' -and $gradle -lt [version]'9.9.1')) {
+        throw ("Gradle $($Report.Gradle) is affected by the critical distribution advisory GHSA-3cfg-jpcr-gfp3 " +
+            'and the high GHSA-gqrr-4j89-5267 and GHSA-pcp8-98xm-c6pr. Build with the wrapper (Gradle 9.9.1 or later).')
+    }
+    Write-Host ("[build advisories] Gradle $($Report.Gradle) is outside the affected versions in the six " +
+        'maintainer distribution advisories dated 2026-10-07 and 2026-11-10. Component results are separate.')
 }
 
 function Assert-ReviewedToolingResolutions {
@@ -101,6 +139,7 @@ function Invoke-BuildAdvisoryGate {
         [Parameter(Mandatory = $true)][string]$ExceptionsPath,
         [datetime]$Today = [datetime]::Today
     )
+    Assert-GradleDistribution -Report $Report
     Assert-ReviewedToolingResolutions -Report $Report
     $exceptions = @(Read-AdvisoryExceptions -Path $ExceptionsPath -Today $Today)
     $findings = @(Get-SbomAdvisories -Sbom $Report)

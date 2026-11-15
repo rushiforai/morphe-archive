@@ -47,6 +47,7 @@ final class SetupSummary {
         String dataDir = context.getApplicationInfo().dataDir;
         summary.append("Analytics stores: ").append(dataDir == null ? "unreadable" : analyticsStores(new java.io.File(dataDir))).append('\n');
         summary.append("Facebook caller checks: ").append(MessengerSignature.callerSummary()).append('\n');
+        summary.append("Push: ").append(GmsCore.pushRoute(context)).append('\n');
         // Only controls that failed get a line: the exception's class, where it hit HushMessenger's code and when.
         Map<String, String> errors = Settings.lastHookErrors();
         if (!errors.isEmpty()) summary.append("Hook errors:\n");

@@ -52,7 +52,7 @@ internal fun Method.callButtonTag(tables: Map<String, Map<Int, String>>): String
 }
 
 /** The base type the wrapper's constructor takes the built button as, its first parameter. */
-private fun Method.callButtonBase(): String {
+internal fun Method.callButtonBase(): String {
     val code = implementation!!.instructions.toList()
     val init = code[code.indexOfFirst { it.opcode == Opcode.RETURN_OBJECT } - 1]
     return ((init as ReferenceInstruction).reference as MethodReference).parameterTypes.first().toString()
@@ -64,13 +64,13 @@ private fun Method.callButtonBase(): String {
  * each, both returning the same wrapper, which extends the abstract button base its constructor takes first: the shape
  * the extension looks inside for the tag and the tap listeners.
  */
+/** The builders before their tag is read, since the string tables the tag may come through are only known later. */
+internal val callButtonShapes = methodCheck { _, method ->
+    method.parameterTypes.map { it.toString() }.let { THREAD_KEY_TYPE in it && MIG_SCHEME in it } && method.callButtonReturn() != null
+}
+
 internal fun findCallButtonBuilt(classes: Iterable<ClassDef>, tables: Map<String, Map<Int, String>> = activeStringTables): List<Method> {
-    val builders = classes.flatMap { cls ->
-        cls.methods.filter { method ->
-            method.parameterTypes.map { it.toString() }.let { THREAD_KEY_TYPE in it && MIG_SCHEME in it } &&
-                method.callButtonReturn() != null && method.callButtonTag(tables) != null
-        }
-    }.groupBy { it.callButtonTag(tables)!! }
+    val builders = callButtonShapes.methods(classes).filter { it.callButtonTag(tables) != null }.groupBy { it.callButtonTag(tables)!! }
     val audio = builders["audio_call_button"]?.singleOrNull() ?: return emptyList()
     val video = builders["video_call_button"]?.singleOrNull() ?: return emptyList()
     if (audio.returnType != video.returnType || audio.callButtonBase() != video.callButtonBase()) return emptyList()

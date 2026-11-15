@@ -1,0 +1,163 @@
+name: Verify patches
+
+# Patches every supported Instagram version with the same Morphe Patcher that Morphe Manager uses,
+# and fails if any patch doesn't apply. Runs before each release, and can be started by hand.
+#
+# The APKMs can't live in this public repo, so they're release assets of a private repo:
+#   repo:  vars.TEST_APKS_REPO (default southstar21dev/test-apks)
+#   tag:   instagram-<version>, holding each APKMirror build of that version (one .apkm per
+#          version code, as builds of one version are obfuscated differently)
+#   token: secrets.TEST_APKS_TOKEN, a fine-grained token with read access to that repo's contents
+# Without the token the check is skipped with a warning, so releases aren't blocked.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  # Morphe CLI v2.1.1 runs morphe-patcher 2.3.0, the patcher in Morphe Manager 2.5.0.
+  # Keep this in step with the patcher Morphe Manager ships.
+  MORPHE_CLI_VERSION: v2.1.1
+  TEST_APKS_REPO: ${{ vars.TEST_APKS_REPO || 'southstar21dev/test-apks' }}
+
+jobs:
+  verify:
+    name: Patch supported versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for test APKs
+        id: apks
+        env:
+          TOKEN: ${{ secrets.TEST_APKS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::warning title=Patches not verified::Set the TEST_APKS_TOKEN secret to patch the supported Instagram versions before each release."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.apks.outputs.available == 'true'
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        if: steps.apks.outputs.available == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patches
+        if: steps.apks.outputs.available == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Also writes patches-list.json, which names every patch.
+        run: ./gradlew generatePatchesList --no-daemon
+
+      - name: Download Morphe CLI
+        if: steps.apks.outputs.available == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p '*-all.jar' -D "$RUNNER_TEMP/cli"
+          mv "$RUNNER_TEMP"/cli/*-all.jar "$RUNNER_TEMP/morphe-cli.jar"
+
+      - name: Download supported APKMs
+        if: steps.apks.outputs.available == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.TEST_APKS_TOKEN }}
+        run: |
+          versions=$(grep -oE 'version = "[^"]+"' patches/src/main/kotlin/app/southstar21/patches/instagram/shared/Constants.kt \
+            | sed -E 's/version = "(.*)"/\1/')
+          if [ -z "$versions" ]; then
+            echo "::error::No supported versions found in Constants.kt"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/apks"
+          for version in $versions; do
+            if ! gh release download "instagram-$version" -R "$TEST_APKS_REPO" -p '*.apkm' -D "$RUNNER_TEMP/apks"; then
+              echo "::error title=Missing APKM::Add Instagram $version as a release tagged instagram-$version in $TEST_APKS_REPO"
+              exit 1
+            fi
+          done
+          ls -la "$RUNNER_TEMP/apks"
+
+      - name: Patch
+        if: steps.apks.outputs.available == 'true'
+        run: |
+          patches=
+          for file in patches/build/libs/patches-*.mpp; do
+            case "$file" in *-sources.mpp|*-javadoc.mpp) ;; *) patches=$file ;; esac
+          done
+          # Every patch is switched on, including ones that are off by default.
+          enable=()
+          while IFS= read -r name; do enable+=(-e "$name"); done < <(jq -r '.patches[].name' patches-list.json)
+          total=$(jq '.patches | length' patches-list.json)
+          failed=0
+          {
+            echo "## Patch verification"
+            echo
+            echo "Morphe CLI $MORPHE_CLI_VERSION, $(basename "$patches")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          for apkm in "$RUNNER_TEMP"/apks/*.apkm; do
+            # APKMirror names: com.instagram.android_<version>-<version code>_..., shown as "<version> (<code>)".
+            name=$(basename "$apkm" .apkm)
+            code=$(echo "$name" | sed -E 's/^[^_]+_[^-]+-([0-9]+).*/\1/')
+            version="$(echo "$name" | sed -E 's/^[^_]+_([^-]+)-.*/\1/') ($code)"
+            result="$RUNNER_TEMP/result-$code.json"
+            echo "::group::Instagram $version"
+            java -jar "$RUNNER_TEMP/morphe-cli.jar" patch \
+              -p "$patches" \
+              "${enable[@]}" \
+              --continue-on-error \
+              -r "$result" \
+              -o "$RUNNER_TEMP/patched-$code.apk" \
+              -t "$RUNNER_TEMP/tmp-$code" \
+              "$apkm" || true
+            echo "::endgroup::"
+
+            {
+              echo
+              echo "### Instagram $version"
+              echo
+              echo "| Patch | Result |"
+              echo "|---|---|"
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            if [ ! -f "$result" ]; then
+              echo "::error title=Instagram $version::The CLI wrote no result, see the log above"
+              echo "| | No result, see the log |" >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+              continue
+            fi
+
+            jq -r '.appliedPatches[] | "| \(.) | ✅ Applied |"' "$result" >> "$GITHUB_STEP_SUMMARY"
+            jq -r '.failedPatches[] | "| \(.name) | ❌ \(.error | split("\n")[0] | gsub("\\|"; "\\\\|")) |"' "$result" >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r '.failedPatches[] | "::error title=\(.name) failed on Instagram '"$version"'::\(.error | split("\n")[0])"' "$result"
+            if [ "$(jq -r '.success' "$result")" != "true" ] || [ "$(jq '.failedPatches | length' "$result")" != "0" ]; then
+              reason=$(jq -r '.failureReason // empty' "$result")
+              [ -n "$reason" ] && echo "::error title=Instagram $version::$reason"
+              failed=1
+            fi
+
+            # A patch that was skipped is neither applied nor failed.
+            missing=$(jq -r --slurpfile list patches-list.json \
+              '[$list[0].patches[].name] - .appliedPatches - [.failedPatches[].name] | .[]' "$result")
+            if [ -n "$missing" ]; then
+              while IFS= read -r name; do
+                echo "| $name | ⚠️ Not applied |" >> "$GITHUB_STEP_SUMMARY"
+                echo "::error title=$name skipped on Instagram $version::The patch was not applied"
+              done <<< "$missing"
+              failed=1
+            fi
+            echo "Applied $(jq '.appliedPatches | length' "$result") of $total patches on Instagram $version"
+          done
+
+          exit $failed

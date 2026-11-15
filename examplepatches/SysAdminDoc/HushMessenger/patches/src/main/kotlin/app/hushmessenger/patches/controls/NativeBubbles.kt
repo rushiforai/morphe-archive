@@ -227,12 +227,21 @@ internal fun findNativeBubbleRoutes(classes: List<ClassDef>, gate: String): Stri
     val shortcuts = mutableListOf<Method>()
     val attachments = mutableListOf<Method>()
     val conversations = mutableListOf<Method>()
+    // Building every reference in the app into an id was most of this scan's time. A method can only be one of the
+    // three with the shortcut builder's parameters, the attach flag's string or a dynamic shortcut push, so only those
+    // are read in full. The push test below compares reference text, which a string constant of the push's id also
+    // gives, so that string lets a method through too and the answers stay the old full read's.
+    val pushId = "Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V"
+    val attachFlag = StringMatch("attach_bubble_metadata")
+    val pushShortcut = MemberMatch(pushId)
+    val pushText = StringMatch(pushId)
     for (cls in classes) for (m in cls.methods) {
+        if (m.bubbleParameters() != SHORTCUT_PARAMETERS && m.implementation?.instructions?.any { i ->
+                (i as? ReferenceInstruction)?.reference.let { attachFlag.matches(it) || pushShortcut.matches(it) || pushText.matches(it) }
+            } != true) continue
         val c = m.bubbleCode()
         val refs = c.mapNotNull { it.bubbleRef() }.toSet()
-        if (m.bubbleParameters() == listOf("Landroid/content/Context;", "Landroid/graphics/Bitmap;",
-                "Lcom/facebook/messaging/model/threadkey/ThreadKey;", "Ljava/lang/String;") &&
-            c.namesThreadShortcut(byType) && "$SHORTCUT_BUILDER->setPerson(Landroid/app/Person;)$SHORTCUT_BUILDER" in refs &&
+        if (m.bubbleParameters() == SHORTCUT_PARAMETERS && c.namesThreadShortcut(byType) && "$SHORTCUT_BUILDER->setPerson(Landroid/app/Person;)$SHORTCUT_BUILDER" in refs &&
             "$SHORTCUT_BUILDER->setIntent(Landroid/content/Intent;)$SHORTCUT_BUILDER" in refs &&
             "$SHORTCUT_BUILDER->build()Landroid/content/pm/ShortcutInfo;" in refs) {
             val set = c.indexOfFirst { it.bubbleRef() == "$SHORTCUT_BUILDER->setLongLived(Z)$SHORTCUT_BUILDER" }
@@ -250,7 +259,7 @@ internal fun findNativeBubbleRoutes(classes: List<ClassDef>, gate: String): Stri
                 } == true }) &&
             c.any { it.opcode == Opcode.IPUT_OBJECT && (it as? ReferenceInstruction)?.reference is FieldReference }) attachments.add(m)
         if (MESSAGING_STYLE in refs && "Landroid/content/pm/ShortcutInfo;->getId()Ljava/lang/String;" in refs &&
-            "Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V" in refs) conversations.add(m)
+            pushId in refs) conversations.add(m)
     }
     val shortcut = shortcuts.singleOrNull() ?: return null
     val attachment = attachments.singleOrNull() ?: return null
@@ -285,6 +294,9 @@ internal fun findNativeBubbleRoutes(classes: List<ClassDef>, gate: String): Stri
     return listOf(attachment.hookId(), shortcut.hookId(), conversation.hookId()).joinToString("|")
 }
 
+/** The shortcut builder's parameters: (Context, Bitmap, ThreadKey, String). */
+private val SHORTCUT_PARAMETERS = listOf("Landroid/content/Context;", "Landroid/graphics/Bitmap;",
+    "Lcom/facebook/messaging/model/threadkey/ThreadKey;", "Ljava/lang/String;")
 private const val SHORTCUT = "Landroid/content/pm/ShortcutInfo;"
 private const val THREAD_KEY = "Lcom/facebook/messaging/model/threadkey/ThreadKey;"
 private const val NOTIFICATION_BUILDER = "Landroid/app/Notification\$Builder;"
@@ -587,8 +599,11 @@ private fun connectedBubbleValues(classes: List<ClassDef>, shortcut: Method, att
     }
     if (pending.none { bubbleNotificationBridge(byType, metadata, idField, it) }) return false
     // Arrival must use a returned shortcut, write its ID, attach metadata to that same builder, then build it.
+    val attachmentCall = MemberMatch(attachment.hookId())
     return classes.any { cls -> cls.methods.any { m ->
-        if (m.bubbleCode().none { it.opcode.toString().startsWith("INVOKE") && it.bubbleRef() == attachment.hookId() }) return@any false
+        if (m.implementation?.instructions?.any {
+                it.opcode.toString().startsWith("INVOKE") && attachmentCall.matches((it as? ReferenceInstruction)?.reference)
+            } != true) return@any false
         val f = flow(m)
         f.calls().any { at ->
             if (f.reference(at)?.toString() != attachment.hookId()) return@any false

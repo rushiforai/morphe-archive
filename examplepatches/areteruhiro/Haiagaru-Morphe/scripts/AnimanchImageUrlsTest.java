@@ -15,6 +15,15 @@ public final class AnimanchImageUrlsTest {
         StringBuilder many=new StringBuilder();for(int n=1;n<=300;n++)many.append("https://bbs.animanch.com/arc/img/1/").append(n).append(' ');
         ok(AnimanchImageUrls.sources(many.toString()).size()==256);
         ok(AnimanchImageUrls.append(base,many.toString(),u->u).length==256);
+        String html="<title>fixture</title><ul id=resList><li id=res1><div class=resbody>"
+            +"<a class=thumb href='/arc/img/7353609/1'>image</a>"
+            +"<a class=thumb href='/img/134199/1'>image</a>"
+            +"<a class=thumb href='https://evil.test/arc/img/9/1'>invalid</a>"
+            +"<a class=thumb href='/arc/img/9/1?x=1'>invalid</a></div></li></ul>";
+        try{
+            List<String> images=AnimanchProtocol.thread(html,"https://bbs.animanch.com/board/7557374/").replies.get(0).images;
+            ok(images.equals(Arrays.asList("https://bbs.animanch.com/arc/img/7353609/1","https://bbs.animanch.com/img/134199/1")));
+        }catch(Exception error){throw new AssertionError(error);}
         System.out.println("PASS AnimanchImageUrls: "+checks);
     }
 }

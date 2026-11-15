@@ -37,8 +37,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Scheduled runs use main. A manual dry run may target another branch to test changes to this workflow.
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
+
+      - name: Check branch
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_NAME" != main ] && [ "$DRY_RUN" != true ]; then
+            echo "Only dry runs may start from a branch other than main (got '$REF_NAME')." >&2
+            exit 1
+          fi
 
       - name: Detect upstream release
         id: detect
@@ -126,7 +136,30 @@ jobs:
 
       - name: Make Gradle wrapper executable
         if: steps.detect.outputs.skip == ''
-        run: chmod +x ./gradlew
+        # gradlew is committed as 100755; check that so the merge commit never picks up a mode change.
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          if ! git diff --quiet -- gradlew; then
+            echo "gradlew is not committed as executable; run 'git update-index --chmod=+x gradlew' on main." >&2
+            exit 1
+          fi
+
+      - name: Regenerate settings search index
+        if: steps.detect.outputs.skip == ''
+        continue-on-error: true
+        # The packaged index is a snapshot of the settings tree. Upstream generates it without the
+        # fork's own settings, so it is always stale after a merge; rebuild it before testing.
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+          INDEX: extensions/extension/src/main/java/dev/jason/gboardpatches/extension/settings/search/GboardSettingsSearchIndexData.java
+        run: |
+          set -euo pipefail
+          ./gradlew :extensions:extension:testDebugUnitTest --tests '*GboardSettingsSearchIndexSnapshotTest*' -PupdateSettingsSearchIndex=true
+          if [ -f "$INDEX" ]; then
+            git add "$INDEX"
+          fi
 
       - name: Build and test
         id: build

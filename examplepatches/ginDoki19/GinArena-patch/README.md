@@ -3,7 +3,7 @@
 **GinArena Patch** is a [Morphe](https://morphe.software/) patch bundle for free **1DM**
 (`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), **CricZ TV**
 (`com.pro.cricztv`), **CrexiFy TV** (`com.crexify.tv`), **PlayZ TV** (`com.playz.tv`), **MX Player** (`com.mxtech.videoplayer.ad`),
-**SK Tech TV** (`com.live.sktechtv`), **Playfy TV** (`com.playfy.tv`), **APK Decompiler** (`com.apktools.app.decompile`), and **Daylio** (`net.daylio`).
+**SK Tech TV** (`com.live.sktechtv`), **Playfy TV** (`com.playfy.tv`), **APK Decompiler** (`com.apktools.app.decompile`), **Daylio** (`net.daylio`), **WPS Office** (`cn.wps.moffice_eng`), and **AdGuard** (`com.adguard.android`).
 Morphe Manager automatically filters patches per app, so selecting an app shows only compatible patches.
 
 ### How to use these patches
@@ -21,7 +21,7 @@ github.com/ginDoki19/GinArena-patch
 The table below reflects the last published release and is refreshed automatically by the release workflow.
 
 <!-- PATCHES_START -->
-> **[v2.10.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.10.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v2.11.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.11.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -93,6 +93,23 @@ The table below reflects the last published release and is refreshed automatical
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar when controls open and helps retain focus when live-source tabs auto-focus. Seeking depends on the stream. |  |
 | [Remove ads, proxy & restrictions](#remove-ads-proxy-restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.4. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip proxy & ad native libraries |
+
+</details>
+
+<details>
+<summary>📦 WPS Office&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.11.0 |
+| :---: |
+| XAPK bundle (base + config splits, arm64-v8a, Android 10+), build 1650 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Google sign-in via MicroG RE](#google-sign-in-via-microg-re) | Makes Google sign-in work on a re-signed WPS by signing in as the original app. Needs MicroG RE installed with a Google account added. WPS account login is unaffected. | • Sign in as the original app<br>• Send Google calls to MicroG<br>• Report Play services as available<br>• Route notifications through MicroG<br>• Let the app find Google and MicroG |
+| [Unlock premium features](#unlock-premium-features) | Opens the paid tools - PDF, export, editing, fonts and templates - by answering the app's payment checks. Every part has its own switch, so you choose what is unlocked. Sign in first: signed out, WPS reports no membership at all. | • Unlock premium tools (main switch)<br>• Show a Pro account<br>• Open Pro menus<br>• Pass ownership checks<br>• Remove ads<br>• Hide the "already a member" popup<br>• Hide the upgrade banner on tool pages<br>• Turn AI features off<br>• Skip the ad pre-check<br>• Report the stock signature |
 
 </details>
 
@@ -183,6 +200,22 @@ The table below reflects the last published release and is refreshed automatical
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
+
+</details>
+
+<details>
+<summary>📦 AdGuard&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.15.2 |
+| :---: |
+| Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+ |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock AdGuard Premium](#unlock-adguard-premium) | Opens the paid features and removes the license prompts. The app then reports a lifetime family license, so no purchase screen appears. |  |
 
 </details>
 
@@ -601,12 +634,159 @@ Enables local premium tools and cleans up VIP labels and buttons.
 
 ---
 
+## 📦 WPS Office (26.11.0, build 1650)
+
+<details>
+<summary><b>📖 App details</b> - what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+Opens the gates WPS checks **on the device**. Every change is a separate switch - turn them all off
+and you get a stock-equivalent build.
+
+#### Unlock premium features
+
+| Option | Default | What it does |
+|---|:---:|---|
+| **Unlock premium tools (main switch)** | **on** | Answers every premium check with "yes". This is the switch that actually unlocks the app - the options below it only tidy up what it produces. |
+| Show a Pro account | on | Shows your account as Premium, so upgrade banners and price cards go away. |
+| Open Pro menus | on | Tells the app you have a Pro membership, which opens the menu entries locked behind it. |
+| Pass ownership checks | on | Answers "do I own this?" with yes, so premium fonts, templates and PDF tools open. |
+| Remove ads | on | Tells the app you are ad-free, so banner and full-screen ads are never requested. |
+| Hide the "already a member" popup | on | Stops the popup that says you are already a WPS Premium user. |
+| Hide the upgrade banner on tool pages | **off** | Removes the "Upgrade to WPS Membership" banner shown above the tool pages. It can invent usage counters, so it stays off until you want it. |
+| Turn AI features off | **off** | Answers every AI request as not owned. Use it only if an AI tool keeps loading forever. |
+| Skip the ad pre-check | **off** | Tells the app ads are off before it contacts the server, so those requests never start. |
+| Report the stock signature | **off** | Only analytics reads this. It does not affect premium, ads or sign-in. |
+
+#### Google sign-in via MicroG RE
+
+> **This patch is off by default - tick it when you patch.** It only applies if MicroG RE is your
+> Play services provider; on a device with real Google Play Services, leave it off.
+
+Re-signing an app changes its identity, and Google's OAuth backend matches apps on
+**(package name, signing certificate)**. MicroG RE solves this by presenting WPS's *original* identity,
+read from the two meta-data entries this patch adds. The values are constants, so sign-in keeps
+working under **any** package name.
+
+| Option | Default | What it does |
+|---|:---:|---|
+| Sign in as the original app | on | Tells MicroG the app's original name and signature, which is what makes Google accept the sign-in. |
+| Send Google calls to MicroG | on | Points WPS's Play services calls at MicroG instead of Google. |
+| Report Play services as available | on | MicroG fails Google's signature check, so this answers the availability check with yes. |
+| Route notifications through MicroG | on | Sends push notifications through MicroG so they keep arriving. |
+| Let the app find Google and MicroG | on | Makes both Play services packages visible on Android 11+, so sign-in can reach MicroG. WPS declares neither, so nothing else changes. |
+
+### What works, and what still needs the server
+
+**On-device, works:** PDF toolkit (split/merge/compress), image-to-PDF export, printing, export to
+image, watermark-free saves, OCR text extraction, premium fonts/templates that ship with the app.
+
+**Authorised by Kingsoft when it runs - no client-side patch can provide these:** cloud AI actions,
+cloud conversion, cloud OCR upload, cloud storage space, and premium downloads that are not in the
+APK. These fail with a server response rather than a paywall.
+
+Two gates sit outside the app entirely and cannot be patched:
+
+* a **server-pushed feature switch** (`func_switch` via the remote-config manager), and
+* the **`/auth_query` call** that authorises AI per device and account.
+
+### Known behaviour
+
+* **First launch after a fresh install** may open a Google One Tap window that does not complete; back
+  out of it and the normal login screen is underneath, where signing in with MicroG works. WPS fires
+  this by itself from its own A/B flag; a toggle to suppress it is planned.
+* **Sign in first.** Stock reports no membership at all while signed out - the privilege cache is
+  only populated for a logged-in account. The patch answers questions; it does not invent an account.
+
+### Target app (WPS Office)
+
+| | |
+|---|---|
+| Package | `cn.wps.moffice_eng` |
+| Version | **26.11.0** (versionCode 1650), XAPK bundle (base + config splits, `arm64-v8a`, Android 10+) |
+| Stock download | [APKPure - WPS Office](https://apkpure.com/wps-office-pdf-doc-editor/cn.wps.moffice_eng) - choose **26.11.0**, XAPK, and verify the hash below |
+| Signing certificate SHA-256 | `643990878d3ca83952a5be5f3e58d9f8bb6cdc57bf0f228700212071c68db3d7` |
+| XAPK SHA-256 | `bd3b27b7f08a548a0b7fcb00934c75b78a51fd405abe0d3a667ef0bfa09d9ea9` |
+
+> **Before you patch:** patching changes the signature, so the stock app has to be uninstalled
+> first. Back up anything saved only inside WPS. Point Morphe at the **XAPK as downloaded** - it
+> merges the base and its config splits itself; do not pre-merge or pre-sign it.
+
+</details>
+
+---
+
+## 📦 AdGuard (4.15.2, build 42321001)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+#### Unlock AdGuard Premium
+
+AdGuard keeps its licence state in a single place, and every screen reads it from there. This patch
+replaces that state with a lifetime family licence, so the paid features open and the purchase prompts
+stop appearing.
+
+There is no on/off switch, because there is nothing to choose between: one licence state drives
+everything. Remove the patch and the app is stock again.
+
+| What opens | What you will see |
+|---|---|
+| **Ad blocking, DNS filtering, HTTPS filtering** | The protection switches work without a purchase prompt |
+| **Firewall and per-app rules** | Available instead of showing the upgrade banner |
+| **Licence screen** | Shows a lifetime family licence; the Upgrade button is gone |
+| **Promo / "check licence" dialogs** | No longer appear |
+
+### Why it needs no extra switches
+
+AdGuard has no separate check for HTTPS filtering — it reads the same licence state as everything
+else. That was verified in 4.15.2: the HTTPS filtering state model contains no reference to the
+licence at all, and neither does the VPN service. So one patch covers every paid feature.
+
+The app also does **not** verify its own signature, contains no PairIP or Play Integrity guard, and
+uses no Play Billing — it sells through its own backend. That means re-signing it does not break
+anything, and there is no second gate to work around.
+
+### Known behaviour
+
+* **The backend cannot overwrite the licence.** A server reply of "free" would normally be saved over
+  the cached state; the patch discards that reply before it is written, so the paid state stays.
+* **Activating a licence key** is skipped. Stock only reaches that code with a real key stored, which a
+  patched build never has.
+* **Nothing is blocked or redirected at runtime.** No ads are injected, no telemetry is added, no code
+  from any third-party mod is used.
+* **TV build not covered.** This targets the phone APK (`adguard-4.15.2.apk`). The separate
+  `adguard-tv-4.15.2.apk` is a different app UI and has not been audited.
+
+### Target app (AdGuard)
+
+| | |
+|---|---|
+| Package | `com.adguard.android` |
+| Version | **4.15.2** (versionCode 42321001), single universal APK, Android 9+ |
+| ABIs | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` |
+| Stock download | [GitHub releases — AdGuard 4.15.2](https://github.com/AdguardTeam/AdguardForAndroid/releases/tag/v4.15.2) — `adguard-4.15.2.apk` |
+| Signing certificate SHA-256 | `bdcc3c69c26d4627773ae6d7e7e5b2c89e94ed8dc02261525ff80ac4c9412db7` |
+| APK SHA-256 | `29c99a8ca2563be68a41f91cb68b624bfe5434157d59a0f7f96c344ee3c58546` |
+
+> **Before you patch:** patching changes the signature, so the stock AdGuard has to be uninstalled
+> first. Export your custom filter lists and settings beforehand — uninstalling removes them. Point
+> Morphe at the APK exactly as downloaded; do not pre-sign or re-zip it.
+
+</details>
+
+---
+
 ## Usage (Morphe Manager)
 
 1. Add this repository as a remote patch source using the link at the top of this README.
 2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
    **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 or 3.4.3 APK**,
-   **APK Decompiler 4.12.0 APK**, or **Daylio 1.71.1 APKM** above onto your device.
+   **APK Decompiler 4.12.0 APK**, **Daylio 1.71.1 APKM**, **WPS Office 26.11.0 XAPK**, or
+   **AdGuard 4.15.2 APK** above onto your device.
 3. Updates require a compatible signing key. If Android reports a signature conflict, stop: uninstalling the existing app can permanently erase its data. Back up what you can and your Morphe signing key first.
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
    file (rather than an already-patched installed app), configure options if desired (for MX
@@ -650,7 +830,9 @@ bash gradlew :patches:buildAndroid
 
 - [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch for 1.69.2; adapted for 1.71.1.
 - [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patch ideas.
+- [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — the earlier WPS Office "Enable Pro" idea; its anti-tamper dependency no longer exists in 26.11.0, so the WPS patch here is written from scratch against the current privilege layer.
 - [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — inspiration and initial CRICFy TV patch idea.
+- [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — earlier AdGuard premium patches. Both target older builds; the AdGuard patch here is written against 4.15.2, with an idempotency guard and a stricter fetch fingerprint.
 - [Morphe](https://morphe.software/) — Morphe Patcher and Morphe Manager.
 
 ## Notes

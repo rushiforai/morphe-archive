@@ -27,25 +27,14 @@ plugins:
           scope: Needs bump
           release: patch
 
-  # Section headings in CHANGELOG.md and the release body.
-  - - "@semantic-release/release-notes-generator"
-    - preset: conventionalcommits
-      presetConfig:
-        types:
-          - type: fix
-            section: "🐛 Bug Fixes"
-            hidden: false
-          - type: feat
-            section: "✨ New Features"
-            hidden: false
-          - type: bump
-            section: "🚀 Updated App Support"
-            hidden: false
-          - type: perf
-            section: "🔧 Improvements"
-            hidden: false
-          - type: build
-            hidden: true
+  # Release notes in the Loki Patches format (### Fixes / - **App:** text / patch count). The same text
+  # becomes the CHANGELOG entry, the description in patches-bundle.json and the GitHub release body.
+  # The bundle is built first so the patch count in the last line is the released one; Gradle's
+  # output goes to stderr because stdout is the notes.
+  - - "@semantic-release/exec"
+    - generateNotesCmd: >-
+        ./gradlew generatePatchesList -q 1>&2
+        && python3 .github/scripts/release_notes.py $GITHUB_REPOSITORY ${nextRelease.version} "${lastRelease.gitTag}"
 
   # patches-bundle.json is what the Morphe manager reads for updates.
   - - "@MorpheApp/changelog"
@@ -72,6 +61,7 @@ plugins:
         - patches-bundle.json
         - patches-list.json
         - README.md
+        - docs/apps/*.md
       message: "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 
   # Publishes the release with the bundle, and nothing else.

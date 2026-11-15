@@ -7,29 +7,19 @@
 package app.rex.patches.instagram.entity.trackDataIntf
 
 import app.rex.utils.changeFirstString
-import app.rex.utils.changeStringAt
-import app.rex.utils.methodExtractor
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.indexOfFirstInstruction
-import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patcher.patch.patch
 
 val trackDataIntfEntity =
-    bytecodePatch(
+    patch(
         description = "This patch is used for decoding obfuscated code of track data interface",
     ) {
         execute {
-            val trackDataFromMusicInfoMethodName = TrackDataFromMusicInfoMethodFingerprint.method.name
-            GetTrackDataExtension.changeFirstString(trackDataFromMusicInfoMethodName)
-
-            mutableClassDefBy(IMMUTABLE_PANDO_AUDIO_FILTER_INFO_CLASS_DESCRIPTOR)
-                .methods
-                .last {
-                    it.returnType ==
-                        "Lcom/facebook/pando/TreeUpdaterJNI;"
-                }.apply {
-                    val mappingMethodInvokeInstruction = getInstruction(indexOfFirstInstruction(Opcode.INVOKE_VIRTUAL))
-                    GetMappingsExtension.changeFirstString(mappingMethodInvokeInstruction.methodExtractor().name)
-                }
+            runCatching {
+            GetTrackDataExtension.changeFirstString(TrackDataFromMusicInfoMethodFingerprint.originalMethod.name)
+            GetMappingsExtension.changeFirstString(
+                AudioFilterInfoTreeUpdaterFingerprint.instructionMatches.first().methodReference.name,
+            )
+        
+            }
         }
     }

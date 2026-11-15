@@ -27,6 +27,10 @@ private const val APP_START = "LX/Init;->A0e($REQUESTER)V"
 private const val ORDERED_BROADCAST = "Landroid/content/Context;->sendOrderedBroadcast(Landroid/content/Intent;Ljava/lang/String;)V"
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
+/** Morphe's Spoof signature extension class, and its stand-in for getInstalledPackages. */
+internal const val SPOOF_CLASS = "Lapp/morphe/extension/signature/SignatureSpoof;"
+private const val SPOOFED_INSTALLED_PACKAGES = "$SPOOF_CLASS->getInstalledPackages(Landroid/content/pm/PackageManager;I)Ljava/util/List;"
+
 /** The app list as Messenger writes it, cut down: every installed app, kept when it's a trusted Meta app. */
 private val LIST_BODY = """
     new-instance v0, Ljava/util/ArrayList;
@@ -95,6 +99,13 @@ class PhoneIdSyncTest {
         validateControls(mirroredControls(phoneIdFixture()), setOf(PHONE_ID_SYNC))
     }
 
+    // Two dex files can each carry a copy of one class. The requesters are the classes by name, so the copy that only
+    // holds the query doesn't make a second requester.
+    @Test fun aSecondCopyOfTheRequesterIsStillOneRequester() {
+        val copy = fixtureClass(REQUESTER, listOf(query()))
+        assertEquals(setOf(SYNTHETIC_PHONE_ID_LIST, SYNTHETIC_PHONE_ID_SYNC), found(phoneIdFixture(others = listOf(appStart(), copy))))
+    }
+
     @Test fun eachProfileHooksOneRequestersListAndSync() {
         assertEquals(setOf(SYNTHETIC_PHONE_ID_LIST, SYNTHETIC_PHONE_ID_SYNC), SYNTHETIC_PROFILE.hooks.getValue(PHONE_ID_SYNC))
         // Each release renames the requester.
@@ -124,6 +135,35 @@ class PhoneIdSyncTest {
         for ((case, classes) in cases) {
             assertTrue(found(classes).isEmpty(), case)
             assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(PHONE_ID_SYNC)) }
+        }
+    }
+
+    // #174: Morphe's Spoof signature, picked next to ours, runs first and turns the list's getInstalledPackages into a
+    // static call of its wrapper. The list is still the list, so the switch still finds, checks and stops it.
+    @Test fun morphesSpoofSignatureWrapperIsStillTheAppListsRead() {
+        val wrapped = LIST_BODY.replace("invoke-virtual {v1, v1}, $INSTALLED_PACKAGES", "invoke-static {v1, v1}, $SPOOFED_INSTALLED_PACKAGES")
+        val classes = phoneIdFixture(requester = listOf(list(wrapped), query(), sync()))
+        assertEquals(setOf(SYNTHETIC_PHONE_ID_LIST, SYNTHETIC_PHONE_ID_SYNC), found(classes))
+        validateControls(mirroredControls(classes), setOf(PHONE_ID_SYNC))
+        val method = list(wrapped)
+        val before = method.code()
+        injectControl(PHONE_ID_SYNC, mapOf(PHONE_ID_SYNC to listOf(method)))
+        assertEquals("$SETTINGS->stopPhoneIdSync()Z", (method.code()[0] as ReferenceInstruction).reference.toString())
+        assertEquals(Opcode.RETURN_OBJECT, method.code()[5].opcode)
+        assertEquals(before, method.code().drop(6))
+
+        // Both shapes at once is two reads, and a wrapper of some other PackageManager call isn't the app list.
+        val cases = mapOf(
+            "the wrapper and the stock read" to wrapped.replace("move-result-object v2\n", "move-result-object v2\ninvoke-virtual {v1, v1}, $INSTALLED_PACKAGES\n"),
+            "a wrapped getPackageInfo" to LIST_BODY.replace("invoke-virtual {v1, v1}, $INSTALLED_PACKAGES",
+                "invoke-static {v1, v1, v1}, $SPOOF_CLASS->getPackageInfo(Landroid/content/pm/PackageManager;Ljava/lang/String;I)Landroid/content/pm/PackageInfo;"),
+            "a static of the same name that isn't handed the manager" to LIST_BODY.replace("invoke-virtual {v1, v1}, $INSTALLED_PACKAGES",
+                "invoke-static {v1, v1}, $SPOOF_CLASS->getInstalledPackages(Ljava/lang/Object;I)Ljava/util/List;"),
+        )
+        for ((case, body) in cases) {
+            val bad = phoneIdFixture(requester = listOf(list(body), query(), sync()))
+            assertTrue(found(bad).isEmpty(), case)
+            assertFailsWith<PatchException>(case) { injectControl(PHONE_ID_SYNC, mapOf(PHONE_ID_SYNC to listOf(list(body)))) }
         }
     }
 

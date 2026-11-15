@@ -19,7 +19,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * Blur behind menus (#162): the menu a long press on a chat opens, and every other sheet or dialog that dims the screen
  * behind it, blurs it instead, the way an iPhone does. Each of them is a DialogFragment, and androidx's DialogFragment
  * shows its dialog from onStart. The hook hands the dialog to the extension right after that `show()`: the window's dim
- * is set by then, a plain AlertDialog's included, and the change lands before the sheet's first frame.
+ * is set by then, a plain AlertDialog's included, and the change lands before the sheet's first frame. The menu a long
+ * press on a message opens (MessageReactionsOverlayFragment) comes through the same hook but draws its own dim, so the
+ * extension finds it by its MessageReactionsOverlayView instead of by the window's dim.
  */
 internal const val MENU_BLUR = "menu_blur"
 internal const val MENU_BLUR_HOST = "Lapp/hushmessenger/extension/MenuBlur;"

@@ -86,6 +86,14 @@ public final class EdgeReporterHistory {
         return EdgeReporterId.restore(title, stored);
     }
 
+    static void rememberArchive(long thread,String title,String suffix){
+        SharedPreferences prefs=cache;if(prefs==null||!ReporterMetadataWrites.headroom())return;
+        ReporterMetadataWrites writer=metadata(prefs);writer.put(Long.toString(thread),suffix);
+        if(title!=null&&!title.trim().isEmpty())writer.put(titleKey(title),suffix);
+    }
+    static String archiveSuffix(long thread){return cache==null?null:metadata(cache).get(Long.toString(thread));}
+    static boolean hasArchive(long thread){return archiveSuffix(thread)!=null;}
+
     /** Restores reporter metadata for a menu title when the thread is already read. */
     public static String resolveTitle(Object board, String title) {
         if (!ReporterMetadataWrites.headroom()) return title;
@@ -158,13 +166,21 @@ public final class EdgeReporterHistory {
         final String resolvedTitle = resolveTitle(board, title);
         String suffix = EdgeReporterId.suffix(resolvedTitle);
         if (suffix == null || activity.isFinishing()) return false;
-        String owner = type.getClass().getName().equals("o.addPauseListener") ? "o.getSegmentsokio"
-                : type.getClass().getName().equals("o.YHn") ? "o.TTRewardVideoActivity2" : "o.zzawg";
         final Method entry;
         try {
-            entry = Class.forName(owner).getDeclaredMethod("e", Class.forName("androidx.fragment.app.FragmentActivity"),
+            String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+            String owner;
+            switch(version){
+                case "0.8.10.226 dev":owner="o.getSegmentsokio";break;
+                case "0.8.10.241":owner="o.TTRewardVideoActivity2";break;
+                case "0.8.10.242 dev":owner="o.getLandscapeInlineAdaptiveBannerAdSize";break;
+                case "0.8.10.243 dev":owner="o.zzawg";break;
+                default:return false;
+            }
+            ClassLoader loader=activity.getClassLoader();
+            entry = Class.forName(owner,false,loader).getDeclaredMethod("e", Class.forName("androidx.fragment.app.FragmentActivity",false,loader),
                     String.class, type.getClass(), board.getClass());
-        } catch (ReflectiveOperationException error) {
+        } catch (ReflectiveOperationException | android.content.pm.PackageManager.NameNotFoundException error) {
             Log.w("HaiagaruReporter", "NG editor unavailable", error);
             return false;
         }
@@ -199,15 +215,15 @@ public final class EdgeReporterHistory {
     }
     private static void addLegacyButton(Object fragment, View root) {
         try {
-            Object type = fragment.getClass().getField("c").get(fragment);
+            Object type = NativeFields.find(fragment.getClass(),"c").get(fragment);
             if (!(type instanceof Enum) || !"THREAD".equals(((Enum<?>) type).name())) return;
-            Object board = fragment.getClass().getField("a").get(fragment);
+            Object board = NativeFields.find(fragment.getClass(),"f").get(fragment);
             if (!EdgeReporterId.isBoard(board)) return;
             EditText input = findInput(root);
-            if (input == null || EdgeReporterId.suffix(resolveTitle(board, input.getText().toString())) == null
+            if (input == null || editorSuffix(board,input.getText().toString()) == null
                     || !(input.getParent() instanceof ViewGroup)) return;
             ViewGroup parent = (ViewGroup) input.getParent();
-            String suffix = EdgeReporterId.suffix(resolveTitle(board,input.getText().toString()));
+            String suffix = editorSuffix(board,input.getText().toString());
             Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             boolean partial = "edge:liveedge".equals(EdgeReporterId.scope(board)) && suffix.matches("\\[[A-Za-z0-9+/.]{8}★\\]");
             String[] labels = partial ? new String[]{reporterButton(board),"前半4桁NG","後半4桁NG","記者ID・スレ名で過去スレ検索"} : new String[]{reporterButton(board)};
@@ -216,7 +232,7 @@ public final class EdgeReporterHistory {
                 Button button=new Button(root.getContext());button.setText(labels[i]);
                 button.setOnClickListener(view -> {
                     if(action==3){ReporterSearchUi.show(activity,suffix.substring(1,suffix.length()-2));return;}
-                    if(register(activity,suffix,(String)board,action)) {
+                    if(register(activity,suffix,board.toString(),action)) {
                         try{fragment.getClass().getMethod("dismiss").invoke(fragment);}catch(ReflectiveOperationException ignored){}
                     }
                 });
@@ -243,6 +259,8 @@ public final class EdgeReporterHistory {
             Toast.makeText(activity,"記者NGを登録しました",Toast.LENGTH_SHORT).show();return true;
         } catch(Exception error){Log.w("HaiagaruReporter","Unable to register reporter NG",error);Toast.makeText(activity,"NGを登録できませんでした",Toast.LENGTH_LONG).show();return false;}
     }
+    // Editing an existing reporter-only rule shows the bare [ID★], without a title prefix.
+    private static String editorSuffix(Object board,String text){return EdgeReporterId.suffix(" "+resolveTitle(board,text));}
     private static EditText findInput(View view) {
         if (view instanceof EditText) return (EditText) view;
         if (view instanceof ViewGroup) {

@@ -248,10 +248,11 @@ final class SettingsNavigation extends BaseAdapter {
         aliases.put(Settings.HIDE_SEARCH_HISTORY.key, L10n.t("Recent searches autocomplete"));
         aliases.put(Settings.HIDE_NAV_NOTIFICATIONS.key, L10n.t("Activity alerts"));
         aliases.put(Settings.HIDE_HEADER_BUTTONS.key, L10n.t("Toolbar icons"));
-        // All three black surfaces answer to the same words, so a build without one still finds the others.
+        // Every black surface answers to the same words, so a build without one still finds the others.
         aliases.put(Settings.BLACK_BOTTOM_BAR.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.BLACK_COMMENTS.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.BLACK_PIN_MENU.key, L10n.t("AMOLED dark theme"));
+        aliases.put(Settings.BLACK_SAVE_SHEET.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, L10n.t("Reverse image search"));
         aliases.put(Settings.HIDE_PIN_MENU_PIN_BOOST.key, L10n.t("Boost pin"));
         return Collections.unmodifiableMap(aliases);

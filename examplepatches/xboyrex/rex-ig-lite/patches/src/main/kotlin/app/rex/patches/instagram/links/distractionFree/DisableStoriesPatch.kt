@@ -10,17 +10,20 @@ import app.rex.patches.instagram.links.interceptUriPatch
 import app.rex.patches.instagram.misc.settings.settingsPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val disableStoriesPatch =
-    bytecodePatch(
+    patch(
         name = "Disable stories",
     ) {
         dependsOn(settingsPatch, interceptUriPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             enableSettings("disableStories")
+        
+            }
         }
     }

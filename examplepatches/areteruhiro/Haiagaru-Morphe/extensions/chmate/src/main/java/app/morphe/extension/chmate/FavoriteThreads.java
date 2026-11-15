@@ -15,6 +15,7 @@ public final class FavoriteThreads {
     private FavoriteThreads() { }
 
     public static synchronized void selected(Object home, int mode) {
+        HomeThreadOrder.selected(home,mode);
         selected.put(home, Math.abs(mode) == TAB);
         HomeRefreshTargets.selected(home,mode);
     }

@@ -10,7 +10,8 @@ permissions:
   packages: read
 
 concurrency:
-  group: private-build-${{ github.ref }}
+  # Separate the v2.0.3-dev.7 validation queue from a stale uncancellable dev run.
+  group: private-build-v203dev18-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,7 +33,7 @@ jobs:
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
       - name: Check short gesture policy
         run: |
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
@@ -49,7 +50,7 @@ jobs:
           java -cp /tmp/nicoid-cache-tests e.e.a.CacheSupportTest
       - name: Check comment posting video identifiers
         run: |
-          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-posting-json.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-posting-json.jar
           javac -cp /tmp/nicoid-posting-json.jar -d /tmp/nicoid-posting-tests extensions/extension/src/main/java/e/e/a/PostingRules.java porting/tests/PostingRulesTest.java
           java -cp /tmp/nicoid-posting-tests:/tmp/nicoid-posting-json.jar e.e.a.PostingRulesTest
       - name: Check video count order and precision
@@ -71,7 +72,7 @@ jobs:
           java -cp /tmp/nicoid-performance-tests e.e.a.PerformanceTest
       - name: Check paid metadata and badge reuse
         run: |
-          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-json.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-json.jar
           javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-paid-tests $(find porting/tests/paid-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PaidVideos.java extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/PaidVideosTest.java
           java -cp /tmp/nicoid-paid-tests:/tmp/nicoid-json.jar e.e.a.PaidVideosTest porting/tests/paid-list-fixture.json porting/tests/paid-watch-fixture.json
       - name: Check content filtering and history deletion
@@ -105,7 +106,7 @@ jobs:
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
       - name: Use the official Gradle distribution CDN for CI
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
           grep -q 'downloads.gradle.org/distributions' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
@@ -310,62 +311,60 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
-      - name: Verify stable resources and feature continuity
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
-          gh release download v1.10.6 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.6.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.6.mpp patches/build/libs/patches-1.11.1.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.6.mpp patches/build/libs/patches-1.11.1.mpp
-          cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.11.1/patch-payloads.py /tmp/nicoid-stage 1.11.1
-          python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
-          python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
-      - name: Prepare development sources and verification report
+      # This audit build must verify the currently generated version rather
+      # than assuming an archived development version.
+      - name: Verify final distributed MPP identity and checked-in payload
+        id: candidate
         shell: bash
         run: |
           set -euo pipefail
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          NICOID_CI_VERSION="$version" python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from zipfile import ZipFile
+          version = os.environ["NICOID_CI_VERSION"]
+          bundle = Path("patches/build/libs") / f"patches-{version}.mpp"
+          assert bundle.is_file() and bundle.stat().st_size > 0, f"Missing MPP: {bundle}"
+          with ZipFile(bundle) as archive:
+              assert archive.testzip() is None, "Corrupt MPP ZIP"
+              manifest = archive.read("META-INF/MANIFEST.MF").decode()
+              assert f"Version: {version}" in manifest, "MPP manifest version mismatch"
+              for name in ("nicoid/helpers.mpe", "nicoid/method-delta.dex"):
+                  expected = Path("patches/src/main/resources") / name
+                  assert archive.read(name) == expected.read_bytes(), f"Stale packaged payload: {name}"
+          print(f"PASS: MPP {version} ZIP, manifest and packaged helper resources")
+          PY
+      - name: Prepare versioned source archives and verification report
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
           mkdir -p patches/build/dev-delivery
-          version=1.11.1
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.11.1/sync-source-payloads.py "$version"
           {
-            echo "nicoid Re $version / development verification"
+            echo "nicoid Re $version / private build verification"
             echo "Commit: $GITHUB_SHA"
-            echo "Gradle build and development Smali overlay: PASS"
-            echo "Shipped-MPP payload and visible version verification: PASS"
-            echo "Development source overlay tests: PASS (build-payloads.sh/verify-overlay.py)"
-            echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
-            echo "Audit fixes: retained playback return and configurable single-tap control areas"
-            echo "Additional JVM regressions: PASS"
-            echo "Stable v1.10.6 resource and feature continuity: PASS"
+            echo "Bundle build and manifest/resource checks: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: presets and custom video tap regions, single-tap confirmation after the double-tap interval"
-            echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
-            echo "Popup bridge event-stream regressions: PASS (Android boundary doubles; device runtime not covered)"
-            echo "Issue #113 full vertical-only gesture regression and DEX hooks: PASS"
-            echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
           } > patches/build/dev-delivery/verification.txt
-
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.11.1-mpp
+          name: nicoid-re-${{ steps.candidate.outputs.version }}-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.11.1-source-verification
+          name: nicoid-re-${{ steps.candidate.outputs.version }}-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2
@@ -383,9 +382,9 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version: '26'
           package-manager-cache: false
-      - name: Validate updated npm lockfile and release tooling (Issue #110)
+      - name: Validate locked release tooling without npm-registry publishing
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
@@ -393,7 +392,7 @@ jobs:
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
-          console.log('PASS: npm 11.21.2, bundled undici 6.29.1, Node 24, semantic-release import');
+          console.log('PASS: unused npm publication plugin disabled, Node 26, semantic-release import');
           NODE
 
   actions-lock-verify:
@@ -419,7 +418,7 @@ jobs:
 
   v2-source-test:
     name: Validate v2 live source changes (no APK)
-    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/audit/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -429,7 +428,7 @@ jobs:
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing
@@ -538,7 +537,7 @@ jobs:
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
           mkdir -p /tmp/nicoid-v2-jars /tmp/nicoid-v2-classes
-          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-v2-jars/json.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-v2-jars/json.jar
           curl -fLs --retry 2 https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar -o /tmp/nicoid-v2-jars/junit.jar
           curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar -o /tmp/nicoid-v2-jars/hamcrest.jar
           javac --release 8 -cp '/tmp/nicoid-v2-jars/*' -d /tmp/nicoid-v2-classes \
@@ -569,6 +568,63 @@ jobs:
           java -cp '/tmp/nicoid-v201-thumb-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
             e.e.a.NicoliveThumbnailFallbackTest
 
+      - name: Validate v2.0.3 regression patches for all reported issues
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.1/tests/verify.py
+      - name: Verify v2.0.3-dev.2 real-time playback, floating comments and drawer contracts
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.2/tests/verify.py
+      - name: Verify v2.0.3-dev.3 fullscreen, NicoLive mini and media controls regression contracts
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.3/tests/verify.py
+      - name: Verify v2.0.3-dev.4 native drawer, mini corners, fullscreen and seek contracts
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.4/tests/verify.py
+      - name: Verify v2.0.3-dev.5 drawer, loading glyph, ambient and retained seek contracts
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.5/tests/verify.py
+      - name: Verify v2.0.3-dev.6 actual first-frame controls and correct draw order
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.6/tests/verify.py
+      - name: Verify v2.0.3-dev.7 4:3 ambient, drawer z-order and fullscreen first-frame gate
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.7/tests/verify.py
+      - name: Verify v2.0.3-dev.8 native drawer mini layer and stable orientation
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.8/tests/verify.py
+      - name: Verify v2.0.3-dev.9 4:3 symmetric glow, queued controls and retained mini drawer
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.9/tests/verify.py
+      - name: Verify v2.0.3-dev.10 4:3 right halo reach and preserved UI regressions
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.10/tests/verify.py
+      - name: Verify v2.0.3-dev.11 centered portrait geometry and MP3 export paths
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.11/tests/verify.py
+      - name: Verify v2.0.3-dev.12 safe download UI, audio-only HLS, symmetric ambient
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.12/tests/verify.py
+      - name: Verify v2.0.3-dev.13 download layout and NicoLive artwork fallbacks
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.13/tests/verify.py
+      - name: Verify v2.0.3-dev.14 compact download and size optimization
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.14/tests/verify.py
+      - name: Verify v2.0.3-dev.15 queued control pre-reveal ordering
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.15/tests/verify.py
+      - name: Verify v2.0.3-dev.16 external-link back, settings summaries and media controls
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.16/tests/verify.py
+      - name: Verify v2.0.3-dev.17 effective settings hook and six dynamic summaries
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.17/tests/verify.py
+      - name: Verify v2.0.3-dev.18 external link Back priority and MediaSession cleanup
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.18/tests/verify.py
+      - name: Verify Morphe 2.3 on-demand RAW_ONLY manifest handling
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.4-dev.1/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -638,7 +694,14 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
+      - name: Build current Morphe Kotlin patch classes for v2.0.4-dev.1
+        if: github.ref == 'refs/heads/dev'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
       - name: Build guarded v2 candidate MPP from stable release and validated sources
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         shell: bash
         run: |
           set -euo pipefail
@@ -646,9 +709,10 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.2-dev.4
-            version=2.0.2-dev.4
+            builder=porting/revisions/v2.0.4-dev.1
+            version=2.0.4-dev.1
           fi
+          payload="/tmp/nicoid-re-$version-payload.mpp"
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
@@ -656,8 +720,13 @@ jobs:
             --ci-without-apk \
             --compile-jar /tmp/nicoid-v2-okhttp.jar \
             --compile-jar /tmp/nicoid-v2-okio.jar \
-            --output "$output"
-          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+            --output "$payload"
+          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$payload"
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+            python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
+          else
+            cp "$payload" "$output"
+          fi
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
@@ -674,8 +743,9 @@ jobs:
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         with:
-          name: nicoid-re-v2.0.2-dev.4-mpp
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.4-dev.1-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -686,15 +756,28 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz > /dev/null
+          version=2.0.3-dev.5
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then version=2.0.3-dev.18; fi
+          git archive -9 --format=zip --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.zip" HEAD
+          git archive -9 --format=tar.gz --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.tar.gz" HEAD
+          unzip -tq "/tmp/nicoid-v2-source/nicoid-re-$version-source.zip"
+          tar -tzf "/tmp/nicoid-v2-source/nicoid-re-$version-source.tar.gz" > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.2-dev.4-source
-          path: /tmp/nicoid-v2-source/*
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.18-source' || 'nicoid-re-v2.0.0-dev-source' }}
+          path: /tmp/nicoid-v2-source/*-source.zip
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 2
+
+      # Keep both source formats, but avoid forcing every user to download
+      # both copies when only ZIP or tar.gz is required.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.18-source-targz' || 'nicoid-re-v2.0.0-dev-source-targz' }}
+          path: /tmp/nicoid-v2-source/*-source.tar.gz
+          compression-level: 0
           if-no-files-found: error
           retention-days: 2
 

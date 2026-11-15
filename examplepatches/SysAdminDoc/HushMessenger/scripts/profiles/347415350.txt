@@ -95,7 +95,9 @@ hook chat_preview_size Lcom/facebook/messaging/threadlist/threaditemmenu/preview
 hook chat_promotions LX/HY9;->A0C()Z
 hook chat_promotions LX/HY9;->A0D()Z
 hook community_inbox LX/23Z;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+hook delta_unsent LX/5hn;->DX0(I)Z
 hook delta_unsent LX/W2u;->DX0(I)Z
+hook delta_unsent LX/cNC;->DX0(I)Z
 hook disappearing_swipe Lcom/facebook/messaging/threadview/overscroll/ui/OverScrollActionBehavior;->onStartNestedScroll(Landroidx/coordinatorlayout/widget/CoordinatorLayout;Landroid/view/View;Landroid/view/View;Landroid/view/View;II)Z
 hook emoji_drawer LX/5lR;->DKJ()Z
 hook emoji_drawer LX/AOq;->A0R(LX/HRn;)Z
@@ -157,6 +159,8 @@ hook hidden_chat_row LX/Jgx;->Bwr()Ljava/util/ArrayList;
 hook hidden_chat_tap LX/Jgx;->EEV(I)V
 hook hide_call_bar LX/7Nx;->FDi(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/74D;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V
 hook hide_call_bar LX/AJ2;->A03(Landroid/content/Context;LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;LX/0LH;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/6eW;Lcom/google/common/collect/ImmutableList$Builder;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIIZZZZZZ)Ljava/lang/Object;
+hook hide_call_lists LX/50E;->A00(LX/0XT;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/50E;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;
+hook hide_call_lists LX/Okr;->A00(LX/Okr;)V
 hook hide_read_receipts LX/4hw;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4hw;Ljava/lang/String;)V
 hook home_header LX/2MF;->render(LX/27r;)LX/1F6;
 hook inbox_promotions LX/21e;->A0I()Z
@@ -271,7 +275,9 @@ hook text_style LX/9xA;->onSelectionChanged(II)V
 hook typing LX/BDj;->run()V
 hook typing_mailbox LX/4dA;->A0L(Ljava/lang/String;Z)LX/34J;
 hook unsent_clear Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0C(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V
+hook unsent_indicator LX/5hn;->CpO(I)Ljava/lang/String;
 hook unsent_indicator LX/W2u;->CpO(I)Ljava/lang/String;
+hook unsent_indicator LX/cNC;->CpO(I)Ljava/lang/String;
 hook unsent_recall LX/9y2;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 hook wifi_identity LX/1af;->A02()LX/ac3;
 hook wifi_identity LX/38L;->BD0()Ljava/lang/String;

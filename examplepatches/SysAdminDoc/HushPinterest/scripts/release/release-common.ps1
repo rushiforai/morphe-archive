@@ -20,13 +20,15 @@ function Import-ReleaseEnvironment {
         Takes the user-scope variables the stages read into this process, as the pre-push hook does,
         and puts every heavy job this run starts ahead of everyday builds in the queue.
     .DESCRIPTION
-        A shell started before one of them was set has an environment without it. The three signing
-        variables only stand in for parameters left out: a key or fingerprint is never written in a
+        A shell started before one of them was set has an environment without it. The three checksum
+        signing variables only stand in for parameters left out, and buildAndroid reads the bundle
+        signing key from HUSHPINTEREST_BUNDLE_SIGNING_KEY: a key or fingerprint is never written in a
         tracked file.
     #>
     foreach ($name in @('HUSHPINTEREST_DESKTOP_JAR', 'HUSHPINTEREST_FIXTURE_DIR', 'HUSHPINTEREST_APPLY_RECORDS',
             'HUSHPINTEREST_BUILD_WRAPPER', 'HUSHPINTEREST_PYTHON', 'BUILD_QUEUE_SCRIPT',
-            'HUSHPINTEREST_RELEASE_GNUPGHOME', 'HUSHPINTEREST_RELEASE_FINGERPRINT', 'HUSHPINTEREST_RELEASE_PUBLIC_KEY')) {
+            'HUSHPINTEREST_RELEASE_GNUPGHOME', 'HUSHPINTEREST_RELEASE_FINGERPRINT', 'HUSHPINTEREST_RELEASE_PUBLIC_KEY',
+            'HUSHPINTEREST_BUNDLE_SIGNING_KEY')) {
         if (-not (Test-Path "Env:\$name")) {
             $value = [Environment]::GetEnvironmentVariable($name, [EnvironmentVariableTarget]::User)
             if ($value) { Set-Item -LiteralPath "Env:\$name" -Value $value }
@@ -151,7 +153,7 @@ function Get-PublishReleaseState {
     }
 
     # These files can repair a failed publication check without changing the built release.
-    $correctionFiles = @('scripts/test-script-contracts.ps1', 'scripts/test-published-index.ps1',
+    $correctionFiles = @(
         'scripts/pre-push.ps1', 'scripts/validate-release-facts.ps1', 'scripts/verify-published-index.ps1',
         'scripts/release/release-common.ps1', 'scripts/release/publish-release.ps1', 'scripts/release/release.ps1',
         'scripts/walk-receipt.ps1', 'CHANGELOG.md')
@@ -396,6 +398,16 @@ function Test-ReleaseAssets {
             -ExpectedAssetNames $names -Gpg $Gpg | Out-Host
     } catch {
         return "its checksums don't verify: $($_.Exception.Message)"
+    }
+    # Manager pins the first key it sees. A checkout that publishes a key holds every copy to it,
+    # assets built earlier and assets taken back from GitHub alike, the way the index step does.
+    if (Test-Path -LiteralPath (Join-Path $Root 'morphe-signing.pub') -PathType Leaf) {
+        try {
+            Invoke-ReleaseText -Root $Root -What "The $bundleName signature check" `
+                -Arguments @('signed', '--version', $Version, '--bundle', (Join-Path $assets $bundleName))
+        } catch {
+            return "its bundle isn't signed by morphe-signing.pub's key: $($_.Exception.Message)"
+        }
     }
     return $true
 }

@@ -76,7 +76,7 @@ val externalBrowserPatch = bytecodePatch(
         "work as before. Good if you prefer your own browser. Starts off. Turn it on in HushPinterest " +
         "settings > Links.",
 ) {
-    category("Interface")
+    category("Links")
     dependsOn(settingsPatch, pinterestExtensionPatch, browserQueriesPatch)
     compatibleWith(*AppCompatibilities.pinterest())
     execute {

@@ -15,6 +15,11 @@ import com.android.tools.smali.dexlib2.Opcode
 
 private const val MAP_PROVIDER = "Lcom/ather/maps/a0;"
 private const val MAP_PROVIDER_USECASE = "Lcom/ather/maps/usecase/b;"
+
+// Ather 13.6.0 moved the resolver to usecase.c and the provider enum to maps.x.
+private const val MAP_PROVIDER_1360 = "Lcom/ather/maps/x;"
+private const val MAP_PROVIDER_USECASE_1360 = "Lcom/ather/maps/usecase/c;"
+
 private const val MAP_PREF = "Lapp/morphe/ather/MapPref;"
 
 private const val BASIC_SCOOTER_INFO = "Lcom/ather/common/datastore/models/BasicScooterInfo;"
@@ -65,6 +70,33 @@ internal object ScooterShadowMapProviderFingerprint : Fingerprint(
     parameters = listOf(SCOOTER_SHADOW),
 )
 
+/** Matches the 13.6.0 provider lookup for the selected scooter. */
+internal object SelectedScooterMapProvider1360Fingerprint : Fingerprint(
+    definingClass = MAP_PROVIDER_USECASE_1360,
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = MAP_PROVIDER_1360,
+    parameters = emptyList(),
+)
+
+/** Matches the 13.6.0 provider lookup that reads `BasicScooterInfo`. */
+internal object BasicScooterMapProvider1360Fingerprint : Fingerprint( // keywatch:ignore
+    definingClass = MAP_PROVIDER_USECASE_1360,
+    name = "b",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = MAP_PROVIDER_1360,
+    parameters = listOf(BASIC_SCOOTER_INFO),
+)
+
+/** Matches the 13.6.0 provider lookup that reads `ScooterShadow`. */
+internal object ScooterShadowMapProvider1360Fingerprint : Fingerprint( // keywatch:ignore
+    definingClass = MAP_PROVIDER_USECASE_1360,
+    name = "c",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = MAP_PROVIDER_1360,
+    parameters = listOf(SCOOTER_SHADOW),
+)
+
 /**
  * Honours the map provider chosen in the Morphe settings row.
  *
@@ -75,12 +107,15 @@ internal object ScooterShadowMapProviderFingerprint : Fingerprint(
  * which returns the forced provider when the user picked one and otherwise swaps the two
  * unusable providers for OpenStreetMap.
  *
- * Equivalent smali (verified against 13.5.1, versionCode 324), inserted before the return of
- * each lookup:
+ * Equivalent smali (verified against 13.5.1, versionCode 324 and 13.6.0, versionCode 327),
+ * inserted before the return of each lookup:
  * ```
- * invoke-static {p0}, Lapp/morphe/ather/MapPref;->apply(Lcom/ather/maps/a0;)Lcom/ather/maps/a0;
+ * invoke-static {p0}, Lapp/morphe/ather/MapPref;->apply(Ljava/lang/Object;)Ljava/lang/Object;
  * move-result-object p0
+ * check-cast p0, Lcom/ather/maps/x;
  * ```
+ *
+ * On 13.5.x the cast target is `Lcom/ather/maps/a0;`.
  */
 @Suppress("unused")
 val mapProviderPatch = bytecodePatch(
@@ -93,12 +128,25 @@ val mapProviderPatch = bytecodePatch(
     extendWith("extensions/ather.mpe")
 
     execute {
+        val modern = listOf(
+            SelectedScooterMapProvider1360Fingerprint,
+            BasicScooterMapProvider1360Fingerprint, // keywatch:ignore
+            ScooterShadowMapProvider1360Fingerprint, // keywatch:ignore
+        ).map { it to it.matchOrNull() }
+
+        if (modern.all { it.second != null }) {
+            modern.forEach { (_, match) ->
+                match!!.method.applyMapPreference(MAP_PROVIDER_1360)
+            }
+            return@execute
+        }
+
         listOf(
             SelectedScooterMapProviderFingerprint,
             BasicScooterMapProviderFingerprint,
             ScooterShadowMapProviderFingerprint,
         ).forEach { fingerprint ->
-            fingerprint.method.applyMapPreference()
+            fingerprint.method.applyMapPreference(MAP_PROVIDER)
         }
     }
 }
@@ -106,7 +154,7 @@ val mapProviderPatch = bytecodePatch(
 /**
  * Passes the resolved map provider through [MapPref.apply] before it is returned.
  */
-private fun MutableMethod.applyMapPreference() {
+private fun MutableMethod.applyMapPreference(providerType: String) {
     val body = implementation ?: throw IllegalStateException(
         "Map provider lookup has no body to patch.",
     )
@@ -121,8 +169,9 @@ private fun MutableMethod.applyMapPreference() {
     addInstructions(
         returnIndex,
         """
-            invoke-static {p0}, $MAP_PREF->apply($MAP_PROVIDER)$MAP_PROVIDER
+            invoke-static {p0}, $MAP_PREF->apply(Ljava/lang/Object;)Ljava/lang/Object;
             move-result-object p0
+            check-cast p0, $providerType
         """.trimIndent(),
     )
 }

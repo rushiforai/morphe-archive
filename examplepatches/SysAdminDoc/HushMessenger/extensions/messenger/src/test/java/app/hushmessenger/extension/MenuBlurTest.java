@@ -7,6 +7,9 @@ import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import com.facebook.messaging.reactions.MessageReactionsOverlayView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -191,6 +194,81 @@ public class MenuBlurTest {
         MenuBlur.shown(dismissed);
         assertFalse("A dialog closed before it got here stays as it was", blurred(dismissed));
         MenuBlur.shown(null);
+    }
+
+    /** The menu a long press on a message opens: a full-screen window that draws its own dim, so the system never dims. */
+    private Dialog messageMenu() {
+        Dialog dialog = new Dialog(activity);
+        FrameLayout holder = new FrameLayout(activity);
+        holder.addView(new MessageReactionsOverlayView(activity));
+        dialog.setContentView(holder);
+        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        dialog.show();
+        shadowOf(Looper.getMainLooper()).idle();
+        return dialog;
+    }
+
+    @Test public void theMenuOnAPressedMessageBlursTheChatThoughItDrawsItsOwnDim() {
+        Dialog off = messageMenu();
+        MenuBlur.shown(off);
+        assertFalse("Off by default", blurred(off));
+
+        Settings.preferences.edit().putBoolean(MenuBlur.KEY, true).commit();
+        Dialog menu = messageMenu();
+        float stockDim = menu.getWindow().getAttributes().dimAmount;
+        MenuBlur.shown(menu);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            assertFalse("Window blur needs Android 12", blurred(menu));
+            return;
+        }
+        WindowManager.LayoutParams attributes = menu.getWindow().getAttributes();
+        assertTrue(blurred(menu));
+        assertEquals(Math.round(MenuBlur.RADIUS_DP * activity.getResources().getDisplayMetrics().density),
+            attributes.getBlurBehindRadius());
+        assertTrue("Messenger's own dim stays the only dim", (attributes.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) == 0);
+        assertEquals(stockDim, attributes.dimAmount, 0f);
+        assertTrue(Settings.lastActive(MenuBlur.KEY) > 0);
+    }
+
+    @Test public void aPhoneThatCantBlurAcrossWindowsBlursTheChatUnderAPressedMessage() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        Settings.preferences.edit().putBoolean(MenuBlur.KEY, true).commit();
+        MenuBlur.available = window -> false;
+        View screen = activity.getWindow().getDecorView();
+        float radius = Math.round(MenuBlur.RADIUS_DP * activity.getResources().getDisplayMetrics().density);
+
+        Dialog menu = messageMenu();
+        float stockDim = menu.getWindow().getAttributes().dimAmount;
+        MenuBlur.shown(menu);
+        assertEquals(List.of(radius), effects.get(screen));
+        assertEquals("No system dim gets turned on under it", stockDim, menu.getWindow().getAttributes().dimAmount, 0f);
+        menu.dismiss();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(radius, 0f), effects.get(screen));
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void onlyTheMessageMenuIsFoundAmongWindowsThatDontDim() {
+        assertFalse(MenuBlur.holdsMessageMenu(null));
+        FrameLayout plain = new FrameLayout(activity);
+        plain.addView(new TextView(activity));
+        assertFalse(MenuBlur.holdsMessageMenu(plain));
+
+        FrameLayout deep = new FrameLayout(activity);
+        FrameLayout inner = deep;
+        for (int i = 0; i < 3; i++) {
+            FrameLayout next = new FrameLayout(activity);
+            inner.addView(new TextView(activity));
+            inner.addView(next);
+            inner = next;
+        }
+        inner.addView(new MessageReactionsOverlayView(activity));
+        assertTrue("Found a few layers down", MenuBlur.holdsMessageMenu(deep));
+
+        FrameLayout crowded = new FrameLayout(activity);
+        for (int i = 0; i < MenuBlur.MENU_SEARCH_LIMIT; i++) crowded.addView(new TextView(activity));
+        crowded.addView(new MessageReactionsOverlayView(activity));
+        assertFalse("A big screen isn't searched past the limit", MenuBlur.holdsMessageMenu(crowded));
     }
 
     @Test public void aFailureIsLoggedAndTheMenuStillOpens() {

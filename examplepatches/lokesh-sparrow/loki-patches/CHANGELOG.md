@@ -1,3 +1,24 @@
+## 3.0.1 (2026-11-14)
+
+### Fixes
+- **Doc Scanner:** GmsCore support (Doc Scanner): the description says text recognition (OCR), not receipt OCR, and that it needs Play services.
+- **Truecaller:** Enable premium features (Truecaller): the description says the after-call screen has a switch in Loki Patches › Calls.
+
+**36 patches for 4 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
+## 3.0.0 (2026-11-14)
+
+### New Apps
+- **Splitwise:** Pro features, no Pro ads and upsells, AMOLED black (switch in Loki Patches › Appearance), analytics and crash reporting removed, and Google sign-in through MicroG-RE.
+- **Truecaller:** premium features, the after-call screen hidden (switch in Loki Patches › Calls), and Google sign-in and Drive backup through MicroG-RE. The Loki Patches entry replaces the Android watch entry.
+- **Doc Scanner:** full version, declutter, allow clone, and Google sign-in through MicroG-RE.
+
+### New Features
+- **LinkedIn:** Loki Patches menu: Patch status, Backup & restore to a file, Diagnostics with Copy and Share report, and full-screen About and Credits pages. Same patches and settings as before; updates in place.
+- Change package name and Remove ads and trackers: new patches for any app, off by default.
+
+**36 patches for 4 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 2.1.2 (2026-11-13)
 
 ### Fixes

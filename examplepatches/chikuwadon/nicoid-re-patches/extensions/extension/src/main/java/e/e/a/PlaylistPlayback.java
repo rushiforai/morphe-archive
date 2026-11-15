@@ -37,7 +37,7 @@ public final class PlaylistPlayback {
         if (tap < 0 || tap > 3) tap = 0;
         Intent intent;
         if (tap == 2 || tap == 3) {
-            String id = url.replaceAll("^.*?/watch/(nm|sm|so|)([0-9]+).*?$", "$1$2");
+            String id = HistoryRules.id(url);
             intent = new Intent(Intent.ACTION_VIEW).setClassName(activity,
                     "com.sauzask.nicoid.NicoidPopupViewService")
                     .putExtra("url", id).putExtra("isBackgroundPlay", tap == 3);

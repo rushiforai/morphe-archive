@@ -29,8 +29,11 @@ private const val RETURN_VOID = "return-void"
 
 /**
  * Unit is returned by the event logger, so the guard has to return it too.
+ *
+ * `kotlin.z` is the old Unit singleton; 13.6.0 ships it as `kotlin.b0`.
  */
-private const val RETURN_UNIT = "sget-object v0, Lkotlin/z;->a:Lkotlin/z;\n\nreturn-object v0"
+private const val RETURN_UNIT_1350 = "sget-object v0, Lkotlin/z;->a:Lkotlin/z;\n\nreturn-object v0"
+private const val RETURN_UNIT_1360 = "sget-object v0, Lkotlin/b0;->a:Lkotlin/b0;\n\nreturn-object v0"
 
 /**
  * Matches the Bluetooth analytics logger.
@@ -47,6 +50,15 @@ internal object PeripheralAnalyticsLoggerFingerprint : Fingerprint(
     parameters = listOf("Lcom/aptener/bluconnect/app/peripheral/usecase/AnalyticsEvent;"),
 )
 
+/** Matches the same logger in 13.6.0, where Unit is obfuscated as `kotlin.b0`. */
+internal object PeripheralAnalyticsLogger1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/aptener/bluconnect/app/peripheral/usecase/PeripheralAnalyticsLogger;",
+    name = "logEvent",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Lkotlin/b0;",
+    parameters = listOf("Lcom/aptener/bluconnect/app/peripheral/usecase/AnalyticsEvent;"),
+)
+
 /**
  * Matches the MoEngage dispatcher, which holds the application context.
  *
@@ -60,6 +72,21 @@ internal object AnalyticsDispatcherFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Lcom/ather/analytics/c;", "Ljava/util/List;"),
+)
+
+/**
+ * Matches the 13.6.0 dispatcher implementation, which moved to `analytics.c`.
+ *
+ * ```
+ * public final a(analytics.d, List): void
+ * ```
+ */
+internal object AnalyticsDispatcher1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/ather/analytics/c;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Lcom/ather/analytics/d;", "Ljava/util/List;"),
 )
 
 /**
@@ -96,6 +123,15 @@ internal object AnalyticsServiceFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Lcom/ather/analytics/c;"),
+)
+
+/** Matches the 13.6.0 service dispatcher, whose event type moved to `analytics.d`. */
+internal object AnalyticsService1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/ather/analytics/service/b;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Lcom/ather/analytics/d;"),
 )
 
 /**
@@ -148,11 +184,31 @@ val analyticsTogglePatch = bytecodePatch(
     extendWith("extensions/ather.mpe")
 
     execute {
-        PeripheralAnalyticsLoggerFingerprint.method.guardAnalytics(RETURN_UNIT)
-        AnalyticsDispatcherFingerprint.method.guardAnalyticsWithContext(RETURN_VOID)
+        val peripheral1360 = PeripheralAnalyticsLogger1360Fingerprint.matchOrNull()
+        if (peripheral1360 != null) {
+            peripheral1360.method.guardAnalytics(RETURN_UNIT_1360)
+        } else {
+            PeripheralAnalyticsLoggerFingerprint.method.guardAnalytics(RETURN_UNIT_1350)
+        }
+
+        val dispatcher1360 = AnalyticsDispatcher1360Fingerprint.matchOrNull()
+        if (dispatcher1360 != null) {
+            dispatcher1360.method.guardAnalytics(RETURN_VOID)
+        } else {
+            AnalyticsDispatcherFingerprint.method.guardAnalyticsWithContext(RETURN_VOID)
+        }
+
         FirebaseEventFingerprint.method.guardAnalytics(RETURN_VOID)
-        AnalyticsServiceFingerprint.method.guardAnalytics(RETURN_VOID)
-        PostHogInitFingerprint.method.skipPostHogInit()
+
+        val service1360 = AnalyticsService1360Fingerprint.matchOrNull()
+        if (service1360 != null) {
+            service1360.method.guardAnalytics(RETURN_VOID)
+        } else {
+            AnalyticsServiceFingerprint.method.guardAnalytics(RETURN_VOID)
+        }
+
+        // Ather 13.6.0 no longer exposes the PostHog initialiser this patch used to guard.
+        PostHogInitFingerprint.matchOrNull()?.method?.skipPostHogInit()
     }
 }
 

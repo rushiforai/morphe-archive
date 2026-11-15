@@ -20,9 +20,7 @@ private const val COMMENT_HTML = """
     move-result-object v1
     invoke-virtual {v1}, Lcom/fasterxml/jackson/databind/JsonNode;->asText()Ljava/lang/String;
     move-result-object v1
-    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
-    move-result-object v0
-    invoke-static {v1, v0}, $EXTENSION->html(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    invoke-static {v1, v0}, $EXTENSION->htmlNode(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
     move-result-object v1
     return-object v1
 """
@@ -30,7 +28,7 @@ private const val COMMENT_HTML = """
 @Suppress("unused")
 val commentMediaPatch = bytecodePatch(
     name = "Inline comment media",
-    description = "[v1.3: Scroll up or down on comment images, GIFs, and videos] Shows GIFs, pictures, subreddit emojis and reddit videos inline in the comments instead of as links. Tap to open. Drag left or right to resize, as usual. YouTube links use a 16:9 preview with the title. Extra settings to tweak in Joey Settings - Morphe Settings.",
+    description = "Shows GIFs, pictures, subreddit emojis and Reddit videos in comments instead of links. Tap to open, drag left or right to resize, and scroll past them as normal. YouTube links use a 16:9 preview with the title. Extra settings in Joey Settings - Morphe Settings.",
 ) {
     compatibleWith(JOEY)
 

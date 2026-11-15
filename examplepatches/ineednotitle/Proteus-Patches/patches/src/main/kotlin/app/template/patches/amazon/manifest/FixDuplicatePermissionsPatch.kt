@@ -1,6 +1,7 @@
 package app.template.patches.amazon.manifest
 
 import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.Constants.AMAZON_BUSINESS_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_IN_COMPATIBILITY
 import app.template.patches.shared.Constants.AMAZON_SHOPPING_COMPATIBILITY
 import org.w3c.dom.Element
@@ -29,7 +30,7 @@ val amazonFixDuplicatePermissionsPatch = resourcePatch(
     description = "Updates shared Amazon permissions so other Amazon apps can coexist.",
     default = true,
 ) {
-    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
+    compatibleWith(AMAZON_SHOPPING_COMPATIBILITY, AMAZON_BUSINESS_COMPATIBILITY, AMAZON_IN_COMPATIBILITY)
 
     execute {
         document("AndroidManifest.xml").use { document ->

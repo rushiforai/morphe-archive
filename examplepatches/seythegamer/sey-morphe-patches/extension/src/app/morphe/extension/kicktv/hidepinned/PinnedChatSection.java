@@ -50,11 +50,6 @@ public final class PinnedChatSection implements MorpheSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PinnedChatPrefs.setHidePinnedEnabled(enable.isChecked());
-            }
-        });
+        enable.setOnClickListener(v -> PinnedChatPrefs.setHidePinnedEnabled(enable.isChecked()));
     }
 }

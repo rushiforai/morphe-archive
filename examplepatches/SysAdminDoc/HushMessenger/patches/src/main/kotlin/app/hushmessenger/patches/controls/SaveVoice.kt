@@ -37,7 +37,9 @@ internal fun Method.isVoiceDownload(): Boolean {
 
 /** The one voice download, or none when more than one method looks like it. */
 internal fun findSaveVoice(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { it.isVoiceDownload() }.let { if (it.size == 1) it else emptyList() }
+    voiceDownloads.methods(classes).let { if (it.size == 1) it else emptyList() }
+
+internal val voiceDownloads = methodCheck { _, method -> method.isVoiceDownload() }
 
 internal fun MutableMethod.validateSaveVoice(): Int {
     if (!isVoiceDownload()) throw PatchException("Messenger controls: ${hookId()} isn't the voice message download")

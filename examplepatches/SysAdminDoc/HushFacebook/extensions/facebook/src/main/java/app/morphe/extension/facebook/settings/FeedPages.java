@@ -43,6 +43,7 @@ import app.morphe.extension.facebook.feed.HiddenTally;
 import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.feed.TranslateLanguages;
 import app.morphe.extension.facebook.misc.BreakTimer;
+import app.morphe.extension.facebook.misc.PostMenuItems;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
 import app.morphe.extension.facebook.profile.LocalProfileCounts;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
@@ -185,7 +186,8 @@ final class FeedPages {
                 || build.contains(PatchFamily.TRANSLATE_POSTS)
                 || build.contains(PatchFamily.REEL_GESTURES)
                 || build.contains(PatchFamily.WHO_SHARED)
-                || build.contains(PatchFamily.PHOTO_CAROUSEL)) {
+                || build.contains(PatchFamily.PHOTO_CAROUSEL)
+                || build.contains(PatchFamily.POST_MENU_ITEMS)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             // The families whose rules run in the feed guard, which keeps the tally.
             if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)
@@ -287,8 +289,11 @@ final class FeedPages {
                         L10n.t("Hides the strip on some posts, like \"Are you interested in this post?\" or who recently commented, "
                                 + "plus follow and chat suggestions there. The post stays.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_FOLLOW_LINK,
-                        L10n.t("Hides the \"Follow\" or \"Subscribe\" link next to the name on posts and videos from Pages and people "
-                                + "you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
+                        L10n.t("Hides the \"Follow\" link next to the name on posts from Pages and people you don't follow. "
+                                + "Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
+                feed.addPreference(toggle(context, Settings.HIDE_POST_SUBSCRIBE_LINK,
+                        L10n.t("Hides the \"Subscribe\" link next to a creator's name on posts and videos. "
+                                + "Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_JOIN_BUTTON,
                         L10n.t("Hides the Join button next to the group's name on posts from groups you haven't joined, "
                                 + "and the Join group bar under their videos. A change shows on the posts drawn after it.")));
@@ -335,6 +340,9 @@ final class FeedPages {
                 // Read on each tap, so a change shows on the next one.
                 feed.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_POSTS,
                         L10n.t("A tap on Like under a post asks first, and only Continue likes or unlikes it.")));
+                feed.addPreference(toggle(context, Settings.ASK_BEFORE_FOLLOWING_POSTS,
+                        L10n.t("A tap on Follow in a post, beside the poster's name or on its Follow button, asks first, "
+                                + "and only Continue follows or unfollows.")));
             }
             if (build.contains(PatchFamily.POST_DATES)) {
                 feed.addPreference(toggle(context, Settings.KEEP_POST_DATES,
@@ -361,9 +369,12 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.SELECT_POST_TEXT,
                         L10n.t("Holding a post's text opens it in a box where you can select just the part you want "
                                 + "and copy that, or copy all of it. The hold itself copies nothing.")));
-                feed.addPreference(toggle(context, Settings.HOLD_POST_TO_REACT,
-                        L10n.t("Holding a post's photo or video opens its reactions, as holding Like does. On a feed "
-                                + "post it comes before Long press opens comments.")));
+                feed.addPreference(toggle(context, Settings.HOLD_PHOTO_TO_REACT,
+                        L10n.t("Holding a post's photo opens its reactions, as holding Like does. It comes before "
+                                + "Long press opens comments.")));
+                feed.addPreference(toggle(context, Settings.HOLD_VIDEO_TO_REACT,
+                        L10n.t("Holding a post's video opens its reactions too. It comes before Long press opens "
+                                + "comments. With Hold a feed video for 2x on, that one wins and the video plays fast.")));
                 feed.addPreference(holdReactionRow(context));
             }
             if (build.contains(PatchFamily.WHO_SHARED)) {
@@ -480,11 +491,76 @@ final class FeedPages {
                     feed.addPreference(feedTypesRow(page, context));
                 }
             }
+            if (build.contains(PatchFamily.POST_MENU_ITEMS)) feed.addPreference(postMenuItemsRow(page, context));
         }
     }
 
     /** The row's key, for the settings search. No setting is behind it. */
     static final String FEED_TYPES_ROW = "action_feed_types";
+
+    /** The row's key, for the settings search. No setting is behind it. */
+    static final String POST_MENU_ITEMS_ROW = "action_post_menu_items";
+
+    /** Post menu items' row: the rows it keeps out of a post's 3-dot menu, picked from a list of checkboxes. */
+    static Preference postMenuItemsRow(HushfacebookPreferenceFragment page, Context context) {
+        Row row = new Row(context);
+        row.setKey(POST_MENU_ITEMS_ROW);
+        row.setTitle(L10n.t("3-dot menu items to hide"));
+        row.setPersistent(false);
+        row.setSummary(postMenuItemsSummary(PostMenuItems.hidden()));
+        row.setOnPreferenceClickListener(p -> {
+            showPostMenuItems(page, context, row);
+            return true;
+        });
+        return row;
+    }
+
+    /** The row's summary: the rows kept out, by the names the list gives them, or none. */
+    static String postMenuItemsSummary(Set<String> hidden) {
+        if (hidden.isEmpty()) return L10n.t("None picked yet.");
+        List<String> names = new ArrayList<>();
+        for (String kind : hidden) names.add(PostMenuItems.label(kind));
+        return L10n.f("Hidden: %s", L10n.join(names));
+    }
+
+    /**
+     * The list: every kind of row it knows, ticked when it's kept out. Save keeps the ticks, or, when
+     * they need more room than the setting has or the phone doesn't keep the write, keeps the list
+     * open with its ticks, so Save can be tried again.
+     */
+    private static void showPostMenuItems(HushfacebookPreferenceFragment page, Context context, Preference row) {
+        List<String> kinds = PostMenuItems.choices();
+        Set<String> hidden = PostMenuItems.hidden();
+        String[] names = new String[kinds.size()];
+        boolean[] ticked = new boolean[kinds.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = PostMenuItems.label(kinds.get(i));
+            ticked[i] = hidden.contains(kinds.get(i));
+        }
+        AlertDialog list = page.show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Hide from the 3-dot menus of posts and reels"))
+                .setMultiChoiceItems(names, ticked, (shown, which, isTicked) -> ticked[which] = isTicked)
+                .setPositiveButton(L10n.t("Save"), null)
+                .setNegativeButton(L10n.t("Cancel"), null));
+        if (list == null) return;
+        list.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
+            List<String> picked = new ArrayList<>();
+            for (int i = 0; i < ticked.length; i++) {
+                if (ticked[i]) picked.add(kinds.get(i));
+            }
+            PostMenuItems.Hidden saved = PostMenuItems.hide(picked);
+            if (saved == PostMenuItems.Hidden.NO_ROOM) {
+                Utils.showToastLong(L10n.t("This list needs more room than it has. Shorten it, then save again."));
+                return;
+            }
+            if (saved == PostMenuItems.Hidden.NOT_STORED) {
+                Utils.showToastLong(L10n.t("Couldn't save the change. Try again."));
+                return;
+            }
+            row.setSummary(postMenuItemsSummary(PostMenuItems.hidden()));
+            list.dismiss();
+        });
+    }
 
     /** The row's key, for the settings search. The setting it writes is a list of codes. */
     static final String LEAVE_ALONE_ROW = "action_translate_leave_alone";
@@ -897,6 +973,8 @@ final class FeedPages {
                     L10n.t("The row of emoji over the comment box goes away. You can still type emoji from your keyboard.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX_LINE,
                     L10n.t("The thin line along the top of the comment box goes away.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX,
+                    L10n.t("The Write a comment box under a post's comments goes away. You can still read every comment.")));
             comments.addPreference(toggle(context, Settings.HIDE_VIDEO_COMMENT_COMPOSER,
                     L10n.t("The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.")));
             comments.addPreference(toggle(context, Settings.OPEN_REPLY_THREADS,

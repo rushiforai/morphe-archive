@@ -4,6 +4,19 @@ All notable changes to the **Sey Morphe Patches** bundle are documented here.
 Morphe Manager reads this file from the repository root and shows the entries
 for every version newer than the installed bundle.
 
+## 1.2.6 (2026-11-15)
+
+### ✨ New Features
+
+* **Twitch - DEFAULT HOME TAB:** Added a SEYTTINGS toggle that opens the chosen tab (Home, Following, Browse or Search) automatically on every Twitch TV launch instead of the stock start tab. Requires the SEYTTINGS patch.
+
+## 1.2.5 (2026-11-14)
+
+### ✨ New Features
+
+* **KICK: Live Streaming - STOP ON MINIMIZE:** Added a SEYTTINGS toggle that stops playback (audio/video) when the app is minimized or exited, so nothing keeps playing in the background. Open a stream again to resume.
+* **KICK: Live Streaming - DEFAULT HOME DESTINATION:** Added a SEYTTINGS option that opens the chosen tab (Home, Categories, Live, Following or Settings) automatically when KICK starts. "Home" keeps the stock behaviour.
+
 ## 1.2.4 (2026-11-11)
 
 ### ✨ New Features

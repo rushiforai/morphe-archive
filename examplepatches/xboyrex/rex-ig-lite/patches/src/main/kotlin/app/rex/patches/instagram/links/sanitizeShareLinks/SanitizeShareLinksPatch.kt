@@ -9,11 +9,11 @@ package app.rex.patches.instagram.links.sanitizeShareLinks
 import app.rex.patches.instagram.links.shareLinks.shareLinksPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val sanitizeShareLinksPatch =
-    bytecodePatch(
+    patch(
         name = "Sanitize share links",
     ) {
 
@@ -21,6 +21,9 @@ val sanitizeShareLinksPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             enableSettings("sanitizeShareLinks")
+        
+            }
         }
     }

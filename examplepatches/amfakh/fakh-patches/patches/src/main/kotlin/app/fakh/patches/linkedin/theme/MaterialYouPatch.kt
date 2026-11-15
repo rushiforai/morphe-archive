@@ -684,7 +684,7 @@ val removeGapsAndDividersPatch = bytecodePatch(
     name = "Hide gaps and dividers",
     description = "Removes the gray gaps between posts and the dividers between list items, so the feed and " +
         "lists are one flat surface.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")
@@ -857,7 +857,7 @@ val materialYouPatch = bytecodePatch(
     description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
         "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
         "Some screens drawn by LinkedIn's servers may keep their own colors.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")
@@ -913,7 +913,7 @@ val amoledBlackPatch = bytecodePatch(
     name = "Pitch black",
     description = "Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter " +
         "black. Takes effect when the system is in dark mode. Works with or without Material You.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")

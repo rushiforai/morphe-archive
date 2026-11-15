@@ -2103,6 +2103,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_accent_backgrounds", FALSE, true, parent(ACCENT_COLOR));
 
     /**
+     * Instagram's older look (#639, {@link app.hushgram.extension.instagram.misc.AccentTheme}): dark mode
+     * turns navy with charcoal panels, light mode off-white. Story and reel viewers keep theirs. Works
+     * with Accent color on or off and wins over its backgrounds and Pure black. A change shows after a
+     * restart. Off to start.
+     */
+    public static final BooleanSetting CLASSIC_COLORS =
+            new BooleanSetting("hushgram_classic_colors", FALSE, true);
+
+    /**
      * HushGram's logo on the screen Android shows while Instagram starts, on Android 13 and newer
      * ({@link app.hushgram.extension.instagram.misc.LaunchScreen}). Android keeps the answer, so a
      * change shows from the next start. Off to start.
@@ -2516,6 +2525,14 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<app.hushgram.extension.instagram.feed.HomeSwipe> HOME_SWIPE_OPENS =
             new EnumSetting<>("hushgram_home_swipe_opens", app.hushgram.extension.instagram.feed.HomeSwipe.CAMERA);
+
+    /**
+     * A swipe left on Home opening Messages, as Instagram used to
+     * ({@link app.hushgram.extension.instagram.feed.HomeLeftSwipe}, #639). Read as each touch goes
+     * down, so a change shows on the next swipe. Off to start.
+     */
+    public static final BooleanSetting SWIPE_LEFT_MESSAGES =
+            new BooleanSetting("hushgram_swipe_left_messages", FALSE);
 
     /**
      * A sideways swipe between the main tabs

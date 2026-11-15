@@ -13,7 +13,7 @@ private const val TOOLBAR = "Lapp/mightymorphing/extension/joey/SubredditToolbar
 @Suppress("unused")
 val showHidePatch = bytecodePatch(
     name = "Show/Hide",
-    description = "[v1.3: Drag the handle to reorder] Choose which comment editor buttons, sidebar entries, subreddit toolbar items, and post actions are shown. What does not fit on a post goes in its menu. Adjust viewable options in Joey Settings - Morphe Settings.",
+    description = "Choose which comment editor buttons, sidebar entries, subreddit toolbar items and post actions are shown, and drag to reorder them. What doesn't fit on a post goes in its menu. Adjust in Joey Settings - Morphe Settings.",
 ) {
     compatibleWith(JOEY)
 

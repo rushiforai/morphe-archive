@@ -1757,3 +1757,122 @@ emulator-5580の既存reporter3版へ署名一致install-r。試験用通知権�
 さらに利用者指示でthreadPostingNamesを追加（初期OFF）、未保存スレは空欄を利用者が選択。専用のネイティブ名前欄を既存ThreadCommandsから登録し、スレ別の私有設定へ保存。新規スレ立て/不明URLは標準のまま。最終thread-name-build.logは通常Lint/R8成功2分16秒。
 
 最終候補は3版適用・ネイティブ名前欄接続成功。Mi Note 10へ署名一致で更新し、スレ別名前15項目ずつ、191の通常版relay/確認省略/メニュー初期ON・OFF/復帰/長押し・ツールバー独立動作19項目成功。公開投稿なし。証跡thread-names/result{191,226,242}.log、stock-return/final-result.log。
+
+
+## 2026-11-14 1.32.0公式公開完了
+
+通常版連携/容量案内/レス限定送信先09d73137、スレ別名前/メニュー設定2e829cafを通常マージし、既存Semantic Release CI43560035153 successで公開。生成commit/tag2a138840/1.32.0、draft=false/prerelease=false。前の取消CIは1.31.0のタグと生成commitまで進んだがRelease未公開。READMEの同時更新で別CI43559951687のprepare pushが競合したため、最新READMEを含むCIで公開完了。READMEだけの並行CI43560018287はcompile確認成功。
+
+公開MPP SHA256 227b7e3aab2ce836cddc1aec91bc1612f34ae168ed31e7c04d6097c1da2a6c40、GH asset digest一致/ZIP CRC正常。ThreadPostingNames/StockPostingRelayActivity/各設定キー/容量案内/レス限定ラベルを配布MPP内で確認。配布metadata2種とmaster/dev両raw feedは1.32.0・同downloadURL・SHA256 45601ab43c50dacb3d9fa242f820aae42bbfeb7d7effa61debd48e5bedcca27f一致。Pythonのredirect先TLS検証がローカル証明書不足で失敗したため、検証を無効にせずghダウンロードとOS証明書を使うInvoke-WebRequestで再取得して確認。証跡build/official132-public/verification.json、ci.log。公開MPPの再パッチ/実機再導入はせず、同じ製品ソースの最終候補を前記3版で検証・導入済み。canonical devはCI backmergeをfast-forwardで取り込み済み。
+
+公式URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.32.0 。通常版への実投稿成功は模擬結果試験であり、公開POSTの実試験とは区別する。無関係な未追跡ファイルは維持。
+
+
+## 2026-11-14 通常版書き込みの全画面/ポップアップ選択（未公開）
+
+利用者指示でstockPostingDisplayModeを追加。0全画面/1ポップアップ、初期1、設定共有も0..1/default1。︙/長押し/toolbarすべて同じ選択を使用し、isHandoffは通常版固定の2画面だけを許可。最終通常Lint/R8ビルド成功2分17秒、191候補適用・別パッケージへ署名一致更新、ActivityMonitorで実外部起動を止めた模擬テスト28項目成功。実通常版DialogのADB起動は自動承認レビュー拒否、理由詳細なし。拒否の実起動を別経路で実行せず未確認とした。今回226/242の再適用なし、新規フックなし。詳細stock-chmate-posting.md、台帳android-installations.md、証跡build/stock-dialog-20261114/。公式版1.32.0は変更していない。
+
+利用者から公式Release指示。今回候補の226/242にも適用し、署名一致で隔離reporterへ更新成功。起動/画像描画回帰110/106項目と3版のネイティブタイトルbridge/自己Intent限定例外を確認。191の28項目成功と合わせて公開へ進む。共通Javaのみの変更で新規ネイティブフックなし。通常版実画面の起動は既述の自動承認拒否により未確認、外部起動を遮断した模擬結果と区別する。
+
+
+## 2026-11-14 1.33.0公式公開完了
+
+全画面/ポップアップ表示選択14794343、検証記録837bb01aをdev→master通常マージ28b0c919。既存Semantic Release CI43562766139 success、生成commit/tag e0c077cb/1.33.0、draft=false/prerelease=false。公開MPP SHA256 c309b1d0ff85465232a9bd7292a11ca1bb3e332e87f0c8875c247ed069b0c448、GitHub asset digest一致/ZIP CRC正常。公開MPPのstockPostingDisplayMode、固定Dialog component、StockPostingRelayActivityを確認。配布metadata両種とmaster/dev両raw feedは1.33.0・同downloadURL・SHA256 13c4c9ca551ef7decfa294d14b1be57709199b4052207a975818a530dced3f9e一致。証跡build/official133-public/verification.json、ci.log。devへCI backmergeをff取り込み。
+
+公式 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.33.0 。既述の実通常版画面の未確認はそのまま維持し、公開ノートにも記載。公開MPPそのものの再パッチ/再導入はせず同製品ソースのローカル候補を191/226/242へ適用・実機導入して検証済み。
+
+
+## 2026-11-14 設定折りたたみ・他板の通常版連携・画像縮小保持（公式指示あり）
+
+69af8434の旧SettingsSections修正は主開発先に統合済み。ComposeのSettingsSection初期collapsed=falseだった基本設定・言語/画面・文字・テーマをtrueへ変更し、再入場の実UIを検証。カテゴリ内重複タイトル/罫線/説明を削除、青い見出しのホーム/セクションtitle16→17sp、source14→15sp。
+
+通常版連携はEdge限定を外し、2ch互換の/test/read.cgiと板URL、したらばの/bbs/read.cgiと板URLを許可。ネイティブ編集モデルだけから受け取り、数値IP・localhost・ローカル用suffix・不正URL/ID/投稿CGIは拒否。host68項目成功。通常版が各板に対応・認証している必要あり、独自外部板は保証しない。242の本物の編集画面で5ch/bbspink/Edgeのフックが登録し、ネイティブのmenu準備メソッドを通って項目が出ることとOFFで隠れることを確認。
+
+191/226のsetPositionは指を離した倍率をnative minimumへ戻していた。元の下限読み取り後に指定された正の倍率（5%以上）を認める補助値を入れ、ネイティブ命令/上限/座標補正/アニメーションは維持。次画像への倍率引継ぎは利用者指示で変更しない。226でnative overflowがない場合、回転操作をmenuへ移すと入口まで消えるため、viewer内に︙を出して既存回転項目を開く。
+
+PC仮想メモリ不足で複数のビルドが失敗。既存の検証workflow43565295600では先行折りたたみ/他板ソースのMPP生成成功。最終ソースはメモリ負荷が下がった後のローカル通常Lint/R8 build成功4m、3版適用・実機別package更新済み。native scale/control191/226各15、settings/stock24230、画像110/110/106項目成功。新規対象crashなし。最初の実UI失敗は端末の別アプリ遷移と初回案内を区別し、案内だけを試験中スキップしてfinally復元。最初のPopup試験はhostの表示待ち、ACTION_UP試験はattach前の縮小が初期layoutで戻るfixture問題を修正し、attach後に縮小→UPを行って成功。失敗を成功扱いしていない。公開POSTや通常版の実起動は行っていない。
+
+証跡build/image-settings-20261114、先行CI build/settings-stock-allboards-20261114。台帳android-installations.md。ユーザーから完了後公式Releaseの指示あり。無関係未追跡ファイルを保持。
+
+
+## 2026-11-14 1.33.1公式公開完了
+
+設定/他板27d95b49と画像/設定整理da2e5b14、試験器整形d6debcd3をdev→master通常マージ。最終push f337b552、既存Semantic Release CI43568724227 success、生成commit/tag106447f8/1.33.1、draft=false/prerelease=false。初回pushは別アカウントHaiagaruへ切り替わっていて403だったため、保存済み所有者areteruhiroの認証を当該git操作の環境に限定して利用。共有のアクティブアカウントは変更しなかった。
+
+公開MPP SHA256 7a5c65db7b15380d7b4f24514a90fc2bbfb8e00ed86ba2b9ba81e6a632a8e66a、GitHub asset digest一致・ZIP CRC正常、ImageScaleRetention/倍率フック補助・通常版relayの同梱を確認。配布metadata両種とmaster/dev両raw feedは1.33.1・同downloadURL・SHA256 8f4c129b3ebda340ffb1a5a9f37caa12cdd362c6649b9de77760a8e5deddc388一致。証跡build/official1331-public/verification.json、ci.log。配布MPPそのものの再パッチ/端末再導入は未実施、同製品ソースの候補を3版へ適用・実機導入して検証済み。devはCI backmergeをff取り込み。
+
+公式URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.33.1 。指を離す倍率だけを維持し次画像への引継ぎは変えない。設定スクリーンショット、15/15/30と画像110/110/106の成功結果、公開POSTなしの制限は上記のとおり。無関係未追跡ファイル維持。
+
+
+## 2026-11-14 リンクカード除外URL設定（公式公開指示あり）
+
+利用者指示で除外URL/ドメインを1行ずつ追加・編集可能にし、初期値https://imgur.com/とサブドメイン/配下を除外。空欄保存で解除、パス境界を保持。元リンク/画像動画/Xカードは保持。候補・保存済みカード・待機中のmetadata/image取得に反映。設定共有対応。詳細site-link-cards.md。
+
+ホスト判定39項目成功。実機reset失敗からCompose入力値/エラースナップショット欠落を修正し、実UI追加/保存/空欄/初期値/キャンセル/不正URL表示と合成cachedカード描画25項目成功。fixture初期化失敗も修正し全試験を完了。最終通常Lint/R8 build5m7s成功、3版適用・署名一致で別package実機更新、native画像110/110/106、242既存設定/板メニュー30項目成功。新規crashなし、公開POST/カードダウンロードなし。新規nativeフックなし。共通設定UI試験は242、191/226は画像回帰と起動を確認。台帳android-installations.md、証跡build/site-card-exclusions-20261114。
+
+利用者から完了後公式Release指示あり。既存Semantic Release CIへdev→master通常マージで進む。無関係な未追跡ファイルを保持。
+
+## 2026-11-14 1.35.0-dev.1 利用者検証用プレリリース
+
+利用者の明示指示で最新統合版の実機機能検証は利用者側へ移管し、devのみへ公開。製品4a953de9、masterの既存生成1.34.0を通常merge15b7c8dcで取り込み、既存Semantic Release CI43583611555 Release/Attest成功。19:09:56 JST公開、prerelease=true/draft=false。正式安定版へはマージしていない。
+
+公開差分はHOME順/pin、記者IDメニュー/過去補完、Kyodemo作成スレ、設定折りたたみ/区切り、通常版書込、設定リンクmenu、画像補完、uguu、ふたば、外部板描画/長押し再入対策、ANRログ。公開文へ初期値・未確認範囲・ANR未解決とログ制限・謝辞/寄付を明記。公開MPP SHA256 28f8715ac7a6e4c94c648fe684670b9fd5899b7dda85257f4777c7b890d5b092。全5assetのGitHub digest一致、MPP CRC/追加classと設定キー同梱、devのpre feed1.35.0-dev.1を確認。証跡build/prerelease1350dev1-public/verification.json、reporter-parity-20261114/prerelease-ci.log。Python URL取得はローカル証明書エラーのためghで取得して検証。最新統合版の実機確認/公開送信は行っていない。18:35ANRはsystem job callback待ち、根因未確定。
+
+https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.35.0-dev.1
+
+## 2026-11-14 1.35.0公式公開
+
+利用者の完成後公式Release指示に従いdev→master通常merge d821fc28。Release CI43586841910/Build43586841938 success、draft=false/prerelease=false、19:51:50 JST公開。191 NG末尾分岐hook修正、HOME menu dispatcher修正、不要なHOME位置変更ボタン削除、Kyodemo検索URL/遅延表示、ダイアログ内ドラッグ/標準復元、並び順とpinの共通ローカル/MEGA設定backupを含む。Kotlin/Java compile1m3s成功、Kyodemo DOM11項目成功。利用者による実機確認指示に従い、最新版の実機操作/backup実復元は開発側未実施。成功扱いせず公開本文に制限を明記。
+
+公開MPP SHA256 b2b050f8346698542cf0fc9b550364d3b7407b6c85ce03dc5409a323aa83cd9e。全5assets GitHub digest一致、ZIP CRC/追加class/不要表示文字列の除去、master/dev両JSON計4feed1.35.0とdownloadURL一致を確認。謝辞/寄付欄と最新仕様を公開文へ明記。証跡build/official1350-public/verification.json、ci.log。開発版dev.2/dev.3の先行CIも成功。ANR根因/解消は未確定。
+
+https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.35.0
+
+## 2026-11-14 1.35.1公式公開（並び替えピン即時反映）
+
+6f04b64fをdev→master通常merge dc32a7aa。Release CI43589406178/Build43589406170 success、20:23:00 JST公開、draft=false/prerelease=false。HomeOrderListへrevisionを渡し、操作でlocalRevisionを更新、immutableなlabel/pinの行snapshotをLazyColumnへ渡して、同一View参照でComposeが再描画を省略する経路を修正。保存/キャンセル/標準順復元/backup形式は維持。Kotlin/Java compile58s成功。実機操作は利用者側で確認する指示に従い未実施、公開文でも区別。
+
+公開MPP SHA256 708f83173a219a3c1e55f859d40b839f2541935a0869b00d8ff37c846a3ff1a6。全5assets GitHub digest一致、MPP CRC/追加HomeOrderRow同梱、master/dev両JSON計4feedのversion/downloadURL一致、修正説明/謝辞/寄付欄を確認。初回の検証scriptはR8で消えるローカル変数名localRevisionの文字列を要求して失敗したため、その不適切な検査を除き、配布クラス/CRC/digestを検証した。製品エラーとは扱わない。証跡build/official1351-public/verification.json、ci.log。
+
+https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.35.1
+
+
+## 2026-11-14 外部板のスレ情報ポップアップ（未公開）
+
+③内部スレ番号を日時にした未来年表示、④削除済みスレの板名・板へ戻るURLを191/226/242で修正。ローカルbuild成功、全版適用、Mi Note 10のgateway/native URL 277/286/283、画像110/110/106、ホスト24項目成功。提示のあにまん実URLはHTTP403のためライブ照合未確認。詳細 [site-thread-popup-20261114.md](site-thread-popup-20261114.md)。
+
+
+## 2026-11-14 Haiagaru 1.36.2公式公開
+
+外部板スレ情報修正0f64e641をdev→master merge3003c9d0、Semantic Release生成ddb02683。Release43605834690 / Build43605834622 success。23:42:30 JST公開、draft=false/prerelease=false。配布5ファイルのGitHub digest・サイズ、MPP/ZIP CRC、謝辞/寄付欄、master/main/devの両JSON計6経路の全項目一致を確認。MPP SHA-256 c81280eff0e6f937cea4f055bc72626c92abf812e149898f21f31717be853ea7。実機と未確認範囲はsite-thread-popup-20261114.md参照。
+
+https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.36.2
+
+
+## 2026-11-15 Haiagaru 1.37.0公式公開
+
+HOMEの板並び替え、226/242の並び替え表示、1レス目NG、あにまん添付画像、長押しメニュー文字色、ダーク設定枠を `be799ad5` で統合。Release 43619273983 / Build 43619273989 success、公式1.37.0を02:10:02 JST公開。配布5点のSHA-256・サイズ・ZIP CRC、master/main/devの両Morphe feed（計6経路）、謝辞・寄付欄を確認。公開MPP SHA-256 `50585b8be8794cc14090a17ed4ba8b1fe8a15238ba8a2ecb18b6d5e6e5c3b121`。実機検証範囲は [archive-home-firstng-20261115.md](archive-home-firstng-20261115.md)。
+
+
+## 2026-11-15 ダークメニュー・起動時巡回の位置・あにまん履歴・引用ID（未公開）
+
+242の標準スレ・板メニューで無効項目の色をテーマに合わせる。Mi Note 10で模型・プラモの削除対象0件の文字が読めることを確認。あにまん7222045の121レス目のリンク先7480648を端末から照合し、ネイティブの外部Intentの振り分けと所属板/category21/への解決、引用IDのなんJ/なんG日付・ID、および長押しIntentを合計18項目確認。実際の履歴画面への反映・必死チェッカーの応答は未確認。
+
+191は起動直後、すでに描画したレスの位置が標準アダプター再構築で変わる場合に番号と画面内オフセットを補正。実機ListViewの模擬更新7項目（手動操作を優先）に成功。利用者の起動時巡回と外部板専用Part1の組み合わせは未再現。3版適用、画像回帰110/110/106成功。最終の位置補正差分は191追加適用・実機確認。証跡 build/dark-history-20261115。導入はandroid-installations.md。
+
+
+## 2026-11-15 HOME並び替え後の「板一覧へ」（未公開）
+
+HOMEの並び替えは移動可能な項目の位置だけを入れ替え、標準の操作行を保持する。242の検証用APKで実際の標準ナビゲーション行を含む入力に対し、修正前の消失を再現し、修正後の並び替え・ピン留め・標準順への復元を確認。MPPビルド成功、Mi Note 10の242でHOME等19項目・画像106項目合格。191の起動時読書位置は、前項の検証用APKで模擬更新7項目を再確認した。報告された同一スレ・起動時巡回の実操作は未確認。証跡 build/home-board-entry-20261115。
+
+
+## 2026-11-15 191 したらばの実スレで位置を再確認（未公開）
+
+Mi Note 10の隔離版191で、したらば computer/45040 のスレ 1793980818 をキャッシュした後、検証用データだけ未読1件に設定し、起動時巡回を有効にして、HOME標準のスレ行から開いた。手動再取得なしで一覧の更新通知1回、標準巡回Workの完了（state=2）を記録。11秒の観測で最初に見えていた91レス目とオフセット-2pxは同じ。手動再取得を加えた別試行でも同位置。設定・読了数は復元した。修正前APKで同じずれの再現は未確認。証跡 build/live-scroll-shitaraba-20261115。
+
+
+## 2026-11-15 画像ビューアーの切り替え方向（未公開）
+
+191/226/242の複数画像ビューアーで「↑ 次へ／↓ 前へ」を初期設定にし、上下左右・割り当てなし・標準操作を追加。設定はローカル／MEGAのプロファイルに含む。242は埋め込みと全画面の外枠で判定し、画像だけを標準のページ切り替えで更新する。拡大中・複数指・ボタン操作は標準側に渡す。
+
+MPPビルド成功。Mi Note 10の3版で全画面10項目ずつ、242埋め込み11項目成功（初期方向・変更・割り当てなし・端・標準モードの解除）。3版のフック引数・分岐・原処理保持を検査。画像回帰191/226/242で110/110/106、242のHOME等19項目成功。191の最終APKでもしたらば実スレの起動時巡回、HOME標準行、一覧更新通知1回、91レス目・-2pxの維持を再確認。テスト時間帯の新規Fatalは採取したクラッシュバッファに見当たらない。証跡 build/image-paging-20261115。

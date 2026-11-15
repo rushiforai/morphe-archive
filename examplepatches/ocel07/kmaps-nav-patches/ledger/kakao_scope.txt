@@ -1,0 +1,29 @@
+# KakaoMap scan scope for scan_smali.py --scope (source file name patterns; every obfuscated package that holds a
+# matching class is scanned, so new files in those packages are scanned too). 'pkg:' = package prefix.
+# KNSDK (car navigation engine + UI)
+KN*
+# Kakao Mobility Location SDK (KM path: data sources, validity checks, Kalman filter, indoor) - seed names from 5.17.8
+KM*
+LocationSDK.kt
+DataSourceController.kt
+IntervalDataSource.kt
+LegacyLocationDataSource.kt
+FusedLocationDataSource.kt
+IndoorSourceController.kt
+LocationRepository.kt
+GpsKfLocationRepository.kt
+PreFiltering.kt
+InOutCheckerV2.kt
+FeatureDetector.kt
+ValidityModel.kt
+KalmanFilter2D.kt
+AlgorithmVehicle.kt
+ValidCheckerVehicle.kt
+GatewayApiProvider.kt
+FinData.kt
+ErrorHandler.kt
+SimuLocation.kt
+ApiService.kt
+# KakaoMap side of navigation (package names are kept)
+pkg:com/kakao/map/navi/
+pkg:com/kakaomobility/

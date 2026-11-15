@@ -3,6 +3,9 @@ package app.morphe.patches.chmate
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -16,6 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 /** Display-time epochs only. Stable native thread IDs, URLs and stored records are untouched. */
 internal fun BytecodePatchContext.patchSiteThreadMetadata(version:String){
     val old=version.contains("191");val middle=version.contains("226")
+    patchSitePropertyPopup(old,middle)
+    patchSiteBoardListName(old,middle)
     val owner=mutableClassDefBy(if(old)"Lo/m8a;" else if(middle)"Lo/getWriteBytesTotal;" else "Lo/zzavb;")
     val subject=if(old)"Lo/MaxAdViewImplExternalSyntheticLambda1;" else if(middle)"Lo/CertificateChainCleaner;" else "Lo/setSkipText;"
     val id=if(old)"e" else if(middle)"b" else "d"
@@ -81,4 +86,97 @@ internal fun BytecodePatchContext.patchSiteThreadMetadata(version:String){
         update.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_VOID}.map{it.index}.asReversed().forEach{update.addInstructionsWithLabels(it,"invoke-static {}, $runtime->end()V")}
     }
     println("Native site creation date/momentum: $version, fixed display/calculation anchors")
+}
+
+/** Edit display strings and the board button only; never replace the saved thread/board IDs. */
+private fun BytecodePatchContext.patchSitePropertyPopup(old:Boolean,middle:Boolean){
+    val runtime="Lapp/morphe/extension/chmate/SiteThreadPopup;"
+    val model=mutableClassDefBy(if(old)"Lo/q8;" else if(middle)"Lo/TTInterstitialActivity;"
+        else "Ljp/syoboi/a2chMate/ui/threadproperty/ThreadPropertyDialogViewModel;")
+    val date=if(old)"F" else if(middle)"s" else "y"
+    val board=if(old||middle)"a" else "d"
+    val ctor=model.methods.single{it.name=="<init>"&&it.parameterTypes.firstOrNull()=="Landroid/app/Application;"}
+    val stores=ctor.implementation!!.instructions.withIndex().mapNotNull { (index,insn)->
+        val field=(insn as? ReferenceInstruction)?.reference as? FieldReference
+        if(insn.opcode!=Opcode.IPUT_OBJECT||field?.definingClass!=model.type||field.type!="Ljava/lang/String;")null
+        else when(field.name){date->index to "date";board->index to "boardName";else->null}
+    }
+    check(stores.size==2)
+    for((index,hook) in stores.asReversed()){
+        val store=ctor.implementation!!.instructions[index] as TwoRegisterInstruction
+        val value=store.registerA
+        val instance=store.registerB
+        ctor.addInstructionsWithLabels(index,"""
+            invoke-static {v$value, v$instance}, $runtime->$hook(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
+            move-result-object v$value
+        """.trimIndent())
+    }
+    val callback=mutableClassDefBy(if(old)"Lo/q5;" else if(middle)"Lo/TTAppOpenAdActivity5;" else "Lo/zzbcr;")
+    val action=callback.methods.single{it.name==(if(old)"c" else "invoke")&&it.implementation!=null}
+    val urlType="Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+    val accessor=if(old)"i" else if(middle)"v" else "y"
+    val sites=action.implementation!!.instructions.withIndex().filter { (_,insn)->
+        val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass==urlType&&ref.name==accessor&&ref.parameterTypes.isEmpty()&&ref.returnType=="Ljava/lang/String;"
+    }
+    check(sites.size==if(old)2 else 1)
+    val bridge=MutableMethod(ImmutableMethod(callback.type,"haiagaruPopupBoard",
+        listOf(ImmutableMethodParameter(urlType,emptySet(),null)),"Ljava/lang/String;",0xA,
+        emptySet(),emptySet(),ImmutableMethodImplementation(2,emptyList(),emptyList(),emptyList())))
+    bridge.addInstructions(0,"""
+        invoke-static {p0}, $runtime->boardRoute(Ljava/lang/Object;)Ljava/lang/String;
+        move-result-object v0
+        if-nez v0, :done
+        invoke-virtual {p0}, $urlType->$accessor()Ljava/lang/String;
+        move-result-object v0
+        :done
+        return-object v0
+    """.trimIndent())
+    callback.methods.add(bridge)
+    for((index,insn) in sites){
+        check(insn.opcode==Opcode.INVOKE_VIRTUAL)
+        action.replaceInstruction(index,"invoke-static {v${(insn as FiveRegisterInstruction).registerC}}, $bridge")
+    }
+}
+
+private fun BytecodePatchContext.patchSiteBoardListName(old:Boolean,middle:Boolean){
+    val runtime="Lapp/morphe/extension/chmate/SiteThreadPopup;"
+    val urlType="Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+    if(!old&&!middle){
+        val model="Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel;"
+        val type=mutableClassDefBy(model.dropLast(1)+"\$onBackPressedDispatcher_delegatelambda00;")
+        val get=type.methods.single{it.name=="invokeSuspend"}
+        check(get.implementation!!.registerCount==4)
+        val returns=get.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_OBJECT}
+        check(returns.size==3)
+        for((index,insn) in returns.asReversed()){
+            val result=(insn as OneRegisterInstruction).registerA
+            check(result!=1)
+            get.addInstructionsWithLabels(index,"""
+                iget-object v1, p0, ${type.type}->this${'$'}0:$model
+                invoke-static {v$result, v1}, $runtime->listModelName(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
+                move-result-object v$result
+            """.trimIndent())
+        }
+        return
+    }
+    val type=mutableClassDefBy(if(old)"Lo/r8lambdaGCnF6WpW_bFarRe7yCX2B6KzQ;" else "Lo/Yhp5;")
+    val method=type.methods.single{it.name==(if(old)"i" else "u")&&it.parameterTypes.isEmpty()&&it.returnType=="V"}
+    val accessor=if(old)"i" else "v"
+    val site=method.implementation!!.instructions.withIndex().single { (_,insn)->
+        val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass==urlType&&ref.name==accessor&&ref.parameterTypes.isEmpty()&&ref.returnType=="Ljava/lang/String;"
+    }
+    val bridge=MutableMethod(ImmutableMethod(type.type,"haiagaruSiteListName",
+        listOf(ImmutableMethodParameter(urlType,emptySet(),null)),"Ljava/lang/String;",0xA,
+        emptySet(),emptySet(),ImmutableMethodImplementation(2,emptyList(),emptyList(),emptyList())))
+    bridge.addInstructions(0,"""
+        invoke-virtual {p0}, $urlType->$accessor()Ljava/lang/String;
+        move-result-object v0
+        invoke-static {v0, p0}, $runtime->listName(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
+        move-result-object v0
+        return-object v0
+    """.trimIndent())
+    type.methods.add(bridge)
+    method.replaceInstruction(site.index,"invoke-static {v${(site.value as FiveRegisterInstruction).registerC}}, $bridge")
 }

@@ -40,7 +40,7 @@ public final class MaterialYouTheme {
     private static int themeTransitionDepth;
     private static Activity themeTransitionActivity;
     private static boolean themeTransitionOverlayChanged;
-    private static boolean themeTransitionxboyrexRecreate;
+    private static boolean themeTransitionRexRecreate;
     private static int lastComposePrismOverrideArgb = Integer.MIN_VALUE;
     private static int lastComposeSearchRowOverrideArgb = Integer.MIN_VALUE;
 
@@ -408,7 +408,7 @@ public final class MaterialYouTheme {
         );
         boolean overlayChanged = previousEffectiveMode != requestedEffectiveMode
                 || previousInstagramDark != requestedInstagramDark;
-        boolean rexRecreate = MaterialYouState.shouldxboyrexRecreate(
+        boolean rexRecreate = MaterialYouState.shouldRexRecreate(
                 previousEffectiveMode,
                 requestedEffectiveMode,
                 nativeAction != null,
@@ -523,10 +523,10 @@ public final class MaterialYouTheme {
         if (rootTransition) {
             themeTransitionActivity = activity;
             themeTransitionOverlayChanged = false;
-            themeTransitionxboyrexRecreate = false;
+            themeTransitionRexRecreate = false;
         }
         themeTransitionOverlayChanged |= overlayChanged;
-        themeTransitionxboyrexRecreate |= rexRecreate;
+        themeTransitionRexRecreate |= rexRecreate;
         themeTransitionDepth++;
         try {
             if (nativeAction != null) {
@@ -538,14 +538,14 @@ public final class MaterialYouTheme {
                 Activity refreshActivity = themeTransitionActivity;
                 themeTransitionActivity = null;
                 boolean changedOverlay = themeTransitionOverlayChanged;
-                boolean recreateWithxboyrex = themeTransitionxboyrexRecreate;
+                boolean recreateWithRex = themeTransitionRexRecreate;
                 themeTransitionOverlayChanged = false;
-                themeTransitionxboyrexRecreate = false;
+                themeTransitionRexRecreate = false;
                 if (refreshActivity != null && changedOverlay) {
                     ACTIVITY_GENERATIONS.advance();
                     ACTIVITY_GENERATIONS.recordCreated(refreshActivity);
                 }
-                if (refreshActivity != null && recreateWithxboyrex) {
+                if (refreshActivity != null && recreateWithRex) {
                     refreshActivity.recreate();
                 }
             }

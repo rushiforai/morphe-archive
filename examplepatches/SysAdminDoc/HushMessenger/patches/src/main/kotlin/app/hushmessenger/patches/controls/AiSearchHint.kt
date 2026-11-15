@@ -71,7 +71,13 @@ internal fun Method.isSearchBarBuilder(): Boolean =
 
 /** The one search bar builder, or none when more than one method looks like it. */
 internal fun findAiSearchHint(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { it.isSearchBarBuilder() }.let { if (it.size == 1) it else emptyList() }
+    searchBarBuilders.methods(classes).let { if (it.size == 1) it else emptyList() }
+
+internal val searchBarBuilders = MethodCheck {
+    val tag = StringMatch(SEARCH_BAR_TAG)
+    val test: MethodTest = { _, method -> tag.inCode(method) && method.searchHintSite() != null }
+    test
+}
 
 internal fun MutableMethod.validateAiSearchHint(): Int {
     if (!isSearchBarBuilder()) hintChanged("unexpected search bar ${hookId()}")
@@ -165,10 +171,16 @@ internal fun Method.searchScreenHintSite(hints: SearchHints? = null): Int? {
     return null
 }
 
+/**
+ * The methods with a site of that shape for any check and hints. A site for the bar's own check and hints is one of
+ * them, since the hints only add reasons to pass a spot over.
+ */
+internal val searchScreenHintShapes = methodCheck { _, method -> method.searchScreenHintSite() != null }
+
 /** The one method that picks between the inbox bar's two hints on the bar's Meta AI check, or none when it's unclear. */
 internal fun findAiSearchScreenHint(classes: Iterable<ClassDef>, bars: List<Method> = findAiSearchHint(classes)): List<Method> {
     val hints = bars.singleOrNull()?.searchHints() ?: return emptyList()
-    return classes.flatMap { it.methods }.filter { it.searchScreenHintSite(hints) != null }.let { if (it.size == 1) it else emptyList() }
+    return searchScreenHintShapes.methods(classes).filter { it.searchScreenHintSite(hints) != null }.let { if (it.size == 1) it else emptyList() }
 }
 
 internal fun MutableMethod.validateAiSearchScreenHint(): Int {

@@ -31,7 +31,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     dependsOn(gmsCoreSupportResourcePatch(DODO_PACKAGE, DODO_SIGNATURE))
 
     execute {
-        redirectToGmsCore()
+        redirectToGmsCore(DODO_SIGNATURE)
         warnWithoutGmsCore(
             "Lapp/fakh/extension/dodo/GmsCore;->require()V",
             "Lcom/google/android/gms/auth/api/identity/Identity;" to "getSignInClient",

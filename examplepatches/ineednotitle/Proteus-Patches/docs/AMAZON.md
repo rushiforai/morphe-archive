@@ -1,16 +1,19 @@
 # Amazon — patch status and issue responses
 
-Applies to **Amazon Shopping** `com.amazon.mShop.android.shopping` and
-**Amazon India** `in.amazon.mShop.android.shopping` (XAPK splits).
+Applies to **Amazon Shopping** `com.amazon.mShop.android.shopping` (32.18.0.100,
+32.19.0.100), **Amazon Business** `com.amazon.mShop.android.business.shopping`
+(32.19.0.451, 32.20.0.451 APKM), and **Amazon India** `in.amazon.mShop.android.shopping`
+(32.18.0.300, 32.19.0.300 XAPK).
 
 ## Patches in the bundle
 
-| Patch | Default (v2.2.9 re-cut) | Scope |
+| Patch | Default | Scope |
 |---|---|---|
+| Disable screenshot detection | ON | Replaces `Activity.registerScreenCaptureCallback` and `unregisterScreenCaptureCallback` calls with `nop` across all classes (removes Android 14+ screenshot share bottom sheet). |
 | Dark mode | ON | AMOLED resource pass — **android:-framework attributes only** (hard "Unknown attribute name: colorSurface" guard, same class of fix as Google Photos) + WebView CSS injection |
-| Disable video autoplay | ON | **WebView media-gesture gate only** (MShopWebView.initialize) — in-app web pages, not feed video |
+| Disable video autoplay | ON | WebView media-gesture gate (`MShopWebView.initialize`) **plus** injected DOM/JS autoplay blocker (`autoplay=false`, `HTMLMediaElement.prototype.play` override, capture `play`/`loadstart`, `MutationObserver`) on `MShopWebViewClient.onPageFinished`, `MShopWebViewContainer.onPageFinished`, and `InteractionWebFragment.onFragmentPostShown` |
 | **Amazon: Stop feed video autoplay** | off — NEW | Native ExoPlayer/Media3 players (home-feed live video units); same setPlayWhenReady(true)→false heuristic as the universal patch. See issue #21 |
-| Remove ads | ON | CSS injection into WebViews (sponsored placements on web surfaces) |
+| Remove ads | ON | CSS injection (`AmazonHelper.AD_SELECTORS` synced with `amznkiller` merged list) across `MShopWebViewClient.onPageFinished`, `MShopWebViewContainer.onPageFinished`, `InteractionWebFragment.setWebView`, and `InteractionWebFragment.onFragmentPostShown` |
 | Disable search suggestions tracking | ON | — |
 | Fix Amazon manifest conflicts | ON | — |
 | Hide Rufus tab | ON | — |
@@ -46,8 +49,8 @@ comments on the issue assumed one switch covered everything.
 
 What you should enable now:
 
-1. **Remove ads** (ON by default) — CSS ad blocking on web surfaces.
-2. **Disable video autoplay** (ON by default) — WebView pages.
+1. **Remove ads** (ON by default) — CSS ad blocking on web surfaces (`MShopWebViewClient`, `MShopWebViewContainer`, and `InteractionWebFragment` normal + jumpstarted flows, synced with `amznkiller`'s merged rules).
+2. **Disable video autoplay** (ON by default) — WebView pages (combines `setMediaPlaybackRequiresUserGesture(true)` with injected DOM/JS blocking for `<video autoplay muted>` and scripted `.play()` calls until user gesture).
 3. **Amazon: Stop feed video autoplay** (NEW, off by default) — the native
    home-feed live video units; flips literal `setPlayWhenReady(true)` to
    false in ExoPlayer/Media3 players anywhere in the app.

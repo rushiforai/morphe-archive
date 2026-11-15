@@ -9,6 +9,25 @@ https://github.com/archivesteak/Quest, revision
 64a9275fb2f27062d7fc2a170200cd73f6afc888 (GPL-3.0). See
 https://github.com/ineednotitle/Proteus-Patches/blob/main/docs/PINTEREST-VIDEO.md.
 
+Netflix (Android TV) clone, CertCheck, ad-strip and privacy/household patches
+are ported from https://github.com/ajstrick81/morphe-androidtv-patches
+(GPL-3.0). That project's killads.js script and system-design notes are
+retained with attribution; libgadget.so is Frida (wxWindows Library Licence).
+See https://github.com/ineednotitle/Proteus-Patches/blob/main/docs/NETFLIX.md.
+
+Instagram patches and extension helpers are adapted from
+https://github.com/brosssh/morphe-patches (revision
+de158a4ebfc5376a71058b2c012a9895e46cdb14, GPL-3.0) and
+https://github.com/brosssh/instagram-morphe-patches-library (revision
+47ad23ac167098de9ec55272c4f538f25bbf0859, GPL-3.0), with portions of
+MobileConfig flag overriding and package cloning adapted from
+https://github.com/crimera/piko (revision
+297519632c897d19e9f0df0c39e5b315d1a7390b, GPL-3.0). The Instagram settings
+dialog, Ghost Mode hooks, Reels control flags, in-app browser tools and
+like-animation bridge are adapted from the same piko revision; MobileConfig
+flag IDs are taken from piko's 439.0.0.37.89 mapping. Notice preserved per
+GPLv3 §7(b); see proteus/gpl-3.0.txt.
+
 The project and combined bundle are licensed under GPL-3.0-only. The full
 license is reproduced at proteus/gpl-3.0.txt. Third-party attribution notices
 are retained even though the project license has changed.

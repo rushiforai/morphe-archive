@@ -13,16 +13,17 @@ public final class PopularNativeRows {
         android.content.SharedPreferences prefs=context.getSharedPreferences(WacchoiSearchOptions.PREFS,0);
         boolean popup=prefs.getBoolean("popularReplyPopup",false);
         return prefs.getBoolean("quickFilterCounts",false)||popup
-                ||prefs.getBoolean("popularReplyDirect",popup);
+                ||PopularReplies.directFor(context);
     }
     static final class Snapshot {
         final Object first;final List<?> rows;final boolean flat;final int threshold;
         final Object[] responses;final int[] layout;
+        final Set<Object> identities=Collections.newSetFromMap(new IdentityHashMap<>());
         Snapshot(List<?> rows,boolean flat,int threshold)throws Exception {
             this.rows=new ArrayList<>(rows);this.flat=flat;this.threshold=threshold;
             responses=new Object[rows.size()];layout=new int[rows.size()*2];
             for(int i=0;i<rows.size();i++){
-                Object r=ExtraQuickFilters.rowResponse(rows.get(i));responses[i]=r;
+                Object r=ExtraQuickFilters.rowResponse(rows.get(i));responses[i]=r;if(r!=null)identities.add(r);
                 if(r!=null){layout[i*2]=depth(rows.get(i));layout[i*2+1]=references(r);}
             }
             Object found=null;for(Object row:rows){Object r=ExtraQuickFilters.rowResponse(row);if(r!=null){found=r;break;}}first=found;
@@ -56,14 +57,21 @@ public final class PopularNativeRows {
     private static void save(List<?> rows,boolean flat,int threshold) {
         if(!captureRequired())return;
         try {
-            Snapshot s=new Snapshot(rows,flat,threshold);if(s.first==null)return;
+            // A small reply popup shares model instances with its parent thread.
+            // Check that ownership before copying/parsing its layout, using identity
+            // membership rather than walking every parent response on each tap.
+            Object first=null;for(Object row:rows){first=ExtraQuickFilters.rowResponse(row);if(first!=null)break;}
+            if(first==null)return;
+            synchronized(snapshots){for(Snapshot previous:snapshots)
+                if(previous.rows.size()>rows.size()&&previous.identities.contains(first))return;}
+            Snapshot s=new Snapshot(rows,flat,threshold);
             synchronized(snapshots){
                 // A popup starting at response 1 can use another display mode.
                 // It must not replace the main thread's complete layout or mode.
                 for(Snapshot previous:snapshots)if(previous.rows.size()>s.rows.size()){
                     // Repeated popups must not fill the bounded cache and evict
                     // the complete main-thread capture after only 16 replies.
-                    for(Object response:previous.responses)if(response==s.first)return;
+                    if(previous.identities.contains(s.first))return;
                 }
                 Snapshot next=s;
                 // Native rebuilds recreate row wrappers. Do not schedule another rebuild

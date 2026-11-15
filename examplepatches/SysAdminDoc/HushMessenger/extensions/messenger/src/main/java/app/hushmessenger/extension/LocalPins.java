@@ -70,7 +70,7 @@ public final class LocalPins {
                 remember(suppliers, supplier);
                 Set<String> saved = saved();
                 Set<String> showing = !saved.isEmpty() && Settings.enabled(KEY) ? saved : Collections.<String>emptySet();
-                settle(target, showing);
+                settle(target, supplier, showing);
                 if (!showing.isEmpty() && reorder(target, supplier, showing) && remember(reloaded, supplier)) {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> subscribe(target, supplier), RELOAD_MILLIS);
                 }
@@ -80,17 +80,29 @@ public final class LocalPins {
         }
     }
 
-    /** Takes the mark off every row that's no longer pinned here. */
-    private static void settle(Route target, Set<String> showing) throws ReflectiveOperationException {
+    /**
+     * Takes the mark off the rows in [supplier]'s list that are no longer pinned here. A marked row the list no longer
+     * holds keeps it for now: the chat list's drawn row still points at it, and an unpin reloads fresh rows, so clearing
+     * it would make the drawn row compare equal to the new one and the pin mark would stay on screen.
+     */
+    private static void settle(Route target, Object supplier, Set<String> showing) throws ReflectiveOperationException {
+        List<?> rows = (List<?>) target.list.get(supplier);
         for (Iterator<WeakReference<Object>> it = marked.iterator(); it.hasNext(); ) {
             Object row = it.next().get();
             if (row == null) {
                 it.remove();
-            } else if (!showing.contains(target.key(row))) {
+            } else if (!showing.contains(target.key(row)) && holds(rows, row)) {
                 target.flag.setBoolean(row, false);
                 it.remove();
             }
         }
+    }
+
+    /** Whether [rows] holds this very [row]. Identity only: a chat row's equals reads the flag. */
+    private static boolean holds(List<?> rows, Object row) {
+        if (rows == null) return false;
+        for (Object held : rows) if (held == row) return true;
+        return false;
     }
 
     /** True when a saved pin is on the list. */

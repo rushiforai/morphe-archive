@@ -15,7 +15,7 @@ object Constants {
             // Hooks target unobfuscated lifecycle methods, so newer versions
             // will probably work too, but only these are verified.
             AppTarget(
-                version = "453.0.0.57.79"
+                version = "454.0.0.54.77"
             ),
             AppTarget(
                 version = null,

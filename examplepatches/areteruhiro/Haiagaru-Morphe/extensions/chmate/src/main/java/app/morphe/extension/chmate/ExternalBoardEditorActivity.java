@@ -22,9 +22,11 @@ import java.util.ArrayList;
 
 /** Entry lives in ChMate's native 掲示板/BBSMENU preference screen. */
 public final class ExternalBoardEditorActivity extends HaiagaruComposeActivity {
-    private LinearLayout list;
+    private android.widget.ListView list;
+    private final ArrayList<Board> visibleBoards=new ArrayList<>();
     private boolean busy;
     private boolean includeBbsMenu;
+    private HaiagaruDialog editDialog;
     private EditText search;
     private final ArrayList<Board> loadedBoards=new ArrayList<>();
     private final Handler searchHandler=new Handler(Looper.getMainLooper());
@@ -55,8 +57,19 @@ public final class ExternalBoardEditorActivity extends HaiagaruComposeActivity {
             }
             public void afterTextChanged(Editable s){}
         });
-        ScrollView scroll=new ScrollView(this);list=new LinearLayout(this);list.setOrientation(1);scroll.addView(list);
-        root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));HaiagaruUi.showModel(this, "外部板の編集", root);root.requestApplyInsets();load();
+        list=new android.widget.ListView(this);
+        list.setAdapter(new android.widget.BaseAdapter(){
+            public int getCount(){return visibleBoards.size();}
+            public Object getItem(int position){Board b=visibleBoards.get(position);return b.title+"\n"+ExternalBoardEditor.prefs(ExternalBoardEditorActivity.this).getString("target:"+b.id,b.original);}
+            public long getItemId(int position){return visibleBoards.get(position).row;}
+            public android.view.View getView(int position,android.view.View reused,android.view.ViewGroup parent){
+                Board b=visibleBoards.get(position);Button item=reused instanceof Button?(Button)reused:new Button(ExternalBoardEditorActivity.this);
+                item.setAllCaps(false);item.setText(b.title+"\n"+ExternalBoardEditor.prefs(ExternalBoardEditorActivity.this).getString("target:"+b.id,b.original));
+                item.setOnClickListener(v->edit(b));return item;
+            }
+        });
+        list.setOnItemClickListener((parent,view,position,id)->edit(visibleBoards.get(position)));
+        root.addView(list,new LinearLayout.LayoutParams(-1,0,1));HaiagaruUi.showModel(this, "外部板の編集", root);root.requestApplyInsets();load();
     }
     private SQLiteDatabase database() {
         return SQLiteDatabase.openDatabase(getDatabasePath("roidon.sqlite").getPath(),null,SQLiteDatabase.OPEN_READWRITE);
@@ -77,7 +90,7 @@ public final class ExternalBoardEditorActivity extends HaiagaruComposeActivity {
         return rows;
     }
     private void load() {
-        if(busy)return;busy=true;list.removeAllViews();
+        if(busy)return;busy=true;visibleBoards.clear();((android.widget.BaseAdapter)list.getAdapter()).notifyDataSetChanged();
         final boolean showingAll=includeBbsMenu;
         new Thread(()->{
             try(SQLiteDatabase db=database()) {
@@ -92,32 +105,24 @@ public final class ExternalBoardEditorActivity extends HaiagaruComposeActivity {
     }
     private void renderBoards() {
         if(isFinishing() || isDestroyed() || busy || list==null)return;
-        list.removeAllViews();
+        visibleBoards.clear();
         String query=search.getText().toString();
         SharedPreferences preferences=ExternalBoardEditor.prefs(this);
-        int count=0;
-        for(Board b:loadedBoards) {
-            String url=preferences.getString("target:"+b.id,b.original);
-            if(!ExternalBoardSearch.matches(query,b.title,url))continue;
-            Button item=new Button(this);item.setAllCaps(false);item.setText(b.title+"\n"+url);
-            item.setOnClickListener(v->edit(b));list.addView(item);count++;
-        }
-        if(count==0) {
-            TextView empty=new TextView(this);
-            empty.setText(loadedBoards.isEmpty()?"外部板が見つかりません。「BBSMENUの板も表示」をオンにして確認してください。":"検索条件に一致する板はありません。");
-            list.addView(empty);
-        }
+        for(Board b:loadedBoards)if(ExternalBoardSearch.matches(query,b.title,preferences.getString("target:"+b.id,b.original)))visibleBoards.add(b);
+        ((android.widget.BaseAdapter)list.getAdapter()).notifyDataSetChanged();
     }
     @Override protected void onDestroy() {
         searchHandler.removeCallbacks(searchUpdate);super.onDestroy();
     }
     private void edit(Board b) {
+        if(editDialog!=null&&editDialog.isShowing())return;
         LinearLayout box=new LinearLayout(this);box.setOrientation(1);
         EditText title=new EditText(this);title.setSingleLine();title.setHint("板名");title.setText(b.title);box.addView(title);
         EditText url=new EditText(this);url.setSingleLine();url.setInputType(17);url.setHint("板のURL");
         url.setText(ExternalBoardEditor.prefs(this).getString("target:"+b.id,b.original));box.addView(url);
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(this).setTitle("外部板の名前・URLを編集").setView(box)
                 .setNegativeButton("キャンセル",null).setPositiveButton("保存",null).create();
+        editDialog=dialog;dialog.setOnDismissListener(d->editDialog=null);
         dialog.setOnShowListener(d->dialog.getButton(-1).setOnClickListener(v->{
             String name=title.getText().toString().trim();
             if(name.isEmpty()){title.setError("板名を入力してください");return;}

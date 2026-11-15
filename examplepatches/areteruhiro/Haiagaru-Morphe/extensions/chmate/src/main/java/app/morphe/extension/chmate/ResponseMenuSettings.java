@@ -145,7 +145,8 @@ public final class ResponseMenuSettings {
     static void storeVisibility(android.content.SharedPreferences prefs,int id,int mode){
         prefs.edit().putInt(visibilityKey(id),mode).apply();
     }
-    static void addWacchoiSearchSetting(android.widget.LinearLayout layout, android.app.Activity activity) {
+    static void addWacchoiSearchSetting(android.widget.LinearLayout root, android.app.Activity activity) {
+        android.widget.LinearLayout layout=SettingsSection.add(root,"ﾜｯﾁｮｲ長押し操作","コピー・検索・NG登録の表示項目",true);
         addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「上4桁をコピー」を表示","wacchoiLongPressCopyPrefix",WacchoiLongPressMenu.COPY_PREFIX_ITEM_ID);
         addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「下4桁をコピー」を表示","wacchoiLongPressCopySuffix",WacchoiLongPressMenu.COPY_SUFFIX_ITEM_ID);
         addWacchoiLongPressToggle(layout, activity, "ワッチョイ長押しに「ワッチョイ検索」を表示",

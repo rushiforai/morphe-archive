@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.regex.Pattern;
 
+import app.hushpinterest.extension.pinterest.coexist.OwnAuthorities;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -71,7 +72,14 @@ public final class PushNotifications {
                     || !INSTALLATION_PATH.matcher(url.getPath()).matches()) {
                 return original;
             }
-            if (!PINTEREST_PACKAGE.equals(connection.getRequestProperty("X-Android-Package"))) return original;
+            String sent = connection.getRequestProperty("X-Android-Package");
+            if (!PINTEREST_PACKAGE.equals(sent)) {
+                // A copy from Change package name sends its own package, which Pinterest's key
+                // doesn't know either. The installation is Pinterest's, so the request names it.
+                if (!PatchFamily.CHANGE_PACKAGE_NAME.inBuild() || !OwnAuthorities.isRunningCopy(sent)) return original;
+                connection.setRequestProperty("X-Android-Package", PINTEREST_PACKAGE);
+                HookStatus.counted(FamilyNames.FIX_PUSH_NOTIFICATIONS, "copy package headers fixed");
+            }
             if (PINTEREST_CERTIFICATE_SHA1.equalsIgnoreCase(original)) return original;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FIX_PUSH_NOTIFICATIONS, "certificate header", failure);

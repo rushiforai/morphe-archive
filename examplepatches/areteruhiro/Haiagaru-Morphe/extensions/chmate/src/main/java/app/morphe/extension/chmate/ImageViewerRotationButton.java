@@ -55,7 +55,13 @@ public final class ImageViewerRotationButton {
         android.util.Log.i(LOG_TAG, "Rotation button installed on " + root.getClass().getName());
         RotationClickListener action = new RotationClickListener(activity, root, imageViewClassName);
         root.setTag(ACTION_TAG, action);
-        button.setOnClickListener(action);
+        button.setOnClickListener(v -> {
+            if(VideoViewerSettings.prefs(activity).getBoolean(MENU_KEY,true)) {
+                android.widget.PopupMenu menu=new android.widget.PopupMenu(activity,button);
+                prepareMenu(activity,menu.getMenu());
+                menu.show();
+            } else action.onClick(v);
+        });
         synchronizeControlsVisibility(activity, root, button);
     }
 
@@ -96,11 +102,21 @@ public final class ImageViewerRotationButton {
 
             @Override
             public boolean onPreDraw() {
-                if (!Haiagaru.imageRotationButtonEnabled(activity) || VideoViewerSettings.prefs(activity).getBoolean(MENU_KEY, true)) {
+                boolean inMenu=VideoViewerSettings.prefs(activity).getBoolean(MENU_KEY,true);
+                // 226 hides its ActionBar and uses a configurable native toolbar.
+                // If that toolbar has no overflow entry, moving rotation into the
+                // menu must not remove the only way to reach it.
+                boolean overflowVisible=hasNativeOverflow(activity.getWindow().getDecorView());
+                if (!Haiagaru.imageRotationButtonEnabled(activity) || inMenu&&overflowVisible) {
                     if (button.getVisibility() != View.GONE) button.setVisibility(View.GONE);
                     return true;
                 }
-                position.update();
+                String caption=inMenu?"︙":"⟳";
+                if(button instanceof TextView&&!caption.contentEquals(((TextView)button).getText())) {
+                    ((TextView)button).setText(caption);
+                    button.setContentDescription(inMenu?"画像のメニュー":"画像を右に回転");
+                }
+                position.update(inMenu);
                 if (counter == null || !counter.isAttachedToWindow()) counter = findCounter(root);
                 int visibility = counter != null && counter.isShown() && counter.getAlpha() > 0f
                         ? View.VISIBLE : View.INVISIBLE;
@@ -134,20 +150,22 @@ public final class ImageViewerRotationButton {
             sideGap = dp(activity, 24);
         }
 
-        void update() {
+        void update(boolean inMenu) {
             if (root.getWidth() == 0 || root.getHeight() == 0) return;
-            int bottom = 0, left = 0, right = 0;
+            int bottom = 0, top = 0, left = 0, right = 0;
             if (android.os.Build.VERSION.SDK_INT >= 23) {
                 android.view.WindowInsets insets = root.getRootWindowInsets();
                 if (insets != null) {
                     if (android.os.Build.VERSION.SDK_INT >= 30) {
                         android.graphics.Insets safe = insets.getInsetsIgnoringVisibility(
-                                android.view.WindowInsets.Type.navigationBars() | android.view.WindowInsets.Type.displayCutout());
+                                android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.displayCutout());
                         android.graphics.Insets gestures = insets.getInsets(android.view.WindowInsets.Type.systemGestures());
+                        top = safe.top;
                         bottom = Math.max(safe.bottom, gestures.bottom);
                         left = Math.max(safe.left, gestures.left);
                         right = Math.max(safe.right, gestures.right);
                     } else {
+                        top = Math.max(insets.getSystemWindowInsetTop(), insets.getStableInsetTop());
                         bottom = Math.max(insets.getSystemWindowInsetBottom(), insets.getStableInsetBottom());
                         left = Math.max(insets.getSystemWindowInsetLeft(), insets.getStableInsetLeft());
                         right = Math.max(insets.getSystemWindowInsetRight(), insets.getStableInsetRight());
@@ -171,11 +189,27 @@ public final class ImageViewerRotationButton {
             int bottomMargin = ViewerControlInsets.margin(bottomGap, bottom, excludedBottom);
             int endMargin = ViewerControlInsets.margin(sideGap, rtl ? left : right, excludedSide);
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) button.getLayoutParams();
-            if (params.bottomMargin == bottomMargin && params.getMarginEnd() == endMargin) return;
+            int topMargin = ViewerControlInsets.margin(dp(activity, 4), top,
+                    Math.max(0,hostPosition[1]-windowPosition[1])+root.getPaddingTop());
+            int gravity=Gravity.END|(inMenu?Gravity.TOP:Gravity.BOTTOM);
+            if (params.bottomMargin == bottomMargin && params.topMargin == topMargin
+                    && params.gravity == gravity && params.getMarginEnd() == endMargin) return;
+            params.gravity=gravity;
+            params.topMargin=topMargin;
             params.bottomMargin = bottomMargin;
             params.setMarginEnd(endMargin);
             button.setLayoutParams(params);
         }
+    }
+
+    private static boolean hasNativeOverflow(View view) {
+        if(view.getId()==BUTTON_ID||!view.isShown()||view.getAlpha()<=0f)return false;
+        // 191 uses the framework ActionBar outside android.R.id.content;
+        // modern native toolbars use the fixed command ID 7.
+        if(view.getWidth()>0&&(view.getId()==7||view.getClass().getName().contains("OverflowMenuButton")))return true;
+        if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)
+            if(hasNativeOverflow(group.getChildAt(i)))return true;}
+        return false;
     }
 
     private static TextView findCounter(View view) {

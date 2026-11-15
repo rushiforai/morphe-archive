@@ -1,0 +1,1352 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.reels;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.DrawableWrapper;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.WeakHashMap;
+import java.util.function.BooleanSupplier;
+
+import app.morphe.extension.suite.instagram.feed.OverlayLook;
+import app.morphe.extension.suite.instagram.feed.SeekPreview;
+import app.morphe.extension.suite.instagram.feed.SeekShape;
+import app.morphe.extension.suite.instagram.feed.SeekShapes;
+import app.morphe.extension.suite.instagram.feed.SeekSheet;
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+
+/**
+ * The time label of the "Keep a seek bar on Reels" patch: "0:10 / 0:55" above the end of the
+ * reel's seek bar.
+ *
+ * <p>Instagram's reel seek bar keeps the reel's position and length in milliseconds as its
+ * progress and max, and every change of either reaches its onProgressChanged, where
+ * {@link #update} runs. Only a bar whose container Instagram bound to an ordinary reel gets a
+ * label ({@link #bind}): an ad's bar, or the same kind of bar anywhere else, stays as it is. The
+ * container is the nearest view above the bar that Instagram bound, for the reel's tag too, so a
+ * bar a view or two further down still counts.
+ *
+ * <p>Each bar gets one label, made with its first update and kept by the bar itself for as long as
+ * the bar lives, along with one listener for the bar's layout, its window and the window's frames.
+ * The label goes in the nearest view that has room for all of it above the bar's track:
+ * <ul>
+ *   <li>When that's the bar's own parent and a FrameLayout, the label is a child of it. TalkBack
+ *       reads it, and it takes no touches, so a drag that starts on it still reaches the bar.</li>
+ *   <li>Otherwise it goes on the overlay of the bar's parent or of a view further up, which draws
+ *       over that view without joining its children and never takes a touch. A Litho host lays
+ *       out only what it put there itself, and Instagram 449's scrubber container, a FrameLayout,
+ *       is hardly taller than the bar, so a child label there was cut in half on a phone.
+ *       TalkBack can't reach an overlay, so on Android 11 and up the bar itself carries the
+ *       label's words as its state.</li>
+ *   <li>When no view near the bar has the room, there's no label rather than a cut-off one.</li>
+ * </ul>
+ * A view holds at most one of these labels: a label whose bar has gone from under it gives way.
+ *
+ * <p>The label shows only while its bar does: while the bar and every view above it are shown, and
+ * faded as much as the views between the bar and the label's holder are. That's checked before
+ * every frame, so a container Instagram hides or fades without moving the bar hides the label too.
+ * It's hidden while you drag the bar, when Instagram shows its own times, and when the bar has no
+ * length. When the bar leaves the window, its label is hidden at once and taken off its holder
+ * right after, and its text and width start over when the bar is bound to another reel, which
+ * shows as a new length or a new reel tag on the bar's container.
+ *
+ * <p>Runs on the main thread, where a SeekBar calls its listener.
+ */
+final class ReelTimeLabel {
+    /** The start of the tag Instagram 449 puts on a reel's scrubber container, then the reel's id. */
+    static final String REEL_TAG_PREFIX = "clips_scrubber_";
+
+    /** The label's text size, the size of Instagram's own scrubber times. */
+    static final float TEXT_SP = 12f;
+
+    /**
+     * How many views up from the bar, its parent first, the container Instagram bound to a reel is
+     * looked for, and how far down from a bound container its bar is.
+     */
+    private static final int TAG_REACH = 8;
+
+    /**
+     * How many views up from the bar, its parent first, one with room for the label is looked for.
+     * On 449 the scrubber container has none and the Litho host holding it has plenty.
+     */
+    private static final int HOST_REACH = 4;
+
+    /**
+     * The bigger bar's track height, thumb size and the height of the dark fade behind it, in dp. The track
+     * is about twice Instagram's own, which is 7px on a 2.625 density phone.
+     */
+    static final float BIG_TRACK_DP = 5f;
+    static final float BIG_THUMB_DP = 14f;
+    static final float BIG_FADE_DP = 64f;
+    /** The bigger bar's track behind the progress, white at about a third, and the fade's darkest end, 40% black. */
+    static final int BIG_TRACK_COLOR = 0x55FFFFFF;
+    static final int BIG_FADE_COLOR = 0x66000000;
+
+    /**
+     * The bar like DM videos (#10), from Instagram's own player for a video opened in a chat: its
+     * video_seek_bar_drawable, a 3dp track in grey_5 (#999999) with the played part white, and its
+     * seek_bar_thumb, a plain white circle 16dp across. No fade, as there's none in that player.
+     */
+    static final float DM_TRACK_DP = 3f;
+    static final float DM_THUMB_DP = 16f;
+    static final int DM_TRACK_COLOR = 0xFF999999;
+
+    /** The space between the label and the bar's track, and around the label's text. */
+    private static final float GAP_DP = 4f;
+
+    /** Runs the label's update after the layout pass or the window change that asked for it. */
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+
+    /** Each bar's tracker. Weak both ways: the bar keeps its tracker as a listener, and the label leads back to the bar. */
+    private static final Map<SeekBar, WeakReference<Tracker>> TRACKERS = new WeakHashMap<>();
+
+    /** Each seek bar container Instagram bound to a reel: true for an ordinary reel, false for an ad. */
+    private static final Map<View, Boolean> REELS = new WeakHashMap<>();
+
+    /**
+     * Each seek bar container's reel, as clips_scrubber_ and its id, from the binder itself. Instagram
+     * 454 tags the container that way only on some screens, so the tag alone can't name every reel.
+     * Guarded by REELS.
+     */
+    private static final Map<View, String> BOUND = new WeakHashMap<>();
+
+    /** The label each view holds, as a child or on its overlay. At most one per view. */
+    private static final Map<ViewGroup, WeakReference<TextView>> HELD = new WeakHashMap<>();
+
+    /** What a label knows, kept as its tag. Nothing here holds the bar or a view above it strongly. */
+    static final class State {
+        /** The bar the label belongs to. */
+        final WeakReference<SeekBar> bar;
+        /** The reel tag and the length the label was laid out for; a change of either starts it over. */
+        String reel;
+        /** The reel tag the bar's container was last bound to, or null before a bind with one. */
+        String bound;
+        int max = -1;
+        /** The label's width, enough for the longest time this length can show. */
+        int width;
+        /** The text on the label now, or null after it starts over. */
+        String text;
+        /** The view whose overlay holds the label, or null when it's a child or nowhere. */
+        WeakReference<ViewGroup> overlay;
+        /** Whether the bar carries the label's words as its state description. */
+        boolean described;
+        /** Whether the last update placed the label to be shown, subject to the bar showing. */
+        boolean wanted;
+        /** What {@link #movedBy} last said for the bar. */
+        int moved;
+        /** Only restore a snapshot while the bar still carries our own drawable. */
+        Drawable originalThumb;
+        GradientDrawable thumb;
+        int originalThumbOffset;
+        /** Whether the thumb is the DM look's, with no outline. */
+        boolean thumbDm;
+        /** The bigger bar: Instagram's own track and background, ours in their place, and the views let draw past their edges. */
+        boolean styled;
+        Drawable originalProgress;
+        LayerDrawable bigTrack;
+        /** Whether the track drawn is the DM look's rather than the bigger bar's. */
+        boolean trackDm;
+        Drawable originalBackground;
+        LayerDrawable backdrop;
+        int fadeIndex;
+        int styledHeight = -1;
+        int styledBottom = -1;
+        final ViewGroup[] unclipped = new ViewGroup[HOST_REACH];
+        final boolean[] clippedBefore = new boolean[HOST_REACH];
+        int unclippedCount;
+
+        State(SeekBar bar) {
+            this.bar = new WeakReference<>(bar);
+        }
+    }
+
+    /** The view the label goes in, where the bar is in that view, and whether the label is its child. */
+    private static final class Host {
+        final ViewGroup view;
+        final int barLeft;
+        final int barTop;
+        final boolean child;
+
+        Host(ViewGroup view, int barLeft, int barTop, boolean child) {
+            this.view = view;
+            this.barLeft = barLeft;
+            this.barTop = barTop;
+            this.child = child;
+        }
+    }
+
+    /**
+     * A bar's label and its one listener. The bar holds it, as a listener, for as long as the bar
+     * lives, so the label is never collected and made again while the bar has no room for it, and
+     * the bar never gets a second listener. Registered for the window's frames only while the bar
+     * is in a window.
+     */
+    private static final class Tracker implements View.OnLayoutChangeListener, View.OnAttachStateChangeListener,
+            ViewTreeObserver.OnPreDrawListener {
+        final TextView label;
+        final BooleanSupplier on;
+        /** The window's observer this listens to for frames, or null outside a window. */
+        private ViewTreeObserver frames;
+        /** Whether an update of the bar is waiting to run. */
+        private boolean queued;
+
+        Tracker(TextView label, BooleanSupplier on) {
+            this.label = label;
+            this.on = on;
+        }
+
+        /**
+         * Instagram can give a bar its length and position before laying it out, and with autoplay
+         * held (Tap to play) nothing moves the bar again, so on a phone 2 of 10 reels got no label.
+         * Each layout of the bar shows the label again for where the bar is now, after the layout
+         * pass, since the label can be added to the bar's parent.
+         */
+        @Override
+        public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                                   int oldLeft, int oldTop, int oldRight, int oldBottom) {
+            queue((SeekBar) view);
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View view) {
+            try {
+                watch(view);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar window", failure);
+            }
+            queue((SeekBar) view);
+        }
+
+        /**
+         * The bar left the window: its label is hidden at once and taken off its holder right
+         * after. Not at once, since Android is going through the views of the window to detach
+         * them, the label's holder perhaps among them.
+         */
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            try {
+                unwatch();
+                updateThumb((SeekBar) view, (State) label.getTag(), false);
+                hide((SeekBar) view, label);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar window", failure);
+                hideAfterFailure(label);
+            }
+            queue((SeekBar) view);
+        }
+
+        /** Before every frame of the bar's window: the label shows only while the bar does. */
+        @Override
+        public boolean onPreDraw() {
+            try {
+                SeekBar bar = barOf(label);
+                if (bar != null) {
+                    State state = (State) label.getTag();
+                    updateThumb(bar, state, ReelSeekBar.thumbOn()
+                            && ordinaryReel(bar) && bar.getMax() > 0 && bar.isAttachedToWindow());
+                    follow(bar, label);
+                    // The bar was raised or lowered with no layout, so the label may need another place.
+                    int moved = movedBy(bar);
+                    if (moved != state.moved) {
+                        state.moved = moved;
+                        queue(bar);
+                    }
+                }
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar frame", failure);
+                hideAfterFailure(label);
+            }
+            return true;
+        }
+
+        void watch(View bar) {
+            if (frames != null && frames.isAlive()) return;
+            frames = bar.getViewTreeObserver();
+            frames.addOnPreDrawListener(this);
+        }
+
+        void unwatch() {
+            if (frames != null && frames.isAlive()) frames.removeOnPreDrawListener(this);
+            frames = null;
+        }
+
+        /** Updates the bar's label once the main thread is free, at most once however often it's asked. */
+        void queue(SeekBar bar) {
+            if (queued) return;
+            queued = true;
+            MAIN.post(() -> {
+                queued = false;
+                update(bar, bar.getProgress(), on);
+            });
+        }
+    }
+
+    private ReelTimeLabel() {
+    }
+
+    /**
+     * Notes whether Instagram bound [container], a seek bar container, to an ordinary reel or to an
+     * ad. A bar in a container bound to an ad or to another reel loses its label at once, and one
+     * in a container bound to an ordinary reel gets its label shown for that reel. Bound again to
+     * the same ordinary reel, the label stays up rather than blinking for a frame. Never throws.
+     */
+    static void bind(Object container, boolean ad, BooleanSupplier on) {
+        if (!(container instanceof View)) return;
+        try {
+            HookStatus.invoked(FamilyNames.REEL_SEEK_BAR);
+            View view = (View) container;
+            Boolean before;
+            synchronized (REELS) {
+                before = REELS.put(view, !ad);
+            }
+            boolean stillOrdinary = !ad && Boolean.TRUE.equals(before);
+            for (SeekBar bar : barsIn(view)) {
+                Tracker tracker = trackerOf(bar);
+                if (tracker != null) {
+                    State state = (State) tracker.label.getTag();
+                    if (ad) updateThumb(bar, state, false);
+                    if (!stillOrdinary || !Objects.equals(state.reel, reelOf(bar))) hide(bar, tracker.label);
+                    if (!ad && (on.getAsBoolean() || ReelSeekBar.thumbOn() || ReelSeekBar.photoShown(reelOf(bar)))) {
+                        startOver(bar, state);
+                    }
+                    tracker.queue(bar);
+                } else if (!ad && (on.getAsBoolean() || ReelSeekBar.thumbOn() || ReelSeekBar.photoShown(reelOf(bar)))) {
+                    MAIN.post(() -> update(bar, bar.getProgress(), on));
+                }
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar reel", failure);
+        }
+    }
+
+    /**
+     * Notes the reel [id] Instagram is binding [container], a seek bar container, to, just before
+     * {@link #bind} hears whether it's an ad. A null id forgets the one before. Never throws.
+     */
+    static void bindReel(Object container, @Nullable String id) {
+        if (!(container instanceof View)) return;
+        synchronized (REELS) {
+            if (id == null || id.isEmpty()) BOUND.remove(container);
+            else BOUND.put((View) container, REEL_TAG_PREFIX + id);
+        }
+    }
+
+    /**
+     * A bar Instagram moves on to another reel keeps the last reel's position until the new reel's
+     * player first moves it, so its thumb and played part showed a few percent in and then jumped back
+     * to the start (#10). Bound to a reel tag other than the one before, the bar starts at 0, as
+     * the player's own first update would set it. Bound again to the same reel, or with no tag to
+     * tell, it's left where it is.
+     */
+    private static void startOver(SeekBar bar, State state) {
+        String reel = reelOf(bar);
+        if (reel == null || reel.equals(state.bound)) return;
+        state.bound = reel;
+        if (bar.getProgress() != 0 && !bar.isPressed()) {
+            bar.setProgress(0);
+            HookStatus.counted(FamilyNames.REEL_SEEK_BAR, COUNT_STARTED_OVER);
+        }
+    }
+
+    /** What's counted each time a bar moved on to another reel goes back to its start. */
+    static final String COUNT_STARTED_OVER = "Seek bar back to the start for a new reel";
+
+    /**
+     * Shows [bar]'s position and length in its label while the switch is on, and hides the label
+     * otherwise, or when the bar has no length. A bar outside a container bound to an ordinary
+     * reel, or outside a window, has no label anywhere. Never throws.
+     */
+    static void update(SeekBar bar, int progress, BooleanSupplier on) {
+        if (bar == null) return;
+        TextView label = null;
+        try {
+            HookStatus.invoked(FamilyNames.REEL_SEEK_BAR);
+            Tracker tracker = trackerOf(bar);
+            label = tracker == null ? null : tracker.label;
+            ViewParent parent = bar.getParent();
+            if (!(parent instanceof ViewGroup) || !ordinaryReel(bar)) {
+                // An ad's bar, a bar on another screen, or one taken out of its container.
+                if (label != null) remove(bar, label);
+                ease(bar, false);
+                SeekShapes.restore(bar);
+                return;
+            }
+            int max = bar.getMax();
+            // In this order round the handle: each gets Instagram's drawables back from the other before it keeps them.
+            SeekShape shape = ReelSeekBar.shaped() ? SeekShapes.wanted() : SeekShape.STANDARD;
+            if (shape == SeekShape.STANDARD) SeekShapes.restore(bar);
+            boolean labelOn = on.getAsBoolean() || ReelSeekBar.photoShown(reelOf(bar));
+            boolean thumbOn = ReelSeekBar.thumbOn() && max > 0 && bar.isAttachedToWindow();
+            if (tracker == null && thumbOn) tracker = track(bar, on);
+            if (tracker != null) {
+                label = tracker.label;
+                State state = (State) label.getTag();
+                // A bar first seen playing learns its reel here, so binding that reel again doesn't start it over.
+                if (state.bound == null) state.bound = reelOf(bar);
+                updateThumb(bar, state, thumbOn);
+            }
+            if (shape != SeekShape.STANDARD) SeekShapes.apply(bar, shape, OverlayLook.SOLID, true);
+            if (bar.isPressed() && SeekPreview.on()) {
+                SeekPreview.dragged(bar, progress, SeekSheet.ofMedia(ReelSeekBar.mediaOf(reelOf(bar))), ReelSpeed.playing(), FamilyNames.REEL_SEEK_BAR);
+            }
+            ease(bar, (labelOn || ReelSeekBar.thumbOn()) && max > 0);
+            if (!labelOn || max <= 0) {
+                if (label != null) hide(bar, label);
+                return;
+            }
+            if (tracker == null) tracker = track(bar, on);
+            label = tracker.label;
+            if (!bar.isAttachedToWindow()) {
+                remove(bar, label);
+                return;
+            }
+            show(bar, (ViewGroup) parent, label, progress, max);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar time", failure);
+            hideAfterFailure(label);
+        }
+    }
+
+    /**
+     * Gives the bars bound to the reel tagged [tag], a photo with a song, the song's [length] in
+     * milliseconds. Instagram set their length from a post that states none, and the player's position
+     * can't go past it. Any thread: the player's callback isn't promised to run on the main one, and a
+     * position that gets there first only waits for the next one.
+     */
+    static void sizeBars(String tag, int length) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            MAIN.post(() -> sizeBars(tag, length));
+            return;
+        }
+        List<View> containers = new ArrayList<>(1);
+        synchronized (REELS) {
+            for (Map.Entry<View, Boolean> reel : REELS.entrySet()) {
+                if (Boolean.TRUE.equals(reel.getValue()) && tag.equals(reelOfContainer(reel.getKey()))) containers.add(reel.getKey());
+            }
+        }
+        for (View container : containers) {
+            for (SeekBar bar : barsIn(container)) {
+                if (bar.getMax() != length && !bar.isPressed()) bar.setMax(length);
+            }
+        }
+    }
+
+    /** The bar's label, or null before its first. */
+    static TextView labelOf(SeekBar bar) {
+        Tracker tracker = trackerOf(bar);
+        return tracker == null ? null : tracker.label;
+    }
+
+    /** Uses Android's thumb drawing and seeking without replacing any listener. */
+    private static void updateThumb(SeekBar bar, State state, boolean wanted) {
+        float density = bar.getResources().getDisplayMetrics().density;
+        boolean big = wanted && ReelSeekBar.bigOn();
+        boolean dm = big && ReelSeekBar.dmOn();
+        updateStyle(bar, state, big, dm);
+        int diameter = Math.min(Math.round((dm ? DM_THUMB_DP : big ? BIG_THUMB_DP : 10) * density), bar.getHeight());
+        if (!wanted || diameter <= 0) {
+            if (state.thumb != null && bar.getThumb() == state.thumb) {
+                bar.setThumb(state.originalThumb);
+                bar.setThumbOffset(state.originalThumbOffset);
+            }
+            state.thumb = null;
+            state.originalThumb = null;
+            return;
+        }
+        if (state.thumb == null || bar.getThumb() != state.thumb
+                || state.thumb.getIntrinsicWidth() != diameter || state.thumbDm != dm) {
+            if (state.thumb == null || bar.getThumb() != state.thumb) {
+                state.originalThumb = bar.getThumb();
+                state.originalThumbOffset = bar.getThumbOffset();
+            }
+            GradientDrawable thumb = new Thumb();
+            thumb.setShape(GradientDrawable.OVAL);
+            thumb.setColor(Color.WHITE);
+            // Instagram's DM thumb is a plain white circle; the others keep a thin outline for light videos.
+            if (!dm) thumb.setStroke(Math.max(1, Math.round(density)), Color.BLACK);
+            thumb.setSize(diameter, diameter);
+            state.thumb = thumb;
+            state.thumbDm = dm;
+            // AbsSeekBar only positions a replacement when its old thumb is non-null. A same-call
+            // seed makes Android lay out a previously absent thumb without changing playback progress.
+            if (bar.getThumb() == null) bar.setThumb(new GradientDrawable());
+            bar.setThumb(thumb);
+            // Clear only our drawable's tint, preserving the native policy and original drawable.
+            thumb.setTintList(null);
+        }
+        // Instagram pads its compact track down to the bottom of the view. Keep the full circle
+        // inside that view without changing its track, padding, touch bounds or horizontal position.
+        Rect bounds = state.thumb.getBounds();
+        int top = Math.max(-bar.getPaddingTop(),
+                Math.min(bounds.top, bar.getHeight() - bar.getPaddingTop() - diameter));
+        if (bounds.top != top) state.thumb.setBounds(bounds.left, top, bounds.right, top + diameter);
+        // The bigger track runs through the handle's middle, inside the view, rather than on Instagram's
+        // few pixels at its bottom, where the view's edge cut it to Instagram's thickness.
+        if (big && state.bigTrack != null) centerTrack(state.bigTrack, top + diameter / 2f);
+    }
+
+    /**
+     * The bigger bar, while [big]: a thicker white track with a translucent one behind it, in place of
+     * Instagram's drawable for the bar's track, and a soft dark fade drawn as part of the bar's own
+     * background, reaching up from the bar's bottom. The bar stays Instagram's view, so its taps,
+     * dragging and accessibility seeking are untouched. The fade is drawn by the bar, in its place
+     * among the reel's views, so it can't land over the caption or buttons above it; the views from
+     * the bar's parent up to the first with room for the fade are let draw past their edges for it.
+     * Costs nothing per frame once set; it starts over only if the bar's size or place changes or
+     * Instagram swaps a drawable. Off, it gives Instagram's drawables and clipping back.
+     *
+     * <p>With [dm], the track is the DM look's thin one and there's no fade, so the bar keeps
+     * Instagram's background and the views around it keep their clipping.
+     */
+    private static void updateStyle(SeekBar bar, State state, boolean big, boolean dm) {
+        ViewParent parent = bar.getParent();
+        if (!big || !(parent instanceof ViewGroup)) {
+            unstyle(bar, state);
+            return;
+        }
+        int height = bar.getHeight();
+        if (height <= 0) return;
+        float density = bar.getResources().getDisplayMetrics().density;
+        if (state.bigTrack == null || state.trackDm != dm) {
+            LayerDrawable before = state.bigTrack;
+            state.bigTrack = dm ? track(density, DM_TRACK_DP, DM_TRACK_COLOR) : track(density, BIG_TRACK_DP, BIG_TRACK_COLOR);
+            state.trackDm = dm;
+            // Switching looks keeps the drawable Instagram had before either.
+            if (before != null && bar.getProgressDrawable() == before) bar.setProgressDrawable(state.bigTrack);
+        }
+        if (bar.getProgressDrawable() != state.bigTrack) {
+            state.originalProgress = bar.getProgressDrawable();
+            bar.setProgressDrawable(state.bigTrack);
+        }
+        if (dm) {
+            dropBackdrop(bar, state);
+            state.styled = true;
+            return;
+        }
+        boolean moved = state.styledHeight != height || state.styledBottom != bar.getBottom();
+        if (state.backdrop == null || bar.getBackground() != state.backdrop) {
+            state.originalBackground = bar.getBackground();
+            GradientDrawable fade = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[] {Color.TRANSPARENT, BIG_FADE_COLOR});
+            state.fadeIndex = state.originalBackground == null ? 0 : 1;
+            state.backdrop = new LayerDrawable(state.originalBackground == null
+                    ? new Drawable[] {fade} : new Drawable[] {state.originalBackground, fade});
+            bar.setBackground(state.backdrop);
+            moved = true;
+        }
+        if (moved) {
+            restoreClipping(state);
+            int wanted = Math.round(BIG_FADE_DP * density);
+            ViewGroup view = (ViewGroup) parent;
+            int room = bar.getBottom();
+            int count = 0;
+            while (count < HOST_REACH) {
+                state.unclipped[count] = view;
+                state.clippedBefore[count] = view.getClipChildren();
+                view.setClipChildren(false);
+                count++;
+                if (room >= wanted) break;
+                ViewParent up = view.getParent();
+                if (!(up instanceof ViewGroup)) break;
+                room += view.getTop();
+                view = (ViewGroup) up;
+            }
+            state.unclippedCount = count;
+            // The fade ends at the bar's bottom and reaches up by its height, as far as there's room.
+            state.backdrop.setLayerInset(state.fadeIndex, 0, height - Math.min(wanted, room), 0, 0);
+            state.styledHeight = height;
+            state.styledBottom = bar.getBottom();
+        }
+        state.styled = true;
+    }
+
+    private static void unstyle(SeekBar bar, State state) {
+        if (!state.styled) return;
+        state.styled = false;
+        if (bar.getProgressDrawable() == state.bigTrack) bar.setProgressDrawable(state.originalProgress);
+        state.originalProgress = null;
+        dropBackdrop(bar, state);
+    }
+
+    /** Gives the bar Instagram's background back, and the views around it their clipping, when the fade is up. */
+    private static void dropBackdrop(SeekBar bar, State state) {
+        if (state.backdrop != null && bar.getBackground() == state.backdrop) bar.setBackground(state.originalBackground);
+        restoreClipping(state);
+        state.originalBackground = null;
+        state.backdrop = null;
+        state.styledHeight = -1;
+        state.styledBottom = -1;
+    }
+
+    private static void restoreClipping(State state) {
+        for (int i = 0; i < state.unclippedCount; i++) {
+            state.unclipped[i].setClipChildren(state.clippedBefore[i]);
+            state.unclipped[i] = null;
+        }
+        state.unclippedCount = 0;
+    }
+
+    /**
+     * A track in [color] with the progress over it in white, both [thicknessDp] thick, drawn in code (#10).
+     * The progress draws as far across as its level says. A ClipDrawable clipped it to the track's bounds,
+     * which Instagram keeps a few pixels high at the bottom of the bar, so the thicker line came out no
+     * thicker than Instagram's. The bar puts how much of the reel has loaded on the layer called
+     * secondaryProgress, or on the whole drawable when there's none, and from there it reached the progress
+     * layer as well: once a reel had loaded, the line was white from end to end. The empty layer takes it.
+     */
+    private static LayerDrawable track(float density, float thicknessDp, int color) {
+        float thickness = thicknessDp * density;
+        LayerDrawable track = new LayerDrawable(new Drawable[] {new Pill(color, thickness, false),
+                new ColorDrawable(Color.TRANSPARENT), new Pill(Color.WHITE, thickness, true)});
+        track.setId(0, android.R.id.background);
+        track.setId(1, android.R.id.secondaryProgress);
+        track.setId(2, android.R.id.progress);
+        return track;
+    }
+
+    /** Lines the bigger bar's track up on [middle], a height in the bar's track space: the handle's middle. */
+    private static void centerTrack(LayerDrawable track, float middle) {
+        for (int id : new int[] {android.R.id.background, android.R.id.progress}) {
+            Drawable layer = track.findDrawableByLayerId(id);
+            if (layer instanceof Pill) ((Pill) layer).centerOn(middle);
+        }
+    }
+
+    /**
+     * Puts {@link EasedLine} around the played part of Instagram's own track while [wanted], and takes it
+     * off again otherwise. A track of ours, or one with no separate played part, is left alone. Costs a
+     * look at the track's layers with each update; the wrapper goes on once, and on again only if
+     * Instagram swaps the track.
+     */
+    private static void ease(SeekBar bar, boolean wanted) {
+        Drawable track = bar.getProgressDrawable();
+        if (!(track instanceof LayerDrawable)) return;
+        LayerDrawable layers = (LayerDrawable) track;
+        Drawable line = layers.findDrawableByLayerId(android.R.id.progress);
+        if (line == null || line instanceof Pill) return;
+        if (wanted == (line instanceof EasedLine)) return;
+        if (wanted) {
+            // In this order: the layer hands its bounds to what comes next, and a wrapper resets what it's given.
+            int level = line.getLevel();
+            EasedLine eased = new EasedLine();
+            layers.setDrawableByLayerId(android.R.id.progress, eased);
+            eased.setLevel(level);
+            eased.setDrawable(line);
+        } else {
+            layers.setDrawableByLayerId(android.R.id.progress, ((EasedLine) line).release());
+        }
+    }
+
+    /** A played part that's drawn on its way to where the bar is, so the handle can be drawn there too. */
+    interface EasedTrack {
+        /**
+         * How far the drawn line is from the level Android has the bar at, at [now], as a share of the bar:
+         * where Android put the handle. 0 once the line is there.
+         */
+        float behind(long now);
+    }
+
+    /**
+     * The way a played part follows the bar (#10): Instagram moves a reel's bar about ten times a second,
+     * so it jumped along in steps. It eases from where it's drawn to each new spot over the time since
+     * the one before, so it moves steadily and arrives as the next one comes. A spot that goes back (a
+     * new reel, a seek back) or comes more than {@link Pill#EASE_MAX_MS} after the last one (a reel that
+     * was paused) is drawn at once.
+     *
+     * <p>The spot is the bar's own progress, not the level. Instagram moves the bar with an animated
+     * setProgress, and on the S22 Android sets the new level, then starts its own short animation over
+     * from the old one: the level went new, old, new within a frame, and taking the old one as a step
+     * back left the ease about 15 ms to cover a step, so the line still jumped.
+     */
+    private static final class Ease {
+        /** The line eases from [from] to [to] (levels) over [length] from [start]. */
+        private float from;
+        private int to;
+        private long start;
+        private long length;
+        private long movedAt = -1L;
+
+        /** Moves on to the bar's spot for a new [level] of the [line]; the line is drawn from there. */
+        void follow(Drawable line, int level) {
+            int spot = spot(line, level);
+            if (spot == to && movedAt >= 0L) return;
+            long now = SystemClock.uptimeMillis();
+            float shown = shown(now);
+            long since = movedAt < 0L ? Long.MAX_VALUE : now - movedAt;
+            movedAt = now;
+            start = now;
+            to = spot;
+            if (spot < shown || since > Pill.EASE_MAX_MS) {
+                from = spot;
+                length = 0L;
+            } else {
+                from = shown;
+                length = since;
+            }
+        }
+
+        /** The level drawn at [now]. */
+        float shown(long now) {
+            if (length <= 0L || now >= start + length) return to;
+            return from + (to - from) * ((now - start) / (float) length);
+        }
+
+        /** Whether the line is still on its way at [now], so it needs drawing again next frame. */
+        boolean moving(long now) {
+            return now < start + length;
+        }
+
+        /** The bar's own progress as a level, or [level] when the [line] isn't on a bar. */
+        private static int spot(Drawable line, int level) {
+            Drawable.Callback up = line.getCallback();
+            if (up instanceof Drawable) up = ((Drawable) up).getCallback();
+            if (!(up instanceof ProgressBar)) return level;
+            ProgressBar bar = (ProgressBar) up;
+            int range = bar.getMax() - bar.getMin();
+            if (range <= 0) return level;
+            return Math.round((bar.getProgress() - bar.getMin()) * 10000f / range);
+        }
+    }
+
+    /**
+     * Instagram's own played part, drawn as it would be but at the eased level, so a bar that isn't
+     * restyled moves as smoothly as one that is (#10). What it wraps stays Instagram's: its look and
+     * color don't change, and {@link #ease} hands it back when the label goes.
+     */
+    static final class EasedLine extends DrawableWrapper implements EasedTrack {
+        private final Ease ease = new Ease();
+
+        EasedLine() {
+            super(null);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Drawable line = getDrawable();
+            if (line == null) return;
+            long now = SystemClock.uptimeMillis();
+            line.setLevel(Math.round(ease.shown(now)));
+            line.draw(canvas);
+            if (ease.moving(now)) invalidateSelf();
+        }
+
+        @Override
+        protected boolean onLevelChange(int level) {
+            ease.follow(this, level);
+            invalidateSelf();
+            return true;
+        }
+
+        @Override
+        public float behind(long now) {
+            return (ease.shown(now) - getLevel()) / 10000f;
+        }
+
+        /** Instagram's line again, at the level Android has for it, off this wrapper. */
+        Drawable release() {
+            Drawable line = getDrawable();
+            setDrawable(null);
+            if (line != null) line.setLevel(getLevel());
+            return line;
+        }
+    }
+
+    /**
+     * A rounded bar of a fixed thickness, as wide as its bounds, or as far across them as its level says
+     * when it's the progress, from the start side, following the bar's position through {@link Ease}.
+     * It's centered on the handle's middle once that's known, which can be above the track's own bounds,
+     * and on the middle of its bounds until then.
+     */
+    static final class Pill extends Drawable implements EasedTrack {
+        /** The longest gap between spots that's eased over; a longer one draws the new spot at once. */
+        static final long EASE_MAX_MS = 250L;
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+        private final float thickness;
+        private final boolean progress;
+        private float center = Float.NaN;
+        private final Ease ease = new Ease();
+
+        Pill(int color, float thickness, boolean progress) {
+            this.paint.setColor(color);
+            this.thickness = thickness;
+            this.progress = progress;
+        }
+
+        void centerOn(float middle) {
+            if (Float.compare(center, middle) == 0) return;
+            center = middle;
+            invalidateSelf();
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            float middle = Float.isNaN(center) ? (bounds.top + bounds.bottom) / 2f : center;
+            float left = bounds.left;
+            float right = bounds.right;
+            if (progress) {
+                long now = SystemClock.uptimeMillis();
+                float across = bounds.width() * (shownLevel(now) / 10000f);
+                // Still on its way to the spot: draw again next frame.
+                if (ease.moving(now)) invalidateSelf();
+                if (across <= 0f) return;
+                if (getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) left = right - across;
+                else right = left + across;
+            }
+            rect.set(left, middle - thickness / 2f, right, middle + thickness / 2f);
+            canvas.drawRoundRect(rect, thickness / 2f, thickness / 2f, paint);
+        }
+
+        /** The level drawn at [now], on its way from the one drawn when the spot last moved to the new one. */
+        float shownLevel(long now) {
+            return ease.shown(now);
+        }
+
+        @Override
+        public float behind(long now) {
+            return (shownLevel(now) - getLevel()) / 10000f;
+        }
+
+        @Override
+        protected boolean onLevelChange(int level) {
+            if (!progress) return false;
+            ease.follow(this, level);
+            invalidateSelf();
+            return true;
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter filter) {
+            paint.setColorFilter(filter);
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+
+    /**
+     * The handle, drawn where the eased progress line ends (#10). Android places it at Instagram's level,
+     * which comes in steps, so on the S22 it hid the line's end and still jumped about ten times a second.
+     * It draws itself back by as much as the line is behind, so the two slide along together. With
+     * a played part that isn't eased it draws where Android put it.
+     */
+    static final class Thumb extends GradientDrawable {
+        @Override
+        public void draw(Canvas canvas) {
+            float shift = shift();
+            if (shift == 0f) {
+                super.draw(canvas);
+                return;
+            }
+            int saved = canvas.save();
+            canvas.translate(shift, 0f);
+            super.draw(canvas);
+            canvas.restoreToCount(saved);
+        }
+
+        /** Pixels from Android's place to the eased line's end: back toward the start, or 0. */
+        float shift() {
+            if (!(getCallback() instanceof SeekBar)) return 0f;
+            SeekBar bar = (SeekBar) getCallback();
+            Drawable track = bar.getProgressDrawable();
+            if (!(track instanceof LayerDrawable)) return 0f;
+            Drawable line = ((LayerDrawable) track).findDrawableByLayerId(android.R.id.progress);
+            if (!(line instanceof EasedTrack)) return 0f;
+            float behind = ((EasedTrack) line).behind(SystemClock.uptimeMillis());
+            if (behind == 0f) return 0f;
+            // AbsSeekBar moves the handle across the track less its width, plus the offset on each side.
+            int room = bar.getWidth() - bar.getPaddingLeft() - bar.getPaddingRight()
+                    - getIntrinsicWidth() + 2 * bar.getThumbOffset();
+            float shift = behind * room;
+            return bar.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -shift : shift;
+        }
+    }
+
+    /** "m:ss", or "h:mm:ss" from an hour, like Instagram's own scrubber times, in the phone's digits. */
+    static String time(long milliseconds) {
+        long seconds = Math.max(0L, milliseconds) / 1000L;
+        long hours = seconds / 3600L;
+        long minutes = seconds / 60L % 60L;
+        Locale locale = Locale.getDefault();
+        return hours > 0
+                ? String.format(locale, "%d:%02d:%02d", hours, minutes, seconds % 60L)
+                : String.format(locale, "%d:%02d", minutes, seconds % 60L);
+    }
+
+    /** The label's text: the time played, past the end counted as the end, and the length. */
+    static String text(int progress, int max) {
+        return time(played(progress, max)) + " / " + time(max);
+    }
+
+    private static int played(int progress, int max) {
+        return Math.max(0, Math.min(progress, max));
+    }
+
+    private static Tracker trackerOf(SeekBar bar) {
+        synchronized (TRACKERS) {
+            WeakReference<Tracker> held = TRACKERS.get(bar);
+            return held == null ? null : held.get();
+        }
+    }
+
+    /** Whether the container Instagram bound nearest above [bar] holds an ordinary reel. */
+    private static boolean ordinaryReel(View bar) {
+        View container = containerOf(bar);
+        if (container == null) return false;
+        synchronized (REELS) {
+            return Boolean.TRUE.equals(REELS.get(container));
+        }
+    }
+
+    /**
+     * The nearest view above [bar], its parent first and up to {@link #TAG_REACH}, that Instagram
+     * bound to a reel, or null. On 449 that's the bar's parent, the FrameLayout the scrubber puts
+     * it in.
+     */
+    private static View containerOf(View bar) {
+        ViewParent parent = bar.getParent();
+        synchronized (REELS) {
+            for (int i = 0; i < TAG_REACH && parent instanceof View; i++) {
+                if (REELS.containsKey(parent)) return (View) parent;
+                parent = parent.getParent();
+            }
+        }
+        return null;
+    }
+
+    /** The bars [container] is the nearest bound container of, down to {@link #TAG_REACH} below it. */
+    private static List<SeekBar> barsIn(View container) {
+        List<SeekBar> bars = new ArrayList<>(1);
+        collectBars(container, TAG_REACH, bars);
+        List<SeekBar> own = new ArrayList<>(bars.size());
+        for (SeekBar bar : bars) {
+            if (containerOf(bar) == container) own.add(bar);
+        }
+        return own;
+    }
+
+    private static void collectBars(View view, int depth, List<SeekBar> bars) {
+        if (depth <= 0 || !(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof SeekBar) {
+                bars.add((SeekBar) child);
+            } else {
+                collectBars(child, depth - 1, bars);
+            }
+        }
+    }
+
+    /** Makes the bar's one label and listener, and has the bar keep them. */
+    private static Tracker track(SeekBar bar, BooleanSupplier on) {
+        Tracker tracker = new Tracker(create(bar), on);
+        ((State) tracker.label.getTag()).bound = reelOf(bar);
+        synchronized (TRACKERS) {
+            TRACKERS.put(bar, new WeakReference<>(tracker));
+        }
+        bar.addOnLayoutChangeListener(tracker);
+        bar.addOnAttachStateChangeListener(tracker);
+        if (bar.isAttachedToWindow()) tracker.watch(bar);
+        return tracker;
+    }
+
+    private static TextView create(SeekBar bar) {
+        Context context = bar.getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+        int gap = Math.round(GAP_DP * density);
+        TextView label = new TextView(context);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, TEXT_SP);
+        label.setTypeface(Typeface.DEFAULT_BOLD);
+        label.setTextColor(Color.WHITE);
+        // Over the video, the shadow keeps white text readable on a bright frame.
+        label.setShadowLayer(2f * density, 0f, 0.5f * density, 0x99000000);
+        label.setSingleLine(true);
+        label.setIncludeFontPadding(false);
+        label.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        label.setPadding(gap, gap / 2, gap, gap / 2);
+        label.setClickable(false);
+        label.setLongClickable(false);
+        label.setFocusable(false);
+        label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        label.setVisibility(View.GONE);
+        // Layout parameters before any view holds it: a TextView that has been measured reads them
+        // on every new text, and a label with no room, or waiting for another bar's, holds none.
+        label.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        label.setTag(new State(bar));
+        return label;
+    }
+
+    private static SeekBar barOf(TextView label) {
+        return ((State) label.getTag()).bar.get();
+    }
+
+    private static void show(SeekBar bar, ViewGroup parent, TextView label, int progress, int max) {
+        State state = (State) label.getTag();
+        String reel = reelOf(bar);
+        if (max != state.max || !Objects.equals(reel, state.reel)) {
+            state.max = max;
+            state.reel = reel;
+            state.text = null;
+            state.width = widthFor(label, max);
+        }
+        String text = text(progress, max);
+        boolean changed = !text.equals(state.text);
+        if (changed) {
+            state.text = text;
+            label.setText(text);
+            label.setContentDescription(L10n.f("%1$s of %2$s", time(played(progress, max)), time(max)));
+        }
+        Host host = bar.getWidth() > 0 && bar.getHeight() > 0 ? hostFor(bar, parent, label, state.width) : null;
+        if (host == null || !claim(host.view, label)) {
+            // Not laid out yet, nowhere near the bar has room for all of the label, or another
+            // bar's label is showing there.
+            hide(bar, label);
+            return;
+        }
+        attach(host, label, state);
+        if (state.overlay == null) {
+            if (state.described) undescribe(bar, state);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && (changed || !state.described)) {
+            bar.setStateDescription(label.getContentDescription());
+            state.described = true;
+        }
+        place(bar, host, label, state);
+        state.wanted = true;
+        follow(bar, label);
+    }
+
+    /**
+     * Shows the label while its bar shows and isn't being dragged, faded as much as the views from
+     * the bar up to the label's holder are, and hides it otherwise. A label whose bar is no longer
+     * under its holder, or no longer in a container bound to an ordinary reel, comes off.
+     */
+    private static void follow(SeekBar bar, TextView label) {
+        State state = (State) label.getTag();
+        ViewGroup holder = holderOf(label);
+        if (holder == null) return;
+        if (!under(bar, holder) || !ordinaryReel(bar)) {
+            remove(bar, label);
+            return;
+        }
+        float alpha = alphaUpTo(bar, holder);
+        boolean visible = state.wanted && bar.isShown() && !bar.isPressed() && alpha > 0f;
+        int visibility = visible ? View.VISIBLE : View.GONE;
+        if (label.getVisibility() != visibility) label.setVisibility(visibility);
+        if (visible && label.getAlpha() != alpha) label.setAlpha(alpha);
+    }
+
+    /** The view holding the label: the one whose overlay it's on, or its parent, or null. */
+    private static ViewGroup holderOf(TextView label) {
+        State state = (State) label.getTag();
+        ViewParent parent = label.getParent();
+        if (parent == null) return null;
+        if (state.overlay != null) return state.overlay.get();
+        return parent instanceof ViewGroup ? (ViewGroup) parent : null;
+    }
+
+    /** Whether [holder] is the bar's parent or a view up to {@link #HOST_REACH} above it. */
+    private static boolean under(View bar, ViewGroup holder) {
+        ViewParent parent = bar.getParent();
+        for (int i = 0; i <= HOST_REACH && parent != null; i++) {
+            if (parent == holder) return true;
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    /** How faded the bar is, with every view between it and [holder]: the holder fades the label itself. */
+    private static float alphaUpTo(View bar, ViewGroup holder) {
+        float alpha = 1f;
+        View view = bar;
+        while (view != null && view != holder) {
+            alpha *= view.getAlpha();
+            ViewParent parent = view.getParent();
+            view = parent instanceof View ? (View) parent : null;
+        }
+        return alpha;
+    }
+
+    /**
+     * Whether [label] may go in [host], which holds one label at most. Another label there gives
+     * way when its bar is gone, no longer under [host], not showing, or its label isn't wanted;
+     * otherwise [label] waits. {@link #attach} records the hold once the label is in place.
+     */
+    private static boolean claim(ViewGroup host, TextView label) {
+        TextView other;
+        synchronized (HELD) {
+            WeakReference<TextView> held = HELD.get(host);
+            other = held == null ? null : held.get();
+        }
+        if (other != null && other != label && holderOf(other) == host) {
+            SeekBar otherBar = barOf(other);
+            boolean showing = ((State) other.getTag()).wanted && otherBar != null && otherBar.isShown()
+                    && under(otherBar, host);
+            if (showing) return false;
+            remove(otherBar, other);
+        }
+        return true;
+    }
+
+    /**
+     * The nearest view, the bar's parent first, with room above the bar's track for the whole label
+     * and the gap under it, or null when none within {@link #HOST_REACH} has it. A view scrolled up
+     * shows less above the bar than its layout has: the tab bar's pill raises a reel's seek bar by
+     * scrolling and translating the views holding it, and a label in the part scrolled away came out
+     * cut off at the view's top (#426).
+     */
+    private static Host hostFor(SeekBar bar, ViewGroup parent, TextView label, int width) {
+        label.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int needed = label.getMeasuredHeight() + Math.round(GAP_DP * bar.getResources().getDisplayMetrics().density);
+        int left = bar.getLeft();
+        int top = bar.getTop();
+        ViewGroup view = parent;
+        for (int i = 0; i < HOST_REACH; i++) {
+            int room = top + bar.getPaddingTop() - view.getScrollY();
+            // A child is laid out inside the FrameLayout's padding; an overlay draws over all of the view.
+            if (i == 0 && view instanceof FrameLayout && room - view.getPaddingTop() >= needed) {
+                return new Host(view, left, top, true);
+            }
+            if (room >= needed) return new Host(view, left, top, false);
+            ViewParent up = view.getParent();
+            if (!(up instanceof ViewGroup)) return null;
+            left += view.getLeft() + Math.round(view.getTranslationX()) - view.getScrollX();
+            top += view.getTop() + Math.round(view.getTranslationY()) - view.getScrollY();
+            view = (ViewGroup) up;
+        }
+        return null;
+    }
+
+    /**
+     * How far the views around [bar] have it moved up and down by scrolling and translating, which
+     * its layout listener never hears of. Only a change matters, so these are simply added up.
+     */
+    private static int movedBy(SeekBar bar) {
+        int moved = 0;
+        ViewParent parent = bar.getParent();
+        for (int i = 0; i < HOST_REACH && parent instanceof View; i++) {
+            View view = (View) parent;
+            moved += Math.round(view.getTranslationY()) - view.getScrollY();
+            parent = view.getParent();
+        }
+        return moved;
+    }
+
+    /**
+     * Puts the label in [host], a child of the bar's FrameLayout or on the view's overlay, and
+     * records that [host] holds it. The record comes last: moving between a view's children and
+     * the same view's overlay takes the label off first, which drops the view's record.
+     */
+    private static void attach(Host host, TextView label, State state) {
+        if (host.child) {
+            if (label.getParent() != host.view || state.overlay != null) {
+                detach(label, state);
+                host.view.addView(label, new FrameLayout.LayoutParams(
+                        state.width, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END));
+            }
+        } else {
+            ViewGroup current = state.overlay == null ? null : state.overlay.get();
+            if (current != host.view || label.getParent() == null) {
+                detach(label, state);
+                // A width of its own, so a new text redraws the label without asking for a new layout.
+                label.setLayoutParams(new ViewGroup.LayoutParams(state.width, ViewGroup.LayoutParams.WRAP_CONTENT));
+                host.view.getOverlay().add(label);
+                state.overlay = new WeakReference<>(host.view);
+            }
+        }
+        synchronized (HELD) {
+            HELD.put(host.view, new WeakReference<>(label));
+        }
+    }
+
+    /** Takes the label off whatever holds it, and lets that view hold another. */
+    private static void detach(TextView label, State state) {
+        ViewGroup holder = holderOf(label);
+        ViewGroup host = state.overlay == null ? null : state.overlay.get();
+        if (host != null) host.getOverlay().remove(label);
+        state.overlay = null;
+        ViewParent current = label.getParent();
+        if (current instanceof ViewGroup) ((ViewGroup) current).removeView(label);
+        if (holder != null) {
+            synchronized (HELD) {
+                WeakReference<TextView> held = HELD.get(holder);
+                if (held != null && held.get() == label) HELD.remove(holder);
+            }
+        }
+    }
+
+    /** Hides the label and takes it off whatever holds it. [bar] may be gone. */
+    private static void remove(SeekBar bar, TextView label) {
+        State state = (State) label.getTag();
+        if (bar != null) updateThumb(bar, state, false);
+        state.text = null;
+        state.wanted = false;
+        label.setVisibility(View.GONE);
+        if (bar != null && state.described) undescribe(bar, state);
+        detach(label, state);
+    }
+
+    /**
+     * Above the end of the bar's track: the right end, or the left in a right-to-left layout,
+     * where the bar fills from the right. Layout parameters change only when the place does, so
+     * playback doesn't ask the reel for a new layout on every tick.
+     */
+    private static void place(SeekBar bar, Host host, TextView label, State state) {
+        int gap = Math.round(GAP_DP * bar.getResources().getDisplayMetrics().density);
+        boolean rtl = bar.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+        if (host.child) {
+            ViewGroup parent = host.view;
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) label.getLayoutParams();
+            int bottom = (parent.getHeight() - parent.getPaddingBottom() - bar.getBottom())
+                    + bar.getHeight() - bar.getPaddingTop() + gap;
+            int end = rtl
+                    ? bar.getLeft() + bar.getPaddingLeft() - parent.getPaddingLeft()
+                    : parent.getWidth() - parent.getPaddingRight() - bar.getRight() + bar.getPaddingRight();
+            end = Math.max(0, end);
+            bottom = Math.max(0, bottom);
+            if (params.width != state.width || params.bottomMargin != bottom || params.getMarginEnd() != end
+                    || params.gravity != (Gravity.BOTTOM | Gravity.END)) {
+                params.width = state.width;
+                params.bottomMargin = bottom;
+                params.setMarginEnd(end);
+                params.gravity = Gravity.BOTTOM | Gravity.END;
+                label.setLayoutParams(params);
+            }
+            return;
+        }
+        ViewGroup.LayoutParams params = label.getLayoutParams();
+        if (params != null && params.width != state.width) {
+            params.width = state.width;
+            label.setLayoutParams(params);
+        }
+        label.measure(View.MeasureSpec.makeMeasureSpec(state.width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int height = label.getMeasuredHeight();
+        int left = rtl
+                ? host.barLeft + bar.getPaddingLeft()
+                : host.barLeft + bar.getWidth() - bar.getPaddingRight() - state.width;
+        int top = Math.max(0, host.barTop + bar.getPaddingTop() - gap - height);
+        label.layout(left, top, left + state.width, top + height);
+    }
+
+    /**
+     * Wide enough for any time up to [max] in the label's own paint, so a font scale or the
+     * phone's digits never cut it off: the longest text, measured as it is and with every digit
+     * as each of 0 to 9, whichever is widest.
+     */
+    private static int widthFor(TextView label, int max) {
+        String longest = text(max, max);
+        Paint paint = label.getPaint();
+        float width = paint.measureText(longest);
+        for (char digit = '0'; digit <= '9'; digit++) {
+            width = Math.max(width, paint.measureText(withDigits(longest, digit)));
+        }
+        return (int) Math.ceil(width) + label.getPaddingLeft() + label.getPaddingRight() + 1;
+    }
+
+    private static String withDigits(String text, char digit) {
+        StringBuilder out = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            out.append(Character.isDigit(c) ? digit : c);
+        }
+        return out.toString();
+    }
+
+    /**
+     * The bar's reel, "clips_scrubber_" and the reel's id, or null: the id the binder handed over, or
+     * else the tag Instagram 449 gives the reel container when it binds it.
+     */
+    static String reelOf(View bar) {
+        return reelOfContainer(containerOf(bar));
+    }
+
+    /** The reel of [container], a seek bar container, as {@link #reelOf} names it. */
+    @Nullable
+    static String reelOfContainer(@Nullable View container) {
+        if (container == null) return null;
+        synchronized (REELS) {
+            String bound = BOUND.get(container);
+            if (bound != null) return bound;
+        }
+        Object tag = container.getTag();
+        return tag instanceof String && ((String) tag).startsWith(REEL_TAG_PREFIX) ? (String) tag : null;
+    }
+
+    private static void hide(SeekBar bar, TextView label) {
+        State state = (State) label.getTag();
+        state.text = null;
+        state.wanted = false;
+        label.setVisibility(View.GONE);
+        if (state.described) undescribe(bar, state);
+    }
+
+    /** Gives the bar back the state Android describes it with, which the label's words stood in for. */
+    private static void undescribe(SeekBar bar, State state) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) bar.setStateDescription(null);
+        state.described = false;
+    }
+
+    /** After a failure the label goes, so it can't stay up with a wrong time. Logged if even that fails. */
+    private static void hideAfterFailure(TextView label) {
+        if (label == null) return;
+        try {
+            State state = (State) label.getTag();
+            SeekBar bar = state.bar.get();
+            if (bar != null) updateThumb(bar, state, false);
+            state.wanted = false;
+            label.setVisibility(View.GONE);
+        } catch (RuntimeException alsoFailed) {
+            Logger.printException(() -> "Reel seek bar: the label couldn't be hidden", alsoFailed);
+        }
+    }
+}

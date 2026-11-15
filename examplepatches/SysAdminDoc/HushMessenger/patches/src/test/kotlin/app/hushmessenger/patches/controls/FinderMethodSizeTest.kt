@@ -21,8 +21,8 @@ class FinderMethodSizeTest {
         assertTrue(Files.isDirectory(root), "patch classes at $root")
         val methods = Files.walk(root).use { paths -> paths.filter { it.toString().endsWith(".class") }.toList() }
             .flatMap { file -> codeLengths(Files.readAllBytes(file)).map { (name, size) -> Triple(root.relativize(file), name, size) } }
-        // The scan reads the finders it guards, at a size that matches javap's.
-        val finders = methods.filter { it.second in setOf("findControls", "findCommunityInbox", "resolveMarkReadRecipe") }
+        // The scan reads the finders it guards, at a size that matches javap's. findControls only wraps findControlsIn in the shared walk.
+        val finders = methods.filter { it.second in setOf("findControlsIn", "findCommunityInbox", "resolveMarkReadRecipe") }
         assertEquals(3, finders.size, finders.toString())
         assertTrue(finders.all { it.third > 500 }, finders.toString())
         val tooBig = methods.filter { (_, name, size) -> name != "<clinit>" && size >= limit }.map { (file, name, size) -> "$file $name $size" }

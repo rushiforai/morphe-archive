@@ -11,12 +11,12 @@ import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
 import app.rex.patches.twitter.utils.flagSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 // Credits to @iKirby
 @Suppress("unused")
 val removeViewCountPatch =
-    bytecodePatch(
+    patch(
         name = "Remove view count",
         description = "Removes the view count from the bottom of tweets",
     ) {

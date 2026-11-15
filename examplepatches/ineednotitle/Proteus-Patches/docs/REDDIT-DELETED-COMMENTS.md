@@ -12,25 +12,36 @@ what it restored.
 1. The patch hooks the same verified `Listing.<init>` children choke point used by
    "Block AutoMod comments" / "Content filters" (plus `getChildren()` when present), via
    `injectListingChildrenFilter(...)` in `reddit/shared/RedditListingChildren.kt`.
-2. `RedditDeletedCommentHelper.undeleteContent(List)` walks every row. A row is in
+   This covers feed/listing surfaces (including posts).
+2. Comment threads do **not** build a `Listing` on 2026.42.0. They are emitted by the
+   obfuscated comment-tree store as a `TreeData` object whose constructor takes
+   `(build-specific changes, List ids, Map id→comment, Map id→tree-item)`. The patch
+   finds that class from the APK being patched by constructor shape and ordered
+   `IPUT_OBJECT` writes — never by a hard-coded R8 name — and injects the archive
+   restore before the comment map is written. See
+   `reddit/shared/RedditCommentTree.kt`. This matters because Reddit shipped
+   2026.42.0 with more than one versionCode: the public 2642001 APKM names the class
+   `Lm5l0;`, while an earlier build used the `Lc5l0;` interface. A hard-coded name
+   failed with `Failed to match the fingerprint` on 2642001.
+3. `RedditDeletedCommentHelper.undeleteContent(List)` walks every row. A row is in
    scope only when it is comment-shaped (`t1_*` kind, a comment-model class name, or the
    usual parent/depth markers) **and** its visible text is exactly `[deleted]` or
    `[removed]`. The check covers `body`, `bodyPreview`, and the nested
    `CommentTombstone.markdown`/`richtext` placeholders used by current Reddit builds.
-3. All in-scope comment ids in the listing are looked up in **one batched request**
+4. All in-scope comment ids in the listing are looked up in **one batched request**
    against the free [Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift) id
    endpoint (`GET /api/comments/ids?ids=…&fields=id,body`, no API key). If Arctic Shift
    errors or has no copy, the helper falls back to [PullPush](https://pullpush.io)
    (`GET /reddit/search/comment/?ids=…&size=…`, also keyless). Listings with no deleted
    comments never touch the network.
-4. Restored text is written back into the comment model prefixed with `[archived] ` so
+5. Restored text is written back into the comment model prefixed with `[archived] ` so
    provenance is always visible. Bodies are replaced through a `setBody`-style setter
    when the model exposes one; otherwise through instance `String` fields whose current
    value is exactly the placeholder. Current builds render deleted comments from a
    nested `CommentTombstone`, so the helper also rewrites its markdown and clears its
    richtext placeholder; otherwise the UI would keep showing the original tombstone.
    Author/user-like fields are never touched.
-5. Results — including misses — are cached in memory for the lifetime of the process.
+6. Results — including misses — are cached in memory for the lifetime of the process.
 
 ## Privacy notes
 
@@ -76,6 +87,12 @@ blaming the patch:
   2026-11-06 (endpoint path, `ids` limit 500, `fields` parameter, response envelope).
 - The bytecode injection rides the `Listing.children` anchor used by the existing
   "Remove ads" patch on Reddit 2026.42.0 (static match only, not exercised on-device).
+- The comment-thread `TreeData` resolver was validated against the public
+  **2026.42.0 / versionCode 2642001** APKM: exactly one class matches the
+  List/Map/Map constructor shape (`Lm5l0;`, writes at v2/v3/v4), while the
+  `Lc5l0;` interface is rejected. A synthetic-dex regression test covers the
+  shape matcher (`patches/src/test/.../RedditCommentTreeTest.kt`). Runtime
+  archive restoration is still not exercised on a device.
 - The runtime restore path (reflection into the comment model and nested
   `CommentTombstone`) has **not** been exercised on-device. It fails safe: any
   exception, missing field, or field-layout drift leaves the stock `[deleted]` row
@@ -87,7 +104,9 @@ blaming the patch:
 
 1. Confirm `Lcom/reddit/domain/model/listing/Listing;->children` still exists with the
    same constructor writes (see `reddit/shared/RedditListingChildren.kt` header).
-2. Confirm comment rows flow through that container (they did on 2026.42.0).
+2. Confirm the comment-thread `TreeData` class still matches the List/Map/Map
+   constructor shape (see `reddit/shared/RedditCommentTree.kt`). On 2026.42.0
+   comment rows do **not** flow through `Listing`; only posts/listings do.
 3. Confirm `Comment` still exposes `getBody`/`getBodyPreview` and
    `getCommentTombstone`, and that `CommentTombstone` still has `markdown`/`richtext`
    fields. Deleted rows may leave `body` empty and put the placeholder in the

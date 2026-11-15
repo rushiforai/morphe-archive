@@ -117,7 +117,21 @@ val AMAZON_SHOPPING_COMPATIBILITY = Compatibility(
         packageName = "com.amazon.mShop.android.shopping",
         appIconColor = 0xFF9900,
         apkFileType = ApkFileType.XAPK,
-        targets = listOf(AppTarget(version = "32.18.0.100", versionCode = 1243240206))
+        targets = listOf(
+            AppTarget(version = "32.18.0.100", versionCode = 1243240206),
+            AppTarget(version = "32.19.0.100", versionCode = 1243250306),
+        )
+    )
+
+val AMAZON_BUSINESS_COMPATIBILITY = Compatibility(
+        name = "Amazon Business",
+        packageName = "com.amazon.mShop.android.business.shopping",
+        appIconColor = 0xFF9900,
+        apkFileType = ApkFileType.APKM,
+        targets = listOf(
+            AppTarget(version = "32.19.0.451", versionCode = 1243250306),
+            AppTarget(version = "32.20.0.451"),
+        )
     )
 
 val AMOLEDPIX_COMPATIBILITY = Compatibility(
@@ -1070,6 +1084,26 @@ val NEWSBREAKLITE_COMPATIBILITY = Compatibility(
         targets = listOf(AppTarget(version = "26.34.0", versionCode = 26340001))
     )
 
+val NETFLIX_COMPATIBILITY = Compatibility(
+        name = "Netflix (Android TV)",
+        packageName = "com.netflix.ninja",
+        description = "Netflix Android TV (com.netflix.ninja). The same APK and ad pipeline are " +
+            "used in India and worldwide; region only changes catalogue and ad fill.",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xE50914,
+        targets = listOf(
+            // Verified Android TV target (armeabi-v7a). The same APK is served in
+            // India and everywhere else; region does not change the package or the
+            // ad pipeline.
+            AppTarget(version = "13.0.1 build 25028"),
+            // Newer builds supported experimentally: the Application + CertCheck
+            // anchors were re-verified, but the upstream ad-kill was validated on
+            // 13.0.1 first.
+            AppTarget(version = "13.2.1 build 27207", isExperimental = true),
+            AppTarget(version = "13.2.2 build 27250", isExperimental = true),
+        )
+    )
+
 val NINJVAPN_COMPATIBILITY = Compatibility(
         name = "Ninja VPN",
         packageName = "app.ninjavpn.android",
@@ -1600,6 +1634,16 @@ val SUPER_FILE_COMPATIBILITY = Compatibility(
         targets = listOf(AppTarget(version = "1.5.6.3", versionCode = 77))
     )
 
+val TABLE_NOTES_COMPATIBILITY = Compatibility(
+        name = "Table Notes",
+        packageName = "vivekagarwal.playwithdb",
+        description = "Table Notes - Mobile Excel. Verified against the 20261111 build; " +
+            "the entitlement field names are R8 output and are checked at patch time.",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x3F51B5,
+        targets = listOf(AppTarget(version = "20261111", versionCode = 20261111))
+    )
+
 val TAGTRACKER_COMPATIBILITY = Compatibility(
         name = "Tag Tracker",
         packageName = "com.makeevapps.tagtracker",
@@ -1969,7 +2013,7 @@ val LEAP_FITNESS_ALL = arrayOf(
         ),
         targets = listOf(
             AppTarget(
-                version = "2026.42.0", // Verified against the real 2642020 bytecode (vc 2642020, Android 10+)
+                version = "2026.42.0", // Verified against the public APKM (vc 2642001); 2026.42.0 also ships other versionCodes
                 minSdk = 29
             ),
             AppTarget(
@@ -2107,9 +2151,25 @@ val HINDUSTAN_TIMES_COMPATIBILITY = Compatibility(
         )
     )
 
+val INSTAGRAM_COMPATIBILITY = Compatibility(
+        name = "Instagram",
+        packageName = "com.instagram.android",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xE1306C,
+        targets = listOf(
+            AppTarget(
+                version = "439.0.0.37.89",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 384510827,
+                    SupportedAbi.ARMEABI_V7A to 384510838,
+                ),
+            ),
+        ),
+    )
+
 val MEESHO_COMPATIBILITY = Compatibility(
         name = "Meesho",
-        packageName = "com.meesho.shopping",
+        packageName = "com.meesho.supply",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xF43397,
         targets = listOf(

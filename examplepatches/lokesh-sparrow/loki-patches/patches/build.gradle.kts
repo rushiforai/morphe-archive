@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-group = "app.linkedin"
+group = "app.loki"
 
 private val REPO = "https://github.com/lokesh-sparrow/loki-patches"
 
 patches {
     about {
         name = "Loki Patches"
-        description = "LinkedIn patches for use with Morphe"
+        description = "LinkedIn, Splitwise, Truecaller and Doc Scanner patches, plus patches that work on any app, for use with Morphe"
         source = REPO
         author = "Lokesh Sparrow"
         contact = "na"

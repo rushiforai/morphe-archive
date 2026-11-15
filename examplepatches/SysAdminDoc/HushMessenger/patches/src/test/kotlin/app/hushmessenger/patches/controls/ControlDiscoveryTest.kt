@@ -31,7 +31,7 @@ class ControlDiscoveryTest {
     )
 
     private fun completeFixture(): List<MutableClass> {
-        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, INBOX_SEARCH_BAR, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, FACEBOOK_PROFILE_HEADER, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, AI_SUMMARY, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, INSTANTS_BUTTON, SAVE_VOICE, SAVE_VOICE_MENU, MESSAGE_ACTIONS, MESSAGE_ACTIONS_MORE, GALLERY_TEMP_FILE, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST, HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP, CHAT_MENU_ITEMS, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, CHAT_PREVIEW, CHAT_PREVIEW_SIZE, LANDSCAPE_LOCK, LANDSCAPE_MEDIA, BLOCKED_LIST_PICTURES, RESTRICTED_NOTIFY, SHARE_STORY, SHARE_STORY_TARGET, FLOATING_TAB_BAR, TAB_BAR_OVERLAY, TAB_BAR_SCROLL_AWAY, AVATAR_SHAPE, STORY_RING, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, HIDE_CALL_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, MESSAGE_LOG_BUTTON, MESSAGE_LOG_CLICK, APP_THEME_PICK, UNSENT_CLEAR, QUIET_LOG_CHECK, QUIET_LOG_DROP, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, INSTANT_GALLERY, SPECIAL_CONTACTS, MENU_BLUR, GALLERY_TO_CHAT, HIDE_READ_RECEIPTS, REPLY_READ, CAR_MESSAGES, CAR_EXTENSION_GATE, LOCAL_CHAT_SEARCH, CALL_RECORDING, HOME_HEADER, CHAT_HEAD_VIDEO, CALL_BUTTON_BUILT) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
+        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, INBOX_SEARCH_BAR, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, FACEBOOK_PROFILE_HEADER, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, AI_SUMMARY, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, INSTANTS_BUTTON, SAVE_VOICE, SAVE_VOICE_MENU, MESSAGE_ACTIONS, MESSAGE_ACTIONS_MORE, GALLERY_TEMP_FILE, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST, HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP, CHAT_MENU_ITEMS, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, CHAT_PREVIEW, CHAT_PREVIEW_SIZE, LANDSCAPE_LOCK, LANDSCAPE_MEDIA, BLOCKED_LIST_PICTURES, RESTRICTED_NOTIFY, SHARE_STORY, SHARE_STORY_TARGET, FLOATING_TAB_BAR, TAB_BAR_OVERLAY, TAB_BAR_SCROLL_AWAY, AVATAR_SHAPE, STORY_RING, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, HIDE_CALL_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, MESSAGE_LOG_BUTTON, MESSAGE_LOG_CLICK, APP_THEME_PICK, UNSENT_CLEAR, QUIET_LOG_CHECK, QUIET_LOG_DROP, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, INSTANT_GALLERY, SPECIAL_CONTACTS, MENU_BLUR, GALLERY_TO_CHAT, HIDE_READ_RECEIPTS, REPLY_READ, CAR_MESSAGES, CAR_EXTENSION_GATE, LOCAL_CHAT_SEARCH, CALL_RECORDING, HOME_HEADER, CHAT_HEAD_VIDEO, CALL_BUTTON_BUILT, HIDE_CALL_LISTS) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
             ids.map { id ->
                 if (key == "people_jewel") return@map peopleJewelMethod()
                 if (key == "people_tab") return@map peopleTabMethod()
@@ -128,7 +128,7 @@ class ControlDiscoveryTest {
             fixtureMethod("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST",
                 "const/4 v0, 0x0\nreturn-object v0", flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
         )), peopleJewelKeyHolder(), storyCardKeyHolder(), debugDumperFixture(), messageWrapperFixture(type = "LX/K1Y;"), searchFieldFixture()) +
-            aiStickerCellFixture(grid = true) + galleryTempFileFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + searchIconFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + profileHeaderFixture() + aiMentionRowsFixture() + aiSummaryFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + instantsButtonFixture() + saveVoiceMenuFixture().filter { it.type != MESSAGE } + messageActionsFixture() + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + pinnedChatsFixture() + hiddenChatsMenuFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + chatPreviewFixture() + chatPreviewSizeFixture() + landscapeFixture() + blockedListPicturesFixture() + restrictedNotifyFixture() + shareStoryFixture() + shareTargetFixture() + tabBarFixture() + avatarShapeFixture() + quietCallsFixture() + carMessagesFixture() + localChatSearchFixture() + callRecordingFixture() + homeHeaderFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + quietSenderFixture() + messageLogButtonFixture() + appThemePickFixture().filter { it.type != "LX/HQz;" } + readReceiptsFixture() + systemCameraFixture() + galleryToChatFixture() + instantGalleryFixture() + specialContactsFixture() + menuBlurFixture() + chatHeadVideoFixture() + callButtonBuiltFixture() + customFontFixture() +
+            aiStickerCellFixture(grid = true) + galleryTempFileFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + searchIconFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + profileHeaderFixture() + aiMentionRowsFixture() + aiSummaryFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + instantsButtonFixture() + saveVoiceMenuFixture().filter { it.type != MESSAGE } + messageActionsFixture() + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + pinnedChatsFixture() + hiddenChatsMenuFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + chatPreviewFixture() + chatPreviewSizeFixture() + landscapeFixture() + blockedListPicturesFixture() + restrictedNotifyFixture() + shareStoryFixture() + shareTargetFixture() + tabBarFixture() + avatarShapeFixture() + quietCallsFixture() + carMessagesFixture() + localChatSearchFixture() + callRecordingFixture() + homeHeaderFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + quietSenderFixture() + messageLogButtonFixture() + appThemePickFixture().filter { it.type != "LX/HQz;" } + readReceiptsFixture() + systemCameraFixture() + galleryToChatFixture() + instantGalleryFixture() + specialContactsFixture() + menuBlurFixture() + chatHeadVideoFixture() + callButtonBuiltFixture() + callButtonListsFixture(immutableList = false) + customFontFixture() +
             syntheticHooks.getValue("screenshot_viewers").map { screenshotViewerFixture(it) }
                 .groupBy { it.definingClass }.map { (type, group) -> fixtureClass(type, group) })
         .let { classes ->
@@ -172,6 +172,31 @@ class ControlDiscoveryTest {
         validateControls(found)
         assertEquals(ExpectedTotals.DISCOVERY_FIXTURE_HOOKS, found.values.sumOf { it.size })
         for (key in syntheticHooks.keys) validateControls(found, setOf(key))
+    }
+
+    /** #172: encrypted chats' CQL row classes take both unsent hooks next to the list wrapper's. */
+    @Test fun encryptedChatRowsGetTheUnsentHooksNextToTheListWrapper() {
+        val wrapper = messageWrapperFixture(type = "LX/K1Y;", otidGetter = "CA3", stampGetters = true)
+        fun unsent(dumper: MutableClass, vararg rows: MutableClass) = mirroredControls(listOf(dumper, wrapper) + rows)
+            .filterKeys { it == "unsent_indicator" || it == "delta_unsent" }.mapValues { (_, found) -> found.map { it.hookId() }.sorted() }
+        val withOtid = debugDumperFixture(otidGetter = "CA2", stampGetters = true)
+        assertEquals(mapOf(
+            "delta_unsent" to listOf("LX/K1Y;->Btd(I)Z", "Lfixture/CqlRow;->Btd(I)Z"),
+            "unsent_indicator" to listOf("LX/K1Y;->BWo(I)Ljava/lang/String;", "Lfixture/CqlRow;->BWo(I)Ljava/lang/String;"),
+        ), unsent(withOtid, cqlRowFixture()))
+        val wrapperOnly = mapOf(
+            "delta_unsent" to listOf("LX/K1Y;->Btd(I)Z"),
+            "unsent_indicator" to listOf("LX/K1Y;->BWo(I)Ljava/lang/String;"),
+        )
+        for ((name, rows) in listOf(
+            "no threading id getter" to unsent(withOtid, cqlRowFixture(otidGetter = null)),
+            "another row interface" to unsent(withOtid, cqlRowFixture(interfaceType = "Lfixture/OtherRow;")),
+            "not built on a result set" to unsent(withOtid, cqlRowFixture(init = "Landroid/database/Cursor;")),
+            "a debug writer without the threading id" to unsent(debugDumperFixture(stampGetters = true), cqlRowFixture()),
+            // The text hook's helper also reads the row's time, sender and content type (#172 on 587).
+            "no time, sender or type getters" to unsent(withOtid, cqlRowFixture(stampGetters = false)),
+            "a debug writer without the time" to unsent(debugDumperFixture(otidGetter = "CA2"), cqlRowFixture()),
+        )) assertEquals(wrapperOnly, rows, name)
     }
 
     @Test fun theStoryRingHookIsOnlyThePreviewConstructorThatTakesTheCard() {

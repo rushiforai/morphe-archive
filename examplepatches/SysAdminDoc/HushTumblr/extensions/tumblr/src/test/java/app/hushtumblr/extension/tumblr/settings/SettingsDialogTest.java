@@ -137,6 +137,7 @@ public class SettingsDialogTest {
             AlertDialog editor = ShadowAlertDialog.getLatestAlertDialog();
             EditText field = editor.findViewById(android.R.id.edit);
             field.setText("attempted private words");
+            ShadowToast.reset();
             try (FailingStore ignored = FailingStore.install(fault)) {
                 editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             }
@@ -145,9 +146,134 @@ public class SettingsDialogTest {
             assertEquals("attempted private words", field.getText().toString());
             assertEquals("earlier words", TextSettings.HIDDEN_WORDS.savedValue());
             assertEquals(earlier, row.getSummary());
-            assertNotNull(ShadowToast.getTextOfLatestToast());
+            // This asked for a toast, which a screen reader read on top of the line under the
+            // field. The line is where the editor says it now.
+            assertEquals(1, shownWith(editor, "Couldn't save the words. Your earlier list is unchanged. Try again."));
+            assertNull(ShadowToast.getTextOfLatestToast());
             editor.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         }
+    }
+
+    /**
+     * Seen under TalkBack: a refused save was read five times, twice as the field's error, twice
+     * from the line under it and once as a toast. The field and buttons were switched off for the
+     * save, so afterward nothing had focus. The line says it once, and focus stays put.
+     */
+    @Test @Config(sdk = {26, 36})
+    public void aRefusedWordsSaveKeepsFocusAndSaysWhyOnce() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        TextSettings.HIDDEN_WORDS.save("earlier words");
+        HushTumblrPreferenceFragment page = pageOf(show(controller.get()));
+        Preference row = page.findPreference(HushTumblrPreferenceFragment.HIDDEN_WORDS_ROW);
+        String said = "Couldn't save the words. Your earlier list is unchanged. Try again.";
+        for (boolean keyboard : new boolean[]{false, true}) {
+            click(row);
+            AlertDialog editor = ShadowAlertDialog.getLatestAlertDialog();
+            ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+            EditText field = editor.findViewById(android.R.id.edit);
+            field.setText("attempted words");
+            Button save = editor.getButton(AlertDialog.BUTTON_POSITIVE);
+            // A tap leaves focus in the field. A keyboard moves it to Save first.
+            View held = keyboard ? save : field;
+            String where = keyboard ? "Save" : "the field";
+            boolean wasTouch = touchMode(editor, !keyboard);
+            List<Runnable> queued = new ArrayList<>();
+            try {
+                assertTrue(held.requestFocus());
+                ShadowToast.reset();
+                HushTumblrPreferenceFragment.editWorkerForTests = queued::add;
+                save.performClick();
+                assertEquals(1, queued.size());
+                assertTrue(where + " let go of focus during the save", held.hasFocus());
+                HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+                try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                    queued.remove(0).run();
+                }
+                ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+                assertTrue(where + " let go of focus after the refusal, to " + editor.getCurrentFocus(), held.hasFocus());
+                assertEquals("the line under the field says it", 1, shownWith(editor, said));
+                assertNull("the field repeated it as its error", field.getError());
+                assertNull("a toast repeated it", ShadowToast.getTextOfLatestToast());
+                assertEquals("attempted words", field.getText().toString());
+            } finally {
+                HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+                for (Runnable write : queued) write.run();
+                touchMode(editor, wasTouch);
+            }
+            editor.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            assertFalse(editor.isShowing());
+        }
+    }
+
+    /**
+     * Seen under TalkBack: with the field's error and the toast gone, a refused save was still read
+     * twice, as the line said "Saving changes" and then the refusal within the same moment. A quick
+     * refusal changes the line once, the same refusal again is read once more, and a slow save says
+     * it's saving before it answers.
+     */
+    @Test @Config(sdk = {26, 36})
+    public void aRefusedWordsSaveIsReadOnceEachTime() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        TextSettings.HIDDEN_WORDS.save("earlier words");
+        Activity host = controller.get();
+        android.view.accessibility.AccessibilityManager a11y = screenReader(host);
+        HushTumblrPreferenceFragment page = pageOf(show(host));
+        click(page.findPreference(HushTumblrPreferenceFragment.HIDDEN_WORDS_ROW));
+        AlertDialog editor = ShadowAlertDialog.getLatestAlertDialog();
+        ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+        ArrayList<View> found = new ArrayList<>();
+        editor.getWindow().getDecorView().findViewsWithText(found, "Changes are saved only when you tap Save.", View.FIND_VIEWS_WITH_TEXT);
+        assertEquals(1, found.size());
+        TextView line = (TextView) found.get(0);
+        List<String> shown = new ArrayList<>();
+        line.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence text, int start, int before, int count) { shown.add(text.toString()); }
+            @Override public void afterTextChanged(android.text.Editable text) { }
+        });
+        ((EditText) editor.findViewById(android.R.id.edit)).setText("attempted words");
+        String said = "Couldn't save the words. Your earlier list is unchanged. Try again.";
+        Button save = editor.getButton(AlertDialog.BUTTON_POSITIVE);
+        List<Runnable> queued = new ArrayList<>();
+        HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+        try {
+            for (int attempt = 1; attempt <= 2; attempt++) {
+                try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                    save.performClick();
+                }
+                ShadowLooper.idleMainLooper(SpokenLine.BUSY_AFTER_MS * 2, TimeUnit.MILLISECONDS);
+                assertTrue("attempt " + attempt + " saved", editor.isShowing());
+                assertEquals("attempt " + attempt, said, line.getText().toString());
+                assertEquals("attempt " + attempt + " wasn't read once", attempt, SpokenLineTest.readsFrom(a11y, line));
+            }
+            assertEquals("a quick save showed its busy line", List.of(said), shown);
+            HushTumblrPreferenceFragment.editWorkerForTests = queued::add;
+            save.performClick();
+            ShadowLooper.idleMainLooper(SpokenLine.BUSY_AFTER_MS, TimeUnit.MILLISECONDS);
+            assertEquals("Saving changes", line.getText().toString());
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                queued.remove(0).run();
+            }
+            ShadowLooper.idleMainLooper(SpokenLine.BUSY_HOLD_MS, TimeUnit.MILLISECONDS);
+            assertEquals(said, line.getText().toString());
+            assertEquals("the slow save's two lines weren't each read once", 4, SpokenLineTest.readsFrom(a11y, line));
+        } finally {
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            for (Runnable write : queued) write.run();
+        }
+        editor.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+    }
+
+    /** How many text views shown in [dialog] say [text]. */
+    private static int shownWith(android.app.Dialog dialog, String text) {
+        ArrayList<View> found = new ArrayList<>();
+        dialog.getWindow().getDecorView().findViewsWithText(found, text, View.FIND_VIEWS_WITH_TEXT);
+        int shown = 0;
+        for (View view : found) {
+            if (view.isShown() && view instanceof TextView && text.contentEquals(((TextView) view).getText())) shown++;
+        }
+        return shown;
     }
 
     @Test
@@ -167,9 +293,15 @@ public class SettingsDialogTest {
         save.performClick();
         assertEquals(1, queued.size());
         assertTrue(editor.isShowing());
-        assertFalse(field.isEnabled());
-        assertFalse(save.isEnabled());
-        assertFalse(editor.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled());
+        // The field and buttons used to be switched off here, which let go of focus: the caret
+        // left the draft and a keyboard's focus left Save. They stay on, and what they do is
+        // checked instead: the draft takes no typing, and Cancel and Back close nothing.
+        field.getText().append(" typed during the save");
+        assertEquals("saved first\nsaved second", field.getText().toString());
+        editor.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        assertTrue("Cancel closed the editor during the save", editor.isShowing());
+        editor.onBackPressed();
+        assertTrue("Back closed the editor during the save", editor.isShowing());
         assertEquals("earlier words", TextSettings.HIDDEN_WORDS.persistedValue());
         assertEquals(summary, row.getSummary());
         save.performClick();
@@ -216,8 +348,10 @@ public class SettingsDialogTest {
         assertTrue(replacement.getDialog().isShowing());
         assertTrue(editor.isShowing());
         assertEquals("a newer unsaved draft", field.getText().toString());
-        assertTrue(field.isEnabled());
-        assertTrue(editor.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        // The old save's hold on typing stays with its own editor. Nothing is switched off any
+        // more, so this checks what the field does.
+        field.getText().append(" and more");
+        assertEquals("a newer unsaved draft and more", field.getText().toString());
         assertEquals("saved first\nsaved second", TextSettings.HIDDEN_WORDS.persistedValue());
         assertEquals(HushTumblrPreferenceFragment.wordsSummary("saved first\nsaved second"), currentRow.getSummary());
     }
@@ -565,9 +699,8 @@ public class SettingsDialogTest {
         HushTumblrPreferenceFragment.editWorkerForTests = queued::add;
         dialog.getListView().performItemClick(null, 2, 2);
         assertEquals(1, queued.size());
-        assertFalse(dialog.getListView().isEnabled());
-        assertFalse(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
-        assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
+        // The buttons stay on during the save, as a button switched off lets go of keyboard
+        // focus. The clicks below show they start nothing.
         assertEquals("", TextSettings.TAB_ORDER.persistedValue());
         assertEquals(summary, row.getSummary());
         for (int i = 0; i < labels.getCount(); i++) assertEquals(earlier.get(i), labels.getItem(i));
@@ -579,9 +712,6 @@ public class SettingsDialogTest {
         queued.remove(0).run();
         ShadowLooper.idleMainLooper();
         assertTrue(dialog.isShowing());
-        assertTrue(dialog.getListView().isEnabled());
-        assertTrue(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled());
-        assertTrue(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
         assertEquals(moved, TextSettings.TAB_ORDER.persistedValue());
         assertEquals(HushTumblrPreferenceFragment.tabOrderSummary(moved), row.getSummary());
         assertFalse("the visible order was not updated", earlier.get(1).equals(labels.getItem(1)));
@@ -772,7 +902,8 @@ public class SettingsDialogTest {
             TextView said = underList(dialog);
             assertEquals("Saving changes", said.getText().toString());
             assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, said.getAccessibilityLiveRegion());
-            assertFalse("the list took taps during the save", dialog.getListView().isEnabled());
+            dialog.getListView().performItemClick(null, 3, 3);
+            assertEquals("the list took taps during the save", 1, queued.size());
             HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
             queued.remove(0).run();
             ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
@@ -785,6 +916,67 @@ public class SettingsDialogTest {
             for (Runnable write : queued) write.run();
         }
         dialog.dismiss();
+    }
+
+    /**
+     * Seen under TalkBack with a keyboard: a list switched off for the save let go of focus, which
+     * went to the dialog's buttons and was read out before the answer.
+     */
+    @Test @Config(sdk = {26, 36})
+    public void aTabMovedFromTheListKeepsFocusInTheListWhileItSaves() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        TextSettings.TAB_ORDER.save("");
+        HushTumblrPreferenceFragment page = pageOf(show(controller.get()));
+        click(page.findPreference(HushTumblrPreferenceFragment.TAB_ORDER_ROW));
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+        android.widget.ListView list = dialog.getListView();
+        Button reset = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        List<Runnable> queued = new ArrayList<>();
+        boolean wasTouch = touchMode(dialog, false);
+        try {
+            assertTrue(list.requestFocus());
+            HushTumblrPreferenceFragment.editWorkerForTests = queued::add;
+            list.performItemClick(null, 2, 2);
+            ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+            assertTrue("the list let go of focus during the save", list.hasFocus());
+            list.performItemClick(null, 3, 3);
+            assertEquals("a tap during the save started another write", 1, queued.size());
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            queued.remove(0).run();
+            ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+            assertTrue("the list let go of focus once the save answered, to " + dialog.getCurrentFocus(), list.hasFocus());
+            // Tumblr's order, from its button: the button switched off for the save let go too.
+            assertTrue(reset.requestFocus());
+            HushTumblrPreferenceFragment.editWorkerForTests = queued::add;
+            reset.performClick();
+            assertEquals(1, queued.size());
+            assertTrue("Tumblr's order let go of focus during the save, to " + dialog.getCurrentFocus(), reset.hasFocus());
+            reset.performClick();
+            assertEquals("a second press during the save started another write", 1, queued.size());
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            queued.remove(0).run();
+            ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+            assertTrue("Tumblr's order let go of focus once the save answered", reset.hasFocus());
+        } finally {
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            for (Runnable write : queued) write.run();
+            touchMode(dialog, wasTouch);
+        }
+        dialog.dismiss();
+    }
+
+    /**
+     * Puts [dialog]'s window in touch mode, or out of it as a keyboard does, and answers which it
+     * was in. Robolectric keeps the mode from one test to the next, so a test puts it back.
+     */
+    static boolean touchMode(android.app.Dialog dialog, boolean on) {
+        View decor = dialog.getWindow().getDecorView();
+        boolean was = decor.isInTouchMode();
+        Object root = org.robolectric.util.ReflectionHelpers.callInstanceMethod(decor, "getViewRootImpl");
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "ensureTouchMode",
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, on));
+        return was;
     }
 
     /**
@@ -905,7 +1097,8 @@ public class SettingsDialogTest {
         assertEquals(draft, field.getText().toString());
         assertEquals("saved words", TextSettings.HIDDEN_WORDS.savedValue());
         assertEquals(summary, row.getSummary());
-        assertTrue(ShadowToast.getTextOfLatestToast().contains("too large"));
+        // Said under the field, where it stays. A toast said it again for a screen reader.
+        assertEquals(1, shownWith(editor, "This list is too large for a settings backup. Shorten it before saving. Your draft is still here."));
         field.setText("retry");
         editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         ShadowLooper.idleMainLooper();

@@ -19,7 +19,9 @@ import app.template.patches.reddit.shared.injectListingChildrenFilter
  *      at the `Listing.children` choke point (constructor field write and the
  *      optional `getChildren()` getter) for feed/listing surfaces.
  *   2. Comment threads do not build a `Listing` in this build; they are built
- *      by the obfuscated comment tree store, which emits `Lc5l0;` TreeData.
+ *      by the obfuscated comment tree store, which emits a TreeData object.
+ *      Its class name is R8 output and drifts between Reddit builds, so the
+ *      patch discovers it by constructor shape rather than a hard-coded name.
  *      The patch also wraps that constructor and filters all three parallel
  *      views (ordered ids, id → comment map, id → tree-item map) via
  *      `hideAutoModTreeIds` / `hideAutoModTreeComments` /

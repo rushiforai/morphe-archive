@@ -24,9 +24,9 @@ actually reads, so nobody spends another cycle trying to fix it from inside the 
 - **The one thing that works without any of that**: launch the app through its 2D **panel** entry
   (same activity, `com.oculus.intent.category.2D` + `OVERLAY_LAUNCHER`), because Horizon names
   *panel* apps from the APK label -- a named window instead of the placeholder, at the price of flat
-  YouTube rather than the immersive player. Noted in the README too.
+  YouTube rather than the immersive player.
 - Below is the evidence in the order it was established: mechanism, the two dead theories, what other
-  projects tried, the `app_id` experiment, then the guard table. `## Route 2, tested end to end (2026-10-10, later the same day)
+  projects tried, the `app_id` experiment, then the guard table.
 
 The store-package-name route was **tried for real** after all, at the owner's request: the clone
 and the store app were uninstalled, and the patched build was installed as

@@ -9,11 +9,11 @@ package app.rex.patches.twitter.timeline.deleteFromDatabase
 import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val deleteFromDatabasePatch =
-    bytecodePatch(
+    patch(
         name = "Delete from database",
         description = "Delete entries from database(cache)",
     ) {

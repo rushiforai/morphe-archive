@@ -6,30 +6,35 @@ import com.android.tools.smali.dexlib2.iface.Method
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
-import java.nio.file.Path
 import javax.tools.ToolProvider
 
 /**
- * scripts/CompatReport.java compiled once into this test JVM, so its finders run on the same fixture classes the
+ * The report in scripts/compat compiled once into this test JVM, so its finders run on the same fixture classes the
  * patch's own finders get. CompatReport otherwise only meets the six real APKs, which shows it accepts their shapes
  * but not that it refuses the ones the patch refuses.
  */
 object CompatMirror {
-    private val report: Class<*> by lazy {
-        val javac = ToolProvider.getSystemJavaCompiler() ?: error("The test JVM has no javac to compile CompatReport.java")
+    private val report: List<Class<*>> by lazy {
+        val javac = ToolProvider.getSystemJavaCompiler() ?: error("The test JVM has no javac to compile scripts/compat")
         val classpath = listOf(Opcode::class.java, Class.forName("com.google.common.collect.ImmutableList"))
             .joinToString(File.pathSeparator) { File(it.protectionDomain.codeSource.location.toURI()).path }
+        val sources = File("../scripts/compat").listFiles { file -> file.name.endsWith(".java") }.orEmpty().sortedBy { it.name }
+        check(sources.isNotEmpty()) { "scripts/compat has no sources" }
         val out = Files.createTempDirectory("compat-report")
         Runtime.getRuntime().addShutdownHook(Thread { out.toFile().deleteRecursively() })
         val errors = java.io.ByteArrayOutputStream()
         val exit = javac.run(null, null, errors, "-nowarn", "-proc:none", "-encoding", "UTF-8", "-d", out.toString(),
-            "-cp", classpath, Path.of("../scripts/CompatReport.java").toString())
-        check(exit == 0) { "CompatReport.java doesn't compile:\n$errors" }
+            "-cp", classpath, *sources.map { it.path }.toTypedArray())
+        check(exit == 0) { "scripts/compat doesn't compile:\n$errors" }
         // The test's own dexlib2 loads the fixtures, so CompatReport has to see the same classes.
-        URLClassLoader(arrayOf(out.toUri().toURL()), CompatMirror::class.java.classLoader).loadClass("CompatReport")
+        val loader = URLClassLoader(arrayOf(out.toUri().toURL()), CompatMirror::class.java.classLoader)
+        sources.map { loader.loadClass("compat." + it.name.removeSuffix(".java")) }
     }
 
-    private fun static(name: String, vararg types: Class<*>) = report.getDeclaredMethod(name, *types).apply { isAccessible = true }
+    /** The report's static method [name] taking exactly [types], from whichever compat class declares it. */
+    private fun static(name: String, vararg types: Class<*>) = report.firstNotNullOfOrNull { cls ->
+        cls.declaredMethods.firstOrNull { it.name == name && it.parameterTypes.contentEquals(types) }
+    }?.apply { isAccessible = true } ?: error("No compat class declares $name(${types.joinToString { it.simpleName }})")
 
     /** CompatReport.findControls on [classes], as control key to sorted method ids, leaving out keys it found nothing for. */
     fun controls(classes: Iterable<ClassDef>): Map<String, List<String>> {

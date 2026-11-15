@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -155,6 +156,126 @@ class ControlsTest {
         assertFailsWith<PatchException> { flag(stock, registers = 4).validateDeltaUnsent() }
         val static = stock.replace("{p0, p1}", "{p0, v1}")
         assertFailsWith<PatchException> { flag(static, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value).validateDeltaUnsent() }
+    }
+
+    /** Runs [block] with the row getter names 587's 5hn-shaped fixture rows serve, putting the found ones back after. */
+    private fun withCqlRowNames(block: () -> Unit) {
+        val saved = listOf(messageOtidGetterName, messageIdGetterName, messageTimestampGetterName, messageSenderGetterName, messageContentTypeGetterName,
+            messageContentSubtypeGetterName)
+        try {
+            messageOtidGetterName = "CA3"
+            messageIdGetterName = "B9d"
+            messageTimestampGetterName = "CsI"
+            messageSenderGetterName = "Cca"
+            messageContentTypeGetterName = "BxR"
+            messageContentSubtypeGetterName = "BxP"
+            block()
+        } finally {
+            messageOtidGetterName = saved[0]
+            messageIdGetterName = saved[1]
+            messageTimestampGetterName = saved[2]
+            messageSenderGetterName = saved[3]
+            messageContentTypeGetterName = saved[4]
+            messageContentSubtypeGetterName = saved[5]
+        }
+    }
+
+    /** #172: encrypted chats read their rows from a CQL result set, one column per getter. */
+    @Test fun encryptedChatRowsTakeBothUnsentHooksStraightFromTheirResultSet() = withCqlRowNames {
+        run {
+            val row = cqlRowFixture()
+            assertTrue(row.methods.single { it.name == "BWo" }.validateUnsentIndicator())
+            row.methods.single { it.name == "Btd" }.validateDeltaUnsent()
+            assertFalse(messageWrapperFixture().methods.single { it.name == "BWo" }.validateUnsentIndicator())
+
+            fun getter(body: String, registers: Int = 4, returns: String = "Ljava/lang/String;") =
+                fixtureMethod("Lfixture/CqlRow;->BWo(I)$returns", body, registers)
+            val text = cqlGetterBody("Lfixture/CqlRow;", "0x46")
+            val flag = cqlGetterBody("Lfixture/CqlRow;", "0xe", "getBoolean(II)Z")
+            getter(flag, returns = "Z").validateDeltaUnsent()
+            for ((name, body) in listOf(
+                "the index overwritten" to text.replace("iget-object v1", "iget-object p1").replace("{v1, p1, v0}", "{p1, p1, v0}"),
+                "the column in v1" to text.replace("const/16 v0", "const/16 v1").replace("{v1, p1, v0}", "{v1, p1, v1}"),
+                "the answer in v1" to text.replace("move-result-object v0", "move-result-object v1").replace("return-object v0", "return-object v1"),
+                "another reader" to text.replace("Lcom/facebook/msys/mci/CQLResultSet;->getString", "Lfixture/Cursor;->getString"),
+                "another column type" to text.replace("getString(II)", "getNullableString(II)"),
+            )) assertFailsWith<PatchException>(name) { getter(body).validateUnsentIndicator() }
+            assertFailsWith<PatchException>("a fifth register") { getter(text, registers = 5).validateUnsentIndicator() }
+            assertFailsWith<PatchException>("the flag's fifth register") { getter(flag, registers = 5, returns = "Z").validateDeltaUnsent() }
+            assertFailsWith<PatchException>("the flag in v1") {
+                getter(flag.replace("move-result v0", "move-result v1").replace("return v0", "return v1"), returns = "Z").validateDeltaUnsent()
+            }
+            // The text hook asks the row for its threading id, time, sender, type and subtype, so a build without one is refused.
+            for (missing in listOf("otid", "time", "sender", "type", "subtype")) {
+                val saved = listOf(messageOtidGetterName, messageTimestampGetterName, messageSenderGetterName, messageContentTypeGetterName,
+                    messageContentSubtypeGetterName)
+                when (missing) {
+                    "otid" -> messageOtidGetterName = ""
+                    "time" -> messageTimestampGetterName = ""
+                    "sender" -> messageSenderGetterName = ""
+                    "type" -> messageContentTypeGetterName = ""
+                    else -> messageContentSubtypeGetterName = ""
+                }
+                assertFailsWith<PatchException>(missing) { row.methods.single { it.name == "BWo" }.validateUnsentIndicator() }
+                messageOtidGetterName = saved[0]
+                messageTimestampGetterName = saved[1]
+                messageSenderGetterName = saved[2]
+                messageContentTypeGetterName = saved[3]
+                messageContentSubtypeGetterName = saved[4]
+            }
+        }
+    }
+
+    @Test fun encryptedChatTextHookHandsTheRowToItsHelperOnlyWhileKeepUnsentIsWatching() = withCqlRowNames {
+        val text = cqlRowFixture().methods.single { it.name == "BWo" }
+        val stock = text.implementation!!.instructions.toList()
+        text.injectUnsentIndicator()
+        val code = text.implementation!!.instructions.toList()
+        assertEquals(stock.dropLast(1), code.take(4))
+        assertEquals(stock.last(), code.last())
+        fun called(i: Int) = ((code[i] as ReferenceInstruction).reference as MethodReference).toString()
+        fun registers(i: Int) = (code[i] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD, it.registerE).take(it.registerCount) }
+        assertEquals("$SETTINGS->watchesUnsentRows()Z", called(4))
+        assertEquals(Opcode.IF_EQZ, code[6].opcode)
+        assertEquals(1, (code[6] as OneRegisterInstruction).registerA)
+        val skipTo = code.take(6).sumOf { it.codeUnits } + (code[6] as OffsetInstruction).codeOffset
+        assertEquals(code.dropLast(1).sumOf { it.codeUnits }, skipTo, "Keep unsent off goes straight to the stock return")
+        assertEquals("Lfixture/CqlRow;->$UNSENT_ROW_HELPER(Lfixture/CqlRow;Ljava/lang/String;I)Ljava/lang/String;", called(7))
+        // The row, its text and its index.
+        assertEquals(listOf(2, 0, 3), registers(7))
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, code[8].opcode)
+        assertEquals(0, (code[8] as OneRegisterInstruction).registerA)
+        assertEquals(10, code.size)
+    }
+
+    /** #172 on 587: the helper reads the row's ids, time, sender, type and subtype and hands them to the extension in order. */
+    @Test fun theUnsentRowHelperReadsEveryColumnTheExtensionNeeds() = withCqlRowNames {
+        val row = cqlRowFixture()
+        val helper = unsentRowHelper(row.type)
+        assertEquals("Lfixture/CqlRow;->$UNSENT_ROW_HELPER(Lfixture/CqlRow;Ljava/lang/String;I)Ljava/lang/String;", helper.hookId())
+        assertTrue(AccessFlags.STATIC.isSet(helper.accessFlags))
+        val code = helper.implementation!!.instructions.toList()
+        val calls = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() }
+        assertEquals(listOf("B9d(I)Ljava/lang/String;", "CA3(I)Ljava/lang/String;", "CsI(I)J", "Cca(I)J", "BxR(I)I", "BxP(I)I")
+            .map { "Lfixture/CqlRow;->$it" } +
+            "$SETTINGS->labelKeptUnsentRow(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JJII)Ljava/lang/String;", calls)
+        // Each getter is called on the row (p0, v9) with its index (p2, v11).
+        for (read in code.filter { it.opcode == Opcode.INVOKE_VIRTUAL }) assertEquals(listOf(9, 11),
+            (read as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        val handoff = code.single { it.opcode == Opcode.INVOKE_STATIC_RANGE } as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+        assertEquals(0 to 9, handoff.startRegister to handoff.registerCount)
+        assertEquals(listOf(Opcode.MOVE_OBJECT, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT_WIDE,
+            Opcode.MOVE_RESULT, Opcode.MOVE_RESULT), code.filter { it.opcode != Opcode.INVOKE_VIRTUAL }.take(7).map { it.opcode })
+        assertEquals(listOf(0, 1, 2, 3, 5, 7, 8), code.filter { it.opcode != Opcode.INVOKE_VIRTUAL }.take(7).map { (it as OneRegisterInstruction).registerA })
+        assertEquals(Opcode.RETURN_OBJECT, code.last().opcode)
+
+        row.addUnsentRowHelper(helper)
+        assertTrue(row.methods.any { it.hookId() == helper.hookId() })
+        assertFailsWith<PatchException>("a second helper") { row.addUnsentRowHelper(unsentRowHelper(row.type)) }
+        // A row class without the time getter can't take it, and is refused before anything is added.
+        val noStamp = cqlRowFixture(stampGetters = false)
+        assertFailsWith<PatchException> { noStamp.checkUnsentRowHelper() }
+        assertTrue(noStamp.methods.none { it.name == UNSENT_ROW_HELPER })
     }
 
     /** 582's three-parameter instance handler and 583's static four-parameter one are refused. */

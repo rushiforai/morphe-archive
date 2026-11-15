@@ -22,12 +22,14 @@ import android.graphics.RenderNode;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import org.junit.After;
 import org.junit.Before;
@@ -267,6 +269,49 @@ public class TranslucentBarsTest {
         assertTrue(statusLine(), statusLine().contains(TranslucentBars.LEFT_SHORT + " 1"));
     }
 
+    /**
+     * #468: Marketplace's React page lays its gap out again a few times while it loads after a
+     * swipe from Home. That left it alone for good, and the black bar stayed under the pill, even
+     * while scrolling, until Facebook restarted. It's tried again {@link
+     * TranslucentBars#LEFT_ALONE_MS} later on a frame booked for then, and stays under the bar.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aPageLeftAloneIsTriedAgainLater() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        View market = new View(screen.activity);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT);
+        params.bottomMargin = 160;
+        screen.page.addView(market, params);
+        screen.layOut();
+        for (int stretch = 1; stretch <= TranslucentBars.MAX_PUT_BACKS; stretch++) {
+            screen.bars.update();
+            screen.layOut();
+            params.bottomMargin = 160;
+            market.setLayoutParams(params);
+            screen.layOut();
+            ShadowLooper.idleMainLooper(TranslucentBars.RESCAN_MS + 1, TimeUnit.MILLISECONDS);
+        }
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("left alone while it loads", 1440, market.getBottom());
+
+        nextLook(screen);
+        assertEquals("still left alone a second later", 1440, market.getBottom());
+
+        shadowOf(screen.window).clearWasInvalidated();
+        ShadowLooper.idleMainLooper(TranslucentBars.LEFT_ALONE_MS, TimeUnit.MILLISECONDS);
+        assertTrue("a frame is booked for the next try", shadowOf(screen.window).wasInvalidated());
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("under the tab bar again", 1600, market.getBottom());
+
+        nextLook(screen);
+        nextLook(screen);
+        assertEquals("and it stays there", 1600, market.getBottom());
+        assertTrue(statusLine(), statusLine().contains(TranslucentBars.STRETCHED + " 4"));
+    }
+
     /** A FrameLayout as tall as the screen whose bottom padding stops [page] at the tab bar. */
     private static FrameLayout holding(TranslucentBarsForTests screen, View page) {
         FrameLayout holder = new FrameLayout(screen.activity);
@@ -462,6 +507,65 @@ public class TranslucentBarsTest {
         assertTrue(screen.bars.backdrops.isEmpty());
         assertNull("out of the overlay", backdrop.getCallback());
         assertEquals("the gap back", 160, holder.getPaddingBottom());
+    }
+
+    /**
+     * #471: where the tab bar stays put, Facebook pads the tabs' pager up to the bar instead of a
+     * holder, so every tab's page stopped there and the window's light grey showed around the pill.
+     * It pads the pager before the gesture bar's space goes under the tabs, so the bar grows after
+     * the stretch, and the Reels viewer sizes its reels to stop at the grown bar. Every page runs
+     * under the pill, the Reels page found after Home's gets black from the bar's top down, not the
+     * next reel, and the pager gets its padding back once the pill goes.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void tabPagesInAPaddedPagerRunUnderARoundedTabBar() {
+        Settings.TRANSLUCENT_BARS.save(false);
+        Settings.ROUNDED_TAB_BAR.save(true);
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        barTall(screen, 120);
+        ViewPager pager = new ViewPager(screen.activity);
+        pager.setPadding(0, 0, 0, 120);
+        View home = new View(screen.activity);
+        pager.addView(home);
+        FrameLayout reelsPage = new FrameLayout(screen.activity);
+        RecyclerView reels = listOf(screen, 3, 1440, false);
+        reelsPage.addView(reels, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        pager.addView(reelsPage);
+        screen.page.addView(pager, new FrameLayout.LayoutParams(720, 1600));
+        screen.layOut();
+        assertEquals("both pages stop at the bar", 1480, home.getBottom());
+        assertEquals(1480, reelsPage.getBottom());
+
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the pager's padding taken", 0, pager.getPaddingBottom());
+        assertEquals("Home under the pill", 1600, home.getBottom());
+        assertEquals("and Reels beside it", 1600, reels.getBottom());
+        assertTrue(statusLine(), statusLine().contains(TranslucentBars.STRETCHED + " 2"));
+
+        // The gesture bar's space goes under the tabs, and the reels stop at the taller bar.
+        barTall(screen, 160);
+        screen.layOut();
+        nextLook(screen);
+        TranslucentBars.Backdrop backdrop = screen.bars.backdrops.get(reels);
+        assertNotNull("black under the reel on the page found second", backdrop);
+        Rect black = new Rect();
+        assertTrue(backdrop.paints(black));
+        assertEquals("from the bar's top down, over the next reel", new Rect(0, 1440, 720, 1600), black);
+
+        Settings.ROUNDED_TAB_BAR.save(false);
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the pager's padding back", 120, pager.getPaddingBottom());
+        assertEquals(1480, home.getBottom());
+        assertTrue(screen.bars.backdrops.isEmpty());
+    }
+
+    /** The tab bar and its holder [height] pixels tall, at the bottom of the screen. */
+    private static void barTall(TranslucentBarsForTests screen, int height) {
+        screen.tabBar.setLayoutParams(new FrameLayout.LayoutParams(720, height));
+        screen.tabHolder.setLayoutParams(new FrameLayout.LayoutParams(720, height, Gravity.BOTTOM));
     }
 
     /** #412: a feed inside a stretched page scrolls rows shorter than itself, so it gets no black. */

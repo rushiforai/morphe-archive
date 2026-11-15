@@ -8,6 +8,8 @@
 #   extension\dex\kick-chatexpand\classes.dex   - EXPAND CHAT feature module
 #   extension\dex\kick-hidepinned\classes.dex   - HIDE PINNED feature module
 #   extension\dex\kick-maturewarning\classes.dex - SKIP 18+ WARNING feature module
+#   extension\dex\kick-stoponminimize\classes.dex - STOP ON MINIMIZE feature module
+#   extension\dex\kick-homedestination\classes.dex - DEFAULT HOME DESTINATION feature module
 #
 # Twitch (Android TV):
 #   extension\dex\twitch-seyttings\classes.dex  - base SEYTTINGS module
@@ -17,6 +19,7 @@
 #   extension\dex\twitch-amoled\classes.dex     - AMOLED feature module
 #   extension\dex\twitch-maturewarning\classes.dex - SKIP 18+ WARNING feature module
 #   extension\dex\twitch-hidepinned\classes.dex - HIDE PINNED feature module
+#   extension\dex\twitch-hometab\classes.dex   - DEFAULT HOME TAB feature module
 #
 # The AD BLOCK, AMOLED, SKIP 18+ WARNING and HIDE PINNED scripts live in
 # extension\js. This script turns them into AdBlockScript.java,
@@ -158,6 +161,8 @@ $kickChatTextSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chattext'
 $kickChatExpandSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chatexpand'
 $kickHidePinnedSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\hidepinned'
 $kickMatureWarningSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\maturewarning'
+$kickStopOnMinimizeSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\stoponminimize'
+$kickHomeDestinationSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\homedestination'
 
 $twitchBaseSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\base'
 $twitchEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\emotes'
@@ -166,11 +171,13 @@ $twitchAdBlockSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\adblock'
 $twitchAmoledSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\amoled'
 $twitchMatureWarningSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\maturewarning'
 $twitchHidePinnedSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\hidepinned'
+$twitchHomeTabSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\hometab'
 
 $adBlockGeneratedRoot = Join-Path $generatedRoot 'adblock'
 $amoledGeneratedRoot = Join-Path $generatedRoot 'amoled'
 $matureWarningGeneratedRoot = Join-Path $generatedRoot 'maturewarning'
 $hidePinnedGeneratedRoot = Join-Path $generatedRoot 'hidepinned'
+$hometabGeneratedRoot = Join-Path $generatedRoot 'hometab'
 
 $adBlockScript = New-JsSource `
     -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-adblock.js') `
@@ -208,6 +215,15 @@ if (-not (Test-Path $hidePinnedScript)) {
     throw "Failed to generate $hidePinnedScript."
 }
 
+$hometabScript = New-JsSource `
+    -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-hometab.js') `
+    -OutDir $hometabGeneratedRoot `
+    -Package 'app.morphe.extension.twitch.hometab' `
+    -ClassName 'HomeTabScript'
+if (-not (Test-Path $hometabScript)) {
+    throw "Failed to generate $hometabScript."
+}
+
 $kickBaseClasses = Join-Path $classesRoot 'kick-base'
 $twitchBaseClasses = Join-Path $classesRoot 'twitch-base'
 
@@ -241,6 +257,14 @@ Build-Module -Label 'KICK mature warning' -SourceDir $kickMatureWarningSrc `
     -ClassesDir (Join-Path $classesRoot 'kick-maturewarning') `
     -DexDir (Join-Path $dexRoot 'kick-maturewarning') -BaseClasses $kickBaseClasses
 
+Build-Module -Label 'KICK stop on minimize' -SourceDir $kickStopOnMinimizeSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-stoponminimize') `
+    -DexDir (Join-Path $dexRoot 'kick-stoponminimize') -BaseClasses $kickBaseClasses
+
+Build-Module -Label 'KICK home destination' -SourceDir $kickHomeDestinationSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-homedestination') `
+    -DexDir (Join-Path $dexRoot 'kick-homedestination') -BaseClasses $kickBaseClasses
+
 Build-Module -Label 'Twitch emotes' -SourceDir $twitchEmoteSrc `
     -ClassesDir (Join-Path $classesRoot 'twitch-emotes') `
     -DexDir (Join-Path $dexRoot 'twitch-emotes') -BaseClasses $twitchBaseClasses
@@ -264,3 +288,7 @@ Build-Module -Label 'Twitch mature warning' -SourceDir @($twitchMatureWarningSrc
 Build-Module -Label 'Twitch hide pinned' -SourceDir @($twitchHidePinnedSrc, $hidePinnedGeneratedRoot) `
     -ClassesDir (Join-Path $classesRoot 'twitch-hidepinned') `
     -DexDir (Join-Path $dexRoot 'twitch-hidepinned') -BaseClasses $twitchBaseClasses
+
+Build-Module -Label 'Twitch home tab' -SourceDir @($twitchHomeTabSrc, $hometabGeneratedRoot) `
+    -ClassesDir (Join-Path $classesRoot 'twitch-hometab') `
+    -DexDir (Join-Path $dexRoot 'twitch-hometab') -BaseClasses $twitchBaseClasses

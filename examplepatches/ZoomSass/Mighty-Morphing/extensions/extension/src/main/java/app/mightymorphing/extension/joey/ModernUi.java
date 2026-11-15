@@ -25,6 +25,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -51,7 +52,6 @@ public final class ModernUi {
     public static final String KEY_MODERN_ENABLED = "modern_ui_enabled";
     public static final String KEY_CLASSIC = "classic_ui";
     public static final String KEY_SIDEBAR_BIRD = "sidebar_bird";
-    public static final String KEY_SYSTEM_FONT = "use_system_font";
     public static final String KEY_BANNER = "banner_scale";
     public static final String KEY_PIN_RAIL = "pin_nav_rail";
     public static final String KEY_HIDE_RAIL = "hide_nav_rail";
@@ -64,6 +64,8 @@ public final class ModernUi {
     public static final String KEY_ACCENT = "material_accent";
     public static final String KEY_AMOLED = "pure_amoled";
     public static final String KEY_ALBUM_SWIPE = "album_swipe_close";
+    public static final String KEY_FULLSCREEN_MEDIA = "fullscreen_media";
+    public static final String KEY_HIDE_CONTROLS_ON_OPEN = "hide_controls_on_open";
     public static final String KEY_HIDE_ICON = "hide_subreddit_icon";
 
     // Preset Accents. Aqua is the default.
@@ -113,10 +115,12 @@ public final class ModernUi {
     private ModernUi() {
     }
 
+    /** Called for every themed view. Only the first call, or one after the app context is gone, stores it. */
     public static void setContext(Context context) {
-        if (context != null) {
-            sContextRef = new WeakReference<>(context.getApplicationContext());
-        }
+        if (context == null) return;
+        WeakReference<Context> held = sContextRef;
+        if (held != null && held.get() != null) return;
+        sContextRef = new WeakReference<>(context.getApplicationContext());
     }
 
     public static Context getContext() {
@@ -195,9 +199,8 @@ public final class ModernUi {
     }
 
     public static Palette getPalette(Context context) {
-        if (sPalette != null && sPaletteKey != null && !sPaletteKey.startsWith(ACCENT_MONET)) {
-            return sPalette;
-        }
+        Palette cached = sPalette;
+        if (cached != null && sPaletteKey != null) return cached;
         String accentKey = getMaterialAccent(context);
         boolean amoled = ACCENT_AMOLED.equalsIgnoreCase(accentKey) || cachedAmoled(context);
         String key = accentKey + ":" + amoled;
@@ -318,16 +321,55 @@ public final class ModernUi {
         return !isClassic(context);
     }
 
-    private static Boolean sClassicCache;
+    private static volatile Boolean sClassicCache;
+    private static volatile boolean sPrefsWatched;
+    /** Kept here because SharedPreferences only holds its listeners weakly. */
+    private static final SharedPreferences.OnSharedPreferenceChangeListener PREFS_WATCH = (prefs, key) -> {
+        if (key == null || KEY_CLASSIC.equals(key)) sClassicCache = null;
+        if (key == null || KEY_ACCENT.equals(key) || KEY_AMOLED.equals(key)) forgetTheme();
+    };
 
+    /**
+     * Every themed colour and view asks this, many times per frame. It used to read
+     * SharedPreferences on each call. The value is now kept, and dropped when the
+     * setting changes, including a restore from backup.
+     */
     public static boolean isClassic(Context context) {
+        Boolean cached = sClassicCache;
+        if (cached != null) return cached;
         try {
             Context source = context != null ? context : getContext();
-            if (source == null) return sClassicCache != null && sClassicCache;
-            sClassicCache = getPrefs(source).getBoolean(KEY_CLASSIC, false);
-            return sClassicCache;
+            if (source == null) return false;
+            SharedPreferences prefs = getPrefs(source);
+            watchPrefs(source, prefs);
+            boolean classic = prefs.getBoolean(KEY_CLASSIC, false);
+            sClassicCache = classic;
+            return classic;
         } catch (Throwable ignored) {
-            return sClassicCache != null && sClassicCache;
+            return false;
+        }
+    }
+
+    private static void watchPrefs(Context context, SharedPreferences prefs) {
+        if (sPrefsWatched) return;
+        synchronized (ModernUi.class) {
+            if (sPrefsWatched) return;
+            sPrefsWatched = true;
+            prefs.registerOnSharedPreferenceChangeListener(PREFS_WATCH);
+            try {
+                // A wallpaper colour change reaches the app as a configuration change. Monet reads it again then.
+                context.getApplicationContext().registerComponentCallbacks(new android.content.ComponentCallbacks() {
+                    @Override
+                    public void onConfigurationChanged(android.content.res.Configuration configuration) {
+                        if (ACCENT_MONET.equalsIgnoreCase(sAccentCache)) forgetTheme();
+                    }
+
+                    @Override
+                    public void onLowMemory() {
+                    }
+                });
+            } catch (Throwable ignored) {
+            }
         }
     }
 
@@ -338,7 +380,16 @@ public final class ModernUi {
 
     public static boolean sidebarBird(Context context) {
         try {
-            return isModernUiEnabled(context) && getPrefs(context).getBoolean(KEY_SIDEBAR_BIRD, false);
+            return isModernUiEnabled(context) && savedSidebarBird(context);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /** The saved bird switch, including while Classic is on. Off unless it was turned on. */
+    public static boolean savedSidebarBird(Context context) {
+        try {
+            return getPrefs(context).getBoolean(KEY_SIDEBAR_BIRD, false);
         } catch (Throwable ignored) {
             return false;
         }
@@ -352,15 +403,6 @@ public final class ModernUi {
     public static void setModernUiEnabled(Context context, boolean enabled) {
         sModernEnabled = enabled;
         getPrefs(context).edit().putBoolean(KEY_MODERN_ENABLED, enabled).apply();
-    }
-
-    public static boolean isSystemFontEnabled(Context context) {
-        return getPrefs(context).getBoolean(KEY_SYSTEM_FONT, true);
-    }
-
-    public static void setSystemFontEnabled(Context context, boolean enabled) {
-        getPrefs(context).edit().putBoolean(KEY_SYSTEM_FONT, enabled).commit();
-        if (context instanceof Activity) refreshLive((Activity) context);
     }
 
     private static String sAccentCache;
@@ -592,19 +634,14 @@ public final class ModernUi {
         AlertDialog[] shown = new AlertDialog[1];
         View[] dots = new View[styles.length];
         LinearLayout swatches = new LinearLayout(activity);
-        swatches.setOrientation(LinearLayout.VERTICAL);
-        int dot = Math.round(28 * density);
-        int perRow = 5;
-        LinearLayout row = null;
+        swatches.setOrientation(LinearLayout.HORIZONTAL);
+        int screenW = activity.getResources().getDisplayMetrics().widthPixels;
+        int dialogW = Math.min(screenW - Math.round(48 * density), Math.round(640 * density));
+        int inner = Math.max(dialogW - Math.round(48 * density), Math.round(160 * density));
+        int gap = Math.round(6 * density);
+        int dot = Math.min(Math.round(28 * density),
+                Math.max(Math.round(16 * density), (inner - gap * (styles.length - 1)) / styles.length));
         for (int i = 0; i < styles.length; i++) {
-            if (i % perRow == 0) {
-                row = new LinearLayout(activity);
-                row.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                if (i > 0) rowParams.topMargin = Math.round(8 * density);
-                swatches.addView(row, rowParams);
-            }
             View swatch = new View(activity);
             int index = i;
             swatch.setOnClickListener(v -> {
@@ -614,9 +651,9 @@ public final class ModernUi {
                 if (changed != null) changed.run();
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dot, dot);
-            params.leftMargin = i % perRow == 0 ? 0 : Math.round(8 * density);
+            if (i > 0) params.leftMargin = gap;
             params.topMargin = Math.round(14 * density);
-            row.addView(swatch, params);
+            swatches.addView(swatch, params);
             dots[i] = swatch;
         }
         page.addView(swatches);
@@ -1000,6 +1037,28 @@ public final class ModernUi {
         getPrefs(context).edit().putBoolean(KEY_ALBUM_SWIPE, enabled).apply();
     }
 
+    /** Modern media viewers fill the screen, camera area included. Off keeps the system bars. */
+    public static boolean fullscreenMedia(Context context) {
+        return getPrefs(context).getBoolean(KEY_FULLSCREEN_MEDIA, true);
+    }
+
+    public static void setFullscreenMedia(Context context, boolean enabled) {
+        getPrefs(context).edit().putBoolean(KEY_FULLSCREEN_MEDIA, enabled).apply();
+    }
+
+    /** Only offered with Full screen media on. Albums always open with their controls. */
+    public static boolean hideControlsOnOpen(Context context) {
+        return getPrefs(context).getBoolean(KEY_HIDE_CONTROLS_ON_OPEN, true);
+    }
+
+    public static void setHideControlsOnOpen(Context context, boolean enabled) {
+        getPrefs(context).edit().putBoolean(KEY_HIDE_CONTROLS_ON_OPEN, enabled).apply();
+    }
+
+    public static boolean viewerOpensClean(Context context) {
+        return fullscreenMedia(context) && hideControlsOnOpen(context);
+    }
+
     public static int getActiveAccentColor(Context context) {
         return getPalette(context).accent;
     }
@@ -1013,6 +1072,23 @@ public final class ModernUi {
     // Theme Engine Hook: ec.e.l(int, View)
     // =========================================================================
 
+    private static final String[] COLOR_NAMES = {
+            "color_primary", "color_accent", "color_toolbar_item", "color_post_title_unread",
+            "color_post_title_read", "color_sticky", "color_highlight", "color_tint",
+            "color_main_text", "color_link", "color_subject_background", "color_canvas",
+    };
+    private static volatile int[] sColorIds;
+
+    /** Joey's colour resource ids, looked up once. This hook runs for every themed view. */
+    private static int[] colorIds(Context context) {
+        int[] ids = sColorIds;
+        if (ids != null) return ids;
+        ids = new int[COLOR_NAMES.length];
+        for (int i = 0; i < COLOR_NAMES.length; i++) ids[i] = getResId(context, COLOR_NAMES[i], "integer");
+        sColorIds = ids;
+        return ids;
+    }
+
     public static Integer getThemeColorOverride(int token, View view) {
         if (view == null) return null;
         Context context = view.getContext();
@@ -1022,18 +1098,19 @@ public final class ModernUi {
         try {
             Palette palette = getPalette(context);
 
-            int colPrimary = getResId(context, "color_primary", "integer");
-            int colAccent = getResId(context, "color_accent", "integer");
-            int colToolbarItem = getResId(context, "color_toolbar_item", "integer");
-            int colUnread = getResId(context, "color_post_title_unread", "integer");
-            int colRead = getResId(context, "color_post_title_read", "integer");
-            int colSticky = getResId(context, "color_sticky", "integer");
-            int colHighlight = getResId(context, "color_highlight", "integer");
-            int colTint = getResId(context, "color_tint", "integer");
-            int colMainText = getResId(context, "color_main_text", "integer");
-            int colLink = getResId(context, "color_link", "integer");
-            int colSubjectBg = getResId(context, "color_subject_background", "integer");
-            int colCanvas = getResId(context, "color_canvas", "integer");
+            int[] ids = colorIds(context);
+            int colPrimary = ids[0];
+            int colAccent = ids[1];
+            int colToolbarItem = ids[2];
+            int colUnread = ids[3];
+            int colRead = ids[4];
+            int colSticky = ids[5];
+            int colHighlight = ids[6];
+            int colTint = ids[7];
+            int colMainText = ids[8];
+            int colLink = ids[9];
+            int colSubjectBg = ids[10];
+            int colCanvas = ids[11];
 
             // 1. Primary: Toolbar, App bar, Action bar background -> Dark M3 surface, never beige!
             if (token == 1 || (colPrimary != 0 && token == colPrimary)) {
@@ -1121,36 +1198,69 @@ public final class ModernUi {
             float radius = 16f * density;
             Palette palette = getPalette(context);
 
-            Class<?> clazz = cardView.getClass();
-            Method setRadius = null;
-            Method setCardElevation = null;
-            Method setMaxCardElevation = null;
-            Method setCardBackgroundColor = null;
-
-            for (Class<?> c = clazz; c != null && c != View.class; c = c.getSuperclass()) {
-                if (c.getName().endsWith("CardView")) {
-                    for (Method m : c.getMethods()) {
-                        String name = m.getName();
-                        Class<?>[] pts = m.getParameterTypes();
-                        if ("setRadius".equals(name) && pts.length == 1 && pts[0] == float.class) setRadius = m;
-                        if ("setCardElevation".equals(name) && pts.length == 1 && pts[0] == float.class) setCardElevation = m;
-                        if ("setMaxCardElevation".equals(name) && pts.length == 1 && pts[0] == float.class) setMaxCardElevation = m;
-                        if ("setCardBackgroundColor".equals(name) && pts.length == 1 && pts[0] == int.class) setCardBackgroundColor = m;
-                    }
-                    break;
-                }
+            CardMethods card = cardMethods(cardView.getClass());
+            if (card.setRadius != null) card.setRadius.invoke(cardView, radius);
+            if (card.setCardElevation != null) card.setCardElevation.invoke(cardView, 2f * density);
+            if (card.setMaxCardElevation != null) card.setMaxCardElevation.invoke(cardView, 3f * density);
+            if (card.setCardBackgroundColor != null) {
+                card.setCardBackgroundColor.invoke(cardView, palette.container);
             }
-
-            if (setRadius != null) setRadius.invoke(cardView, radius);
-            if (setCardElevation != null) setCardElevation.invoke(cardView, 2f * density);
-            if (setMaxCardElevation != null) setMaxCardElevation.invoke(cardView, 3f * density);
-            if (setCardBackgroundColor != null) {
-                setCardBackgroundColor.invoke(cardView, palette.container);
-            }
-            cardView.post(() -> settleSettingsCard(cardView));
+            // Only Joey's settings screens have section cards. Everywhere else this check
+            // searched every card's text on every bind for nothing.
+            if (onSettingsScreen(cardView)) cardView.post(() -> settleSettingsCard(cardView));
         } catch (Throwable t) {
             Log.e(TAG, "applyCardStyle error", t);
         }
+    }
+
+    /** CardView's setters, found once per card class instead of scanning every method on every card. */
+    private static final class CardMethods {
+        Method setRadius;
+        Method setCardElevation;
+        Method setMaxCardElevation;
+        Method setUseCompatPadding;
+        Method setCardBackgroundColor;
+    }
+
+    private static final Map<Class<?>, CardMethods> CARD_METHODS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static CardMethods cardMethods(Class<?> clazz) {
+        CardMethods cached = CARD_METHODS.get(clazz);
+        if (cached != null) return cached;
+        CardMethods found = new CardMethods();
+        for (Class<?> c = clazz; c != null && c != View.class; c = c.getSuperclass()) {
+            if (!c.getName().endsWith("CardView")) continue;
+            for (Method m : c.getMethods()) {
+                String name = m.getName();
+                Class<?>[] pts = m.getParameterTypes();
+                if (pts.length != 1) continue;
+                if ("setRadius".equals(name) && pts[0] == float.class) found.setRadius = m;
+                if ("setCardElevation".equals(name) && pts[0] == float.class) found.setCardElevation = m;
+                if ("setMaxCardElevation".equals(name) && pts[0] == float.class) found.setMaxCardElevation = m;
+                if ("setUseCompatPadding".equals(name) && pts[0] == boolean.class) found.setUseCompatPadding = m;
+                if ("setCardBackgroundColor".equals(name) && pts[0] == int.class) found.setCardBackgroundColor = m;
+            }
+            break;
+        }
+        CARD_METHODS.put(clazz, found);
+        return found;
+    }
+
+    private static boolean onSettingsScreen(View view) {
+        Activity activity = activityOf(view.getContext());
+        return activity != null && activity.getClass().getName().contains("Setting");
+    }
+
+    private static java.util.Set<String> sSettingsGroupLabels;
+    private static java.util.Set<String> sClassicLookLabels;
+
+    private static java.util.Set<String> labels(Context context, String... names) {
+        java.util.HashSet<String> labels = new java.util.HashSet<>();
+        for (String name : names) {
+            int id = getResId(context, name, "string");
+            if (id != 0) labels.add(context.getString(id));
+        }
+        return labels;
     }
 
     /** Joey settings cards share the page colour. Classic theme rows stay in the app, just hidden. */
@@ -1162,34 +1272,28 @@ public final class ModernUi {
     }
 
     private static boolean isSettingsGroup(View card) {
-        Context context = card.getContext();
-        java.util.HashSet<String> labels = new java.util.HashSet<>();
-        for (String name : new String[]{
-                "setting_item_general_setttings",
-                "setting_item_gesture_setttings",
-                "setting_item_link_handling",
-                "setting_item_theme",
-                "setting_item_font",
-                "setting_item_about",
-                "setting_item_post_style",
-                "settings_theme_title"}) {
-            int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
-            if (id != 0) labels.add(context.getString(id));
+        if (sSettingsGroupLabels == null) {
+            sSettingsGroupLabels = labels(card.getContext(),
+                    "setting_item_general_setttings",
+                    "setting_item_gesture_setttings",
+                    "setting_item_link_handling",
+                    "setting_item_theme",
+                    "setting_item_font",
+                    "setting_item_about",
+                    "setting_item_post_style",
+                    "settings_theme_title");
         }
-        return matchLabel(card, labels) != null;
+        return matchLabel(card, sSettingsGroupLabels) != null;
     }
 
     private static void hideClassicLookRows(View card) {
-        Context context = card.getContext();
-        java.util.HashSet<String> hidden = new java.util.HashSet<>();
-        for (String name : new String[]{
-                "setting_item_theme",
-                "settings_theme_title",
-                "setting_item_font"}) {
-            int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
-            if (id != 0) hidden.add(context.getString(id));
+        if (sClassicLookLabels == null) {
+            sClassicLookLabels = labels(card.getContext(),
+                    "setting_item_theme",
+                    "settings_theme_title",
+                    "setting_item_font");
         }
-        hideMatchingRows(card, hidden);
+        hideMatchingRows(card, sClassicLookLabels);
     }
 
     private static void hideMatchingRows(View view, java.util.Set<String> labels) {
@@ -1214,20 +1318,12 @@ public final class ModernUi {
             Context context = card.getContext();
             Palette palette = getPalette(context);
             float density = context.getResources().getDisplayMetrics().density;
-            for (Class<?> c = card.getClass(); c != null && c != View.class; c = c.getSuperclass()) {
-                if (!c.getName().endsWith("CardView")) continue;
-                for (Method m : c.getMethods()) {
-                    String name = m.getName();
-                    Class<?>[] pts = m.getParameterTypes();
-                    if (pts.length != 1) continue;
-                    if ("setRadius".equals(name) && pts[0] == float.class) m.invoke(card, 0f);
-                    if ("setCardElevation".equals(name) && pts[0] == float.class) m.invoke(card, 0f);
-                    if ("setMaxCardElevation".equals(name) && pts[0] == float.class) m.invoke(card, 0f);
-                    if ("setUseCompatPadding".equals(name) && pts[0] == boolean.class) m.invoke(card, false);
-                    if ("setCardBackgroundColor".equals(name) && pts[0] == int.class) m.invoke(card, palette.canvas);
-                }
-                break;
-            }
+            CardMethods methods = cardMethods(card.getClass());
+            if (methods.setRadius != null) methods.setRadius.invoke(card, 0f);
+            if (methods.setCardElevation != null) methods.setCardElevation.invoke(card, 0f);
+            if (methods.setMaxCardElevation != null) methods.setMaxCardElevation.invoke(card, 0f);
+            if (methods.setUseCompatPadding != null) methods.setUseCompatPadding.invoke(card, false);
+            if (methods.setCardBackgroundColor != null) methods.setCardBackgroundColor.invoke(card, palette.canvas);
             card.setBackgroundColor(palette.canvas);
             if (title == null) return;
             title.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
@@ -1262,17 +1358,16 @@ public final class ModernUi {
         }
     }
 
+    private static java.util.Set<String> sSectionLabels;
+
     private static TextView settingsSectionTitle(View root) {
-        Context context = root.getContext();
-        java.util.HashSet<String> labels = new java.util.HashSet<>();
-        for (String name : new String[]{
-                "settings_appearance_section_title",
-                "settings_content_section_title",
-                "settings_other_section_title"}) {
-            int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
-            if (id != 0) labels.add(context.getString(id));
+        if (sSectionLabels == null) {
+            sSectionLabels = labels(root.getContext(),
+                    "settings_appearance_section_title",
+                    "settings_content_section_title",
+                    "settings_other_section_title");
         }
-        return matchLabel(root, labels);
+        return matchLabel(root, sSectionLabels);
     }
 
     private static TextView matchLabel(View view, java.util.Set<String> labels) {
@@ -1297,28 +1392,7 @@ public final class ModernUi {
         return postView;
     }
 
-    // =========================================================================
-    // System Font Hook: zd.o1.a(I)Landroid/graphics/Typeface;
-    // =========================================================================
-
-    public static Typeface getTypefaceOverride(int id) {
-        // Joey's comment, time, user, and arrow marks are drawn with font 5.
-        if (id == 5) return null;
-        Context context = getContext();
-        if (context == null || !isModernUiEnabled(context)) return null;
-        if (isSystemFontEnabled(context)) return Typeface.DEFAULT;
-        return null;
-    }
-
-    public static Typeface overrideTypeface(int id, Typeface orig, Context context) {
-        if (id == 5) return orig;
-        if (context == null) return orig;
-        if (!isModernUiEnabled(context)) return orig;
-        if (isSystemFontEnabled(context)) {
-            return Typeface.DEFAULT;
-        }
-        return orig;
-    }
+    // Fonts live in ModernFonts. Modern keeps its own copy of Joey's font settings.
 
     // =========================================================================
     // Immersive Fullscreen Media Viewer Hook
@@ -1332,12 +1406,48 @@ public final class ModernUi {
         applyImmersiveFullscreen(activity);
     }
 
-    /** Album pages use the same bottom icons and fade. The status bar stays as Joey left it. */
+    /** Albums use the same bottom icons, fade and fullscreen as a single picture. */
     public static void setupAlbumViewer(Activity activity) {
         if (activity == null) return;
         setContext(activity);
         if (!isModernUiEnabled(activity)) return;
         ViewerDock.attach(activity);
+        applyImmersiveFullscreen(activity);
+        hideAlbumPageLine(activity);
+        AlbumChrome.showOnOpen(activity);
+        AlbumChrome.attach(activity);
+    }
+
+    /**
+     * Each album page (album_photo_fragment) ends with a 1px divider at the bottom of its frame.
+     * In a fullscreen Modern viewer it shows as a white line over the picture, so it is hidden.
+     */
+    private static void hideAlbumPageLine(Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        int pageId = activity.getResources().getIdentifier("ablum_photo_top_container", "id", activity.getPackageName());
+        if (pageId == 0) return;
+        View decor = window.getDecorView();
+        decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> hideAlbumPageLines(decor, pageId));
+    }
+
+    private static void hideAlbumPageLines(View view, int pageId) {
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        if (view.getId() == pageId) {
+            if (group.getChildCount() == 0 || !(group.getChildAt(0) instanceof ViewGroup)) return;
+            ViewGroup frame = (ViewGroup) group.getChildAt(0);
+            int last = frame.getChildCount() - 1;
+            if (last < 0) return;
+            View line = frame.getChildAt(last);
+            ViewGroup.LayoutParams params = line.getLayoutParams();
+            if (!(line instanceof ViewGroup) && params != null && params.height > 0 && params.height <= 2
+                    && line.getVisibility() != View.GONE) {
+                line.setVisibility(View.GONE);
+            }
+            return;
+        }
+        for (int i = 0; i < group.getChildCount(); i++) hideAlbumPageLines(group.getChildAt(i), pageId);
     }
 
     public static void setupVideoViewer(Activity activity) {
@@ -1347,71 +1457,109 @@ public final class ModernUi {
         applyImmersiveFullscreen(activity);
     }
 
+    /**
+     * Joey's BaseActivity.B1 leaves fullscreen when Joey's own Immersive mode is off. In Modern
+     * the picture, album and video viewers stay fullscreen, so B1 does nothing there.
+     */
+    public static boolean keepViewerFullscreen(Activity activity) {
+        if (activity == null || !isModernUiEnabled(activity) || !fullscreenMedia(activity)) return false;
+        for (Class<?> type = activity.getClass(); type != null; type = type.getSuperclass()) {
+            String name = type.getName();
+            if (name.endsWith(".PhotoViewer") || name.endsWith(".BaseAlbumActivity") || name.endsWith(".VActivity")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Joey's picture viewer resets the system bars on every tap (ja.v.T0). Modern keeps them hidden. */
+    public static boolean ownsViewerBars(Object fragment) {
+        Context context = getContext();
+        return context != null && isModernUiEnabled(context);
+    }
+
+    /**
+     * Both system bars hidden, media edge to edge. A swipe from an edge shows the bars for a
+     * moment. Joey's own resets are switched off (keepViewerFullscreen, ownsViewerBars), so this
+     * is set once, not fought over every frame.
+     */
     private static void applyImmersiveFullscreen(Activity activity) {
         try {
             Window window = activity.getWindow();
             if (window == null) return;
-
+            if (!fullscreenMedia(activity)) {
+                showViewerBars(window);
+                return;
+            }
             // Joey keeps the viewer window transparent and fades its own black backdrop
             // while dragging to dismiss, so the feed shows through. Do not fill the window.
-            // The picture is laid out in the status-bar area from the first frame. A tap
-            // only fades the controls.
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            // Without this Android leaves the camera cutout band empty (theme coloured) in
+            // fullscreen. The media draws under it; the sides keep the cutout inset below.
+            if (Build.VERSION.SDK_INT >= 28) {
+                WindowManager.LayoutParams attrs = window.getAttributes();
+                int mode = Build.VERSION.SDK_INT >= 30
+                        ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                        : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                if (attrs.layoutInDisplayCutoutMode != mode) {
+                    attrs.layoutInDisplayCutoutMode = mode;
+                    window.setAttributes(attrs);
+                }
+            }
+            View decor = window.getDecorView();
             if (Build.VERSION.SDK_INT >= 30) {
                 window.setDecorFitsSystemWindows(false);
+                hideBars(window);
+            } else {
+                decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             }
-            window.setStatusBarColor(Color.TRANSPARENT);
-            hideStatusBar(window);
-            View decor = window.getDecorView();
-            decor.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             Runnable settle = () -> {
-                window.setStatusBarColor(Color.TRANSPARENT);
-                hideStatusBar(window);
+                if (Build.VERSION.SDK_INT >= 30) hideBars(window);
                 pinMediaToTop(activity);
             };
             if (activity.findViewById(android.R.id.content) != null) settle.run();
             decor.post(settle);
-            decor.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                int frames = 8;
-
-                @Override
-                public boolean onPreDraw() {
-                    if (activity.isFinishing() || frames-- <= 0) {
-                        ViewTreeObserver observer = decor.getViewTreeObserver();
-                        if (observer.isAlive()) observer.removeOnPreDrawListener(this);
-                        return true;
-                    }
-                    int need = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-                    int vis = decor.getSystemUiVisibility();
-                    if ((vis & need) != need) decor.setSystemUiVisibility(vis | need);
-                    window.setStatusBarColor(Color.TRANSPARENT);
-                    hideStatusBar(window);
-                    View content = activity.findViewById(android.R.id.content);
-                    View overlay = content != null && content.getParent() instanceof View
-                            ? (View) content.getParent() : content;
-                    if (overlay != null && overlay.getPaddingTop() != 0) {
-                        overlay.setPadding(overlay.getPaddingLeft(), 0, overlay.getPaddingRight(), overlay.getPaddingBottom());
-                    }
-                    return true;
-                }
-            });
         } catch (Throwable t) {
             Log.e(TAG, "applyImmersiveFullscreen error", t);
         }
     }
 
-    private static void hideStatusBar(Window window) {
+    /** The bottom gesture area a fullscreen viewer keeps its icons clear of. */
+    public static int viewerGestureInset(Activity activity) {
+        if (activity == null || !fullscreenMedia(activity)) return 0;
+        WindowInsets insets = activity.getWindow().getDecorView().getRootWindowInsets();
+        if (insets == null) return 0;
+        if (Build.VERSION.SDK_INT >= 30) return insets.getInsets(WindowInsets.Type.mandatorySystemGestures()).bottom;
+        return insets.getSystemWindowInsetBottom();
+    }
+
+    /** Full screen media off: the status and navigation bars stay, and the media sits between them. */
+    private static void showViewerBars(Window window) {
+        window.setStatusBarColor(Color.BLACK);
+        window.setNavigationBarColor(Color.BLACK);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        View decor = window.getDecorView();
+        if (Build.VERSION.SDK_INT >= 30) {
+            window.setDecorFitsSystemWindows(true);
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) controller.show(WindowInsets.Type.systemBars());
+        } else {
+            decor.setSystemUiVisibility(0);
+        }
+    }
+
+    private static void hideBars(Window window) {
         if (Build.VERSION.SDK_INT < 30) return;
         WindowInsetsController controller = window.getInsetsController();
         if (controller == null) return;
-        controller.hide(WindowInsets.Type.statusBars());
         controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        controller.hide(WindowInsets.Type.systemBars());
     }
 
     /** The media uses the top of the screen. The bottom inset stays, so the controls clear the gesture bar. */
@@ -1424,15 +1572,20 @@ public final class ModernUi {
             int right;
             int bottom;
             if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
-                left = bars.left;
-                right = bars.right;
-                bottom = bars.bottom;
+                // The bars are hidden, so only the gesture area at the bottom is kept clear.
+                android.graphics.Insets gestures = insets.getInsets(WindowInsets.Type.mandatorySystemGestures());
+                android.graphics.Insets cut = insets.getInsets(WindowInsets.Type.displayCutout());
+                left = cut.left;
+                right = cut.right;
+                bottom = gestures.bottom;
             } else {
                 left = insets.getSystemWindowInsetLeft();
                 right = insets.getSystemWindowInsetRight();
                 bottom = insets.getSystemWindowInsetBottom();
             }
+            // Where the dock runs the viewer, the gesture gap goes under its icon row instead,
+            // so the black backdrop reaches the bottom and nothing shows through while dragging.
+            if (ViewerDock.owns(activity)) bottom = 0;
             if (view.getPaddingLeft() != left || view.getPaddingTop() != 0
                     || view.getPaddingRight() != right || view.getPaddingBottom() != bottom) {
                 view.setPadding(left, 0, right, bottom);
@@ -1440,8 +1593,6 @@ public final class ModernUi {
             if (content.getPaddingTop() != 0) {
                 content.setPadding(content.getPaddingLeft(), 0, content.getPaddingRight(), content.getPaddingBottom());
             }
-            Window window = activity.getWindow();
-            if (window != null) hideStatusBar(window);
             return insets.replaceSystemWindowInsets(left, 0, right, bottom).consumeSystemWindowInsets();
         });
         if (overlay.getPaddingTop() != 0) {
@@ -1527,21 +1678,47 @@ public final class ModernUi {
         }
     }
 
-    /** The border is drawn by the header itself, and a scroll can lift a second edge under it. */
+    private static Class<?> sAppbarClass;
+    private static Method sLiftOnScroll;
+    private static java.lang.reflect.Field sAppbarBorder;
+
+    /**
+     * The border is drawn by the header itself, and a scroll can lift a second edge under it.
+     * Runs on every header scroll step, so it only touches the header when something is back on.
+     */
     private static void stripHeaderLine(View appbar) {
-        appbar.setElevation(0f);
-        appbar.setStateListAnimator(null);
-        try {
-            appbar.getClass().getMethod("setLiftOnScroll", boolean.class).invoke(appbar, false);
-        } catch (Throwable ignored) {
+        boolean changed = false;
+        if (appbar.getElevation() != 0f) {
+            appbar.setElevation(0f);
+            changed = true;
+        }
+        if (appbar.getStateListAnimator() != null) {
+            appbar.setStateListAnimator(null);
+            changed = true;
         }
         try {
-            java.lang.reflect.Field border = appbar.getClass().getDeclaredField("b");
-            border.setAccessible(true);
-            border.setBoolean(appbar, false);
+            if (sAppbarClass != appbar.getClass()) {
+                sAppbarClass = appbar.getClass();
+                sLiftOnScroll = null;
+                sAppbarBorder = null;
+                try {
+                    sLiftOnScroll = sAppbarClass.getMethod("setLiftOnScroll", boolean.class);
+                } catch (Throwable ignored) {
+                }
+                try {
+                    sAppbarBorder = sAppbarClass.getDeclaredField("b");
+                    sAppbarBorder.setAccessible(true);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (sLiftOnScroll != null) sLiftOnScroll.invoke(appbar, false);
+            if (sAppbarBorder != null && sAppbarBorder.getBoolean(appbar)) {
+                sAppbarBorder.setBoolean(appbar, false);
+                changed = true;
+            }
         } catch (Throwable ignored) {
         }
-        appbar.invalidate();
+        if (changed) appbar.invalidate();
     }
 
     private static final WeakHashMap<View, TabGlow> TAB_GLOWS = new WeakHashMap<>();
@@ -1741,10 +1918,12 @@ public final class ModernUi {
         float density = banner.getResources().getDisplayMetrics().density;
         int height = Math.round(140f * density);
         if (!hidden) restoreBannerArt(banner);
-        if (banner instanceof ImageView) {
+        if (banner instanceof ImageView && ((ImageView) banner).getAdjustViewBounds()) {
             ((ImageView) banner).setAdjustViewBounds(false);
         }
-        banner.setMinimumHeight(height);
+        // This runs before every frame. setMinimumHeight always requests a layout, even for
+        // the same value, which kept the home screen laying itself out on every frame.
+        if (banner.getMinimumHeight() != height) banner.setMinimumHeight(height);
         ViewGroup.LayoutParams lp = banner.getLayoutParams();
         int visibility = hidden ? View.INVISIBLE : View.VISIBLE;
         if (banner.getVisibility() != visibility) banner.setVisibility(visibility);
@@ -1762,15 +1941,15 @@ public final class ModernUi {
         }
         // This runs before every draw. Repeating the text measure and the tab recolor
         // stalls a swipe, so the heavy pass only runs again when the header actually changes.
-        int signature = bannerSignature(banner, container, hidden, height);
+        HeaderViews views = headerViews(banner, container);
+        int signature = bannerSignature(banner, container, views, hidden, height);
         Integer applied = BANNER_SIG.get(banner);
         if (applied != null && applied == signature) {
             // Joey can put the picture colour back over the blur between frames.
             clearPictureTint(banner);
             if (banner.getBackground() != null) banner.setBackground(null);
-            followWash(container, banner);
-            View collapsing = container.getParent() instanceof View ? (View) container.getParent() : null;
-            if (collapsing != null && homeFeed(activityOf(context))) followToolbar(collapsing, container);
+            followWash(views, banner);
+            if (views.collapsing != null && views.home) followToolbar(views);
             return;
         }
         BANNER_SIG.put(banner, signature);
@@ -1804,13 +1983,13 @@ public final class ModernUi {
     }
 
     /** Picture, title and size. Position is left out so a scroll does not restyle the header. */
-    private static int bannerSignature(View banner, View container, boolean hidden, int height) {
+    private static int bannerSignature(View banner, View container, HeaderViews views, boolean hidden, int height) {
         int art = 0;
         if (banner instanceof ImageView) {
             android.graphics.drawable.Drawable drawable = ((ImageView) banner).getDrawable();
             art = drawable == null ? 0 : System.identityHashCode(drawable);
         }
-        View card = container.findViewWithTag("morphe_slot_card");
+        View card = views.card(container);
         int cardHeight = card == null ? -1 : card.getHeight();
         int hash = hidden ? 1 : 0;
         hash = 31 * hash + height;
@@ -1819,9 +1998,10 @@ public final class ModernUi {
         hash = 31 * hash + art;
         hash = 31 * hash + cardHeight;
         hash = 31 * hash + container.getWidth();
-        hash = 31 * hash + String.valueOf(textOf(container, "top_info_headline")).hashCode();
-        hash = 31 * hash + String.valueOf(textOf(container, "top_info_desc")).hashCode();
-        hash = 31 * hash + chipSignature(container);
+        // Joey's setText gives the view a new text object, so identity is enough to see a change.
+        hash = 31 * hash + (views.headline == null ? 0 : System.identityHashCode(views.headline.getText()));
+        hash = 31 * hash + (views.desc == null ? 0 : System.identityHashCode(views.desc.getText()));
+        hash = 31 * hash + chipSignature(views.chips);
         Palette palette = getPalette(banner.getContext());
         hash = 31 * hash + palette.accent;
         hash = 31 * hash + palette.primary;
@@ -1829,8 +2009,7 @@ public final class ModernUi {
     }
 
     /** Join and sort labels, so a chip change still restyles the header. */
-    private static int chipSignature(View container) {
-        View chips = findChild(container, "top_info_chipGroup");
+    private static int chipSignature(View chips) {
         if (!(chips instanceof ViewGroup)) return 0;
         ViewGroup group = (ViewGroup) chips;
         int hash = group.getChildCount();
@@ -1842,10 +2021,64 @@ public final class ModernUi {
         return hash;
     }
 
+    /**
+     * The header's own views, found once per header. The per-frame check used to search
+     * the header for each of these by id or tag on every frame.
+     */
+    private static final int HEADER_VIEWS = 0x4d4f0040;
+
+    private static final class HeaderViews {
+        View container;
+        TextView headline;
+        TextView desc;
+        View chips;
+        View collapsing;
+        View toolbar;
+        View hsv;
+        boolean home;
+        private View card;
+        private View wash;
+
+        View card(View parent) {
+            if (card == null || card.getParent() != parent) {
+                card = parent.findViewWithTag("morphe_slot_card");
+            }
+            return card;
+        }
+
+        View wash(View parent) {
+            if (wash == null || wash.getParent() != parent) {
+                wash = parent.findViewWithTag("morphe_slot_wash");
+            }
+            return wash;
+        }
+    }
+
+    private static HeaderViews headerViews(View banner, View container) {
+        Object tag = banner.getTag(HEADER_VIEWS);
+        View collapsing = container.getParent() instanceof View ? (View) container.getParent() : null;
+        if (tag instanceof HeaderViews) {
+            HeaderViews views = (HeaderViews) tag;
+            if (views.container == container && views.collapsing == collapsing) return views;
+        }
+        HeaderViews views = new HeaderViews();
+        views.container = container;
+        View headline = findChild(container, "top_info_headline");
+        View desc = findChild(container, "top_info_desc");
+        views.headline = headline instanceof TextView ? (TextView) headline : null;
+        views.desc = desc instanceof TextView ? (TextView) desc : null;
+        views.chips = findChild(container, "top_info_chipGroup");
+        views.hsv = findChild(container, "top_info_hsv");
+        views.collapsing = collapsing;
+        views.toolbar = collapsing == null ? null : findChild(collapsing, "toolbar");
+        views.home = homeFeed(activityOf(banner.getContext()));
+        banner.setTag(HEADER_VIEWS, views);
+        return views;
+    }
+
     /** Keeps the blur lined up when the banner moves, without rebuilding it. */
-    private static void followWash(View container, View banner) {
-        if (!(container instanceof ViewGroup)) return;
-        View wash = ((ViewGroup) container).findViewWithTag("morphe_slot_wash");
+    private static void followWash(HeaderViews views, View banner) {
+        View wash = views.wash(views.container);
         if (wash == null || wash.getVisibility() != View.VISIBLE) return;
         float dx = banner.getLeft() - wash.getLeft();
         float dy = banner.getTop() - wash.getTop();
@@ -1856,9 +2089,9 @@ public final class ModernUi {
     }
 
     /** Keeps the home toolbar beside the chips while the header scrolls. */
-    private static void followToolbar(View collapsing, View container) {
-        View toolbar = findChild(collapsing, "toolbar");
-        View chips = findChild(container, "top_info_hsv");
+    private static void followToolbar(HeaderViews views) {
+        View toolbar = views.toolbar;
+        View chips = views.hsv;
         if (toolbar == null || chips == null || chips.getHeight() == 0) return;
         int target = chips.getTop() + (chips.getHeight() - toolbar.getHeight()) / 2;
         float shift = target - toolbar.getTop();
@@ -3047,6 +3280,8 @@ public final class ModernUi {
         View toolbar = findChild(collapsing, "toolbar");
         if (toolbar == null) return;
         int color = show ? getPalette(toolbar.getContext()).onSurface : 0;
+        // Called on every header scroll step. Skip it while the title already has this colour.
+        if (titleColored(toolbar, color)) return;
         try {
             if (sTitleColor == null) {
                 sTitleColor = toolbar.getClass().getMethod("setTitleTextColor", int.class);
@@ -3056,6 +3291,21 @@ public final class ModernUi {
             sSubtitleColor.invoke(toolbar, color);
         } catch (Throwable ignored) {
         }
+    }
+
+    /** True when every text in the toolbar (title and subtitle) already shows this colour. */
+    private static boolean titleColored(View toolbar, int color) {
+        if (!(toolbar instanceof ViewGroup)) return false;
+        ViewGroup group = (ViewGroup) toolbar;
+        boolean any = false;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView && !(child instanceof android.widget.Button)) {
+                any = true;
+                if (((TextView) child).getCurrentTextColor() != color) return false;
+            }
+        }
+        return any;
     }
 
     private static void setBarExpanded(View container, boolean expanded) {
@@ -3138,7 +3388,7 @@ public final class ModernUi {
     }
 
     private static void restoreBannerArt(View banner) {
-        banner.setWillNotDraw(false);
+        if (banner.willNotDraw()) banner.setWillNotDraw(false);
         if (banner instanceof ImageView && ((ImageView) banner).getImageAlpha() == 0) {
             ((ImageView) banner).setImageAlpha(255);
         }
@@ -3593,7 +3843,7 @@ public final class ModernUi {
         return false;
     }
 
-    private static final Map<String, Integer> RES_IDS = new HashMap<>();
+    private static final Map<String, Integer> RES_IDS = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static int getResId(Context context, String name, String type) {
         String key = type + ":" + name;

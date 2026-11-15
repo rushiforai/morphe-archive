@@ -27,50 +27,39 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.widget.ImageView;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.patches.customise.font.CustomFontContext;
-import app.morphe.extension.instagram.settings.SettingsActivity;
-import app.morphe.extension.instagram.ui.RexVectorIcons;
+import app.morphe.extension.instagram.settings.ActivityHook;
 import app.morphe.extension.shared.ResourceUtils;
 
 public final class InstagramPreferenceStyle {
-    public static final String EXTRA_LEFT_ICON_PATH = "rex_left_icon_path";
-    public static final String EXTRA_RIGHT_ICON_PATH = "rex_right_icon_path";
-
     static final long NAVIGATION_DRAG_DURATION_MS = 120L;
     private static final String TAG_TITLE = "rex_instagram_pref_title";
     private static final String TAG_SUMMARY = "rex_instagram_pref_summary";
+    private static final String TAG_TEXT_COLUMN = "rex_instagram_pref_text_column";
+    private static final String TAG_RESULT_CATEGORY = "rex_instagram_search_result_category";
+    private static final String TAG_RESULT_CATEGORY_ROW = "rex_instagram_search_result_category_row";
+    private static final String TAG_RESULT_CATEGORY_ICON = "rex_instagram_search_result_category_icon";
     private static final String TAG_SWITCH = "rex_instagram_pref_switch";
     private static final String TAG_TRAILING = "rex_instagram_pref_trailing";
     private static final String IGDS_SWITCH_CLASS_NAME =
             "com.instagram.igds.components.switchbutton.IgdsSwitch";
 
+    public static final int TRAILING_NONE = 0;
     public static final int TRAILING_SWITCH = 1;
     public static final int TRAILING_CHEVRON = 2;
     private static final int TRAILING_CHECK = 3;
 
     private InstagramPreferenceStyle() {
-    }
-
-    public static void setLeftIcon(Preference preference, String svgPath) {
-        if (preference != null && svgPath != null) {
-            preference.getExtras().putString(EXTRA_LEFT_ICON_PATH, svgPath);
-        }
-    }
-
-    public static void setRightIcon(Preference preference, String svgPath) {
-        if (preference != null && svgPath != null) {
-            preference.getExtras().putString(EXTRA_RIGHT_ICON_PATH, svgPath);
-        }
     }
 
     private static String chevronDrawableName(int layoutDirection) {
@@ -80,11 +69,11 @@ public final class InstagramPreferenceStyle {
     }
 
     private static int topPaddingDp(int trailingType, boolean hasSummary) {
-        return hasSummary || trailingType == TRAILING_SWITCH ? 10 : 14;
+        return hasSummary || trailingType == TRAILING_SWITCH ? 10 : 15;
     }
 
     private static int bottomPaddingDp(int trailingType, boolean hasSummary) {
-        return hasSummary || trailingType == TRAILING_SWITCH ? 14 : 14;
+        return hasSummary || trailingType == TRAILING_SWITCH ? 20 : 15;
     }
 
     public static int dp(Context context, float value) {
@@ -104,29 +93,34 @@ public final class InstagramPreferenceStyle {
     ) {
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setPadding(dp(context, 12), dp(context, 8),
-                dp(context, 12), dp(context, 8));
+        toolbar.setPadding(dp(context, 15), dp(context, 10),
+                dp(context, 15), dp(context, 8));
         toolbar.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(context, 60)));
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(context, 70)));
 
         back.setScaleType(ImageView.ScaleType.CENTER);
-        back.setPaddingRelative(dp(context, 6), dp(context, 6), dp(context, 6), dp(context, 6));
+        back.setPaddingRelative(0, 0, dp(context, 16), 0);
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(
-                dp(context, 40), dp(context, 40));
+                dp(context, 44), dp(context, 44));
         backParams.gravity = Gravity.CENTER_VERTICAL;
         back.setLayoutParams(backParams);
 
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
-        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        title.setGravity(Gravity.CENTER);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, isRootSettings ? 25 : 20);
+        title.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
         title.setIncludeFontPadding(false);
         title.setMaxLines(1);
+        if (!isRootSettings) {
+            title.setAutoSizeTextTypeUniformWithConfiguration(
+                    18, 20, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         titleParams.gravity = Gravity.CENTER_VERTICAL;
+        titleParams.leftMargin = dp(context, 7);
         title.setLayoutParams(titleParams);
     }
 
+    /** Matches platform preference dialogs to Instagram's resolved theme. */
     public static Context dialogContext(Context context) {
         int themeRes = UI.isDarkMode()
                 ? android.R.style.Theme_DeviceDefault
@@ -143,6 +137,17 @@ public final class InstagramPreferenceStyle {
         return ResourceUtils.getColor("igds_elevated_highlight_background", fallback);
     }
 
+    public static int searchBackgroundColor() {
+        int themedBackground = backgroundColor();
+        int luminance = 299 * Color.red(themedBackground)
+                + 587 * Color.green(themedBackground)
+                + 114 * Color.blue(themedBackground);
+        if (luminance < 128000) {
+            return Color.rgb(43, 48, 54);
+        }
+        return Color.rgb(241, 242, 246);
+    }
+
     public static int primaryTextColor() {
         return UI.getThemedColour("igds_color_primary_text");
     }
@@ -153,6 +158,11 @@ public final class InstagramPreferenceStyle {
 
     public static int disabledTextColor() {
         return UI.getThemedColour("igds_color_separator");
+    }
+
+    private static void alignTextToLocaleStart(TextView textView) {
+        textView.setTextDirection(View.TEXT_DIRECTION_LOCALE);
+        textView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
     }
 
     public static int selectionColor() {
@@ -175,26 +185,73 @@ public final class InstagramPreferenceStyle {
     }
 
     public static View createPreferenceView(Context context, int trailingType) {
-        return createPreferenceView(context, trailingType, null);
+        return createPreferenceView(context,trailingType,null);
     }
 
     public static View createPreferenceView(Context context, int trailingType, String iconResName) {
         PreferenceRow row = new PreferenceRow(context, trailingType);
-        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setOrientation(trailingType == TRAILING_SWITCH ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(dp(context, 68));
-        row.setPadding(dp(context, 16), dp(context, 10), dp(context, 16), dp(context, 10));
+        row.setPadding(dp(context, 15), dp(context, 10), dp(context, 15), dp(context, 10));
         row.setBackgroundColor(backgroundColor());
         row.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
-        if (iconResName != null) {
+        if(iconResName!=null){
             row.setIcon(iconResName);
         }
 
+        if (trailingType == TRAILING_SWITCH) {
+            LinearLayout titleRow = new LinearLayout(context);
+            titleRow.setOrientation(LinearLayout.HORIZONTAL);
+            titleRow.setGravity(Gravity.CENTER_VERTICAL);
+            row.addView(titleRow, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            row.setHighlightView(titleRow);
+
+            TextView title = new TextView(context);
+            title.setTag(TAG_TITLE);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            title.setTextColor(primaryTextColor());
+            title.setIncludeFontPadding(true);
+            title.setSingleLine(false);
+            alignTextToLocaleStart(title);
+            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+            );
+            titleParams.setMarginEnd(dp(context, 14));
+            titleRow.addView(title, titleParams);
+
+            CompoundButton switchView = createNativeSwitch(nativeSwitchContext(context));
+            switchView.setClickable(false);
+            switchView.setFocusable(false);
+            switchView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            switchView.setTag(TAG_SWITCH);
+            titleRow.addView(switchView, new LinearLayout.LayoutParams(dp(context, 52), dp(context, 32)));
+
+            TextView summary = new TextView(context);
+            summary.setTag(TAG_SUMMARY);
+            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            summary.setTextColor(secondaryTextColor());
+            summary.setLineSpacing(dp(context, 1), 1.0f);
+            alignTextToLocaleStart(summary);
+            summary.setPadding(0, dp(context, 10), 0, 0);
+            row.addView(summary, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+
+            return row;
+        }
+
         LinearLayout textColumn = new LinearLayout(context);
+        textColumn.setTag(TAG_TEXT_COLUMN);
         textColumn.setOrientation(LinearLayout.VERTICAL);
         textColumn.setGravity(Gravity.CENTER_VERTICAL);
 
@@ -203,17 +260,16 @@ public final class InstagramPreferenceStyle {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1f
         );
-        textParams.rightMargin = dp(context, 14);
+        textParams.setMarginEnd(dp(context, 14));
         row.addView(textColumn, textParams);
-        row.setHighlightView(textColumn);
 
         TextView title = new TextView(context);
         title.setTag(TAG_TITLE);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         title.setTextColor(primaryTextColor());
         title.setIncludeFontPadding(true);
         title.setSingleLine(false);
+        alignTextToLocaleStart(title);
         textColumn.addView(title, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -221,31 +277,26 @@ public final class InstagramPreferenceStyle {
 
         TextView summary = new TextView(context);
         summary.setTag(TAG_SUMMARY);
-        summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         summary.setTextColor(secondaryTextColor());
-        summary.setLineSpacing(dp(context, 1), 1.05f);
-        summary.setPadding(0, dp(context, 4), 0, 0);
+        summary.setLineSpacing(dp(context, 1), 1.0f);
+        alignTextToLocaleStart(summary);
+        summary.setPadding(0, dp(context, 10), 0, 0);
         textColumn.addView(summary, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
-        if (trailingType == TRAILING_SWITCH) {
-            CompoundButton switchView = createNativeSwitch(nativeSwitchContext(context));
-            switchView.setClickable(false);
-            switchView.setFocusable(false);
-            switchView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            switchView.setTag(TAG_SWITCH);
-            row.addView(switchView, new LinearLayout.LayoutParams(dp(context, 52), dp(context, 32)));
-        } else if (trailingType == TRAILING_CHEVRON) {
+        if (trailingType == TRAILING_CHEVRON) {
             ImageView trailing = new ImageView(context);
             trailing.setTag(TAG_TRAILING);
-            trailing.setImageDrawable(RexVectorIcons.get(
-                    context,
-                    RexVectorIcons.IC_CHEVRON_RIGHT,
-                    secondaryTextColor(),
-                    16
-            ));
+            UI.setThemedIcon(
+                    trailing,
+                    chevronDrawableName(
+                            context.getResources().getConfiguration().getLayoutDirection()
+                    ),
+                    "igds_color_secondary_icon"
+            );
             trailing.setScaleType(ImageView.ScaleType.CENTER);
             row.addView(trailing, new LinearLayout.LayoutParams(dp(context, 22), dp(context, 34)));
         }
@@ -253,24 +304,70 @@ public final class InstagramPreferenceStyle {
         return row;
     }
 
+    public static View createSearchResultView(Context context) {
+        View view = createPreferenceView(context, TRAILING_CHEVRON);
+
+        TextView description = view.findViewWithTag(TAG_SUMMARY);
+        if (description != null) {
+            description.setMaxLines(2);
+            description.setEllipsize(TextUtils.TruncateAt.END);
+        }
+
+        LinearLayout textColumn = view.findViewWithTag(TAG_TEXT_COLUMN);
+        if (textColumn != null) {
+            LinearLayout categoryRow = new LinearLayout(context);
+            categoryRow.setTag(TAG_RESULT_CATEGORY_ROW);
+            categoryRow.setOrientation(LinearLayout.HORIZONTAL);
+            categoryRow.setGravity(Gravity.CENTER_VERTICAL);
+            categoryRow.setVisibility(View.GONE);
+            textColumn.addView(categoryRow, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+
+            ImageView categoryIcon = new ImageView(context);
+            categoryIcon.setTag(TAG_RESULT_CATEGORY_ICON);
+            categoryIcon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            categoryIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    dp(context, 16),
+                    dp(context, 16)
+            );
+            iconParams.setMarginEnd(dp(context, 6));
+            categoryRow.addView(categoryIcon, iconParams);
+
+            TextView category = new TextView(context);
+            category.setTag(TAG_RESULT_CATEGORY);
+            category.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            category.setTextColor(secondaryTextColor());
+            category.setIncludeFontPadding(true);
+            category.setLineSpacing(dp(context, 1), 1.0f);
+            alignTextToLocaleStart(category);
+            category.setMaxLines(1);
+            category.setEllipsize(TextUtils.TruncateAt.END);
+            categoryRow.addView(category, new LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+            ));
+        }
+
+        return view;
+    }
+
     public static void bindText(Preference preference, View view) {
         Context context = view.getContext();
         boolean enabled = preference.isEnabled();
-
-        // Bind left vector icon if provided via extras
-        if (view instanceof PreferenceRow) {
-            String leftSvg = preference.getExtras().getString(EXTRA_LEFT_ICON_PATH);
-            if (!TextUtils.isEmpty(leftSvg)) {
-                ((PreferenceRow) view).setIcon(leftSvg);
-            }
-        }
+        boolean chevron = view instanceof PreferenceRow
+                && ((PreferenceRow) view).trailingType == TRAILING_CHEVRON;
+        boolean useNormalColors = enabled || chevron;
 
         TextView title = view.findViewWithTag(TAG_TITLE);
         TextView summary = view.findViewWithTag(TAG_SUMMARY);
         View trailing = view.findViewWithTag(TAG_TRAILING);
 
-        int titleColor = enabled ? primaryTextColor() : disabledTextColor();
-        int summaryColor = enabled ? secondaryTextColor() : disabledTextColor();
+        int titleColor = useNormalColors ? primaryTextColor() : disabledTextColor();
+        int summaryColor = useNormalColors ? secondaryTextColor() : disabledTextColor();
 
         if (title != null) {
             title.setText(preference.getTitle());
@@ -293,24 +390,78 @@ public final class InstagramPreferenceStyle {
         if (trailing != null) {
             trailing.setEnabled(enabled);
             if (trailing instanceof ImageView) {
-                String rightSvg = preference.getExtras().getString(EXTRA_RIGHT_ICON_PATH);
-                int trailingColor = enabled
+                int trailingColor = useNormalColors
                         ? UI.getThemedColour("igds_color_secondary_icon")
                         : disabledTextColor();
-                if (!TextUtils.isEmpty(rightSvg)) {
-                    ((ImageView) trailing).setImageDrawable(
-                            RexVectorIcons.get(context, rightSvg, trailingColor, 18)
-                    );
-                } else {
-                    ((ImageView) trailing).setImageDrawable(
-                            RexVectorIcons.get(context, RexVectorIcons.IC_CHEVRON_RIGHT, trailingColor, 16)
-                    );
-                }
+                ((ImageView) trailing).setColorFilter(new PorterDuffColorFilter(
+                        trailingColor,
+                        PorterDuff.Mode.SRC_ATOP
+                ));
             }
             trailing.invalidate();
         }
 
+        if (chevron) {
+            view.setAlpha(enabled ? 1.0f : 0.5f);
+        }
         view.setEnabled(enabled);
+    }
+
+    public static void bindSearchResult(
+            Preference preference,
+            View view,
+            CharSequence categoryText,
+            String categoryIconResourceName
+    ) {
+        bindText(preference, view);
+
+        Context context = view.getContext();
+        TextView description = view.findViewWithTag(TAG_SUMMARY);
+        View categoryRow = view.findViewWithTag(TAG_RESULT_CATEGORY_ROW);
+        ImageView categoryIcon = view.findViewWithTag(TAG_RESULT_CATEGORY_ICON);
+        TextView category = view.findViewWithTag(TAG_RESULT_CATEGORY);
+        boolean hasDescription = description != null
+                && description.getVisibility() == View.VISIBLE;
+        boolean hasCategory = !TextUtils.isEmpty(categoryText);
+        boolean hasCategoryIcon = hasCategory
+                && !TextUtils.isEmpty(categoryIconResourceName);
+
+        if (categoryRow != null) {
+            categoryRow.setVisibility(hasCategory ? View.VISIBLE : View.GONE);
+            categoryRow.setPaddingRelative(
+                    0,
+                    dp(context, hasDescription ? 4 : 10),
+                    0,
+                    0
+            );
+        }
+
+        if (categoryIcon != null) {
+            categoryIcon.setVisibility(hasCategoryIcon ? View.VISIBLE : View.GONE);
+            if (hasCategoryIcon) {
+                if (categoryIconResourceName.startsWith("rex_vec_")) {
+                    categoryIcon.setImageDrawable(RexVectorIcons.create(context, categoryIconResourceName, secondaryTextColor(), 18));
+                } else {
+                    UI.setThemedIcon(categoryIcon, categoryIconResourceName);
+                }
+            }
+        }
+
+        if (category != null) {
+            category.setText(hasCategory ? categoryText : "");
+            category.setTextColor(preference.isEnabled()
+                    ? secondaryTextColor()
+                    : disabledTextColor());
+            category.setEnabled(preference.isEnabled());
+        }
+
+        if (view instanceof PreferenceRow) {
+            PreferenceRow row = (PreferenceRow) view;
+            row.setHasSummary(hasDescription || hasCategory);
+            int verticalPadding = dp(context, 15);
+            row.setPadding(row.getPaddingLeft(), verticalPadding,
+                    row.getPaddingRight(), verticalPadding);
+        }
     }
 
     public static void setTrailingVisible(View view, boolean visible) {
@@ -322,7 +473,7 @@ public final class InstagramPreferenceStyle {
     }
 
     public static void bindIcon(View view, String iconResName) {
-        if (view instanceof PreferenceRow && iconResName != null) {
+        if (view instanceof PreferenceRow) {
             ((PreferenceRow) view).setIcon(iconResName);
         }
     }
@@ -461,10 +612,13 @@ public final class InstagramPreferenceStyle {
     public static boolean useMaterialSwitchStyle(View view, boolean original) {
         Context context = view.getContext();
         while (context instanceof ContextWrapper) {
-            if (context instanceof SettingsActivity) {
+            if (context instanceof Activity && ActivityHook.isRex((Activity) context)) {
                 return true;
             }
             context = ((ContextWrapper) context).getBaseContext();
+        }
+        if (context instanceof Activity && ActivityHook.isRex((Activity) context)) {
+            return true;
         }
         return original;
     }
@@ -509,6 +663,7 @@ public final class InstagramPreferenceStyle {
         private boolean switchAccessibilityChecked;
         private ImageView iconView;
 
+
         PreferenceRow(Context context, int trailingType) {
             this(context, trailingType, null);
         }
@@ -527,15 +682,21 @@ public final class InstagramPreferenceStyle {
 
         private void initIconView(Context context) {
             iconView = new ImageView(context);
-            int iconSize = dp(context, 22);
+
+            int iconSize = dp(context, 24);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(iconSize, iconSize);
+
+            params.setMarginStart(dp(context, 16));
             params.setMarginEnd(dp(context, 16));
             iconView.setLayoutParams(params);
+
             iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             addView(iconView, 0);
         }
 
         void setIcon(String iconResName) {
+            int horizontalPadding = dp(getContext(), iconResName != null ? 10 : 15);
+            setPadding(horizontalPadding, getPaddingTop(), horizontalPadding, getPaddingBottom());
             if (iconResName == null) {
                 if (iconView != null) {
                     iconView.setImageDrawable(null);
@@ -546,13 +707,9 @@ public final class InstagramPreferenceStyle {
             if (iconView == null) {
                 initIconView(getContext());
             }
-            if (RexVectorIcons.isVectorIcon(iconResName) || iconResName.startsWith("M")) {
-                iconView.setImageDrawable(RexVectorIcons.get(
-                        getContext(),
-                        iconResName,
-                        primaryTextColor(),
-                        22
-                ));
+            if (iconResName.startsWith("rex_vec_")) {
+                iconView.setImageDrawable(RexVectorIcons.create(getContext(), iconResName, primaryTextColor(), 24));
+                iconView.clearColorFilter();
             } else {
                 UI.setThemedIcon(iconView, iconResName);
             }
@@ -591,7 +748,8 @@ public final class InstagramPreferenceStyle {
             invalidate();
 
             animate().cancel();
-            float translationZ = dragging ? dp(getContext(), 5f) : 0f;
+            float translationZ = dragging
+                    ? dp(getContext(), 5f) : 0f;
             if (animateState) {
                 animate()
                         .translationZ(translationZ)
@@ -605,7 +763,7 @@ public final class InstagramPreferenceStyle {
         void setHasSummary(boolean hasSummary) {
             int topPadding = dp(getContext(), topPaddingDp(trailingType, hasSummary));
             int bottomPadding = dp(getContext(), bottomPaddingDp(trailingType, hasSummary));
-            setMinimumHeight(dp(getContext(), hasSummary ? 72 : 56));
+            setMinimumHeight(dp(getContext(), hasSummary ? 80 : 64));
             setPadding(getPaddingLeft(), topPadding, getPaddingRight(), bottomPadding);
         }
 
@@ -672,16 +830,22 @@ public final class InstagramPreferenceStyle {
             if (!pressedHighlightEnabled || !isEnabled()) {
                 return false;
             }
+
             if (trailingType != TRAILING_SWITCH) {
                 return true;
             }
+
             if (highlightView == null || y < highlightTop() || y > highlightBottom()) {
                 return false;
             }
+
+            // Highlight the switch row when its text area is pressed, but never when the
+            // switch itself is tapped; the switch provides its own touch feedback.
             View excludedView = findViewWithTag(TAG_SWITCH);
             if (excludedView == null) {
                 return true;
             }
+
             int horizontalSlop = dp(getContext(), 10);
             int verticalSlop = dp(getContext(), 3);
             switchHitRect.set(0, 0, excludedView.getWidth(), excludedView.getHeight());
@@ -743,7 +907,10 @@ public final class InstagramPreferenceStyle {
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(secondaryTextColor());
             for (int line = 0; line < 3; line++) {
-                float centerY = dp(getContext(), 8f + 4f * line);
+                float centerY = dp(
+                        getContext(),
+                        8f + 4f * line
+                );
                 canvas.drawRoundRect(
                         left,
                         centerY - radius,

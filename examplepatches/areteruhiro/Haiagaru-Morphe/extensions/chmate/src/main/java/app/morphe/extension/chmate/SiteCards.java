@@ -24,6 +24,8 @@ final class SiteCards {
     private static final ThreadLocal<TextView> WRITING=new ThreadLocal<>();
     private static int revision;
     private static volatile int generation;
+    private static String exclusionsSource;
+    private static List<SiteCardExclusions.Rule> exclusions=Collections.emptyList();
     private static final Object DISK = new Object();
     private static final class Entry {
         SiteCardMetadata.Data data; boolean pending,imageTried,imageLoaded; long expiry,retry;
@@ -51,9 +53,10 @@ final class SiteCards {
     private static List<String> urls(CharSequence source){
         LinkedHashSet<String> result=new LinkedHashSet<>();
         int maximum=Haiagaru.siteCardMaxPerResponse();
+        List<SiteCardExclusions.Rule> ignored=excludedRules();
         for(String candidate:PreviewUrls.extract(XPostPreview.originalText(strip(source)),32)){
             String url=SiteCardMetadata.safeUrl(candidate);
-            if(url==null)continue;
+            if(url==null||SiteCardExclusions.excluded(ignored,url))continue;
             android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
             if(host.equals("x.com")||host.endsWith(".x.com")||host.equals("twitter.com")||host.endsWith(".twitter.com")
                     ||host.equals("youtu.be")||host.endsWith("youtube.com")||host.endsWith("5ch.io")||host.endsWith("5ch.net")
@@ -61,6 +64,15 @@ final class SiteCards {
             result.add(url);
             if(result.size()>=maximum)break;
         }return new ArrayList<>(result);
+    }
+    private static synchronized List<SiteCardExclusions.Rule> excludedRules(){
+        String source=Haiagaru.siteCardExcludedUrls();
+        if(!source.equals(exclusionsSource)){
+            try{exclusions=SiteCardExclusions.parse(source);}
+            catch(IllegalArgumentException invalid){exclusions=SiteCardExclusions.parse(SiteCardExclusions.DEFAULT);}
+            exclusionsSource=source;
+        }
+        return exclusions;
     }
     static void onBound(Object object){
         if(!DirectBodySelection.isBody(object)||writing(object)||Looper.myLooper()!=Looper.getMainLooper())return;
@@ -131,17 +143,22 @@ final class SiteCards {
         entry.pending=true;Entry target=entry;int token=generation;
         try{WORKER.execute(()->{
             if(token!=generation)return;
+            if(SiteCardExclusions.excluded(excludedRules(),url)){
+                MAIN.post(()->{if(CACHE.get(url)==target){target.pending=false;target.waiting.clear();}});
+                return;
+            }
             SiteCardMetadata.Data data=target.data,previous=data;Bitmap bitmap=null;
             try{
                 if(data==null||target.expiry<=System.currentTimeMillis()){
                     data=SiteCardMetadata.cached(url);
-                    if(data==null&&Haiagaru.siteCardsEnabled()){
+                    if(data==null&&Haiagaru.siteCardsEnabled()&&!SiteCardExclusions.excluded(excludedRules(),url)){
                         data=SiteCardMetadata.fetch(url);
                         if(data!=null)synchronized(DISK){if(token==generation)SiteCardMetadata.store(data);}
                     }
                 }
                 if(data==null&&previous!=null&&System.currentTimeMillis()<=previous.savedAt+Haiagaru.siteCardCacheDurationMillis()+600_000)data=previous;
-                if(data!=null&&image&&Haiagaru.siteCardsEnabled()&&Haiagaru.siteCardImages()&&!data.image.isEmpty())
+                if(data!=null&&image&&Haiagaru.siteCardsEnabled()&&Haiagaru.siteCardImages()&&!data.image.isEmpty()
+                        &&!SiteCardExclusions.excluded(excludedRules(),url))
                     bitmap=SiteCardMetadata.image(data.image,data.tunnel||ImageVpnController.protectedPreview(url));
             }catch(Exception|OutOfMemoryError ignored){
                 if(data==null&&previous!=null&&System.currentTimeMillis()<=previous.savedAt+Haiagaru.siteCardCacheDurationMillis()+600_000)data=previous;

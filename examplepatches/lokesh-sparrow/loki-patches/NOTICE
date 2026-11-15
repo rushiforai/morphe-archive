@@ -35,7 +35,8 @@ came from.
 -------------------------------
 
 Loki Patches is maintained by Lokesh Sparrow. It is a patch bundle for the
-LinkedIn Android app and is used together with Morphe.
+LinkedIn, Splitwise, Truecaller and Doc Scanner Android apps, and is used
+together with Morphe.
 
 The code in this repository is written by Lokesh Sparrow.
 
@@ -85,7 +86,8 @@ first; the answer is usually yes with a different arrangement.
 3. What this licence does not cover
 -----------------------------------
 
-The patches modify LinkedIn's app on the user's own device. LinkedIn's
-application, its name and its trademarks belong to LinkedIn and are not
-covered by this licence or by this NOTICE. Nothing here grants permission to
-distribute a modified copy of the LinkedIn app.
+The patches modify apps on the user's own device. Each app, its name and its
+trademarks belong to its owner (LinkedIn, Splitwise, Truecaller, and the
+developer of Doc Scanner) and are not covered by this licence or by this
+NOTICE. Nothing here grants permission to distribute a modified copy of any
+of these apps.

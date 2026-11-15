@@ -16,6 +16,8 @@ val undeleteImgurPatch = bytecodePatch(
     description = "Loads Imgur images and videos that no longer exist from the Wayback Machine.",
     default = true
 ) {
+    category("3. Archives")
+
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
 
     compatibleWith(*SyncForRedditCompatible)

@@ -39,15 +39,15 @@
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.7.2](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
 <summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 17.13.6 |
-| :---: |
+| 17.13.6 | 17.14.6 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -160,12 +160,13 @@ All patches are enabled by default.
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Change app name](#change-app-name) | Changes the name of the app shown in the Android launcher. | • App name |
+| [MicroG-RE maps support](#microg-re-maps-support) | Draws Google Maps with MicroG-RE's map renderer, which needs no API key and does not check the app's signing certificate. Fixes grey maps in a re-signed app. Needs MicroG-RE 7.0.0 or later installed. Without it the app keeps using Google Play Services. Only for apps that use the Google Maps SDK. |  |
 
 </details>
 

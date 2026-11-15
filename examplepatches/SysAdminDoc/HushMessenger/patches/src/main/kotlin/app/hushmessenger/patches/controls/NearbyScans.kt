@@ -75,13 +75,22 @@ private fun Method.calls(owner: String) = implementation?.instructions?.any {
  * task drives, and exactly one getScanResults, in the reader. A build with a scan or a read anywhere else gets no
  * hook, so the switch never claims more than it stops.
  */
+/** Methods that read scan results or start a scan of any kind. */
+internal val nearbyScanSites = methodCheck { _, method ->
+    method.implementation?.instructions?.any {
+        val call = (it as? ReferenceInstruction)?.reference as? MethodReference
+        call != null && (call.readsScanResults() || call.name == "startScan")
+    } == true
+}
+
 internal fun findNearbyScans(classes: Iterable<ClassDef>): List<Method> {
     val scheduler = classes.firstOrNull { it.type == FOREGROUND_LOCATION }?.methods?.singleOrNull { it.isNearbyScanScheduler() }
         ?: return emptyList()
     val wifi = mutableListOf<ClassDef>()
     val bluetooth = mutableListOf<ClassDef>()
     val readers = mutableListOf<Method>()
-    for (cls in classes) for (method in cls.methods) for (instruction in method.implementation?.instructions ?: emptyList()) {
+    // Only these methods add anything below, so the walk is over them alone.
+    for ((cls, method) in nearbyScanSites.sites(classes)) for (instruction in method.implementation?.instructions ?: emptyList()) {
         val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
         if (call.readsScanResults()) readers.add(method)
         if (call.name != "startScan") continue
@@ -157,21 +166,23 @@ private fun Method.keepsEveryWifiIdentityRead(): Boolean {
  * data) and the two methods of the Wi-Fi logger that writes down the access point's hardware address. A build where any
  * read's answer isn't kept right away gets no hook at all, so the switch never claims more than it hides.
  */
+internal val wifiIdentitySites = methodCheck { cls, method ->
+    !cls.type.startsWith(WEBRTC) && method.implementation?.instructions?.any { it.wifiIdentityFilter() != null } == true
+}
+
 internal fun findWifiIdentityReads(classes: Iterable<ClassDef>): List<Method> {
     val readers = mutableListOf<Method>()
-    for (cls in classes) {
-        if (cls.type.startsWith(WEBRTC)) continue
-        for (method in cls.methods) {
-            var reads = false
-            var pending = false
-            for (instruction in method.implementation?.instructions ?: continue) {
-                if (pending && instruction.opcode != Opcode.MOVE_RESULT_OBJECT) return emptyList()
-                pending = instruction.wifiIdentityFilter() != null
-                reads = reads || pending
-            }
-            if (pending) return emptyList()
-            if (reads) readers.add(method)
+    // A method with no read neither adds a reader nor refuses, so only the ones with a read are looked at.
+    for (method in wifiIdentitySites.methods(classes)) {
+        var reads = false
+        var pending = false
+        for (instruction in method.implementation?.instructions ?: continue) {
+            if (pending && instruction.opcode != Opcode.MOVE_RESULT_OBJECT) return emptyList()
+            pending = instruction.wifiIdentityFilter() != null
+            reads = reads || pending
         }
+        if (pending) return emptyList()
+        if (reads) readers.add(method)
     }
     return readers
 }

@@ -99,7 +99,7 @@ final class ReporterSearchUi {
                         Button item=new Button(activity);item.setAllCaps(false);
                         item.setText(row.title+"\n["+row.id+"★] "+format.format(new Date(row.created)));
                         item.setOnClickListener(w -> {
-                            try{activity.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(row.url)).setPackage(activity.getPackageName()));}
+                            try{EdgeReporterHistory.rememberArchive(row.created/1000L,row.title,"["+row.id+"★]");activity.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(row.url)).setPackage(activity.getPackageName()));}
                             catch(Exception unavailable){Toast.makeText(activity,"スレを開けませんでした",Toast.LENGTH_LONG).show();}
                         });results.addView(item);
                     }

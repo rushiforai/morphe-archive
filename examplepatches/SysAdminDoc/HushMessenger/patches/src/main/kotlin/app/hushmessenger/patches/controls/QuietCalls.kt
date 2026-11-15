@@ -154,11 +154,10 @@ internal fun Method.quietRing(): QuietRing? {
 }
 
 /** The app's only method that logs both "Maybe start ringing" and ringtone_disabled, when it has that branch. */
+internal val ringDeciders = MethodCheck(loadsString(RING_MARK))
+
 internal fun findQuietCallRing(classes: Iterable<ClassDef>): List<Method> {
-    val deciders = classes.flatMap { cls ->
-        cls.methods.filter { method -> method.implementation?.instructions?.any { it.string() == RING_MARK } == true }
-    }
-    val decider = deciders.singleOrNull() ?: return emptyList()
+    val decider = ringDeciders.methods(classes).singleOrNull() ?: return emptyList()
     return if (decider.quietRing() != null) listOf(decider) else emptyList()
 }
 

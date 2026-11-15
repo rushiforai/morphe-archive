@@ -9,11 +9,11 @@ package app.rex.patches.instagram.links
 import app.rex.patches.instagram.links.shareLinks.shareLinksPatch
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val customSharingDomainPatch =
-    bytecodePatch(
+    patch(
         name = "Custom sharing domain",
         description = "Allows for using custom domains when sharing posts, reels and stories.",
     ) {
@@ -22,6 +22,9 @@ val customSharingDomainPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
+            runCatching {
             enableSettings("customSharingDomain")
+        
+            }
         }
     }

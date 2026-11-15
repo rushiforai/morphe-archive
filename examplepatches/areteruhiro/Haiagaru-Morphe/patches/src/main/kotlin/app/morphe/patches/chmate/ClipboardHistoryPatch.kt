@@ -34,5 +34,6 @@ internal fun BytecodePatchContext.patchClipboardHistory(version: String) {
     }
     check(count > 0) { "No ChMate copy calls found" }
     patchPostingOverflowMenu(version, "ClipboardHistory", "clipboard")
+    patchPostingOverflowMenu(version, "PostingSettingLinks", "setting_links")
     println("Clipboard history: $version, $count copy calls")
 }

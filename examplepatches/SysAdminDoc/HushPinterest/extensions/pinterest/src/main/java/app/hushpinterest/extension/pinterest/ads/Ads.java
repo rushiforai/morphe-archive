@@ -141,6 +141,31 @@ public final class Ads {
     }
 
     /**
+     * Injected at the start of Pinterest's interstitial killswitch read, which asks whether the
+     * server has switched its full-screen ads off. True while the switch is on, and the read then
+     * answers that it has: tapping a pin opens it at once down Pinterest's own killswitch path, the
+     * launch prefetch returns first, and a running prefetcher is stopped. Never throws.
+     */
+    public static boolean killInterstitials() {
+        HookStatus.invoked(FamilyNames.HIDE_ADS);
+        if (!active()) return false;
+        HookStatus.counted(FamilyNames.HIDE_ADS, "Interstitial killswitch read as on");
+        return true;
+    }
+
+    /**
+     * Injected at the start of Pinterest's interstitial experiment check, asked about the house kind
+     * and the Google kind. True while the switch is on, and the check then answers that neither
+     * applies, so nothing behind it prefetches one. Never throws.
+     */
+    public static boolean skipInterstitials() {
+        HookStatus.invoked(FamilyNames.HIDE_ADS);
+        if (!active()) return false;
+        HookStatus.counted(FamilyNames.HIDE_ADS, "Interstitial experiment answered no");
+        return true;
+    }
+
+    /**
      * Injected at the start of {@code setVisibility} in each view Pinterest only builds for an ad.
      * Returns GONE while the switch is on, so the view stays folded away however often Pinterest
      * shows it again, and the visibility Pinterest asked for otherwise. Never throws.

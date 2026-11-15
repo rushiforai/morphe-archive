@@ -22,7 +22,6 @@ import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.entity.Entity;
 import app.morphe.extension.instagram.constants.UI;
-import app.morphe.extension.instagram.patches.download.DownloadUtils;
 
 import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.ReelButton;
 import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.DownloadButton;
@@ -58,9 +57,6 @@ public class AddReelButton {
         String icon = UI.DRAWABLE_DOWNLOAD_ICON;
         ReelButton reelButton = new DownloadButton(context, mediaObject, currentMediaIndex);
         String DOWNLOAD_BUTTON_TEXT = str("rex_download_options");
-        if(Pref.enableDirectDownload()){
-            DOWNLOAD_BUTTON_TEXT = str("rex_category_download_media");
-        }
 
         ReelOverflowButton reelOverflowButton = new ReelOverflowButton(icon,reelButton,DOWNLOAD_BUTTON_TEXT);
 
@@ -99,7 +95,6 @@ public class AddReelButton {
 
     // Called from hook — passes the real current carousel index.
     public static void includeCustomReelOverflowButtons(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
-        DownloadUtils.recordActiveReelMedia(mediaObject, null, currentMediaIndex);
         if(Pref.rexDebug()){
             AddReelButton.addDebugButton(context, helperObject, mediaObject, currentMediaIndex);
         }

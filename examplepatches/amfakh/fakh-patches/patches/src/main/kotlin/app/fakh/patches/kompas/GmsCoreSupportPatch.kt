@@ -29,7 +29,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     dependsOn(gmsCoreSupportResourcePatch(KOMPAS_PACKAGE, KOMPAS_SIGNATURE))
 
     execute {
-        redirectToGmsCore()
+        redirectToGmsCore(KOMPAS_SIGNATURE)
         warnWithoutGmsCore(
             "Lapp/fakh/extension/kompas/GmsCore;->require()V",
             "Lcom/google/android/gms/auth/api/signin/GoogleSignIn;" to "getClient",

@@ -70,9 +70,11 @@ internal fun Method.isStoryAdvanceCallback() = implementation?.instructions?.toL
  * The app's only story_playback_finished logger, taken when its hand-off calls a callback that moves the viewer on.
  * Any second logger, or a hand-off that goes elsewhere, leaves the switch unapplied.
  */
+internal val storyFinishedLoggers = MethodCheck(loadsString(STORY_FINISHED))
+
 internal fun findStoryHold(classes: Iterable<ClassDef>): List<Method> {
     val all = classes.toList()
-    val loggers = all.flatMap { cls -> cls.methods.filter { STORY_FINISHED in it.strings() } }
+    val loggers = storyFinishedLoggers.methods(classes)
     val completion = loggers.singleOrNull() ?: return emptyList()
     val advance = completion.storyAdvance() ?: return emptyList()
     val callback = all.firstOrNull { it.type == advance.callback.definingClass }?.methods?.singleOrNull {

@@ -13,6 +13,7 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -209,6 +210,34 @@ public final class UiHooks {
         }
     }
 
+    /**
+     * Stands in for the Save to sheet's add of the board Pinterest suggests for the pin, which goes
+     * under your own boards. The cell goes into the list unless the switch is on, so off or paused
+     * the sheet keeps it. The add runs outside any catch, so nothing here can drop the cell by failing.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void suggestedBoard(Collection cells, Object board) {
+        if (enabled(FamilyNames.HIDE_SUGGESTED_BOARDS, Settings.HIDE_SUGGESTED_BOARDS)) {
+            HookStatus.counted(FamilyNames.HIDE_SUGGESTED_BOARDS, "suggested board hidden");
+            return;
+        }
+        cells.add(board);
+    }
+
+    /** All the way up, in the percent of the screen the Save to sheet opens at. */
+    static final int FULL_SHEET = 100;
+
+    /**
+     * The Save to sheet's opening height, in percent of the screen. Pinterest opens it part way up
+     * for anything under 100. While the switch is on it opens all the way, and otherwise, or paused,
+     * at the height Pinterest gave.
+     */
+    public static int saveSheetHeight(int percent) {
+        if (!enabled(FamilyNames.EXPAND_BOARD_LIST, Settings.EXPAND_BOARD_LIST) || percent >= FULL_SHEET) return percent;
+        HookStatus.counted(FamilyNames.EXPAND_BOARD_LIST, "sheet opened all the way");
+        return FULL_SHEET;
+    }
+
     /** True has Pinterest's image model answer its original rendition first, where it has one. */
     public static boolean originalImages() {
         return enabled(FamilyNames.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES);
@@ -329,6 +358,24 @@ public final class UiHooks {
 
     public static boolean commentsVisible(boolean requested) {
         return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_COMMENTS) ? false : requested;
+    }
+
+    /**
+     * The comment previews and comment photos under a pin. Hide comments folds them with the rest
+     * of the module, and Hide comment previews folds only them, so the module's title, comment
+     * box and button to all comments stay. Off or paused, Pinterest's own value goes through.
+     */
+    public static int commentPreviewsVisibility(int requested) {
+        return previewsHidden() ? View.GONE : requested;
+    }
+
+    public static int commentPreviewsMeasureSpec(int requested) {
+        return previewsHidden() ? View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY) : requested;
+    }
+
+    private static boolean previewsHidden() {
+        return enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_COMMENTS)
+                || enabled(FamilyNames.HIDE_COMMENTS, Settings.HIDE_COMMENT_PREVIEWS);
     }
 
     /**

@@ -324,14 +324,15 @@ internal const val BACKGROUND_ATTRIBUTE = "igds_color_primary_background"
  * The attributes the background styles set, each with its step (#187). Instagram's other backgrounds
  * mostly point at these. The media, Reels and story loading backgrounds aren't here, so a story or a
  * reel still plays over black. Neither are the see-through ones (toasts, blurs), which already show
- * what's behind them.
+ * what's behind them. [ROW_ATTRIBUTE] is HushGram's, the one Pure black leaves a Likes row filling with.
  */
 internal val BACKGROUND_ATTRIBUTES: Map<String, BackgroundStep> = linkedMapOf(
     BACKGROUND_ATTRIBUTE to BackgroundStep.BASE,
     "status_bar_background" to BackgroundStep.BASE,
     "igds_color_cta_banner_background" to BackgroundStep.BASE,
     "igds_color_elevated_background" to BackgroundStep.RAISED,
-    "igds_color_elevated_background_dark" to BackgroundStep.RAISED,
+    ROW_BACKGROUND to BackgroundStep.RAISED,
+    ROW_ATTRIBUTE to BackgroundStep.RAISED,
     "igds_color_prism_card_background" to BackgroundStep.RAISED,
     "igds_color_generic_xma_background_color" to BackgroundStep.RAISED,
     "igds_color_secondary_background" to BackgroundStep.TOP,
@@ -340,6 +341,14 @@ internal val BACKGROUND_ATTRIBUTES: Map<String, BackgroundStep> = linkedMapOf(
     "igds_color_elevated_highlight_background" to BackgroundStep.TOP,
     "igds_color_pill_background" to BackgroundStep.TOP,
 )
+
+/**
+ * The ones of [backgrounds] the background styles for [theme] set. Instagram holds a dark gray in the
+ * ones named for a dark surface on a light theme too, for pills and buttons with light text on them,
+ * so a light style leaves those alone (#639).
+ */
+internal fun backgroundsFor(theme: IconTheme, backgrounds: Map<String, BackgroundStep>): Map<String, BackgroundStep> =
+    if (theme == IconTheme.LIGHT) backgrounds.filterKeys { !it.endsWith("_dark") } else backgrounds
 
 internal fun backgroundColor(palette: String, theme: IconTheme, step: BackgroundStep): String =
     "hushgram_accent_${palette.lowercase(Locale.ROOT)}_background_${theme.name.lowercase(Locale.ROOT)}_${step.name.lowercase(Locale.ROOT)}"
@@ -356,6 +365,29 @@ internal fun backgroundShade(fill: Int, theme: IconTheme, step: BackgroundStep):
         IconTheme.LIGHT -> channels { 0xff - Math.round((0xff - it) * step.lightShare) }
     }
 }
+
+/**
+ * Instagram's older look at each step, for Classic colors (#639): a navy screen with charcoal and gray
+ * panels in dark mode, an off-white screen with white and light gray panels in light mode.
+ */
+internal fun classicBackground(theme: IconTheme, step: BackgroundStep): Int = when (theme) {
+    IconTheme.DARK -> when (step) {
+        BackgroundStep.BASE -> 0x101b2d
+        BackgroundStep.RAISED -> 0x262626
+        BackgroundStep.TOP -> 0x363636
+    }
+    IconTheme.LIGHT -> when (step) {
+        BackgroundStep.BASE -> 0xfafafa
+        BackgroundStep.RAISED -> 0xffffff
+        BackgroundStep.TOP -> 0xefefef
+    }
+}
+
+internal fun classicColor(theme: IconTheme, step: BackgroundStep): String =
+    "hushgram_classic_background_${theme.name.lowercase(Locale.ROOT)}_${step.name.lowercase(Locale.ROOT)}"
+
+/** The style setting each of [BACKGROUND_ATTRIBUTES] declared to its [classicColor], for Classic colors (#639). */
+internal fun classicStyle(theme: IconTheme): String = "HushGramClassicBackgrounds_${theme.name.lowercase(Locale.ROOT)}"
 
 /** The background this color gives [theme] at [step]: its set's screen color with a little of the fill on each step up, or else [backgroundShade]. */
 internal fun AccentPalette.background(theme: IconTheme, step: BackgroundStep): Int {
@@ -382,9 +414,15 @@ private fun <T> declaredOf(table: Map<String, T>, attrs: Document): Map<String, 
 /** The ring attributes [attrs] declares. */
 private fun ringAttributes(attrs: Document): Map<String, AccentRole> = declaredOf(RING_ATTRIBUTES, attrs)
 
-/** The background attributes [attrs] declares, or none without [BACKGROUND_ATTRIBUTE]. */
-private fun backgroundAttributes(attrs: Document): Map<String, BackgroundStep> =
-    declaredOf(BACKGROUND_ATTRIBUTES, attrs).takeIf { BACKGROUND_ATTRIBUTE in it }.orEmpty()
+/**
+ * The background attributes [attrs] declares, or none without [BACKGROUND_ATTRIBUTE]. [ROW_ATTRIBUTE]
+ * counts wherever [ROW_BACKGROUND] is declared, since [declareRowAttribute] adds it then (#639).
+ */
+private fun backgroundAttributes(attrs: Document): Map<String, BackgroundStep> {
+    val declared = attrs.children("attr").mapTo(HashSet()) { it.getAttribute("name") }
+    if (ROW_BACKGROUND in declared) declared += ROW_ATTRIBUTE
+    return BACKGROUND_ATTRIBUTES.filterKeys { it in declared }.takeIf { BACKGROUND_ATTRIBUTE in it }.orEmpty()
+}
 
 private fun Document.children(tag: String): List<Element> {
     val list = documentElement.getElementsByTagName(tag)
@@ -473,7 +511,9 @@ internal fun accentUses(styles: List<Document>, colors: Map<String, Set<Int>>): 
  *   Solid story rings (#519). A color with an [AccentSet] points the gradient at the set's stops (#528);
  * - when attrs.xml declares [BACKGROUND_ATTRIBUTE], each color's background shades for a light and a
  *   dark theme and a style setting each declared one of [BACKGROUND_ATTRIBUTES] to them,
- *   `HushGramAccentBackgrounds_PURPLE_dark`, for Backgrounds in the accent color (#187).
+ *   `HushGramAccentBackgrounds_PURPLE_dark`, for Backgrounds in the accent color (#187), and the same
+ *   for Instagram's older look, [classicBackground] in [classicColor] and `HushGramClassicBackgrounds_dark`,
+ *   for Classic colors (#639).
  *
  * The extension lays a color's style and the styles for whatever its theme's attributes hold onto the
  * theme. The shade attributes stand between them because a part and alpha is the same whatever color
@@ -507,8 +547,12 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
             IconTheme.entries.flatMap { theme ->
                 backgroundSteps.map { backgroundColor(palette.name, theme, it) } + backgroundStyle(palette.name, theme)
             }
+        } else emptyList()) +
+        (if (backgrounds.isNotEmpty()) IconTheme.entries.flatMap { theme ->
+            backgroundSteps.map { classicColor(theme, it) } + classicStyle(theme)
         } else emptyList())
     adding.firstOrNull { it in taken }?.let { refuse("the resources already have a $it") }
+    if (ROW_ATTRIBUTE in backgrounds) declareRowAttribute(attrs)
 
     for (shade in shades) {
         attrs.documentElement.appendChild(attrs.createElement("attr").apply {
@@ -593,9 +637,15 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
             for (theme in IconTheme.entries) {
                 for (step in backgroundSteps) color(backgroundColor(palette.name, theme, step), palette.background(theme, step))
                 styles.documentElement.appendChild(
-                    styles.colorsStyle(backgroundStyle(palette.name, theme), backgrounds.mapValues { backgroundColor(palette.name, theme, it.value) }),
+                    styles.colorsStyle(backgroundStyle(palette.name, theme), backgroundsFor(theme, backgrounds).mapValues { backgroundColor(palette.name, theme, it.value) }),
                 )
             }
+        }
+        for (theme in IconTheme.entries) {
+            for (step in backgroundSteps) color(classicColor(theme, step), classicBackground(theme, step))
+            styles.documentElement.appendChild(
+                styles.colorsStyle(classicStyle(theme), backgroundsFor(theme, backgrounds).mapValues { classicColor(theme, it.value) }),
+            )
         }
     }
     return uses.map { it.attribute }.distinct().joinToString(" ")
@@ -642,6 +692,7 @@ internal fun addWallpaperResources(uses: Set<AccentUse>, attrs: Document, colors
             backgroundSteps.map { backgroundColor(WALLPAPER, theme, it) } + backgroundStyle(WALLPAPER, theme)
         } else emptyList())
     adding.firstOrNull { it in taken }?.let { refuse("the resources already have a $it") }
+    if (ROW_ATTRIBUTE in backgrounds) declareRowAttribute(attrs)
 
     fun color(name: String, fallback: Int, system: String) {
         colors.documentElement.appendChild(colors.createElement("color").apply {
@@ -693,7 +744,7 @@ internal fun addWallpaperResources(uses: Set<AccentUse>, attrs: Document, colors
                 color(backgroundColor(WALLPAPER, theme, step), backgroundShade(fill, theme, step), wallpaperBackground(theme, step))
             }
             styles.documentElement.appendChild(
-                styles.colorsStyle(backgroundStyle(WALLPAPER, theme), backgrounds.mapValues { backgroundColor(WALLPAPER, theme, it.value) }),
+                styles.colorsStyle(backgroundStyle(WALLPAPER, theme), backgroundsFor(theme, backgrounds).mapValues { backgroundColor(WALLPAPER, theme, it.value) }),
             )
         }
     }

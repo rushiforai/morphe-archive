@@ -18,6 +18,7 @@ import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -72,10 +73,11 @@ class FeedPatchesTest {
             }
             if (present.isEmpty()) continue
             // One warning per missing holder and per missing ad-only view, one for no view at all, one for no Google ad SDK
-            // start and one for no Meta consent check.
-            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 3, warnings.size)
+            // start, one for no Meta consent check and one for no interstitial checks.
+            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 4, warnings.size)
             assertFlag(context, "googleAds", false)
             assertFlag(context, "metaAds", false)
+            assertFlag(context, "interstitialAds", false)
             assertEquals(present.size, feedListHoldersHooked)
             assertFlag(context, "hideAds", true)
             assertFlag(context, "feedAds", true)
@@ -117,7 +119,7 @@ class FeedPatchesTest {
             feedListHookPatch.execute(context)
             hideAdsPatch.execute(context)
         }
-        assertEquals("only the absent Google ad SDK start and Meta consent check: $warnings", 2, warnings.size)
+        assertEquals("only the absent Google ad SDK start, Meta consent check and interstitial checks: $warnings", 3, warnings.size)
         assertEquals("feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
         assertEquals(allViews, recorded(context, "adViews"))
         assertFlag(context, "feedAds", true)
@@ -191,7 +193,7 @@ class FeedPatchesTest {
             feedListHookPatch.execute(context)
             hideAdsPatch.execute(context)
         }
-        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size + 1, warnings.size)
+        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size + 2, warnings.size)
         assertFlag(context, "adViews", true)
         val view = context.mutableClassDefBy(type)
         val visibility = view.methods.single { it.name == "setVisibility" }
@@ -231,8 +233,53 @@ class FeedPatchesTest {
     }
 
     @Test
+    fun `both interstitial questions are answered together, and an unclear build changes neither`() {
+        val gate = "Lfixture/Interstitials;"
+        val other = "Lfixture/OtherInterstitials;"
+        val builds = mapOf(
+            "whole" to listOf(interstitials(gate)),
+            "a second killswitch read" to listOf(interstitials(gate), interstitials(other, experiment = false, gateMethod = false)),
+            "a second experiment check" to listOf(interstitials(gate), interstitials(other, killswitch = false, gateMethod = false)),
+            "the questions in two classes" to listOf(interstitials(gate, experiment = false), interstitials(other, killswitch = false)),
+            "no experiment check" to listOf(interstitials(gate, experiment = false)),
+            "no killswitch read" to listOf(interstitials(gate, killswitch = false)),
+            "a static killswitch read" to listOf(interstitials(gate, staticKillswitch = true)),
+            "a killswitch read with no local" to listOf(interstitials(gate, killswitchRegisters = 1)),
+        )
+        for ((name, classes) in builds) {
+            val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) } + classes)
+            val warnings = PatchLogCapture.warnings {
+                feedListHookPatch.execute(context)
+                hideAdsPatch.execute(context)
+            }
+            val whole = name == "whole"
+            assertEquals("$name: $warnings", whole, warnings.none { "interstitial" in it })
+            assertFlag(context, "interstitialAds", whole)
+            for (owner in classes) for (method in context.mutableClassDefBy(owner.type).methods) {
+                val first = (method.instructions()[0] as? ReferenceInstruction)?.reference?.toString().orEmpty()
+                val hooked = "$EXTENSION_PACKAGE/ads/Ads;" in first
+                val expected = whole && method.returnType == "Z"
+                assertEquals("$name: ${owner.type}->${method.name}", expected, hooked)
+                if (!expected) continue
+                val (hook, answer) = if (method.parameterTypes.isEmpty()) "killInterstitials" to 1 else "skipInterstitials" to 0
+                assertEquals(name, "$EXTENSION_PACKAGE/ads/Ads;->$hook()Z", first)
+                assertEquals(name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN),
+                    method.instructions().subList(1, 5).map { it.opcode })
+                assertEquals("$name: $hook answer", answer, (method.instructions()[3] as NarrowLiteralInstruction).narrowLiteral)
+                // A no from the hook runs Pinterest's own first instruction, so it decides for itself.
+                val own = (method.instructions()[2] as BuilderOffsetInstruction).target.location.instruction
+                assertEquals("$name: $hook falls through to Pinterest's code", method.instructions()[5], own)
+                assertEquals("$name: $hook falls through to Pinterest's code", Opcode.CONST_STRING, own?.opcode)
+                // The answer register is a local, never the instance or a parameter the original body reads.
+                val register = (method.instructions()[1] as OneRegisterInstruction).registerA
+                assertTrue("$name: $hook writes v$register", register < method.implementation!!.registerCount - method.parameters.size - 1)
+            }
+        }
+    }
+
+    @Test
     fun `a missing status stub refuses before any holder changes`() {
-        for (status in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds")) {
+        for (status in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "interstitialAds")) {
             val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) })
             context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == status }
             feedListHookPatch.execute(context)
@@ -299,6 +346,39 @@ class FeedPatchesTest {
         val methods = mutableListOf(method(type, "onMeasure", listOf("I", "I"), "V", 3, flags, "return-void"))
         if (!measureOnly) methods += method(type, "setVisibility", listOf("I"), "V", 2, flags, "return-void")
         return ImmutableClassDef(type, AccessFlags.PUBLIC.value, LAYOUT, null, null, null, null, methods)
+    }
+
+    /**
+     * Pinterest's interstitial controller as 14.44.0 has it: the killswitch read `()Z`, the
+     * experiment check `(kind, Z)Z` naming both kinds, and the pin-click gate, which names both
+     * experiments too but answers nothing.
+     */
+    private fun interstitials(
+        type: String, killswitch: Boolean = true, experiment: Boolean = true, gateMethod: Boolean = true,
+        staticKillswitch: Boolean = false, killswitchRegisters: Int = 4,
+    ): ClassDef {
+        val methods = mutableListOf<Method>()
+        val killswitchFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or (if (staticKillswitch) AccessFlags.STATIC.value else 0)
+        if (killswitch) methods += method(type, "d", emptyList(), "Z", killswitchRegisters, killswitchFlags,
+            """
+                const-string v0, "$INTERSTITIAL_KILLSWITCH"
+                const/4 v0, 0x0
+                return v0
+            """)
+        if (experiment) methods += method(type, "c", listOf("Lfixture/Kind;", "Z"), "Z", 4, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            """
+                const-string v0, "$HOUSE_INTERSTITIAL"
+                const-string v0, "$GMA_INTERSTITIAL"
+                const/4 v0, 0x1
+                return v0
+            """)
+        if (gateMethod) methods += method(type, "R", listOf("Lfixture/Kind;", "Z"), "V", 4, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            """
+                const-string v0, "$HOUSE_INTERSTITIAL"
+                const-string v0, "$GMA_INTERSTITIAL"
+                return-void
+            """)
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null, null, methods)
     }
 
     private fun calls(method: Method, reference: String) = method.instructions()

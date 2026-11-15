@@ -35,10 +35,12 @@ public final class Icons {
         PICTURE,
         /** An "Ad" badge crossed out, for removing ads. */
         NO_ADS,
+        /** An hourglass, for time limits. */
+        HOURGLASS,
     }
 
     /** A white glyph on a rounded square filled with a soft gradient of {@code color}. */
-    static Drawable tile(Glyph glyph, int color, float density) {
+    public static Drawable tile(Glyph glyph, int color, float density) {
         return new Tile(glyph, color, density);
     }
 
@@ -174,6 +176,27 @@ public final class Icons {
                     solid.setTypeface(Typeface.DEFAULT_BOLD);
                     canvas.drawText("Ad", s * 0.5f, s * 0.5f - (solid.ascent() + solid.descent()) / 2f, solid);
                     canvas.drawLine(s * 0.2f, s * 0.8f, s * 0.8f, s * 0.2f, stroke);
+                    break;
+                }
+                case HOURGLASS: {
+                    float top = s * 0.24f, bottom = s * 0.76f, left = s * 0.32f, right = s * 0.68f;
+                    canvas.drawLine(s * 0.28f, top, s * 0.72f, top, stroke);
+                    canvas.drawLine(s * 0.28f, bottom, s * 0.72f, bottom, stroke);
+                    path.reset();
+                    path.moveTo(left, top);
+                    path.cubicTo(left, s * 0.4f, s * 0.47f, s * 0.44f, s * 0.47f, s * 0.5f);
+                    path.cubicTo(s * 0.47f, s * 0.56f, left, s * 0.6f, left, bottom);
+                    path.moveTo(right, top);
+                    path.cubicTo(right, s * 0.4f, s * 0.53f, s * 0.44f, s * 0.53f, s * 0.5f);
+                    path.cubicTo(s * 0.53f, s * 0.56f, right, s * 0.6f, right, bottom);
+                    canvas.drawPath(path, stroke);
+                    // Sand gathered at the bottom.
+                    path.reset();
+                    path.moveTo(s * 0.5f, s * 0.6f);
+                    path.lineTo(s * 0.62f, s * 0.72f);
+                    path.lineTo(s * 0.38f, s * 0.72f);
+                    path.close();
+                    canvas.drawPath(path, solid);
                     break;
                 }
                 case PATCH:

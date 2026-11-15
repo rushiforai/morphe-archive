@@ -39,8 +39,19 @@ internal object Constants {
     /** Type prefix shared by JSocket, JSocketSimple and their inner classes. */
     const val JSOCKET_CLASS_PREFIX = "Lcom/joshua/jptt/JSocket"
 
-    /** The JPTT release every patch is written and verified against. */
-    private val LATEST_TARGET = AppTarget(version = "3.9.4")
+    /**
+     * Every JPTT release the patches have been run against with `verifyAgainstApk`,
+     * newest first, as Morphe asks. New patches and fixes are written against the
+     * newest one only; an older release stays listed for as long as the patches
+     * still apply to it, and is not worked on beyond that. Nothing older than
+     * 3.9.2 is listed: PTT's October interface change broke those releases
+     * themselves.
+     */
+    private val VERIFIED_TARGETS = listOf(
+        AppTarget(version = "3.9.6"),
+        AppTarget(version = "3.9.4"),
+        AppTarget(version = "3.9.2"),
+    )
 
     /**
      * Says out loud that untested versions are worth trying, since nothing in
@@ -52,20 +63,18 @@ internal object Constants {
     private val UNTESTED_TARGET = AppTarget(version = null, isExperimental = true)
 
     /**
-     * Only the latest JPTT release is supported: older ones get no new patches
-     * or fixes, so claiming them would only send people to an older bundle.
-     *
      * Morphe Manager builds its supported set from these version strings alone,
      * so anything not listed lands in "incompatible" and has to be patched
-     * through the unsupported-version dialog. A new JPTT release replaces
-     * [LATEST_TARGET] once every patch has been run against it with
-     * `verifyAgainstApk`.
+     * through the unsupported-version dialog. A new JPTT release is added to
+     * [VERIFIED_TARGETS] once every patch has been run against it. A patch that
+     * stops applying to an older release gets its own Compatibility without it,
+     * rather than a fix for that release.
      */
     val COMPATIBILITY_JPTT = Compatibility(
         name = "JPTT",
         packageName = "com.joshua.jptt",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFCFCFC,
-        targets = listOf(LATEST_TARGET, UNTESTED_TARGET),
+        targets = VERIFIED_TARGETS + UNTESTED_TARGET,
     )
 }

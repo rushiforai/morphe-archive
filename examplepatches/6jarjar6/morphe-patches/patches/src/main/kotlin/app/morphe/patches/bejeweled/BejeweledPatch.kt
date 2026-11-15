@@ -24,7 +24,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
  */
 @Suppress("SpellCheckingInspection")
 val bejeweledAdFree = bytecodePatch(
-    name = "Ad-free",
+    name = "[Experimental] Ad-free",
     description = "Removes ads. Rewarded ads still grant their reward without playing.",
     default = true
 ) {

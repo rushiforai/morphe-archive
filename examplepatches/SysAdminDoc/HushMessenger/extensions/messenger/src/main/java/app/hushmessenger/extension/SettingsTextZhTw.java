@@ -21,6 +21,7 @@ final class SettingsTextZhTw {
         {"preview_title", "HushMessenger 介面預覽"},
         {"preview_notice", "介面預覽。這些控制項不會變更 Messenger。"},
         {"mounted_build_mismatch", "此版本是從 Messenger %1$d 修補的，但 Android 安裝的是 %2$d。請修補 %2$d 再使用 Root Mount，否則聊天大頭貼和其他畫面可能會當機。"},
+        {"gmscore_without_microg", "已修補 GmsCore support，但未安裝 microG-RE 或已將其停用。因此 Messenger 無法透過 Google 的推播服務接收通知。請安裝 microG-RE，或不選 GmsCore support 重新修補。"},
         {"open", "開啟"},
         {"open_messenger", "開啟 Messenger"},
         {"back", "返回"},
@@ -699,9 +700,9 @@ final class SettingsTextZhTw {
         {"call_captions.title", "通話即時字幕"},
         {"call_captions.description", "在通話期間，將對方說的話以字幕顯示在 Messenger 上方。字幕由手機自行產生，還能翻譯成你的語言並朗讀出來。需要 Android 13 或更新版本，且手機需有語音辨識。開啟時，通話會改用 Android 的一般音訊路徑，而不是 Messenger 自己的路徑，變更後需要重新啟動 Messenger。"},
         {"hide_call_buttons.title", "隱藏通話按鈕"},
-        {"hide_call_buttons.description", "移除聊天室頂端列的語音與視訊通話按鈕，避免誤觸。來電仍會響鈴，也仍可加入進行中的通話。"},
+        {"hide_call_buttons.description", "移除聊天室頂端列、商家聊天室和「新訊息」畫面的語音與視訊通話按鈕，避免誤觸。來電仍會響鈴，也仍可加入進行中的通話。"},
         {"call_confirm.title", "通話前先詢問"},
-        {"call_confirm.description", "點按聊天室頂端列的語音或視訊通話按鈕時會先詢問，避免誤觸打給別人。點「通話」才會開始，點「取消」則不會。來電不受影響。"},
+        {"call_confirm.description", "點按語音或視訊通話按鈕時會先詢問，避免誤觸打給別人。適用於聊天室頂端列、商家聊天室和「新訊息」畫面。點「通話」才會開始，點「取消」則不會。來電不受影響。"},
         {"original_photo.title", "以原始畫質傳送相片"},
         {"original_photo.description", "啟用 HD 時，以完整尺寸傳送 JPEG 相片，不再縮小。仍會移除位置資訊。超過 20 MB 的相片仍會縮小。"},
         {"original_video.title", "傳送影片時不重新編碼"},
@@ -771,6 +772,6 @@ final class SettingsTextZhTw {
         {"custom_font.title", "使用自訂字型"},
         {"custom_font.description", "以手機字型取代 Meta 字型來顯示 Messenger 文字，也可使用下方選取的 .ttf 或 .otf 字型檔案，並調整大小或上下位置。表情符號不受影響。重新啟動 Messenger 後即可看到變更。"},
         {"menu_blur.title", "選單背景模糊"},
-        {"menu_blur.description", "長按聊天室時跳出的選單，以及 Messenger 其他的彈出選單和面板，背後的畫面會像 iPhone 一樣變模糊。需要 Android 12 以上。"},
+        {"menu_blur.description", "長按聊天室或訊息時跳出的選單，以及 Messenger 其他的彈出選單和面板，背後的畫面會像 iPhone 一樣變模糊。需要 Android 12 以上。"},
     };
 }

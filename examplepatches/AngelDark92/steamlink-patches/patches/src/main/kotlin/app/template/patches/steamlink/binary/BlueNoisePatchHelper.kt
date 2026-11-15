@@ -216,10 +216,10 @@ private fun configureBlueNoiseLayers(payload: ByteArray, layers: Map<BlueNoiseLa
     return result
 }
 
-internal const val BLUE_NOISE_PAYLOAD_SHA256 = "5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858"
+internal const val BLUE_NOISE_PAYLOAD_SHA256 = "be3f864baf9b3cdd4a82937f224c3d620b4c22d49b4ca624829e861a8b036cce"
 // Rebuilt from the same source with -DSL_NOISE_LOCATION=16 -DSL_ENABLE_LOCATION=17
 // -DSL_MAX_HOST_LOCATION=15 (Build-Native.ps1 -InnerFadeVariant); used only by 2.0.24/5002527.
-internal const val BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256 = "95e3d478c3bfa364c9b5ebe3439096cc2b3e90ada71733ecef7a01a30b9f3ebf"
+internal const val BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256 = "2b8d3a6fbb0216ba6ecb836de7d15ac97e5c7cdd331bc6cdb0c8ce0d72aadb35"
 internal const val BLUE_NOISE_STOCK_MASKED_HASH = "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
 internal const val BLUE_NOISE_STOCK_BACKGROUND_HASH = "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246"
 internal const val BLUE_NOISE_STOCK_PREFIX_HASH = "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a"

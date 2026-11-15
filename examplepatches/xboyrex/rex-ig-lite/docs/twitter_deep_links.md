@@ -8,12 +8,12 @@ To use the deep links, set the xboyrex Twitter app to open x.com links. (App Inf
 
 ## List of available deep links
 
-Open rex settings:
+Open xboyrex Settings:
 
 - https://x.com/i/rex/  
 - https://x.com/i/rexsettings/
 
-Open each section of rex settings:
+Open each section of xboyrex Settings:
 
 - https://x.com/i/rex/premium
 - https://x.com/i/rex/download

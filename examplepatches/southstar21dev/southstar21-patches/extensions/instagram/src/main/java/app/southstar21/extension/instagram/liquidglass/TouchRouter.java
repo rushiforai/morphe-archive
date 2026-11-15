@@ -19,7 +19,13 @@ import java.lang.reflect.Proxy;
  * Instagram's half of it and hand the rest to the lens.
  */
 final class TouchRouter implements InvocationHandler {
-    private final Window.Callback original;
+    /** Where events go when they're not the lens's: the window, or a view's own dispatch. */
+    interface Dispatch {
+        boolean dispatch(MotionEvent event);
+    }
+
+    private final Window.Callback window;
+    private final Dispatch original;
     private final LiquidGlassLens lens;
     private final int[] location = new int[2];
     private boolean tracking;
@@ -28,7 +34,18 @@ final class TouchRouter implements InvocationHandler {
     // Vertical travel of a gesture on the content, for minimizing the bar on scroll.
     private float lastRawX, lastRawY, scrollDx, scrollDy;
 
-    private TouchRouter(Window.Callback original, LiquidGlassLens lens) {
+    private TouchRouter(Window.Callback window, LiquidGlassLens lens) {
+        this.window = window;
+        this.original = window::dispatchTouchEvent;
+        this.lens = lens;
+    }
+
+    /**
+     * A router for a view (the settings preview) rather than a window: the view calls
+     * {@link #dispatchTouchEvent} from its own, with {@code original} its super method.
+     */
+    TouchRouter(Dispatch original, LiquidGlassLens lens) {
+        this.window = null;
         this.original = original;
         this.lens = lens;
     }
@@ -48,13 +65,13 @@ final class TouchRouter implements InvocationHandler {
             return dispatchTouchEvent((MotionEvent) args[0]);
         }
         try {
-            return method.invoke(original, args);
+            return method.invoke(window, args);
         } catch (InvocationTargetException e) {
             throw e.getCause();
         }
     }
 
-    private boolean dispatchTouchEvent(MotionEvent event) {
+    boolean dispatchTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) {
             tracking = false;
@@ -64,7 +81,7 @@ final class TouchRouter implements InvocationHandler {
             lastRawY = event.getRawY();
             scrollDx = scrollDy = 0f;
             // Instagram gets the down as usual; the lens only notes whether it was on the pill.
-            boolean handled = original.dispatchTouchEvent(event);
+            boolean handled = original.dispatch(event);
             if (lens.claimedDown) {
                 tracking = true;
                 downX = localX(event);
@@ -74,7 +91,7 @@ final class TouchRouter implements InvocationHandler {
         }
         if (!tracking) {
             if (action == MotionEvent.ACTION_MOVE) trackContentScroll(event);
-            return original.dispatchTouchEvent(event);
+            return original.dispatch(event);
         }
 
         float x = localX(event);
@@ -85,14 +102,18 @@ final class TouchRouter implements InvocationHandler {
                     // From here on the gesture is ours: Instagram must not see a tap or a swipe.
                     MotionEvent cancel = MotionEvent.obtain(event);
                     cancel.setAction(MotionEvent.ACTION_CANCEL);
-                    original.dispatchTouchEvent(cancel);
+                    original.dispatch(cancel);
                     cancel.recycle();
                 }
                 if (dragging) {
                     lens.dragTo(x);
                     return true;
                 }
-                return original.dispatchTouchEvent(event);
+                // Held back: Instagram only needs the down and the up for its taps, double taps
+                // and long presses. Seeing the finger start to move would let its swipe
+                // navigation (left on the home feed opens Messages) measure a fling, which it
+                // then finishes when the drag cancels it, opening another tab.
+                return true;
             case MotionEvent.ACTION_UP:
                 tracking = false;
                 if (dragging) {
@@ -100,13 +121,13 @@ final class TouchRouter implements InvocationHandler {
                     return true;
                 }
                 lens.release();
-                return original.dispatchTouchEvent(event);
+                return original.dispatch(event);
             case MotionEvent.ACTION_CANCEL:
                 tracking = false;
                 lens.release();
-                return dragging || original.dispatchTouchEvent(event);
+                return dragging || original.dispatch(event);
             default:
-                return dragging || original.dispatchTouchEvent(event);
+                return dragging || original.dispatch(event);
         }
     }
 

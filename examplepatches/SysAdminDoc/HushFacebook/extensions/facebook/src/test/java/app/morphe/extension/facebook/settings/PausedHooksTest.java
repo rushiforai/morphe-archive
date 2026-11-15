@@ -531,10 +531,17 @@ public class PausedHooksTest {
         probes.put(PatchFamily.POST_PROMPTS, Arrays.asList(
                 () -> !PostPrompts.keep(true),
                 () -> !PostPrompts.showFollowLink(true),
+                // A header the subscribe check said no to isn't given a Follow text by the plugin picker.
+                () -> {
+                    PostPrompts.showFollowLink(false);
+                    return PostPrompts.hideFollowRoute();
+                },
                 // A collab or partnership header's own " · Follow" comes back empty.
                 () -> PostPrompts.followText(" · Follow").length() == 0,
                 // A header the X check says yes to is drawn as one without the X.
                 () -> !PostPrompts.showPostX(true),
+                // So is the Reels row's header in the feed.
+                () -> !PostPrompts.showReelsRowX(true),
                 PostPrompts::hidePostCounts,
                 // The reaction preview is left undrawn only while the patch runs.
                 PostPrompts::hideReactionPreview,
@@ -692,6 +699,9 @@ public class PausedHooksTest {
                 ReelDeclutter::hideEditsLabel,
                 // A stalled video's slow connection message.
                 ReelDeclutter::hideSlowConnectionMessage,
+                // A feed or search video's full-screen and picture-in-picture buttons (#478).
+                ReelDeclutter::hideFeedVideoFullscreen,
+                ReelDeclutter::hideFeedVideoPip,
                 // The UP NEXT bar's lookup and the videos it hands out (#367), and its room (#375).
                 ReelDeclutter::skipUpNextFetch,
                 ReelDeclutter::hideUpNextVideos,
@@ -792,14 +802,23 @@ public class PausedHooksTest {
                 DoubleTapLike::holdBackTap,
                 () -> DoubleTapLike.holdBackFeedTap(null),
                 DoubleTapLike::holdBackFeedLike));
-        // A tap on Like under a post, beside a reel or under a comment is held while a question goes up.
+        // A tap on Like under a post, beside a reel or under a comment, or on Follow in a post or
+        // beside a reel, is held while a question goes up.
         probes.put(PatchFamily.ASK_BEFORE_LIKE, Arrays.asList(
                 () -> asksBeforeALike(AskBeforeLike.POST_FOOTER),
                 () -> asksBeforeALike(AskBeforeLike.REEL),
                 () -> asksBeforeALike(AskBeforeLike.COMMENT),
-                () -> asksBeforeALike(AskBeforeLike.POST_TOUCH)));
-        // Facebook's double-tap skip test, read as off, is answered on.
-        probes.put(PatchFamily.DOUBLE_TAP_SKIP, Collections.singletonList(() -> DoubleTapSkip.flag(false)));
+                () -> asksBeforeALike(AskBeforeLike.POST_TOUCH),
+                () -> asksBeforeALike(AskBeforeLike.POST_FOLLOW),
+                () -> asksBeforeALike(AskBeforeLike.REEL_COLLAB_FOLLOW)));
+        // Facebook's double-tap skip test, read as off, is answered on, and the seconds it shows stay hidden.
+        probes.put(PatchFamily.DOUBLE_TAP_SKIP, Arrays.asList(
+                () -> DoubleTapSkip.flag(false),
+                () -> {
+                    View label = new View(RuntimeEnvironment.getApplication());
+                    DoubleTapSkip.label(label, View.VISIBLE);
+                    return label.getVisibility() != View.VISIBLE;
+                }));
         // A reel tap gets the controls in place of the pause, they stay up longer, and the unified player hides them.
         probes.put(PatchFamily.TAP_SHOWS_CONTROLS, Arrays.asList(
                 () -> TapShowsControls.showControls(false),

@@ -25,6 +25,8 @@ class DefaultSelectionPolicyTest {
             "it, so it's a sign-in workaround to pick on purpose.",
         "GmsCore support" to "It sends Google sign-in and push notifications to microG-RE when you patch, with " +
             "no switch, so on a phone without microG-RE both stop working. Only microG-RE users should pick it.",
+        "Change package name" to "It makes the patched app a second Pinterest with its own package, data and sign-in, " +
+            "so it can't update the Pinterest you already have. Only someone who wants both side by side should pick it.",
     )
 
     private fun shippedPatches() = run {

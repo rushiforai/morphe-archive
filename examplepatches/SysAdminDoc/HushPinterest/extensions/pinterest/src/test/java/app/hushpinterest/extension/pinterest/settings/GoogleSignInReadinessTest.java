@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -187,6 +188,84 @@ public class GoogleSignInReadinessTest {
         report = report();
         assertTrue(report, report.contains("spoof_metadata: present"));
         assertFalse("the value stays out", report.contains("abc"));
+    }
+
+    @Test public void reportSaysWhetherMicroGShowsGooglePinterestsOwnPackage() throws Exception {
+        assertTrue(report(), report().contains("spoof_package: missing"));
+        for (String[] shape : new String[][] {{"com.pinterest", "pinterest"}, {"com.pinterest.hushpinterest", "other"}}) {
+            ApplicationInfo own = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            own.metaData = new Bundle();
+            own.metaData.putString(SPOOF, "abc");
+            own.metaData.putString(MICRO_G + ".SPOOFED_PACKAGE_NAME", shape[0]);
+            PackageInfo installed = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            installed.applicationInfo.metaData = own.metaData;
+            pm.installPackage(installed);
+            String report = report();
+            assertTrue(report, report.contains("spoof_package: " + shape[1]));
+            assertTrue(report, report.contains("spoof_metadata: present"));
+            assertFalse("a copy's own package stays out", report.contains("hushpinterest"));
+        }
+    }
+
+    @Test public void withoutMicroGTheFrameworkCredentialProviderAnswersForItself() {
+        PatchFamily.registerDiagnostics();
+        assertFalse(GoogleSignInReadiness.signsInThroughMicroG());
+        String export = LogBufferManager.buildExportText();
+        assertTrue(export, export.contains("Android's credential provider kept without microG-RE"));
+    }
+
+    @Test public void withMicroGTheFrameworkCredentialProviderStepsAside() {
+        installMicroG(true);
+        assertTrue(GoogleSignInReadiness.signsInThroughMicroG());
+        installMicroG(false);
+        assertTrue("A disabled microG-RE is still the sign-in route", GoogleSignInReadiness.signsInThroughMicroG());
+    }
+
+    @Test public void beforeTheSettingsAreReadyTheProviderStepsAsideAsBefore() {
+        boolean[] answer = new boolean[1];
+        SettingsContextRule.beforeThePauseIsDecided(() -> answer[0] = GoogleSignInReadiness.signsInThroughMicroG());
+        assertTrue(answer[0]);
+    }
+
+    @Test public void whenAndroidCantSayTheProviderStepsAsideAsBefore() {
+        Context failing = new ContextWrapper(context) {
+            @Override public PackageManager getPackageManager() {
+                throw new IllegalStateException("package manager gone");
+            }
+        };
+        Context broken = new ContextWrapper(context) {
+            @Override public PackageManager getPackageManager() {
+                throw new NoClassDefFoundError("package manager class");
+            }
+        };
+        SettingsContextRule.withContext(failing, () -> assertTrue("microG-RE's state unknown", GoogleSignInReadiness.signsInThroughMicroG()));
+        SettingsContextRule.withContext(broken, () -> assertTrue("the check itself failed", GoogleSignInReadiness.signsInThroughMicroG()));
+        SettingsContextRule.withContext(null, () -> assertTrue("no context", GoogleSignInReadiness.signsInThroughMicroG()));
+        assertFalse("and with Android answering again, the provider answers for itself", GoogleSignInReadiness.signsInThroughMicroG());
+    }
+
+    @Test public void aStockBuildLeavesTheFrameworkCredentialProviderAlone() {
+        installMicroG(true);
+        PushReadiness.gmsCoreForTests = false;
+        assertFalse(GoogleSignInReadiness.signsInThroughMicroG());
+    }
+
+    /** The credential types androidx's options carry, from androidx.credentials and googleid. */
+    @Test public void onlyAGoogleIdOptionGoesToMicroGWithOrWithoutIt() {
+        PatchFamily.registerDiagnostics();
+        String google = "com.google.android.libraries.identity.googleid.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL";
+        assertTrue("without microG-RE, so its message shows", GoogleSignInReadiness.isGoogleIdOption(google));
+        installMicroG(true);
+        assertTrue("with it", GoogleSignInReadiness.isGoogleIdOption(google));
+        for (String other : new String[]{"android.credentials.TYPE_PASSWORD_CREDENTIAL",
+                "androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL", "androidx.credentials.TYPE_RESTORE_CREDENTIAL",
+                "androidx.credentials.TYPE_DIGITAL_CREDENTIAL", google + "x", "", null}) {
+            assertFalse(String.valueOf(other), GoogleSignInReadiness.isGoogleIdOption(other));
+        }
+        String export = LogBufferManager.buildExportText();
+        assertTrue(export, export.contains("Google sign-in option in a credential request"));
+        PushReadiness.gmsCoreForTests = false;
+        assertFalse("a stock build", GoogleSignInReadiness.isGoogleIdOption(google));
     }
 
     @Test public void theSectionIsInTheExportAndAFailureCounts() {

@@ -587,6 +587,7 @@ public class SettingsPolishTest {
         EditText field = editor.findViewById(android.R.id.edit);
         String draft = "x".repeat(SettingsBackup.MAX_BYTES);
         field.setText(draft);
+        ShadowToast.reset();
         editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         bounded(editor);
         String said = L10n.t("This list is too large for a settings backup. Shorten it before saving. Your draft is still here.");
@@ -594,7 +595,10 @@ public class SettingsPolishTest {
         assertNotNull("the refusal exists only in a temporary toast or popup", error);
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, error.getAccessibilityLiveRegion());
         assertWholeText(error);
-        assertNotNull(field.getError());
+        // This asked for an error on the field too, which a screen reader read on top of the
+        // line. The line is the one place it's said.
+        assertNull("the field repeats the line as its error", field.getError());
+        assertNull("a toast repeats the line", ShadowToast.getTextOfLatestToast());
         assertEquals(draft, field.getText().toString());
         assertEquals("earlier words", TextSettings.HIDDEN_WORDS.savedValue());
         assertEquals(summary, words.getSummary());
@@ -603,7 +607,6 @@ public class SettingsPolishTest {
         field.setText("recovered words");
         settle();
         assertNull("editing kept the obsolete inline refusal", visibleText(decor, said));
-        assertNull("editing kept the obsolete field error", field.getError());
         ShadowToast.reset();
         editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         settle();

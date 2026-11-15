@@ -17,7 +17,7 @@ object Constants {
 
         targets = listOf(
             // Version the fingerprints and register counts below were verified against.
-            AppTarget(version = "20261006"),
+            AppTarget(version = "20261016"),
         ),
     )
 }

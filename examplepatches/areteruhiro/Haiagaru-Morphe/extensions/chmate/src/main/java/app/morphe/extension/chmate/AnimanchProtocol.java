@@ -83,7 +83,7 @@ final class AnimanchProtocol {
             }
             for(Element link:clean.select("a.thumb[href]")){
                 String source=absolute(address,link.attr("href"));
-                if(source!=null&&imageOfThread(source,expected))images.add(source);
+                if(source!=null&&image(source))images.add(source);
                 link.remove();
             }
             // Saved-page image filenames and vote/pop-up markup are never used as media sources.
@@ -161,8 +161,8 @@ final class AnimanchProtocol {
         try{URI u=URI.create(base).resolve(link);return ("https".equalsIgnoreCase(u.getScheme())||!httpsOnly&&"http".equalsIgnoreCase(u.getScheme()))&&u.getHost()!=null&&u.getUserInfo()==null?u.toASCIIString():null;}
         catch(RuntimeException invalid){return null;}
     }
-    private static boolean imageOfThread(String url,String id){
-        try{URI u=URI.create(url);return "https".equalsIgnoreCase(u.getScheme())&&"bbs.animanch.com".equals(u.getHost())&&u.getPort()==-1&&u.getPath().matches("/(?:arc/)?img/"+id+"/[1-9][0-9]*");}
+    private static boolean image(String url){
+        try{URI u=URI.create(url);return "https".equalsIgnoreCase(u.getScheme())&&"bbs.animanch.com".equals(u.getHost())&&u.getPort()==-1&&u.getUserInfo()==null&&u.getRawQuery()==null&&u.getRawFragment()==null&&u.getRawPath().matches("/(?:arc/)?img/[1-9][0-9]{0,11}/[1-9][0-9]{0,11}");}
         catch(RuntimeException invalid){return false;}
     }
     private static boolean localReply(String url,String id){

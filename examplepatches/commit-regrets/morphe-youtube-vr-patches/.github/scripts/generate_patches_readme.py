@@ -69,19 +69,15 @@ for patch in data["patches"]:
             by_pkg[pkg]["patches"][patch["name"]] = patch
 
 
-def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
-
-
 def summarize(text, limit=200):
     """The patch description, cut to its first sentence when it is longer than [limit].
 
     Descriptions are written for the Morphe UI, where every sentence has room; in a README row
     the third sentence is what makes the table tall. A description that fits is kept whole, so
     a short caveat at the end ("does not bypass the age restriction") is not dropped; only the
-    genuinely long ones (the clone and QUIC rows) lose their later sentences, and those repeat
-    what the README's own sections explain. The cut lands on a word boundary, never mid-word.
+    genuinely long ones (the clone, QUIC and Default video quality rows) lose their later
+    sentences; the detail they dropped lives in the docs. The cut lands on a word boundary, never
+    mid-word.
     """
     flat = re.sub(r"\s+", " ", (text or "").strip())
     if len(flat) <= limit:
@@ -118,9 +114,8 @@ def patches_table(patches):
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
         rows.append(
-            f"| [{p['name']}](#{a}) | {summarize(p.get('description'))} | "
+            f"| **{p['name']}** | {summarize(p.get('description'))} | "
             f"{options_cell(p.get('options'))} |"
         )
     return "\n".join(rows)

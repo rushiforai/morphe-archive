@@ -84,9 +84,11 @@ private fun ClassDef.headerEnumName(constant: FieldReference): String? {
         .singleOrNull()
 }
 
+internal val headerRenders = methodCheck { _, method -> method.headerActions() != null }
+
 /** The one header row render that asks its list for View profile, or none when more than one looks like it. */
 internal fun findProfileHeader(classes: Iterable<ClassDef>): List<Method> {
-    val renders = classes.flatMap { it.methods }.mapNotNull { method -> method.headerActions()?.let { method to it } }
+    val renders = headerRenders.methods(classes).mapNotNull { method -> method.headerActions()?.let { method to it } }
     if (renders.isEmpty()) return emptyList()
     val wanted = renders.flatMap { (_, actions) -> actions.checked.map { it.definingClass } }.toSet()
     val enums = classes.filter { it.type in wanted }.associateBy { it.type }

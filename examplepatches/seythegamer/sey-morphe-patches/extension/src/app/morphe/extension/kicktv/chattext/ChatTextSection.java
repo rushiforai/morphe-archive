@@ -46,21 +46,13 @@ public final class ChatTextSection implements MorpheSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        final Runnable updateState = new Runnable() {
-            @Override
-            public void run() {
-                sizeButton.setText("Chat text: "
-                        + ChatTextPrefs.getSizeLabel(ChatTextPrefs.getSizeSp()));
-            }
-        };
+        final Runnable updateState = () -> sizeButton.setText("Chat text: "
+                + ChatTextPrefs.getSizeLabel(ChatTextPrefs.getSizeSp()));
 
-        sizeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int next = ChatTextPrefs.nextSizeSp(ChatTextPrefs.getSizeSp());
-                ChatTextPrefs.setSizeSp(next);
-                updateState.run();
-            }
+        sizeButton.setOnClickListener(v -> {
+            int next = ChatTextPrefs.nextSizeSp(ChatTextPrefs.getSizeSp());
+            ChatTextPrefs.setSizeSp(next);
+            updateState.run();
         });
 
         updateState.run();

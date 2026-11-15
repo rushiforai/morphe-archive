@@ -19,12 +19,27 @@ public final class StockPostingReturnInstrumentation extends Instrumentation {
  void test()throws Exception{
   Context app=getTargetContext();ok(app.getPackageName().endsWith("haiagaru.reporter191"),"isolated 191");ClassLoader loader=app.getClassLoader();posting=loader.loadClass("app.morphe.extension.chmate.StockChmatePosting");
   SharedPreferences prefs=app.getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config",0);Map<String,?> saved=prefs.getAll();SharedPreferences nativePrefs=android.preference.PreferenceManager.getDefaultSharedPreferences(app);boolean hadTablet=nativePrefs.contains("enableTabletHome2"),tablet=nativePrefs.getBoolean("enableTabletHome2",false);nativePrefs.edit().putBoolean("enableTabletHome2",false).commit();
-  ActivityMonitor stock=new ActivityMonitor(){@Override public ActivityResult onStartActivity(Intent intent){if(intent.getComponent()!=null&&intent.getComponent().getPackageName().equals("jp.co.airfront.android.a2chMate")&&intent.getComponent().getClassName().endsWith("ResEditActivity")){captured=new Intent(intent);return new ActivityResult(result,null);}return null;}};
+  ActivityMonitor stock=new ActivityMonitor(){@Override public ActivityResult onStartActivity(Intent intent){if(intent.getComponent()!=null&&intent.getComponent().getPackageName().equals("jp.co.airfront.android.a2chMate")&&(intent.getComponent().getClassName().equals("jp.syoboi.a2chMate.activity.ResEditActivity$Dialog")||intent.getComponent().getClassName().equals("jp.syoboi.a2chMate.activity.ResEditActivity"))){captured=new Intent(intent);return new ActivityResult(result,null);}return null;}};
   addMonitor(stock);
   try{
    host=startActivitySync(new Intent().setClassName(app.getPackageName(),"app.morphe.extension.chmate.ToolbarIconsActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));Thread.sleep(800);
    main(()->{owner=new Owner(host);owner.W=loader.loadClass("jp.syoboi.a2chMate.client.BBSUrlInfo").getConstructor(String.class,String.class,Long.class,int.class,Integer.class,String.class).newInstance("bbs.eddibb.cc","liveedge",9999999999L,0,null,null);host.setContentView(owner.root);return null;});Thread.sleep(600);
    String board="https://bbs.eddibb.cc/liveedge/",reply="https://bbs.eddibb.cc/test/read.cgi/liveedge/9999999999/";
+   main(()->{
+    prefs.edit().remove("stockPostingDisplayMode").commit();
+    Intent initial=(Intent)method(posting,"editorIntent",String.class).invoke(null,reply);
+    ok(initial.getComponent().getClassName().endsWith("$Dialog"),"default uses stock popup dialog");
+    for(int mode:new int[]{0,1}){
+     prefs.edit().putInt("stockPostingDisplayMode",mode).commit();
+     String expected="jp.syoboi.a2chMate.activity.ResEditActivity"+(mode==1?"$Dialog":"");
+     Intent empty=(Intent)method(posting,"editorIntent",String.class).invoke(null,reply);
+     Intent draft=(Intent)method(posting,"intent",String.class,String.class,String.class).invoke(null,reply,"fixture body",null);
+     ok(expected.equals(empty.getComponent().getClassName()),"toolbar display choice "+mode);
+     ok(expected.equals(draft.getComponent().getClassName()),"draft display choice "+mode);
+     ok((Boolean)method(posting,"isHandoff",Intent.class).invoke(null,empty),"selected editor passes retarget guard "+mode);
+    }
+    prefs.edit().putInt("stockPostingDisplayMode",1).commit();return null;
+   });
    main(()->{Intent empty=(Intent)method(posting,"editorIntent",String.class).invoke(null,reply);ok(!empty.hasExtra(Intent.EXTRA_TEXT)&&!empty.hasExtra(Intent.EXTRA_SUBJECT),"toolbar leaves stock draft intact");ok((Boolean)method(posting,"isHandoff",Intent.class).invoke(null,empty),"toolbar uses explicit handoff marker");return null;});
    main(()->{
     method(posting,"target",Object.class,String.class,EditText.class).invoke(null,owner,reply,owner.body);
@@ -43,8 +58,8 @@ public final class StockPostingReturnInstrumentation extends Instrumentation {
    main(()->{View pencil=new View(host);pencil.setId(2);ok(!(Boolean)posting.getMethod("longClick",Object.class,View.class).invoke(null,owner,pencil),"OFF keeps native web long press");return null;});
    prefs.edit().putBoolean("stockPostingOnWriteLongPress",true).commit();
    main(()->{View other=new View(host);other.setId(5);ok(!(Boolean)posting.getMethod("longClick",Object.class,View.class).invoke(null,owner,other),"other buttons retain native long press");View pencil=new View(host);pencil.setId(2);ok((Boolean)posting.getMethod("longClick",Object.class,View.class).invoke(null,owner,pencil),"ON handles write long press");return null;});Thread.sleep(900);
-   main(()->{ok(captured!=null&&reply.equals(captured.getDataString()),"long press opens stock editor for exact thread");ok(!host.isFinishing()&&owner.body.length()>0,"back result returns without deleting draft");return null;});captured=null;
-   main(()->{method(posting,"openFromToolbar",Object.class).invoke(null,owner);return null;});Thread.sleep(900);main(()->{ok(captured!=null&&!captured.hasExtra(Intent.EXTRA_TEXT),"toolbar opens existing stock draft without adding text");return null;});captured=null;
+   main(()->{ok(captured!=null&&reply.equals(captured.getDataString()),"long press opens stock editor for exact thread");ok(captured.getComponent().getClassName().endsWith("$Dialog"),"popup relay target");ok(!host.isFinishing()&&owner.body.length()>0,"back result returns without deleting draft");return null;});captured=null;
+   main(()->{prefs.edit().putInt("stockPostingDisplayMode",0).commit();method(posting,"openFromToolbar",Object.class).invoke(null,owner);return null;});Thread.sleep(900);main(()->{ok(captured!=null&&!captured.hasExtra(Intent.EXTRA_TEXT),"toolbar opens existing stock draft without adding text");ok(captured.getComponent().getClassName().equals("jp.syoboi.a2chMate.activity.ResEditActivity"),"full-screen relay target");prefs.edit().putInt("stockPostingDisplayMode",1).commit();return null;});captured=null;
    main(()->{method(posting,"target",Object.class,String.class,EditText.class).invoke(null,owner,board,owner.body);return null;});
    prefs.edit().putBoolean("stockPostingSkipConfirmation",true).commit();
    main(()->{method(posting,"confirm",Activity.class).invoke(null,host);return null;});Thread.sleep(900);
@@ -54,7 +69,7 @@ public final class StockPostingReturnInstrumentation extends Instrumentation {
    main(()->{ok(captured!=null,"successful result received through framework relay");ok(owner.body.length()==0&&owner.title.length()==0,"only confirmed success clears body and title");ok(owner.saves>=3,"native draft save called before handoff and after cleanup");ok(host.isFinishing()||host.isDestroyed(),"success closes source editor and returns to Haiagaru reader");return null;});
   }finally{
    removeMonitor(stock);if(host!=null)main(()->{if(!host.isFinishing())host.finish();return null;});
-   SharedPreferences.Editor restore=prefs.edit();for(String key:new String[]{"stockPostingSkipConfirmation","stockPostingOnWriteLongPress","stockPostingShowMenu"})if(saved.containsKey(key))restore.putBoolean(key,(Boolean)saved.get(key));else restore.remove(key);restore.commit();if(hadTablet)nativePrefs.edit().putBoolean("enableTabletHome2",tablet).commit();else nativePrefs.edit().remove("enableTabletHome2").commit();
+   SharedPreferences.Editor restore=prefs.edit();for(String key:new String[]{"stockPostingSkipConfirmation","stockPostingOnWriteLongPress","stockPostingShowMenu"})if(saved.containsKey(key))restore.putBoolean(key,(Boolean)saved.get(key));else restore.remove(key);if(saved.containsKey("stockPostingDisplayMode"))restore.putInt("stockPostingDisplayMode",((Number)saved.get("stockPostingDisplayMode")).intValue());else restore.remove("stockPostingDisplayMode");restore.commit();if(hadTablet)nativePrefs.edit().putBoolean("enableTabletHome2",tablet).commit();else nativePrefs.edit().remove("enableTabletHome2").commit();
   }
  }
 }

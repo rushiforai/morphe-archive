@@ -101,16 +101,20 @@ final class DragOrder {
             child.setTranslationZ(0);
         }
         if (home < 0 || target == home) return;
+        // The row moves one place per step, so a callback that reads the rows by index
+        // always sees the dragged row at [from] and its neighbour at [from +/- 1].
         int from = home;
         while (from < target) {
             if (!move.move(from, from + 1)) break;
             from++;
+            rows.removeView(line);
+            rows.addView(line, from);
         }
         while (from > target) {
             if (!move.move(from, from - 1)) break;
             from--;
+            rows.removeView(line);
+            rows.addView(line, from);
         }
-        rows.removeView(line);
-        rows.addView(line, from);
     }
 }

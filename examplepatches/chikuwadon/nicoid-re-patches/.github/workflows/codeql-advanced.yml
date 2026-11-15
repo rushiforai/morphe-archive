@@ -1,0 +1,87 @@
+name: CodeQL (Java/Kotlin, Python, JavaScript, Actions)
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java-kotlin:
+    name: Analyze Java/Kotlin
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    # Fork pull requests cannot be granted the package credentials required
+    # for the Morphe plugin. The other CodeQL language jobs still run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Use the validated Gradle download source
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+      - name: Initialize CodeQL Java/Kotlin
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: java-kotlin
+          build-mode: manual
+      - name: Trace canonical Morphe build and helper compilation
+        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon --no-build-cache --rerun-tasks
+      - name: Verify XXE and URL denial-of-service security regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-codeql-security-tests
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-codeql-orgjson.jar
+          javac --release 8 -cp /tmp/nicoid-codeql-orgjson.jar -d /tmp/nicoid-codeql-security-tests \
+            extensions/extension/src/main/java/e/e/a/HistoryRules.java \
+            extensions/extension/src/main/java/e/e/a/ChannelFeed.java \
+            extensions/extension/src/main/java/e/e/a/DetailData.java \
+            porting/tests/CodeqlSecurityTest.java
+          java -cp /tmp/nicoid-codeql-security-tests:/tmp/nicoid-codeql-orgjson.jar e.e.a.CodeqlSecurityTest
+      - name: Analyze CodeQL Java/Kotlin
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          upload-database: false
+
+  other-languages:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+      - name: Analyze CodeQL
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          upload-database: false

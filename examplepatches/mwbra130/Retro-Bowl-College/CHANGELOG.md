@@ -1,3 +1,15 @@
+## [1.73.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.72.0...v1.73.0) (2026-11-14)
+
+### ✨ New Features
+
+* **ytmusicwear:** add Disable network telemetry patch (Cronet EnableTelemetry off) ([fa15635](https://github.com/mwbra130/Retro-Bowl-College/commit/fa156351bddf61467eeccdd9840886d6f1f709c5))
+
+## [1.72.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.71.0...v1.72.0) (2026-11-14)
+
+### ✨ New Features
+
+* **ytmusicwear:** add GmsCore support patch so Wear YT Music can sign in via MicroG ([a4bcc65](https://github.com/mwbra130/Retro-Bowl-College/commit/a4bcc65d6f384d02b0ef091c204787e04a59a21a))
+
 ## [1.71.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.70.0...v1.71.0) (2026-11-13)
 
 ### ✨ New Features

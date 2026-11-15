@@ -14,7 +14,7 @@ body:
         An idea is welcome. Two things to read first:
 
         - 🔎 **Check the [existing requests](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Feature+request%22).** If yours is already there, a 👍 on it counts more than a second issue.
-        - 🧭 **Out of scope:** unlocking paid features or content (Premium, subscriptions), and anything that gathers other people's data. Those requests are closed.
+        - 🧭 **Out of scope:** anything that gathers other people's data, and paid content (courses, articles behind a paywall). Those requests are closed.
 
   - type: dropdown
     id: app
@@ -22,6 +22,9 @@ body:
       label: App
       options:
         - LinkedIn
+        - Splitwise
+        - Truecaller
+        - Doc Scanner
         - Other app (say which below)
     validations:
       required: true

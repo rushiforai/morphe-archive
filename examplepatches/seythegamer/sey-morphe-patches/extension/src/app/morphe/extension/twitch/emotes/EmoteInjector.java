@@ -68,13 +68,10 @@ public final class EmoteInjector {
         if (webView == null) {
             return;
         }
-        webView.post(new Runnable() {
-            @Override
-            public void run() {
-                WebView target = currentWebView == null ? null : currentWebView.get();
-                if (target != null) {
-                    evaluate(target, script);
-                }
+        webView.post(() -> {
+            WebView target = currentWebView == null ? null : currentWebView.get();
+            if (target != null) {
+                evaluate(target, script);
             }
         });
     }

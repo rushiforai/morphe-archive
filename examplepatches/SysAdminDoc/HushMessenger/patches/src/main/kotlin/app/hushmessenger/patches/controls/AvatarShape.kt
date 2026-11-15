@@ -286,7 +286,7 @@ private fun Method.ringRouted(): Boolean {
  */
 internal fun findStoryRing(classes: Iterable<ClassDef>): List<Method> {
     val all = classes.toList()
-    val mounts = all.filter { it.methods.any { m -> m.ringContent() != null } && it.paintsRing() }
+    val mounts = ringMountClasses.classes(classes).filter { it.paintsRing() }
         .flatMap { cls -> cls.methods.filter { it.ringContent() != null } }
     val mount = mounts.singleOrNull() ?: return emptyList()
     val ring = all.singleOrNull { it.type == mount.ringType() }?.takeIf { it.superclass == DRAWABLE } ?: return emptyList()
@@ -316,6 +316,17 @@ internal fun MutableMethod.injectStoryRing() {
     replaceInstruction(at, "invoke-static/range {v$start .. v${start + 6}}, $RING_ARC")
 }
 
+internal val ringMountClasses = classCheck { _, method -> method.ringContent() != null }
+
+/** The classes whose toString() names RoundingOptions, before [vitoCircle] reads the field it prints. */
+internal val roundingPrinterClasses = classCheck { _, method ->
+    method.name == "toString" && method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/String;" &&
+        !AccessFlags.STATIC.isSet(method.accessFlags) &&
+        method.code().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(ROUNDING_OPTIONS_NAME) == true }
+}
+internal val legacyRoundings = methodCheck { _, method -> method.legacyRounding() != null }
+internal val tileShapeFlags = methodCheck { _, method -> method.tileShapeFlag() != null }
+
 /**
  * The one RoundingOptions class by its toString(), its one constructor in the proven shape, and the one legacy helper.
  * Then the user tile: its one shape setter, the one setup in that class that hands it a clip path, and the draw of the
@@ -326,11 +337,11 @@ internal fun findAvatarShape(classes: Iterable<ClassDef>): List<Method> {
     vitoCircleField = ""
     tileShapeSetter = ""
     val all = classes.toList()
-    val vito = all.mapNotNull { cls -> cls.vitoCircle()?.let { cls to it } }.singleOrNull() ?: return emptyList()
+    val vito = roundingPrinterClasses.classes(classes).mapNotNull { cls -> cls.vitoCircle()?.let { cls to it } }.singleOrNull() ?: return emptyList()
     val constructors = vito.first.methods.filter { it.vitoRounding(vito.second) != null }
     val constructor = constructors.singleOrNull() ?: return emptyList()
-    val legacy = all.flatMap { cls -> cls.methods.filter { it.legacyRounding() != null } }.singleOrNull() ?: return emptyList()
-    val setter = all.flatMap { cls -> cls.methods.filter { it.tileShapeFlag() != null } }.singleOrNull() ?: return emptyList()
+    val legacy = legacyRoundings.methods(classes).singleOrNull() ?: return emptyList()
+    val setter = tileShapeFlags.methods(classes).singleOrNull() ?: return emptyList()
     val tile = all.singleOrNull { it.type == setter.definingClass } ?: return emptyList()
     val setup = tile.methods.filter { it.tilePath(setter.hookId()) != null }.singleOrNull() ?: return emptyList()
     val byType = all.associateBy { it.type }

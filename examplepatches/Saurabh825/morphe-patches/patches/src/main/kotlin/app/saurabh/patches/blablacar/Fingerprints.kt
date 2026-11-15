@@ -25,9 +25,9 @@ object AdMobInterstitialLoadAdFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(
         "Ljava/lang/String;",
-        "Lap3;",
-        "Lap3;",
-        "Lap3;"
+        "Lbl3;",
+        "Lbl3;",
+        "Lbl3;"
     )
 )
 
@@ -37,49 +37,8 @@ object AdMobAppOpenLoadAdFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(
         "Ljava/lang/String;",
-        "Lap3;",
-        "Lap3;"
-    )
-)
-
-object MetaRtbAppOpenAdLoadAdFingerprint : Fingerprint(
-    definingClass =
-        "Lcom/google/ads/mediation/facebook/rtb/MetaRtbAppOpenAd;",
-    name = "loadAd",
-    returnType = "V",
-    parameters = listOf(
-        "Lcom/google/android/gms/ads/mediation/MediationAppOpenAdConfiguration;"
-    )
-)
-
-object AdMobAnchorBannerViewLoadAdFingerprint : Fingerprint(
-    definingClass =
-        "Lcom/comuto/admob/components/AdMobAnchorBannerView;",
-    name = "loadAd",
-    returnType = "V",
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lap3;",
-        "Lap3;"
-    )
-)
-
-object AdMobNativeViewLoadAdFingerprint : Fingerprint(
-    definingClass = "Lcom/comuto/admob/components/AdMobNativeView;",
-    name = "loadAd",
-    returnType = "V",
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lap3;",
-        "Lop3;",
-        "Lop3;",
-        "Lop3;",
-        "Lop3;",
-        "Ldp3;",
-        "Ldp3;",
-        "Lap3;",
-        "Lap3;",
-        "Lap3;"
+        "Lbl3;",
+        "Lbl3;"
     )
 )
 
@@ -120,5 +79,46 @@ object AdAnchorBannerViewLoadAdFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(
         "Lcom/comuto/coreui/ads/AdFeatureKeyUIModel;"
+    )
+)
+
+object AdMobNativeViewLoadAdFingerprint : Fingerprint(
+    definingClass = "Lcom/comuto/admob/components/AdMobNativeView;",
+    name = "loadAd",
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Lbl3;",
+        "Lpl3;",
+        "Lpl3;",
+        "Lpl3;",
+        "Lpl3;",
+        "Lel3;",
+        "Lel3;",
+        "Lbl3;",
+        "Lbl3;",
+        "Lbl3;"
+    )
+)
+
+object AdMobAnchorBannerViewLoadAdFingerprint : Fingerprint(
+    definingClass =
+        "Lcom/comuto/admob/components/AdMobAnchorBannerView;",
+    name = "loadAd",
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Lbl3;",
+        "Lbl3;"
+    )
+)
+
+object MetaRtbAppOpenAdLoadAdFingerprint : Fingerprint(
+    definingClass =
+        "Lcom/google/ads/mediation/facebook/rtb/MetaRtbAppOpenAd;",
+    name = "loadAd",
+    returnType = "V",
+    parameters = listOf(
+        "Lcom/google/android/gms/ads/mediation/MediationAppOpenAdConfiguration;"
     )
 )

@@ -17,6 +17,9 @@ import com.android.tools.smali.dexlib2.Opcode
 private const val MORPHE_ACCOUNT = "Lapp/morphe/ather/MorpheAccount;"
 private const val ACCOUNT_SECTION_MAPPER = "Lcom/ather/account/model/AccountSectionMapperKt;"
 private const val ACCOUNT_SCREEN = "Lcom/ather/account/ui/account/k1;"
+
+// Ather 13.6.0 moved the row click handler to the i0 screen model.
+private const val ACCOUNT_SCREEN_1360 = "Lcom/ather/account/ui/account/i0;"
 private const val FEATURE_ACCESS = "Lcom/ather/domain/featureAccess/a;"
 
 /**
@@ -66,6 +69,21 @@ internal object AccountRowClickFingerprint : Fingerprint(
 )
 
 /**
+ * Matches the same handler in Ather 13.6.0 (`i0` instead of `k1`).
+ *
+ * ```
+ * public static o(i0, String): void
+ * ```
+ */
+internal object AccountRowClick1360Fingerprint : Fingerprint( // keywatch:ignore
+    definingClass = ACCOUNT_SCREEN_1360,
+    name = "o",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = listOf(ACCOUNT_SCREEN_1360, "Ljava/lang/String;"),
+)
+
+/**
  * Adds a "Morphe settings" row to the account screen.
  *
  * The row opens the patch's own settings screen, which holds the map provider, the analytics
@@ -98,7 +116,10 @@ val morpheSettingsRowPatch = bytecodePatch(
     execute {
         AccountSectionListFingerprint.method.addSectionInjection()
 
-        AccountRowClickFingerprint.method.addRowRouting()
+        val rowClick = AccountRowClick1360Fingerprint.matchOrNull() // keywatch:ignore
+            ?: AccountRowClickFingerprint.matchOrNull()
+            ?: throw IllegalStateException("Account row click handler was not found.")
+        rowClick.method.addRowRouting()
     }
 }
 

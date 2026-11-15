@@ -16,14 +16,14 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "14.41.0",
-                versionCode = 14418020,
+                version = "14.43.0",
+                versionCode = 14438020,
                 minSdk = 29,
                 description = "Patched and launched to the sign-in screen on the dedicated API 36 emulator; the is_promoted getter, the Bugsnag release stage check and the 14 skipped startup tasks checked in the output DEX. The feed needs sign-in and was not checked.",
             ),
             AppTarget(
-                version = "14.42.0",
-                versionCode = 14428010,
+                version = "14.44.0",
+                versionCode = 14448030,
                 minSdk = 29,
                 description = "Patched and launched to the sign-in screen on the dedicated API 36 emulator; the is_promoted getter, the Bugsnag release stage check and the 14 skipped startup tasks checked in the output DEX. The feed needs sign-in and was not checked.",
             ),

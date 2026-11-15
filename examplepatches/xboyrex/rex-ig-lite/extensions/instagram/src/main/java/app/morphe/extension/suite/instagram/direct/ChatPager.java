@@ -1,0 +1,1078 @@
+/*
+ * Copyright 2026 xboyrex contributors
+ * https://github.com/xboyrex/xboyrex
+ */
+package app.morphe.extension.suite.instagram.direct;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+import android.widget.ViewAnimator;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import app.morphe.extension.suite.instagram.download.FeedDownloadButton;
+import app.morphe.extension.suite.instagram.download.TextGrab;
+import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.suite.instagram.settings.Settings;
+import app.morphe.extension.suite.shared.L10n;
+import app.morphe.extension.suite.shared.Logger;
+import app.morphe.extension.suite.shared.Utils;
+import app.morphe.extension.suite.shared.diagnostics.DiagnosticCategory;
+import app.morphe.extension.suite.shared.diagnostics.HookStatus;
+
+/**
+ * Jump to a chat's first message or to a date (#246).
+ *
+ * <p>A button in the chat's header, beside the call buttons, or a long press on the chat's name opens
+ * a short menu (#453). Instagram loads a chat a page at a time as the list is scrolled to its old end,
+ * so a jump scrolls there again and again until the chat has nothing older (or, for a date, until the
+ * oldest message it holds is that old), with a count and a Cancel button on screen, and then scrolls
+ * to the message. Messages and their rows are read by {@link ChatHistory}. The patch tells this class
+ * which chat is on screen with {@link #opened} and {@link #closed}, the same two moments the chat lock
+ * uses.
+ */
+public final class ChatPager {
+    static final String PAGER = "chat pager";
+    private static final int ACTION_FIRST = 0;
+    private static final int ACTION_DATE = 1;
+    private static final int ACTION_EXPORT = 2;
+    /** How often the list is scrolled to its old end and looked at again. */
+    static final long TICK_MS = 450;
+    /** Looks with nothing new in a row before the chat counts as fully loaded. A page can take seconds to come. */
+    static final int STALL_LOOKS = 24;
+    /** The longest a page Instagram shows as loading is waited for, in looks: about a minute. */
+    static final int LOADING_LOOKS = (int) (60_000 / TICK_MS);
+    /** Taps on Instagram's Retry or Load more at the old end before the loader stops asking. */
+    static final int END_TAPS = 3;
+    /** Looks between two of those taps, so Instagram has time to show the page loading. */
+    static final int TAP_GAP = 4;
+    /** Pixels the list steps off its old end and back to ask for an older page. Nothing draws between the two. */
+    static final int ASK_STEP = 1;
+    /** Layout passes a found row is waited for before it's left where the list put it. */
+    private static final int TOP_TRIES = 5;
+    /** The area around a chat's name and subtitle in Instagram's chat header. */
+    static final String NAME_AREA = "header_title_subtitle_container";
+    /** The row on the right of Instagram's chat header that holds the call and video buttons. */
+    static final String BUTTON_ROW = "header_right_buttons";
+    /** Marks the button this class puts in that row. */
+    static final String BUTTON_TAG = "xboyrex_chat_jump";
+    /** Instagram's glyphs for the button and the menu, by name since the numbers change; the first one found is used. */
+    static final String[] BUTTON_ICONS = {"instagram_history_pano_outline_24", "instagram_history_outline_24",
+            "instagram_calendar_outline_24"};
+    static final String[] FIRST_ICONS = {"instagram_history_pano_outline_24", "instagram_history_outline_24"};
+    static final String[] DATE_ICONS = {"instagram_calendar_pano_outline_24", "instagram_calendar_outline_24"};
+    static final String[] EXPORT_ICONS = {"instagram_download_pano_outline_24", "instagram_download_outline_24"};
+    /** Instagram's row at a chat's old end: a page loading, Load more, Retry, or nothing more to load. */
+    static final String LOAD_MORE = "com.instagram.ui.widget.loadmore.LoadMoreButton";
+    /** What that row shows, by the child it displays. {@link #END_NONE} when none is on screen. */
+    static final int END_NONE = -1;
+    static final int END_EMPTY = 0;
+    static final int END_LOADING = 1;
+    static final int END_MORE = 2;
+    static final int END_RETRY = 3;
+    private static final int ATTACH_TRIES = 24;
+    private static final long ATTACH_MS = 600;
+    private static final int BUTTON_PAD_DP = 12;
+
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final View.OnLongClickListener PRESS = new View.OnLongClickListener() {
+        @Override public boolean onLongClick(View v) {
+            return menu(v);
+        }
+    };
+    private static final View.OnClickListener TAP = new View.OnClickListener() {
+        @Override public void onClick(View v) {
+            menu(v);
+        }
+    };
+    /**
+     * Puts the button back when Instagram empties the header's row while the chat is still up. Only a
+     * button taken out of the row counts: one that left the window with the whole header still has it.
+     */
+    private static final View.OnAttachStateChangeListener KEEP = new View.OnAttachStateChangeListener() {
+        @Override public void onViewAttachedToWindow(View v) {
+        }
+
+        @Override public void onViewDetachedFromWindow(final View v) {
+            MAIN.post(new Runnable() {
+                @Override public void run() {
+                    try {
+                        if (v.getParent() != null || !wanted()) return;
+                        Object fragment = screen.get();
+                        View root = fragment == null ? null : viewOf(fragment);
+                        if (root != null && placeButton(root) != null) log("button put back, the header's row was emptied");
+                    } catch (Throwable t) {
+                        HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                    }
+                }
+            });
+        }
+    };
+    /**
+     * Puts the long press back as a touch starts, before the view times the press. Instagram clears it
+     * on the name's area seconds after the chat comes up, and can again after {@link HeaderWatch} stops
+     * looking. Never takes the touch, so a tap stays Instagram's.
+     */
+    private static final View.OnTouchListener REARM = new View.OnTouchListener() {
+        @Override public boolean onTouch(View v, MotionEvent event) {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN && wanted() && (!v.isLongClickable() || !hasLongPress(v))) {
+                v.setOnLongClickListener(PRESS);
+            }
+            return false;
+        }
+    };
+    private static volatile WeakReference<Object> screen = new WeakReference<>(null);
+    private static volatile WeakReference<View> attached = new WeakReference<>(null);
+    private static volatile WeakReference<View> button = new WeakReference<>(null);
+    private static volatile HeaderWatch watch;
+    private static volatile Run running;
+
+    private ChatPager() {
+    }
+
+    /** What a loader works on: the chat's list. */
+    interface Source {
+        /** How many rows the list holds. */
+        int count();
+
+        /** The messages the list holds now, oldest first. */
+        List<ChatHistory.Entry> entries();
+
+        /** Asks Instagram for older messages if the list is at its old end, then scrolls it there. */
+        void toOldest();
+
+        /** Scrolls the list to a found row and puts it at the top, where reading down starts. */
+        void scrollTo(int position);
+
+        /** Scrolls the list back to its new end, where a chat is read from. */
+        void toNewest();
+
+        /** What Instagram's row at the old end shows, one of the END_ values. */
+        default int end() {
+            return END_NONE;
+        }
+
+        /** Taps Instagram's Retry or Load more at the old end. True when there was one to tap. */
+        default boolean pressEnd() {
+            return false;
+        }
+    }
+
+    /**
+     * The paging itself: one {@link #tick} per look, no views and no clock.
+     *
+     * <p>A look with nothing new counts toward the stall limit unless Instagram's row at the old end
+     * shows a page on its way, which is waited for up to {@link #LOADING_LOOKS}. When that row offers
+     * Retry, after a page that didn't come, or Load more, it's tapped, up to {@link #END_TAPS} times.
+     * Ended on a stall with that row still showing, the chat didn't reach its start, and
+     * {@link #stoppedShort} says so instead of the jump claiming it found the first message (#453).
+     */
+    static final class Loader {
+        private final Source source;
+        private final long target;
+        private final int stallLimit;
+        private int lastCount = -1;
+        private long oldestSeen;
+        private int looks;
+        private int stalls;
+        private int waits;
+        private int taps;
+        private int lastTap = -TAP_GAP;
+        private int lastEnd = END_NONE;
+        private boolean done;
+        private boolean reachedDate;
+        private boolean stoppedShort;
+        private int loaded;
+        private final boolean scroll;
+
+        /** [target] is a time in milliseconds, or 0 to go to the very first message. */
+        Loader(Source source, long target, int stallLimit) {
+            this(source, target, stallLimit, true);
+        }
+
+        /** With [scroll] false the loader ends where the list is, and an export puts it back at the new end. */
+        Loader(Source source, long target, int stallLimit, boolean scroll) {
+            this.source = source;
+            this.target = target;
+            this.stallLimit = stallLimit;
+            this.scroll = scroll;
+        }
+
+        /** Looks once. True while more should be loaded, false when the jump is over. */
+        boolean tick() {
+            if (done) return false;
+            looks++;
+            List<ChatHistory.Entry> entries = source.entries();
+            int count = source.count();
+            loaded = entries.size();
+            long oldest = ChatHistory.oldestMillis(entries);
+            if (target > 0 && oldest > 0 && oldest <= target) {
+                reachedDate = true;
+                return finish(entries);
+            }
+            // A list that lets its newest rows go as older ones come keeps its length, so an older first message counts as a page too.
+            boolean older = oldest > 0 && (oldestSeen == 0 || oldest < oldestSeen);
+            if (older) oldestSeen = oldest;
+            if (count != lastCount || older) {
+                stalls = 0;
+                waits = 0;
+                taps = 0;
+                lastEnd = END_NONE;
+            } else {
+                lastEnd = source.end();
+                if (lastEnd == END_LOADING && waits < LOADING_LOOKS) {
+                    waits++;
+                } else if ((lastEnd == END_RETRY || lastEnd == END_MORE) && taps < END_TAPS && looks - lastTap >= TAP_GAP
+                        && source.pressEnd()) {
+                    taps++;
+                    lastTap = looks;
+                    stalls = 0;
+                } else {
+                    stalls++;
+                }
+            }
+            lastCount = count;
+            if (stalls >= stallLimit) {
+                stoppedShort = lastEnd == END_LOADING || lastEnd == END_RETRY || lastEnd == END_MORE;
+                return finish(entries);
+            }
+            source.toOldest();
+            return true;
+        }
+
+        private boolean finish(List<ChatHistory.Entry> entries) {
+            done = true;
+            if (!scroll) {
+                source.toNewest();
+                return false;
+            }
+            int position = ChatHistory.positionFor(entries, target);
+            if (position >= 0) source.scrollTo(position);
+            else source.toOldest();
+            return false;
+        }
+
+        /** How many messages were found at the last look. */
+        int loaded() {
+            return loaded;
+        }
+
+        /** Whether a date jump stopped because the chat reached back to that date. */
+        boolean reachedDate() {
+            return reachedDate;
+        }
+
+        /** Whether the loading ended with Instagram's row still offering a page it didn't send. */
+        boolean stoppedShort() {
+            return stoppedShort;
+        }
+    }
+
+    /** Asked first when a chat comes to the front. */
+    public static void opened(Object fragment) {
+        try {
+            HookStatus.invoked(FamilyNames.CHAT_HISTORY);
+            screen = new WeakReference<>(fragment);
+            stopWatching();
+            if (!wanted()) {
+                log("chat opened with both switches off or settings not ready");
+                return;
+            }
+            log("chat opened");
+            watch = new HeaderWatch(fragment);
+            watch.run();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+        }
+    }
+
+    /** Asked first when a chat leaves the front. */
+    public static void closed(Object fragment) {
+        try {
+            Object shown = screen.get();
+            if (shown != null && shown != fragment) return;
+            screen = new WeakReference<>(null);
+            stopWatching();
+            removeButton();
+            Run run = running;
+            if (run != null) run.stop();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+        }
+    }
+
+    private static void removeButton() {
+        View ours = button.get();
+        button = new WeakReference<>(null);
+        ViewParent parent = ours == null ? null : ours.getParent();
+        if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(ours);
+    }
+
+    static boolean wanted() {
+        return jumpWanted() || exportWanted();
+    }
+
+    static boolean jumpWanted() {
+        return Utils.settingsReady() && Settings.JUMP_IN_CHAT.get();
+    }
+
+    static boolean exportWanted() {
+        return Utils.settingsReady() && Settings.EXPORT_CHAT.get();
+    }
+
+    private static void stopWatching() {
+        HeaderWatch old = watch;
+        if (old != null) MAIN.removeCallbacks(old);
+        watch = null;
+    }
+
+    private static void log(final String line) {
+        Logger.diagnosticDebug(DiagnosticCategory.OTHER, PAGER, () -> line);
+    }
+
+    /**
+     * Looks at the chat's header through its first seconds. Instagram builds the header after the
+     * chat comes up and can build it again, so finding it once isn't the end of the looking.
+     */
+    private static final class HeaderWatch implements Runnable {
+        private final Object fragment;
+        private int tries;
+        private boolean found;
+        private View placed;
+
+        HeaderWatch(Object fragment) {
+            this.fragment = fragment;
+        }
+
+        @Override public void run() {
+            if (watch != this || screen.get() != fragment) return;
+            try {
+                View root = viewOf(fragment);
+                View target = root == null ? null : pressTarget(root);
+                if (target != null) {
+                    found = true;
+                    HookStatus.recoveredViewId(FamilyNames.CHAT_HISTORY, ChatLocks.TITLES[0]);
+                    arm(target);
+                }
+                View shown = root == null ? null : placeButton(root);
+                if (shown != null && shown != placed) {
+                    log("button set in the header, try " + tries + (placed == null ? "" : ", header was rebuilt"));
+                    placed = shown;
+                }
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                return;
+            }
+            if (++tries < ATTACH_TRIES) {
+                MAIN.postDelayed(this, ATTACH_MS);
+                return;
+            }
+            if (!found) {
+                // The diagnostics report then says the name was never found, instead of a silent long press.
+                HookStatus.missingViewId(FamilyNames.CHAT_HISTORY, ChatLocks.TITLES[0]);
+                log("the chat's name was never found");
+            }
+            if (placed == null) log("no button: the header's call buttons row was never found");
+        }
+
+        private void arm(View target) {
+            View ours = attached.get();
+            if (ours == target && target.isLongClickable()) return;
+            if (ours != target && hasLongPress(target)) {
+                if (tries == 0) log("Instagram answers the long press on the chat's name");
+                return;
+            }
+            target.setOnLongClickListener(PRESS);
+            target.setOnTouchListener(REARM);
+            attached = new WeakReference<>(target);
+            final String how = ours == target ? "again, it was cleared" : ours == null ? "first time" : "header was rebuilt";
+            log("long press set on the chat's name, try " + tries + ", " + how);
+        }
+    }
+
+    /** The view a fragment shows, or null. */
+    static View viewOf(Object fragment) {
+        try {
+            Object view = fragment.getClass().getMethod("getView").invoke(fragment);
+            return view instanceof View ? (View) view : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * The chat header's title, when it is there. Instagram keeps the header in the screen's action
+     * bar beside the chat's view, not inside it, so the lookup walks from [root] up through its
+     * parents the way the chat lock does, and the nearest title is the chat's own. Under the root
+     * alone it was never found, and the long press stayed Instagram's (#246, #247).
+     */
+    static View titleIn(View root) {
+        for (String name : ChatLocks.TITLES) {
+            View title = nearest(root, name);
+            if (title != null) return title;
+        }
+        return null;
+    }
+
+    /**
+     * Where the long press goes: the area around the chat's name and subtitle. A tap on the name
+     * lands there and opens the chat's details, while the name itself takes no touches, so a
+     * listener on the name would swallow that tap (#246). The name is the fallback.
+     */
+    static View pressTarget(View root) {
+        View area = nearest(root, NAME_AREA);
+        return area != null ? area : titleIn(root);
+    }
+
+    /** The chat's name as the header shows it, empty when it isn't there. */
+    static String nameIn(View root) {
+        View title = titleIn(root);
+        return title instanceof TextView ? String.valueOf(((TextView) title).getText()) : "";
+    }
+
+    /**
+     * Puts the menu's button first in the header's row of call buttons, the way those buttons are
+     * laid out, and gives back the one there. Null when the row or Instagram's glyph isn't there.
+     */
+    static ImageView placeButton(View root) {
+        View found = nearest(root, BUTTON_ROW);
+        if (!(found instanceof LinearLayout)) return null;
+        LinearLayout row = (LinearLayout) found;
+        View had = row.findViewWithTag(BUTTON_TAG);
+        if (had instanceof ImageView) {
+            button = new WeakReference<>(had);
+            return (ImageView) had;
+        }
+        Drawable glyph = icon(row.getContext(), BUTTON_ICONS);
+        if (glyph == null) return null;
+        String description = jumpWanted() ? L10n.t("Jump to the first message or a date") : L10n.t("Export chat");
+        ImageView made = addHeaderButton(row, glyph, description, BUTTON_TAG, TAP, KEEP);
+        button = new WeakReference<>(made);
+        return made;
+    }
+
+    /**
+     * Makes a button showing [glyph] the way the header's call buttons in [row] look and puts it first
+     * in the row, tagged [tag] so it can be found again.
+     */
+    static ImageView addHeaderButton(LinearLayout row, Drawable glyph, String description, String tag,
+                                     View.OnClickListener tap, View.OnAttachStateChangeListener keep) {
+        Context context = row.getContext();
+        ImageView sibling = null;
+        for (int i = 0; i < row.getChildCount() && sibling == null; i++) {
+            if (row.getChildAt(i) instanceof ImageView) sibling = (ImageView) row.getChildAt(i);
+        }
+        ImageView made = new ImageView(context);
+        made.setImageDrawable(glyph);
+        made.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        LinearLayout.LayoutParams params;
+        if (sibling != null && sibling.getLayoutParams() instanceof LinearLayout.LayoutParams) {
+            params = new LinearLayout.LayoutParams((LinearLayout.LayoutParams) sibling.getLayoutParams());
+            made.setPadding(sibling.getPaddingLeft(), sibling.getPaddingTop(), sibling.getPaddingRight(), sibling.getPaddingBottom());
+        } else {
+            params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.CENTER_VERTICAL;
+            int pad = dp(context, BUTTON_PAD_DP);
+            made.setPadding(pad, pad, pad, pad);
+        }
+        // The call buttons' own color, however Instagram set it, else the theme's icon color.
+        ColorStateList tint = sibling == null ? null : sibling.getImageTintList();
+        if (tint != null) made.setImageTintList(tint);
+        else if (sibling != null && sibling.getColorFilter() != null) made.setColorFilter(sibling.getColorFilter());
+        else made.setImageTintList(ColorStateList.valueOf(FeedDownloadButton.iconColor(context)));
+        TypedValue ripple = new TypedValue();
+        if (context.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, ripple, true) && ripple.resourceId != 0) {
+            made.setBackgroundResource(ripple.resourceId);
+        }
+        made.setContentDescription(description);
+        made.setTag(tag);
+        made.setOnClickListener(tap);
+        made.addOnAttachStateChangeListener(keep);
+        row.addView(made, 0, params);
+        return made;
+    }
+
+    /** Tests hand in their own glyphs by name, since the test app has none of Instagram's. */
+    static volatile Map<String, Drawable> iconsForTests;
+
+    /** The first of Instagram's glyphs [names] it has, ready to be tinted on its own, or null. */
+    static Drawable icon(Context context, String[] names) {
+        Map<String, Drawable> forTests = iconsForTests;
+        for (String name : names) {
+            Drawable found = null;
+            if (forTests != null) {
+                found = forTests.get(name);
+            } else {
+                int id = context.getResources().getIdentifier(name, "drawable", Utils.resourcePackage(context));
+                if (id != 0) found = context.getDrawable(id);
+            }
+            if (found != null) return found.mutate();
+        }
+        return null;
+    }
+
+    private static int dp(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
+    }
+
+    static View nearest(View root, String name) {
+        int id = MessagesLock.id(root.getContext(), name);
+        if (id == 0) return null;
+        for (View at = root; at != null; at = at.getParent() instanceof View ? (View) at.getParent() : null) {
+            View found = at.findViewById(id);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /**
+     * Whether Instagram already answers a long press on [view], in which case its listener stays.
+     * A view that is merely long-clickable, with nothing listening, still gets the menu: on it a
+     * long press fell through to Instagram's click.
+     */
+    static boolean hasLongPress(View view) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? view.hasOnLongClickListeners() : view.isLongClickable();
+    }
+
+    private static boolean menu(View pressed) {
+        Object fragment = screen.get();
+        if (fragment == null || !wanted()) {
+            log("no menu: chat " + (fragment != null) + ", switches " + wanted());
+            return false;
+        }
+        try {
+            // The header's views carry a context that doesn't lead to an activity, so the parents are asked too.
+            final Activity activity = TextGrab.ownerOf(pressed, null);
+            if (activity == null) {
+                log("no menu: no activity from " + pressed.getContext().getClass().getName());
+                return false;
+            }
+            final View root = viewOf(fragment);
+            if (root == null) {
+                log("no menu: the chat has no view");
+                return false;
+            }
+            final List<String> labels = new ArrayList<>();
+            final List<Integer> actions = new ArrayList<>();
+            if (jumpWanted()) {
+                labels.add(L10n.t("Jump to the first message"));
+                actions.add(ACTION_FIRST);
+                labels.add(L10n.t("Jump to a date"));
+                actions.add(ACTION_DATE);
+            }
+            if (exportWanted()) {
+                labels.add(L10n.t("Export chat"));
+                actions.add(ACTION_EXPORT);
+            }
+            if (labels.isEmpty()) return false;
+            final String name = nameIn(root);
+            try {
+                popup(activity, pressed, root, name, labels, actions);
+            } catch (Throwable t) {
+                // A theme that can't show a popup still gets the plain list.
+                log("popup failed, showing a list: " + t);
+                new AlertDialog.Builder(activity)
+                        .setItems(labels.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                            @Override public void onClick(DialogInterface dialog, int which) {
+                                act(activity, root, name, actions.get(which));
+                            }
+                        }).show();
+            }
+            return true;
+        } catch (Throwable t) {
+            log("no menu: " + t);
+            HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+            return false;
+        }
+    }
+
+    /** The menu as a popup under what was pressed, each line with Instagram's glyph for it (#453). */
+    private static void popup(final Activity activity, View pressed, final View root, final String name, List<String> labels,
+                              List<Integer> actions) {
+        PopupMenu popup = new PopupMenu(activity, pressed, BUTTON_TAG.equals(pressed.getTag()) ? Gravity.END : Gravity.NO_GRAVITY);
+        Menu items = popup.getMenu();
+        int color = FeedDownloadButton.iconColor(activity);
+        for (int i = 0; i < labels.size(); i++) {
+            int action = actions.get(i);
+            MenuItem item = items.add(Menu.NONE, action, i, labels.get(i));
+            Drawable glyph = icon(activity, action == ACTION_FIRST ? FIRST_ICONS : action == ACTION_DATE ? DATE_ICONS : EXPORT_ICONS);
+            if (glyph != null) {
+                glyph.setTintList(ColorStateList.valueOf(color));
+                item.setIcon(glyph);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) popup.setForceShowIcon(true);
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override public boolean onMenuItemClick(MenuItem item) {
+                act(activity, root, name, item.getItemId());
+                return true;
+            }
+        });
+        popup.show();
+    }
+
+    private static void act(Activity activity, View root, String name, int action) {
+        if (action == ACTION_FIRST) start(activity, root, 0, null);
+        else if (action == ACTION_DATE) pickDate(activity, root);
+        else start(activity, root, 0, name);
+    }
+
+    private static void pickDate(final Activity activity, final View root) {
+        Calendar now = Calendar.getInstance();
+        DatePickerDialog dialog = new DatePickerDialog(activity, new DatePickerDialog.OnDateSetListener() {
+            @Override public void onDateSet(android.widget.DatePicker view, int year, int month, int day) {
+                Calendar chosen = Calendar.getInstance();
+                chosen.clear();
+                chosen.set(year, month, day, 0, 0, 0);
+                start(activity, root, Math.max(1, chosen.getTimeInMillis()), null);
+            }
+        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        dialog.getDatePicker().setMaxDate(now.getTimeInMillis());
+        dialog.show();
+    }
+
+    /** [exportName] is the chat's name when the whole chat is to be saved as text, null for a jump. */
+    private static void start(Activity activity, View root, long target, String exportName) {
+        Run old = running;
+        if (old != null) old.stop();
+        View list = ListSource.find(root);
+        if (list == null) {
+            Utils.showToastShort(L10n.t("Couldn't find this chat's messages."));
+            return;
+        }
+        Run run = new Run(activity, new ListSource(list), target, exportName);
+        running = run;
+        run.begin();
+    }
+
+    /** One jump on screen: the dialog, the clock and the loader. */
+    private static final class Run implements Runnable {
+        private final Activity activity;
+        private final Loader loader;
+        private final Source source;
+        private final long target;
+        private final String exportName;
+        private AlertDialog dialog;
+        private boolean stopped;
+
+        Run(Activity activity, Source source, long target, String exportName) {
+            this.activity = activity;
+            this.source = source;
+            this.target = target;
+            this.exportName = exportName;
+            this.loader = new Loader(source, target, STALL_LOOKS, exportName == null);
+        }
+
+        void begin() {
+            TextView text = new TextView(activity);
+            int pad = (int) (20 * activity.getResources().getDisplayMetrics().density);
+            text.setPadding(pad, pad, pad, pad);
+            text.setText(L10n.t("Loading older messages."));
+            text.setTag("xboyrex_pager_text");
+            dialog = new AlertDialog.Builder(activity)
+                    .setView(text)
+                    .setCancelable(true)
+                    .setNegativeButton(L10n.t("Cancel"), new DialogInterface.OnClickListener() {
+                        @Override public void onClick(DialogInterface d, int which) {
+                            stop();
+                        }
+                    })
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override public void onCancel(DialogInterface d) {
+                            stop();
+                        }
+                    }).create();
+            dialog.show();
+            MAIN.post(this);
+        }
+
+        void stop() {
+            stopped = true;
+            MAIN.removeCallbacks(this);
+            try {
+                if (dialog != null && dialog.isShowing()) dialog.dismiss();
+            } catch (Throwable ignored) {
+                // The window is already gone.
+            }
+            if (running == this) running = null;
+        }
+
+        @Override public void run() {
+            if (stopped) return;
+            try {
+                if (activity.isFinishing()) {
+                    stop();
+                    return;
+                }
+                boolean more = loader.tick();
+                View shown = dialog == null ? null : dialog.getWindow().getDecorView().findViewWithTag("xboyrex_pager_text");
+                if (shown instanceof TextView) {
+                    ((TextView) shown).setText(L10n.quantity(activity, loader.loaded(),
+                            "Loading older messages. %1$d message so far.",
+                            "Loading older messages. %1$d messages so far."));
+                }
+                if (more) {
+                    MAIN.postDelayed(this, TICK_MS);
+                    return;
+                }
+                stop();
+                // Instagram still offering a page it never sent means the chat's start wasn't reached.
+                if (loader.stoppedShort()) {
+                    log("stopped short, Instagram's row at the old end still shows " + source.end());
+                    Utils.showToastShort(L10n.t("Instagram stopped loading older messages."));
+                }
+                if (exportName != null) {
+                    export(activity.getApplicationContext(), exportName, source.entries());
+                    return;
+                }
+                if (loader.stoppedShort()) return;
+                Utils.showToastShort(target > 0 && !loader.reachedDate()
+                        ? L10n.t("That's as far back as this chat goes.")
+                        : L10n.t("Here it is."));
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                stop();
+            }
+        }
+    }
+
+    /** Writes the loaded chat out as text, off the main thread, and says where it went. */
+    static void export(final Context context, String title, List<ChatHistory.Entry> entries) {
+        if (entries.isEmpty()) {
+            Utils.showToastShort(L10n.t("No messages found to save."));
+            return;
+        }
+        final String text = ChatHistory.document(entries, title, L10n.t("You"));
+        final String name = ChatExport.fileName(title, System.currentTimeMillis());
+        Utils.runOnBackgroundThread(new Runnable() {
+            @Override public void run() {
+                final boolean saved = ChatExport.save(context, name, text);
+                Utils.runOnMainThread(new Runnable() {
+                    @Override public void run() {
+                        if (!saved) {
+                            Utils.showToastShort(L10n.t("Couldn't save the chat."));
+                            return;
+                        }
+                        Utils.showToastShort(ChatExport.appFolderOnly()
+                                ? L10n.t("Chat saved in the app's Download folder.")
+                                : L10n.t("Chat saved in Downloads/xboyrex."));
+                        Utils.showToastShort(name);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * The chat's RecyclerView, driven by reflection: the extension has no androidx dependency. The last
+     * messages read are kept for the scroll that follows them, so a look reads every row once.
+     */
+    static final class ListSource implements Source {
+        /** How deep under a row Instagram's old-end row is looked for. */
+        private static final int END_DEPTH = 3;
+        private final View list;
+        /** How the rows' messages are read: Chat history's bridges, or Swipe through a chat's reels' (#489). */
+        private final ChatHistory.Reader reader;
+        private List<ChatHistory.Entry> lastEntries;
+        /** Which end the oldest message sits at once the rows have shown it: 0 not known, 1 the first row, 2 the last. */
+        private int oldSide;
+
+        ListSource(View list) {
+            this(list, ChatHistory.LIVE);
+        }
+
+        ListSource(View list, ChatHistory.Reader reader) {
+            this.list = list;
+            this.reader = reader;
+        }
+
+        /** The biggest RecyclerView under [root] that holds rows. */
+        static View find(View root) {
+            List<View> found = new ArrayList<>();
+            collect(root, found);
+            View best = null;
+            for (View candidate : found) {
+                if (best == null || candidate.getHeight() * candidate.getWidth() > best.getHeight() * best.getWidth()) {
+                    best = candidate;
+                }
+            }
+            return best;
+        }
+
+        private static void collect(View view, List<View> found) {
+            if (is(view.getClass(), "androidx.recyclerview.widget.RecyclerView")) found.add(view);
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) collect(group.getChildAt(i), found);
+            }
+        }
+
+        /** Whether [type] is the class named [name] or extends it. */
+        static boolean is(Class<?> type, String name) {
+            for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+                if (c.getName().equals(name)) return true;
+            }
+            return false;
+        }
+
+        /** Instagram's row at the old end when it's on screen, else null. */
+        ViewAnimator endRow() {
+            if (!(list instanceof ViewGroup)) return null;
+            ViewGroup rows = (ViewGroup) list;
+            for (int i = 0; i < rows.getChildCount(); i++) {
+                ViewAnimator found = endRowIn(rows.getChildAt(i), END_DEPTH);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static ViewAnimator endRowIn(View view, int depth) {
+            if (view.getVisibility() != View.VISIBLE) return null;
+            if (view instanceof ViewAnimator && is(view.getClass(), LOAD_MORE)) return (ViewAnimator) view;
+            if (depth <= 0 || !(view instanceof ViewGroup)) return null;
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                ViewAnimator found = endRowIn(group.getChildAt(i), depth - 1);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        @Override public int end() {
+            try {
+                ViewAnimator row = endRow();
+                return row == null ? END_NONE : row.getDisplayedChild();
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                return END_NONE;
+            }
+        }
+
+        /** Taps what the old-end row shows, Retry or Load more, through Instagram's own click listener. */
+        @Override public boolean pressEnd() {
+            try {
+                ViewAnimator row = endRow();
+                View shown = row == null ? null : row.getCurrentView();
+                View tappable = shown == null ? null : listened(shown);
+                if (tappable == null) return false;
+                log("tapped Instagram's " + (row.getDisplayedChild() == END_RETRY ? "Retry" : "Load more") + " at the old end");
+                return tappable.performClick();
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                return false;
+            }
+        }
+
+        /** [view] or the first view under it with a click listener. */
+        private static View listened(View view) {
+            if (view.hasOnClickListeners()) return view;
+            if (!(view instanceof ViewGroup)) return null;
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = listened(group.getChildAt(i));
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private Object adapter() {
+            try {
+                return list.getClass().getMethod("getAdapter").invoke(list);
+            } catch (Throwable ignored) {
+                return null;
+            }
+        }
+
+        @Override public int count() {
+            try {
+                Object adapter = adapter();
+                if (adapter == null) return 0;
+                return (Integer) adapter.getClass().getMethod("getItemCount").invoke(adapter);
+            } catch (Throwable ignored) {
+                return 0;
+            }
+        }
+
+        @Override public List<ChatHistory.Entry> entries() {
+            Object adapter = adapter();
+            int count = count();
+            List<ChatHistory.Entry> entries = ChatHistory.read(adapter, count, reader);
+            int placed = 0;
+            for (ChatHistory.Entry entry : entries) {
+                if (entry.position >= 0) placed++;
+            }
+            log("read " + entries.size() + " messages, " + placed + " on known rows, from " + count + " rows of "
+                    + list.getClass().getName() + " with adapter " + (adapter == null ? null : adapter.getClass().getName()));
+            lastEntries = entries;
+            return entries;
+        }
+
+        private Object manager() throws Exception {
+            return list.getClass().getMethod("getLayoutManager").invoke(list);
+        }
+
+        /**
+         * Instagram asks for an older page only from a scroll that moves toward the old end with that
+         * end's row on screen. A jump to a row reports no movement, and sitting at the end leaves no room
+         * to move that way, so the list steps off the end and straight back. The old end is at the top
+         * whichever way the layout runs.
+         */
+        @Override public void toOldest() {
+            try {
+                list.scrollBy(0, ASK_STEP);
+                list.scrollBy(0, -ASK_STEP);
+                int count = count();
+                if (count > 0) jump(oldestEnd(count));
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+            }
+        }
+
+        /**
+         * The row at the old end: the end the oldest message sits toward, else the end the layout puts
+         * it at. Read from the messages the last look found, and remembered once they show it.
+         */
+        private int oldestEnd(int count) throws Exception {
+            if (oldSide == 0) {
+                ChatHistory.Entry oldest = null;
+                ChatHistory.Entry newest = null;
+                List<ChatHistory.Entry> entries = lastEntries != null ? lastEntries : entries();
+                for (ChatHistory.Entry entry : entries) {
+                    if (entry.position < 0 || entry.millis <= 0) continue;
+                    if (oldest == null || entry.millis < oldest.millis) oldest = entry;
+                    if (newest == null || entry.millis > newest.millis) newest = entry;
+                }
+                if (oldest != null && newest != null && oldest.position != newest.position) {
+                    oldSide = oldest.position < newest.position ? 1 : 2;
+                }
+            }
+            if (oldSide != 0) return oldSide == 1 ? 0 : count - 1;
+            Object manager = manager();
+            if (manager != null) {
+                try {
+                    Method reversed = manager.getClass().getMethod("isLayoutReversed");
+                    if (Boolean.TRUE.equals(reversed.invoke(manager))) return count - 1;
+                } catch (Throwable ignored) {
+                    // Not a linear layout manager.
+                }
+            }
+            return 0;
+        }
+
+        @Override public void toNewest() {
+            try {
+                int count = count();
+                if (count <= 0) return;
+                jump(oldestEnd(count) == 0 ? count - 1 : 0);
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+            }
+        }
+
+        @Override public void scrollTo(int position) {
+            scrollTo(position, messageRows(lastEntries));
+        }
+
+        /**
+         * A row brought in from off screen lands at the nearer edge, the bottom one on a chat's reversed
+         * list, so a found message sat under everything older than it and the jump looked like it stopped
+         * short of its date (#246). Once the list has laid the row out it goes to the top, with its date
+         * stamp above it. [messages] are the rows that hold a message.
+         */
+        void scrollTo(final int position, final Set<Integer> messages) {
+            if (!jump(position)) return;
+            MAIN.post(new Runnable() {
+                private int tries = TOP_TRIES;
+
+                @Override public void run() {
+                    if (!toTop(position, messages) && --tries > 0) MAIN.post(this);
+                }
+            });
+        }
+
+        private static Set<Integer> messageRows(List<ChatHistory.Entry> entries) {
+            Set<Integer> rows = new HashSet<>();
+            if (entries == null) return rows;
+            for (ChatHistory.Entry entry : entries) {
+                if (entry.position >= 0) rows.add(entry.position);
+            }
+            return rows;
+        }
+
+        /**
+         * Scrolls [position]'s row, with the rows right above it that hold no message (a date stamp, the
+         * chat's start), to the top of the list. False while the list hasn't laid the row out yet.
+         */
+        private boolean toTop(int position, Set<Integer> messages) {
+            try {
+                Object manager = manager();
+                if (manager == null) return true;
+                Method find = manager.getClass().getMethod("findViewByPosition", int.class);
+                View row = (View) find.invoke(manager, position);
+                if (row == null) return false;
+                // Which way the rows above run depends on the layout, so it's read off the screen.
+                int step = 0;
+                for (int side : new int[] {1, -1}) {
+                    View next = (View) find.invoke(manager, position + side);
+                    if (next != null && next.getTop() < row.getTop()) {
+                        step = side;
+                        break;
+                    }
+                }
+                View top = row;
+                if (step != 0) {
+                    for (int at = position + step; !messages.contains(at); at += step) {
+                        View above = (View) find.invoke(manager, at);
+                        if (above == null || above.getTop() >= top.getTop()) break;
+                        top = above;
+                    }
+                }
+                int by = top.getTop() - list.getPaddingTop();
+                if (by != 0) list.scrollBy(0, by);
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+            }
+            return true;
+        }
+
+        /** Scrolls the list so a row is on screen, at whichever edge the list chooses. False when it couldn't. */
+        private boolean jump(int position) {
+            try {
+                Object manager = manager();
+                if (manager == null) return false;
+                manager.getClass().getMethod("scrollToPosition", int.class).invoke(manager, position);
+                return true;
+            } catch (Throwable t) {
+                HookStatus.threw(FamilyNames.CHAT_HISTORY, PAGER, t);
+                return false;
+            }
+        }
+    }
+}

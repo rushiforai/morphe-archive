@@ -67,6 +67,9 @@ public enum PatchFamily {
     /** Google sign-in and push sent to microG-RE when patching: no switch, nothing to pause. */
     GMS_CORE_SUPPORT(FamilyNames.GMS_CORE_SUPPORT, "gmsCoreSupport",
             "Google sign-in and push notifications go through microG-RE"),
+    /** The copy's own package, set when patching: no switch, and a pause can't give it Pinterest's back. */
+    CHANGE_PACKAGE_NAME(FamilyNames.CHANGE_PACKAGE_NAME, "changePackageName",
+            "This copy has its own package name, so it installs beside Pinterest"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
             Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE,
             Settings.SAVE_DOWNLOADED_PINS, Settings.DOWNLOAD_SAVED_PINS),
@@ -82,7 +85,7 @@ public enum PatchFamily {
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH),
     HIDE_HEADER_BUTTONS(FamilyNames.HIDE_HEADER_BUTTONS, "hideHeaderButtons", null, Settings.HIDE_HEADER_BUTTONS),
     AMOLED_BLACK(FamilyNames.AMOLED_BLACK, "amoledBlack", null, Settings.BLACK_BOTTOM_BAR,
-            Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU),
+            Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET),
     HIDE_CLOSEUP_BUTTONS(FamilyNames.HIDE_CLOSEUP_BUTTONS, "hideCloseupButtons", null,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
             Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
@@ -90,7 +93,8 @@ public enum PatchFamily {
             Settings.SMALLER_SAVE_BUTTON),
     HIDE_PIN_MENU_ITEMS(FamilyNames.HIDE_PIN_MENU_ITEMS, "hidePinMenuItems", null,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST),
-    HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES),
+    HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES,
+            Settings.HIDE_COMMENT_PREVIEWS),
     HIDE_TOPIC_SUGGESTIONS(FamilyNames.HIDE_TOPIC_SUGGESTIONS, "hideTopicSuggestions", null, Settings.HIDE_TOPIC_SUGGESTIONS),
     HIDE_INBOX_UPDATES(FamilyNames.HIDE_INBOX_UPDATES, "hideInboxUpdates", null, Settings.HIDE_INBOX_UPDATES),
     QUIET_EMAIL_REMINDER(FamilyNames.QUIET_EMAIL_REMINDER, "quietEmailReminder", null, Settings.QUIET_EMAIL_REMINDER),
@@ -98,6 +102,8 @@ public enum PatchFamily {
     HIDE_SAVE_TOASTS(FamilyNames.HIDE_SAVE_TOASTS, "hideSaveToasts", null, Settings.HIDE_SAVE_TOASTS),
     ORIGINAL_IMAGES(FamilyNames.ORIGINAL_IMAGES, "originalImages", null, Settings.ORIGINAL_IMAGES),
     SHOW_POSTED_DATE(FamilyNames.SHOW_POSTED_DATE, "showPostedDate", null, Settings.SHOW_POSTED_DATE),
+    HIDE_SUGGESTED_BOARDS(FamilyNames.HIDE_SUGGESTED_BOARDS, "hideSuggestedBoards", null, Settings.HIDE_SUGGESTED_BOARDS),
+    EXPAND_BOARD_LIST(FamilyNames.EXPAND_BOARD_LIST, "expandBoardList", null, Settings.EXPAND_BOARD_LIST),
     DISABLE_UPDATE_NAG(FamilyNames.DISABLE_UPDATE_NAG, "disableUpdateNag", null, Settings.DISABLE_UPDATE_NAG),
     FIX_PUSH_NOTIFICATIONS(FamilyNames.FIX_PUSH_NOTIFICATIONS, "fixPushNotifications", null, Settings.FIX_PUSH_NOTIFICATIONS);
 
@@ -154,7 +160,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
             HIDE_ASSISTANT, HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_CLOSEUP_BUTTONS,
             HIDE_PIN_MENU_ITEMS, HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SURVEY_PROMPTS,
-            HIDE_SAVE_TOASTS, ORIGINAL_IMAGES, SHOW_POSTED_DATE));
+            HIDE_SAVE_TOASTS, ORIGINAL_IMAGES, SHOW_POSTED_DATE, HIDE_SUGGESTED_BOARDS, EXPAND_BOARD_LIST));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
@@ -162,6 +168,7 @@ public enum PatchFamily {
         AD_VIEWS(HIDE_ADS, "adViews", "ad-only views"),
         GOOGLE_ADS(HIDE_ADS, "googleAds", "Google ad SDK start"),
         META_ADS(HIDE_ADS, "metaAds", "Meta ad SDK"),
+        INTERSTITIAL_ADS(HIDE_ADS, "interstitialAds", "full-screen ads when opening a pin"),
         FEED_AI_PINS(HIDE_AI_PINS, "feedAiPins", "AI-labeled pins in lists"),
         FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
         FEED_VIDEO_PINS(FILTER_FEED, "feedVideoPins", "Hide video pins"),
@@ -196,6 +203,7 @@ public enum PatchFamily {
         BOTTOM_BAR(AMOLED_BLACK, "blackBottomBar", "Black bottom bar"),
         BLACK_COMMENTS(AMOLED_BLACK, "blackComments", "Black comments"),
         BLACK_PIN_MENU(AMOLED_BLACK, "blackPinMenu", "Black pin menu"),
+        BLACK_SAVE_SHEET(AMOLED_BLACK, "blackSaveSheet", "Black Save to sheet"),
         CLOSEUP_BUTTONS(HIDE_CLOSEUP_BUTTONS, "closeupButtons", "Hide closeup buttons"),
         CLOSEUP_SEARCH_LABEL(HIDE_CLOSEUP_BUTTONS, "closeupSearchLabel", "Hide Search image label"),
         CLOSEUP_ACTION_BAR(HIDE_CLOSEUP_BUTTONS, "closeupActionBar", "Hide pin action buttons"),
@@ -205,6 +213,7 @@ public enum PatchFamily {
         PIN_MENU_ITEMS(HIDE_PIN_MENU_ITEMS, "pinMenuItems", "Filter pin menu"),
         COMMENTS(HIDE_COMMENTS, "comments", "Hide comments"),
         SUGGESTED_REPLIES(HIDE_COMMENTS, "suggestedReplies", "Hide suggested replies"),
+        COMMENT_PREVIEWS(HIDE_COMMENTS, "commentPreviews", "Hide comment previews"),
         TOPIC_SUGGESTIONS(HIDE_TOPIC_SUGGESTIONS, "topicSuggestions", "Hide topic suggestions"),
         INBOX_UPDATES(HIDE_INBOX_UPDATES, "inboxUpdates", "Hide Inbox updates"),
         EMAIL_REMINDER(QUIET_EMAIL_REMINDER, "emailReminder", "Quiet email reminders"),
@@ -213,6 +222,8 @@ public enum PatchFamily {
         IMAGE_CHOOSER(ORIGINAL_IMAGES, "imageChooser", "collage images"),
         CLOSEUP_IMAGE(ORIGINAL_IMAGES, "closeupImage", "pin closeups"),
         POSTED_DATE(SHOW_POSTED_DATE, "postedDate", "Show posted date"),
+        SUGGESTED_BOARDS(HIDE_SUGGESTED_BOARDS, "suggestedBoards", "Hide suggested boards"),
+        BOARD_LIST_HEIGHT(EXPAND_BOARD_LIST, "boardListHeight", "Expand board list"),
         UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag"),
         SIGN_IN_FAILURE(GMS_CORE_SUPPORT, "signInFailure", "Google sign-in failure message"),
         FIREBASE_CERTIFICATE(FIX_PUSH_NOTIFICATIONS, "firebaseCertificate", "Fix push notifications");

@@ -38,18 +38,24 @@ public class AmazonHelper {
     private static final String[] AD_SELECTORS = {
         ".a-cardui[class*=\"_new-detail-faceout-box_\"]:has(.dynamicSponsoredLabelClass)",
         ".a-carousel-card:has(.p13n-sc-sponsored-label)",
-        ".amzn-safe-frame-container", ".ape-wrapper",
+        ".AdHolder", ".ad-center", ".amzn-safe-frame-container", ".ape-placement", ".ape-wrapper",
+        ".celwidget[data-ref_$=\"displayAds\"]",
         ".dp-widget-card-deck:has([data-ad-placement-metadata])",
+        ".gwm-window-wrapper:has(> [data-ref_$=\"_displayAds\"])",
+        ".p13n-sc-unified-ad-label",
+        ".p13n-uf:has(> #faceoutContainer > [class$=\"sponsored-label\"])",
         ".s-result-item.AdHolder",
         ".s-result-item:has([data-ad-feedback])",
         ".s-result-item:has([data-ad-feedback-label-id])",
         ".s-result-item:has(.puis-sponsored-label-text)",
         ".s-result-item:has(div[cel_widget_id^=\"MAIN-FEATURED_ASINS_LIST-\"])",
         ".s-result-list > .a-section:has(.sbv-ad-content-container)",
-        ".p13n-sc-unified-ad-label", ".sbv-video-single-product",
+        ".sbv-video-single-product",
         ".sponsored-products-detail-mobile",
-        "#detailILM_feature_div",
+        "#cm_cr-rvw_summary-ads", "#desktop-ad-btf", "#detailILM_feature_div",
         "#faceoutContainer:has(> [class$=\"sponsored-label\"])",
+        "#hero-quick-promo_feature_div",
+        "#mobile-ads-bottom-dramabot_feature_div", "#mobile-ads-middle-dramabot_feature_div",
         "#mobile-mshop-ad", "#nav-swmslot", "#sc-rec-bottom", "#sc-rec-right",
         "#similarities_feature_div:has(span.sponsored_label_tap_space)",
         "#sponsoredProducts2_feature_div", "#sponsoredProducts_feature_div",
@@ -58,8 +64,10 @@ public class AmazonHelper {
         "#widget-rightUpsellSlot", ".AdsCard_container__K6vmo",
         "[cel_widget_id*=\"-creative-desktop_loom-desktop-\"]",
         "[class*=\"_adFeedbackWrapper_\"]",
-        "[data-ad-id]", "[data-component-type^=\"aspa-asin-ajax\"]",
+        "[data-ad-id]", "[data-card-metrics-id^=\"universal-detail-ilm-card_\"]",
+        "[data-component-type^=\"aspa-asin-ajax\"]",
         "[id^=\"ape_\"]", "[id^=\"mobile-dp-ilm\"]",
+        "[id^=\"sponsoredProducts\"][id$=\"_feature_div\"]",
         "div.s-inner-result-item > div.sg-col-inner:has(a.puis-sponsored-label-text)",
         "div[cel_widget_id*=\"_ad-placements-\"]", "div[cel_widget_id*=\"Deals3Ads\"]",
         "div[cel_widget_id*=\"desktop-dp-\"]",
@@ -89,6 +97,7 @@ public class AmazonHelper {
         "div[data-cel-widget^=\"multi-brand-video-mobile_DetailPage_\"]",
         "div[data-cel-widget^=\"multi-card-creative-desktop_loom-desktop-top-slot_\"]",
         "div[data-cel-widget^=\"sb-\"]", "div[data-cel-widget^=\"sp-mobile-thematic-bundle\"]",
+        "div[data-csa-c-content-id=\"sims-substitutes\"]:has(div[class^=\"adFeedbackMainComponent_\"])",
         "div[data-csa-c-painter=\"single-creative-card\"]:has([data-ad-feedback-label-id])",
         "div[data-csa-c-painter=\"single-video-card\"]:has([data-ad-feedback-label-id])",
         "div[data-csa-c-painter=\"sp-cart-mobile-carousel-cards\"]",
@@ -96,8 +105,11 @@ public class AmazonHelper {
         "div[data-csa-c-slot-id^=\"loom-mobile-top-slot_hsa-id-\"]",
         "li.gwm-window-tile:has(div[data-csa-c-painter=\"single-creative-card\"] [data-ad-feedback-label-id])",
         "li.gwm-window-tile:has(div[data-csa-c-painter=\"single-video-card\"] [data-ad-feedback-label-id])",
+        "li[role=\"listitem\"]:has(.hybrid-widget-sponsored-label)",
         "div[id^=\"sims-simsContainer_feature_div_\"]:has(.sp_info_link)",
+        "div[id^=\"softlines-btf-substitute-zone-\"]:has(.sp_info_link)",
         "div[id^=\"sp_detail\"]",
+        "div[id^=\"typ-recommendations-stripe-\"]:has(div[data-is-sponsored-label-active=\"true\"])",
         "span[cel_widget_id^=\"MAIN-FEATURED_ASINS_LIST-\"]",
         "span[cel_widget_id^=\"MAIN-loom-desktop-brand-footer-slot_hsa-id-CARDS-\"]",
         "span[cel_widget_id^=\"MAIN-loom-desktop-top-slot_hsa-id-CARDS-\"]",
@@ -141,7 +153,77 @@ public class AmazonHelper {
             + "var s=document.getElementById(id);"
             + "if(!s){s=document.createElement('style');s.id=id;"
             + "(document.head||document.documentElement).appendChild(s);}"
-            + "s.textContent=css;})(" + jsonString(adCss()) + ");", null);
+            + "if(s.textContent!==css)s.textContent=css;})(" + jsonString(adCss()) + ");", null);
+    }
+
+    // ── Video autoplay guard (derived from amznkiller video_autoplay.js) ──
+
+    /**
+     * Neutralizes both HTML5 `autoplay` (including muted autoplay that ignores
+     * WebSettings.setMediaPlaybackRequiresUserGesture(true)) and programmatic
+     * JS `.play()` calls until a recent user gesture occurs on the page.
+     */
+    private static final String DISABLE_VIDEO_AUTOPLAY_JS =
+        "(function(){"
+        + "function tame(v){try{"
+        + "v.autoplay=false;"
+        + "v.removeAttribute('autoplay');"
+        + "if(!v.paused&&!v.__morpheUserPlayed)v.pause();"
+        + "}catch(e){}}"
+        + "function scan(){var vids=document.querySelectorAll('video');"
+        + "for(var i=0;i<vids.length;i++)tame(vids[i]);}"
+        + "if(window.__morpheAutoplayGuard){scan();return;}"
+        + "window.__morpheAutoplayGuard=true;"
+        + "var lastGesture=0;"
+        + "var markGesture=function(){lastGesture=Date.now();};"
+        + "['pointerdown','keydown','touchstart','click'].forEach(function(t){"
+        + "document.addEventListener(t,markGesture,true);"
+        + "});"
+        + "function userInitiated(){return Date.now()-lastGesture<1000;}"
+        + "var origPlay=typeof HTMLMediaElement!=='undefined'"
+        + "&&HTMLMediaElement.prototype&&HTMLMediaElement.prototype.play;"
+        + "if(origPlay&&!origPlay.__morpheWrapped){"
+        + "var wrapped=function(){"
+        + "if(this&&this.tagName==='VIDEO'&&!this.__morpheUserPlayed){"
+        + "if(userInitiated()){this.__morpheUserPlayed=true;}"
+        + "else{try{this.autoplay=false;this.pause();}catch(e){}"
+        + "return typeof Promise!=='undefined'?Promise.resolve():undefined;}}"
+        + "return origPlay.apply(this,arguments);};"
+        + "wrapped.__morpheWrapped=true;"
+        + "HTMLMediaElement.prototype.play=wrapped;}"
+        + "document.addEventListener('loadstart',function(e){"
+        + "var v=e.target;"
+        + "if(!v||v.tagName!=='VIDEO')return;"
+        + "if(!userInitiated())v.__morpheUserPlayed=false;"
+        + "tame(v);"
+        + "},true);"
+        + "document.addEventListener('play',function(e){"
+        + "var v=e.target;"
+        + "if(!v||v.tagName!=='VIDEO')return;"
+        + "if(userInitiated())v.__morpheUserPlayed=true;"
+        + "else if(!v.__morpheUserPlayed){try{v.pause();}catch(err){}}"
+        + "},true);"
+        + "scan();"
+        + "var root=document.body||document.documentElement;"
+        + "if(root&&typeof MutationObserver!=='undefined'){"
+        + "new MutationObserver(function(muts){"
+        + "for(var i=0;i<muts.length;i++){"
+        + "var m=muts[i];"
+        + "if(m.type==='attributes'){tame(m.target);}"
+        + "else if(m.addedNodes&&m.addedNodes.length){"
+        + "for(var j=0;j<m.addedNodes.length;j++){"
+        + "var n=m.addedNodes[j];"
+        + "if(!n||n.nodeType!==1)continue;"
+        + "if(n.tagName==='VIDEO')tame(n);"
+        + "else if(n.querySelectorAll){var nested=n.querySelectorAll('video');"
+        + "for(var k=0;k<nested.length;k++)tame(nested[k]);}}}}}"
+        + ").observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['autoplay']});}"
+        + "})();";
+
+    /** Injects the DOM/JS autoplay guard into an Amazon WebView. */
+    public static void injectDisableVideoAutoplay(WebView webView) {
+        if (webView == null) return;
+        webView.evaluateJavascript(DISABLE_VIDEO_AUTOPLAY_JS, null);
     }
 
     // ── Price history (explicitly user initiated) ───────────────────────────

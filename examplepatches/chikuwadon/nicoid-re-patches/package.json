@@ -3,6 +3,7 @@
     "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#caa1e931730f097bb6c4dee636b01c2c24ccd72d",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^11.0.1",
+    "@semantic-release/npm": "file:./.github/stubs/semantic-release-npm-disabled",
     "conventional-changelog-conventionalcommits": "^9.3.1",
     "gradle-semantic-release-plugin": "^1.10.3",
     "semantic-release": "^25.0.9"
@@ -15,7 +16,6 @@
     "brace-expansion": "5.0.12",
     "ip-address": "10.7.5",
     "postcss-selector-parser": "7.1.7",
-    "tar": "7.5.22",
-    "npm": "11.21.2"
+    "tar": "7.5.22"
   }
 }

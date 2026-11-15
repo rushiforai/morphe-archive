@@ -50,6 +50,12 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("Ljava/lang/String;"),
                 returnType = "Ly1c;",
             ),
+            methodCall(
+                definingClass = "Lhab\$a;",
+                name = "a",
+                parameters = listOf("Ljava/lang/String;"),
+                returnType = "Lhab;",
+            ),
         ),
         // The constructor that receives the quality from the app settings (3.0.75: Hg.o.<init>, 3.0.76: Bg.r.<init>, 3.0.77: LEg/r.<init>, 3.0.78: Lv5e.<init>).
         anyInstruction(
@@ -77,12 +83,18 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("Lznb;", "Ls97\$c;"),
                 returnType = "V",
             ),
+            methodCall(
+                definingClass = "Lf7d;",
+                name = "<init>",
+                parameters = listOf("Lixa;", "Lwv6\$c;"),
+                returnType = "V",
+            ),
         ),
     ),
 )
 
 /**
- * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76, Cg.n.h in 3.0.77, gya.j in 3.0.78), which decides whether to play
+ * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76, Cg.n.h in 3.0.77, gya.j in 3.0.78, w9a.q in 3.0.79), which decides whether to play
  * the strict stream or immediately fall back to a lower quality upon receiving fast streams.
  */
 private object StreamWaitDecisionFingerprint : Fingerprint(
@@ -91,7 +103,6 @@ private object StreamWaitDecisionFingerprint : Fingerprint(
 )
 
 private object StreamWaitDecision3078Fingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     strings = listOf("Choose an available stream to play"),
 )
 

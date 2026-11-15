@@ -332,13 +332,22 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>, tables: Map<Stri
 // of bytecode, which the JVM never compiles (ART skips methods that size too), so it ran interpreted (#148, #150).
 
 /** The one method that names the QR scanner plugin's button and reads the plugin. */
-private fun markReadBar(classes: Iterable<ClassDef>): Method? {
+private fun markReadBar(classes: Iterable<ClassDef>): Method? = markReadBars.methods(classes).singleOrNull()
+
+internal val markReadBars = MethodCheck {
     val qrName = StringMatch(QR_BUTTON_NAME)
-    return classes.flatMap { it.methods }.filter { m ->
+    val test: MethodTest = { _, m ->
         val code = m.markCode()
         code.any { qrName.matches(it.markRef()) } &&
             code.any { it.opcode == Opcode.IGET_OBJECT && (it.markRef() as? FieldReference)?.type == QR_BUTTON }
-    }.singleOrNull()
+    }
+    test
+}
+
+/** The public static (icon, provider, builder)V helpers of public classes, before the two types are known. */
+internal val markIconSetters = methodCheck { cls, m ->
+    cls.isPublic() && AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" &&
+        m.implementation != null && m.parameterTypes.size == 3
 }
 
 /** What the QR button's block reads and stores on its builder, in one pass over the block. */
@@ -410,9 +419,8 @@ private fun markIconSource(qr: ClassDef, iconField: FieldReference): String? =
  * can carry copies of that helper on other public classes; every copy must do the same steps, and the first is used.
  */
 private fun markIconSetter(classes: Iterable<ClassDef>, providerType: String, builder: String): Method? {
-    val setters = classes.filter { it.isPublic() }.flatMap { it.methods }.filter { m ->
-        AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
-            m.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[1] == providerType && it[2] == builder }
+    val setters = markIconSetters.methods(classes).filter { m ->
+        m.parameterTypes.map(CharSequence::toString).let { it[1] == providerType && it[2] == builder }
     }.map { it to it.iconSetterSteps() }
     if (setters.isEmpty() || setters.any { it.second == null } || setters.map { it.second }.distinct().size != 1) return null
     return setters.minBy { it.first.hookId() }.first
@@ -465,8 +473,8 @@ private fun markDetailsRef(byType: Map<String, ClassDef>, c: List<Instruction>, 
 /** The newer bar is the one other method that makes the details button. */
 private fun markTitleBar(classes: Iterable<ClassDef>, detailsRef: String, barId: String): Method? {
     val detailsCall = MemberMatch(detailsRef)
-    return classes.flatMap { it.methods }.filter { m -> m.markCode().any { detailsCall.matches(it.markRef()) } && m.hookId() != barId }
-        .singleOrNull()
+    return codeReferrers(classes, methods = listOf(detailsRef)).map { it.second }
+        .filter { m -> m.markCode().any { detailsCall.matches(it.markRef()) } && m.hookId() != barId }.singleOrNull()
 }
 
 /**

@@ -8,25 +8,31 @@ import java.util.zip.*;
 
 public final class VerifyMediaGalleryHooks {
     static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
-    static ClassDef load(String path)throws Exception{
+    static ClassDef load(String path,String owner)throws Exception{
         try(var zip=new ZipFile(path)){for(var entry:Collections.list(zip.entries()))if(entry.getName().matches("classes[0-9]*\\.dex"))
             try(var in=new java.io.BufferedInputStream(zip.getInputStream(entry))){for(var c:DexBackedDexFile.fromInputStream(Opcodes.getDefault(),in).getClasses())
-                if(c.getType().equals("Ljp/syoboi/a2chMate/activity/ImagesViewer2Activity;"))return c;}}
+                if(c.getType().equals(owner))return c;}}
         throw new AssertionError("Native image viewer missing");
     }
     static Method find(ClassDef c,String name){for(var m:c.getMethods())if(m.getName().equals(name)&&m.getParameterTypes().equals(List.of("Landroid/view/MotionEvent;")))return m;return null;}
     static List<Instruction> code(Method m){var out=new ArrayList<Instruction>();m.getImplementation().getInstructions().forEach(out::add);return out;}
     public static void main(String[] args)throws Exception{
-        ClassDef before=load(args[0]),after=load(args[1]);Method original=find(before,"dispatchTouchEvent"),wrapper=find(after,"dispatchTouchEvent"),delegate=find(after,"haiagaruNativeMediaTouch");
+        boolean paging=args.length>=3,overlay=paging&&args[2].equals("242");
+        String owner=overlay?"Lo/MaxAdViewAdapter;":"Ljp/syoboi/a2chMate/activity/ImagesViewer2Activity;";
+        ClassDef before=load(args[0],owner),after=load(args[1],owner);
+        Method original=find(before,"dispatchTouchEvent");
+        Method wrapper=find(after,paging&&!overlay&&find(after,"haiagaruNativeMediaTouch")!=null?"haiagaruNativeMediaTouch":"dispatchTouchEvent");
+        String originalName=paging?"haiagaruOriginalImagePagingTouch":"haiagaruNativeMediaTouch";
+        Method delegate=find(after,originalName);
         check(wrapper!=null&&wrapper.getImplementation().getRegisterCount()==3,"wrapper has one local and two untouched arguments");
         var instructions=code(wrapper);check(instructions.size()==8,"bounded wrapper");
         var first=(FiveRegisterInstruction)instructions.get(0);check(first.getRegisterCount()==2&&first.getRegisterC()==1&&first.getRegisterD()==2,"navigation receives native Activity and event");
-        var call=(MethodReference)((ReferenceInstruction)instructions.get(0)).getReference();check(call.getDefiningClass().equals("Lapp/morphe/extension/chmate/MediaViewerNavigation;")&&call.getName().equals("onNativeTouch"),"navigation target");
+        var call=(MethodReference)((ReferenceInstruction)instructions.get(0)).getReference();check(call.getDefiningClass().equals("Lapp/morphe/extension/chmate/"+(paging?"NativeImagePaging":"MediaViewerNavigation")+";")&&call.getName().equals(paging?(overlay?"onContainerTouch":"onActivityTouch"):"onNativeTouch"),"navigation target");
         int offset=0;for(int i=2;i<5;i++)offset+=instructions.get(i).getCodeUnits();check(((OffsetInstruction)instructions.get(2)).getCodeOffset()==offset,"disabled/unhandled branch delegates");
         var fallback=(FiveRegisterInstruction)instructions.get(5);check(fallback.getRegisterCount()==2&&fallback.getRegisterC()==1&&fallback.getRegisterD()==2,"fallback keeps arguments");
         var target=(MethodReference)((ReferenceInstruction)instructions.get(5)).getReference();
         if(original!=null){
-            check(delegate!=null&&target.getName().equals("haiagaruNativeMediaTouch"),"existing native dispatch retained");
+            check(delegate!=null&&target.getName().equals(originalName),"existing native dispatch retained");
             check(original.getImplementation().getRegisterCount()==delegate.getImplementation().getRegisterCount(),"native register count retained");
             var a=code(original);var b=code(delegate);check(a.size()==b.size(),"native instruction count retained");
             for(int i=0;i<a.size();i++){

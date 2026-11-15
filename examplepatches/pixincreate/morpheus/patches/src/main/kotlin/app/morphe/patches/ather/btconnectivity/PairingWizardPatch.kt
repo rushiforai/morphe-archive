@@ -19,6 +19,10 @@ private const val PERMISSION_TYPE_ARRAY = "[$PERMISSION_TYPE"
 private const val PERMISSION_TYPE_1350 = "Lcom/ather/btconnectivity/ui/permission/u0;"
 private const val PERMISSION_TYPE_ARRAY_1350 = "[$PERMISSION_TYPE_1350"
 
+// Ather 13.6.0 moved the wizard to a0 and its entry type to a0$b.
+private const val PERMISSION_TYPE_1360 = "Lcom/ather/btconnectivity/ui/permission/a0\$b;"
+private const val PERMISSION_TYPE_ARRAY_1360 = "[$PERMISSION_TYPE_1360"
+
 /**
  * Matches the constructor that builds the pairing wizard's permission list.
  *
@@ -60,6 +64,20 @@ internal object PairingWizardPermissionFingerprint1350 : Fingerprint(
 )
 
 /**
+ * Matches the same constructor in the 13.6.0 build (`a0` filling an `a0$b[]`).
+ */
+internal object PairingWizardPermission1360Fingerprint : Fingerprint(
+    definingClass = "Lcom/ather/btconnectivity/ui/permission/a0;",
+    name = "<init>",
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.opcode == Opcode.FILLED_NEW_ARRAY &&
+                (instruction as? ReferenceInstruction)?.reference?.toString() == PERMISSION_TYPE_ARRAY_1360
+        } == true
+    },
+)
+
+/**
  * Narrows the pairing wizard to the permission it actually needs.
  *
  * The wizard asks for call logs, manage calls, contacts, SMS and Nearby device in one
@@ -84,14 +102,15 @@ val pairingWizardPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        val match = PairingWizardPermissionFingerprint.matchOrNull()
+        val match = PairingWizardPermission1360Fingerprint.matchOrNull()
+            ?: PairingWizardPermissionFingerprint.matchOrNull()
             ?: PairingWizardPermissionFingerprint1350.matchOrNull()
             ?: throw IllegalStateException("Pairing wizard permission list was not found.")
 
-        val array = if (match.originalClassDef.type == "Lcom/ather/btconnectivity/ui/permission/a1;") {
-            PERMISSION_TYPE_ARRAY
-        } else {
-            PERMISSION_TYPE_ARRAY_1350
+        val array = when (match.originalClassDef.type) {
+            "Lcom/ather/btconnectivity/ui/permission/a1;" -> PERMISSION_TYPE_ARRAY
+            "Lcom/ather/btconnectivity/ui/permission/a0;" -> PERMISSION_TYPE_ARRAY_1360
+            else -> PERMISSION_TYPE_ARRAY_1350
         }
 
         match.method.apply {

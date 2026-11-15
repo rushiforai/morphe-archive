@@ -19,12 +19,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.ungoogled.patches.gmail.GmailConstants.COMPATIBILITY_GMAIL
 import org.ungoogled.patches.gmail.GmailConstants.GMAIL_EXTENSION
 import org.ungoogled.patches.shared.MicrogRe
+import org.ungoogled.patches.shared.microgBadge
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
-import java.util.Locale
-import kotlin.math.cos
-import kotlin.math.sin
 
 private const val STOCK_PACKAGE = "com.google.android.gm"
 /** microG Gmail's own package, so it installs beside stock Gmail (usually built into the phone). */
@@ -104,39 +102,6 @@ private val PUSH_ACTIONS_USED = listOf(
 
 private fun Document.elements(tag: String): List<Element> =
     getElementsByTagName(tag).let { list -> (0 until list.length).map { list.item(it) as Element } }
-
-/**
- * microG's C -- its own logo, four arcs open to the right -- as a badge on the M of Gmail's icon, in the
- * adaptive icon's 108-unit space: a white disc at the lower right, inside the area every launcher mask keeps,
- * with the C at 86% of it so a white ring stays around it (microG's proportions: 30 wide at radius 70).
- */
-private fun microgBadge(): String {
-    val cx = 68.5
-    val cy = 68.5
-    val disc = 13.5
-    val outer = disc * 0.86
-    val width = outer * 30 / 70
-    val r = outer - width / 2
-    fun f(v: Double) = String.format(Locale.ROOT, "%.2f", v)
-    fun at(degrees: Int): String {
-        val a = Math.toRadians(degrees.toDouble())
-        return "${f(cx + r * cos(a))},${f(cy + r * sin(a))}"
-    }
-    val arcs = listOf(Triple(45, 120, "#E91E63"), Triple(120, 195, "#FF9800"), Triple(195, 240, "#CDDC39"), Triple(240, 315, "#009688"))
-    return buildString {
-        append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-        append("<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n")
-        append("    android:width=\"108dp\" android:height=\"108dp\"\n")
-        append("    android:viewportWidth=\"108\" android:viewportHeight=\"108\">\n")
-        append("    <path android:fillColor=\"#FFFFFF\"\n")
-        append("        android:pathData=\"M${f(cx - disc)},${f(cy)} a${f(disc)},${f(disc)} 0 1,0 ${f(2 * disc)},0 a${f(disc)},${f(disc)} 0 1,0 ${f(-2 * disc)},0z\" />\n")
-        for ((from, to, colour) in arcs) {
-            append("    <path android:strokeColor=\"$colour\" android:strokeLineCap=\"butt\" android:strokeWidth=\"${f(width)}\"\n")
-            append("        android:pathData=\"M${at(from)} A${f(r)},${f(r)} 0 0,1 ${at(to)}\" />\n")
-        }
-        append("</vector>\n")
-    }
-}
 
 private val gmailMicrogResourcesPatch = resourcePatch(
     description = "Moves Gmail's package, providers, permissions and account types under microG Gmail's own, points its " +
@@ -304,11 +269,13 @@ private const val API_UNAVAILABLE = 16
 /** Play services' own checks in Gmail: is this package signed by Google, and is Play services there. */
 private const val SIGNATURE_HISTORY = "Unable to obtain package certificate history."
 private const val GMS_VERSION_KEY = "com.google.android.gms.version"
+/** The manifest's app component factory: it makes Gmail's Application and every screen. */
+private const val COMPONENT_FACTORY = "Landroidx/core/app/CoreComponentFactory;"
 
 @Suppress("unused")
 val gmailMicrogSupportPatch = bytecodePatch(
     name = "Add microG-RE support",
-    description = "Builds microG Gmail, a separate app that signs in to your Google account through microG-RE. Not for root installs.",
+    description = "Builds microG Gmail, a separate app next to the built-in Gmail that signs in through microG-RE. Not for root installs.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_GMAIL)
@@ -382,6 +349,27 @@ val gmailMicrogSupportPatch = bytecodePatch(
                 ExternalLabel("report", implementation!!.instructions.first()),
             )
         }
+
+        // Without microG-RE, microG Gmail crashed at every start once any account existed (issue #187): Gmail asks
+        // Play services for the id of every account, Exchange/IMAP/POP3 ones too. While microG-RE is missing, every
+        // screen opens as one that says so (NeedsMicrog in the extension), through the manifest's component factory.
+        val factory = mutableClassDefBy(COMPONENT_FACTORY)
+        factory.methods.singleOrNull { it.name == "instantiateApplication" && it.returnType == "Landroid/app/Application;" }?.apply {
+            val returns = implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
+            val ret = returns.singleOrNull() ?: throw PatchException("app component factory: expected one return, found ${returns.size}")
+            val register = (ret.value as OneRegisterInstruction).registerA
+            addInstructions(ret.index, "invoke-static { v$register }, Lorg/ungoogled/gmail/NeedsMicrog;->app(Landroid/app/Application;)V")
+        } ?: throw PatchException("app component factory ($COMPONENT_FACTORY) no longer makes the Application")
+        factory.methods.singleOrNull {
+            it.name == "instantiateActivity" && it.parameterTypes.map(CharSequence::toString) ==
+                listOf("Ljava/lang/ClassLoader;", "Ljava/lang/String;", "Landroid/content/Intent;")
+        }?.addInstructions(
+            0,
+            """
+                invoke-static { p2 }, Lorg/ungoogled/gmail/NeedsMicrog;->activity(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object p2
+            """,
+        ) ?: throw PatchException("app component factory ($COMPONENT_FACTORY) no longer makes the screens")
     }
 
     // Every Play services name and every name of Gmail's own in Gmail's code: in finalize, after every other

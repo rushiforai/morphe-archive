@@ -62,14 +62,11 @@ public final class ExpandChatSection implements SeyttingsSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean enabled = enable.isChecked();
-                ExpandChatPrefs.setEnabled(enabled);
-                status.setText(valueText());
-                ExpandChatInjector.setEnabled(enabled);
-            }
+        enable.setOnClickListener(v -> {
+            boolean enabled = enable.isChecked();
+            ExpandChatPrefs.setEnabled(enabled);
+            status.setText(valueText());
+            ExpandChatInjector.setEnabled(enabled);
         });
     }
 

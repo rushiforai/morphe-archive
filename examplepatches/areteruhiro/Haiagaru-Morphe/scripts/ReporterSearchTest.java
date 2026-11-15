@@ -37,6 +37,10 @@ public final class ReporterSearchTest {
         check(!Pattern.compile(ReporterSearch.pattern(suffix,2)).matcher("title [ZZZZBCdE★] extra").find());
         String header="保存日時,記者ID,スレ,スレURL,スレID,スレ作成日時\r\n";
         String csv=header+"now,"+id+",\"Test, 日本語\n\"\"引用\"\"\",https://untrusted.invalid,1794154437,\r\n";
+        check(ReporterSearch.lookup(new StringReader(csv),1794154437L).id.equals(id));
+        check(ReporterSearch.lookup(new StringReader(csv),1794154438L)==null);
+        check(ReporterSearch.lookup(new StringReader(csv+"now,"+id+",same,url,1794154437,\n"),1794154437L).id.equals(id));
+        try{ReporterSearch.lookup(new StringReader(csv+"now,ZZZZ1234,conflict,url,1794154437,\n"),1794154437L);throw new AssertionError();}catch(IOException expected){checks++;}
         long created=1794154437000L;
         for(int mode=0;mode<4;mode++){
             String query=mode==0?id:mode==1?"a./+":mode==2?"BCdE":"TEST, 日本語";

@@ -51,7 +51,12 @@ public final class ViewProfilePicturePatch {
             "A button on profile pictures that shows them in full size and saves them.",
             ViewProfilePicturePatch::isIncluded,
             new Setting[0])
-            .icon(Icons.Glyph.PICTURE, 0xFFAF52DE);
+            .icon(Icons.Glyph.PICTURE, 0xFFAF52DE)
+            .about("Adds a small button on the profile picture of every profile page. It opens the picture "
+                    + "full screen in its original size, where you can zoom in and save it to Pictures/Instagram "
+                    + "exactly as Instagram serves it.",
+                    "Instagram only ever shows profile pictures as a small circle. This lets you see who "
+                    + "someone is, or keep a picture, without screenshots or other apps.");
 
     /**
      * Open profile pages, each with the user it last loaded from the network (or null).

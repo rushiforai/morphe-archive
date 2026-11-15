@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val LYRICS_CLASS = "Lapp/originisland/extension/LastWaveLyrics;"
@@ -32,12 +33,20 @@ private object LyricsSuccessFingerprint : Fingerprint(
  * so they are found by the text they log and by how they make each other.
  */
 internal fun BytecodePatchContext.addLastWaveLyrics() {
-    // The line keeps its start time as its first long and its text as its string.
+    // The line prints its start time first and its text as its first string, in the order it
+    // declares them. Its fields themselves are not in that order: since version 5.2, LastWave is
+    // not obfuscated, and its duration comes before its start time by name.
     val lineClass = mutableClassDefBy(LyricLineFingerprint.classDef.type)
-    val startTimeField = lineClass.fields.firstOrNull { it.type == "J" }
+    val printedFields = LyricLineFingerprint.method.implementation!!.instructions.mapNotNull { instruction ->
+        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)
+            ?.takeIf { it.definingClass == lineClass.type }
+            ?.let { instruction.opcode to it }
+    }
+    val startTimeField = printedFields.firstOrNull { (opcode, _) -> opcode == Opcode.IGET_WIDE }?.second
         ?: throw PatchException("Could not find the start time of a line of lyrics")
-    val textField = lineClass.fields.firstOrNull { it.type == "Ljava/lang/String;" }
-        ?: throw PatchException("Could not find the text of a line of lyrics")
+    val textField = printedFields.firstOrNull { (opcode, field) ->
+        opcode == Opcode.IGET_OBJECT && field.type == "Ljava/lang/String;"
+    }?.second ?: throw PatchException("Could not find the text of a line of lyrics")
 
     // The player makes its state of the lyrics from what the provider loaded, for a track.
     val successTypes = LyricsSuccessFingerprint.matchAll().map { it.classDef }

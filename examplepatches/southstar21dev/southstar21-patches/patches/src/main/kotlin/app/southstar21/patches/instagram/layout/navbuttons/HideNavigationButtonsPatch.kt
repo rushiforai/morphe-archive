@@ -25,8 +25,9 @@ internal object BindActivityButtonFingerprint : Fingerprint(
 @Suppress("unused")
 val hideNavigationButtonsPatch = bytecodePatch(
     name = "Hide navigation buttons",
-    description = "Adds settings to hide Search, Reels, Create, Messages and other tabs from the bottom bar.",
-    default = false
+    description = "Adds settings to hide Search, Reels, Create, Messages and other tabs from the bottom bar. " +
+            "Every tab stays until you hide it in the settings.",
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

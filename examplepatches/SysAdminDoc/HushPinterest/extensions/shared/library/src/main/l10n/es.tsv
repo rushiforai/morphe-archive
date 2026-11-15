@@ -162,6 +162,7 @@ Removes promoted pins from your home feed, search, related pins and boards, and 
 ad-only views	vistas solo de anuncios
 Google ad SDK start	inicio del SDK de anuncios de Google
 Meta ad SDK	SDK de anuncios de Meta
+full-screen ads when opening a pin	anuncios a pantalla completa al abrir un pin
 promoted pins in lists	pines promocionados en las listas
 Privacy	Privacidad
 Pin actions	Acciones del pin
@@ -193,6 +194,9 @@ Pinterest's original signature is added to the app	La firma original de Pinteres
 GmsCore support	Compatibilidad con GmsCore
 Google sign-in and push notifications go through microG-RE instead of Google Play services, so microG-RE has to stay installed. Set when patching. Patch again without it to go back.	El inicio de sesión con Google y las notificaciones push pasan por microG-RE en lugar de los servicios de Google Play, así que microG-RE tiene que seguir instalado. Se define al parchear. Vuelve a parchear sin él para volver atrás.
 Google sign-in and push notifications go through microG-RE	El inicio de sesión con Google y las notificaciones push pasan por microG-RE
+Change package name	Cambiar el nombre del paquete
+This copy runs as %1$s, so it installs beside Pinterest with its own sign-in. Set when patching.	Esta copia se ejecuta como %1$s, así que se instala junto a Pinterest con su propio inicio de sesión. Se define al parchear.
+This copy has its own package name, so it installs beside Pinterest	Esta copia tiene su propio nombre de paquete, así que se instala junto a Pinterest
 Download pins	Descargar pines
 Open links in your browser	Abrir enlaces en tu navegador
 Opens a pin's Visit link and profile websites in your browser.	Abre el enlace Visitar de un Pin y los sitios web de perfiles en tu navegador.
@@ -214,6 +218,8 @@ Hide Promote pin menu item	Ocultar opción Promocionar pin
 Hide comments	Ocultar comentarios
 # context: an Interface switch right under Hide comments. It hides the row of one-tap suggested replies Pinterest shows next to the comment box. It has its own switch, and Hide comments doesn't turn it on.
 Hide suggested replies	Ocultar respuestas sugeridas
+# context: an Interface switch under Hide suggested replies. It hides only the comment previews and comment photos under a pin and keeps the comment box. Hide comments hides them too.
+Hide comment previews	Ocultar vistas previas de comentarios
 Hide topic suggestions	Ocultar sugerencias de temas
 Quiet email reminders	Ocultar recordatorios de correo
 Hide survey prompts	Ocultar invitaciones a encuestas
@@ -335,6 +341,8 @@ Hides Search image in pin menus you open from now on. A menu that's already open
 Hides Promote pin in pin menus you open from now on. A menu that's already open won't change.	Oculta Promocionar pin en los menús de pin que abras a partir de ahora. Un menú que ya está abierto no cambia.
 Hides comments and comment previews under pins. It doesn't change who can comment. The change shows the next time the screen updates.	Oculta los comentarios y sus vistas previas bajo los pines. No cambia quién puede comentar. El cambio se ve la próxima vez que se actualice la pantalla.
 Hides the row of suggested replies next to the comment box. You can still write and post your own comment. The change shows the next time you open comments.	Oculta la fila de respuestas sugeridas junto al cuadro de comentarios. Puedes seguir escribiendo y publicando tus propios comentarios. El cambio se ve la próxima vez que abras los comentarios.
+Hides the comments and comment photos shown under a pin. The comment box and the way into all comments stay. The change shows the next time the screen updates.	Oculta los comentarios y las fotos de comentarios que se ven bajo un pin. El cuadro de comentarios y el acceso a todos los comentarios se quedan. El cambio se ve la próxima vez que se actualice la pantalla.
+Hide comments is on and already hides the whole comments section, previews included. This switch keeps its setting for when Hide comments is off.	Ocultar comentarios está activado y ya oculta toda la sección de comentarios, vistas previas incluidas. Este interruptor guarda su ajuste para cuando Ocultar comentarios esté desactivado.
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Oculta la fila «Ideas que te pueden gustar» con burbujas de temas bajo los Pins la próxima vez que Pinterest la muestre. Los comentarios y los Pins relacionados se quedan.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Descarta el aviso opcional para confirmar tu correo. Un aviso que ya está abierto se queda. Las comprobaciones de la cuenta y el inicio de sesión funcionan como siempre.
 Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An invite that's already open stays.	Rechaza la invitación a la encuesta «¿Tienes un minuto?» de Pinterest antes de que aparezca, como lo hace «Quizás más tarde», para que esa encuesta no vuelva. Las encuestas patrocinadas por anunciantes tampoco aparecen. Una invitación que ya está abierta se queda.
@@ -511,6 +519,8 @@ Black comments	Comentarios en negro
 In dark mode, paints the comments sheet and its reply bar pure black. Light mode stays as it is. The change shows the next time you open comments.	En modo oscuro, pinta de negro puro el panel de comentarios y su barra de respuesta. El modo claro se queda como está. El cambio se ve la próxima vez que abras los comentarios.
 Black pin menu	Menú del pin en negro
 In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	En modo oscuro, pinta de negro puro el menú de un pin. El modo claro se queda como está. El cambio se ve la próxima vez que abras el menú.
+Black Save to sheet	Hoja de Guardar en negro
+In dark mode, paints the sheet that lists your boards when you save a pin pure black. Light mode stays as it is. The change shows the next time you save a pin.	En modo oscuro, pinta de negro puro la hoja con tus tableros que se abre al guardar un pin. El modo claro se queda como está. El cambio se ve la próxima vez que guardes un pin.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Ocultar flecha atrás en los pines
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Oculta la flecha atrás que flota sobre un pin que abres. El gesto o botón atrás de tu teléfono te sigue sacando del pin. El cambio se ve en el siguiente pin que abras.
@@ -663,6 +673,7 @@ Pinterest didn't send a usable image.	Pinterest no envió una imagen utilizable.
 Copying the image took too long. Try again.	Copiar la imagen tardó demasiado. Inténtalo de nuevo.
 Still copying the last image.	Aún se está copiando la última imagen.
 Couldn't copy the image. Check your connection and try again.	No se pudo copiar la imagen. Revisa tu conexión y reintenta.
+The image wasn't copied, since the clipboard may have changed.	La imagen no se copió porque el portapapeles podría haber cambiado.
 # context: Share image, a row in the pin menu that sends the pin's full-size picture through Android's share menu (#11)
 Share image	Compartir imagen
 Adds Share image to the pin menu. It sends the full-size picture itself, not a link, through Android's share menu. Needs Download pins on. Videos don't get the row.	Añade Compartir imagen al menú del pin. Envía la imagen a tamaño completo, no un enlace, por el menú para compartir de Android. Necesita Descargar pines activado. Los vídeos no tienen la fila.
@@ -676,6 +687,10 @@ Home keeps the pins you were looking at when you come back to Pinterest or to th
 # context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview. In Posted %1$s, %1$s is the date written the phone's way, such as Oct 12, 2026
 Show posted date	Mostrar fecha de publicación
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Muestra bajo el título de un pin el día en que se publicó. Aparece en el próximo pin que abras.
+Hide suggested boards	Ocultar tableros sugeridos
+When you save a pin, hides the board Pinterest suggests under your own boards. Your own boards stay. The change shows the next time you save a pin.	Al guardar un pin, oculta el tablero que Pinterest sugiere debajo de tus propios tableros. Tus tableros se quedan. El cambio se ve la próxima vez que guardes un pin.
+Expand board list	Abrir toda la lista de tableros
+Opens the sheet that lists your boards all the way up when you save a pin, so more boards show without dragging it. The change shows the next time you save a pin.	Abre por completo la hoja con tus tableros al guardar un pin, para que se vean más tableros sin arrastrarla. El cambio se ve la próxima vez que guardes un pin.
 Posted %1$s	Publicado el %1$s
 Install microG-RE to use Google sign-in.	Instala microG-RE para iniciar sesión con Google.
 Turn on microG-RE to use Google sign-in.	Activa microG-RE para iniciar sesión con Google.

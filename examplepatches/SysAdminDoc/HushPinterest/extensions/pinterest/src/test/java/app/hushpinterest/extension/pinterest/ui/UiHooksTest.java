@@ -25,11 +25,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -68,14 +70,16 @@ public class UiHooksTest {
     private static BooleanSetting[] switches() { return new BooleanSetting[] {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
-            Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU,
+            Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
             Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
             Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
             Settings.SMALLER_SAVE_BUTTON,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
+            Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
+            Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
             Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
+            Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
             Settings.DISABLE_UPDATE_NAG
     }; }
 
@@ -110,6 +114,8 @@ public class UiHooksTest {
         assertTrue(UiHooks.commentsVisible(true));
         assertEquals(View.INVISIBLE, UiHooks.suggestedRepliesVisibility(View.INVISIBLE));
         assertEquals(312, UiHooks.suggestedRepliesMeasureSpec(312));
+        assertEquals(View.INVISIBLE, UiHooks.commentPreviewsVisibility(View.INVISIBLE));
+        assertEquals(312, UiHooks.commentPreviewsMeasureSpec(312));
     }
 
     @Test public void assistantStaysUntilItsSwitchIsOnAndComesBackWhenPaused() {
@@ -141,6 +147,32 @@ public class UiHooksTest {
         assertFalse(UiHooks.disableUpdateNag());
         assertFalse(UiHooks.originalImages());
         assertTrue(Settings.HIDE_SCREENSHOT_SHARE.savedValue());
+    }
+
+    @Test public void theSuggestedBoardGoesInUnlessItsSwitchIsOnAndIsCounted() {
+        List<Object> cells = new ArrayList<>(Collections.singletonList("your board"));
+        UiHooks.suggestedBoard(cells, "suggested");
+        assertEquals("off by default, the sheet keeps it", Arrays.asList("your board", "suggested"), cells);
+        Settings.HIDE_SUGGESTED_BOARDS.save(true);
+        cells.remove("suggested");
+        UiHooks.suggestedBoard(cells, "suggested");
+        assertEquals(Collections.singletonList("your board"), cells);
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("suggested board hidden"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        UiHooks.suggestedBoard(cells, "suggested");
+        assertEquals("paused, the sheet keeps it", Arrays.asList("your board", "suggested"), cells);
+    }
+
+    @Test public void theSaveSheetOpensAllTheWayOnlyWhileItsSwitchIsOn() {
+        assertEquals("off by default, Pinterest's height", 73, UiHooks.saveSheetHeight(73));
+        Settings.EXPAND_BOARD_LIST.save(true);
+        assertEquals(100, UiHooks.saveSheetHeight(73));
+        assertEquals("all the way already stays as it is", 100, UiHooks.saveSheetHeight(100));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("sheet opened all the way"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals("paused, Pinterest's height", 73, UiHooks.saveSheetHeight(73));
     }
 
     @Test public void surveyInvitesAndSponsoredPollsAreSkippedOnlyWhileTheSwitchIsOnAndCounted() {
@@ -481,6 +513,45 @@ public class UiHooksTest {
         Settings.HIDE_SUGGESTED_REPLIES.save(false);
         assertEquals(View.VISIBLE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
         assertEquals(spec, UiHooks.suggestedRepliesMeasureSpec(spec));
+    }
+
+    /**
+     * Every pairing of Hide comments, Hide comment previews and Hide suggested replies. The
+     * previews fold under either of the first two, the module only under Hide comments, the
+     * suggestions only under their own switch, and Pause hands Pinterest's values back in all of them.
+     */
+    @Test public void commentPreviewsFoldUnderEitherSwitchAndLeaveTheModuleToHideComments() {
+        int spec = View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.AT_MOST);
+        for (int combination = 0; combination < 8; combination++) {
+            boolean comments = (combination & 1) != 0, previews = (combination & 2) != 0, replies = (combination & 4) != 0;
+            Settings.HIDE_COMMENTS.save(comments);
+            Settings.HIDE_COMMENT_PREVIEWS.save(previews);
+            Settings.HIDE_SUGGESTED_REPLIES.save(replies);
+            String label = "comments " + comments + ", previews " + previews + ", replies " + replies;
+            boolean previewsGone = comments || previews;
+            assertEquals(label, previewsGone ? View.GONE : View.VISIBLE, UiHooks.commentPreviewsVisibility(View.VISIBLE));
+            if (previewsGone) {
+                int folded = UiHooks.commentPreviewsMeasureSpec(spec);
+                assertEquals(label, 0, View.MeasureSpec.getSize(folded));
+                assertEquals(label, View.MeasureSpec.EXACTLY, View.MeasureSpec.getMode(folded));
+            } else {
+                assertEquals(label, spec, UiHooks.commentPreviewsMeasureSpec(spec));
+            }
+            assertEquals(label, comments ? View.GONE : View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
+            assertEquals(label, comments ? 0 : 200, View.MeasureSpec.getSize(UiHooks.commentsMeasureSpec(spec)));
+            assertEquals(label, !comments, UiHooks.commentsVisible(true));
+            assertEquals(label, replies ? View.GONE : View.VISIBLE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
+
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            try {
+                assertEquals("paused, " + label, View.INVISIBLE, UiHooks.commentPreviewsVisibility(View.INVISIBLE));
+                assertEquals("paused, " + label, spec, UiHooks.commentPreviewsMeasureSpec(spec));
+                assertEquals("paused, " + label, View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
+                assertEquals("paused, " + label, View.VISIBLE, UiHooks.suggestedRepliesVisibility(View.VISIBLE));
+            } finally {
+                PauseForTests.resume();
+            }
+        }
     }
 
     @Test public void navigationSwitchesHideOnlyTheirNamedTabsAndRestoreTheHostVisibility() {

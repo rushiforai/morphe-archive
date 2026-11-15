@@ -40,13 +40,19 @@ public final class GlassCards {
     /**
      * Injected where every other Home card is inflated ({@code BaseViewController.createAndAddChild}): energy, mini
      * program, AI and the rest. Their backgrounds come from many drawables and some are set again when the card is
-     * bound, so the card's own background is replaced with glass before each frame it differs.
+     * bound, so the card's own background is replaced with glass before each frame it differs. A CardView, like the
+     * camera card with its live video, rounds and clips its content by the outline of its own background, which glass
+     * does not have: it keeps that background and gets the glass edge laid over it, as the weather card does.
      *
      * @param root the card's inflated layout
      * @return {@code root}, as the method returns it
      */
     public static View card(View root) {
         if (!Switches.liquidGlass(root.getContext())) return root;
+        if (root.getClass().getName().equals("androidx.cardview.widget.CardView")) {
+            weather(root);
+            return root;
+        }
         GlassCapsule glass = glass(root, FILL_ALPHA, SHADOW_RINGS);
         unclip(root);
         root.getViewTreeObserver().addOnPreDrawListener(() -> {

@@ -1178,6 +1178,8 @@ public class DownloadLedgerTest {
         final Map<Long, String> mimes = new HashMap<>();
         final Map<Long, String> filed = new HashMap<>();
         final Set<Long> deletedFiles = new HashSet<>();
+        /** Requests Android hasn't started: a phone reports no local URI for them, only the destination hint. */
+        final Set<Long> unstarted = new HashSet<>();
         MatrixCursor cursor;
         boolean nullCursor;
         boolean denied;
@@ -1197,7 +1199,7 @@ public class DownloadLedgerTest {
             if (nullCursor) return null;
             cursor = new MatrixCursor(new String[]{DownloadManager.COLUMN_ID, DownloadManager.COLUMN_STATUS,
                     DownloadManager.COLUMN_REASON, DownloadManager.COLUMN_URI, DownloadManager.COLUMN_MEDIA_TYPE,
-                    DownloadManager.COLUMN_LOCAL_URI, DownloadManager.COLUMN_MEDIAPROVIDER_URI}) {
+                    DownloadManager.COLUMN_LOCAL_URI, DownloadManager.COLUMN_MEDIAPROVIDER_URI, DownloadLedger.DESTINATION_HINT}) {
                 private int statusReads;
                 @Override public int getInt(int column) {
                     if (column == 1 && failAfterReads >= 0 && statusReads++ == failAfterReads) {
@@ -1219,10 +1221,11 @@ public class DownloadLedgerTest {
             DownloadManager.Request original = getRequest(id);
             if (original == null) return;
             ShadowDownloadManager.ShadowRequest request = Shadow.extract(original);
+            String destination = request.getDestination() == null ? null : request.getDestination().toString();
             cursor.addRow(new Object[]{id, request.getStatus(), reasons.getOrDefault(id, 0),
                     sources.containsKey(id) ? sources.get(id) : request.getUri().toString(),
                     mimes.containsKey(id) ? mimes.get(id) : request.getMimeType(),
-                    request.getDestination() == null ? null : request.getDestination().toString(), filed.get(id)});
+                    unstarted.contains(id) ? null : destination, filed.get(id), destination});
         }
 
         /** Android keeps a finished request whose file was deleted elsewhere; opening its file then fails. */

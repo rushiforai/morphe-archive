@@ -22,7 +22,11 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -43,6 +47,7 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class FeedFixtureTest {
     private val literals = listOf(", _items count:", "PagedResponse(bookmark=", "ModelListWithBookmark(models=")
+    private val interstitialStrings = setOf(INTERSTITIAL_KILLSWITCH, HOUSE_INTERSTITIAL, GMA_INTERSTITIAL)
 
     @Test
     fun `every list holder and ad-only view in each declared build is hooked without a warning`() {
@@ -63,7 +68,7 @@ class FeedFixtureTest {
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
+            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "interstitialAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
                     "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedHomeSuggestions", "feedbackFlyout")) assertFlag(context, flag)
             // The pin's "See more like this?" getter hands every answer through the hook on its way out, once.
             val flyout = context.feedbackFlyoutOrNull()!!
@@ -103,6 +108,25 @@ class FeedFixtureTest {
             assertEquals("${build.name}: Meta ad SDK consent", "$EXTENSION_PACKAGE/ads/Ads;->skipMetaConsent(Ljava/lang/Object;)Z",
                 (asked[0] as ReferenceInstruction).reference.toString())
             assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN), asked.subList(1, 5).map { it.opcode })
+            // The pin-open interstitial asks two questions in one class: the killswitch read answers
+            // true and the house-or-Google experiment check answers false, each before Pinterest's code.
+            fun strings(method: Method) = method.implementation?.instructions
+                ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }?.toSet() ?: emptySet()
+            val killswitch = classes.flatMap { it.methods }.single { method -> !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.returnType == "Z" && method.parameterTypes.isEmpty() && INTERSTITIAL_KILLSWITCH in strings(method) }
+            val experiment = classes.flatMap { it.methods }.single { method -> !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.returnType == "Z" && method.parameterTypes.size == 2 && method.parameterTypes[1].toString() == "Z" &&
+                strings(method).containsAll(listOf(HOUSE_INTERSTITIAL, GMA_INTERSTITIAL)) }
+            assertEquals("${build.name}: interstitial checks share a class", killswitch.definingClass, experiment.definingClass)
+            for ((method, hook, answer) in listOf(Triple(killswitch, "killInterstitials", 1), Triple(experiment, "skipInterstitials", 0))) {
+                val answered = context.mutableClassDefBy(method.definingClass).methods.single { it.name == method.name && it.parameterTypes == method.parameterTypes }
+                    .implementation!!.instructions.toList()
+                assertEquals("${build.name}: $hook", "$EXTENSION_PACKAGE/ads/Ads;->$hook()Z", (answered[0] as ReferenceInstruction).reference.toString())
+                assertEquals("${build.name}: $hook", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN),
+                    answered.subList(1, 5).map { it.opcode })
+                assertEquals("${build.name}: $hook answer", answer, (answered[3] as NarrowLiteralInstruction).narrowLiteral)
+            }
+            assertInterstitialGate(build, killswitch, experiment)
 
             val filter = "$EXTENSION_PACKAGE/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;"
             for (holder in holders.values.flatten()) {
@@ -141,6 +165,48 @@ class FeedFixtureTest {
             }
             assertEquals("${build.name}: pin model", emptyList<String>(), pinSchemaProblems(models))
         }
+    }
+
+    /**
+     * What makes a yes from the killswitch safe: the static gate that opens a tapped pin reads it
+     * before it asks the experiments, a yes branches past that question, and the gate has the
+     * KILL_SWITCH path that opens the pin with no ad. The killswitch's other readers are the launch
+     * prefetch and the prefetch stop in its own class. A reader beyond those is a trigger nobody has
+     * traced, and one gate missing its open call would leave a tapped pin doing nothing.
+     */
+    private fun assertInterstitialGate(build: File, killswitch: Method, experiment: Method) {
+        fun call(instruction: Instruction) = ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
+        val read = "${killswitch.definingClass}->${killswitch.name}()Z"
+        val ask = "${experiment.definingClass}->${experiment.name}(${experiment.parameterTypes.joinToString("")})Z"
+        // By its parts rather than its text, since this reads every call in the APK.
+        val readers = FixtureDex.methodsWhere(build, { true }) { method ->
+            method.implementation?.instructions?.any {
+                val called = (it as? ReferenceInstruction)?.reference as? MethodReference
+                called != null && called.name == killswitch.name && called.definingClass == killswitch.definingClass &&
+                    called.returnType == "Z" && called.parameterTypes.isEmpty()
+            } == true
+        }
+        val own = readers.filter { it.definingClass == killswitch.definingClass }
+        assertEquals("${build.name}: the killswitch's readers in its class", setOf("()V", "(Ljava/util/List;Ljava/lang/Boolean;)V"),
+            own.map { "(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet())
+        assertEquals("${build.name}: the killswitch's readers in its class", 2, own.size)
+        val gate = (readers - own.toSet()).single()
+        assertTrue("${build.name}: the gate is static and returns nothing", AccessFlags.STATIC.isSet(gate.accessFlags) && gate.returnType == "V")
+        val body = gate.implementation!!.instructions.toList()
+        val firstRead = body.indexOfFirst { call(it) == read }
+        val firstAsk = body.indexOfFirst { call(it) == ask }
+        assertTrue("${build.name}: the gate reads the killswitch ($firstRead) before it asks ($firstAsk)", firstRead in 0 until firstAsk)
+        val answer = (body[firstRead + 1] as OneRegisterInstruction).registerA
+        val yes = body.subList(firstRead + 2, firstRead + 6).single {
+            it.opcode == Opcode.IF_NEZ && (it as OneRegisterInstruction).registerA == answer
+        } as OffsetInstruction
+        val addresses = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        val target = addresses.indexOf(addresses[body.indexOf(yes)] + yes.codeOffset)
+        assertTrue("${build.name}: a yes from the killswitch skips the experiment check", target > firstAsk)
+        assertTrue("${build.name}: the gate has its KILL_SWITCH path", body.any {
+            ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == "KILL_SWITCH" && it.opcode == Opcode.SGET_OBJECT
+        })
+        assertTrue("${build.name}: the gate opens the pin itself", body.any { call(it) == "Lkotlin/jvm/functions/Function0;->invoke()Ljava/lang/Object;" })
     }
 
     /** The holder classes by literal, and those classes with the ad-only views and every app class above them. */
@@ -183,7 +249,10 @@ class FeedFixtureTest {
                         call.parameterTypes.any { type -> type.toString() == "Lcom/pinterest/legacy/feeds/DynamicFeed;" }
                 } == true }
                 val home = classDef.type.startsWith("Lcom/pinterest/feature/home/model/") || classDef.type == "Lcom/pinterest/legacy/feeds/DynamicFeed;" || handsToHome
-                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home) wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                // Every class naming an interstitial experiment, so a second holder would show up as one.
+                val interstitial = classDef.methods.any { method -> method.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? StringReference)?.string in interstitialStrings } == true }
+                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home || interstitial) wanted[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
         wanted += FixtureDex.classes(build, (vendors.flatMap { askers[it].orEmpty() } + models).toSet() - wanted.keys)

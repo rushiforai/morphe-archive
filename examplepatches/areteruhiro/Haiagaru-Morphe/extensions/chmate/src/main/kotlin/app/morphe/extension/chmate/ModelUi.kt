@@ -135,7 +135,7 @@ private fun modelFingerprint(view: View?): Long {
     value = value * 31 + (view.getTag(PosterHighlight.COLOR_PREVIEW_TAG)?.hashCode() ?: 0)
     value = value * 31 + view.visibility + if (view.isEnabled) 1 else 0
     when (view) {
-        is TextView -> value = value * 31 + view.text.hashCode() + (view.error?.hashCode() ?: 0)
+        is TextView -> value = value * 31 + view.text.toString().hashCode() + (view.error?.toString()?.hashCode() ?: 0)
         is ImageView -> value = value * 31 + System.identityHashCode(view.drawable)
         is ProgressBar -> value = value * 31 + view.progress
     }
@@ -188,7 +188,10 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
     for (index in 0 until root.childCount) {
         val child = root.getChildAt(index)
         if (child is NativeSurfaceSlot) continue
-        val browserFrame = child is FrameLayout && ((0 until child.childCount).any { child.getChildAt(it) is android.webkit.WebView } || (child.layoutParams as? LinearLayout.LayoutParams)?.weight?.let { it > 0 } == true)
+        // A weighted ScrollView is still a form/list, not a native browser surface.
+        // Mounting it as AndroidView forces every board row through native text measurement.
+        val browserFrame = child is FrameLayout && child !is ScrollView &&
+            (0 until child.childCount).any { child.getChildAt(it) is android.webkit.WebView }
         if (child is android.webkit.WebView || child is VideoView || browserFrame ||
             child.javaClass.name.endsWith("GifViewerActivity\$GifCanvas")) {
             val params = child.layoutParams
@@ -239,6 +242,8 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                     modifier.fillMaxSize()
                 else modifier.fillMaxWidth().height(420.dp))
         is ListView -> {
+            val ordering=view.getTag(HomeThreadOrder.DRAG_TAG) as? HomeThreadOrder.DragOrder
+            if(ordering!=null){ HomeOrderList(view,ordering,revision,changed);return }
             val adapter = view.adapter ?: return
             DisposableEffect(adapter) {
                 val observer = object : android.database.DataSetObserver() {

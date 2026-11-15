@@ -68,7 +68,7 @@ public final class StockChmatePostingInstrumentation extends Instrumentation {
         for(boolean thread:new boolean[]{false,true}){
             Intent intent=(Intent)factory.invoke(null,thread?BOARD:REPLY,BODY,thread?TITLE:null);
             ok(Intent.ACTION_SENDTO.equals(intent.getAction()),"editor SENDTO action");
-            ok(new ComponentName("jp.co.airfront.android.a2chMate","jp.syoboi.a2chMate.activity.ResEditActivity").equals(intent.getComponent()),"stock component is explicit");
+            ok(intent.getComponent()!=null&&intent.getComponent().getPackageName().equals("jp.co.airfront.android.a2chMate")&&java.util.Arrays.asList("jp.syoboi.a2chMate.activity.ResEditActivity","jp.syoboi.a2chMate.activity.ResEditActivity$Dialog").contains(intent.getComponent().getClassName()),"selected stock editor component is explicit");
             ok((thread?BOARD:REPLY).equals(intent.getDataString()),"exact native destination");
             ok(BODY.equals(intent.getStringExtra(Intent.EXTRA_TEXT)),"Unicode and newlines preserved");
             ok(thread?TITLE.equals(intent.getStringExtra(Intent.EXTRA_SUBJECT)):!intent.hasExtra(Intent.EXTRA_SUBJECT),"subject only for new threads");

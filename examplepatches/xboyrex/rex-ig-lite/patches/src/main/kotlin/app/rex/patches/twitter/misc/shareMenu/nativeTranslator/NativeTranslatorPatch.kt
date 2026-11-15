@@ -12,11 +12,11 @@ import app.rex.patches.twitter.misc.shareMenu.browseObject.browseObjectPatch
 import app.rex.patches.twitter.misc.shareMenu.hooks.*
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.versionCheckPatch
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val nativeTranslatorModePatch =
-    bytecodePatch(
+    patch(
         name = "Native translator",
         description = "Requires X 11.0.0-release.0 or higher.",
     ) {

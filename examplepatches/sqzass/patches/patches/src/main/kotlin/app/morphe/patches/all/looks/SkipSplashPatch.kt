@@ -49,7 +49,8 @@ val skipSplashPatch = bytecodePatch(
     default = false,
 ) {
     val convertDelays by booleanOption(
-        key = "convertDelays", default = true,
+        key = "convertDelays",
+        default = true,
         title = "Convert splash delays to immediate",
         description = "Replaces postDelayed/sleep inside splash classes with immediate execution. " +
             "If a splash blanks or hangs, disable this.",
@@ -87,7 +88,7 @@ val skipSplashPatch = bytecodePatch(
                     } else {
                         val regs = argRegisters(ins) ?: continue
                         if (regs.isEmpty()) continue
-                        val rReg = regs[1]  // Runnable arg
+                        val rReg = regs[1] // Runnable arg
                         mm.replaceInstruction(i, "invoke-interface {v$rReg}, Ljava/lang/Runnable;->run()V")
                         val ri = i + 1
                         if (ri < mm.instructions.size && mm.getInstruction(ri).opcode == Opcode.MOVE_RESULT) {

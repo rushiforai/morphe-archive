@@ -16,16 +16,16 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "6.201.0",
-                versionCode = 69129,
-                minSdk = 26,
-                description = "Verified on API 36: launches, no ad SDK initialization (the unpatched app logs AppLovin and Pangle); the four modified methods checked in the output. Logged-in ad slots not yet checked.",
-            ),
-            AppTarget(
                 version = "6.202.1",
                 versionCode = 69581,
                 minSdk = 26,
                 description = "Verified on API 36: launches, no ad SDK initialization (the unpatched app logs AppLovin and Pangle); the four modified methods checked in the output. Logged-in ad slots not yet checked.",
+            ),
+            AppTarget(
+                version = "6.203.0",
+                versionCode = 69818,
+                minSdk = 26,
+                description = "Verified on API 36: launches to the welcome screen, no ad SDK initialization (the unpatched app logs AppLovin and Pangle); the four modified methods checked in the output. Logged-in ad slots not yet checked.",
             ),
         ),
     )

@@ -149,7 +149,8 @@ public final class DownloadFolder {
 
     /**
      * The folder a request's local URI is in, or null for Download or a URI that says nothing. For a
-     * public folder Android reports the requested destination there, finished or not.
+     * public folder Android reports the requested destination there once the request has started; a
+     * request it never started (held for a network that failed Android's check) reports none.
      */
     @Nullable
     static String of(@Nullable String localUri) {

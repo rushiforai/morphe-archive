@@ -39,17 +39,36 @@ import java.io.InputStreamReader;
  * is lost — synchronized output and mouse tracking are hints to a real terminal,
  * and a report JPTT cannot answer is better unanswered than half read — and the
  * sequences JPTT does implement are passed through untouched.
+ *
+ * <p>3.9.6 added save and restore cursor, {@code ESC[s} and {@code ESC[u}, for
+ * the board information screen. The patch calls {@link #sanitizeKeepingCursorSave}
+ * instead when the emulator it patches has those cases, so they reach it.
  */
 @SuppressWarnings("unused")
 public final class TerminalEscapePatch {
 
+    /** The final bytes JSocketSimple.startConnection() has a case for. */
+    private static final String HANDLED_FINALS = "ABCDHJKm";
+
+    /** As {@link #HANDLED_FINALS}, for 3.9.6 and later, which also save and restore the cursor. */
+    private static final String HANDLED_FINALS_WITH_CURSOR_SAVE = HANDLED_FINALS + "su";
+
     /** Called from each patched assignment to {@code JSocketSimple.in}. */
     public static InputStreamReader sanitize(InputStreamReader reader) {
+        return wrap(reader, HANDLED_FINALS);
+    }
+
+    /** {@link #sanitize}, for an emulator that implements {@code ESC[s} and {@code ESC[u}. */
+    public static InputStreamReader sanitizeKeepingCursorSave(InputStreamReader reader) {
+        return wrap(reader, HANDLED_FINALS_WITH_CURSOR_SAVE);
+    }
+
+    private static InputStreamReader wrap(InputStreamReader reader, String handledFinals) {
         if (reader == null || reader instanceof SanitizingReader) {
             return reader;
         }
         try {
-            return new SanitizingReader(reader);
+            return new SanitizingReader(reader, handledFinals);
         } catch (Throwable ex) {
             // Better an app that scrolls badly than one that cannot connect.
             Log.e(JpttContext.LOG_TAG, "Could not wrap the terminal reader", ex);
@@ -65,9 +84,6 @@ public final class TerminalEscapePatch {
         private static final int FINAL_MIN = 0x40;
         private static final int FINAL_MAX = 0x7e;
 
-        /** The final bytes JSocketSimple.startConnection() has a case for. */
-        private static final String HANDLED_FINALS = "ABCDHJKm";
-
         /**
          * Longest sequence to buffer. PTT's are far shorter; anything past this
          * is not a CSI sequence at all, so it is handed over unchanged.
@@ -76,18 +92,22 @@ public final class TerminalEscapePatch {
 
         private final InputStreamReader source;
 
+        /** The final bytes the emulator being fed has a case for. */
+        private final String handledFinals;
+
         /** Characters read ahead of the emulator, returned before reading more. */
         private final char[] pending = new char[MAX_SEQUENCE + 1];
 
         private int pendingCount;
         private int pendingIndex;
 
-        SanitizingReader(InputStreamReader source) {
+        SanitizingReader(InputStreamReader source, String handledFinals) {
             // InputStreamReader is the declared type of the field being wrapped,
             // so this has to be one. The stream handed to the superclass is never
             // read, because every read is overridden below.
             super(new ByteArrayInputStream(new byte[0]));
             this.source = source;
+            this.handledFinals = handledFinals;
         }
 
         @Override
@@ -140,7 +160,7 @@ public final class TerminalEscapePatch {
         }
 
         private boolean isHandled(int finalByte) {
-            if (HANDLED_FINALS.indexOf(finalByte) < 0) {
+            if (handledFinals.indexOf(finalByte) < 0) {
                 return false;
             }
             // `J` only ends the sequence for the emulator when its parameter is

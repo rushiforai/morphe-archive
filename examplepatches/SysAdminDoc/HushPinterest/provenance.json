@@ -195,6 +195,20 @@
       "license": "GPL-3.0-only with the Morphe section 7 notices",
       "changes": "Adapted from Morphe's shared GmsCore support: its permission, action and authority lists, with the identity credentials, App set ID, SMS retriever and ads actions microG-RE 7.2.2 serves only under app.revanced added. Pinterest's own shapes in place of the YouTube fingerprints: Play services' availability check found by its strings, and androidx Credential Manager's framework provider answering unavailable so Android 14 and later fall back to the rerouted Play services path. Every check runs before any edit, and the manifest change is limited to Firebase messaging's c2dm names and a package query. Morphe's checks for an installed GmsCore and its battery optimization prompt were left out.",
       "commit": "e72fe6eb324d5499449f85897f001624f4e9a7c7"
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/coexist/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/coexist/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "commit": "2cb21820c7da0787752b166aec72c94796ec47f2",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest and app.morphe.patches.pinterest. Pinterest's own permissions and providers in place of Threads', the app name option folded into Change package name, Redex's outlined string tables and Threads' own-package check left out, and Firebase's installation request from a copy naming Pinterest's package."
     }
   ]
 }

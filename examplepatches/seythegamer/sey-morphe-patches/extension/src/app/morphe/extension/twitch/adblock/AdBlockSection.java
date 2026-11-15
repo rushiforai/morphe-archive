@@ -65,14 +65,11 @@ public final class AdBlockSection implements SeyttingsSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean enabled = enable.isChecked();
-                AdBlockPrefs.setEnabled(enabled);
-                status.setText(valueText());
-                AdBlockInjector.setEnabled(enabled);
-            }
+        enable.setOnClickListener(v -> {
+            boolean enabled = enable.isChecked();
+            AdBlockPrefs.setEnabled(enabled);
+            status.setText(valueText());
+            AdBlockInjector.setEnabled(enabled);
         });
     }
 

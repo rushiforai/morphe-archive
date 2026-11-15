@@ -4,7 +4,6 @@ extension {
 
 android {
     namespace = "app.fakh.extension"
-    // MethodHandle.invoke, for the special call in Jira's page of the patches, needs Android 8; Jira needs more.
     defaultConfig.minSdk = 26
 }
 

@@ -272,7 +272,7 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
     fun readsRowMessage(site: MenuTapSite) = site.pooledRows.isEmpty() || site.pooledRows.any { (pool, key) ->
         byType[pool.definingClass]?.methods?.singleOrNull { it.hookId() == pool.toString() }?.let { poolString(it, key) } == MENU_ROW_MESSAGE
     }
-    val taps = classes.flatMap { cls -> cls.methods.filter { it.returnType == "Z" && it.menuTapSite()?.let(::readsRowMessage) == true } }
+    val taps = menuTaps.methods(classes).filter { it.menuTapSite()?.let(::readsRowMessage) == true }
     val tap = taps.singleOrNull() ?: return null
     val tapSite = tap.menuTapSite()!!
 
@@ -301,7 +301,7 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
     if (listOf(builderId, builderIcon, builderTitle, builderTag).any { !openField(it, write = true) } || !openField(idStore.menuField()!!)) return null
 
     // The icon is the constant Save video's row stores in the builder's icon field.
-    val saveRow = classes.flatMap { cls -> cls.methods.filter { it.returnType == MENU_ITEM && it.menuCode().any { i -> i.menuString() == MENU_SAVE_VIDEO } } }.singleOrNull() ?: return null
+    val saveRow = saveVideoRows.methods(classes).singleOrNull() ?: return null
     val saveCode = saveRow.menuCode()
     val iconStore = saveCode.indexOfFirst { it.opcode == Opcode.IPUT && it.menuRef()?.toString() == builderIcon.toString() }
     if (iconStore < 1) return null
@@ -348,7 +348,7 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
     if (!openClass(MESSAGE) || !openClass(kind)) return null
 
     // The More sheet, the builder it adds rows to, and the account it was given.
-    val sheet = classes.flatMap { cls -> cls.methods.filter { it.moreSheetSite() != null } }.singleOrNull() ?: return null
+    val sheet = moreSheets.methods(classes).singleOrNull() ?: return null
     val sheetSite = sheet.moreSheetSite()!!
     val sheetClass = byType[sheet.definingClass] ?: return null
     val sheetSession = sheetClass.fields.singleOrNull { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FB_USER_SESSION } ?: return null
@@ -377,7 +377,7 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
     if (!openField(sheetField) || !openField(heldField)) return null
 
     // The one place that takes a held message as a voice message says which row model that is, and the model's Uri is the sound.
-    val caster = classes.flatMap { cls -> cls.methods.filter { m -> m.returnType == "V" && m.menuCode().any { it.menuString() == AUDIO_MESSAGE_CAST } } }.singleOrNull()?.menuCode() ?: return null
+    val caster = audioCasters.methods(classes).singleOrNull()?.menuCode() ?: return null
     val named = caster.indexOfFirst { it.menuString() == AUDIO_MESSAGE_CAST }
     // It asks the held message's own interface getter for the model. 586 read a field of the row type instead.
     val rowModel = caster.getOrNull(named - 2)?.takeIf {
@@ -424,6 +424,15 @@ private fun Method.isAudioPrefetch(): Boolean {
         read.definingClass == reader && read.returnType == MENU_AUDIO_DATA && read.menuParams() == listOf(MESSAGE, "Ljava/lang/String;") &&
         code[8].menuField()?.definingClass == MENU_AUDIO_DATA && code[8].menuField()?.type == MENU_URI
 }
+
+/** The older menu's taps, before the pool each one reads its row's message from is looked at. */
+internal val menuTaps = methodCheck { _, m -> m.returnType == "Z" && m.menuTapSite() != null }
+
+internal val saveVideoRows = methodCheck { _, m -> m.returnType == MENU_ITEM && m.menuCode().any { it.menuString() == MENU_SAVE_VIDEO } }
+
+internal val moreSheets = methodCheck { _, m -> m.moreSheetSite() != null }
+
+internal val audioCasters = methodCheck { _, m -> m.returnType == "V" && m.menuCode().any { it.menuString() == AUDIO_MESSAGE_CAST } }
 
 /** The older menu's constructor and tap, then the More sheet and its tap, or none when any piece of the recipe doesn't resolve. */
 internal fun findSaveVoiceMenu(classes: Iterable<ClassDef>): List<Method> {

@@ -93,6 +93,8 @@ public final class FeedFilter {
             return items;
         }
         for (String[] entry : removed) HookStatus.counted(entry[0], entry[1]);
+        // What a Home page kept, so a report says what a suggestion row that got through is (#30).
+        if (debug && suggestions) HomeSuggestions.logKept(shown);
         // Outside the filter's own failure handling: what's kept for a board never decides what's shown.
         BoardDownloads.record(shown);
         return shown;

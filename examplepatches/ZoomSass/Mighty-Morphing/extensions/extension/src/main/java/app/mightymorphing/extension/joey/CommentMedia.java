@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -148,25 +149,94 @@ public final class CommentMedia {
         return false;
     }
 
+    /**
+     * Called from Joey's comment row with the comment's own JSON node. Only the comment's
+     * fields are read, never its replies, and only when the comment could hold media.
+     * The old hook turned the whole node, replies included, into text and parsed it again
+     * on every bind, so a top-level comment cost as much as its whole reply tree.
+     */
+    public static String htmlNode(String html, Object node) {
+        if (html == null || !MorpheSettings.inlineComments()) return html;
+        if (node == null) return html(html, null);
+        try {
+            String lower = html.toLowerCase(java.util.Locale.ROOT);
+            boolean metadata = nodeChild(node, "media_metadata") != null
+                    || nodeChild(node, "media") != null
+                    || nodeChild(node, "secure_media") != null
+                    || nodeChild(node, "preview") != null;
+            if (!metadata && !mayHaveMedia(html, lower) && !lower.contains("v.redd.it")) return html;
+            return html(html, ownJson(node));
+        } catch (Throwable t) {
+            Log.w(TAG, "comment node read failed", t);
+            return html(html, null);
+        }
+    }
+
+    private static Method sNodeGet;
+    private static Method sNodeIsNull;
+    private static Method sNodeFields;
+
+    /** Jackson's JsonNode methods, looked up once on the base class so they work on any node type. */
+    private static void nodeMethods(Object node) throws Exception {
+        if (sNodeGet != null) return;
+        Class<?> type = Class.forName("com.fasterxml.jackson.databind.JsonNode", false,
+                node.getClass().getClassLoader());
+        sNodeIsNull = type.getMethod("isNull");
+        sNodeFields = type.getMethod("fields");
+        sNodeGet = type.getMethod("get", String.class);
+    }
+
+    /** The named field of a Jackson node, or null when it is missing or JSON null. */
+    private static Object nodeChild(Object node, String name) throws Exception {
+        nodeMethods(node);
+        Object child = sNodeGet.invoke(node, name);
+        if (child == null) return null;
+        return Boolean.TRUE.equals(sNodeIsNull.invoke(child)) ? null : child;
+    }
+
+    /** The comment as JSON without its replies. */
+    private static String ownJson(Object node) throws Exception {
+        nodeMethods(node);
+        Iterator<?> fields = (Iterator<?>) sNodeFields.invoke(node);
+        StringBuilder out = new StringBuilder(1024).append('{');
+        boolean first = true;
+        while (fields != null && fields.hasNext()) {
+            Map.Entry<?, ?> entry = (Map.Entry<?, ?>) fields.next();
+            String key = String.valueOf(entry.getKey());
+            if ("replies".equals(key)) continue;
+            if (!first) out.append(',');
+            first = false;
+            out.append(JSONObject.quote(key)).append(':').append(String.valueOf(entry.getValue()));
+        }
+        return out.append('}').toString();
+    }
+
+    /** Cheap text checks for anything the rewrite could turn into media. */
+    private static boolean mayHaveMedia(String html, String lower) {
+        return html.contains("Processing img")
+                || REDDIT_PLAYER.matcher(html).find()
+                || DIRECT_HINT.matcher(html).find()
+                || ExternalPreview.supported(html)
+                || lower.contains("imgur.com")
+                || lower.contains("redgifs.com")
+                || lower.contains("gfycat.com")
+                || lower.contains("streamable.com")
+                || lower.contains("tenor.com")
+                || lower.contains("giphy.com")
+                || lower.contains("youtu")
+                || lower.contains("freeimage.host");
+    }
+
     public static String html(String html, String metadataJson) {
         if (html == null || !MorpheSettings.inlineComments()) return html;
         try {
-            if (html.toLowerCase().contains("freeimage.host")) Log.i(TAG, "freeimage comment");
             Map<String, Media> media = metadataJson == null ? new HashMap<>() : sources(metadataJson);
-            Matcher player = REDDIT_PLAYER.matcher(html);
-            if (player.find() && !VIDEO_FILE.containsKey(player.group(1))) {
-                Log.i(TAG, "video comment " + names(metadataJson));
-            }
-            boolean processing = html.contains("Processing img");
-            if (media.isEmpty() && !processing && !REDDIT_PLAYER.matcher(html).find() && !DIRECT_HINT.matcher(html).find() && !ExternalPreview.supported(html) && !html.toLowerCase().contains("imgur.com") && !html.toLowerCase().contains("redgifs.com") && !html.toLowerCase().contains("gfycat.com") && !html.toLowerCase().contains("streamable.com") && !html.toLowerCase().contains("tenor.com") && !html.toLowerCase().contains("giphy.com") && !html.toLowerCase().contains("youtu") && !html.toLowerCase().contains("freeimage.host")) return html;
+            if (media.isEmpty() && !mayHaveMedia(html, html.toLowerCase(java.util.Locale.ROOT))) return html;
 
             boolean escaped = html.indexOf('<') < 0 && html.contains("&lt;");
             String work = escaped ? unescape(html) : html;
             String out = rewrite(work, media);
-            if (out.equals(work)) {
-                if (!media.isEmpty()) Log.d(TAG, "no match for " + media.keySet() + " in " + snippet(work));
-                return html;
-            }
+            if (out.equals(work)) return html;
             return escaped ? escape(out) : out;
         } catch (Throwable t) {
             Log.w(TAG, "html rewrite failed", t);
@@ -616,22 +686,6 @@ public final class CommentMedia {
             if (url.startsWith("http") && !url.contains(".mp4") && !url.contains(".m3u8")) return url;
         }
         return "";
-    }
-
-    private static String names(String json) {
-        if (json == null || json.isEmpty()) return "none";
-        try {
-            JSONObject root = new JSONObject(json);
-            StringBuilder names = new StringBuilder();
-            Iterator<String> it = root.keys();
-            while (it.hasNext()) {
-                if (names.length() > 0) names.append(',');
-                names.append(it.next());
-            }
-            return names.toString();
-        } catch (Throwable t) {
-            return "unparsed";
-        }
     }
 
     private static String hostOf(String url) {
@@ -2095,10 +2149,6 @@ public final class CommentMedia {
         public int getOpacity() {
             return PixelFormat.TRANSLUCENT;
         }
-    }
-
-    private static String snippet(String s) {
-        return s.length() > 600 ? s.substring(0, 600) + "…" : s;
     }
 
     // endregion

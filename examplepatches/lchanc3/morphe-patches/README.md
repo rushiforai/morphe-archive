@@ -1,7 +1,8 @@
 # 🧩 lchanc3's patches
 
-給 [Morphe](https://github.com/MorpheApp) 用的 patch，目前支援 JPTT（PTT 的 Android app）和
-[Local Dream](https://github.com/xororz/local-dream)（手機上跑的 Stable Diffusion）。
+給 [Morphe](https://github.com/MorpheApp) 用的 patch，目前支援 JPTT（PTT 的 Android app）、
+[Local Dream](https://github.com/xororz/local-dream)（手機上跑的 Stable Diffusion）和
+DMM VR動画プレイヤー（Meta Quest 上的 DMM VR 影片播放器）。
 
 ## 📥 使用方式
 
@@ -12,7 +13,8 @@
    ```
 
 2. 選擇要 patch 的 app，照預設勾選打包安裝。安裝前請先看那個 app 的使用說明：
-   [JPTT](docs/JPTT.md)、[Local Dream](docs/Local%20Dream.md)。
+   [JPTT](docs/JPTT.md)、[Local Dream](docs/Local%20Dream.md)、
+   [DMM VR動画プレイヤー](docs/DMM%20VR%E5%8B%95%E7%94%BB%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC.md)。
 3. 之後的新版，Manager 會從這個來源抓。每一版改了什麼，在 Manager 的「檢視變更紀錄」或
    [Releases](https://github.com/lchanc3/morphe-patches/releases) 都看得到。
 
@@ -21,15 +23,31 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.7.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches&nbsp;&nbsp;•&nbsp;&nbsp;2 apps
+> **[v1.8.0](https://github.com/lchanc3/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;18 patches&nbsp;&nbsp;•&nbsp;&nbsp;3 apps
+
+<details open>
+<summary>📦 DMM VR動画プレイヤー&nbsp;&nbsp;•&nbsp;&nbsp;1 patches</summary>
+
+**Supported versions:**
+
+| 9.0.0 |
+| :---: |
+
+| Patch | Description | Options |
+|---|---|---|
+| **Hand tracking** | Lets you use the app with your hands instead of the Quest controllers. The ray comes from the hand you last pinched with, and a pinch of thumb and index finger is a click, like the trigger. |  |
+
+📖 安裝前必讀、常見問題與功能說明：[DMM VR動画プレイヤー 使用說明](docs/DMM%20VR%E5%8B%95%E7%94%BB%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC.md)
+
+</details>
 
 <details open>
 <summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 
 **Supported versions:**
 
-| 3.9.4 | 🧪&nbsp;any |
-| :---: | :---: |
+| 3.9.6 | 3.9.4 | 3.9.2 | 🧪&nbsp;any |
+| :---: | :---: | :---: | :---: |
 
 | Patch | Description | Options |
 |---|---|---|

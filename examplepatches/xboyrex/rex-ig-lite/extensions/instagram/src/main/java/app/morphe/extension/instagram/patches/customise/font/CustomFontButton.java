@@ -24,6 +24,6 @@ public final class CustomFontButton extends Button {
 
     @Override
     public void setTypeface(Typeface typeface) {
-        super.setTypeface(CustomFont.forxboyrexView(typeface));
+        super.setTypeface(CustomFont.forRexView(typeface));
     }
 }

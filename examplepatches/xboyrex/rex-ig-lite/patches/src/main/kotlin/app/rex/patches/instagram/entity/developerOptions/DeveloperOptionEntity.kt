@@ -8,31 +8,26 @@ package app.rex.patches.instagram.entity.developerOptions
 
 import app.rex.utils.changeFirstString
 import app.rex.utils.classNameToExtension
-import app.rex.utils.methodExtractor
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.indexOfFirstInstruction
-import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patcher.patch.patch
 
 val developerOptionsEntity =
-    bytecodePatch(
+    patch(
         description = "This patch is used for decoding obfuscated code of developer options items",
     ) {
         execute {
-            ExperimentsValueBuilderFingerprint.apply {
-                GetQuickExperimentHelperClassExtension.changeFirstString(classNameToExtension(classDef.type))
+            runCatching {
+            GetQuickExperimentHelperClassExtension.changeFirstString(
+                classNameToExtension(GetAllExperimentsFingerprint.originalClassDef.type),
+            )
+            GetAllExperimentsClassExtension.changeFirstString(GetAllExperimentsFingerprint.originalMethod.name)
 
-                val getAllExperimentsMethodName = classDef.methods.first { it.returnType == "Ljava/util/List;" }.name
-                GetAllExperimentsClassExtension.changeFirstString(getAllExperimentsMethodName)
+            ExperimentsGetMobileConfigSpecifier.let {
+                GetExperimentItemHelperClassExtension.changeFirstString(classNameToExtension(it.originalClassDef.type))
+                GetUniversalIdHelperClassExtension.changeFirstString(
+                    classNameToExtension(it.instructionMatches[1].methodReference.definingClass),
+                )
             }
-
-            ExperimentsGetMobileConfigSpecifier.apply {
-                matchAll(1..1)
-                GetExperimentItemHelperClassExtension.changeFirstString(classNameToExtension(classDef.type))
-                method.apply {
-                    val getUniversalIdInstructionData = getInstruction(indexOfFirstInstruction(Opcode.INVOKE_STATIC)).methodExtractor()
-                    GetUniversalIdHelperClassExtension.changeFirstString(getUniversalIdInstructionData.definingClass)
-                }
+        
             }
         }
     }

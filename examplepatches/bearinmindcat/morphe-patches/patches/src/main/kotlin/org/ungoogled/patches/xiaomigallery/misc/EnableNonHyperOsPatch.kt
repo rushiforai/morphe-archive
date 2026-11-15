@@ -92,6 +92,6 @@ val enableNonHyperOsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_XIAOMI_GALLERY)
-    dependsOn(manifestPatch, miuiMembersPatch, globalBuildPatch, allFilesAccessPatch, privateAlbumPatch, googlePhotosPatch)
+    dependsOn(manifestPatch, miuiMembersPatch, globalBuildPatch, allFilesAccessPatch, privateAlbumPatch, googlePhotosPatch, pushPatch, cloudConfigPatch)
     extendWith(XIAOMI_GALLERY_EXTENSION)
 }

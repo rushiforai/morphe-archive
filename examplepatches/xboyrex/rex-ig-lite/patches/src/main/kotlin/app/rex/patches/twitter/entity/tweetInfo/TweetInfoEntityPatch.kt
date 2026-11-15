@@ -9,10 +9,10 @@ package app.rex.patches.twitter.entity.tweetInfo
 import app.rex.utils.changeFirstString
 import app.rex.utils.fieldExtractor
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 val tweetInfoEntityPatch =
-    bytecodePatch(
+    patch(
         description = "For tweet info entity reflection",
     ) {
         execute {

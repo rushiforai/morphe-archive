@@ -48,11 +48,6 @@ public final class ChatExpandSection implements MorpheSection {
                 MorpheTheme.dp(activity, 8));
         container.addView(hint, MorpheTheme.matchWidth());
 
-        enable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatExpandPrefs.setChatExpandEnabled(enable.isChecked());
-            }
-        });
+        enable.setOnClickListener(v -> ChatExpandPrefs.setChatExpandEnabled(enable.isChecked()));
     }
 }

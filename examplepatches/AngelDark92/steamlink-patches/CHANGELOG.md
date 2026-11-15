@@ -1,3 +1,15 @@
+## [2.9.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.8.0...v2.9.0) (2026-11-14)
+
+### ✨ New Features
+
+* update blue noise payload SHA256 hashes and adjust related tests ([f9f3289](https://github.com/AngelDark92/xr-porting-hub/commit/f9f32892b8a392bb8fd6e5c1f6cc1a7a0e5a78a4))
+
+## [2.9.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.8.0...v2.9.0-dev.1) (2026-11-13)
+
+### ✨ New Features
+
+* update blue noise payload SHA256 hashes and adjust related tests ([f9f3289](https://github.com/AngelDark92/xr-porting-hub/commit/f9f32892b8a392bb8fd6e5c1f6cc1a7a0e5a78a4))
+
 ## [2.8.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.7.2...v2.8.0) (2026-11-12)
 
 ### 🐛 Bug Fixes

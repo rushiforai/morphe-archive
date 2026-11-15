@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.shared.Logger;
+import app.hushpinterest.extension.shared.diagnostics.DiagnosticCategory;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
 /**
@@ -95,7 +96,7 @@ final class ModuleItems {
             }
         }
         String gone = emptied;
-        Logger.printDebug(() -> describe(module) + (gone != null ? ", left empty" : ""));
+        Logger.diagnosticDebug(DiagnosticCategory.FEED, "ModuleItems", () -> describe(module) + (gone != null ? ", left empty" : ""));
         return emptied;
     }
 
@@ -113,7 +114,8 @@ final class ModuleItems {
             "^pinned_to_board$|^pinned_to_profile$|^new_repin_id$|^is_repin$|^is_owned_by_viewer$");
 
     /**
-     * [module]'s story type and each list it carries after filtering: its size, and for each model
+     * [module]'s story type (only when it reads like a name, {@link HomeSuggestions#storyName}) and
+     * each list it carries after filtering: its size, and for each model
      * kept, its class and the commercial, AI label and saved fields it has set. An entry that isn't a model shows only its
      * full class name in parentheses, never its value, so a list the filter can't judge still says
      * what it holds. Built only with Debug logging on, so a bug report about an ad that got through
@@ -121,7 +123,7 @@ final class ModuleItems {
      */
     static String describe(Object module) {
         StringBuilder line = new StringBuilder("Module ");
-        line.append(ModelFields.read(ModelFields.of(module.getClass()), module, Ads.STORY_TYPE));
+        line.append(HomeSuggestions.storyName(ModelFields.read(ModelFields.of(module.getClass()), module, Ads.STORY_TYPE)));
         for (Field field : lists(module.getClass())) {
             Object value;
             try {

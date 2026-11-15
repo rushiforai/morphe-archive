@@ -25,7 +25,8 @@ import java.util.logging.Logger
 // client parameters hides that row and keeps the map setup, the renderer and the layer rules flat;
 // Google keeps it off for this app. Every read of that flag passes through Buildings3d.flag, which
 // gives true while the feature is on and Maps' value otherwise. Maps' own layer row and preference
-// then turn the buildings on or off.
+// then turn the buildings on or off. With the flag on, the cluster map would always show them; its
+// layers follow the saved choice instead (ClusterLayersPatch.kt).
 // The flag: Maps' map-layer enums (TRAFFIC, SATELLITE, TERRAIN, THREE_DIMENSIONAL, ...) give the 3D
 // layer constants; the layer rules read one boolean field and, when it is true, add the 3D layer at
 // once (one such method in Maps). The cluster screen's only boolean read must be the same field. Every
@@ -47,7 +48,8 @@ private val buildingsLogger = Logger.getLogger("app.morphe.patches.mapsautomotiv
 @Suppress("unused")
 val buildings3dPatch = bytecodePatch(
     name = "3D buildings",
-    description = "Adds Maps' own 3D buildings to the map layers. Google hides them in this app.",
+    description = "Adds Maps' own 3D buildings to the map layers. Google hides them in this app. " +
+        "The cluster map shows them only when you turn them on.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -55,6 +57,7 @@ val buildings3dPatch = bytecodePatch(
 
     execute {
         useBuildings3d()
+        useSaved3dLayerOnCluster()
         IncludedFeatures.features += "buildings_3d"
     }
 }

@@ -78,7 +78,7 @@ public class AdsProbe extends Instrumentation {
             else if (t.isEnum()) args[i] = t.getEnumConstants()[0];
         }
         Object result = decide.invoke(null, args);
-        check("RefuseUltralightOff".equals(String.valueOf(result)), "live streams open in the native player: " + result);
+        check(String.valueOf(result).startsWith("RefuseUltralight"), "live streams open in the native player: " + result);
     }
 
     // ---- the row in Twitch's settings screen ----

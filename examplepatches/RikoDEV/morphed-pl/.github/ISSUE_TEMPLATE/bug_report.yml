@@ -1,48 +1,78 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
+name: 🐞 Bug report / Zgłoszenie błędu
+description: Report a bug or an issue. / Zgłoś błąd lub problem.
 title: "bug: "
 labels: ["Bug report"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Morphed PL bug report
+        # Morphed PL bug report / Zgłoszenie błędu
 
-        Before creating a new bug report, please keep the following in mind:
+        You can write in English or in Polish. / Możesz pisać po polsku lub po angielsku.
 
         - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/RikoDEV/morphed-pl/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/RikoDEV/morphed-pl#-adding-another-app).
+          / **Nie zgłaszaj duplikatów**: sprawdź istniejące zgłoszenia [tutaj](https://github.com/RikoDEV/morphed-pl/issues?q=label%3A%22Bug+report%22).
+        - **Review the contribution guidelines**: You can find them [here](https://github.com/RikoDEV/morphed-pl#-adding-another-app).
+          / **Zapoznaj się z zasadami współtworzenia**: znajdziesz je [tutaj](https://github.com/RikoDEV/morphed-pl#-adding-another-app).
   - type: textarea
     attributes:
-      label: Bug description
+      label: Bug description / Opis błędu
       description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+        - Describe your bug in detail / Opisz dokładnie, co się dzieje
+        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...) / Podaj kroki, aby powtórzyć błąd (Krok 1. ... Krok 2. ...)
+        - Add images and videos if possible / Dodaj zrzuty ekranu lub nagrania
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: App and version / Aplikacja i wersja
+      description: The patched app and its version. / Załatana aplikacja i jej wersja.
+      placeholder: Lidl Plus 17.14.6
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Patches version / Wersja łatek
+      description: The version of the Morphed PL patches you used. / Wersja łatek Morphed PL, której użyto.
+      placeholder: "1.7.2"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Device / Urządzenie
+      description: Manufacturer and model of your device. / Producent i model urządzenia.
+      placeholder: Samsung Galaxy S23
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Android version / Wersja Androida
+      description: Android version and, if you know it, the vendor skin (Settings → About phone). / Wersja Androida i, jeśli wiesz, nakładka producenta (Ustawienia → Informacje o telefonie).
+      placeholder: Android 14, One UI 6.1
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      label: Error logs / Logi błędów
+      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell. / Wyjątki można zapisać poleceniem `logcat | grep AndroidRuntime`.
       render: shell
   - type: textarea
     attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
+      label: Solution / Rozwiązanie
+      description: If applicable, add a possible solution to the bug. / Jeśli to możliwe, zaproponuj rozwiązanie.
   - type: textarea
     attributes:
-      label: Additional context
-      description: Add additional context here.
+      label: Additional context / Dodatkowe informacje
+      description: Add additional context here. / Dodaj tu wszystko, co może pomóc.
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: Acknowledgements / Potwierdzenia
+      description: Your bug report will be closed if you don't follow the checklist below. / Zgłoszenie zostanie zamknięte, jeśli nie spełnisz poniższej listy.
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: I have checked all open and closed bug reports and this is not a duplicate. / Sprawdziłem otwarte i zamknięte zgłoszenia, to nie jest duplikat.
           required: true
-        - label: I have chosen an appropriate title.
+        - label: I have chosen an appropriate title. / Wybrałem odpowiedni tytuł.
           required: true
-        - label: All requested information has been provided properly.
+        - label: All requested information has been provided properly. / Podałem wszystkie wymagane informacje.
           required: true

@@ -1842,15 +1842,126 @@ public final class Settings {
         return original;
     }
 
+    static final int ROW_TEXT_LIMIT = 1024;
+    /**
+     * The words encrypted chat rows showed, newest use last: by threading id (else message id), and by the time and
+     * sender the row was sent with ({@link #rowStamp}). An unsent message's row comes back with no text, or is swapped
+     * for a "deleted a message" row at the same time and sender, so this is where its words come from while Messenger
+     * keeps running.
+     */
+    static final Map<String, String> ROW_TEXT = Collections.synchronizedMap(new LinkedHashMap<String, String>(64, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+            return size() > ROW_TEXT_LIMIT;
+        }
+    });
+
+    /** Whether an encrypted chat's rows go through {@link #labelKeptUnsentRow} at all. */
+    public static boolean watchesUnsentRows() {
+        return wouldUse("keep_unsent");
+    }
+
+    /**
+     * The message_content_type and subtype of the row 587 puts in an encrypted chat when a message there is unsent: "X
+     * deleted a message", with the unsent message's time and sender but ids of its own, while the message's own row is
+     * hidden.
+     */
+    static final int UNSENT_PLACEHOLDER_TYPE = 5;
+    static final int UNSENT_PLACEHOLDER_SUBTYPE = 1;
+
+    /**
+     * Which row or notification line put each stamp's words in {@link #ROW_TEXT}. Two messages from one sender in the same
+     * millisecond share a stamp, so it holds {@link #SHARED_STAMP} from then on and neither one's words are used for it.
+     */
+    static final Map<String, String> STAMP_OWNER = Collections.synchronizedMap(new LinkedHashMap<String, String>(64, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+            return size() > ROW_TEXT_LIMIT;
+        }
+    });
+    /** No row or line key is empty, so an empty owner marks a stamp two messages share. */
+    static final String SHARED_STAMP = "";
+
+    /** The key a row's words are kept under by when and by whom it was sent. Null when the row has no time. */
+    static String rowStamp(long timestamp, long senderId) {
+        return timestamp > 0 ? "at:" + timestamp + ":" + senderId : null;
+    }
+
+    /** The key a notification line's words are kept under by when it was sent, its sender being unknown there. */
+    static String lineStamp(long timestamp) {
+        return timestamp > 0 ? "at:" + timestamp : null;
+    }
+
+    /** Keeps [text] under [stamp] for the message [owner], unless another message already has that stamp. */
+    static void rememberStamp(String stamp, String owner, String text) {
+        if (stamp == null) return;
+        synchronized (STAMP_OWNER) {
+            String had = STAMP_OWNER.get(stamp);
+            if (had == null || had.equals(owner)) {
+                STAMP_OWNER.put(stamp, owner);
+                ROW_TEXT.put(stamp, text);
+            } else if (!had.equals(SHARED_STAMP)) {
+                STAMP_OWNER.put(stamp, SHARED_STAMP);
+                ROW_TEXT.remove(stamp);
+            }
+        }
+    }
+
+    /**
+     * The text an encrypted chat's row shows. A row whose message was unsent while Keep unsent messages was on shows the
+     * words it had, marked [unsent], and so does the "deleted a message" row Messenger shows in its place; any other
+     * row's text is remembered for the day its message is unsent.
+     */
+    public static String labelKeptUnsentRow(String text, String messageId, String threadingId, long timestamp, long senderId,
+                                            int contentType, int contentSubtype) {
+        try {
+            String key = threadingId != null && !threadingId.isEmpty() ? threadingId : messageId;
+            if (key == null || key.isEmpty()) return text;
+            boolean hasText = text != null && !text.isEmpty();
+            String stamp = rowStamp(timestamp, senderId);
+            if (contentType == UNSENT_PLACEHOLDER_TYPE && contentSubtype == UNSENT_PLACEHOLDER_SUBTYPE) {
+                String words = stamp == null ? null : ROW_TEXT.get(stamp);
+                if (words == null && stamp != null) words = ROW_TEXT.get(lineStamp(timestamp));
+                return words == null ? text : "[unsent] " + words;
+            }
+            if (!isKeptUnsent(threadingId) && !isKeptUnsent(messageId)) {
+                if (hasText) {
+                    ROW_TEXT.put(key, text);
+                    rememberStamp(stamp, key, text);
+                }
+                return text;
+            }
+            String original = hasText ? text : ROW_TEXT.get(key);
+            // A notification keeps its words under the message id, and the row may have been keyed by its threading id.
+            if (original == null && messageId != null && !messageId.equals(key)) original = ROW_TEXT.get(messageId);
+            return original == null ? text : "[unsent] " + original;
+        } catch (Throwable failure) {
+            hookFailedPrivately("keep_unsent", "Can't show an unsent message", failure);
+            return text;
+        }
+    }
+
     /**
      * Messenger is about to take [messageId] out of its notification because it was unsent. The message log marks it
-     * Unsent, and with Keep unsent messages on the answer is true, so Messenger leaves the notification showing it. That
-     * notification is the one place an end-to-end encrypted chat's unsent message can stay, since the chat drops it.
+     * Unsent, and with Keep unsent messages on the answer is true, so Messenger leaves the notification showing it. The
+     * words the notification shows are kept too, for the encrypted chat's row, which comes back with none.
      */
     public static boolean unsentRecall(String messageId) {
         try {
             if (wouldUse(MessageLog.KEY)) MessageLog.markUnsent(messageId);
             if (messageId == null || messageId.isEmpty() || !wouldUse("keep_unsent")) return false;
+            if (!ROW_TEXT.containsKey(messageId)) {
+                try {
+                    ChatNotifications.Line shown = ChatNotifications.line(appContext, messageId);
+                    if (shown != null && shown.text != null && !shown.text.isEmpty()) {
+                        ROW_TEXT.put(messageId, shown.text);
+                        // The chat's "deleted a message" row finds it by the line's time.
+                        rememberStamp(lineStamp(shown.time), messageId, shown.text);
+                    }
+                } catch (RuntimeException unreadable) {
+                    // The row's own earlier text can still answer.
+                }
+            }
             recordUnsent(messageId);
             return true;
         } catch (Throwable failure) {

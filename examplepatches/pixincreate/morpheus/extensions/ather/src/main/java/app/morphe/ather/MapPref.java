@@ -4,13 +4,12 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.ather.maps.a0;
-
 /**
  * Map-provider preference applied on top of Ather's own resolver.
  *
- * The patched {@code com.ather.maps.usecase.b} routes the provider it resolved
- * through {@link #apply(a0)}. The stored preference decides the final provider:
+ * The patched {@code com.ather.maps.usecase.b} (13.5.x) or
+ * {@code com.ather.maps.usecase.c} (13.6.0) routes the provider it resolved
+ * through {@link #apply(Object)}. The stored preference decides the final provider:
  *
  * <ul>
  *   <li>{@code auto} (default): keep Ather's choice, but if it is Google Maps and
@@ -271,33 +270,58 @@ public final class MapPref {
      * Post-process the provider Ather resolved. Called from the patched resolver.
      * Never throws: on any error it returns the input unchanged.
      */
-    public static a0 apply(a0 resolved) {
+    public static Object apply(Object resolved) {
         try {
             Context ctx = appContext();
             String pref = getProvider(ctx);
 
             if (GOOGLE.equals(pref)) {
-                return a0.GOOGLE_MAP;
+                return constant(resolved, "GOOGLE_MAP");
             }
             if (MMI.equals(pref)) {
                 // Mappls needs a licence tied to Ather's own signature, so it cannot load in a
                 // re-signed build. An old Mappls choice falls back to OpenStreetMap.
-                return a0.OSM;
+                return constant(resolved, "OSM");
             }
             if (OSM.equals(pref)) {
-                return a0.OSM;
+                return constant(resolved, "OSM");
             }
 
             // auto: replace the providers that cannot work here with OpenStreetMap. GMS-package
             // detection is unreliable on GrapheneOS (sandboxed Play / gmscompat installs
             // com.google.android.gms), so we do not gate on it -- if Ather resolved a provider
             // that needs Google Play Services or Ather's Mappls licence, use OSM instead.
-            if (resolved == a0.GOOGLE_MAP || resolved == a0.MMI) {
-                return a0.OSM;
+            String name = enumName(resolved);
+            if ("GOOGLE_MAP".equals(name) || "MMI".equals(name)) {
+                return constant(resolved, "OSM");
             }
             return resolved;
         } catch (Throwable t) {
             return resolved;
         }
+    }
+
+    /**
+     * The enum constant with [name] from the same enum class as [resolved].
+     *
+     * The provider enum moved from {@code com.ather.maps.a0} to
+     * {@code com.ather.maps.x} in 13.6.0, so the class is read from the resolved value
+     * instead of being linked at build time.
+     */
+    private static Object constant(Object resolved, String name) {
+        if (!(resolved instanceof Enum)) {
+            return resolved;
+        }
+        try {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Object value = Enum.valueOf((Class<? extends Enum>) resolved.getClass(), name);
+            return value;
+        } catch (Throwable ignored) {
+            return resolved;
+        }
+    }
+
+    private static String enumName(Object value) {
+        return value instanceof Enum ? ((Enum<?>) value).name() : null;
     }
 }

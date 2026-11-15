@@ -487,6 +487,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_black_bottom_bar": return L10n.t("Black bottom bar");
             case "hushpinterest_black_comments": return L10n.t("Black comments");
             case "hushpinterest_black_pin_menu": return L10n.t("Black pin menu");
+            case "hushpinterest_black_save_sheet": return L10n.t("Black Save to sheet");
             case "hushpinterest_hide_closeup_back": return L10n.t("Hide back arrow on pins");
             case "hushpinterest_hide_closeup_lens": return L10n.t("Hide lens button on pins");
             case "hushpinterest_hide_closeup_search_label": return L10n.t("Hide Search image label on pins");
@@ -502,6 +503,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_pin_menu_pin_boost": return L10n.t("Hide Promote pin menu item");
             case "hushpinterest_hide_comments": return L10n.t("Hide comments");
             case "hushpinterest_hide_suggested_replies": return L10n.t("Hide suggested replies");
+            case "hushpinterest_hide_comment_previews": return L10n.t("Hide comment previews");
             case "hushpinterest_hide_topic_suggestions": return L10n.t("Hide topic suggestions");
             case "hushpinterest_hide_inbox_updates": return L10n.t("Hide Inbox updates");
             case "hushpinterest_quiet_email_reminder": return L10n.t("Quiet email reminders");
@@ -509,6 +511,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");
             case "hushpinterest_original_images": return L10n.t("Original-quality images");
             case "hushpinterest_show_posted_date": return L10n.t("Show posted date");
+            case "hushpinterest_hide_suggested_boards": return L10n.t("Hide suggested boards");
+            case "hushpinterest_expand_board_list": return L10n.t("Expand board list");
             case "hushpinterest_disable_update_nag": return L10n.t("Disable update nag");
             case "hushpinterest_fix_push_notifications": return L10n.t("Fix push notifications");
             default: throw new IllegalArgumentException("Unlisted backup switch");

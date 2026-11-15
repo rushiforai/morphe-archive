@@ -145,9 +145,7 @@
     "smali_sha256": "9a8a27f0284752df83cda2ea8317778f2d642915021459648b544f808cd102df"
   },
   "ChannelFeed": {
-    "owner": "snapshot",
-    "java_sha256": "cb599e7d2f8bb597fe45b0fd02226ff860c79c24b86788e7d21b9946947bcda0",
-    "smali_sha256": "228c1d49edf29ceb78d89eee1687038682020f4ebeb5767eabad2c5c7d636e14"
+    "owner": "java"
   },
   "ChannelPage": {
     "owner": "snapshot",
@@ -233,9 +231,7 @@
     "smali_sha256": "f564d5fdc5927298b6d1a025ff417d56b598e6d4585ad9adff0ba82f29984702"
   },
   "DetailData": {
-    "owner": "snapshot",
-    "java_sha256": "508cb9f987a5d7254f97cce8519297387e5835d0086eed0a42a60e3b3c3db443",
-    "smali_sha256": "f2a1c99dbf9493d4e370dcd809b2f98dddbfbfea464b6a9903df85ebc0d62531"
+    "owner": "java"
   },
   "DetailSettings": {
     "owner": "snapshot",
@@ -363,9 +359,7 @@
     "smali_sha256": "48d88bb0f17f6c84f6f88235b38f303c89df94a9cc2fbeb503f0a071e9f45591"
   },
   "HistoryRules": {
-    "owner": "snapshot",
-    "java_sha256": "3a709ac66e141aebcbcedfc8737b11eebee48cda12534775af2ec884045b3940",
-    "smali_sha256": "d3b4b8564f7836365a71bee80b7e934694363d9cca8732ffacaf403660fafb6c"
+    "owner": "java"
   },
   "HistorySortRules": {
     "owner": "snapshot",
@@ -541,9 +535,7 @@
     "smali_sha256": "a0099e76d8fd0f950d0e63b197e0dfca4603103b5416f052b7f3911f1534a91f"
   },
   "PlaylistPlayback": {
-    "owner": "snapshot",
-    "java_sha256": "40ded9470a320994dd0397d59fcac7165f31cdb41a8614e4861f0b436c5e83da",
-    "smali_sha256": "3876dba14fe12ab4db37b2a2a4c7e703392a194c8cf70cf54def8118ba7d5bca"
+    "owner": "java"
   },
   "PlaylistStorage": {
     "owner": "snapshot",
@@ -772,9 +764,7 @@
     "smali_sha256": "9d23404b75227191e4483c2dc79b3f0063e8a1fad81de65145ed58d77d4bbbd0"
   },
   "VideoDetails": {
-    "owner": "snapshot",
-    "java_sha256": "92691c3f9878d03298eb7b5446ac7efec8fe5a8490ee41a9a2dfb21e4fb648f1",
-    "smali_sha256": "5221a3cac166c5cdd4ad2c648a2982b746a90af63fe765299b9df377a0296d11"
+    "owner": "java"
   },
   "VideoInfoCounts": {
     "owner": "snapshot",

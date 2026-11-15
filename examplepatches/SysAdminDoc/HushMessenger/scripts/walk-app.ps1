@@ -37,7 +37,16 @@
     never uninstalls or clears Messenger. An install that can't update the app in place is reported,
     not forced past. It taps only inside Hush settings: a sheet's button and its Close or Cancel,
     each found by its text in a dump taken right before the tap. It never taps Messenger's own
-    screens, so it never answers the Restore prompt.
+    screens, so it never answers the Restore prompt, and Messenger's notification prompt gets one
+    Back, never an answer.
+
+    Before every tap, key, app start and install it checks the phone isn't on a call: none that
+    telecom lists and an audio mode of normal, so a VoIP call (Aircall) or a ringing phone counts.
+    A tap, swipe or key also needs Messenger or that prompt in front. Either one failing stops the
+    walk as PARTIAL with its receipt. -RestoreApp keeps a copy of the installed Messenger first and
+    puts it back after the walk, with its overlay and notification grants as they were. Without
+    -Serial the walk takes the first free device on HushMessenger's walk list in HUSH_RELEASE_CONFIG,
+    with that device's key, model, chat and restore choice from the same file.
 
 .EXAMPLE
     scripts/walk-app.ps1 -Serial <adb serial> -ExpectedModel SM-S908U1 -Keystore <key the installed app uses> -Thread <user id>
@@ -66,6 +75,10 @@ param(
     [switch]$SkipPatch,
     # Leave the Hush settings pages out. Makes the walk PARTIAL, not a release walk.
     [switch]$SkipSettings,
+    # Put the Messenger that was installed before the walk back afterward, for a phone someone uses every day.
+    [switch]$RestoreApp,
+    # The release config whose HushMessenger walk list picks the device when -Serial isn't given.
+    [string]$ReleaseConfig = $env:HUSH_RELEASE_CONFIG,
     [int]$SettleSeconds = 4,
     [string]$OutDir = (Join-Path ([IO.Path]::GetTempPath()) 'hushmessenger-walk'),
     # The key the installed Messenger is signed with, so the build installs over it in place.
@@ -84,6 +97,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'walk-receipt.ps1')
+
+# The device got busy (a call, or someone else's app in front), so the walk stops where it is. Not
+# OperationCanceledException: PowerShell reads that one as a stopped pipeline and skips every catch.
+class WalkBusyException : Exception { WalkBusyException([string]$Message) : base($Message) {} }
 
 # The Messenger screens that open by link: its own settings (where the HushMessenger row sits) and its
 # story and contact settings. The inbox opens through its launcher activity, the chat by -Thread.
@@ -242,6 +259,83 @@ function Read-WalkResumedComponent {
         }
     }
     return ''
+}
+
+# One shell line for the call check: how many calls telecom lists, the audio mode, and the activity in front.
+$WalkCallProbe = "echo calls=`$(dumpsys telecom | grep -A1 'mCalls:' | grep -c TC@); dumpsys audio | grep -m1 -o 'mAudioModeOwner.*mMode=[0-9]*'; dumpsys activity activities | grep -E 'topResumedActivity|ResumedActivity'"
+$WalkPermissionPrompt = 'permissioncontroller/\S*GrantPermissionsActivity'
+
+function Get-WalkInputKind([string[]]$Arguments) {
+    <#
+    .SYNOPSIS
+        'touch' for a tap, swipe or key, 'screen' for an app start, a force-stop, an install or the wake key,
+        '' for an adb call that changes nothing anyone sees.
+    #>
+    $verb = [string]@($Arguments)[0]
+    if ($verb -cin 'install', 'install-multiple') { return 'screen' }
+    if ($verb -cne 'shell') { return '' }
+    if ($Arguments[1] -ceq 'input') { return $(if ($Arguments[2] -ceq 'keyevent' -and $Arguments[3] -ceq 'KEYCODE_WAKEUP') { 'screen' } else { 'touch' }) }
+    if ($Arguments[1] -ceq 'am' -and $Arguments[2] -cin 'start', 'force-stop') { return 'screen' }
+    return ''
+}
+
+function Get-WalkInputBlock {
+    <#
+    .SYNOPSIS
+        Why the walk mustn't act on the device now, or '' when it may, from $WalkCallProbe's output. A call
+        telecom lists, or an audio mode other than normal (a VoIP call or a ringtone), blocks everything. A
+        -Touch also needs -Package or the permission prompt in front, so it never lands in an app someone
+        opened while the walk ran.
+    #>
+    param([string[]]$Lines = @(), [Parameter(Mandatory = $true)][string]$Package, [bool]$Touch)
+    $text = $Lines -join "`n"
+    if ($text -notmatch '(?m)^calls=(\d+)\s*$') { return "telecom didn't answer, so a call could be on" }
+    if ([int]$Matches[1] -gt 0) { return 'a call is on' }
+    if ($text -match 'mMode=(\d+)' -and $Matches[1] -cne '0') { return "the audio mode is $($Matches[1]), so a call or a ringtone is on" }
+    if (-not $Touch) { return '' }
+    $front = Read-WalkResumedComponent $Lines
+    if ($front -cmatch $WalkPermissionPrompt -or $front.StartsWith("$Package/", [StringComparison]::Ordinal)) { return '' }
+    return "$(if ($front) { $front } else { 'nothing readable' }) is in front, not Messenger"
+}
+
+function Read-WalkGrantState {
+    <#
+    .SYNOPSIS
+        The grants an install could reset, from appops get SYSTEM_ALERT_WINDOW and the POST_NOTIFICATIONS line of
+        dumpsys package: the overlay mode, whether notifications are granted, and the permission's user flags.
+    #>
+    param([string[]]$Lines = @())
+    $text = $Lines -join "`n"
+    $state = [ordered]@{ overlay = ''; notifications = ''; flags = [string[]]@() }
+    if ($text -match 'SYSTEM_ALERT_WINDOW:\s*(\w+)') { $state.overlay = $Matches[1] }
+    if ($text -match 'POST_NOTIFICATIONS:\s*granted=(true|false)(?:,\s*flags=\[([^\]]*)\])?') {
+        $state.notifications = $Matches[1]
+        $state.flags = [string[]]@($Matches[2] -split '[|\s]+' | Where-Object { $_ -cin 'USER_SET', 'USER_FIXED' } | Sort-Object)
+    }
+    return $state
+}
+
+function Select-WalkDevice {
+    <#
+    .SYNOPSIS
+        The first device on -Config's HushMessenger walk list that adb has attached and no one leases, with the key,
+        model, chat and restore choice the config gives it, or a throw naming why each one was passed over.
+    #>
+    param($Config, [string]$Package, [string[]]$Attached = @(), [string]$LeaseDirectory)
+    $entry = $Config.HushMessenger
+    $order = @($entry.walk.$Package | Where-Object { $_ })
+    if ($order.Count -eq 0) { throw "The release config has no HushMessenger walk list for $Package. Pass -Serial." }
+    $passed = foreach ($candidate in $order) {
+        if ($Attached -cnotcontains $candidate) { "$candidate isn't attached"; continue }
+        if (Test-Path -LiteralPath (Join-Path $LeaseDirectory "$candidate.json")) { "$candidate is leased"; continue }
+        $key = if ($entry.keys.$candidate) { $entry.keys.$candidate } else { $entry.keys.default }
+        return [pscustomobject]@{
+            Serial = $candidate; Model = [string]$entry.models.$candidate; Thread = [string]$entry.threads.$candidate
+            Keystore = [string]$key.Keystore; KeyAlias = [string]$key.KeyAlias; KeystorePassword = [string]$key.KeystorePassword
+            Restore = @($entry.restore) -ccontains $candidate
+        }
+    }
+    throw "No walk device is free ($($passed -join ', ')). Walk again once one is."
 }
 
 function Find-WalkNodeCenter {
@@ -480,7 +574,7 @@ function Invoke-WalkApp {
         [string]$Serial, [string]$ExpectedModel, [string]$Package, [string]$BundlePath, [string]$StockApk,
         [string]$Thread, [string[]]$Visit, [bool]$SkipPatch, [bool]$SkipSettings, [int]$SettleSeconds,
         [string]$OutDir, [string]$KeystorePath, [string]$Alias, [string]$StorePassword,
-        [string]$Jar, [string]$JavaExe, [string]$AdbExe, [string]$LeaseDirectory
+        [string]$Jar, [string]$JavaExe, [string]$AdbExe, [string]$LeaseDirectory, [bool]$RestoreApp
     )
     if (-not $Serial) { throw 'Name the device to walk with -Serial.' }
     if (-not $ExpectedModel) { throw 'Set -ExpectedModel (or HUSHMESSENGER_EXPECTED_DEVICE_MODEL) so the walk confirms the device.' }
@@ -512,27 +606,151 @@ function Invoke-WalkApp {
     $lease = Enter-WalkLease -Directory $LeaseDirectory -Serial $Serial -ExpectedModel $ExpectedModel
     $problems = [Collections.Generic.List[string]]::new()
     $screens = 0
+    $kept = $null
     try {
         function Invoke-WalkAdb([string[]]$Arguments) {
             Update-WalkLease $lease
+            $kind = Get-WalkInputKind $Arguments
             $preference = $ErrorActionPreference
             $ErrorActionPreference = 'Continue'
-            try { $output = @(& $AdbExe -s $Serial @Arguments 2>&1 | ForEach-Object { [string]$_ }) }
-            finally { $ErrorActionPreference = $preference }
+            try {
+                # Every tap, key, app start and install waits on the call check, and a call stops the walk.
+                $block = if ($kind) {
+                    Get-WalkInputBlock -Lines @(& $AdbExe -s $Serial shell $WalkCallProbe 2>&1 | ForEach-Object { [string]$_ }) `
+                        -Package $Package -Touch ($kind -ceq 'touch')
+                }
+                if (-not $block) { $output = @(& $AdbExe -s $Serial @Arguments 2>&1 | ForEach-Object { [string]$_ }) }
+            } finally { $ErrorActionPreference = $preference }
+            if ($block) { throw [WalkBusyException]::new("$block on $Serial") }
             return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Stdout = $output }
+        }
+        function Read-WalkGrants {
+            $read = Invoke-WalkAdb @('shell', "appops get $Package SYSTEM_ALERT_WINDOW; dumpsys package $Package | grep -m1 'POST_NOTIFICATIONS: granted'")
+            return Read-WalkGrantState $read.Stdout
+        }
+        function Save-WalkInstalledApp {
+            # The build the phone's owner runs, kept so the walk can put it back, with the grants an install could
+            # reset: the overlay chat heads draw in, and whether Messenger may post notifications.
+            $paths = @((Invoke-WalkAdb @('shell', 'pm', 'path', $Package)).Stdout | Where-Object { $_ -clike 'package:*.apk' } |
+                ForEach-Object { $_.Substring(8).Trim() })
+            if ($paths.Count -eq 0) { return $null }
+            $folder = Join-Path $OutDir 'prewalk'
+            Remove-Item -LiteralPath $folder -Recurse -Force -ErrorAction SilentlyContinue
+            [void][IO.Directory]::CreateDirectory($folder)
+            $files = [string[]]@(foreach ($path in $paths) {
+                $local = Join-Path $folder $path.Substring($path.LastIndexOf('/') + 1)
+                $pulled = Invoke-WalkAdb @('pull', $path, $local)
+                if ($pulled.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $local -PathType Leaf)) {
+                    throw "Couldn't keep a copy of the installed Messenger ($path), so nothing was installed: $($pulled.Stdout -join ' ')"
+                }
+                $local
+            })
+            $base = @($files | Where-Object { $_ -clike '*base.apk' })[0]
+            $saved = [pscustomobject]@{ Files = $files; Grants = (Read-WalkGrants)
+                Sha256 = if ($base) { (Get-FileHash -LiteralPath $base -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' } }
+            Write-Host "[walk] kept the installed Messenger ($($files.Count) APK) to put back after the walk"
+            return $saved
+        }
+        function Restore-WalkInstalledApp($Saved) {
+            # A call blocks an install, since it would end a Messenger call, so a live one is waited out for up to ten minutes.
+            $installedPath = @((Invoke-WalkAdb @('shell', 'pm', 'path', $Package)).Stdout | Where-Object { $_ -clike 'package:*base.apk' })[0]
+            $now = if ($installedPath) { Read-WalkSha256 @((Invoke-WalkAdb @('shell', 'sha256sum', $installedPath.Substring(8).Trim())).Stdout) } else { '' }
+            if ($now -cne $Saved.Sha256) {
+                $verb = if ($Saved.Files.Count -gt 1) { 'install-multiple' } else { 'install' }
+                for ($try = 0; ; $try++) {
+                    try { $put = Invoke-WalkAdb (@($verb, '-r') + $Saved.Files); break }
+                    catch [WalkBusyException] {
+                        if ($try -ge 40) { throw }
+                        Write-Host "[walk] waiting to put the earlier Messenger back: $($_.Exception.Message)"
+                        Start-Sleep -Seconds 15
+                    }
+                }
+                if ($put.ExitCode -ne 0) { throw "The earlier Messenger wouldn't go back on: $($put.Stdout -join ' '). Its APKs are in $(Split-Path -Parent $Saved.Files[0])." }
+            }
+            $before = $Saved.Grants
+            $after = Read-WalkGrants
+            if ($before.overlay -and $after.overlay -cne $before.overlay) {
+                [void](Invoke-WalkAdb @('shell', 'appops', 'set', $Package, 'SYSTEM_ALERT_WINDOW', $before.overlay))
+            }
+            $permission = 'android.permission.POST_NOTIFICATIONS'
+            if ($before.notifications -and $after.notifications -cne $before.notifications) {
+                [void](Invoke-WalkAdb @('shell', 'pm', $(if ($before.notifications -ceq 'true') { 'grant' } else { 'revoke' }), $Package, $permission))
+            }
+            foreach ($flag in 'USER_SET', 'USER_FIXED') {
+                $had = $before.flags -ccontains $flag
+                if ($before.notifications -and $had -ne ($after.flags -ccontains $flag)) {
+                    $name = $flag.ToLowerInvariant().Replace('_', '-')
+                    [void](Invoke-WalkAdb @('shell', 'pm', $(if ($had) { 'set-permission-flags' } else { 'clear-permission-flags' }), $Package, $permission, $name))
+                }
+            }
+            $final = Read-WalkGrants
+            $drift = @(foreach ($name in 'overlay', 'notifications') { if ($before[$name] -cne $final[$name]) { "$name $($before[$name]) is now $($final[$name])" } })
+            if (($before.flags -join '|') -cne ($final.flags -join '|')) { $drift += "notification flags [$($before.flags -join '|')] are now [$($final.flags -join '|')]" }
+            if ($drift.Count) { Write-Warning "The earlier Messenger is back, but $($drift -join ', ')." }
+            else { Write-Host '[walk] put the earlier Messenger back, with its overlay and notification grants as they were' }
+        }
+        function Complete-WalkReceipt {
+            $crashRead = Invoke-WalkAdb @('logcat', '-b', 'crash', '-d', '-v', 'epoch')
+            $crashLines = @($crashRead.Stdout)
+            if ($crashRead.ExitCode -ne 0) {
+                # An empty read would look like a walk with no crash.
+                $problems.Add("couldn't read the crash buffer (adb exited $($crashRead.ExitCode)), so a crash could have gone unseen")
+                $crashLines = @()
+            }
+            $fatal = @(Select-WalkCrashes -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
+            $translatorAborts = @(Select-WalkTranslatorAborts -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
+            if ($fatal.Count -gt 0 -or $translatorAborts.Count -gt 0) {
+                [IO.File]::WriteAllLines((Join-Path $OutDir 'crash-buffer.txt'), [string[]]$crashLines)
+            }
+            if ($fatal.Count -gt 0) { $problems.Add("Messenger crashed during the walk: $($fatal[0].Trim())") }
+            foreach ($abort in $translatorAborts) {
+                Write-Host "[walk] not counted, the emulator's ARM translator aborted in a forked child (crash-buffer.txt): $($abort.Trim())"
+            }
+
+            $appVersion = @((Invoke-WalkAdb @('shell', 'dumpsys', 'package', $Package)).Stdout |
+                Where-Object { $_ -match 'versionName=(.+)$' } | ForEach-Object { $Matches[1].Trim() }) | Select-Object -First 1
+            $apkPath = @((Invoke-WalkAdb @('shell', 'pm', 'path', $Package)).Stdout | Where-Object { $_ -like 'package:*base.apk' }) | Select-Object -First 1
+            $installedSha = ''
+            if ($apkPath) { $installedSha = Read-WalkSha256 @((Invoke-WalkAdb @('shell', 'sha256sum', $apkPath.Substring(8))).Stdout) }
+            $apkProblem = Get-WalkApkProblem -Installed $installedSha -Patched $patchedSha
+            if ($apkProblem) { $problems.Add($apkProblem) }
+
+            $full = $skips.Count -eq 0 -and $problems.Count -eq 0
+            $result = Resolve-WalkOutcome -Screens $screens -Crashes $fatal.Count -Problems ([string[]]$problems) -Full $full
+            $receipt = New-WalkReceipt -Result $result -Full $full -Serial $Serial -Device $deviceModel -Sdk $deviceSdk -FontScale $deviceFontScale `
+                -AppVersion ([string]$appVersion) -BundleSha256 $bundleSha256 -PatchedApkSha256 $patchedSha -InstalledApkSha256 $installedSha `
+                -Started $started -Finished ([DateTimeOffset]::UtcNow) -AppliedPatches $applied -Steps $stepRecords.ToArray() `
+                -Crashes $fatal.Count -Problems ([string[]]$problems)
+            $receiptPath = Join-Path $OutDir 'walk-receipt.json'
+            [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 6) + "`n")
+
+            Write-Host "[walk] $result on $deviceModel ($Serial): $screens screens, $($fatal.Count) crashes, $($problems.Count) problems"
+            foreach ($problem in $problems) { Write-Host "[walk]   $problem" }
+            foreach ($skip in $skips) { Write-Host "[walk]   left out: $skip" }
+            Write-Host "[walk] receipt $receiptPath"
+            if ($result -ne 'PASS') { Write-Host '[walk] this walk does not back a release.' }
+            return $receiptPath
         }
         $reportedSerial = @((Invoke-WalkAdb @('get-serialno')).Stdout)[0]
         $deviceModel = @((Invoke-WalkAdb @('shell', 'getprop', 'ro.product.model')).Stdout)[0]
         $deviceSdk = 0
         [void][int]::TryParse(([string]@((Invoke-WalkAdb @('shell', 'getprop', 'ro.build.version.sdk')).Stdout)[0]).Trim(), [ref]$deviceSdk)
+        # A device left at a large text size makes lists longer and buttons wrap, so the receipt says which size it walked.
+        $deviceFontScale = ([string]@((Invoke-WalkAdb @('shell', 'settings', 'get', 'system', 'font_scale')).Stdout)[0]).Trim()
         if ($reportedSerial -cne $Serial -or $deviceModel -cne $ExpectedModel) {
             throw "$Serial answers as $reportedSerial, model $deviceModel, not the expected $ExpectedModel. Nothing was changed on it."
         }
+        $started = [DateTimeOffset]::UtcNow
+        $startedEpoch = [long](@((Invoke-WalkAdb @('shell', 'date', '+%s')).Stdout)[0]).Trim()
+        $stepRecords = [Collections.Generic.List[object]]::new()
+        # Where the step in progress began, so a walk a call stops drops that step's half-done results.
+        $stepStart = @{ Problems = 0; Records = 0; Screens = 0 }
         [void](Invoke-WalkAdb @('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP'))
         $windows = (Invoke-WalkAdb @('shell', 'dumpsys', 'window')).Stdout -join "`n"
         if ($windows -match 'isKeyguardShowing=true') { throw "$Serial is on its lock screen. Unlock it by hand, then walk again." }
 
         if ($installApk) {
+            if ($RestoreApp) { $kept = Save-WalkInstalledApp }
             Write-Host "[walk] installing $(Split-Path -Leaf $installApk) on $Serial"
             $installed = Invoke-WalkAdb @('install', '-r', $installApk)
             if ($installed.ExitCode -ne 0) {
@@ -540,8 +758,6 @@ function Invoke-WalkApp {
                     'If the signature clashes, patch with the key the installed Messenger uses (-Keystore). Messenger and its data were left alone.')
             }
         }
-        $started = [DateTimeOffset]::UtcNow
-        $startedEpoch = [long](@((Invoke-WalkAdb @('shell', 'date', '+%s')).Stdout)[0]).Trim()
         [void](Invoke-WalkAdb @('shell', 'am', 'force-stop', $Package))
         # Messenger's own launcher entry first, so each link lands in a running app, not a cold start.
         [void](Invoke-WalkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/.auth.StartScreenActivity"))
@@ -577,6 +793,15 @@ function Invoke-WalkApp {
             [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$center[0], [string]$center[1]))
             return $true
         }
+        function Skip-WalkPermissionPrompt {
+            # Messenger asks to post notifications after an install. That's the phone owner's call, so the prompt is
+            # never answered: one Back puts it away and leaves the permission as it was.
+            $front = Read-WalkResumedComponent @((Invoke-WalkAdb @('shell', 'dumpsys', 'activity', 'activities')).Stdout)
+            if ($front -cnotmatch $WalkPermissionPrompt) { return }
+            Write-Host '[walk] putting Messenger''s notification prompt away with Back, unanswered'
+            [void](Invoke-WalkAdb @('shell', 'input', 'keyevent', 'KEYCODE_BACK'))
+            Start-Sleep -Seconds 1
+        }
         $size = @((Invoke-WalkAdb @('shell', 'wm', 'size')).Stdout | Where-Object { $_ -match '(\d+)x(\d+)' } |
             ForEach-Object { @([int]$Matches[1], [int]$Matches[2]) }) | Select-Object -Last 2
         $width, $height = if ($size.Count -eq 2) { $size } else { @(1080, 2340) }
@@ -588,25 +813,37 @@ function Invoke-WalkApp {
             $inboxMarker = (Get-WalkStepDefinition 'inbox').Marker
             $upgrade = [Diagnostics.Stopwatch]::StartNew()
             while ($upgrade.Elapsed.TotalSeconds -lt 90) {
+                Skip-WalkPermissionPrompt
                 [string]$front = Read-WalkScreen ''
                 if ($front -match $inboxMarker -or (Test-WalkRestorePrompt $front)) { break }
                 Start-Sleep -Seconds 5
             }
         }
-        # Scrolls the Controls list to the top, then down until -Text shows, and taps it.
+        # Finds -Text on the Controls list and taps it. The section open already scrolled near the button, so the
+        # search starts where it landed, goes down to the end of the list, then back up to the top. A direction ends
+        # when a swipe moves nothing (same words in the same places), so a list stretched by a large font scale is
+        # searched to its end. The screen signature can't tell that: it leaves out words and positions, so one
+        # scrolled list of alike rows reads the same as the next.
         function Invoke-WalkFindAndTap([string]$Text) {
-            $before = ''
-            for ($i = 0; $i -lt 15; $i++) {
-                $shape = Get-WalkScreenSignature -Xml (Read-WalkScreen '')
-                if ($shape -ceq $before) { break }
-                $before = $shape
-                [void](Invoke-WalkAdb @('shell', 'input', 'swipe', [string]($width / 2), [string]([int]($height * 0.35)), [string]($width / 2), [string]([int]($height * 0.8)), '400'))
-                Start-Sleep -Milliseconds 700
-            }
-            for ($i = 0; $i -lt 40; $i++) {
-                if (Invoke-WalkTap $Text) { return $true }
-                [void](Invoke-WalkAdb @('shell', 'input', 'swipe', [string]($width / 2), [string]([int]($height * 0.75)), [string]($width / 2), [string]([int]($height * 0.4)), '400'))
-                Start-Sleep -Milliseconds 700
+            foreach ($down in $true, $false) {
+                $from, $to = if ($down) { 0.75, 0.4 } else { 0.35, 0.8 }
+                $before = $null
+                for ($i = 0; $i -lt 150; $i++) {
+                    Close-WalkKeyboard
+                    [string]$screen = Read-WalkScreen ''
+                    $center = Find-WalkNodeCenter -Xml $screen -Text $Text
+                    if ($null -ne $center) {
+                        [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$center[0], [string]$center[1]))
+                        return $true
+                    }
+                    if ($screen) {
+                        $mark = (@([regex]::Matches($screen, '\b(?:text|content-desc|bounds)="[^"]*"') | ForEach-Object { $_.Value }) -join '|')
+                        if ($mark -ceq $before) { break }
+                        $before = $mark
+                    }
+                    [void](Invoke-WalkAdb @('shell', 'input', 'swipe', [string]($width / 2), [string]([int]($height * $from)), [string]($width / 2), [string]([int]($height * $to)), '400'))
+                    Start-Sleep -Milliseconds 700
+                }
             }
             return $false
         }
@@ -633,9 +870,9 @@ function Invoke-WalkApp {
         }
 
         $plannedSteps = Get-WalkPlan -SkipSettings $SkipSettings -Thread $Thread -Visit $Visit -AppliedPatches $applied
-        $stepRecords = [Collections.Generic.List[object]]::new()
         $shapesSeen = @{}
         foreach ($definition in $plannedSteps) {
+            $stepStart = @{ Problems = $problems.Count; Records = $stepRecords.Count; Screens = $screens }
             $problem = $null
             $uri = if ($definition.Kind -ceq 'chat') { "fb-messenger://user-thread/$Thread" } else { $definition.Link }
             switch ($definition.Kind) {
@@ -648,6 +885,7 @@ function Invoke-WalkApp {
                 default { $launch = Start-WalkMessenger $definition $uri }
             }
             Start-Sleep -Seconds $SettleSeconds
+            Skip-WalkPermissionPrompt
             # Messenger puts its chat restore prompt in front now and then, as it does for anyone. It's never tapped: the
             # chat link opens past it without touching the backup, then the step opens again (the inbox by bringing its
             # launcher activity to the front). The step's own dump must then show its screen.
@@ -718,48 +956,21 @@ function Invoke-WalkApp {
         Remove-Item -LiteralPath (Join-Path $OutDir 'walk-probe.xml') -Force -ErrorAction SilentlyContinue
         # Back to the inbox, so the phone is left on Messenger's home screen.
         [void](Invoke-WalkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/.auth.StartScreenActivity"))
-
-        $crashRead = Invoke-WalkAdb @('logcat', '-b', 'crash', '-d', '-v', 'epoch')
-        $crashLines = @($crashRead.Stdout)
-        if ($crashRead.ExitCode -ne 0) {
-            # An empty read would look like a walk with no crash.
-            $problems.Add("couldn't read the crash buffer (adb exited $($crashRead.ExitCode)), so a crash could have gone unseen")
-            $crashLines = @()
-        }
-        $fatal = @(Select-WalkCrashes -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
-        $translatorAborts = @(Select-WalkTranslatorAborts -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
-        if ($fatal.Count -gt 0 -or $translatorAborts.Count -gt 0) {
-            [IO.File]::WriteAllLines((Join-Path $OutDir 'crash-buffer.txt'), [string[]]$crashLines)
-        }
-        if ($fatal.Count -gt 0) { $problems.Add("Messenger crashed during the walk: $($fatal[0].Trim())") }
-        foreach ($abort in $translatorAborts) {
-            Write-Host "[walk] not counted, the emulator's ARM translator aborted in a forked child (crash-buffer.txt): $($abort.Trim())"
-        }
-
-        $appVersion = @((Invoke-WalkAdb @('shell', 'dumpsys', 'package', $Package)).Stdout |
-            Where-Object { $_ -match 'versionName=(.+)$' } | ForEach-Object { $Matches[1].Trim() }) | Select-Object -First 1
-        $apkPath = @((Invoke-WalkAdb @('shell', 'pm', 'path', $Package)).Stdout | Where-Object { $_ -like 'package:*base.apk' }) | Select-Object -First 1
-        $installedSha = ''
-        if ($apkPath) { $installedSha = Read-WalkSha256 @((Invoke-WalkAdb @('shell', 'sha256sum', $apkPath.Substring(8))).Stdout) }
-        $apkProblem = Get-WalkApkProblem -Installed $installedSha -Patched $patchedSha
-        if ($apkProblem) { $problems.Add($apkProblem) }
-
-        $full = $skips.Count -eq 0 -and $problems.Count -eq 0
-        $result = Resolve-WalkOutcome -Screens $screens -Crashes $fatal.Count -Problems ([string[]]$problems) -Full $full
-        $receipt = New-WalkReceipt -Result $result -Full $full -Serial $Serial -Device $deviceModel -Sdk $deviceSdk `
-            -AppVersion ([string]$appVersion) -BundleSha256 $bundleSha256 -PatchedApkSha256 $patchedSha -InstalledApkSha256 $installedSha `
-            -Started $started -Finished ([DateTimeOffset]::UtcNow) -AppliedPatches $applied -Steps $stepRecords.ToArray() `
-            -Crashes $fatal.Count -Problems ([string[]]$problems)
-        $receiptPath = Join-Path $OutDir 'walk-receipt.json'
-        [IO.File]::WriteAllText($receiptPath, (ConvertTo-Json -InputObject $receipt -Depth 6) + "`n")
-
-        Write-Host "[walk] $result on $deviceModel ($Serial): $screens screens, $($fatal.Count) crashes, $($problems.Count) problems"
-        foreach ($problem in $problems) { Write-Host "[walk]   $problem" }
-        foreach ($skip in $skips) { Write-Host "[walk]   left out: $skip" }
-        Write-Host "[walk] receipt $receiptPath"
-        if ($result -ne 'PASS') { Write-Host '[walk] this walk does not back a release.' }
-        return $receiptPath
+        return (Complete-WalkReceipt)
+    } catch [WalkBusyException] {
+        # The steps before the call stand. The one it interrupted is dropped, and the walk is PARTIAL.
+        if ($problems.Count -gt $stepStart.Problems) { $problems.RemoveRange($stepStart.Problems, $problems.Count - $stepStart.Problems) }
+        if ($stepRecords.Count -gt $stepStart.Records) { $stepRecords.RemoveRange($stepStart.Records, $stepRecords.Count - $stepStart.Records) }
+        $screens = $stepStart.Screens
+        $skips.Add("the rest of the walk, stopped since $($_.Exception.Message)")
+        Write-Host "[walk] stopped: $($_.Exception.Message)"
+        return (Complete-WalkReceipt)
     } finally {
+        if ($kept) {
+            # A warning, not a throw, so a failure here never hides how the walk ended.
+            try { Restore-WalkInstalledApp $kept }
+            catch { Write-Warning "Couldn't put the earlier Messenger back on ${Serial}: $($_.Exception.Message) Its APKs are in $(Split-Path -Parent $kept.Files[0])." }
+        }
         Exit-WalkLease $lease
     }
 }
@@ -768,6 +979,26 @@ if ($MyInvocation.InvocationName -ne '.') {
     if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
     $Root = [IO.Path]::GetFullPath($Root)
     # The chat link is one remote shell line, so the user id has to be just digits.
+    if (-not $Adb) {
+        $Adb = (Get-Command adb -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+        if (-not $Adb -and $env:ANDROID_HOME) { $Adb = Join-Path $env:ANDROID_HOME 'platform-tools/adb.exe' }
+        if (-not $Adb -or -not (Test-Path -LiteralPath $Adb)) { throw 'No adb found. Pass -Adb or put it on the PATH.' }
+    }
+    if (-not $Serial) {
+        # The release order: the first device on the walk list that's attached and free, never a wait for a busy one.
+        if (-not $ReleaseConfig) { $ReleaseConfig = [Environment]::GetEnvironmentVariable('HUSH_RELEASE_CONFIG', 'User') }
+        if (-not $ReleaseConfig -or -not (Test-Path -LiteralPath $ReleaseConfig -PathType Leaf)) { throw 'Name the device with -Serial, or point -ReleaseConfig (HUSH_RELEASE_CONFIG) at the walk list.' }
+        $attached = @(& $Adb devices | Where-Object { $_ -cmatch '^(\S+)\s+device\s*$' } | ForEach-Object { $Matches[1] })
+        $pick = Select-WalkDevice -Config (Get-Content -LiteralPath $ReleaseConfig -Raw | ConvertFrom-Json) -Package $Package -Attached $attached -LeaseDirectory $LeaseDirectory
+        $Serial = $pick.Serial
+        if (-not $PSBoundParameters.ContainsKey('ExpectedModel') -and $pick.Model) { $ExpectedModel = $pick.Model }
+        if (-not $PSBoundParameters.ContainsKey('Thread') -and $pick.Thread) { $Thread = $pick.Thread }
+        if (-not $PSBoundParameters.ContainsKey('Keystore') -and $pick.Keystore) {
+            $Keystore = $pick.Keystore; $KeyAlias = $pick.KeyAlias; $KeystorePassword = $pick.KeystorePassword
+        }
+        if (-not $PSBoundParameters.ContainsKey('RestoreApp')) { $RestoreApp = [switch]$pick.Restore }
+        Write-Host "[walk] walking on $Serial, the first free device on the walk list$(if ($RestoreApp) { ', and putting its own Messenger back after' })"
+    }
     if ($Thread -and $Thread -notmatch '^\d+$') { throw "-Thread takes a chat's numeric user id, not '$Thread'." }
     # Each device gets its own folder by default, since a walk clears its steps and receipt when it starts.
     if (-not $PSBoundParameters.ContainsKey('OutDir') -and $Serial) { $OutDir = Join-Path $OutDir ($Serial -replace '[^\w.-]', '_') }
@@ -782,11 +1013,6 @@ if ($MyInvocation.InvocationName -ne '.') {
     if (-not $DesktopJar) { $DesktopJar = $env:HUSHMESSENGER_DESKTOP_JAR }
     if (-not $DesktopJar) { $DesktopJar = [Environment]::GetEnvironmentVariable('HUSHMESSENGER_DESKTOP_JAR', 'User') }
     if (-not $Java) { $Java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } else { 'java' } }
-    if (-not $Adb) {
-        $Adb = (Get-Command adb -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
-        if (-not $Adb -and $env:ANDROID_HOME) { $Adb = Join-Path $env:ANDROID_HOME 'platform-tools/adb.exe' }
-        if (-not $Adb -or -not (Test-Path -LiteralPath $Adb)) { throw 'No adb found. Pass -Adb or put it on the PATH.' }
-    }
     if (-not $Apk -and -not $SkipPatch -and $env:HUSH_NATIVE_FIXTURES -and (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
         $installedCode = if ($Serial -and $ExpectedModel) {
             Get-WalkInstalledVersionCode -AdbExe $Adb -Serial $Serial -ExpectedModel $ExpectedModel -Package $Package -LeaseDirectory $LeaseDirectory
@@ -797,7 +1023,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     $receiptPath = Invoke-WalkApp -Serial $Serial -ExpectedModel $ExpectedModel -Package $Package -BundlePath $Bundle -StockApk $Apk `
         -Thread $Thread -Visit $Visit -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds `
         -OutDir $OutDir -KeystorePath $Keystore -Alias $KeyAlias -StorePassword $KeystorePassword `
-        -Jar $DesktopJar -JavaExe $Java -AdbExe $Adb -LeaseDirectory $LeaseDirectory
+        -Jar $DesktopJar -JavaExe $Java -AdbExe $Adb -LeaseDirectory $LeaseDirectory -RestoreApp:$RestoreApp
     $receiptPath
     exit (Get-WalkExitCode (Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json).result)
 }

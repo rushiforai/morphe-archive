@@ -10,14 +10,19 @@ package app.morphe.extension.rex.downloader;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.database.Cursor;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
+import android.content.ContentValues;
+import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -30,26 +35,30 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import app.morphe.extension.rex.constants.ExtensionStrings;
+import app.morphe.extension.rex.internal.media3.common.util.UnstableApi;
 import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.shared.Utils;
 
+@UnstableApi
 public class MediaDownloader {
     private static final String CHANNEL_ID = "media_download_channel";
+    private static final int CONNECT_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 30_000;
     // Separate downloader instances must reserve names before another request can choose them.
     private static final Object CREATE_DOCUMENT_LOCK = new Object();
     private final Context context;
     private final NotificationManager notificationManager;
-    private final LinkedBlockingQueue<DownloadRequest> queue = new LinkedBlockingQueue<>();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private boolean isDownloading = false;
 
     public MediaDownloader(Context context) {
         Context resolvedContext = context != null ? context : Utils.getContext();
@@ -74,53 +83,71 @@ public class MediaDownloader {
     }
 
     public void enqueue(DownloadRequest request) {
+        enqueueBatch(Collections.singletonList(request));
+    }
+
+    /** Saves the whole batch before starting the next request on this downloader. */
+    public void enqueueBatch(List<DownloadRequest> requests) {
+        List<DownloadRequest> batch = new ArrayList<>(requests);
+        if (batch.isEmpty()) return;
         if (!StorageUtils.checkStoragePermissions()) {
             StorageUtils.allowStorageAccess();
             return;
         }
-        queue.add(request);
-        processNext();
-    }
-
-    private void processNext() {
-        if (isDownloading || queue.isEmpty()) return;
-        isDownloading = true;
-        DownloadRequest request = queue.poll();
-        if (request != null) {
-            executor.execute(() -> runDownloadTask(request));
-        }
+        executor.execute(() -> {
+            for (DownloadRequest request : batch) {
+                runDownloadTask(request);
+            }
+        });
     }
 
     private void runDownloadTask(DownloadRequest request) {
         int notificationId = (int) System.currentTimeMillis();
         Uri outputDocumentUri = null;
-        File cacheFile = null;
         boolean downloadCompleted = false;
-        Notification.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(context, CHANNEL_ID);
-        } else {
-            builder = new Notification.Builder(context);
-        }
-        builder.setSmallIcon(android.R.drawable.stat_sys_download)
-                .setContentTitle(ExtensionStrings.DOWNLOAD_ONGOING + request.fileName)
-                .setOngoing(true) // Keeps notification un-swipable during download execution.
-                .setProgress(100, 0, false);
-
-        notificationManager.notify(notificationId, builder.build());
-
         try {
+            Notification.Builder builder;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(context, CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(context);
+            }
+            builder.setSmallIcon(android.R.drawable.stat_sys_download)
+                    .setContentTitle(ExtensionStrings.DOWNLOAD_ONGOING + request.fileName)
+                    .setOngoing(true) // Keeps notification un-swipable during download execution.
+                    .setProgress(100, 0, false);
+
+            notificationManager.notify(notificationId, builder.build());
+
+            boolean skipSubfolders = Boolean.TRUE.equals(app.morphe.extension.rex.sharedPreference.SharedPref.getBooleanPref("disable_subfolders", false));
+            boolean skipDuplicates = Boolean.TRUE.equals(app.morphe.extension.rex.sharedPreference.SharedPref.getBooleanPref("skip_downloaded_media", false));
+            boolean showNotif = !Boolean.FALSE.equals(app.morphe.extension.rex.sharedPreference.SharedPref.getBooleanPref("show_download_notification", true));
+
+            String downloadedHistory = app.morphe.extension.rex.sharedPreference.SharedPref.getStringPref("rex_downloaded_files_set", "");
+            if (skipDuplicates && request.fileName != null && downloadedHistory != null && downloadedHistory.contains("|" + request.fileName + "|")) {
+                showToast("Skipped duplicate: " + request.fileName);
+                notificationManager.cancel(notificationId);
+                return;
+            }
+
             synchronized (CREATE_DOCUMENT_LOCK) {
-                Uri targetDirectoryUri = getTargetDirectoryUri(request);
-                request.fileName = DownloadFileNames.findAvailable(
-                        request.fileName, getChildNames(targetDirectoryUri)
-                );
-                outputDocumentUri = DocumentsContract.createDocument(
-                        context.getContentResolver(),
-                        targetDirectoryUri,
-                        getMimeType(request.fileName),
-                        request.fileName
-                );
+                if (StorageUtils.getDownloadTreeUri() != null) {
+                    if (skipSubfolders) {
+                        request = new DownloadRequest(request.url, null, request.fileName);
+                    }
+                    Uri targetDirectoryUri = getTargetDirectoryUri(request);
+                    request.fileName = DownloadFileNames.findAvailable(
+                            request.fileName, getChildNames(targetDirectoryUri)
+                    );
+                    outputDocumentUri = DocumentsContract.createDocument(
+                            context.getContentResolver(),
+                            targetDirectoryUri,
+                            getMimeType(request.fileName),
+                            request.fileName
+                    );
+                } else {
+                    outputDocumentUri = createMediaStoreOutputUri(request, skipSubfolders);
+                }
             }
             if (outputDocumentUri == null) {
                 throw new IOException("Could not create download file");
@@ -130,52 +157,30 @@ public class MediaDownloader {
             builder.setContentTitle(downloadStartString);
             notificationManager.notify(notificationId, builder.build());
             showToast(downloadStartString);
-            HttpURLConnection conn = null;
-            try {
-                URL url = new URL(request.url);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.connect();
-
-                int length = conn.getContentLength();
-                if (request.metadata == null) {
-                    try (InputStream input = new BufferedInputStream(conn.getInputStream());
-                         OutputStream output = context.getContentResolver().openOutputStream(outputDocumentUri)) {
-                        if (output == null) {
-                            throw new IOException("Could not open download file");
-                        }
-                        copyDownload(input, output, length, builder, notificationId);
-                    }
-                } else {
-                    cacheFile = File.createTempFile("rex-download-", ".mp4", context.getCacheDir());
-                    try (InputStream input = new BufferedInputStream(conn.getInputStream());
-                         OutputStream output = new BufferedOutputStream(new FileOutputStream(cacheFile))) {
-                        copyDownload(input, output, length, builder, notificationId);
-                    }
-
-                    try {
-                        writeMetadata(cacheFile, outputDocumentUri, request.metadata);
-                    } catch (Exception | LinkageError remuxException) {
-                        RexUtils.logger(remuxException);
-                        copyRawFile(cacheFile, outputDocumentUri);
-                    }
-                }
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
-            }
+            downloadSources(request, outputDocumentUri, builder, notificationId);
             downloadCompleted = true;
+            try {
+                String prev = app.morphe.extension.rex.sharedPreference.SharedPref.getStringPref("rex_downloaded_files_set", "");
+                if (prev == null) prev = "";
+                if (prev.length() > 30000) prev = prev.substring(prev.length() - 20000);
+                app.morphe.extension.rex.sharedPreference.SharedPref.setStringPref("rex_downloaded_files_set", prev + "|" + request.fileName + "|");
+            } catch (Throwable ignored) {}
 
             final int finalNotificationId = notificationId;
             final String finalFileName = request.fileName;
             final String downloadCompletedString = ExtensionStrings.DOWNLOAD_COMPLETED + finalFileName;
+            // Built here and not in the posted task, it queries the provider for the mime type.
+            final PendingIntent viewFileIntent =
+                    buildViewFilePendingIntent(outputDocumentUri, finalFileName, finalNotificationId);
 
             mainHandler.post(() -> {
                 builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
                         .setContentTitle(downloadCompletedString)
                         .setContentText(finalFileName)
                         .setOngoing(false) // This unlocks the swipe lock completely
-                        .setProgress(0, 0, false); // Wipes the progress track bar layout away entirely
+                        .setProgress(0, 0, false) // Wipes the progress track bar layout away entirely
+                        .setAutoCancel(true)
+                        .setContentIntent(viewFileIntent);
                 // Force post the update layout
                 notificationManager.notify(finalNotificationId, builder.build());
 
@@ -183,21 +188,77 @@ public class MediaDownloader {
                     RexUtils.toast(downloadCompletedString);
                 } catch (Exception ignored) {}
             });
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
             if (!downloadCompleted && outputDocumentUri != null) {
                 try {
                     DocumentsContract.deleteDocument(context.getContentResolver(), outputDocumentUri);
                 } catch (Exception ignored) {}
             }
-            showToast(ExtensionStrings.DOWNLOAD_ERROR + e.getMessage());
-            notificationManager.cancel(notificationId);
             RexUtils.logger(e);
-        } finally {
-            if (cacheFile != null && cacheFile.exists() && !cacheFile.delete()) {
-                RexUtils.logger(new IOException("Could not delete download cache file"));
+            try {
+                showToast(ExtensionStrings.DOWNLOAD_ERROR + e.getMessage());
+                notificationManager.cancel(notificationId);
+            } catch (Exception notificationException) {
+                RexUtils.logger(notificationException);
             }
-            isDownloading = false;
-            processNext();
+        }
+    }
+
+    private void downloadSources(DownloadRequest request, Uri outputUri,
+                                 Notification.Builder builder, int notificationId) throws Exception {
+        List<DownloadRequest.Source> sources = new ArrayList<>();
+        sources.add(new DownloadRequest.Source(request.url, request.audioUrl));
+        sources.addAll(request.fallbackSources);
+        if (request.fallbackUrl != null) sources.add(new DownloadRequest.Source(request.fallbackUrl, null));
+        for (int i = 0; i < sources.size(); i++) {
+            try {
+                downloadSource(sources.get(i), request, outputUri, builder, notificationId, i > 0);
+                return;
+            } catch (Exception | LinkageError e) {
+                if (i == sources.size() - 1) throw e;
+                RexUtils.logger(e);
+            }
+        }
+    }
+
+    private void downloadSource(DownloadRequest.Source source, DownloadRequest request, Uri outputUri,
+                                Notification.Builder builder, int notificationId, boolean retry) throws Exception {
+        if (source.audioUrl == null && request.metadata == null) {
+            // Plain downloads also support providers offering write-only streams, not seekable files.
+            OutputStream stream = retry
+                    ? context.getContentResolver().openOutputStream(outputUri, "wt")
+                    : context.getContentResolver().openOutputStream(outputUri);
+            if (stream == null) throw new IOException("Could not open download file");
+            try (OutputStream output = new BufferedOutputStream(stream)) {
+                download(source.url, output, builder, notificationId);
+            }
+            return;
+        }
+        // Cache and clean up each rendition independently so failed tracks never enter the next merge.
+        List<File> cacheFiles = new ArrayList<>();
+        boolean downloadedToCache = false;
+        try {
+            downloadToCache(source.url, cacheFiles, builder, notificationId);
+            List<File> inputs = new ArrayList<>(cacheFiles);
+            if (source.audioUrl != null) {
+                downloadToCache(source.audioUrl, cacheFiles, builder, notificationId);
+                File audio = cacheFiles.get(cacheFiles.size() - 1);
+                inputs.add(request.audioToAacLc ? toAacLc(audio, cacheFiles) : audio);
+            }
+            downloadedToCache = true;
+            Mp4Remuxer.write(inputs, openOutput(outputUri), request.metadata);
+        } catch (Exception | LinkageError e) {
+            if (source.audioUrl != null || !downloadedToCache
+                    || !Mp4Remuxer.isReadableVideo(cacheFiles.get(0))) throw e;
+            // Keep a readable original without metadata when rewriting it failed.
+            RexUtils.logger(e);
+            copyRawFile(cacheFiles.get(0), outputUri);
+        } finally {
+            for (File file : cacheFiles) {
+                if (file.exists() && !file.delete()) {
+                    RexUtils.logger(new IOException("Could not delete download cache file"));
+                }
+            }
         }
     }
 
@@ -231,30 +292,59 @@ public class MediaDownloader {
         output.flush();
     }
 
-    private void writeMetadata(File inputFile, Uri outputUri, DownloadMetadata metadata)
+    /** Fetches {@code url} into {@code output}, reporting progress on the notification. */
+    protected void download(String url, OutputStream output, Notification.Builder builder, int notificationId)
             throws IOException {
-        ParcelFileDescriptor descriptor = context.getContentResolver()
-                .openFileDescriptor(outputUri, "rwt");
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
+            conn.connect();
+            try (InputStream input = new BufferedInputStream(conn.getInputStream())) {
+                copyDownload(input, output, conn.getContentLength(), builder, notificationId);
+            }
+        } finally {
+            conn.disconnect();
+        }
+    }
+
+    /** Fetches {@code url} into a new cache file, added to {@code cacheFiles} first so a failed fetch is cleaned up too. */
+    private void downloadToCache(String url, List<File> cacheFiles, Notification.Builder builder, int notificationId)
+            throws IOException {
+        File cacheFile = File.createTempFile("rex-download-", ".mp4", context.getCacheDir());
+        cacheFiles.add(cacheFile);
+        try (OutputStream output = new BufferedOutputStream(new FileOutputStream(cacheFile))) {
+            download(url, output, builder, notificationId);
+        }
+    }
+
+    /**
+     * {@code audio} re-encoded as AAC-LC in a new cache file, or {@code audio} itself when it has
+     * no xHE-AAC track or the conversion fails: the video then keeps its sound as served.
+     */
+    private File toAacLc(File audio, List<File> cacheFiles) {
+        try {
+            File converted = File.createTempFile("rex-download-", ".m4a", context.getCacheDir());
+            cacheFiles.add(converted);
+            return AacLcTranscoder.transcodeXheAac(audio, converted) ? converted : audio;
+        } catch (Exception | LinkageError e) {
+            RexUtils.logger(e);
+            return audio;
+        }
+    }
+
+    /** Opens the download document for writing from its start, whatever an earlier attempt left in it. */
+    private FileOutputStream openOutput(Uri outputUri) throws IOException {
+        ParcelFileDescriptor descriptor = context.getContentResolver().openFileDescriptor(outputUri, "rwt");
         if (descriptor == null) {
             throw new IOException("Could not open download file");
         }
-        MetadataMuxer.write(
-                inputFile,
-                new ParcelFileDescriptor.AutoCloseOutputStream(descriptor),
-                metadata
-        );
+        return new ParcelFileDescriptor.AutoCloseOutputStream(descriptor);
     }
 
     private void copyRawFile(File inputFile, Uri outputUri) throws IOException {
         try (InputStream input = new BufferedInputStream(new FileInputStream(inputFile))) {
-            ParcelFileDescriptor descriptor = context.getContentResolver()
-                    .openFileDescriptor(outputUri, "rwt");
-            if (descriptor == null) {
-                throw new IOException("Could not reopen download file");
-            }
-            try (OutputStream output = new BufferedOutputStream(
-                    new ParcelFileDescriptor.AutoCloseOutputStream(descriptor)
-            )) {
+            try (OutputStream output = new BufferedOutputStream(openOutput(outputUri))) {
                 byte[] buffer = new byte[8192];
                 int count;
                 while ((count = input.read(buffer)) != -1) {
@@ -262,6 +352,24 @@ public class MediaDownloader {
                 }
                 output.flush();
             }
+        }
+    }
+
+    // Opens the downloaded file in whichever app handles its mime type.
+    private PendingIntent buildViewFilePendingIntent(Uri documentUri, String fileName, int requestCode) {
+        try {
+            String providerMimeType = context.getContentResolver().getType(documentUri);
+            String mimeType = providerMimeType != null ? providerMimeType : getMimeType(fileName);
+            Intent viewIntent = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(documentUri, mimeType)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            return PendingIntent.getActivity(context, requestCode, viewIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } catch (Exception e) {
+            // A notification without a tap action is better than crashing the app.
+            RexUtils.logger(e);
+            return null;
         }
     }
 
@@ -361,5 +469,33 @@ public class MediaDownloader {
     private String getMimeType(String fileName) {
         String mimeType = URLConnection.guessContentTypeFromName(fileName);
         return mimeType == null ? "application/octet-stream" : mimeType;
+    }
+
+    private Uri createMediaStoreOutputUri(DownloadRequest request, boolean skipSubfolders) throws IOException {
+        String mime = getMimeType(request.fileName);
+        String relativeSub = StorageUtils.DEFAULT_FOLDER_NAME;
+        if (!skipSubfolders && request.subFolder != null && !request.subFolder.trim().isEmpty()) {
+            relativeSub = relativeSub + "/" + request.subFolder.trim();
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, request.fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + relativeSub);
+            Uri collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+            Uri inserted = context.getContentResolver().insert(collection, values);
+            if (inserted != null) {
+                return inserted;
+            }
+        }
+        File baseDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), relativeSub);
+        if (!baseDir.exists()) {
+            baseDir.mkdirs();
+        }
+        File outFile = new File(baseDir, request.fileName);
+        if (!outFile.exists()) {
+            outFile.createNewFile();
+        }
+        return Uri.fromFile(outFile);
     }
 }

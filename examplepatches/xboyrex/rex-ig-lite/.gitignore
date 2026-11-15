@@ -127,7 +127,7 @@ node_modules/
 
 # Ignore IDEA files
 .idea/
-/src/main/kotlin/xboyrex/patches/twitter/test*
+/src/main/kotlin/rex/patches/twitter/test*
 bin/
 
 *.bak

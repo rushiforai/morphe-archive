@@ -319,6 +319,8 @@ Stop swipe to create	Hentikan geser untuk membuat
 Full resolution photos	Foto resolusi penuh
 Loads photos in your feed, carousels and opened posts at the largest size Instagram offers. This can use more data.	Memuat foto di feed, carousel, dan postingan yang dibuka dengan ukuran terbesar yang disediakan Instagram. Ini bisa memakai lebih banyak data.
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Menggeser ke samping di Beranda tidak lagi membuka kamera. Tombol + dan cara lain untuk membuka kamera tetap berfungsi.
+Swipe left for Messages	Geser ke kiri untuk Pesan
+Swiping left on Home opens Messages, like Instagram used to. Carousels and the stories row still slide as before.	Menggeser ke kiri di Beranda membuka Pesan, seperti Instagram dulu. Carousel dan baris cerita tetap bisa digeser seperti biasa.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Sembunyikan Meta AI di pencarian dan bilah Beranda
 Gives Search and your messages a plain search bar and removes Meta AI's buttons, follow-up bar and inbox row. Restart Instagram to see the change.	Memberi Pencarian dan pesan kamu kolom pencarian biasa, serta menghapus tombol, bilah pertanyaan lanjutan, dan baris kotak masuk Meta AI. Mulai ulang Instagram untuk melihat perubahannya.
@@ -900,6 +902,8 @@ Solid story rings	Lingkaran story satu warna
 Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	Lingkaran story memakai satu warna solid dari warna yang kamu pilih, bukan gradasi dari terang ke gelap. Mulai ulang Instagram untuk melihat perubahannya.
 Backgrounds in the accent color	Latar belakang dengan warna aksen
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Layar, panel, kartu, dan menu memakai warna gelap atau terang dari warna yang kamu pilih. Penampil story dan reel tetap memakai latar belakangnya sendiri. Mengalahkan Pure black dark mode. Mulai ulang Instagram untuk melihat perubahannya.
+Classic colors	Warna klasik
+Dark mode turns navy blue with charcoal gray panels, and light mode turns off-white. Story and reel viewers keep their own background. Wins over Pure black dark mode and Backgrounds in the accent color. Restart Instagram to see the change.	Mode gelap menjadi biru dongker dengan panel abu-abu arang, dan mode terang menjadi putih gading. Penampil story dan reel tetap memakai latar belakangnya sendiri. Mengalahkan Pure black dark mode dan "Latar belakang dengan warna aksen". Mulai ulang Instagram untuk melihat perubahannya.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Warna
 Instagram blue	Biru Instagram

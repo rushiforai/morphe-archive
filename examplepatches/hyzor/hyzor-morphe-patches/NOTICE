@@ -47,3 +47,15 @@ The Nova Launcher patch (patches/src/main/kotlin/dev/hyzor/patches/nova) is deri
 rushiranpise/morphe-patches (https://github.com/rushiranpise/morphe-patches) and
 hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), both GPLv3, with
 additional Nova Launcher 8.9.6 support.
+
+The FolderSync patch (patches/src/main/kotlin/dev/hyzor/patches/foldersync) is derived from
+arandomhooman/hoomans-morphe-patches (https://github.com/arandomhooman/hoomans-morphe-patches),
+GPLv3, with additional FolderSync 4.14.0 support.
+
+The Projectivy Launcher patch (patches/src/main/kotlin/dev/hyzor/patches/projectivy) is derived
+from Entree3k/Morning-Entree-Patches (https://github.com/Entree3k/Morning-Entree-Patches), GPLv3,
+with additional Projectivy Launcher 4.73 support.
+
+The Solid Explorer patch (patches/src/main/kotlin/dev/hyzor/patches/solidexplorer) is derived
+from hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), GPLv3, with
+additional Solid Explorer 3.6.4 support.

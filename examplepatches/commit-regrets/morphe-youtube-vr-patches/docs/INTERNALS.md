@@ -217,8 +217,7 @@ something we tested.
   set any number of patches at once -- or patch that one patch in its own run
   (`--exclusive -Okey=value -e <patch>`). **Quote the `-O` argument**: an unquoted
   `-OpackageName=app.morphe.android.youtube` reaches the CLI as `-OpackageName=app` plus a positional
-  `.ytvr.youtubevr` and fails with `APK file .ytvr.youtubevr does not exist` (the README's by-hand
-  example quotes it, which is why it works there).
+  `.ytvr.youtubevr` and fails with `APK file .ytvr.youtubevr does not exist`.
 - **A fingerprint's `custom` predicate must not assume the method has a body** (or must check it).
   An abstract sibling with the same signature matches the shape, and `addInstructions` on it is not
   the method you meant: `sfp` declares both the concrete `Z k()` and the abstract `Z l()`.

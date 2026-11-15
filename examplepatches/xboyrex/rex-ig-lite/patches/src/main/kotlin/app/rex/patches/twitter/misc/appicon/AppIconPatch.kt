@@ -9,11 +9,11 @@ package app.rex.patches.twitter.misc.appicon
 import app.rex.patches.twitter.misc.settings.settingsPatch
 import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.rex.patches.twitter.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val appIconPatch =
-    bytecodePatch(
+    patch(
         name = "Change app icon",
     ) {
         compatibleWith(COMPATIBILITY_X)

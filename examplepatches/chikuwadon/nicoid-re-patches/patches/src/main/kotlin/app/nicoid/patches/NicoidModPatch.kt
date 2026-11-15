@@ -49,19 +49,34 @@ private val nicoid649 = Compatibility(
 private val nicoidResources = rawResourcePatch {
     compatibleWith(nicoid649)
     execute {
-        // RAW_ONLY stages compiled resources differently from decoded resource patches.
-        val root = get("classes.dex").parentFile
-        val workspace = root.parentFile
+        // Morphe 2.3 extracts RAW_ONLY entries on request: neither the manifest
+        // .bin file nor resources.arsc is guaranteed to be staged in advance.
+        // Do not request AndroidManifest.xml via get(): that decodes text XML and
+        // changes the resource mode, which would corrupt this binary replacement.
+        val originalDex = get("classes.dex")
+        val originalTable = get("resources.arsc")
+        val root = originalDex.parentFile
+        val binaryManifest = root.parentFile.resolve("AndroidManifest.xml.bin")
         fun original(path: String) = when (path) {
-            "AndroidManifest.xml" -> workspace.resolve("AndroidManifest.xml.bin")
-            "resources.arsc" -> workspace.resolve(path)
-            else -> root.resolve(path)
+            "classes.dex" -> originalDex
+            "resources.arsc" -> originalTable
+            "AndroidManifest.xml" -> binaryManifest.takeIf { it.isFile }
+            else -> error("Unexpected APK checksum entry: $path")
         }
         Payload.open("input-hashes.txt").bufferedReader().useLines { lines ->
             lines.filter { it.isNotBlank() }.forEach { line ->
                 val (expected, path) = line.split(" ", limit = 2)
+                val inputFile = original(path)
+                if (inputFile == null) {
+                    // On-demand RAW_ONLY leaves the binary manifest inside the
+                    // input APK. Keep exact SHA-256 checks for classes.dex and
+                    // resources.arsc; compatibility also pins nicoid 6.49.
+                    check(path == "AndroidManifest.xml")
+                    return@forEach
+                }
+                check(inputFile.isFile) { "Missing original nicoid 6.49 APK entry: $path" }
                 val digest = MessageDigest.getInstance("SHA-256")
-                original(path).inputStream().use { input ->
+                inputFile.inputStream().use { input ->
                     val buffer = ByteArray(8192)
                     while (true) {
                         val size = input.read(buffer)
