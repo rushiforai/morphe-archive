@@ -1435,14 +1435,6 @@
                 "updatedAt": 1788061721285
             },
             {
-                "name": "diskwala-patches",
-                "source": "https://raw.githubusercontent.com/kuntal-devrat/diskwala-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 193,
-                "createdAt": 1788061723999,
-                "updatedAt": 1788061723999
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/archie9211/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5161,6 +5153,14 @@
                 "sortOrder": 727,
                 "createdAt": 1794719169383,
                 "updatedAt": 1794719169383
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 728,
+                "createdAt": 1794805990890,
+                "updatedAt": 1794805990890
             }
         ]
     }
