@@ -1,7 +1,2 @@
-# Repos reported by the last notification (6)
-CozyCode890/HoiTruyenChu-patches
-DrBushyTop/relay-morphe-patches
-Jo-Patches/jo-patches
-Razor573/mika2-morphe-patches
-ocel07/kmaps-nav-patches
-xboyrex/rex-ig-lite
+# Repos reported by the last notification (1)
+RizkLee/morphe-bilibili-danmaku
