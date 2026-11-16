@@ -3,10 +3,12 @@ package app.onlynazril.extension.tiktok.ui;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -21,11 +23,11 @@ import app.onlynazril.extension.tiktok.internal.Activities;
 
 /**
  * The dialog behind a Min/Max row: two numeric fields and Save/Cancel.
- *
+ * <p>
  * Built on the screen's own palette rather than a dialog theme, the same as the restart prompt — a
  * theme brings its own corner radius, panel colour and button chrome, and the app's theme decides
  * all three.
- *
+ * <p>
  * An empty field means "no bound on this side", so a maximum is only typed when one is wanted; the
  * whole range is spelled out as both fields empty. The values are normalised on Save — a minimum
  * above the maximum swaps them — and the dialog closes, so nothing half-typed is ever stored.
@@ -100,6 +102,7 @@ public final class RangeDialog {
         LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         hintParams.topMargin = Tokens.dp(activity, Tokens.SPACE_2);
+        hintParams.bottomMargin = Tokens.dp(activity, Tokens.SPACE_4);
         hint.setLayoutParams(hintParams);
         column.addView(hint);
 
@@ -114,13 +117,27 @@ public final class RangeDialog {
 
         LinearLayout actions = new LinearLayout(activity);
         actions.setOrientation(LinearLayout.HORIZONTAL);
-        actions.setPadding(0, Tokens.dp(activity, Tokens.SPACE_2), 0, 0);
+        actions.setPadding(0, Tokens.dp(activity, Tokens.SPACE_8), 0, 0);
 
-        actions.addView(new ActionView(
-                activity, "Cancel", Tokens.PANEL, Tokens.TEXT_SECONDARY, dialog::dismiss),
+        float fullRadius = Tokens.dp(activity, 999);
+        int borderWidth = Tokens.dp(activity, 1);
+
+        ActionView cancelButton = new ActionView(
+                activity, "Cancel", Color.TRANSPARENT, Tokens.TEXT_DANGER, dialog::dismiss);
+        GradientDrawable cancelBg = new GradientDrawable();
+        cancelBg.setColor(Color.TRANSPARENT);
+        cancelBg.setCornerRadius(fullRadius);
+        cancelBg.setStroke(borderWidth, Tokens.BORDER_DANGER);
+        GradientDrawable cancelMask = new GradientDrawable();
+        cancelMask.setColor(Color.WHITE);
+        cancelMask.setCornerRadius(fullRadius);
+        cancelButton.setBackground(new RippleDrawable(
+                ColorStateList.valueOf(Tokens.RIPPLE_ERROR), cancelBg, cancelMask));
+        actions.addView(cancelButton,
                 new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-        ActionView saveButton = new ActionView(activity, "Save", Tokens.PANEL, Tokens.ACCENT, () -> {
+        ActionView saveButton = new ActionView(
+                activity, "Save", Tokens.BG_WHITE, Tokens.TEXT_ON_LIGHT, () -> {
             long min = parse(minField, NO_MIN);
             long max = parse(maxField, NO_MAX);
             if (min > max) {
@@ -131,6 +148,11 @@ public final class RangeDialog {
             save.onRangeChanged(min, max);
             dialog.dismiss();
         });
+        GradientDrawable saveBg = new GradientDrawable();
+        saveBg.setColor(Tokens.BG_WHITE);
+        saveBg.setCornerRadius(fullRadius);
+        saveButton.setBackground(new RippleDrawable(
+                ColorStateList.valueOf(Tokens.RIPPLE_DARK), saveBg, null));
         LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         saveParams.leftMargin = Tokens.dp(activity, Tokens.SPACE_2);
@@ -141,24 +163,13 @@ public final class RangeDialog {
     }
 
     private static EditText field(Context context, String hint, String value) {
-        EditText field = new EditText(context);
-        field.setHint(hint);
-        field.setText(value);
-        field.setTextSize(Tokens.ACTION_SP);
-        field.setTextColor(Tokens.TEXT_PRIMARY);
-        field.setTypeface(Fonts.face(false));
-        field.setHintTextColor(Tokens.TEXT_DISABLED);
-        field.setGravity(Gravity.CENTER);
-        field.setSingleLine(true);
-        field.setInputType(InputType.TYPE_CLASS_NUMBER);
-        field.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        field.setPadding(
-                Tokens.dp(context, Tokens.SPACE_2), 0,
-                Tokens.dp(context, Tokens.SPACE_2), 0);
-        field.setBackground(ActionView.outline(context, Tokens.PANEL));
-        field.setLayoutParams(new LinearLayout.LayoutParams(
-                Tokens.dp(context, 96), Tokens.dp(context, 44)));
-        return field;
+        return TextField.create(context)
+                .hint(hint)
+                .text(value)
+                .inputType(InputType.TYPE_CLASS_NUMBER)
+                .imeOptions(EditorInfo.IME_ACTION_DONE)
+                .widthDp(96)
+                .build();
     }
 
     private static TextView dash(Context context) {

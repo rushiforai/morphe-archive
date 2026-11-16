@@ -4,7 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 @file:Suppress("SpellCheckingInspection")
@@ -64,6 +64,31 @@ internal val nextGenWatchLayoutFingerprint = legacyFingerprint(
             getReference<MethodReference>()?.name == "booleanValue"
         } >= 0
     }
+)
+
+/**
+ * YouTube 21.42+ moves the speed-overlay Boolean unboxing into its controller.
+ * Match the two remaining gesture-state checks, not the controller's obfuscated name.
+ */
+internal val nextGenWatchLayoutSpeedStateFingerprint = legacyFingerprint(
+    name = "nextGenWatchLayoutSpeedStateFingerprint",
+    returnType = "Z",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = emptyList(),
+    literals = listOf(45798911L, 45783248L),
+    opcodes = listOf(
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_NEZ,
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_NEZ,
+    ),
+    customFingerprint = { method, _ ->
+        method.definingClass == "Lcom/google/android/apps/youtube/app/watch/nextgenwatch/ui/NextGenWatchLayout;"
+    },
 )
 
 internal const val RESTORE_SLIDE_TO_SEEK_FEATURE_FLAG = 45411329L

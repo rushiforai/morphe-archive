@@ -20,7 +20,8 @@ internal object EngagementPanelControllerFingerprint : Fingerprint(
         methodCall(smali = "Lj$/util/Optional;->orElse(Ljava/lang/Object;)Ljava/lang/Object;"),
         opcode(opcode = Opcode.CHECK_CAST, location = MatchAfterWithin(4)),
         opcode(opcode = Opcode.IF_EQZ, location = MatchAfterImmediately()),
-        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        // Feed-card layout can insert between these anchors before fingerprint validation runs.
+        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterWithin(4)),
         literal(45615449L),
         methodCall(smali = "Ljava/util/ArrayDeque;->iterator()Ljava/util/Iterator;"),
         fieldAccess(

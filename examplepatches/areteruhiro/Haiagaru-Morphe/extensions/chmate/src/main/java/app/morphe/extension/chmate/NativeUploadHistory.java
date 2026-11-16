@@ -290,7 +290,7 @@ public final class NativeUploadHistory {
     }
 
     static void markExternalDeleted(Object owner, String link) {
-        if (owner == null || MediaUploadManagementPolicy.imgur(link)) return;
+        if (owner == null) return;
         try {
             List<?> current = rows(owner);
             if (current == null) return;

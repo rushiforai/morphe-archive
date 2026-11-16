@@ -10,14 +10,14 @@ Later models negotiate the key themselves.
 The older CMF Watch app that printed the token to logcat is discontinued.
 The first generation is the one case where the token has to come out of Nothing X.
 
-## Why file scanning does not work on 3.8.0 and 3.10.2
+## Why file scanning does not work on 3.8.0 and 3.10.3
 
 Nothing X is a Flutter app.
 The bind flow and the K1 handling are Dart code inside `libapp.so`, so no app dex method carries the token logic.
 
 The app persists the K1 through the `flutter_secure_storage` plugin.
 On Android, that plugin stores values in EncryptedSharedPreferences under the Android Keystore, so the token is encrypted at rest.
-Scanning the app's log file, databases, prefs and cache finds nothing on 3.8.0 or 3.10.2.
+Scanning the app's log file, databases, prefs and cache finds nothing on 3.8.0 or 3.10.3.
 
 The value is only readable inside the app process, at the plugin boundary:
 
@@ -27,10 +27,10 @@ The value is only readable inside the app process, at the plugin boundary:
 ## Hook points
 
 The patch hooks three methods.
-The fingerprints were verified against Nothing X 3.8.0 and Nothing X 3.10.2, and the patch fails instead of writing a broken APK when a method is missing.
+The fingerprints were verified against Nothing X 3.8.0 and Nothing X 3.10.3, and the patch fails instead of writing a broken APK when a method is missing.
 Nothing X 3.9.0 added support for Headphone (1) Pro, and 3.10.0 added support for the CMF Speaker S and CMF Speaker M.
-Nothing X 3.10.1 and 3.10.2 contain bug fixes and improvements.
-The three hook points did not change between 3.8.0 and 3.10.2, so the patch needs no retarget.
+Nothing X 3.10.1, 3.10.2, and 3.10.3 contain bug fixes and improvements.
+The three hook points did not change between 3.8.0 and 3.10.3, so the patch needs no retarget.
 
 | Class and method                                                                                          | Injection                                                                                                                                                                |
 | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

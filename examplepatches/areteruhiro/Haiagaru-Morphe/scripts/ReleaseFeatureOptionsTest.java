@@ -47,10 +47,20 @@ public final class ReleaseFeatureOptionsTest {
         check(ReleaseFeatureOptions.forRelease(optimization,List.of(optimization)).equals(List.of(ReleaseFeatureOptions.Option.THREAD_THUMBNAILS)),"optimization release retains its thumbnail toggle");
         var correction=release("1.27.5");
         var corrected=ReleaseFeatureOptions.forRelease(correction,List.of(correction));
-        check(corrected.size()==ReleaseFeatureOptions.Option.values().length-3,"corrected screen retains its original controls");
+        check(corrected.size()==22,"corrected screen retains its original controls");
         check(!corrected.contains(ReleaseFeatureOptions.Option.LOCAL_IMAGES),"new feature is not attributed to the older 1.27.5 release");
         var upcoming=release("1.28.0");
         check(ReleaseFeatureOptions.forRelease(upcoming,List.of(upcoming)).equals(List.of(ReleaseFeatureOptions.Option.LOCAL_IMAGES,ReleaseFeatureOptions.Option.WACCHOI_COPY_UPPER,ReleaseFeatureOptions.Option.WACCHOI_COPY_LOWER)),"new features belong to their own release");
+        var next=release("1.40.0");
+        var added=ReleaseFeatureOptions.forRelease(next,List.of(next));
+        check(added.size()==11,"release exposes its feature switches");
+        check(added.contains(ReleaseFeatureOptions.Option.UPLOAD_DESTINATION),"upload destination is available from history");
+        check(added.contains(ReleaseFeatureOptions.Option.GLOBAL_SEARCH_PARTIAL),"partial results are available from history");
+        ownership(List.of(next,release("1.39.0"),older));
+        var labels=release("1.41.0");
+        check(ReleaseFeatureOptions.forRelease(labels,List.of(labels)).equals(List.of(
+                ReleaseFeatureOptions.Option.THREAD_RENAME,ReleaseFeatureOptions.Option.KEYWORD_NAMES)),
+                "display name settings belong to their release");
         var brief=new ReleaseHistoryText.Release("1.27.4","2026-11-13","- 最適化");
         check(ReleaseHistoryText.displayNotes(brief).contains("1レス目"),"in-app explanation remains detailed");
         check(brief.notes.equals("- 最適化"),"public notes remain brief");

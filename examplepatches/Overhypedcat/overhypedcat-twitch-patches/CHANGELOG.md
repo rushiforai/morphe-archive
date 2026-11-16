@@ -1,3 +1,32 @@
+## [4.0.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.0.0...v4.0.1) (2026-11-15)
+
+### Bug Fixes
+
+* Patch switches in full screen and in the vertical view's Options ([dd1074d](https://github.com/[secure]/overhypedcat-twitch-patches/commit/dd1074da019b079ebd3b7b503889f19d200ab0ad))
+* Safer injection of the patch switches in every Options layout ([33508c0](https://github.com/[secure]/overhypedcat-twitch-patches/commit/33508c0ecafd2e13888c81b43386c5bce69a3229))
+
+## [4.0.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v3.0.3...v4.0.0) (2026-11-15)
+
+### ⚠ BREAKING CHANGES
+
+* the Detailed log switch in Settings, Preferences is gone; it is Debug mode in Settings, Patch settings now.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CMF1BzWRsg9zTYU8F2p8HB
+
+### Bug Fixes
+
+* Lasting song removal problems stay shown, a replaced VPN server is never reused ([6dbf64d](https://github.com/[secure]/overhypedcat-twitch-patches/commit/6dbf64d33e1a7c59be503e4250ccde8bfc1a7b04))
+* One toast for a song library problem, and Add a VPN server clears once one is added ([b2288e3](https://github.com/[secure]/overhypedcat-twitch-patches/commit/b2288e360a761071dc717c1434a3a5af97328d62))
+* Polish of song removal, the quality unlock and the settings ([f16b187](https://github.com/[secure]/overhypedcat-twitch-patches/commit/f16b1877ab3b69f21c7e19d4059ca11978aceaa1))
+* Song copies are decoded about twice as fast ([8872e1a](https://github.com/[secure]/overhypedcat-twitch-patches/commit/8872e1a2f00cb7b5484f26e933fe644cc43154e4))
+* Song removal and the VPN only for the stream being watched ([3cf4ed5](https://github.com/[secure]/overhypedcat-twitch-patches/commit/3cf4ed561bae5ee34c304571a1cd9e544f69759d))
+
+### New Features
+
+* Song removal is switched on per channel ([d9c3c6e](https://github.com/[secure]/overhypedcat-twitch-patches/commit/d9c3c6e0ccc75c9a8ffa7d754dc45e9e5472264d))
+* Song removal, quality unlock and patch settings ([b2e2f1f](https://github.com/[secure]/overhypedcat-twitch-patches/commit/b2e2f1fce52fe6b96dedcdbd0fbba2abcc8c421f))
+
 ## [3.0.3](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v3.0.2...v3.0.3) (2026-11-09)
 
 ### Bug Fixes

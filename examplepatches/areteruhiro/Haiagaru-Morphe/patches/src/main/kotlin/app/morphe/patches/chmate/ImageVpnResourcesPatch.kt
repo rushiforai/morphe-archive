@@ -10,14 +10,14 @@ private object ImageVpnResources
 @Suppress("unused")
 val imageVpnResourcesPatch = resourcePatch(
     name = "画像取得専用VPN（実験用・検証中）",
-    description = "必要な方だけ選択してください。Releaseのhaiagaru-image-vpn-v2.zipを保存: $OPTIONAL_ASSET_VPN_ZIP_URL → 下のオプションで選択 → パッチ適用後にHaiagaru設定でVPNを有効化。Image NG用ZIPとは別です。展開不要。導入・ソース: $OPTIONAL_ASSET_GUIDE",
+    description = "VPN入り一括ZIPまたはVPN専用ZIPを展開せずに指定します。パッチ適用後にHaiagaru設定でVPNの有効化が必要です。画像取得の全経路検証は未完了です。導入・ソース: $OPTIONAL_ASSET_GUIDE",
     default = false,
 ) {
     compatibleWith(chMateCompatibility)
     dependsOn(imageVpnTransportPatch)
     val libraryFile = filePathOption(
-        key = "imageVpnLibraryFile", default = "", title = "VPN用haiagaru-image-vpn-v2.zip／image-stack.aarを選択",
-        description = "VPN専用ファイル: $OPTIONAL_ASSET_VPN_ZIP_URL Image NG用haiagaru-image-ng.zipは選択しないでください。従来AARも利用可能: $OPTIONAL_ASSET_VPN_URL 展開不要。$OPTIONAL_ASSET_GUIDE",
+        key = "imageVpnLibraryFile", default = "", title = "VPN入り一括ZIP／VPN専用ZIP／AARを選択",
+        description = "一括: $OPTIONAL_ASSET_MODERATION_VPN_URL VPN専用: $OPTIONAL_ASSET_VPN_ZIP_URL AAR: $OPTIONAL_ASSET_VPN_URL 展開不要。$OPTIONAL_ASSET_GUIDE",
         allowedExtensions = listOf("zip", "aar"),
     )
     execute {
@@ -36,9 +36,7 @@ val imageVpnResourcesPatch = resourcePatch(
                 writeBytes(bytes)
             }
         }
-        val notices = listOf("open-sstp/LICENSE", "image-stack/NOTICE.md") +
-            listOf("go", "gvisor", "btree", "x-mobile", "x-sys", "x-time").map { "image-stack/$it/LICENSE" }
-        notices.forEach { notice ->
+        IMAGE_VPN_NOTICES.forEach { notice ->
             val path = "/chmate/image-vpn/licenses/$notice"
             val bytes = requireNotNull(ImageVpnResources::class.java.getResourceAsStream(path)).use { it.readBytes() }
             get("assets").resolve("haiagaru/image-vpn/licenses/$notice").apply {

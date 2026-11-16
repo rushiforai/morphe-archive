@@ -81,7 +81,11 @@ val customTabsPatch = bytecodePatch(
                 val snapshot = instructions.toList()
                 val inserts = snapshot.indices.filter { index ->
                     val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                    reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
+                    // The app's copy of Kotlin's toCollection (com/google/android/vl0.q0) became a
+                    // plain kotlin.collections.CollectionsKt.r0 call in 4.10.27; match the shape.
+                    reference != null && snapshot[index].opcode == Opcode.INVOKE_STATIC &&
+                        reference.parameterTypes.map(CharSequence::toString) ==
+                        listOf("Ljava/lang/Iterable;", "Ljava/util/Collection;") &&
                         snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
                 }
                 inserts.sortedDescending().forEach { index ->

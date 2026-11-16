@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 /**
  * The download switches.
- *
+ * <p>
  * The master is off out of the box, so a fresh install downloads nothing until it is asked to. Once
  * it is on, the three below say how: whether the file is fetched without the watermark, whether the
  * entry is offered in every share sheet (not only a photo post's), and whether the highest bitrate

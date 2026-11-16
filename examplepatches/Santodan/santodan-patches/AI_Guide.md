@@ -66,6 +66,20 @@ app reference and current verification tasks. Preserve the original APKS splits
 and package identity; the successful setup also used the separate Google Play
 installer-source spoof.
 
+## NuvioTV metadata provider and Continue Watching artwork
+
+The optional **NuvioTV - Metadata add-on selection** targets official 1.1.0 only.
+Read [NuvioMetadataAddon.md](docs/NuvioMetadataAddon.md). It selects an enabled
+metadata installation per profile and independently opts Continue Watching and
+library poster artwork into that provider. Library cards use native composition
+effects with bounded IO requests and retain native posters until artwork loads.
+Native private repositories preserve fetching/caching/cancellation;
+modern and Classic/Grid artwork overrides leave saved progress untouched. Restored
+enrichment overlays must allow native refresh when selected-source art is absent.
+Run `verifyNuvioMetadataAddon`, `verifyNuvioMetadataRuntime`,
+`verifyNuvioMetadataSettingsRuntime` and the latest standalone/combined bundle
+checks; these are included in `verifyNuvioLatest`.
+
 ## NuvioTV official 1.1.0
 
 The latest reviewed target is **1.1.0 / 1077**. Read [Nuvio110.md](docs/Nuvio110.md).

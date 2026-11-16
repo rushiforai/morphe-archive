@@ -6,6 +6,8 @@ or a disassembler.
 Morphe's `Fingerprint(name = ...)` matches the *exact DEX method name*, and
 `definingClass` is compared exactly when written as a full class descriptor, so all
 this needs to read is class descriptor + method name + return type + parameters.
+Fingerprints anchored only on a string literal (`STRINGS`) are checked by scanning the
+DEX string tables.
 
 Usage:
     python3 tools/verify_fingerprints.py <app.apk|app.apkm|app.xapk>
@@ -30,6 +32,8 @@ MARKERS = {
     "FolderSync": "Ldk/tacit/",
     "Projectivy Launcher": "Lcom/spocky/projengmenu/",
     "Solid Explorer": "Lpl/solidexplorer/licensing/",
+    "nzb360": "Lcom/kevinforeman/nzb360/",
+    "Trakt": "Ltv/trakt/trakt/",
 }
 
 # App -> (class descriptor, method name) -> (return type, required, patch, description)
@@ -94,12 +98,13 @@ TARGETS = {
         ("Lxx/b0;", "w"):
             ("Z", True, "Enable Prime", "active-subscription check"),
     },
-    # Duolingo 6.104.3:
+    # Duolingo 6.104.5:
     #   Most Duolingo fingerprints are structural (toString literals, field-usage shapes,
     #   opcode windows) and are validated by building and applying the bundle, not by method
     #   names here. The rows below are the pinned class/method anchors: the login request
     #   constructor, both EnergyConfig constructors and the two RampUp timer states.
-    #   `Lss90`, `Lgo3`, `Lz22` and the other short names change with every obfuscation pass,
+    #   `Lus90` (was `Lss90`), `Lj3o` (was `Lk3o`), `Lgo3`, `Lz22` and the other short names
+    #   change with every obfuscation pass,
     #   so they are deliberately not pinned here.
     "Duolingo": {
         ("Lcom/duolingo/data/signuplogin/LoginRequest$EmailLoginRequest;", "<init>"):
@@ -153,6 +158,46 @@ TARGETS = {
         ("Lpl/solidexplorer/licensing/LicenseDetails;", "adsEnabled"):
             ("Z", True, "Enable Pro", "free-tier check used as the hook's condition"),
     },
+    # nzb360 25.3:
+    #   NZB360LicenseHelper    the singleton that owns both licence states: the All Access
+    #                          flag and the per-service status list. isUnlocked(Service, Z)
+    #                          combines them, and the two isLocked overloads are its inverted
+    #                          delegating wrappers (147 call sites). The patch replaces all
+    #                          five boolean bodies, so the exact names are pinned here as the
+    #                          fast pre-check; they are not obfuscated in 25.3.
+    #   Contract$UIState       the upgrade-center view state; isSubscribed() picks the paywall
+    #                          vs the "already subscribed" UI.
+    #   UpgradeCenterKt        SubscriptionSection seeds the plan toggle with "Monthly".
+    "nzb360": {
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isAASubscriptionActive"):
+            ("Z", True, "Unlock All Access", "cached All Access flag"),
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isUnlocked"):
+            ("Z", True, "Unlock All Access", "the service gate (24 call sites)"),
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isLocked"):
+            ("Z", True, "Unlock All Access", "both inverted wrappers (147 call sites)"),
+        ("Lcom/kevinforeman/nzb360/upgradecenter/Contract$UIState;", "isSubscribed"):
+            ("Z", True, "Unlock All Access", "upgrade-center subscribed state"),
+        ("Lcom/kevinforeman/nzb360/upgradecenter/UpgradeCenterKt;", "SubscriptionSection"):
+            ("V", True, "Unlock All Access", "plan toggle, seeded from \"Monthly\""),
+    },
+    # Trakt 3.28.0:
+    #   User.<init>              the public 14-arg primary constructor; the app's API model is
+    #                            mapped to User through it (UserKt.a)
+    #   User.<init>(I, ...)      the synthetic Kotlinx-serialization constructor used when a
+    #                            User is decoded from JSON (cached sessions, list responses).
+    #                            3.28.0 stores the fields itself instead of delegating to the
+    #                            primary constructor, so both are patched.
+    #   s2j.b(MainActivity, String)Z
+    #                            the AuthTab capability check; `Fix sign-in` forces it to false
+    #                            so the OAuth flow uses a regular Custom Tab and the app's
+    #                            https://app.trakt.tv/callback/app/trakt filter receives the code.
+    # `User.h` (isVip) is obfuscated; REQUIRED_PARAMS pins both exact argument lists.
+    "Trakt": {
+        ("Ltv/trakt/trakt/common/model/User;", "<init>"):
+            ("V", True, "Unlock VIP", "public + serializer constructors; isVip store into User.h"),
+        ("Ls2j;", "b"):
+            ("Z", True, "Fix sign-in", "AuthTab support check; forced to false so the flow uses a Custom Tab"),
+    },
 }
 
 # App -> (class, method) -> parameter lists that must each be present.
@@ -202,6 +247,61 @@ REQUIRED_PARAMS = {
         ],
         ("Lpl/solidexplorer/licensing/LicenseDetails;", "adsEnabled"): [[]],
     },
+    "nzb360": {
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isAASubscriptionActive"): [[]],
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isUnlocked"): [
+            ["Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper$Service;", "Z"],
+        ],
+        # Both overloads of the inverted wrapper.
+        ("Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper;", "isLocked"): [
+            ["Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper$Service;"],
+            ["Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper$Service;", "Z"],
+        ],
+        ("Lcom/kevinforeman/nzb360/upgradecenter/Contract$UIState;", "isSubscribed"): [[]],
+    },
+    "Trakt": {
+        ("Ls2j;", "b"): [
+            ["Ltv/trakt/trakt/MainActivity;", "Ljava/lang/String;"],
+        ],
+        ("Ltv/trakt/trakt/common/model/User;", "<init>"): [
+            [
+                "Ltv/trakt/trakt/common/model/Ids;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Z", "Z", "Z", "Z", "Z",
+                "Ltv/trakt/trakt/common/model/User$Images;",
+                "Ltv/trakt/trakt/common/model/User$Streamings;",
+                "Ltv/trakt/trakt/common/model/User$Settings;",
+            ],
+            [
+                "I",
+                "Ltv/trakt/trakt/common/model/Ids;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Z", "Z", "Z", "Z", "Z",
+                "Ltv/trakt/trakt/common/model/User$Images;",
+                "Ltv/trakt/trakt/common/model/User$Streamings;",
+                "Ltv/trakt/trakt/common/model/User$Settings;",
+            ],
+        ],
+    },
+}
+
+
+# App -> literal strings that must be present in the app's DEX. These back fingerprints whose
+# only anchor is a string literal: an obfuscated class or method name would not survive an update,
+# so the name tables above cannot check them.
+STRINGS = {
+    "Trakt": {
+        "mobile_https_auth_callback_enabled_2":
+            "Fix sign-in: Remote Config key read by the auth coroutine",
+    },
 }
 
 
@@ -230,6 +330,10 @@ class Dex:
             if not b & 0x80:
                 break
         return self.d[o:o + length].decode("utf-8", "replace")
+
+    def strings(self):
+        for i in range(self.n_str):
+            yield self.string(i)
 
     def type(self, i):
         return self.string(self.u32(self.o_type + 4 * i))
@@ -292,6 +396,18 @@ def scan(path):
     return classes, found
 
 
+def scan_strings(path, wanted):
+    """Return the wanted literals that the archive's DEX string tables do not contain."""
+    missing = set(wanted)
+    with zipfile.ZipFile(path) as z:
+        for _name, blob in _dex_blobs(z):
+            for value in Dex(blob).strings():
+                missing.discard(value)
+            if not missing:
+                break
+    return missing
+
+
 def signature_matches(signature, expected):
     """Whether a scanned signature matches an expected parameter list.
 
@@ -337,6 +453,13 @@ def main(path):
             ) or "-"
             print(f"  {status} {key[0]:<46} {key[1]:<28} {sig:<34} {dexname:<12} {patch}: {why}")
             ok = ok and (bool(signatures) and matches or not required)
+
+        if STRINGS.get(app):
+            missing = scan_strings(path, STRINGS[app])
+            for literal, why in STRINGS[app].items():
+                present = literal not in missing
+                print(f"  {'OK  ' if present else 'MISS'} string {literal:<40} {why}")
+                ok = ok and present
         print()
 
     print("all required fingerprints resolved" if ok else "MISSING REQUIRED FINGERPRINTS")

@@ -3,7 +3,7 @@ package arpit.morphe.patches.runna.premium
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.getReference
+import app.morphe.patcher.util.getReference
 import arpit.morphe.patches.runna.shared.Constants.COMPATIBILITY_RUNNA
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode

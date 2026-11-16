@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 @file:Suppress("SpellCheckingInspection")
@@ -392,6 +392,19 @@ internal object MiniplayerRoundedCornersFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "L"),
+    filters = listOf(
+        methodCall(smali = "Landroid/view/View;->setClipToOutline(Z)V"),
+        methodCall(smali = "Landroid/view/View;->setOutlineProvider(Landroid/view/ViewOutlineProvider;)V")
+    )
+)
+
+/**
+ * 21.45+ passes the transition state as booleans to a private outline setter.
+ */
+internal object MiniplayerRoundedCornersModernFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Z", "Z"),
     filters = listOf(
         methodCall(smali = "Landroid/view/View;->setClipToOutline(Z)V"),
         methodCall(smali = "Landroid/view/View;->setOutlineProvider(Landroid/view/ViewOutlineProvider;)V")

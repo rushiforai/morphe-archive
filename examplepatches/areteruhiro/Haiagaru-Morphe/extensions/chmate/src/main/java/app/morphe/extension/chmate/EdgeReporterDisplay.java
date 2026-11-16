@@ -8,6 +8,7 @@ public final class EdgeReporterDisplay {
     private static final ThreadLocal<Long> THREAD = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> EDGE = new ThreadLocal<>();
     private static final ThreadLocal<String> SCOPE = new ThreadLocal<>();
+    private static final ThreadLocal<String> FUTABA_TAG = new ThreadLocal<>();
     private static final ConcurrentHashMap<Class<?>, Field> FIELDS = new ConcurrentHashMap<>();
     private EdgeReporterDisplay() {}
 
@@ -32,6 +33,8 @@ public final class EdgeReporterDisplay {
         if (boardField == null) return;
         try {
             Object url = field(adapter, boardField).get(adapter);
+            ThreadListThumbnailRules.Board mirror=ThreadListThumbnailRules.board(String.valueOf(url));
+            if(mirror!=null&&mirror.host.equals("die-or.work"))FUTABA_TAG.set(mirror.name.startsWith("img/")?"(img)":"(may)");
             String scope=EdgeReporterId.scope(url);
             if(scope!=null){
                 EDGE.set(true);SCOPE.set(scope);
@@ -60,6 +63,8 @@ public final class EdgeReporterDisplay {
     }
 
     public static String title(String original) {
+        String tag=FUTABA_TAG.get();
+        if(original!=null&&tag!=null&&!original.endsWith(tag))original+=" "+tag;
         Long thread = THREAD.get();
         THREAD.remove();
         if (!Boolean.TRUE.equals(EDGE.get()) || thread == null) return original;
@@ -67,5 +72,6 @@ public final class EdgeReporterDisplay {
         return EdgeReporterHistory.displayTitle(SCOPE.get(),thread, original);
     }
 
-    public static void end() { ThreadListThumbnail.end(); SiteThreadMetadata.end(); THREAD.remove(); EDGE.remove(); SCOPE.remove(); }
+    public static void end() { endRow(null); }
+    public static void endRow(Object row) { ThreadListThumbnail.end(row); SiteThreadMetadata.end(); THREAD.remove(); EDGE.remove(); SCOPE.remove(); FUTABA_TAG.remove(); }
 }

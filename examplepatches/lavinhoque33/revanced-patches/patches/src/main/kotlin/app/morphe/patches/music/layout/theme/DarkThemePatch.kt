@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -107,6 +107,7 @@ private val stockDarkThemeColors = linkedMapOf(
     "yt_black_pure" to "#FF000000",
     "yt_black_pure_opacity80" to "#CC000000",
     "yt_status_bar_background_dark" to "#FF131313",
+    "ytm_color_grey_11" to "#FF232323",
     "ytm_color_grey_12" to "#FF1D1D1D",
     "material_grey_800" to "#FF424242",
     "material_grey_850" to "#FF303030",

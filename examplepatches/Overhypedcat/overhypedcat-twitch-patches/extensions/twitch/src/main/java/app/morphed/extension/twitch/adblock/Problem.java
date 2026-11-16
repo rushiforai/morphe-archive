@@ -9,7 +9,6 @@ public enum Problem {
     PROCESSING_FAILED("E3", "Playlist processing failed, ads may play"),
     UNRECOGNIZED_PLAYLIST("E4", "Unrecognised live playlist, ads may play"),
     CLIENT_ADS_NOT_BLOCKED("E5", "Client-side ad check changed, ads may play"),
-    LOG_SWITCH_MISSING("E6", "Settings screen changed, Detailed log switch missing"),
     LABEL_FAILED("E7", "Ad label could not be shown, ads are still blocked");
 
     public final String code;

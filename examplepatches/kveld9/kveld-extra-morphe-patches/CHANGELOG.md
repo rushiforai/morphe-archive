@@ -1,3 +1,56 @@
+## [1.32.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.32.0...v1.32.1) (2026-11-16)
+
+### Bug Fixes
+
+* **deps:** scope the minimatch alert to the copy npm bundles ([5a8ee10](https://github.com/kveld9/kveld-extra-morphe-patches/commit/5a8ee10afa9e86c3d8a98f05fe3e1b862506e0c0))
+
+## [1.32.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.31.0...v1.32.0) (2026-11-16)
+
+### Bug Fixes
+
+* **bytecode:** eliminate invalid const-string jumbo register check ([9480dfd](https://github.com/kveld9/kveld-extra-morphe-patches/commit/9480dfd9f4adfdc208a861c565a044201e426289))
+* **capcut:** add structural bytecode anchors to obfuscated fingerprints ([32621d9](https://github.com/kveld9/kveld-extra-morphe-patches/commit/32621d95816816b8831af0fc655678a846b96598))
+* **capcut:** ensure minimum register count before boolean stub injection ([97bb997](https://github.com/kveld9/kveld-extra-morphe-patches/commit/97bb9976abae1b692bf8ad337f0d09c5450b8aaf))
+* **capcut:** update supported version to 20.1.0 ([44b9991](https://github.com/kveld9/kveld-extra-morphe-patches/commit/44b99911c39e5324ee4587bf54341e3e2d00472a)), closes [#79](https://github.com/kveld9/kveld-extra-morphe-patches/issues/79) [#67](https://github.com/kveld9/kveld-extra-morphe-patches/issues/67)
+* **deps:** remediate npm supply chain audit vulnerabilities ([7290bf7](https://github.com/kveld9/kveld-extra-morphe-patches/commit/7290bf796f959f5f49dc3056674b3f4a8f24d0a8))
+* **hevy:** enforce fail-loud guards on manifest and hermes bundle ([b20644a](https://github.com/kveld9/kveld-extra-morphe-patches/commit/b20644a3cb0d77e8c846b5f77bc4755d851d2d3b))
+* **hevy:** update supported version to 3.2.5 ([c5897e4](https://github.com/kveld9/kveld-extra-morphe-patches/commit/c5897e44a92ca717feca9029edf048e7b9156d55))
+* **ibispaint:** add bounds safety checks in native binary patch ([5d63bb1](https://github.com/kveld9/kveld-extra-morphe-patches/commit/5d63bb1dedd7ab29fee11bbb7aa4c26732169963))
+* **ibispaint:** track releases from Uptodown ([3a4370d](https://github.com/kveld9/kveld-extra-morphe-patches/commit/3a4370d6dffdf4eba64f04e2ded73d0adbeb51df))
+* **metadata:** serialize patch name in dependencies list ([7528546](https://github.com/kveld9/kveld-extra-morphe-patches/commit/75285465caac2c3e63f9d3805253bb3766f2c34d))
+* **moovit:** dynamically extract return view register in AdFreeMenuItemFragment ([278d0bd](https://github.com/kveld9/kveld-extra-morphe-patches/commit/278d0bd446ca7212d2c0dda25b8758f89e326f17))
+* **moovit:** dynamically extract View and GONE registers in goPremiumCard setVisibility hook ([5746b98](https://github.com/kveld9/kveld-extra-morphe-patches/commit/5746b98aaa209cdcbb2754032be5e72490cf734c))
+* **moovit:** dynamically resolve address search callback flag register ([22db127](https://github.com/kveld9/kveld-extra-morphe-patches/commit/22db127e932c7dcd25f44b5f030ced826f75c803))
+* **moovit:** handle VersionedPackage in isPackageInfoCall ([946465b](https://github.com/kveld9/kveld-extra-morphe-patches/commit/946465b40cfb6472a683a7b05d36d94ca6e9e961))
+* **moovit:** move signature spoof init to attachBaseContext ([5b77a79](https://github.com/kveld9/kveld-extra-morphe-patches/commit/5b77a794f34d3f7a93302aa87aa682e81f09e519))
+* **moovit:** support inverted basic block layouts in places new patch ([27ac910](https://github.com/kveld9/kveld-extra-morphe-patches/commit/27ac910ec74a7abda924cd3553b52f2441f8b5e3))
+* **moovit:** update supported version to 5.204.0.1813 ([880ed00](https://github.com/kveld9/kveld-extra-morphe-patches/commit/880ed00791654c06f2b8cc18f596c1c810d4c40c))
+* **nokoprint:** update supported version to 5.28.8 ([d277518](https://github.com/kveld9/kveld-extra-morphe-patches/commit/d277518f17234366c766cf0d9181bb00a0ce1fc2))
+* **sdmse:** resolve this register as p0 in UpgradeRepoFoss.Info constructor ([31f3d84](https://github.com/kveld9/kveld-extra-morphe-patches/commit/31f3d84def8314f619e25293bcfad60a59b1a3ab))
+* **test:** stop deflating split native libs into base apk ([d8b46ad](https://github.com/kveld9/kveld-extra-morphe-patches/commit/d8b46ad6f66f1a14a2013c208ae75a46cdae7979))
+* **tooling:** purge candidate_apks and logs in clean_workspace ([73d0e1e](https://github.com/kveld9/kveld-extra-morphe-patches/commit/73d0e1ee07e614d665e753b86d28bb746b235e4d))
+* **tooling:** remove hardcoded machine path in ensure_lab_frida ([35fbe25](https://github.com/kveld9/kveld-extra-morphe-patches/commit/35fbe25653b62f26629c20d7c2552c74cdaaf8de))
+* **twitter:** scope background slimmer options inside patch block ([b3cf5c6](https://github.com/kveld9/kveld-extra-morphe-patches/commit/b3cf5c6525bd182dc51bb6c18d08f0425e030559))
+* **twitter:** support X (Twitter) 12.40.1-prod.01 ([f5168d7](https://github.com/kveld9/kveld-extra-morphe-patches/commit/f5168d74f6667b627a35e9efce61527ce8d92f0e))
+* **twitter:** update supported version to 12.39.0-prod.01 ([58b467b](https://github.com/kveld9/kveld-extra-morphe-patches/commit/58b467b126c04c93017ab76486cab726e0607937))
+* **twitter:** update supported version to 12.41.0-prod.01 ([70715b3](https://github.com/kveld9/kveld-extra-morphe-patches/commit/70715b30296efd66232f44e06de91a9da5a65142))
+* **update-check:** fail the run when an upstream version is unknown ([148c233](https://github.com/kveld9/kveld-extra-morphe-patches/commit/148c2333f49f06e8a4b7af488aaa4dbe1ac5facd))
+* **xiaomi:** detect Earbuds releases above the abandoned 9.x line ([a32d022](https://github.com/kveld9/kveld-extra-morphe-patches/commit/a32d02282ec5f823822cd6dbd32d7c2cc1bc8511))
+* **xiaomi:** ensure register count before multi-register smali injections ([081646a](https://github.com/kveld9/kveld-extra-morphe-patches/commit/081646a711c2c194a5fe17fb9af20d5ac05afe95))
+* **xiaomi:** refactor privacy guard to ManifestXml stripPermissionsWhere ([d893f2c](https://github.com/kveld9/kveld-extra-morphe-patches/commit/d893f2c10c4f213921f50d4b0aad7b0670650090))
+* **xiaomi:** validate bounds and move-result opcode ([eeb70f2](https://github.com/kveld9/kveld-extra-morphe-patches/commit/eeb70f244db49b4fd02d9f82cc19d283538460c1))
+
+### New Features
+
+* **instagram:** bump target version to 452.1.0.53.64 and update telemetry fingerprints ([27ad14b](https://github.com/kveld9/kveld-extra-morphe-patches/commit/27ad14b4c387636f249213e6b7ee7a49af07c533))
+* **patches:** populate input SHA-256 digests in Constants ([913f7f8](https://github.com/kveld9/kveld-extra-morphe-patches/commit/913f7f8e52dba9032fad0b376e3def247d336e73))
+
+### Code Refactoring
+
+* **bytecode:** standardize whole-body stubs to BytecodeUtils ([b03c6e6](https://github.com/kveld9/kveld-extra-morphe-patches/commit/b03c6e6975fcb28f87ea7b7572cc60f7fc406076))
+* **harness:** clean up legacy candidate filenames in TargetApp ([c4ddff5](https://github.com/kveld9/kveld-extra-morphe-patches/commit/c4ddff50ed5f5123225bb8b5a570e697f0f0f367))
+* **twitter:** purge orphaned TwitterFontHelper ([0f258af](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0f258afcf10b1a5b14fdf74bb5979bed76a5f599))
+
 ## [1.31.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.30.1...v1.31.0) (2026-10-30)
 
 ### ⚠ BREAKING CHANGES

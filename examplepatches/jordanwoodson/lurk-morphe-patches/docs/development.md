@@ -170,7 +170,12 @@ same section (under a switch, it applies only while the switch is on). The setti
 settings activity (`extensions/shared/.../settings/`) builds its screen from that: only the
 included patches' settings, grouped by section, with search, Pause Lurk, export and import, a bug
 report link and a restart bar for `restart = true` settings. It is plain framework Java: views and
-drawables made in code, no resources, AppCompat or Kotlin. Injected code reads a value with
+drawables made in code, no resources, AppCompat or Kotlin. The screen itself is `SettingsScreen`; `SettingsActivity`
+hosts it, and where the installed app's manifest doesn't have that activity (a root mount install keeps the
+original app's manifest, so nothing a patch adds to it exists) `Settings.open` shows it as `SettingsDialog`, a
+full-screen dialog over the app's own activity, with export and import through the clipboard since a dialog gets
+no file picker result. To see that path on the emulator: `adb shell su 0 pm disable <package>/<SettingsActivity>`
+and open Lurk from the app's own menu. Injected code reads a value with
 `Settings.isEnabled(key)` or `getInt(key)`. Lurk fails closed: a key that isn't registered reads
 as off (a choice as 0), and so does every key if the registry can't be read; Pause Lurk turns
 every switch off except those registered with `keepWhenPaused` (lockout protection such as Block
@@ -288,6 +293,11 @@ with the same number (Twitch 31.9.0 led to 31.9.0_BETA, a different build) or a 
 `bin/manager-link <app> <version>` follows the same redirects and passes only on APKMirror's release page of
 that exact version (or an Uptodown build page); `bin/bump` runs it at the end. Until it passes, keep the
 bump on a branch.
+
+`bin/manager-link --newer [app]` looks the other way: it tries the likely version numbers after each target
+and prints those Manager can already download. The API has no list of versions, so it is a guess at the
+numbering (next patch, minor and major releases), not a complete answer. `version-watch.yml` runs it every
+Monday and opens an issue for each version found.
 
 ```sh
 bin/bump twitch 31.8.0 ~/Downloads/<file>.apkm   # store it (bin/apk-add), patch, sort the failures

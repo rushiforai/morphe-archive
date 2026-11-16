@@ -1,7 +1,7 @@
 package arpit.morphe.patches.c262.premium
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import arpit.morphe.patches.c262.shared.Constants.COMPATIBILITY_C262
 
 /**

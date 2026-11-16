@@ -20,6 +20,7 @@ internal const val EXTENSION_SPEED_CLASS = "Lapp/keyboardspeed/extension/Keyboar
 internal const val EXTENSION_COMMENTS_CLASS = "Lapp/keyboardspeed/extension/KeyboardCommentsPatch;"
 internal const val EXTENSION_FULLSCREEN_CLASS = "Lapp/keyboardspeed/extension/KeyboardFullscreenPatch;"
 internal const val EXTENSION_MINIMIZE_CLASS = "Lapp/keyboardspeed/extension/KeyboardMinimizePatch;"
+internal const val EXTENSION_FRAME_STEP_CLASS = "Lapp/keyboardspeed/extension/KeyboardFrameStepPatch;"
 
 private const val EXTENSION_DISPATCH_KEY_EVENT =
     "$EXTENSION_SHORTCUTS_CLASS->dispatchKeyEvent(Landroid/app/Activity;Landroid/view/KeyEvent;)Z"

@@ -13,7 +13,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.misc.mapping.ResourceType
@@ -33,11 +32,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 // Features cleanly hooked to resolve dynamically via DeviceSpoofHelper for unlimited backup tier.
-private val BAKED_FEATURES_TO_ENABLE = setOf(
-    "com.google.android.apps.photos.NEXUS_PRELOAD",
-    "com.google.android.apps.photos.nexus_preload",
-    "com.google.android.feature.PIXEL_2020_EXPERIENCE",
-)
+private fun isPixelFeatureString(string: String): Boolean =
+    string.equals("com.google.android.apps.photos.NEXUS_PRELOAD", ignoreCase = true) ||
+    string.startsWith("com.google.android.feature.PIXEL_") ||
+    string.startsWith("com.google.android.apps.photos.PIXEL_")
 
 // Pixel XL system property overrides for native C/C++ checks.
 private val SYSTEM_PROPERTY_OVERRIDES = mapOf(
@@ -59,18 +57,6 @@ val spoofFeaturesPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
-
-    val profileOption = stringOption(
-        key = "profile",
-        default = "auto",
-        values = mapOf(
-            "auto" to "Auto-Sync (dynamic Pixel XL / Pixel 5)",
-            "pixel-xl" to "Pixel XL (Original Quality)",
-            "pixel-5" to "Pixel 5 (Storage Saver)",
-        ),
-        title = "Default backup spoof profile",
-        description = "Select the default device profile to spoof for unlimited backup. Used as initial setting and fallback when Flag Manager / Toolkit is not included.",
-    )
 
     dependsOn(
         spoofBuildInfoPatch,
@@ -112,15 +98,10 @@ val spoofFeaturesPatch = bytecodePatch(
     )
 
     execute {
-        val selectedProfile = when (profileOption.value?.lowercase()) {
-            "pixel-xl" -> "pixel-xl"
-            "pixel-5" -> "pixel-5"
-            else -> "auto"
-        }
         val helperClassDef = classDefBy("Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;")
         val mutableHelperClass = mutableClassDefBy(helperClassDef)
         val getDefaultProfileMethod = mutableHelperClass.methods.first { it.name == "getDefaultProfile" }
-        getDefaultProfileMethod.returnEarly(selectedProfile)
+        getDefaultProfileMethod.returnEarly("auto")
 
         val idOq = getResourceId(ResourceType.STRING, "photos_backup_settings_quality_oq_desc")
         val idSaver = getResourceId(ResourceType.STRING, "photos_devicesetup_basicstoragepolicy_impl_high_quality_photo_resolution")
@@ -133,8 +114,33 @@ val spoofFeaturesPatch = bytecodePatch(
             classDef.methods.forEach classLoop@{ method ->
                 val implementation = method.implementation ?: return@classLoop
                 val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
+                val instructionList = implementation.instructions.toList()
 
-                // 1. Hook Backup Quality row visibility in Google Photos settings (e.g. Lukm.<init>)
+                // 1a. Hook Backup Quality row visibility in Compose Settings (Google Photos v7.x / v8.x+)
+                val hasTelephonyString = instructionList.any { instr ->
+                    ((instr as? Instruction21c)?.reference as? StringReference)?.string == "android.hardware.telephony"
+                }
+                if (hasTelephonyString) {
+                    for (index in instructionList.indices) {
+                        val instr = instructionList[index]
+                        if (instr.opcode == Opcode.XOR_INT_LIT8) {
+                            val prevInstr = instructionList.getOrNull(index - 1)
+                            if (prevInstr?.opcode == Opcode.IGET_BOOLEAN) {
+                                val reg = (instr as? OneRegisterInstruction)?.registerA ?: continue
+                                val invoke = invokeStaticSingle(reg, "Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->shouldShowQualitySelector(Z)Z")
+                                mutableMethod.addInstructions(
+                                    index + 1,
+                                    """
+                                        $invoke
+                                        move-result v$reg
+                                    """.trimIndent(),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 1b. Legacy hook for older Google Photos settings (e.g. v6.x UI state <init>(ZZZZZZZ)V)
                 if (method.name == "<init>" &&
                     method.parameterTypes.size == 7 &&
                     method.parameterTypes[0] == "Z" &&
@@ -142,21 +148,20 @@ val spoofFeaturesPatch = bytecodePatch(
                     method.parameterTypes[2] == "Z" &&
                     method.returnType == "V"
                 ) {
-                    val iputIndex = implementation.instructions.indexOfFirst { it.opcode == Opcode.IPUT_BOOLEAN }
+                    val iputIndex = instructionList.indexOfFirst { it.opcode == Opcode.IPUT_BOOLEAN }
                     if (iputIndex != -1) {
-                        val iputInstr = implementation.instructions.elementAt(iputIndex) as OneRegisterInstruction
+                        val iputInstr = instructionList[iputIndex] as OneRegisterInstruction
                         val reg = iputInstr.registerA
+                        val invoke = invokeStaticSingle(reg, "Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->shouldShowQualitySelector(Z)Z")
                         mutableMethod.addInstructions(
                             iputIndex,
                             """
-                                invoke-static { v$reg }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->shouldShowQualitySelector(Z)Z
+                                $invoke
                                 move-result v$reg
                             """.trimIndent(),
                         )
                     }
                 }
-
-                val instructionList = implementation.instructions.toList()
 
                 // 2. Hook Backup Quality option cards (device indicators & option disablement)
                 val qualityOptionCalls = mutableListOf<Triple<Int, Int, Int>>() // invokeIndex, qualityType, descReg
@@ -225,11 +230,12 @@ val spoofFeaturesPatch = bytecodePatch(
                     val string = ((instruction as? Instruction21c)?.reference as? StringReference)?.string
                         ?: continue
 
-                    if (string in BAKED_FEATURES_TO_ENABLE) {
+                    if (isPixelFeatureString(string)) {
                         val reg = (instruction as OneRegisterInstruction).registerA
+                        val invoke = invokeStaticSingle(reg, "Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->resolveSystemFeature(Ljava/lang/String;)Ljava/lang/String;")
                         mutableMethod.addInstructions(
                             index + 1,
-                            "invoke-static { v$reg }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->resolveSystemFeature(Ljava/lang/String;)Ljava/lang/String;\n" +
+                            "$invoke\n" +
                             "move-result-object v$reg",
                         )
                     }
@@ -304,9 +310,18 @@ private fun MutableMethod.patchSystemPropertyReads(overrides: Map<String, String
         if (moveResult?.opcode != Opcode.MOVE_RESULT_OBJECT) continue
 
         // Dynamically resolve system property through DeviceSpoofHelper so it respects Auto / Pixel XL / Pixel 5 / Stock
+        val invoke = invokeStaticSingle(keyRegister, "Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->getSystemProperty(Ljava/lang/String;)Ljava/lang/String;")
         replaceInstruction(
             index,
-            "invoke-static { v$keyRegister }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->getSystemProperty(Ljava/lang/String;)Ljava/lang/String;",
+            invoke,
         )
     }
 }
+
+private fun invokeStaticSingle(reg: Int, methodSig: String): String =
+    if (reg > 15) {
+        "invoke-static/range { v$reg .. v$reg }, $methodSig"
+    } else {
+        "invoke-static { v$reg }, $methodSig"
+    }
+

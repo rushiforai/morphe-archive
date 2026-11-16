@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -98,18 +98,30 @@ public final class VisitorIdRequester {
 
         synchronized (cache) {
             cache.put(clientType, new VisitorData(visitorId, System.currentTimeMillis()));
-            JSONObject json = new JSONObject();
-            try {
-                for (Map.Entry<ClientType, VisitorData> entry : cache.entrySet()) {
-                    VisitorData visitor = entry.getValue();
-                    json.put(entry.getKey().name(), new JSONObject()
-                            .put("visitorId", visitor.visitorId())
-                            .put("fetchedTime", visitor.fetchedTime()));
-                }
-                SharedYouTubeSettings.SPOOF_VIDEO_STREAMS_CLIENT_IDS.save(json.toString());
-            } catch (JSONException ex) {
-                Logger.printException(() -> "Failed to update visitor IDs", ex);
+            saveCache();
+        }
+    }
+
+    public static void discardVisitorId(ClientType clientType) {
+        synchronized (cache) {
+            cache.remove(clientType);
+            saveCache();
+        }
+    }
+
+    @GuardedBy("cache")
+    private static void saveCache() {
+        JSONObject json = new JSONObject();
+        try {
+            for (Map.Entry<ClientType, VisitorData> entry : cache.entrySet()) {
+                VisitorData visitor = entry.getValue();
+                json.put(entry.getKey().name(), new JSONObject()
+                        .put("visitorId", visitor.visitorId())
+                        .put("fetchedTime", visitor.fetchedTime()));
             }
+            SharedYouTubeSettings.SPOOF_VIDEO_STREAMS_CLIENT_IDS.save(json.toString());
+        } catch (JSONException ex) {
+            Logger.printException(() -> "Failed to update visitor IDs", ex);
         }
     }
 
@@ -202,7 +214,7 @@ public final class VisitorIdRequester {
                     }
                 }
             } else if (clientType.supportsOAuth2) {
-                String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded();
+                String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded(true);
                 if (!AuthUtils.isNotLoggedIn() && Utils.isNotEmpty(oauth2Authorization)) {
                     connection.setRequestProperty("Authorization", oauth2Authorization);
                 }

@@ -18,6 +18,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Base64;
+import android.os.Build;
+import android.hardware.HardwareBuffer;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +29,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +60,94 @@ public final class PhotosModelSeeder {
     private static final Set<String> EXCLUDED_NON_MODEL_GROUPS = new HashSet<>(
         Collections.singletonList("stamp_ab_on")
     );
+
+    // GPU-exclusive model files that must be purged on low-tier devices to force CPU fallback
+    private static final String[] GPU_ONLY_MODEL_FILES = new String[] {
+        "pfdm_v2_gpu.tflite.enc",
+        "pfdrff_v2_gpu.tflite.enc",
+        "pfpfd_v2.tflite.enc",
+        "pfdmtw_v2.tflite.enc"
+    };
+
+    private static volatile Boolean sIsLowTierGpu = null;
+    private static volatile Set<String> sCachedExcludedGroups = null;
+
+    /**
+     * Dynamically determines whether the device has a low-tier GPU or Gralloc driver
+     * incapable of allocating HardwareBuffer.R_8 (format 56) with USAGE_GPU_SAMPLED_IMAGE (0x100).
+     * Budget GPUs (e.g. Adreno 610/612 on Snapdragon 680/685) crash in libnative.so when attempting
+     * GPU shader allocation. Falling back to the CPU pipeline (mochi_cpu / unblur_v1_cpu) runs cleanly.
+     */
+    public static boolean isLowTierGpuDevice() {
+        if (sIsLowTierGpu != null) return sIsLowTierGpu;
+
+        // 1. Android 10+ HardwareBuffer capability probe
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                if (!HardwareBuffer.isSupported(1, 1, HardwareBuffer.R_8, 1, HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE)) {
+                    Logger.printInfo(() -> "PhotosModelSeeder: HardwareBuffer does not support R_8 + USAGE_GPU_SAMPLED_IMAGE. Flagging as low-tier GPU device.");
+                    sIsLowTierGpu = true;
+                    return true;
+                }
+                try (HardwareBuffer testBuf = HardwareBuffer.create(1, 1, HardwareBuffer.R_8, 1, HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE)) {
+                    if (testBuf == null) {
+                        Logger.printInfo(() -> "PhotosModelSeeder: HardwareBuffer.create returned null. Flagging as low-tier GPU device.");
+                        sIsLowTierGpu = true;
+                        return true;
+                    }
+                } catch (Throwable t) {
+                    Logger.printInfo(() -> "PhotosModelSeeder: HardwareBuffer test allocation failed: " + t.getMessage() + ". Flagging as low-tier GPU device.");
+                    sIsLowTierGpu = true;
+                    return true;
+                }
+            } catch (Throwable t) {
+                Logger.printInfo(() -> "PhotosModelSeeder: HardwareBuffer check exception: " + t.getMessage() + ". Flagging as low-tier GPU device.");
+                sIsLowTierGpu = true;
+                return true;
+            }
+        }
+
+        // 2. Chipset & Board fallback list for budget SoCs with known Gralloc format 56 limitations
+        final String board = Build.BOARD != null ? Build.BOARD.toLowerCase() : "";
+        final String hardware = Build.HARDWARE != null ? Build.HARDWARE.toLowerCase() : "";
+        final String socModel = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MODEL != null)
+                ? Build.SOC_MODEL.toLowerCase()
+                : "";
+
+        List<String> lowTierKeywords = Arrays.asList(
+            "sm6225", "sm6125", "sm6115", "sm4250", "sm4350",
+            "bengal", "khaje", "trinket", "monaco",
+            "sapphire", "sapphiren", "spes", "spesn", "topaz", "tapas"
+        );
+
+        for (String kw : lowTierKeywords) {
+            if (board.contains(kw) || hardware.contains(kw) || socModel.contains(kw)) {
+                final String matched = kw;
+                Logger.printInfo(() -> "PhotosModelSeeder: Low-tier SoC matched keyword '" + matched +
+                        "' (board=" + board + ", hardware=" + hardware + ", soc=" + socModel + "). Flagging as low-tier GPU device.");
+                sIsLowTierGpu = true;
+                return true;
+            }
+        }
+
+        sIsLowTierGpu = false;
+        return false;
+    }
+
+    /**
+     * Returns the dynamic set of excluded groups based on device hardware capability.
+     */
+    public static Set<String> getExcludedGroups() {
+        if (sCachedExcludedGroups != null) return sCachedExcludedGroups;
+        Set<String> excluded = new HashSet<>(EXCLUDED_NON_MODEL_GROUPS);
+        if (isLowTierGpuDevice()) {
+            excluded.add("psyduck_gpu");
+            excluded.add("unblur_v2_gpu");
+            Logger.printInfo(() -> "PhotosModelSeeder: Low-tier GPU device detected. Excluded GPU groups: [psyduck_gpu, unblur_v2_gpu]");
+        }
+        sCachedExcludedGroups = Collections.unmodifiableSet(excluded);
+        return sCachedExcludedGroups;
+    }
 
     private static volatile int cachedExpectedCount = -1;
 
@@ -129,6 +220,10 @@ public final class PhotosModelSeeder {
         if (pkg == null || !pkg.contains("photos")) return;
 
         try {
+            File filesDir = context.getFilesDir();
+            File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
+            purgeGpuModelsIfUnsupported(targetModelsDir);
+
             File dataDir = new File(context.getApplicationInfo().dataDir);
             File prefsDir = new File(dataDir, SHARED_PREFS_DIR_NAME);
             File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
@@ -186,6 +281,9 @@ public final class PhotosModelSeeder {
                 File prefsDir = new File(dataDir, SHARED_PREFS_DIR_NAME);
                 File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
 
+                // Purge any residual GPU models if this device requires CPU fallback
+                purgeGpuModelsIfUnsupported(targetModelsDir);
+
                 // Seed authentic story fonts immediately in background
                 StoryFontResolver.ensureFontsAsync(context);
 
@@ -222,6 +320,26 @@ public final class PhotosModelSeeder {
             } catch (Throwable t) {
                 Logger.printInfo(() -> "PhotosModelSeeder: Failed in ensureSeeded: " + t.getMessage());
             }
+        }
+    }
+
+    public static void purgeGpuModelsIfUnsupported(File targetModelsDir) {
+        if (!isLowTierGpuDevice()) return;
+        if (targetModelsDir == null || !targetModelsDir.exists() || !targetModelsDir.isDirectory()) return;
+        boolean deletedAny = false;
+        for (String filename : GPU_ONLY_MODEL_FILES) {
+            File f = new File(targetModelsDir, filename);
+            if (f.exists()) {
+                if (!deletedAny) {
+                    CdnAssetDownloader.unlockDirectory(targetModelsDir);
+                }
+                boolean deleted = f.delete();
+                Logger.printInfo(() -> "PhotosModelSeeder: Purged incompatible GPU model " + filename + " (deleted=" + deleted + ") to enforce CPU fallback");
+                deletedAny = true;
+            }
+        }
+        if (deletedAny) {
+            CdnAssetDownloader.lockDirectory(targetModelsDir);
         }
     }
 
@@ -466,7 +584,7 @@ public final class PhotosModelSeeder {
                 }
             } catch (Exception ignored) {}
 
-            if (EXCLUDED_NON_MODEL_GROUPS.contains(groupName)) {
+            if (getExcludedGroups().contains(groupName)) {
                 continue;
             }
 
@@ -520,7 +638,23 @@ public final class PhotosModelSeeder {
             String unexpectedKeyPart = STOCK_PACKAGE.equals(targetPackageName)
                     ? "Eh5hcHAubW9ycGhlLmFuZHJvaWQuYXBwcy5waG90b3M"
                     : "Eh5jb20uZ29vZ2xlLmFuZHJvaWQuYXBwcy5waG90b3M";
-            return content.contains(expectedKeyPart) && !content.contains("CgR1ZG9u" + unexpectedKeyPart);
+            if (!content.contains(expectedKeyPart) || content.contains("CgR1ZG9u" + unexpectedKeyPart)) {
+                return false;
+            }
+            // Dynamic GPU manifest freshness check:
+            // If on a low-tier device, manifest must NOT contain psyduck_gpu or unblur_v2_gpu.
+            // If on a high-tier device, manifest MUST contain psyduck_gpu.
+            boolean isLowTier = isLowTierGpuDevice();
+            boolean hasGpuGroups = content.contains("Cgtwc3lkdWNrX2dwdR") || content.contains("Cg11bmJsdXJfdjJfZ3B1");
+            if (isLowTier && hasGpuGroups) {
+                Logger.printInfo(() -> "PhotosModelSeeder: Low-tier device has stale manifest containing GPU groups. Re-patch required.");
+                return false;
+            }
+            if (!isLowTier && !hasGpuGroups) {
+                Logger.printInfo(() -> "PhotosModelSeeder: High-tier device has stale manifest missing GPU groups. Re-patch required.");
+                return false;
+            }
+            return true;
         } catch (Throwable t) {
             return false;
         }
@@ -572,7 +706,7 @@ public final class PhotosModelSeeder {
                             byte[] rawKey = Base64.decode(rawKeyB64, Base64.DEFAULT);
                             String dec = new String(rawKey, "ISO-8859-1");
                             boolean skip = false;
-                            for (String excluded : EXCLUDED_NON_MODEL_GROUPS) {
+                            for (String excluded : getExcludedGroups()) {
                                 if (dec.contains(excluded)) {
                                     skip = true;
                                     break;

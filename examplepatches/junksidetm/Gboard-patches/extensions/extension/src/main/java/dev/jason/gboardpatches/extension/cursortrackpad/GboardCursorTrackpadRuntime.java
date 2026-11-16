@@ -21,8 +21,13 @@ public final class GboardCursorTrackpadRuntime {
     private static boolean isEnabledOrStock(boolean stock) {
         try {
             SharedPreferences prefs = GboardFlagRuntimeContext.preferencesOrNull();
-            return applyPreference(stock, prefs);
-        } catch (Throwable ignored) { return stock; }
+            if (prefs != null) {
+                return applyPreference(stock, prefs);
+            }
+            return stock || GboardCursorTrackpadSettings.isCachedEnabled();
+        } catch (Throwable ignored) {
+            return stock || GboardCursorTrackpadSettings.isCachedEnabled();
+        }
     }
 
     static boolean applyPreference(boolean stock, SharedPreferences prefs) {

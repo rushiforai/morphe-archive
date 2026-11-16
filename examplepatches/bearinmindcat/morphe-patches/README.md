@@ -14,7 +14,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v2.9.8](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.9.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;216 patches total
+> **[v2.9.11](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.9.11)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;217 patches total
 <details>
 <summary><img src="docs/icons/pin-google.png" width="20" height="20" align="top"> Google Maps&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/pin-ungoogled.png" width="20" height="20" align="top"> Ungoogled Maps&nbsp;&nbsp;•&nbsp;&nbsp;34 patches</summary>
 <br>
@@ -27,7 +27,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 <img src="docs/screenshots/com.google.android.apps.maps/5-navigation-zoomed-out.png" width="19%" alt="Navigation zoomed out" title="Navigation zoomed out">
 </p>
 
-**Supported version(s):** 26.36.04.973607363
+**Supported version(s):** 26.44.06.1006895251
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -43,7 +43,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 | [Bypass Play Services checks](#bypass-play-services-checks) | Makes Maps' bundled Play services signature and availability checks always pass, so it runs re-signed and with Play services disabled or absent, and lets it load tiles, search and routing by sending Google's own package and certificate in the identity headers the Maps backend checks. Where Play services rejects the re-signed app, Maps degrades instead of crashing. Also skips Google's "isn't Play Protect certified" page, and with no Play services at all uses Android's own Cronet so the map still loads. |  |
 | [Change app name](#change-app-name) | Sets the launcher and in-app app name. | • App name |
 | [Change package name](#change-package-name) | Installs alongside stock Google Maps under its own package name. On by default, because stock Maps comes built into most phones and cannot be replaced by a patched copy. | • Package name |
-| [Customization screen](#customization-screen) | Adds a Customization row under Settings on the account sheet, with switches for the patches here that can be turned back off inside the app. |  |
+| [Customization screen](#customization-screen) | Adds a Customization row under Settings on the account sheet and at the top of Settings, with switches for the patches here that can be turned back off inside the app. |  |
 | [Flock cameras](#flock-cameras) | Puts Flock and other license plate reader cameras on the map, from OpenStreetMap -- the cameras DeFlock's volunteers map -- and chimes and shows a note when one is coming up ahead. Off until turned on in Waze & external data source, a row on the account sheet, because it downloads the ones near you from an OpenStreetMap server, over the same area as the speed cameras. |  |
 | [Follow playing media](#follow-playing-media) | Navigation's media controls show what any app is playing (needs notification access). |  |
 | [Hide ads and clutter](#hide-ads-and-clutter) | Hides promoted map pins (on the map, in search results and along a route) and "Sponsored" search results, Gemini's AI summaries ("Know before you go" and the review summary), the row of businesses under an address on its place sheet, the home tab's Explore feed and the Explore / Contribute / You tabs. Each can be switched back on on the Customization screen. |  |
@@ -99,7 +99,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 | [Black theme](#black-theme) | Pure black dark mode. |  |
 | [Block remote images](#block-remote-images) | Loads images in mail only when you tap Show pictures, so tracking pixels don't fire when you open it. |  |
 | [Change app name](#change-app-name) | Renames Gmail on the home screen. | • App name |
-| [Extra compact list](#extra-compact-list) | Tightens the Compact conversation list so more mail fits on screen. | • Square sender pictures |
+| [Extra compact list](#extra-compact-list) | Tightens the conversation list (all densities) so more mail fits on screen. | • Square sender pictures |
 | [Hide AI](#hide-ai) | Hides Gemini, Help me write, Polish, summaries, the AI inbox and Gemini replies. |  |
 | [Hide ads](#hide-ads) | Removes sponsored mail from the inbox, Promotions and Social. |  |
 | [Hide upsells](#hide-upsells) | Hides storage nags and Google One, Gemini and Workspace upgrade offers. |  |
@@ -127,10 +127,10 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 </details>
 
 <details>
-<summary><img src="docs/icons/waze.png" width="20" height="20" align="top"> Waze&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/waze.png" width="20" height="20" align="top"> De-Waze&nbsp;&nbsp;•&nbsp;&nbsp;26 patches</summary>
+<summary><img src="docs/icons/waze.png" width="20" height="20" align="top"> Waze&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/waze.png" width="20" height="20" align="top"> De-Waze&nbsp;&nbsp;•&nbsp;&nbsp;27 patches</summary>
 <br>
 
-**Supported version(s):** 5.27.0.1, 5.26.90.901, 5.26.5.0, 5.24.5.0
+**Supported version(s):** 5.27.5.0, 5.27.0.1, 5.26.90.901, 5.26.5.0, 5.24.5.0
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -150,6 +150,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 | [No AI reporting](#no-ai-reporting) | Turns off Gemini voice reporting. |  |
 | [No Google Assistant](#no-google-assistant) | Removes Google Assistant from Waze. |  |
 | [Open without device location](#open-without-device-location) | Opens Waze with location off and uses it once it is on. Still needs the location permission. |  |
+| [Patched YouTube Music](#patched-youtube-music) | Lets Waze's audio player use YouTube Music patched with Morphe or ReVanced. |  |
 | [Remove permissions](#remove-permissions) | Removes contacts, calendar, phone, camera and advertising ID access. |  |
 | [Remove sign-in prompts](#remove-sign-in-prompts) | Stops Waze's own reminder to register your account. |  |
 | [Remove telemetry](#remove-telemetry) | No crash reports, usage stats or performance data. Traffic reporting stays. |  |

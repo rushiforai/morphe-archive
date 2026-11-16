@@ -9,6 +9,7 @@
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (fork extension, version check and utility
  * packages; skipped with a warning before YouTube Music 9.15, where the Android Auto classes differ).
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.music.misc.androidauto
@@ -442,7 +443,8 @@ internal fun requestSuccessCallbackFingerprint(requestBaseType: String) = Finger
     returnType = "V",
     parameters = listOf("Lcom/google/protobuf/MessageLite;"),
     filters = listOf(
-        methodCall(parameters = emptyList(), returnType = "V"),
+        // 9.45 adds a static tracing call before the request data's virtual completion method.
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, parameters = emptyList(), returnType = "V"),
         methodCall(
             opcode = Opcode.INVOKE_INTERFACE,
             parameters = listOf("Ljava/lang/Object;"),

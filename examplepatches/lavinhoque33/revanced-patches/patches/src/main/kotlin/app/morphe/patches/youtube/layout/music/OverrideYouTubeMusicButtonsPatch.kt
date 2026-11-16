@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.patches.youtube.layout.music
@@ -15,6 +16,7 @@ import app.morphe.patches.youtube.utils.patch.PatchList.OVERRIDE_YOUTUBE_MUSIC_B
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.getFiveRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -68,6 +70,19 @@ val overrideYouTubeMusicButtonsPatch = bytecodePatch(
             ),
             OVERRIDE_YOUTUBE_MUSIC_BUTTONS
         )
+
+        // Android 10 and older check the original package before dispatching a deep link.
+        AppDeepLinkEndpointFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches[1].index
+                replaceInstruction(
+                    index,
+                    "invoke-static { ${getFiveRegisters(index)} }, $EXTENSION_CLASS->" +
+                            "getApplicationInfo(Landroid/content/pm/PackageManager;Ljava/lang/String;I)" +
+                            "Landroid/content/pm/ApplicationInfo;"
+                )
+            }
+        }
 
         classDefForEach { classDef ->
             if (classDef.type == EXTENSION_CLASS) return@classDefForEach

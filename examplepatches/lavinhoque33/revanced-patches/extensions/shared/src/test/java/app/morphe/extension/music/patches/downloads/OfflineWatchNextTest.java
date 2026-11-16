@@ -2,7 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-09.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -52,6 +52,29 @@ public class OfflineWatchNextTest {
         StringBuilder joined = new StringBuilder();
         for (byte[] run : ProtoFields.all(text, 1)) joined.append(ProtoFields.string(run, 1));
         return joined.toString();
+    }
+
+    @Test
+    public void capturedNativeRowsKeepOrderDuplicatesEndpointsAndUnknownFields() throws Exception {
+        byte[] endpoint = OnlineWatchCommand.build("bbbbbbbbbbb", "PL-native", 1);
+        byte[] first = new ProtoWriter().string(10, "aaaaaaaaaaa").int32(6, 1)
+                .message(7, OnlineWatchCommand.build("aaaaaaaaaaa", "PL-native", 0))
+                .string(99, "unknown native metadata").toByteArray();
+        byte[] second = new ProtoWriter().string(10, "bbbbbbbbbbb").int32(6, 0)
+                .message(7, endpoint).toByteArray();
+        byte[] response = OfflineWatchNext.buildCaptured("PL-native", List.of(first, second, first), 1, endpoint);
+        byte[] captured = panel(response);
+
+        assertEquals(3, ProtoFields.all(captured, 2).size());
+        assertEquals("aaaaaaaaaaa", ProtoFields.string(track(captured, 0), 10));
+        assertEquals("bbbbbbbbbbb", ProtoFields.string(track(captured, 1), 10));
+        assertEquals("aaaaaaaaaaa", ProtoFields.string(track(captured, 2), 10));
+        assertEquals("unknown native metadata", ProtoFields.string(track(captured, 0), 99));
+        assertEquals(0, ProtoFields.varint(track(captured, 0), 6));
+        assertEquals(1, ProtoFields.varint(track(captured, 1), 6));
+        assertEquals(0, ProtoFields.varint(track(captured, 2), 6));
+        assertArrayEquals(endpoint, ProtoFields.one(track(captured, 1), 7));
+        assertArrayEquals(endpoint, ProtoFields.one(response, 9));
     }
 
     @Test public void theResponseHoldsTheQueueAndTheCurrentEndpointOnly() throws Exception {

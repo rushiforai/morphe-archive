@@ -1,4 +1,4 @@
-group = "app.apppatches"
+group = "me.toidicakhia"
 
 patches {
     about {

@@ -625,6 +625,18 @@ jobs:
       - name: Verify Morphe 2.3 on-demand RAW_ONLY manifest handling
         if: github.ref == 'refs/heads/dev'
         run: python3 porting/revisions/v2.0.4-dev.1/tests/verify.py
+      - name: Check v2.0.5-dev.17 menu translations and player issues
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.5-dev.17/tests/verify.py
+      - name: Test scrolling comment entry and multiline lane sizing
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.5-dev.5
+          mkdir -p /tmp/nicoid-comment-flow-tests
+          javac --release 8 -d /tmp/nicoid-comment-flow-tests "porting/revisions/v2.0.5-dev.4/java/e/e/a/CommentFlow220.java" "$revision/tests/CommentFlow220Test.java"
+          java -cp /tmp/nicoid-comment-flow-tests CommentFlow220Test
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -694,13 +706,14 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
-      - name: Build current Morphe Kotlin patch classes for v2.0.4-dev.1
+      - name: Build current Morphe Kotlin patch classes for v2.0.5-dev.17
         if: github.ref == 'refs/heads/dev'
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid --no-daemon
       - name: Build guarded v2 candidate MPP from stable release and validated sources
+        id: candidate
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         shell: bash
         run: |
@@ -709,29 +722,43 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.4-dev.1
-            version=2.0.4-dev.1
+            version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
+            test -n "$version"
+            # The archived dev.17 overlay is only valid with its exact compiled version.
+            # Stable and subsequent versions already contain the canonical compiled MPP.
+            if [[ "$version" == "2.0.5-dev.17" ]]; then
+              builder=porting/revisions/v2.0.5-dev.17
+            else
+              builder=""
+            fi
           fi
-          payload="/tmp/nicoid-re-$version-payload.mpp"
           output="/tmp/nicoid-re-$version.mpp"
-          python3 "$builder/build_mpp.py" \
-            --base /tmp/stable-nicoid.mpp \
-            --tools "$revision/tools" --media "$revision/deps" \
-            --ci-without-apk \
-            --compile-jar /tmp/nicoid-v2-okhttp.jar \
-            --compile-jar /tmp/nicoid-v2-okio.jar \
-            --output "$payload"
-          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$payload"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
+          if [[ -n "$builder" ]]; then
+            payload="/tmp/nicoid-re-$version-payload.mpp"
+            python3 "$builder/build_mpp.py" \
+              --base /tmp/stable-nicoid.mpp \
+              --tools "$revision/tools" --media "$revision/deps" \
+              --ci-without-apk \
+              --compile-jar /tmp/nicoid-v2-okhttp.jar \
+              --compile-jar /tmp/nicoid-v2-okio.jar \
+              --output "$payload"
+            python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$payload"
+            if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+              python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
+            else
+              cp "$payload" "$output"
+            fi
           else
-            cp "$payload" "$output"
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            cp "$compiled" "$output"
           fi
+          unzip -tq "$output"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {
-            echo "nicoid Re $version — development verification only"
+            echo "nicoid Re $version — private CI verification only"
             echo "Branch: $GITHUB_REF"
             echo "Commit: $GITHUB_SHA"
             echo "Source compilation and MPP structure verified"
@@ -741,23 +768,29 @@ jobs:
           } > /tmp/nicoid-v2-delivery/verification.txt
           test -s "$output"
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.4-dev.1-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
+          name: ${{ github.ref == 'refs/heads/dev' && format('nicoid-re-v{0}-mpp', steps.candidate.outputs.version) || 'nicoid-re-v2.0.0-dev-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
           retention-days: 2
 
       - name: Package complete source archives
+        id: source
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
           version=2.0.3-dev.5
-          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then version=2.0.3-dev.18; fi
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+            version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
+            test -n "$version"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           git archive -9 --format=zip --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.zip" HEAD
           git archive -9 --format=tar.gz --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.tar.gz" HEAD
           unzip -tq "/tmp/nicoid-v2-source/nicoid-re-$version-source.zip"
@@ -765,7 +798,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.18-source' || 'nicoid-re-v2.0.0-dev-source' }}
+          name: ${{ github.ref == 'refs/heads/dev' && format('nicoid-re-v{0}-source', steps.source.outputs.version) || 'nicoid-re-v2.0.0-dev-source' }}
           path: /tmp/nicoid-v2-source/*-source.zip
           compression-level: 0
           if-no-files-found: error
@@ -775,7 +808,7 @@ jobs:
       # both copies when only ZIP or tar.gz is required.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.18-source-targz' || 'nicoid-re-v2.0.0-dev-source-targz' }}
+          name: ${{ github.ref == 'refs/heads/dev' && format('nicoid-re-v{0}-source-targz', steps.source.outputs.version) || 'nicoid-re-v2.0.0-dev-source-targz' }}
           path: /tmp/nicoid-v2-source/*-source.tar.gz
           compression-level: 0
           if-no-files-found: error

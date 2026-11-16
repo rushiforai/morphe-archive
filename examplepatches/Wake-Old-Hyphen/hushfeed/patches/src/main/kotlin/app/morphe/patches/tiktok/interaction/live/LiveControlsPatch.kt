@@ -58,6 +58,7 @@ private const val RECORD_EXTENSION = "Lapp/morphe/extension/tiktok/live/LiveReco
 private const val PANEL_THEME = "Lapp/morphe/extension/tiktok/live/LivePanelTheme;"
 private const val QUALITY_LIST_COLORS = "Lapp/morphe/extension/tiktok/live/LiveQualityListColors;"
 private const val AUDIO_ONLY = "Lapp/morphe/extension/tiktok/live/LiveAudioOnly;"
+private const val PIP_RECORD_EXTENSION = "Lapp/morphe/extension/tiktok/live/LivePipRecord;"
 
 /** A LIVE room page, one fragment per room in the room pager, real-named on 47.1.4. */
 internal const val LIVE_PLAY_FRAGMENT = "Lcom/bytedance/android/livesdk/chatroom/ui/LivePlayFragment;"
@@ -77,6 +78,39 @@ internal object LivePlayFragmentResumeFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
 )
+
+private const val PIP_PARAMS_BUILDER = "Landroid/app/PictureInPictureParams\$Builder;"
+
+/**
+ * Where a LIVE room page sets the buttons of TikTok's own picture-in-picture window (#413): it
+ * builds a list holding its play and pause button, a "media_control" broadcast, and hands it to
+ * the window's params builder. The hook adds the Record button to that list just before.
+ */
+internal object LivePipActionsFingerprint : Fingerprint(
+    definingClass = LIVE_PLAY_FRAGMENT,
+    returnType = "V",
+    strings = listOf("media_control"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = PIP_PARAMS_BUILDER,
+            name = "setActions",
+            parameters = listOf("Ljava/util/List;"),
+        ),
+    ),
+)
+
+/** The one `setActions` call of [method] and the register holding its list. */
+internal fun livePipActionsCall(method: Method): Pair<Int, Int> {
+    val calls = method.implementation?.instructions?.withIndex()?.filter { (_, instruction) ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_VIRTUAL && reference?.definingClass == PIP_PARAMS_BUILDER &&
+            reference.name == "setActions"
+    }.orEmpty()
+    val call = calls.singleOrNull()
+        ?: throw PatchException("LIVE controls: expected one PiP setActions call, found ${calls.size}")
+    return call.index to (call.value as FiveRegisterInstruction).registerD
+}
 
 /**
  * The one field of [fragment] that holds its room. The recording button reads the room from the
@@ -109,6 +143,60 @@ internal object LivePreviewAutoEnterFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
     strings = listOf("live_preview_page_enable_auto_entering_guide", "homepage_follow"),
+)
+
+/** The AI Summary card on a feed LIVE preview, real-named on 47.7.3 (#418). */
+internal const val LIVE_AI_SUMMARY_WIDGET =
+    "Lcom/ss/android/ugc/aweme/feed/adapter/widget/aisummary/LiveAiSummaryWidget;"
+
+/** The base widget's hide, which TikTok's own paths run on the card when a LIVE has no summary. */
+internal const val LIVE_WIDGET_HIDE = "Lcom/bytedance/android/widget/Widget;->hide()V"
+
+/**
+ * The card's show override. Both of its own show paths (the bind with the LIVE's summary, and a
+ * new summary arriving from the room) call the base widget's show, which lands here, and the
+ * override then sends the card's livesdk_ai_summary_show event. Returning through the card's hide
+ * at entry leaves it the way TikTok leaves a LIVE with no summary.
+ */
+internal object LiveAiSummaryShowFingerprint : Fingerprint(
+    definingClass = LIVE_AI_SUMMARY_WIDGET,
+    name = "show",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+/**
+ * The newer AI Summary card, a bottom card the LIVE preview's interaction layer loads instead of
+ * or beside the older one when the room's LiveNewAiSummaryConfig is enabled (#418). It never goes
+ * through the base widget's show, so the older card's guard can't reach it. Real-named on 47.7.3.
+ */
+internal const val LIVE_AI_SUMMARY_NEW_WIDGET =
+    "Lcom/ss/android/ugc/aweme/feed/adapter/widget/aisummary/LivePreviewAiSummaryNewWidget;"
+
+/** The room's newer-card settings, a real-named server config read through LX/1KO2 on 47.7.3. */
+internal const val LIVE_NEW_AI_SUMMARY_CONFIG = "Lcom/ss/android/ugc/aweme/ab/LiveNewAiSummaryConfig;"
+
+/**
+ * The newer card's countdown (startCountDownToShow, e2 on 47.7.3). Its bind, its slot observer
+ * and its holder-selected path all run it, and it's the only place that arms the runnable that
+ * claims the bottom-card slot and makes the card visible, after the room's delayShowInterval.
+ */
+internal object LiveAiSummaryNewCountdownFingerprint : Fingerprint(
+    definingClass = LIVE_AI_SUMMARY_NEW_WIDGET,
+    returnType = "V",
+    parameters = listOf(),
+    filters = listOf(fieldAccess(definingClass = LIVE_NEW_AI_SUMMARY_CONFIG, name = "delayShowInterval")),
+)
+
+/**
+ * The newer card's hide (f2 on 47.7.3). Handed false it sets the card's view GONE and frees the
+ * bottom-card slot, and it returns at once when the card isn't up.
+ */
+internal object LiveAiSummaryNewHideFingerprint : Fingerprint(
+    definingClass = LIVE_AI_SUMMARY_NEW_WIDGET,
+    returnType = "V",
+    parameters = listOf("Z"),
+    strings = listOf("ttlive_preview_ai_summary"),
 )
 
 /** TikTok's server setting for its newer LIVE quality picker, real-named on 47.1.4. */
@@ -1655,15 +1743,31 @@ internal fun guideBubbleView(builder: Method, classOf: (String) -> ClassDef?): S
     }
 
 /**
- * Hands the context the bubble's constructor gets to the extension before anything reads it, which
- * answers the room's light theme over a darkened room, so the bubble inflates as TikTok shows it in
- * light mode. Nothing touches the view before its super call, so the swap goes in first.
+ * The container LIVE anchors its toolbar tips in, the creator's direct message tip among them
+ * (X.0Xoe on 47.7.3, #362): the one FrameLayout answering getWindowRect, beside getAnchorRect.
+ * TikTok draws the tip white, and its text took the darkened room's white, so it read white on
+ * white. Its (Context) constructor builds the tip's own view from that context too.
  */
-internal fun hookGuideBubble(constructor: MutableMethod) {
+internal object LiveAnchorTipFingerprint : Fingerprint(
+    returnType = "Landroid/graphics/Rect;",
+    parameters = listOf(),
+    custom = { method, classDef ->
+        method.name == "getWindowRect" && classDef.superclass == "Landroid/widget/FrameLayout;" &&
+            classDef.methods.any { it.name == "getAnchorRect" }
+    },
+)
+
+/**
+ * Hands the context a white LIVE view's constructor gets to the extension before anything reads
+ * it, which answers the room's light theme over a darkened room, so the view inflates as TikTok
+ * shows it in light mode. Nothing touches the view before its super call, so the swap goes in
+ * first.
+ */
+internal fun hookLightRoomView(constructor: MutableMethod, view: String) {
     if (constructor.name != "<init>" ||
         constructor.parameterTypes.map(CharSequence::toString) != listOf("Landroid/content/Context;")
     ) {
-        throw PatchException("LIVE controls: the gift guide bubble has no constructor taking a Context")
+        throw PatchException("LIVE controls: $view has no constructor taking a Context")
     }
     constructor.addInstructions(
         0,
@@ -1698,6 +1802,29 @@ internal fun liveColorTheme(onCreate: Method): MethodReference? =
                 it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Z")
         }
     }?.distinct()?.singleOrNull()
+
+/**
+ * TikTok's LIVE color theme asks LIVE's dark theme answer and applies the dark or the light LIVE
+ * color overlay. Over a darkened room it picks the dark one, and the room's light copy needs the
+ * light one: the creator's DM tip took the dark one's white text on its white bubble (#362, Login2,
+ * 2026-11-13). Its first instruction hands its context and force to the extension, which runs it
+ * once more on the copy through [bridge], the empty extension method this fills with the call.
+ */
+internal fun hookLiveColorTheme(colorTheme: MutableMethod, bridge: MutableMethod) {
+    val parameters = colorTheme.parameterTypes.map(CharSequence::toString)
+    if (!AccessFlags.STATIC.isSet(colorTheme.accessFlags) || colorTheme.returnType != "V" ||
+        parameters != listOf("Landroid/content/Context;", "Z")
+    ) {
+        throw PatchException("LIVE controls: TikTok's LIVE color theme isn't a static (Context, boolean) call")
+    }
+    val styles = colorTheme.implementation?.instructions?.count {
+        ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let(::appliesRoomStyle) == true
+    } ?: 0
+    if (styles == 0) throw PatchException("LIVE controls: TikTok's LIVE color theme applies no style")
+    val call = "${colorTheme.definingClass}->${colorTheme.name}(Landroid/content/Context;Z)V"
+    colorTheme.addInstructions(0, "invoke-static {p0, p1}, $PANEL_THEME->liveColorTheme(Landroid/content/Context;Z)V")
+    bridge.addInstructions(0, "invoke-static {p0, p1}, $call")
+}
 
 /**
  * Sends every style [method] applies to a theme through the extension, which applies it with the
@@ -2254,7 +2381,7 @@ val liveControlsPatch = bytecodePatch(
         "clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. " +
         "Starts off. Turn it on in Hushfeed settings > Playback. " +
         "It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it " +
-        "(or hides that row altogether), " +
+        "(or hides that row altogether), can hide the AI summary on LIVE previews, " +
         "and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
 ) {
     category("Playback")
@@ -2271,6 +2398,20 @@ val liveControlsPatch = bytecodePatch(
             "LIVE controls",
             "invoke-static {}, $EXTENSION->skipAutoEnter()Z",
             "return-void",
+        )
+        // The feed LIVE preview's Summary card hides itself instead of showing (#418).
+        LiveAiSummaryShowFingerprint.method.guardAtEntry(
+            "LIVE controls",
+            "invoke-static {}, $EXTENSION->hideAiSummary()Z",
+            "invoke-virtual {p0}, $LIVE_WIDGET_HIDE\nreturn-void",
+        )
+        // The newer card never arms its show, and one already up (the switch flipped while it
+        // showed) goes through the card's own hide, which frees the bottom-card slot.
+        val newHide = LiveAiSummaryNewHideFingerprint.method
+        LiveAiSummaryNewCountdownFingerprint.method.guardAtEntry(
+            "LIVE controls",
+            "invoke-static {}, $EXTENSION->hideNewAiSummary()Z",
+            "const/4 v0, 0x0\ninvoke-virtual {p0, v0}, $LIVE_AI_SUMMARY_NEW_WIDGET->${newHide.name}(Z)V\nreturn-void",
         )
         // Both answer true while the switch is on; every other reader of the setting goes
         // through these two.
@@ -2386,14 +2527,19 @@ val liveControlsPatch = bytecodePatch(
         // room's white (#362), so its view inflates over the room's light theme.
         val bubble = guideBubbleView(LiveGuideBubbleFingerprint.method) { classDefByOrNull(it) }
             ?: throw PatchException("LIVE controls: the gift guide bubble's view is gone")
-        hookGuideBubble(mutableClassDefBy(bubble).methods.single {
+        hookLightRoomView(mutableClassDefBy(bubble).methods.single {
             it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
-        })
+        }, "the gift guide bubble")
+        // The toolbar tips (the creator's direct message tip) are white too, with text that took
+        // the darkened room's white (#362), so their container inflates over the light theme too.
+        hookLightRoomView(LiveAnchorTipFingerprint.classDef.methods.single {
+            it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
+        }, "the toolbar tip")
         // That light copy is taken before the room's color scheme styles, the style its base adds
         // in onCreate and TikTok's LIVE color theme, which the room's LIVE fragments apply as
         // they're created. The bubble inflated over a copy without them threw on its text (S22,
-        // 2026-11-08), so each of those calls goes through the extension, which gives the copy
-        // the style too.
+        // 2026-11-08), so the first two go through the extension, which gives the copy the style
+        // too, and the color theme runs on the copy as well, where it picks the light overlay.
         if (hookRoomStyles(LivePlayActivityThemeFingerprint.method) == 0) {
             throw PatchException("LIVE controls: the room's setTheme applies no color scheme style")
         }
@@ -2408,9 +2554,13 @@ val liveControlsPatch = bytecodePatch(
         }
         val colorTheme = liveColorTheme(LiveThemedFragmentCreateFingerprint.method)
             ?: throw PatchException("LIVE controls: TikTok's LIVE color theme wasn't found")
-        if (hookRoomStyles(mutableClassDefBy(colorTheme.definingClass).findMutableMethodOf(colorTheme)) == 0) {
-            throw PatchException("LIVE controls: TikTok's LIVE color theme applies no style")
-        }
+        hookLiveColorTheme(
+            mutableClassDefBy(colorTheme.definingClass).findMutableMethodOf(colorTheme),
+            mutableClassDefBy(PANEL_THEME).methods.single {
+                it.name == "applyLiveColorTheme" && it.returnType == "V" &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Z")
+            },
+        )
         // Its group chat row is the same kind of fixed white shape under text in the card theme's
         // colors (Login2, 2026-10-20), so the extension gives it the event box's fill.
         hookGroupChat(mutableClassDefBy(LiveProfileGroupChatFingerprint.method.definingClass).methods)
@@ -2444,6 +2594,14 @@ val liveControlsPatch = bytecodePatch(
             0,
             "invoke-static/range {p0 .. p0}, $RECORD_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
         )
+        // The same button in TikTok's own picture-in-picture window, next to its play and pause (#413).
+        LivePipActionsFingerprint.method.let { pipActions ->
+            val (setActions, list) = livePipActionsCall(pipActions)
+            pipActions.addInstructionsAtControlFlowLabel(
+                setActions,
+                "invoke-static/range {v$list .. v$list}, $PIP_RECORD_EXTENSION->addTo(Ljava/util/List;)V",
+            )
+        }
 
         // TikTok's LIVE Clear screen is separate from the feed's Clear display. The room's
         // controller changes state for both the menu and swipe gestures. Its constructor also

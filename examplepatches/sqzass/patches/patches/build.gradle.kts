@@ -9,7 +9,7 @@ group = "app.sqzass"
 patches {
     about {
         name = "Lustx Patches"
-        description = "Lustx Patches, by sqzass"
+        description = "Mainly universal patches. Pawxy patches don't fail to build, but fail to work."
         source = "git@github.com:sqzass/lustx-patches.git"
         author = "sqzass"
         contact = "na"

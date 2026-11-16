@@ -228,7 +228,7 @@ val currentFrameMediaArtworkPatch = bytecodePatch(
         "video frame, including while the screen is off. Long press the button to open the settings.",
     default = true,
 ) {
-    extendWith("extensions/current_frame_media_artwork.dex")
+    extendWith("extensions/youtube.dex")
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     execute {

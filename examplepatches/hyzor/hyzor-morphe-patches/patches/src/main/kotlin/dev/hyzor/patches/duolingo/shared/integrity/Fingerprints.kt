@@ -6,7 +6,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * `LoginRequest$EmailLoginRequest.<init>(String, String, String, LoginSignal)` in 6.104.3.
+ * `LoginRequest$EmailLoginRequest.<init>(String, String, String, LoginSignal)`; the signal
+ * argument is `Lri00;` in 6.104.5, unchanged since 6.104.3.
  *
  * The class itself is not obfuscated. Its fourth parameter is the login integrity signal; the
  * patch swaps that parameter for the app's own "empty" signal instance inside the constructor,
@@ -23,9 +24,9 @@ object EmailLoginRequestCtorFingerprint : Fingerprint(
 )
 
 /**
- * The email login request builder (`k3o.G0(String, String)` in 6.104.3, previously
- * `LoginFragmentViewModel`). It is the only method returning `EmailLoginRequest`, and it loads
- * the empty integrity signal with a `sget-object` before constructing the request.
+ * The email login request builder (`j3o.G0(String, String)` in 6.104.5, `k3o.G0` in 6.104.3,
+ * previously `LoginFragmentViewModel`). It is the only method returning `EmailLoginRequest`, and
+ * it loads the empty integrity signal with a `sget-object` before constructing the request.
  *
  * The class name is obfuscated and changed between versions, so this matches on the return type
  * and parameters instead.

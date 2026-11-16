@@ -10,29 +10,40 @@ import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.all.shared.isControlFlow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.w3c.dom.Element
 
-private fun overrideConstInClinit(mc: app.morphe.patcher.util.proxy.mutableTypes.MutableClass, fieldName: String, newSmali: String) {
-    val clinit = mc.methods.firstOrNull { it.name == "<clinit>" } ?: return
-    val mm = mc.methods.filterIsInstance<app.morphe.patcher.util.proxy.mutableTypes.MutableMethod>()
-        .firstOrNull { it.name == "<clinit>" } ?: return
+private fun overrideConstInClinit(
+    mc: MutableClass,
+    fieldName: String,
+    newSmali: String,
+) {
+    val mm = mc.methods
+        .filterIsInstance<MutableMethod>()
+        .firstOrNull { it.name == "<clinit>" }
+        ?: return
+
     val sputIdx = mm.instructions.withIndex().firstOrNull { (_, ins) ->
         (ins.opcode == Opcode.SPUT_OBJECT || ins.opcode == Opcode.SPUT) &&
             ins.getReference<FieldReference>()?.name == fieldName
     }?.index ?: return
-    val sput = mm.getInstruction(sputIdx) as OneRegisterInstruction
-    val srcReg = sput.registerA
+
+    val srcReg = (mm.getInstruction(sputIdx) as OneRegisterInstruction).registerA
+
     for (j in sputIdx - 1 downTo 0) {
         val ins = mm.getInstruction(j)
+
+        if (isControlFlow(ins.opcode)) return
+
         if (ins is OneRegisterInstruction && ins.registerA == srcReg) {
             mm.replaceInstruction(j, newSmali.replace("%REG", "v$srcReg"))
             return
         }
-        val op = ins.opcode
-        if (op == Opcode.GOTO || op.name.startsWith("if-") || op.name.startsWith("return")) return
     }
 }
 

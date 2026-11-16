@@ -24,9 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -35,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 import app.morphed.extension.twitch.adblock.RequestStats;
 
 /**
- * Detailed log written to a text file in Downloads while the "Detailed log" setting is on.
+ * Debug mode's log: written to a text file in Downloads and shown live in the log window while it is on.
  * Nothing is collected while it is off.
  */
 public final class DebugLog {
@@ -68,8 +70,32 @@ public final class DebugLog {
     private DebugLog() {
     }
 
+    /** Gets each line as it's written (the live log window). */
+    public interface LineListener {
+        void line(String line);
+    }
+
+    private static final int KEEP_LINES = 400;
+    private static final ArrayDeque<String> RECENT = new ArrayDeque<>();
+    private static final CopyOnWriteArrayList<LineListener> LISTENERS = new CopyOnWriteArrayList<>();
+
     public static boolean isOn() {
         return writer != null;
+    }
+
+    /** The latest lines, oldest first. */
+    public static java.util.List<String> recent() {
+        synchronized (RECENT) {
+            return new java.util.ArrayList<>(RECENT);
+        }
+    }
+
+    public static void addListener(LineListener listener) {
+        LISTENERS.add(listener);
+    }
+
+    public static void removeListener(LineListener listener) {
+        LISTENERS.remove(listener);
     }
 
     /** Resumes logging after an app restart if the setting was left on. */
@@ -80,12 +106,12 @@ public final class DebugLog {
         if (context != null && preferences(context).getBoolean(KEY_ENABLED, false)) start(context);
     }
 
-    static boolean isEnabled(Context context) {
+    public static boolean isEnabled(Context context) {
         return preferences(context).getBoolean(KEY_ENABLED, false);
     }
 
     /** Returns the log file name when turned on, or the name of the finished file when turned off. */
-    static synchronized String setEnabled(Context context, boolean enabled) {
+    public static synchronized String setEnabled(Context context, boolean enabled) {
         checkedOnStart = true;
         preferences(context).edit().putBoolean(KEY_ENABLED, enabled).apply();
         String name = fileName;
@@ -101,8 +127,21 @@ public final class DebugLog {
         // The line goes to the file open now; tasks run in order, so it lands before that file's close.
         Writer target = writer;
         if (target == null) return;
-        String line = timestamp() + " [" + Thread.currentThread().getName() + "] " + message + "\n";
+        String time = timestamp();
+        String line = time + " [" + Thread.currentThread().getName() + "] " + message + "\n";
         IO.execute(() -> write(target, line));
+        String shown = time + " " + message;
+        synchronized (RECENT) {
+            RECENT.addLast(shown);
+            while (RECENT.size() > KEEP_LINES) RECENT.removeFirst();
+        }
+        for (LineListener listener : LISTENERS) {
+            try {
+                listener.line(shown);
+            } catch (Throwable t) { // logging is called from every thread: a listener's fault mustn't spread
+                Log.e(TAG, "A log listener failed", t);
+            }
+        }
     }
 
     private static void write(Writer target, String line) {
@@ -115,7 +154,7 @@ public final class DebugLog {
                 HEARTBEAT.schedule(() -> flush(target), 1, TimeUnit.SECONDS);
             }
         } catch (IOException e) {
-            failed(target, "Writing the detailed log failed", e);
+            failed(target, "Writing the debug log failed", e);
         }
     }
 
@@ -128,7 +167,7 @@ public final class DebugLog {
             try {
                 target.flush();
             } catch (IOException e) {
-                failed(target, "Writing the detailed log failed", e);
+                failed(target, "Writing the debug log failed", e);
             }
         });
     }
@@ -167,7 +206,7 @@ public final class DebugLog {
         } catch (IOException | RuntimeException e) {
             Log.e(TAG, "Could not create the log file", e);
             preferences(context).edit().putBoolean(KEY_ENABLED, false).apply();
-            tell("Detailed log could not be created in Downloads: " + e.getMessage());
+            tell("The debug log couldn't be created in " + folder() + ": " + e.getMessage());
             return;
         }
         log("Log started. Android " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + "), "
@@ -195,7 +234,7 @@ public final class DebugLog {
             } catch (IOException e) {
                 // The last lines may be missing from the file.
                 Log.e(TAG, "Closing the log failed", e);
-                if (tellFailure) tell("Saving the detailed log failed: " + e.getMessage());
+                if (tellFailure) tell("Saving the debug log failed: " + e.getMessage());
             }
         });
     }
@@ -205,6 +244,12 @@ public final class DebugLog {
         long usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
         log("Status: threads=" + Thread.activeCount() + ", memory=" + usedMb + "/" + runtime.maxMemory() / (1024 * 1024)
                 + "MB, " + RequestStats.summaryAndReset());
+    }
+
+    /** Where the log files go, as the user finds them in a file manager. */
+    public static String folder() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? "Downloads"
+                : "Android/data/tv.twitch.android.app/files/Download";
     }
 
     private static OutputStream open(Context context, String name) throws IOException {

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-12.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -196,6 +196,18 @@ public final class OfflineReplayHooks {
         } catch (Throwable failure) {
             disable("watch-next", failure);
             return stock;
+        }
+    }
+
+    @Nullable
+    public static ListenableFuture<?> localNext(Object request) {
+        if (!usable()) return null;
+
+        try {
+            return OfflineReplay.localNext(request);
+        } catch (Throwable failure) {
+            disable("local watch-next", failure);
+            return null;
         }
     }
 

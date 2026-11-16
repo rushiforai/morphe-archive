@@ -30,7 +30,11 @@ public final class GoogleAuth {
         }
     }
 
-    /** Password, passkey and clear-credential requests retain their original providers. */
+    /**
+     * Password, passkey and clear-credential requests retain their original providers. The Sign-In
+     * client itself is pinned per client (see isTrustedMicrogInstalled), so anything that still uses
+     * the Identity Sign-In API, such as the pre-25.24 GMS clear-credential fallback, reaches MicroG.
+     */
     public static boolean shouldUseMicrog(Context context, Object request) {
         return isGoogleIdOnlyRequest(request) && isTrustedMicrogInstalled(context);
     }

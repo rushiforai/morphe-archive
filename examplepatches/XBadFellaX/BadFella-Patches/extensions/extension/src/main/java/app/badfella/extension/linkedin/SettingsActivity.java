@@ -383,11 +383,11 @@ public final class SettingsActivity extends Activity {
                         "Remove tracking parameters (utm, trk, rcm, ...) when copying or sharing LinkedIn links.");
             }
             if (Settings.isAnonymousProfileViewingIncluded()) {
-                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
+                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, true, "Anonymous profile viewing",
                         "Doesn't send the analytics events of profile pages, so your visits aren't listed in other people's viewers. Experimental.");
             }
             if (Settings.isBlockTrackingIncluded()) {
-                privacy.toggle(Settings.BLOCK_TRACKING, false, "Block tracking",
+                privacy.toggle(Settings.BLOCK_TRACKING, true, "Block tracking",
                         "Doesn't send most analytics events. Turn off if something behaves oddly.");
             }
             categories.add(privacy);
@@ -409,13 +409,15 @@ public final class SettingsActivity extends Activity {
                 })
                 .action("Export settings", "Copy all settings to the clipboard as a backup.", this::exportSettings)
                 .action("Import settings", "Paste a settings backup from the clipboard.", this::importSettings)
-                .action("Reset to defaults", "Reset all BadFella Patches settings.", this::resetSettings)
+                .action("Reset to defaults", "Reset all BadFella Patches settings.", this::resetSettings));
+        categories.add(new Category("Diagnostics", IconDrawable.MORE)
                 .toggle(Settings.DEBUG_LOGGING, false, "Diagnostic logging",
-                        "Adds more details to the diagnostic report. Turn it on, repeat the problem, then copy "
-                                + "the report.")
-                .action("Copy diagnostic report", "App, device, and patch details with the recent log, for a bug "
-                        + "report. Links and IDs are removed.", this::copyDiagnosticReport)
-                .action("Clear diagnostic log", "Deletes the saved log.", this::clearDiagnosticLog));
+                        "Counts fixed event categories only. Account details and content are not recorded.")
+                .action("Start performance capture", "Returns to LinkedIn for a 20-second capture. Scroll where it feels slow, then reopen Diagnostics. Only frame and hook timings are collected.", this::startPerformanceCapture)
+                .action("Stop performance capture", "Stops the current capture and keeps its numeric results.", PerformanceCapture::stop)
+                .action("Copy diagnostic report", "Copies versions, device, boolean choices, event counts and performance results. No account identity or content.", this::copyDiagnosticReport)
+                .action("Save diagnostic report", "Saves the same privacy-safe report as a text file you can attach to a GitHub issue. Review it before sharing.", this::saveDiagnosticReport)
+                .action("Clear diagnostic data", "Clears event counts, extension errors and the last performance capture. Other app data is kept.", this::clearDiagnosticLog));
         return categories;
     }
 
@@ -503,6 +505,7 @@ public final class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Diagnostics.discardLegacyLog(this);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) actionBar.hide();
 
@@ -1116,19 +1119,96 @@ public final class SettingsActivity extends Activity {
 
     // region Backup
 
-    private void copyDiagnosticReport() {
+    private static final int SAVE_DIAGNOSTICS = 7412;
+    private boolean diagnosticExportRunning;
+
+    private void startPerformanceCapture() {
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Start performance capture"))
+                .setMessage(I18n.tr("For 20 seconds, scroll the LinkedIn screen that feels slow. Then reopen Diagnostics and save the report. No screen text, account identity, links or messages are captured. Results stay on this device until you copy or save them."))
+                .setPositiveButton(I18n.tr("Start"), (dialog, which) -> {
+                    Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                    if (launch == null) {
+                        Downloads.toast(this, "Couldn't open LinkedIn. Capture not started.");
+                        return;
+                    }
+                    if (!PerformanceCapture.start(getApplication())) {
+                        Downloads.toast(this, "A capture is already running, or could not start.");
+                        return;
+                    }
+                    try {
+                        startActivity(launch);
+                        finish();
+                    } catch (RuntimeException failure) {
+                        PerformanceCapture.stop();
+                        Downloads.toast(this, "Couldn't open LinkedIn. Capture stopped.");
+                    }
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null).show());
+    }
+
+    private void copyDiagnosticReport() { exportDiagnosticReport(null); }
+
+    private void saveDiagnosticReport() {
+        if (diagnosticExportRunning) return;
+        PerformanceCapture.stop();
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("text/plain").putExtra(Intent.EXTRA_TITLE, "badfella-linkedin-diagnostics.txt");
         try {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, Diagnostics.report(this)));
-            Downloads.toast(this, "Diagnostic report copied. Paste it into your bug report.");
-        } catch (Exception e) {
-            Downloads.toast(this, I18n.f("Export failed: %1$s", e.getMessage()));
+            startActivityForResult(intent, SAVE_DIAGNOSTICS);
+        } catch (RuntimeException failure) {
+            Downloads.toast(this, "Couldn't open the file picker. Copy the report instead.");
         }
+    }
+
+    @Override
+    protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request == SAVE_DIAGNOSTICS && result == RESULT_OK && data != null && data.getData() != null) {
+            exportDiagnosticReport(data.getData());
+        }
+    }
+
+    /** Build and write reports away from the drawing thread, as Hush does. */
+    private void exportDiagnosticReport(Uri destination) {
+        if (diagnosticExportRunning) return;
+        diagnosticExportRunning = true;
+        PerformanceCapture.stop();
+        Context app = getApplicationContext();
+        new Thread(() -> {
+            try {
+                String report = Diagnostics.report(app);
+                if (destination != null) {
+                    try (java.io.OutputStream output = app.getContentResolver().openOutputStream(destination, "wt")) {
+                        if (output == null) throw new java.io.IOException("No output stream");
+                        output.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    }
+                }
+                runOnUiThread(() -> {
+                    diagnosticExportRunning = false;
+                    if (isFinishing() || isDestroyed()) return;
+                    try {
+                        if (destination == null) {
+                            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, report));
+                        }
+                        Downloads.toast(this, destination == null ? "Diagnostic report copied. Paste it into your bug report." : "Diagnostic report saved. Review it before sharing.");
+                    } catch (RuntimeException failure) {
+                        Downloads.toast(this, "Couldn't export diagnostics. Try again.");
+                    }
+                });
+            } catch (Exception failure) {
+                runOnUiThread(() -> {
+                    diagnosticExportRunning = false;
+                    if (!isFinishing() && !isDestroyed()) Downloads.toast(this, "Couldn't export diagnostics. Try again.");
+                });
+            }
+        }, "badfella-diagnostic-export").start();
     }
 
     private void clearDiagnosticLog() {
         Diagnostics.clear();
-        Downloads.toast(this, "Diagnostic log cleared");
+        Downloads.toast(this, "Diagnostic data cleared");
     }
 
     private void exportSettings() {

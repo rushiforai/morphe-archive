@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+        for (ClientType clientType : clients) {
+            if (skipClient(clientType) || skipWebClient(clientType, videoId)) {
+=======
+        for (ClientType clientType : clientOrder) {
+            if (skipClient(clientType)) {
+>>>>>>> v2.3.0-dev.7

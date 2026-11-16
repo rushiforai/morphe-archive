@@ -89,12 +89,10 @@ public final class MediaUploadPolicy {
                     || (u.getPort()!=-1 && u.getPort()!=443) || u.getRawQuery()!=null || u.getRawFragment()!=null) return false;
             String host = u.getHost(),path=u.getPath();
             if (host==null || path==null) return false;
-            if(UGUU.equals(provider))return (host.equals("uguu.se")||host.equals("a.uguu.se"))&&path.matches("/[A-Za-z0-9_-]{1,128}\\.(?i:jpg|jpeg|png|gif|webp|mp4|webm|mov)");
-            if (SENDVID.equals(provider)) return host.equals("sendvid.com") && path.matches("/[A-Za-z0-9]{4,64}");
-            if (provider.equals(IMGBOX)) return host.matches("images[0-9]*\\.imgbox\\.com")
-                    && path.matches("/[a-zA-Z0-9/_-]+\\.(?i:jpg|jpeg|png|gif)");
-            return provider.equals(IMGPILE) && host.equals("cdn.imgpile.com")
-                    && path.matches("/f/[a-zA-Z0-9_-]+\\.(?i:jpg|jpeg|png|gif|webp|mp4|webm|mov)");
+            if(UGUU.equals(provider))return path.matches("/[A-Za-z0-9_-]{1,128}\\.(?i:jpg|jpeg|png|gif|webp|mp4|webm|mov)");
+            if (SENDVID.equals(provider)) return path.matches("/[A-Za-z0-9]{4,64}");
+            if (provider.equals(IMGBOX)) return path.matches("/[a-zA-Z0-9/_-]+\\.(?i:jpg|jpeg|png|gif)");
+            return provider.equals(IMGPILE) && path.matches("/f/[a-zA-Z0-9_-]+\\.(?i:jpg|jpeg|png|gif|webp|mp4|webm|mov)");
         } catch (Exception ignored) { return false; }
     }
     public static String extension(String mime) {

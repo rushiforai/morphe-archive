@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-13.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -167,7 +168,9 @@ public class PlayerPatch {
     }
 
     public static boolean changeMiniPlayerColor() {
-        return Settings.CHANGE_MINIPLAYER_COLOR.get();
+        return Settings.CHANGE_MINIPLAYER_COLOR.get()
+                || (Settings.MINIPLAYER_GLASS.get() && Settings.MINIPLAYER_GLASS_ALBUM_TINT.get())
+                || (Settings.NAVIGATION_BAR_GLASS.get() && Settings.NAVIGATION_BAR_GLASS_ALBUM_TINT.get());
     }
 
     /** Stores the resolved miniplayer color and immediately applies it to the navigation bar. */
@@ -190,6 +193,7 @@ public class PlayerPatch {
 
         lastMiniplayerColor = color;
         applyToNavigationBar(color);
+        notifyGlass();
     }
 
     /** Remembers the navigation bar and its theme color for immediate repainting. */
@@ -200,6 +204,8 @@ public class PlayerPatch {
 
     /** Overrides the navigation bar background while miniplayer color matching is enabled. */
     public static int overrideNavigationBarColor(int defaultColor) {
+        if (Settings.NAVIGATION_BAR_GLASS.get()) return Color.TRANSPARENT;
+
         final Integer color = lastMiniplayerColor;
         return color != null && matchNavigationBarEnabled() ? color : defaultColor;
     }
@@ -210,10 +216,11 @@ public class PlayerPatch {
         miniplayerDismissWindowUntilMs = SystemClock.uptimeMillis() + MINIPLAYER_DISMISS_WINDOW_MS;
         final Integer defaultColor = defaultNavigationBarColor;
         if (defaultColor != null) postNavigationBarColor(defaultColor);
+        notifyGlass();
     }
 
     private static void applyToNavigationBar(int color) {
-        if (!Settings.CHANGE_NAVIGATION_BAR_COLOR.get()) return;
+        if (!matchNavigationBarEnabled()) return;
         postNavigationBarColor(color);
     }
 
@@ -224,12 +231,38 @@ public class PlayerPatch {
 
     private static boolean matchNavigationBarEnabled() {
         return Settings.CHANGE_MINIPLAYER_COLOR.get()
-                && Settings.CHANGE_NAVIGATION_BAR_COLOR.get();
+                && Settings.CHANGE_NAVIGATION_BAR_COLOR.get()
+                && !Settings.NAVIGATION_BAR_GLASS.get();
     }
 
     /** Returns the selected app theme when dynamic miniplayer color matching is disabled. */
     public static int getMiniPlayerThemeColor() {
         return BaseThemeUtils.getThemeDarkColor();
+    }
+
+    @Nullable
+    public static Integer getLastMiniplayerColor() {
+        return lastMiniplayerColor;
+    }
+
+    private static void notifyGlass() {
+        app.morphe.extension.music.patches.MusicGlassNavigationBar.onAlbumColorChanged();
+        app.morphe.extension.music.patches.MusicGlassMiniplayer.onAlbumColorChanged();
+    }
+
+    /** Captures album tint independently of the solid miniplayer-color option. */
+    public static int resolveMiniplayerColor(int color) {
+        if (Settings.MINIPLAYER_GLASS.get() || Settings.NAVIGATION_BAR_GLASS.get()) {
+            if (SystemClock.uptimeMillis() >= miniplayerDismissWindowUntilMs) {
+                lastMiniplayerColor = color;
+                applyToNavigationBar(color);
+                notifyGlass();
+            }
+        } else {
+            setLastMiniplayerColor(color);
+        }
+        return Settings.CHANGE_MINIPLAYER_COLOR.get() && !Settings.MINIPLAYER_GLASS.get()
+                ? color : getMiniPlayerThemeColor();
     }
 
     public static int[] changePlayerBackgroundColor(int[] colors) {

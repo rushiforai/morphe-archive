@@ -315,6 +315,31 @@ public final class DeviceSpoofHelper {
     }
 
 
+    public static final String BLOCKED_FEATURE = "morphe.blocked.feature";
+
+    private static boolean isModernPixelFeature(String feature) {
+        if (feature == null) return false;
+        return feature.startsWith("com.google.android.feature.PIXEL_")
+                || feature.startsWith("com.google.android.apps.photos.PIXEL_");
+    }
+
+    private static boolean isPostPixel5Feature(String feature) {
+        if (feature == null) return false;
+        if (feature.startsWith("com.google.android.feature.PIXEL_")
+                || feature.startsWith("com.google.android.apps.photos.PIXEL_")) {
+            if (feature.contains("2020")
+                    || feature.contains("2019")
+                    || feature.contains("2018")
+                    || feature.contains("2017")
+                    || "com.google.android.feature.PIXEL_EXPERIENCE".equals(feature)
+                    || "com.google.android.apps.photos.PIXEL_PRELOAD".equals(feature)) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     public static String resolveSystemFeature(String feature) {
         if (isOriginalDevice()) {
             return feature;
@@ -327,6 +352,14 @@ public final class DeviceSpoofHelper {
         if ("com.google.android.feature.PIXEL_2020_EXPERIENCE".equals(feature)) {
             // Pixel 5: returns wifi (true) to enable unmetered Storage Saver.
             return isStorageSaver() ? "android.hardware.wifi" : feature;
+        }
+        if (isPixelXl() && isModernPixelFeature(feature)) {
+            // Mask modern Pixel features (2017+) on real Pixels so Photos falls through to NEXUS_PRELOAD.
+            return BLOCKED_FEATURE;
+        }
+        if (isStorageSaver() && isPostPixel5Feature(feature)) {
+            // Mask post-Pixel 5 features (2021+) on real Pixels so Photos falls through to PIXEL_2020_EXPERIENCE.
+            return BLOCKED_FEATURE;
         }
         return feature;
     }

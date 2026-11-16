@@ -8,7 +8,6 @@ import com.dmoniak.patches.shared.Constants.COMPATIBILITY_CRYPTOMATOR_FREEMIUM
 import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
-@Suppress("unused")
 val cryptomatorUnlockFullPatch = bytecodePatch(
     name = "Unlock Full Version & Permanent License - Cryptomator",
     description = "Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants.",
@@ -34,11 +33,9 @@ fun BytecodePatchContext.executeCryptomatorUnlockFullLogic(logger: Logger) {
         val tl = type.lowercase()
 
         // Skip non-Cryptomator third-party libraries
-        if (tl.contains("androidx") || tl.contains("com/google") || tl.contains("okhttp3") || tl.contains("retrofit")) {
-            return@classDefForEach
-        }
-
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
+        val isThirdParty = tl.contains("androidx") || tl.contains("com/google") || tl.contains("okhttp3") || tl.contains("retrofit")
+        if (!isThirdParty) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 2. FlavorConfig: Force isPremiumFlavor -> true
         if (type.contains("FlavorConfig")) {

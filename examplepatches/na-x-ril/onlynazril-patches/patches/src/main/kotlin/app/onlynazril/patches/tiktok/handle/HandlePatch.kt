@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
+import app.onlynazril.patches.tiktok.shared.ApplicationOnCreateFingerprint
 
 private const val HANDLE_DELEGATE = "Lapp/onlynazril/extension/tiktok/HandleDelegate;"
 private const val BIND_BRIDGE = "Lapp/onlynazril/extension/tiktok/BindBridge;"
@@ -132,7 +133,7 @@ private fun MutableMethod.injectBeforeReturns(body: String) {
  */
 @Suppress("unused")
 val tiktokHandlePatch = bytecodePatch(
-    name = "Always @handle · region · post time",
+    name = "Handle, time & region",
     description = "Shows the @handle, the region and the post time on feed videos and comments, " +
         "including a video shared into a chat. Each surface and each part has a switch in Tweaks.",
     default = true,
@@ -180,10 +181,12 @@ val tiktokHandlePatch = bytecodePatch(
                 "->onHeaderItem(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
 
-        // A comment's region goes on the comment's own time view, the way the feed's goes on the
+        // A comment's time goes on the comment's own time view, the way the feed's goes on the
         // post time: that view is already dimmer than the name and sits clear of it, so the region
         // reads as metadata instead of as part of the username, and it stays out of the way of the
         // verified badge that follows the name — TikTok's view, and not reorderable from here.
+        // The post time is rebuilt there too, from the same create time read the cell uses, so a
+        // comment follows the date format the feed does.
         //
         // Both registers come from the method itself: the comment, from the receiver of the create
         // time read, and the view, from the write that follows it. The bridge reads the region off

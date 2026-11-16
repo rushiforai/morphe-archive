@@ -292,17 +292,25 @@ public final class ProgrammableNgController {
     /** Adds the standard NGWord bit while preserving every flag ChMate already produced. */
     public static int mergeLegacyResponseFlags(Object adapter, Object response, int original) {
         original = RedIdAutoNg.merge(response, HiddenIdNg.merge(adapter, response, original));
-        if (!enabled && !SharedNg.enabled()) return HiddenNgUnread.observe(adapter,response,original);
+        if (!enabled && !SharedNg.enabled()) return observeResponseFlags(adapter,response,"o",original);
         try {
             if (!LEGACY_RESPONSE_MATCHES.containsKey(adapter)) prepareLegacyResponses(adapter);
             Set<Integer> matches = LEGACY_RESPONSE_MATCHES.get(adapter);
             if (matches != null && matches.contains(((Number) field(response, "o")).intValue())) {
-                return HiddenNgUnread.observe(adapter,response,original | 0x10);
+                return observeResponseFlags(adapter,response,"o",original | 0x10);
             }
         } catch (Exception error) {
             report("191レスフラグ", error);
         }
-        return HiddenNgUnread.observe(adapter,response,original);
+        return observeResponseFlags(adapter,response,"o",original);
+    }
+
+    private static int observeResponseFlags(Object owner, Object response, String numberField, int flags) {
+        if (FirstResponseNg.hasNgFlags(flags) && response != null) {
+            try { flags = FirstResponseNg.visibleFlags(((Number) field(response, numberField)).intValue(), flags); }
+            catch (ReflectiveOperationException | RuntimeException ignored) { }
+        }
+        return HiddenNgUnread.observe(owner, response, flags);
     }
 
     /** Keeps the response list in a range-encodable register for modern renderers. */
@@ -419,14 +427,14 @@ public final class ProgrammableNgController {
     /** Adds the same NGWord bit at the per-response boundary used by 226 dev. */
     public static int mergeModernResponseFlags(Object owner, Object response, int original) {
         original = RedIdAutoNg.merge(response, HiddenIdNg.merge(owner, response, original));
-        if ((!enabled && !SharedNg.enabled()) || context == null || response == null) return HiddenNgUnread.observe(owner,response,original);
+        if ((!enabled && !SharedNg.enabled()) || context == null || response == null) return observeResponseFlags(owner,response,"l",original);
         try {
             if (!MODERN_RESPONSE_MATCHES.containsKey(owner)) prepareModernResponses(owner);
             Set<Integer> matches = MODERN_RESPONSE_MATCHES.get(owner);
             // This boundary only needs the response number. Constructing ResponseData
             // here also parsed the whole body/name again for every native flag query.
             int number=((Number)field(response,"l")).intValue();
-            return HiddenNgUnread.observe(owner,response,matches != null && matches.contains(number) ? original | 0x10 : original);
+            return observeResponseFlags(owner,response,"l",matches != null && matches.contains(number) ? original | 0x10 : original);
         } catch (Exception error) {
             report("226レスフラグ", error);
             return original;
@@ -650,6 +658,9 @@ public final class ProgrammableNgController {
     private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs){
         boolean[] result=enabled?rules.evaluate(inputs):new boolean[inputs.size()];
         boolean[] shared=SharedNg.match(inputs);for(int i=0;i<result.length;i++)result[i]|=shared[i];return result;
+    }
+    static boolean[] notificationMatches(List<ProgrammableNgScript.Input> inputs){
+        return evaluateBodies(inputs);
     }
     private static boolean bodyRulesEnabled(){if(SharedNg.enabled())return true;if(!enabled)return false;for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;return false;}
     static String plain(String html) {

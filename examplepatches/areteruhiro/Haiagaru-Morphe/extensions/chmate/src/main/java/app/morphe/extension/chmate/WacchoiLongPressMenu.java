@@ -506,6 +506,7 @@ public final class WacchoiLongPressMenu {
         appendLegacy(fragmentObject,menuObject,responseObject,true);
     }
     private static boolean menuVisible(int id,boolean nameMenu){
+        if(ResponseMultiSelection.hideSearch(id))return false;
         return nameMenu?ResponseMenuSettings.nameMenuVisible(id):ResponseMenuSettings.visible(id);
     }
     private static void appendLegacy(Object fragmentObject,Object menuObject,Object responseObject,boolean nameMenu){

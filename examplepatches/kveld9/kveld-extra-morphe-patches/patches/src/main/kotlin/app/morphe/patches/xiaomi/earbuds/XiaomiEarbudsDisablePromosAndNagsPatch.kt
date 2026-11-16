@@ -4,6 +4,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 
 @Suppress("unused")
 val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
@@ -23,7 +26,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("DeviceSettingsFragment.loadBanner")
         }
 
@@ -34,7 +37,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("DeviceSettingsFragment.loadActivities")
         }
 
@@ -45,13 +48,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("InviteReviewManager.isShowDialog")
         }
 
@@ -62,13 +59,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
             hookedMethods.add("RegionPreference.getPRIVACY_AGREE")
         }
 
@@ -79,13 +70,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("RegionPreference.getPREF_PRIVACY_EXPERIENCE_TAG")
         }
 
@@ -113,13 +98,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
             hookedMethods.add("PrivacyPreference.getPrivacyDialogFinished")
         }
 
@@ -130,13 +109,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
             hookedMethods.add("ModePreference.getWelcomeFinish")
         }
 
@@ -147,6 +120,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Ljava/lang/String;",
         ).method.apply {
+            ensureRegisterCount(3)
             addInstructions(
                 0,
                 """
@@ -193,7 +167,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf("Landroidx/fragment/app/FragmentActivity;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CheckerPrivacyVersion.checkPrivacyChange")
         }
 
@@ -204,7 +178,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CheckerPrivacyVersion.reportAgreeTime")
         }
 
@@ -215,7 +189,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CheckerPrivacyVersion.reportRemovePrivacyAgreeTime")
         }
 
@@ -231,7 +205,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             ),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CheckerPrivacyVersion.showPrivacyChangeDialog")
         }
 
@@ -242,6 +216,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
+            ensureRegisterCount(3)
             addInstructions(
                 0,
                 """
@@ -268,7 +243,7 @@ val xiaomiEarbudsDisablePromosAndNagsPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("DeviceListFragment.requestBluetoothPermissionForS")
         }
 

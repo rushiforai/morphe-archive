@@ -14,7 +14,23 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.17.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.19.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+<details open>
+<summary>📦 Alpha Progression&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.7.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIP checks](#bypass-pairip-checks) | Disables PairIP's native VM, signature check and Play licence verdicts so a re-signed build does not open the Play Store listing or crash, and restores the VM-relocated string literals captured from the genuine build. Experimental: three VM-virtualized receiver/background methods fall back to default return values. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks all Pro features by forcing the web app's own client-side subscription gate (`proVersion.isActive` and the `pro-version` body class) to active. RevenueCat, Play Billing and the account's real server-side entitlement are left untouched. |  |
+
+</details>
+
 <details open>
 <summary>📦 HealthifyMe&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -47,6 +63,41 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Remove ads](#remove-ads) | Removes the sponsor ads (banner and gate screens) and the full-screen ads. The locked channel dialog is kept. |  |
 | [Remove bandwidth sharing (CashRaven)](#remove-bandwidth-sharing-cashraven) | Disables the CashRaven P2P bandwidth-sharing SDK: no opt-in, no background sharing service, no restart on boot, and the sharing menu entry is hidden. |  |
 | [Remove unnecessary permissions](#remove-unnecessary-permissions) | Removes the boot-persistence, advertising-ID, install-referrer and package-query permissions the patched build no longer needs. |  |
+
+</details>
+
+<details open>
+<summary>📦 MovieBox TV&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.2.3.1113.03 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Custom seek step](#custom-seek-step) | Lets the seek distance of the player's left/right keys be set inside the app. Applies to the D-pad and to the media rewind/fast-forward keys, and adds "Seek 30s/1m/5m/10m/30m" choices to the SPEED tab of the player settings panel. | • Default seek step (seconds) |
+| [Disable forced update](#disable-forced-update) | Hides the blocking update dialog and the update prompt. |  |
+| [Prefer highest resolution](#prefer-highest-resolution) | Starts playback at the best available resolution instead of the built-in 480p default. An explicit choice in the settings panel still takes precedence. |  |
+| [Serve requested resolution](#serve-requested-resolution) | Uses the signed DASH streams of the mobile play-info endpoint, so 480p/720p/1080p/4K actually select a real video track instead of reloading the same low-res MP4. Falls back to the TV streams when the mobile ladder is unavailable or lower. |  |
+| [Unlock VIP](#unlock-vip) | Reports the account as VIP, clears the per-title VIP locks and removes the visitor region block. |  |
+
+</details>
+
+<details open>
+<summary>📦 JuggernautAI&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.1.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Expo OTA updates](#disable-expo-ota-updates) | Stops the app from downloading a production JavaScript bundle over the embedded one. Required by bundle patches so a later Expo update cannot replace the patched JavaScript. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks all premium programs by initialising the app's own `SUBSCRIPTION_ENABLED` config flag to false at module init. That is the flag the paywall, the Subscription screen guard, the IAPHUB sync and the walkthrough check all read, so the app runs in its "subscriptions not live" mode: no paywall, premium programs selectable. Expo OTA updates are disabled so a downloaded JS bundle cannot overwrite the patched one. Store and server-side data are not affected. |  |
 
 </details>
 
@@ -182,21 +233,6 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks all premium content by forcing every premium gate ("true"===this.state.premium) and every premium flag seed to true in the web bundle. |  |
-
-</details>
-
-<details open>
-<summary>📦 0-100 Pushups&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.3.3 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Reports an active Zen Unlimited Pass: unlocks the Fitness Plans, the Zen music player and the Settings Unsubscribe entry, and removes the home banner ad and promo item. Billing is untouched. |  |
 
 </details>
 

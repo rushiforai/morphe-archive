@@ -98,6 +98,7 @@ def patches_table(patches):
             "NuvioTV - Indicate current stream": "docs/NuvioCurrentStream.md",
             "NuvioTV - GitHub APK updates": "docs/NuvioApkUpdates.md",
             "NuvioTV - Preferred source add-on": "docs/NuvioPreferredAddon.md",
+            "NuvioTV - Metadata add-on selection": "docs/NuvioMetadataAddon.md",
             "NuvioTV - Submit segments to IntroDB": "docs/NuvioIntroDb.md",
         }.get(p["name"], f"#{a}")
         options = p.get("options") or []

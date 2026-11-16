@@ -21,6 +21,7 @@ public final class ClientAdsPatch {
     /** Adds the Turbo reason to {@code reasons}; {@code reasonType} is the app's obfuscated reasons enum. */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void markIneligible(Set reasons, Class reasonType) {
+        if (!app.morphed.extension.twitch.settings.PatchSettings.adBlock()) return; // the switch is off: ads play
         try {
             Object reason = turboReason(reasonType);
             if (reason == null) {
@@ -42,6 +43,7 @@ public final class ClientAdsPatch {
      * reasons above). Only our Turbo reason in it means an ad was really due and is now blocked.
      */
     public static void onEligibilityDecided(Object result) {
+        if (!app.morphed.extension.twitch.settings.PatchSettings.adBlock()) return;
         try {
             if (!(result instanceof Set)) return;
             Set<?> reasons = (Set<?>) result;

@@ -1,9 +1,14 @@
 package app.morphe.patches.youtube.utils.playertype
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.string
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
@@ -16,6 +21,7 @@ import app.morphe.patches.youtube.utils.extension.Constants.COMPONENTS_PATH
 import app.morphe.patches.youtube.utils.extension.Constants.SHARED_PATH
 import app.morphe.patches.youtube.utils.extension.Constants.UTILS_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.resourceid.reelWatchPlayer
 import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -104,7 +110,12 @@ val playerTypeHookPatch = bytecodePatch(
             returnType = "V",
             parameters = listOf(PlayerTypeEnumFingerprint.originalClassDef.type),
             custom = { _, classDef ->
-                classDef.endsWith("/YouTubePlayerOverlaysLayout;")
+                if (is_21_41_or_greater) {
+                    classDef.type ==
+                            "Lcom/google/android/apps/youtube/app/player/YouTubePlayerViewNotForReflection;"
+                } else {
+                    classDef.endsWith("/YouTubePlayerOverlaysLayout;")
+                }
             }
         )
 
@@ -145,7 +156,16 @@ val playerTypeHookPatch = bytecodePatch(
             )
         ).originalClassDef.type
 
-        val dynamicVideoStateFingerprint = Fingerprint(
+        val dynamicVideoStateFingerprint = if (is_21_41_or_greater) Fingerprint(
+            returnType = "V",
+            accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+            parameters = listOf(controlStateType),
+            filters = listOf(
+                fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = controlStateType, type = "L"),
+                resourceLiteral(ResourceType.STRING, "accessibility_play"),
+                resourceLiteral(ResourceType.STRING, "accessibility_pause")
+            )
+        ) else Fingerprint(
             returnType = "V",
             accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
             parameters = listOf(controlStateType),
@@ -165,14 +185,25 @@ val playerTypeHookPatch = bytecodePatch(
 
         dynamicVideoStateFingerprint.let {
             it.method.apply {
-                val endIndex = it.instructionMatches.first().index + 1
+                val endIndex = it.instructionMatches.first().index + if (is_21_41_or_greater) 0 else 1
                 val videoStateFieldName =
                     getInstruction<ReferenceInstruction>(endIndex).reference
+                val stateCallback = "$EXTENSION_PLAYER_TYPE_HOOK_CLASS_DESCRIPTOR->setVideoState(Ljava/lang/Enum;)V"
 
-                addInstructions(
+                if (is_21_41_or_greater) {
+                    addInstructionsWithLabels(
+                        0,
+                        """
+                            if-eqz p1, :native_state
+                            iget-object v0, p1, $videoStateFieldName
+                            invoke-static {v0}, $stateCallback
+                        """,
+                        ExternalLabel("native_state", getInstruction(0))
+                    )
+                } else addInstructions(
                     0, """
                         iget-object v0, p1, $videoStateFieldName  # copyvideoState parameter field
-                        invoke-static {v0}, $EXTENSION_PLAYER_TYPE_HOOK_CLASS_DESCRIPTOR->setVideoState(Ljava/lang/Enum;)V
+                        invoke-static {v0}, $stateCallback
                         """
                 )
             }

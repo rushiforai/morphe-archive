@@ -23,11 +23,7 @@ private val MASONRY_PARAMETERS =
         "I",
     )
 
-object ListFeedFingerprint : Fingerprint(
-    definingClass = "Lcom/reddit/feeds/ui/composables/feed/",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters =
+private val LIST_FEED_PREFIX =
     listOf(
         "L",
         "L",
@@ -37,32 +33,19 @@ object ListFeedFingerprint : Fingerprint(
         "Lcom/reddit/feeds/data/FeedType;",
         "F",
         "Lkotlin/jvm/functions/Function2;",
-        "L",
-        "L",
-        "L",
-        "Lkotlin/jvm/functions/Function1;",
-        "Lkotlin/jvm/functions/Function0;",
-        "Lkotlin/jvm/functions/Function0;",
-        "Lkotlin/jvm/functions/Function0;",
-        "Lkotlin/jvm/functions/Function1;",
-        "Z",
-        "L",
-        "L",
-        "Lkotlin/jvm/functions/Function0;",
-        "L",
-        "F",
-        "L",
-        "Z",
-        "L",
-        "Lkotlin/jvm/functions/Function1;",
-        "F",
-        "L",
-        "L",
-        "I",
-        "I",
-        "I",
-        "I",
-    ),
+    )
+
+object ListFeedFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/feeds/ui/composables/feed/",
+    isStatic = true,
+    returnType = "V",
+    custom = { method, _ ->
+        val params = method.parameterTypes.map { it.toString() }
+        params.size >= LIST_FEED_PREFIX.size &&
+            LIST_FEED_PREFIX.zip(params).all { (expected, actual) ->
+                if (expected == "L") actual.startsWith("L") else actual == expected
+            }
+    },
 )
 
 object MasonryFeedFingerprint : Fingerprint(

@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 /**
  * The profile-background switch.
- *
+ * <p>
  * The app ships the feature behind an AB-test allow list
  * ({@code profile_bg_in_allow_list}), so the switch answers that gate for
  * accounts the server has not rolled out to. Off out of the box: the pickers
@@ -34,7 +34,7 @@ public final class ProfileBgSettings {
     /** The gate the patch asks: the master there is the switch itself. */
     public static boolean forceOn() {
         Context ctx = appContext();
-        return ctx != null && isEnabled(ctx);
+        return isEnabled(ctx);
     }
 
     private static SharedPreferences prefs(Context ctx) {

@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-13.
  * https://github.com/MorpheApp/morphe-patches/pull/4424
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
@@ -45,7 +45,7 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBar
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
-import app.morphe.extension.youtube.patches.general.GlassNavigationBarLayout;
+import app.morphe.extension.shared.ui.glass.GlassCapsuleGeometry;
 import app.morphe.extension.youtube.patches.general.GlassNavigationBarSizeValues;
 import app.morphe.extension.shared.settings.Setting.SliderConfig;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
@@ -126,7 +126,7 @@ public class GlassNavigationBarPreference extends Preference {
         Runnable update = () -> {
             preview.invalidate();
             shownButtons.setText(str("morphe_navigation_bar_glass_size_buttons_shown",
-                    Math.min(labels.size(), GlassNavigationBarLayout.shownButtons(GlassNavigationBar.getButtonsLayout(
+                    Math.min(labels.size(), GlassCapsuleGeometry.shownButtons(GlassNavigationBar.getButtonsLayout(
                             screenWidth, labels.size(), preview.getContentWidth(),
                             GlassNavigationBar.lastMinButtonWidth, pending[1], Dim.dp(pending[2])))),
                     labels.size()));
@@ -313,8 +313,8 @@ public class GlassNavigationBarPreference extends Preference {
             final int baseHeight = GlassNavigationBar.lastBaseHeight > 0 ? GlassNavigationBar.lastBaseHeight : Dim.dp48;
             final long layout = GlassNavigationBar.getButtonsLayout(screenWidth, buttons, contentWidth,
                     GlassNavigationBar.lastMinButtonWidth, values[1], Dim.dp(values[2]));
-            final int shownButtons = GlassNavigationBarLayout.shownButtons(layout);
-            final float buttonWidth = GlassNavigationBarLayout.buttonWidth(layout) * scale;
+            final int shownButtons = GlassCapsuleGeometry.shownButtons(layout);
+            final float buttonWidth = GlassCapsuleGeometry.buttonWidth(layout) * scale;
             final float capsuleHeight = GlassNavigationBar.getCapsuleHeight(baseHeight, contentHeight, values[0]) * scale;
             final float capsuleWidth = shownButtons * buttonWidth;
             final float left = (width - capsuleWidth) / 2;

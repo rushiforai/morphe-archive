@@ -24,6 +24,10 @@ updates:
       # version 10.x and later may not generate release notes correctly
       # https://github.com/conventional-changelog/conventional-changelog/issues/1495
       - dependency-name: "conventional-changelog-conventionalcommits"
+      # npm ships its own minimatch inside its package and overrides do not apply to
+      # bundled dependencies, so no installable npm release carries the patched 11.x yet.
+      # The top-level override keeps every other minimatch above the vulnerable range.
+      - dependency-name: "minimatch"
     groups:
       minor-and-patch:
         patterns:

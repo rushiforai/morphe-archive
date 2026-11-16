@@ -6,6 +6,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private object AppUtilsGetSignatureFingerprint : Fingerprint(
@@ -113,10 +115,7 @@ val capcutBypassSignaturePatch = bytecodePatch(
         )
         patched++
 
-        JniToastShowApkErrorFingerprint.method.addInstructions(
-            0,
-            "return-void",
-        )
+        JniToastShowApkErrorFingerprint.method.replaceWithReturnVoid()
         patched++
 
         InjectSignatureBlFingerprint.method.addInstructions(
@@ -137,19 +136,10 @@ val capcutBypassSignaturePatch = bytecodePatch(
         )
         patched++
 
-        GodzillaGateFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        GodzillaGateFingerprint.method.replaceWithReturnBoolean(false)
         patched++
 
-        CrackingVerdictPersistFingerprint.method.addInstructions(
-            0,
-            "return-void",
-        )
+        CrackingVerdictPersistFingerprint.method.replaceWithReturnVoid()
         patched++
 
         CrackingDialogRenderFingerprint.method.addInstructions(
@@ -173,19 +163,10 @@ val capcutBypassSignaturePatch = bytecodePatch(
         )
         patched++
 
-        PglSignatureCheckFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        PglSignatureCheckFingerprint.method.replaceWithReturnBoolean(false)
         patched++
 
-        PglSignatureValidateFingerprint.method.addInstructions(
-            0,
-            "return-void",
-        )
+        PglSignatureValidateFingerprint.method.replaceWithReturnVoid()
         patched++
 
         println("[Bypass Signature Check] Applied $patched hooks -> APK signature spoofed to official, tamper gates disabled, cracking verdict persistence and security dialog render stubbed, template-feed cracking interceptor neutralized, PGL signature verification stubbed.")

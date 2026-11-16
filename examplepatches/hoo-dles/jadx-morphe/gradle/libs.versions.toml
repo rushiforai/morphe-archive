@@ -8,7 +8,7 @@ kotlin-logging-jvm = "8.0.4"
 slf4j = "2.0.17"
 logback = "1.5.18"
 
-jadx = "1.5.5"
+jadx = "1.5.6"
 flatlaf = "3.7"
 flatlaf-extras = "3.7"
 rsyntaxtextarea = "3.6.1"

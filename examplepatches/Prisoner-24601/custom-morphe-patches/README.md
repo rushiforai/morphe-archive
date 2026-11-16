@@ -7,6 +7,7 @@ Add-on YouTube patches for use with [Morphe](https://morphe.software):
 - **Keyboard comments shortcut**: the `M` key shows and hides the comments of the video.
 - **Keyboard fullscreen shortcut**: the `F` key enters and exits fullscreen.
 - **Keyboard minimize shortcut**: the `Esc` key minimizes the video to the miniplayer.
+- **Keyboard frame step shortcuts**: the `,` and `.` keys step the video one frame back and forward.
 - **DeArrow original titles**: videos with a DeArrow title show both the DeArrow title and the
   original title, such as `Clear, descriptive title | YOU WON'T BELIEVE WHAT HAPPENED`.
 
@@ -31,7 +32,8 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 
 ### Keyboard comments, fullscreen and minimize shortcuts
 
-- `M` shows the comments panel of the open video, and closes it when it is open.
+- `M` shows the comments panel of the open video. If a panel is open, such as the comments
+  or the description, `M` closes it with the close button of the panel.
   `F` enters fullscreen, and exits it in fullscreen.
   `Esc` minimizes the video to the miniplayer, also from fullscreen or with the comments open.
 - The key of each is its **Key** patch option: a single letter or digit, `Esc`, `Backspace` or `Tab`.
@@ -41,6 +43,16 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   The fullscreen shortcut uses Morphe's fullscreen controller when **Exit fullscreen mode**,
   **Open videos fullscreen** or **Open Shorts in regular player** is applied, and otherwise
   taps the fullscreen button of the player.
+
+### Keyboard frame step shortcuts
+
+- `,` steps one frame back and `.` one frame forward, like on the YouTube website.
+  The video is paused first.
+- Holding `.` plays the video at 0.25x until the key is released, then pauses again.
+  Holding `,` keeps stepping back, 4 frames a second.
+- The length of a frame comes from the video quality, such as 60 fps for 1080p60, and 30 fps
+  if the quality has no frame rate. The **Frame rate** patch option sets a fixed frame rate instead.
+- `<` and `>` (with Shift) keep their default action.
 
 ### DeArrow original titles
 
@@ -62,15 +74,16 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.5.1](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [DeArrow original titles](#dearrow-original-titles) | Shows both the DeArrow title and the original title, instead of only the DeArrow title. Apply together with the Morphe YouTube patches, and turn on DeArrow titles in the Morphe settings. | • Separator<br>• Title order |
 | [Keyboard comments shortcut](#keyboard-comments-shortcut) | Makes a key of a hardware keyboard (M by default) show and hide the comments of the video. Apply together with the Morphe YouTube patches 2.2 or newer, which this patch uses to show the comments. | • Key |
+| [Keyboard frame step shortcuts](#keyboard-frame-step-shortcuts) | Makes the , and . keys of a hardware keyboard pause the video and step one frame back and forward, like on the YouTube website. Holding a key repeats the step. | • Frame rate |
 | [Keyboard fullscreen shortcut](#keyboard-fullscreen-shortcut) | Makes a key of a hardware keyboard (F by default) enter and exit fullscreen while a video is open. | • Key |
 | [Keyboard minimize shortcut](#keyboard-minimize-shortcut) | Makes a key of a hardware keyboard (Esc by default) minimize the open video to the miniplayer, also from fullscreen or with the comments open. | • Key |
 | [Keyboard speed shortcuts](#keyboard-speed-shortcuts) | Makes the - and = keys of a hardware keyboard decrease and increase the playback speed. Apply together with the Morphe YouTube patches, which this patch uses to change the speed. | • Speed step |

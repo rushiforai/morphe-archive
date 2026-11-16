@@ -148,7 +148,52 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
         return new SubredditBannerPatch().isPatchIncluded();
     }
 
+    /**
+     * Every feed a strip has been put above, weakly, so that whatever is told later reaches the
+     * one on the screen.
+     *
+     * <p>Opening a subreddit in a new window leaves two of them, and a window the reader has gone
+     * back from is still there with its own strip above its own posts. Only the main thread
+     * touches this.
+     */
+    private static final java.util.Map<ViewGroup, Boolean> FEEDS = new java.util.WeakHashMap<>();
+
+    /** Where to put work that has to happen where views can be touched. */
+    private static final android.os.Handler MAIN =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+
+    /**
+     * What is run when something is learnt about a subreddit: every feed on the screen is drawn
+     * again.
+     *
+     * <p>It is one unchanging object on purpose. What learns the banners keeps a single thing to
+     * tell, so a second window registering its own would be the only one ever told again — which
+     * is precisely what left a subreddit opened by a tap with no banner while the same subreddit
+     * opened in a new window had one. Which subreddit a feed is about is asked afresh here rather
+     * than remembered, since by now the screen may be showing another.
+     */
+    private static final Runnable LOOK_AGAIN = () -> MAIN.post(() -> {
+        String subreddit = SubredditBanners.showing();
+        if (subreddit == null) {
+            return;
+        }
+        for (ViewGroup feed : new java.util.ArrayList<>(FEEDS.keySet())) {
+            // A feed that is not on the screen is left with what it had: it belongs to a window
+            // the reader has gone back from, which is about its own subreddit, not this one.
+            if (feed == null || !feed.isShown()) {
+                continue;
+            }
+            try {
+                draw(feed, subreddit);
+            } catch (Throwable ex) {
+                Logger.printInfo(() -> "banner: could not be drawn again: " + ex);
+            }
+        }
+    });
+
     private static void draw(ViewGroup feed, String subreddit) {
+        FEEDS.put(feed, Boolean.TRUE);
+
         ViewGroup holder = feed.getParent() instanceof ViewGroup
                 ? (ViewGroup) feed.getParent() : null;
         if (holder == null) {
@@ -196,22 +241,14 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
         }
 
         strip.setTag(WHOSE, subreddit);
+        // Which feed the strip is standing above, so it can be told to go when that feed is no
+        // longer the one on the screen. Written every time, since the posts are given a new view
+        // whenever the app rebuilds them.
+        strip.setTag(FEED, feed);
+        followTheList(strip);
 
         final ImageView showing = strip;
-        Bitmap picture = SubredditBanners.bannerFor(subreddit,
-                () -> showing.post(() -> {
-                    try {
-                        // Asked again rather than taken from here: by the time this runs the
-                        // window may be showing something else, and drawing what it was showing
-                        // when the strip went up is how the last subreddit's banner stayed.
-                        String nowShowing = SubredditBanners.showing();
-                        if (nowShowing != null) {
-                            draw(feed, nowShowing);
-                        }
-                    } catch (Throwable ex) {
-                        Logger.printInfo(() -> "banner: could not be drawn: " + ex);
-                    }
-                }));
+        Bitmap picture = SubredditBanners.bannerFor(subreddit, LOOK_AGAIN);
         if (picture == null) {
             Logger.printDebug(() -> "banner: nothing to draw for r/" + subreddit + " yet");
             makeRoom(feed, 0);
@@ -227,7 +264,6 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
             showing.setClickable(true);
             showing.setOnClickListener(view -> open(view, link));
         }
-        followTheList(feed, showing);
         Logger.printDebug(() -> "banner: drawn for r/" + subreddit);
     }
 
@@ -250,17 +286,24 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
     }
 
     /**
-     * Moves the banner up with the posts, so it scrolls off rather than standing at the top.
+     * Keeps the strip with the feed it belongs to: moving up as the posts scroll, so it scrolls
+     * off rather than standing at the top, and going entirely while the posts are not what the
+     * screen is showing.
+     *
+     * <p>The strip is not in the feed's own view. That view is a refresh layout, which lays out
+     * its list and nothing else, so the strip goes in the container the feed sits in — which the
+     * app also puts the inbox in, hiding the posts rather than taking them away. Everything in
+     * that container therefore stays on the screen when the reader leaves the feed, and a strip
+     * that is not told to go hangs over whatever arrives next.
+     *
+     * <p>Which feed to ask is read from the strip rather than held here, because the posts are
+     * given a new view whenever the app rebuilds them and the listener is only ever added once.
      *
      * <p>How far the list has gone is asked of it by a name the framework gave it, which
      * minifying cannot rename; the name Sync's own androidx would use for a listener can be, and
      * asking for one of those is what would fail without a word.
      */
-    private static void followTheList(ViewGroup feed, View strip) {
-        View list = listIn(feed);
-        if (list == null) {
-            return;
-        }
+    private static void followTheList(ImageView strip) {
         if (Boolean.TRUE.equals(strip.getTag(FOLLOWING))) {
             return;
         }
@@ -268,7 +311,28 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
 
         strip.getViewTreeObserver().addOnPreDrawListener(() -> {
             try {
-                int gone = scrolledBy(list);
+                Object feed = strip.getTag(FEED);
+                boolean belongs = feed instanceof ViewGroup && ((View) feed).isShown()
+                        && strip.getDrawable() != null;
+                if (!belongs) {
+                    // Not laid out away, merely not drawn: a view goes between shown and unshown
+                    // on every change of tab, and asking for the container to be laid out again
+                    // from inside a draw is both more than is needed and poor manners.
+                    if (strip.getVisibility() != View.INVISIBLE) {
+                        strip.setVisibility(View.INVISIBLE);
+                        Logger.printDebug(() -> "banner: the feed is not the screen; strip away");
+                    }
+                    return true;
+                }
+                if (strip.getVisibility() != View.VISIBLE) {
+                    strip.setVisibility(View.VISIBLE);
+                    Logger.printDebug(() -> "banner: the feed is back; strip shown again");
+                }
+                View list = listIn((ViewGroup) feed);
+                if (list != null) {
+                    keepRoom((ViewGroup) feed, list);
+                }
+                int gone = list == null ? -1 : scrolledBy(list);
                 if (gone >= 0) {
                     strip.setTranslationY(-gone);
                 }
@@ -286,8 +350,14 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
     /** Which subreddit the strip is currently showing. */
     private static final int WHOSE = 0x7E000002;
 
+    /** The feed the strip is standing above, which is not what it is a child of. */
+    private static final int FEED = 0x7E000003;
+
     /** How many times the offset is worth writing down before the point is made. */
     private static int said2;
+
+    /** The same, for the room the posts are given. */
+    private static int said3;
 
     /** @return How far the list has scrolled, or -1 where it will not say. */
     private static int scrolledBy(View list) {
@@ -317,6 +387,30 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
     private static int height(ViewGroup holder) {
         return (int) (HEIGHT_DP
                 * holder.getContext().getResources().getDisplayMetrics().density);
+    }
+
+    /**
+     * Makes sure the posts are still starting below the strip, every time the screen is drawn.
+     *
+     * <p>Where the room is asked for once, it only has to be taken away once for the first post
+     * to be left under the banner for good, and the app sets that padding itself for its own
+     * reasons — on a fold, on an inset arriving, on the feed being laid out again. Asking again
+     * each frame costs a comparison and settles it whoever wrote last.
+     *
+     * <p>Only ever more room, never less: where the app wants the posts further down than the
+     * strip needs, that is its business and it is left alone.
+     */
+    private static void keepRoom(ViewGroup feed, View list) {
+        int room = height(feed) + gap(feed);
+        if (list.getPaddingTop() >= room) {
+            return;
+        }
+        if (said3 < 5) {
+            said3++;
+            Logger.printDebug(() -> "banner: the posts had come back up to " + list.getPaddingTop()
+                    + "; putting them down to " + room);
+        }
+        makeRoom(feed, room);
     }
 
     /**

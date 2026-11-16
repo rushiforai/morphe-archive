@@ -16,7 +16,7 @@ Technical documentation and patch catalog for IbisPaint X on Android.
 | **Authoritative Source** | APKPure (XAPK bundle) |
 
 > [!NOTE] Upstream Source Divergence
-> Automated update tracking (`scripts/check_app_updates.py`) queries APKMirror for release metadata because APKPure provides no stable or unauthenticated endpoints for programmatic checks. In contrast, candidate binaries for patching must be obtained as XAPK bundles from APKPure, as APKMirror binary downloads are subject to HTTP 451 legal restrictions in several jurisdictions.
+> Automated update tracking (`scripts/check_app_updates.py`) queries Uptodown for release metadata because the APKMirror listing now returns HTTP 451 with a removed-page body and APKPure returns HTTP 410 for this package. Candidate binaries for patching must still be obtained as XAPK bundles from APKPure, as APKMirror binary downloads are subject to HTTP 451 legal restrictions in several jurisdictions.
 
 ---
 

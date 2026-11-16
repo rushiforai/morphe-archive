@@ -14,7 +14,7 @@ private const val ACL = "Lcom/ss/android/ugc/aweme/feed/model/ACLCommonShare;"
  *
  * The three ACL answers are the ones ReVanced's TikTok download patch uses:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/interaction/downloads/DownloadsPatch.kt
- * (GPLv3, the licence this bundle carries). It was checked against 47.1.4 before being adopted.
+ * (GPLv3, the license this bundle carries). It was checked against 47.1.4 before being adopted.
  */
 
 /**

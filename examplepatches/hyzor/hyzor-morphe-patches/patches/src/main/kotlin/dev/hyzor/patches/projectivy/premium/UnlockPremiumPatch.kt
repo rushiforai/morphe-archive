@@ -15,6 +15,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import dev.hyzor.patches.projectivy.install.extractNativeLibsPatch
 import dev.hyzor.patches.projectivy.shared.Constants.PROJECTIVY
+import dev.hyzor.patches.projectivy.shared.Constants.PROJECTIVY_APK
 
 /**
  * Projectivy keeps the free/paid decision in one place: a `StateFlow<Boolean>` created by
@@ -60,7 +61,7 @@ val unlockPremiumPatch = bytecodePatch(
         "registered state, so the purchase prompts and feature locks are gone.",
     default = true,
 ) {
-    compatibleWith(PROJECTIVY)
+    compatibleWith(PROJECTIVY, PROJECTIVY_APK)
     dependsOn(extractNativeLibsPatch)
 
     execute {

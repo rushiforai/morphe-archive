@@ -1,6 +1,6 @@
 # Chess.com
 
-Package `com.chess`, supported target `4.10.23-googleplay` (versionCode 280100). The patches
+Package `com.chess`, supported target `4.10.27-googleplay` (versionCode 280120). The patches
 are written for that build only: no older version's shapes are kept as fallbacks.
 Sources: [`patches/.../chesscom/`](../../patches/src/main/kotlin/dev/hyzor/patches/chesscom/) and
 [`extensions/chesscom/`](../../extensions/chesscom/).
@@ -75,6 +75,20 @@ grid colours mismatched. The patch replaces that one palette read with `Accent.P
 the other tiers build their backgrounds from non-green palette colours and literals, which the
 accent never touched.
 
+## Arcade animations
+
+A reimplementation of chess.com's website Arcade renderer on the app's classic board: a light
+trail follows each move, the piece pulses while it is held with grab and drop bursts, captures
+burst, the king flashes in check, the last move is outlined in the mover's colour and legal-move
+hints are animated. The sprites are chess.com's own, downloaded once and cached.
+
+The patch hooks the classic board (`com.chess.chessboard.view.ChessBoardView` and its
+`viewlayers.PieceView`), which is still used by live games (`RealGameActivity`) and the Puzzle
+Rush, Puzzle Battle, Learning and Review puzzle modes. The Compose board
+(`com.chess.chessboard.v2.ChessBoardView`) used by bot games, the Daily Puzzle, Solve Puzzles and
+Lichess puzzles is a different implementation and is not hooked, so those screens have no Arcade
+effects. The in-app page says this as well.
+
 ## Board colors
 
 The patch replaces the theme's board background with the app's own plain-colour
@@ -89,6 +103,13 @@ are drawn on: the canvas layer paints the dark shade on the light squares and th
 on the dark squares. `BoardColors` therefore hands the dark shade the chosen dark colour and
 the light shade the chosen light colour. Reversed, every coordinate takes the colour of the
 square under it and disappears — the bug reported upstream as issue #28.
+
+The page also has a **Use the app's board theme** switch. While it is on the hook passes the
+background and both coordinate colours through unchanged, so the board chosen in *More →
+Theme → Board* applies — including the app's patterned themes, which this patch does not
+reproduce. Picking any preset or custom colour switches back to the patch's colours. That is
+how the app's theme menu and Board colors coexist: the feature stays installed, but it only
+overrides the board while one of its own colours is selected.
 
 ## Caveats
 
@@ -145,10 +166,21 @@ session runs it as `PathPuzzlesMode.REGULAR` so the Classic layout and the ratin
   inside the short Next hand-off window: the decision waits for the window to close instead of
   being skipped.
 
-Runtime-tested on 4.10.23: the seed cleared chess.com's guest queue, puzzles scored locally,
-the rating box and graph showed the Lichess values, the settings dialog showed only the three
-local rows — before and after Next — and backing out to the hub right after Next ended the
-session.
+Port-tested on 4.10.27 with a clone install (`com.chess.noam`, guest account): cold start
+without a crash, Noam's Patches lists every applied patch, the bottom bar honours a saved tab
+set after a restart, *Puzzles from Lichess* downloads the offline set and opens chess.com's
+Classic puzzle screen with the Lichess rating box and graph, and the Arrows chip appears in a
+bot game. Not exercised: a signed-in free account (so the sale banner and Upgrade row side of
+*Hide Premium-only content*), the custom time slider (the guest game-setup flow does not expose
+it), and Stockfish (not selected in the test build).
+
+The two oddities seen during the first ad-hoc session (a puzzle shown *Unrated* after a move,
+and the Puzzles big button falling back to *Solve Puzzles*) were checked with an A/B run:
+4.10.23 with the previous bundle and 4.10.27 with this one, same clone install and the same
+guest flow. Both builds behave identically — a wrong move stays on the puzzle and updates the
+Lichess rating (1183/−317 on 4.10.23, 1217/−283 on 4.10.27), *Next* opens the following puzzle
+with the rating box intact, and Back to the hub keeps *Puzzles from Lichess* in place. They
+look like transient states of that session, not version differences.
 
 ## Feature groups
 

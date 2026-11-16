@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -276,6 +276,47 @@ internal object PlayerPageBehaviorFingerprint : Fingerprint(
         Opcode.CONST_4,
         Opcode.IPUT_BOOLEAN,
         Opcode.RETURN_VOID
+    )
+)
+
+/**
+ * 9.43+ writes the motion flag directly instead of using the old no-argument setter.
+ * The first match identifies the flag guarding the motion detector.
+ */
+internal object PlayerPageBehaviorInterceptTouchEventFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/music/watchpage/ui/PlayerPageBehavior;",
+    name = "onInterceptTouchEvent",
+    returnType = "Z",
+    parameters = listOf(
+        "Landroidx/coordinatorlayout/widget/CoordinatorLayout;",
+        "Landroid/view/View;",
+        "Landroid/view/MotionEvent;"
+    ),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_BOOLEAN, definingClass = "this"),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            location = MatchAfterImmediately()
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf("Landroid/view/MotionEvent;"),
+            returnType = "V",
+            location = MatchAfterImmediately()
+        )
+    )
+)
+
+internal object PlayerPageBehaviorTouchEventFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/music/watchpage/ui/PlayerPageBehavior;",
+    name = "onTouchEvent",
+    returnType = "Z",
+    parameters = listOf(
+        "Landroidx/coordinatorlayout/widget/CoordinatorLayout;",
+        "Landroid/view/View;",
+        "Landroid/view/MotionEvent;"
     )
 )
 

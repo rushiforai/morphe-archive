@@ -6,5 +6,5 @@ import app.morphe.patcher.patch.Compatibility
 internal val smartLauncher = Compatibility(
     name = "Smart Launcher",
     packageName = "ginlemon.flowerfree",
-    targets = listOf(AppTarget("6.6 build 024"))
+    targets = listOf(AppTarget("6.6 build 026"))
 )

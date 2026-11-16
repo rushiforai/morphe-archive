@@ -28,6 +28,8 @@ chat_keywords  RumbleChat.currentUserId
 chat_keywords  RumbleChat.highlight
 show_deleted_messages  RumbleChat.deletedLabel
 chat_timestamps  RumbleChat.nameWithTime
+chat_anonymous  RumbleChat.streamCookie
+chat_anonymous  RumbleChat.sendBlocked
 
 video_quality  RumblePlayback.startHeight
 video_quality  RumblePlayback.capActive
@@ -48,3 +50,8 @@ refresh_stream  RumblePlayer.noQualityCallback
 seek_seconds  RumblePlayer.seekMillis
 seek_seconds  RumblePlayer.seekBackIcon
 seek_seconds  RumblePlayer.seekForwardIcon
+video_stats  RumbleStats.onVideoFormat
+video_stats  RumbleStats.onAudioFormat
+video_stats  RumbleStats.onVideoEnabled
+video_stats  RumbleStats.onBandwidth
+video_stats  RumbleStats.onFrame

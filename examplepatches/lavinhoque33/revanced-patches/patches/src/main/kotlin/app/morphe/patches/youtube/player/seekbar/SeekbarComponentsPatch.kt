@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.player.seekbar
@@ -27,7 +27,6 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.drawable.addDrawableColorHook
 import app.morphe.patches.shared.drawable.drawableColorHookPatch
-import app.morphe.patches.shared.mainactivity.onCreateMethod
 import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.youtube.misc.chapters.chaptersHookPatch
 import app.morphe.patches.youtube.misc.chapters.getTimelineMarkersArrayFingerprint
@@ -36,7 +35,6 @@ import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YO
 import app.morphe.patches.youtube.utils.extension.Constants.PLAYER_CLASS_DESCRIPTOR
 import app.morphe.patches.youtube.utils.extension.Constants.PLAYER_PATH
 import app.morphe.patches.youtube.utils.flyoutmenu.flyoutMenuHookPatch
-import app.morphe.patches.youtube.utils.mainactivity.mainActivityResolvePatch
 import app.morphe.patches.youtube.utils.patch.PatchList.SEEKBAR_COMPONENTS
 import app.morphe.patches.youtube.utils.playerButtonsResourcesFingerprint
 import app.morphe.patches.youtube.utils.playerButtonsVisibilityFingerprint
@@ -67,7 +65,6 @@ import app.morphe.util.cloneMutableAndPreserveParameters
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.findMethodsOrThrow
-import app.morphe.util.findMutableMethodOf // 21.39 large seekbar reader hook
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.getWalkerMethod
@@ -104,7 +101,6 @@ val seekbarComponentsPatch = bytecodePatch(
     dependsOn(
         drawableColorHookPatch,
         flyoutMenuHookPatch,
-        mainActivityResolvePatch,
         sharedResourceIdPatch,
         settingsPatch,
         videoInformationPatch,
@@ -479,24 +475,31 @@ val seekbarComponentsPatch = bytecodePatch(
 
             // region apply seekbar custom color to splash screen animation.
 
-            // Hook the splash animation to set the seekbar color.
-            onCreateMethod.apply {
-                val setAnimationIntMethodName =
-                    LottieAnimationViewSetAnimationIntFingerprint.originalMethod.name
+            // Hook every splash initializer, including the activity delegate on 21.44+.
+            val setAnimationIntMethod = LottieAnimationViewSetAnimationIntFingerprint.originalMethod
+            val splashAnimationHook = "$EXTENSION_SEEKBAR_COLOR_CLASS_DESCRIPTOR->" +
+                "setSplashAnimationLottie(${LOTTIE_ANIMATION_VIEW_CLASS_TYPE}I)V"
 
-                findInstructionIndicesReversedOrThrow {
-                    val reference = getReference<MethodReference>()
-                    reference?.definingClass == LOTTIE_ANIMATION_VIEW_CLASS_TYPE && reference.name == setAnimationIntMethodName
-                }.forEach { index ->
-                    val instruction = getInstruction<FiveRegisterInstruction>(index)
+            LottieSplashAnimationInitializerFingerprint.matchAll()
+                .distinctBy { it.originalMethod }
+                .forEach { match ->
+                    match.method.apply {
+                        findInstructionIndicesReversedOrThrow {
+                            getReference<MethodReference>() == setAnimationIntMethod
+                        }.forEach { index ->
+                            val instruction = getInstruction(index)
+                            val replacement = if (instruction is RegisterRangeInstruction) {
+                                val firstRegister = instruction.startRegister
+                                "invoke-static/range { v$firstRegister .. v${firstRegister + 1} }, $splashAnimationHook"
+                            } else {
+                                val registers = instruction as FiveRegisterInstruction
+                                "invoke-static { v${registers.registerC}, v${registers.registerD} }, $splashAnimationHook"
+                            }
 
-                    replaceInstruction(
-                        index,
-                        "invoke-static { v${instruction.registerC}, v${instruction.registerD} }, " +
-                            "$EXTENSION_SEEKBAR_COLOR_CLASS_DESCRIPTOR->setSplashAnimationLottie(Lcom/airbnb/lottie/LottieAnimationView;I)V"
-                    )
+                            replaceInstruction(index, replacement)
+                        }
+                    }
                 }
-            }
 
             // Add non obfuscated method aliases for `setAnimation(int)`
             // and `setAnimation(InputStream, String)` so extension code can call them.
@@ -659,7 +662,6 @@ val seekbarComponentsPatch = bytecodePatch(
                     FullscreenLargeSeekbarStateWriterFingerprint.matchAll()
                 }.getOrNull().orEmpty().singleOrNull()
 
-                // modified by lavinhoque33, 2026-10-08: user-facing wording.
                 if (stateWriter == null) {
                     printWarn("\"Enable fullscreen large seekbar\" is not supported in this version. Use YouTube versions up to 21.39.")
                 } else {

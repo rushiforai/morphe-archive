@@ -7,7 +7,11 @@
 (function () {
     if (!window.youtv) return;
 
-    var PROMO = /^(mealbarPromo|bannerPromo|statementBanner|backgroundPromo|primetimePromo|premiumUpsell|upsellDialog|tvUpsellDialog|upsellPromo|ypcPromo|promoHeader)\w*Renderer$|Upsell\w*Renderer$/;
+    var PREFIXES = ["mealbarPromo", "bannerPromo", "statementBanner", "backgroundPromo", "primetimePromo",
+        "premiumUpsell", "upsellDialog", "tvUpsellDialog", "upsellPromo", "ypcPromo", "promoHeader"];
+    var PROMO = new RegExp("^(" + PREFIXES.join("|") + ")\\w*Renderer$|Upsell\\w*Renderer$");
+    // Every name PROMO matches contains one of these (checked on the raw text first: cheap).
+    var MARKERS = PREFIXES.concat(["Upsell"]);
 
     function promoKey(object) {
         if (!object || typeof object !== "object" || Array.isArray(object)) return null;
@@ -53,10 +57,11 @@
 
     youtv.feature({
         id: "premium-promos",
-        name: "Ocultar promociones de Premium",
-        summary: "Quita los avisos para probar o comprar YouTube Premium",
+        nameKey: "feature.premium-promos.name",
+        summaryKey: "feature.premium-promos.summary",
         defaultEnabled: true,
-        onResponse: function (response) {
+        onResponse: function (response, settings, text) {
+            if (!youtv.mentions(text, MARKERS)) return;
             var removed = removePromos(response, 0);
             if (removed) youtv.report("premium-promos: removed " + removed + " promotion(s)");
         }

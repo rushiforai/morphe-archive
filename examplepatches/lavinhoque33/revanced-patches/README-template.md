@@ -43,9 +43,12 @@ https://raw.githubusercontent.com/lavinhoque33/revanced-patches/refs/heads/rvx-d
 Select the dev source instead of the stable source when patching if you want dev builds.
 Do not combine the two sources' patches for the same app.
 
-Manager's own **Pre-release patches** and **Experimental app versions** switches do not appear for this
-source. The dev feed is a separate source, not a switch on the stable source, and these bundles do not
-declare experimental app targets.
+Manager's own **Pre-release patches** switch does not appear for this source. The dev feed is a separate
+source, not a switch on the stable source.
+
+These bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app targets.
+Manager's **Experimental app versions** switch is available for this source. Suggested versions remain
+**YouTube 21.39.525** and **YouTube Music 9.40.51**.
 
 You can also download a `.mpp` from a release and import it via **Sources > + > Local**.
 Local imports do not update automatically; import the new `.mpp` for each update.

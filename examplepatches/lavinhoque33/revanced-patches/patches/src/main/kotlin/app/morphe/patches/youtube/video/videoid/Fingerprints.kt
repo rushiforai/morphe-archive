@@ -3,6 +3,7 @@ package app.morphe.patches.youtube.video.videoid
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -109,13 +110,16 @@ internal object VideoIdBackgroundPlayFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(
-        methodCall(returnType = "Ljava/lang/String;"),
-        opcode(Opcode.MOVE_RESULT_OBJECT),
-        opcode(Opcode.IPUT_OBJECT),
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, returnType = "Ljava/lang/String;"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            type = "Ljava/lang/String;",
+            location = MatchAfterImmediately()
+        ),
+        // 21.45 merges the return paths and rethrows after the catch-all monitor exit.
         opcode(Opcode.MONITOR_EXIT),
-        opcode(Opcode.RETURN_VOID),
-        opcode(Opcode.MONITOR_EXIT),
-        opcode(Opcode.RETURN_VOID)
+        opcode(Opcode.RETURN_VOID, location = MatchAfterImmediately())
     ),
     custom = { method, classDef ->
         method.implementation != null &&

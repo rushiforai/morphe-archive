@@ -36,7 +36,7 @@ APP_SPECS: List[Dict[str, Any]] = [
     #     "name": "My App",                         # 2. Display name shown in logs, issue titles, and alerts
     #     "package_name": "com.example.app",        # 3. Android application package name
     #     "constant_key": "MY_APP_TARGET_VERSION",  # 4. Target version constant defined in Constants.kt
-    #     "source_type": "apkpure",                 # 5. Upstream host type: "apkpure", "apkmirror", or "github"
+    #     "source_type": "apkpure",                 # 5. Upstream host type: "apkpure", "apkmirror", "uptodown" or "github"
     #     "source_name": "APKPure",                 # 6. Display name of upstream host, must match the entry's source
     #     "source_url": "https://apkpure.com/slug/com.example.app",  # 7. Canonical listing URL (HTTP 200 verified live)
     #     "allow_beta": False,                      # Pre-release filter (typically False for stable patch releases)
@@ -174,20 +174,21 @@ APP_SPECS: List[Dict[str, Any]] = [
         "source_url": "https://github.com/d4rken-org/sdmaid-se/releases",
         "allow_beta": True,
     },
-    # Upstream source divergence: Version monitoring uses APKMirror HTML scraping
-    # because APKPure lacks stable, unauthenticated endpoints for programmatic checks.
-    # Patch candidate packages must be sourced as XAPK bundles from APKPure because
-    # APKMirror downloads return HTTP 451 (legal restriction) in multiple regions.
+    # Upstream source divergence: APKMirror no longer serves this app (HTTP 451
+    # with a "Page Not Found" body) and APKPure returns HTTP 410, so both hosts
+    # can never report a version. Uptodown publishes the current version on the
+    # app page. Patch candidate packages must still be sourced as XAPK bundles
+    # from APKPure because APKMirror downloads return HTTP 451 (legal
+    # restriction) in multiple regions.
     {
         "id": "ibispaint",
         "name": "IbisPaint X",
         "package_name": "jp.ne.ibis.ibispaintx.app",
         "constant_key": "IBIS_PAINT_TARGET_VERSION",
         "run_patch_test_id": "ibispaint",
-        "source_type": "apkmirror",
-        "source_name": "APKMirror",
-        "source_url": "https://www.apkmirror.com/apk/ibis-inc/ibispaint-x/",
-        "path_prefix": "/apk/ibis-inc/ibispaint-x/ibis-paint-x-",
+        "source_type": "uptodown",
+        "source_name": "Uptodown",
+        "source_url": "https://ibispaint-x.en.uptodown.com/android",
         "allow_beta": False,
     },
 ]
@@ -254,8 +255,8 @@ def parse_constants(constants_path: Path) -> Dict[str, str]:
         return {}
 
     content = constants_path.read_text(encoding="utf-8")
-    pattern = r'const\s+val\s+([A-Z0-9_]+_TARGET_VERSION)\s*=\s*"([^"]+)"'
-    return dict(re.findall(pattern, content))
+    pattern = r'^\s*const\s+val\s+([A-Z0-9_]+_TARGET_VERSION)\s*=\s*"([^"]+)"'
+    return dict(re.findall(pattern, content, re.MULTILINE))
 
 
 def parse_version(v_str: str) -> Tuple[Tuple[int, ...], str]:
@@ -630,6 +631,55 @@ def extract_apkpure_version(html: str) -> Optional[str]:
     return None
 
 
+def extract_apkpure_versions(html: str, package_name: str) -> List[str]:
+    """Collect every downloadable version of a package referenced by an APKPure page.
+
+    Used when the version on the page's main download button belongs to an
+    abandoned line: the remaining download links still name real artifacts.
+    """
+    pattern = rf"/{re.escape(package_name)}/download/([A-Za-z0-9._-]+)"
+    versions: List[str] = []
+    for raw in re.findall(pattern, html):
+        candidate = raw.strip()
+        if candidate and parse_version(candidate)[0]:
+            versions.append(candidate)
+    return versions
+
+
+def newest_unignored_version(
+    candidates: List[str],
+    patterns: Optional[List[str]],
+) -> Optional[str]:
+    """Select the highest candidate version that matches no ignore pattern."""
+    valid = [v for v in candidates if not is_version_ignored(v, patterns)]
+    if not valid:
+        return None
+    return max(valid, key=lambda v: parse_version(v)[0])
+
+
+def extract_uptodown_version(html: str) -> Optional[str]:
+    """Extract the current version from an Uptodown app page.
+
+    Host: Uptodown (https://<app>.en.uptodown.com/android)
+    Precedence: version label rendered next to the app name on the app page.
+    Fixture test: test_uptodown_extraction
+    """
+    if not html:
+        return None
+
+    match = re.search(
+        r'<div[^>]*class="[^"]*\bversion\b[^"]*"[^>]*>\s*([^<\s]+)\s*</div>',
+        html,
+        re.I,
+    )
+    if not match:
+        return None
+
+    v_cand = match.group(1).strip()
+    core, _ = parse_version(v_cand)
+    return v_cand if core else None
+
+
 def _normalize_github_tag(tag: str, allow_beta: bool) -> Optional[str]:
     """Normalize GitHub release tag to version string if valid and allowed."""
     if not allow_beta and re.search(r"\b(beta|alpha|preview|rc)\d*\b", tag, re.I):
@@ -681,6 +731,7 @@ def run_update_checks(
         source_name = spec.get("source_name") or {
             "apkmirror": "APKMirror",
             "apkpure": "APKPure",
+            "uptodown": "Uptodown",
             "github": "GitHub",
         }.get(source_type, source_type.title())
         source_url = spec["source_url"]
@@ -710,12 +761,21 @@ def run_update_checks(
                 # APKPure variant resolution is omitted: APKPure download endpoints serve
                 # dynamic tokens / redirects without stable per-variant release tables.
                 remote_version = extract_apkpure_version(html)
+            elif source_type == "uptodown":
+                remote_version = extract_uptodown_version(html)
             elif source_type == "github":
                 remote_version = extract_github_version(html, allow_beta=allow_beta)
 
         ignore_patterns = spec.get("version_ignore_patterns")
         if remote_version and is_version_ignored(remote_version, ignore_patterns):
+            # A newest entry on an abandoned line must not hide the real current
+            # version; fall back to the newest downloadable version that is kept.
             remote_version = None
+            if source_type == "apkpure" and html:
+                remote_version = newest_unignored_version(
+                    extract_apkpure_versions(html, package_name),
+                    ignore_patterns,
+                )
 
         if not remote_version:
             status = "unknown"
@@ -882,6 +942,25 @@ class TestUpdateChecker(unittest.TestCase):
             allow_beta=False,
         )
         self.assertEqual(ver, "5.201.1.1809")
+
+    def test_uptodown_extraction(self) -> None:
+        """Verify Uptodown extracts the current version label and rejects missing data."""
+        fixture_html = """
+        <div class="info">
+          <a href="https://ibispaint-x.en.uptodown.com/android">
+            <h1 id="detail-app-name">ibis Paint X</h1>
+          </a>
+          <div class="version">14.1.5</div>
+          <div class="autor">ibis inc.</div>
+        </div>
+        <div class="version">14.0.0</div>
+        """
+        self.assertEqual(extract_uptodown_version(fixture_html), "14.1.5")
+
+        self.assertIsNone(extract_uptodown_version(""))
+        self.assertIsNone(
+            extract_uptodown_version('<div class="version">unknown</div>')
+        )
 
     def test_apkpure_extraction_newer_download_version(self) -> None:
         """Verify APKPure extracts newer downloadable version from download button."""
@@ -1134,6 +1213,34 @@ class TestUpdateChecker(unittest.TestCase):
             self.assertEqual(xiaomi_live["status"], "update-available")
             self.assertEqual(xiaomi_live["remote_version"], "1.39.0")
 
+            # Phantom main button plus real 1.x download links must resolve to the
+            # newest kept version instead of reporting unknown forever.
+            mixed_html = """
+            <html>
+              <body>
+                <a class="btn normal-download-btn da dt-main-download-btn"
+                   data-dt-package_name="com.mi.earphone"
+                   data-dt-version="9.0.278"
+                   href="https://apkpure.com/xiaomi-earbuds/com.mi.earphone/download"
+                   title="Download Xiaomi Earbuds latest version apk">
+                  <strong class="text one-line">Download APK (20 MB)</strong>
+                </a>
+                <a href="/com.mi.earphone/download/1.38.0i">1.38.0i</a>
+                <a href="/com.mi.earphone/download/1.39.0i">1.39.0i</a>
+              </body>
+            </html>
+            """
+
+            def fake_fetch_mixed(url: str) -> Optional[str]:
+                if "com.mi.earphone" in url:
+                    return mixed_html
+                return None
+
+            mixed_results = run_update_checks(temp_constants, fetch_fn=fake_fetch_mixed)
+            xiaomi_mixed = next(r for r in mixed_results if r["id"] == "xiaomi-earbuds")
+            self.assertEqual(xiaomi_mixed["remote_version"], "1.39.0i")
+            self.assertEqual(xiaomi_mixed["status"], "update-available")
+
     def test_is_version_ignored(self) -> None:
         """Verify version ignore pattern matching."""
         self.assertTrue(is_version_ignored("9.0.278", [r"^9\."]))
@@ -1356,6 +1463,32 @@ class TestUpdateChecker(unittest.TestCase):
         )
         self.assertNotIn("Direct download:", body_without_dl)
 
+    def test_all_target_constants_have_app_specs(self) -> None:
+        """Verify all target version constants in Constants.kt have matching APP_SPECS entries."""
+        path = resolve_default_constants_path()
+        constants = parse_constants(path)
+        target_keys = [k for k in constants.keys() if k.endswith("_TARGET_VERSION")]
+        self.assertTrue(len(target_keys) > 0, "Expected at least one target version constant")
+
+        specs_by_constant = {spec["constant_key"]: spec for spec in APP_SPECS}
+        for key in target_keys:
+            self.assertIn(
+                key,
+                specs_by_constant,
+                f"Constant {key} in Constants.kt missing corresponding entry in APP_SPECS",
+            )
+            spec = specs_by_constant[key]
+            self.assertTrue(spec.get("id"), f"Spec for {key} has empty or missing id")
+            self.assertEqual(spec.get("constant_key"), key)
+            self.assertTrue(
+                spec.get("source_type"),
+                f"Spec for {key} has empty or missing source_type",
+            )
+            self.assertTrue(
+                spec.get("source_url"),
+                f"Spec for {key} has empty or missing source_url",
+            )
+
 
 
 def main() -> int:
@@ -1413,6 +1546,15 @@ def main() -> int:
         report_data = {"apps": results}
         out_path.write_text(json.dumps(report_data, indent=2), encoding="utf-8")
         print(f"[INFO] Saved JSON report to {args.json_path}")
+
+    unresolved = [entry["name"] for entry in results if entry["status"] == "unknown"]
+    if unresolved:
+        print(
+            "[ERROR] Upstream version could not be determined for: "
+            f"{', '.join(unresolved)}",
+            file=sys.stderr,
+        )
+        return 1
 
     return 0
 

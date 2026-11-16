@@ -26,8 +26,8 @@ import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_METHOD_DESCRIPTOR =
     "$GENERAL_PATH/CairoSplashAnimationPatch;->disableCairoSplashAnimation(Z)Z"
@@ -97,10 +97,7 @@ val cairoSplashAnimationPatch = bytecodePatch(
                 val insertIndex =
                     indexOfSetContentViewInstruction(this, literalIndex) + 1
                 val freeRegister = findFreeRegister(insertIndex)
-                val jumpIndex = indexOfFirstInstructionOrThrow(insertIndex) {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.parameterTypes?.firstOrNull() == "Ljava/lang/Runnable;"
-                } + 1
+                val jumpIndex = getInstruction<BuilderOffsetInstruction>(gotoIndex).target.location.index
 
                 addInstructionsWithLabels(
                     insertIndex,

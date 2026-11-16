@@ -13,6 +13,12 @@ final class CarStatus {
     }
 
     static String describe(Context ctx) {
+        String host = Settings.carHost(ctx);
+        String aa = androidAuto(ctx);
+        return host == null ? aa : aa + "\n" + host + " right now: connected \u2713 (counts as connected)";
+    }
+
+    private static String androidAuto(Context ctx) {
         Cursor c = null;
         try {
             c = ctx.getContentResolver().query(CAR_CONNECTION, new String[]{STATE}, null, null, null);

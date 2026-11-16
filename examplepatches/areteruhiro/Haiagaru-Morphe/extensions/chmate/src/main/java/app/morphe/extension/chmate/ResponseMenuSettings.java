@@ -26,10 +26,11 @@ public final class ResponseMenuSettings {
     }
     static boolean handleTools(Object item){if(!(item instanceof android.view.MenuItem)||((android.view.MenuItem)item).getItemId()!=TOOLS)return false;Runnable action=TOOL_ACTIONS.get(item);if(action!=null)action.run();return true;}
     private ResponseMenuSettings() {}
-    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079, RedIdAutoNg.MENU_EXCLUSION, SharedNgResponseExclusion.ITEM};
-    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録","自動NGの除外IDに追加", SharedNgResponseExclusion.TITLE};
-    static boolean defaultVisible(int id){for(int action:IDS)if(action==id)return !FeatureSwitches.enabled(MinimalSetup.ACTIVE,false)&&(id==75||id==76||id==RedIdAutoNg.MENU_EXCLUSION||id==SharedNgResponseExclusion.ITEM);return true;}
+    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079, RedIdAutoNg.MENU_EXCLUSION, SharedNgResponseExclusion.ITEM, ResponseMultiSelection.SELECT};
+    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録","自動NGの除外IDに追加", SharedNgResponseExclusion.TITLE, "選択（レス複数選択）"};
+    static boolean defaultVisible(int id){for(int action:IDS)if(action==id)return !FeatureSwitches.enabled(MinimalSetup.ACTIVE,false)&&(id==75||id==76||id==SharedNgResponseExclusion.ITEM);return true;}
     private static int icon(int id) {
+        if(id==ResponseMultiSelection.SELECT)return android.R.drawable.checkbox_on_background;
         if(id==RedIdAutoNg.MENU_EXCLUSION)return android.R.drawable.ic_menu_add;
         if(id==SharedNgResponseExclusion.ITEM)return android.R.drawable.ic_menu_revert;
         if(id==75)return wacchoiSearchIcon();
@@ -98,6 +99,7 @@ public final class ResponseMenuSettings {
         } catch(Exception error) { android.util.Log.w("Haiagaru","Response toolbar catalog",error); }
     }
     static boolean visible(int id) {
+        if(ResponseMultiSelection.hideSearch(id))return false;
         Context context = Haiagaru.applicationContextForExtension();
         String key=longPressKey(id);
         if(context!=null){

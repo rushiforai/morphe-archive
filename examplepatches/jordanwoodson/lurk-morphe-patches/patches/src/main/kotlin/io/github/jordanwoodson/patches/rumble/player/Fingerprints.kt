@@ -39,3 +39,11 @@ internal object KeepScreenOnFingerprint : Fingerprint(
         method.calls("Landroid/view/Window;->addFlags(I)V") && method.calls("Landroid/view/Window;->clearFlags(I)V")
     },
 )
+
+// Media3's Format.toLogString(format), which names each value it prints ("id=1, mimeType=video/avc, res=1920x1080").
+internal object FormatLogFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("L"),
+    strings = listOf("id=", ", mimeType=", ", bitrate=", ", codecs=", ", res=", ", fps="),
+)

@@ -10,8 +10,9 @@ internal object Constants {
         name = "YouTube",
         packageName = YOUTUBE_PACKAGE_NAME,
         targets = listOf(
-            // modified by lavinhoque33, 2026-10-07: 21.39.525 is only published as an arm64-v8a, Android 12L+ build.
+            // Keep the recommended stable target first; newer targets are opt-in in Managers.
             AppTarget(version = "21.39.525", minSdk = 32),
+            AppTarget(version = "21.45.90", minSdk = 29, isExperimental = true),
             AppTarget(version = "21.13.164", minSdk = 28),
             AppTarget(version = "20.05.46", minSdk = 26),
         )

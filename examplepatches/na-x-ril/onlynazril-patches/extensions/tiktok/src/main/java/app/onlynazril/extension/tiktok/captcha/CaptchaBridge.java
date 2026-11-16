@@ -12,17 +12,17 @@ import app.onlynazril.extension.tiktok.settings.CaptchaSettings;
 
 /**
  * The captcha patch's decision: may this risk-control puzzle be hidden?
- *
+ * <p>
  * The patch guards every entry point that asks TikTok to show a puzzle and asks here first. The
  * answer is false, so the puzzle shows, in three cases: the switch is off; the host is an account
  * screen or the risk info names a verification scene; or there is no activity to judge. Everything
  * else is hidden.
- *
+ * <p>
  * The account test is deliberately broad. Login, SMS and two-factor flows run inside
  * `com.ss.android.ugc.aweme.account.*` activities or carry `login`/`passport`/`sms`/`twice_verify`
  * in their route or risk info, and hiding one of those would strand the account, so they are always
  * shown even while the switch is on.
- *
+ * <p>
  * A puzzle the server raised over a like, a follow or a comment is hidden like any other, which is
  * the feature and its one cost: that single action does not complete. Every branch is reported, so a
  * puzzle that still appears says which rule kept it.
@@ -49,7 +49,7 @@ public final class CaptchaBridge {
      * The Turing (oecverify) dialog. The three entry points above do not carry it: a hybrid page
      * or a live room is shown it by the SDK's own services, and nothing about it reaches the app
      * classes those hooks sit on. May it be hidden?
-     *
+     * <p>
      * When it may, the callback is told the SDK's own "the dialog was closed" answer (code 3), so
      * the caller's flow learns the verification did not complete instead of waiting for a dialog
      * that will never be shown.
@@ -86,7 +86,9 @@ public final class CaptchaBridge {
         try {
             Class<?> turing = Class.forName("com.tts.oecverify.BdTuring");
             Object instance = turing.getMethod("getInstance").invoke(null);
+            assert instance != null;
             Object config = instance.getClass().getMethod("getConfig").invoke(instance);
+            assert config != null;
             Object risk = config.getClass().getMethod("getRiskInfo").invoke(config);
             return risk instanceof String ? (String) risk : null;
         } catch (Throwable t) {

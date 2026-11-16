@@ -1,3 +1,15 @@
+## [1.18.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.1...v1.18.0) (2026-11-16)
+
+### ✨ New Features
+
+* manglish keyboard upgrade ([cb39ff4](https://github.com/ShuhaibNC/morphe-patches/commit/cb39ff4a1a1cfacdcc59e9f693c484be23fc96b1))
+
+## [1.18.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.1...v1.18.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* manglish keyboard upgrade ([cb39ff4](https://github.com/ShuhaibNC/morphe-patches/commit/cb39ff4a1a1cfacdcc59e9f693c484be23fc96b1))
+
 ## [1.17.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.0...v1.17.1) (2026-11-08)
 
 ### 🐛 Bug Fixes

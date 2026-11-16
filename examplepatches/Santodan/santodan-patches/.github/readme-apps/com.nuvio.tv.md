@@ -1,6 +1,10 @@
-These sixteen patches target NuvioTV beta.13 only. See [beta.13 verification](docs/NuvioBeta13.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
+These seventeen patches target NuvioTV **1.1.0 (1077)** only. See [1.1.0 verification](docs/Nuvio110.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
 
 - **GitHub APK updates**: Optional patch that checks APK releases from `Santodan/santodan-patches`, shares background download progress with the native banner, and opens Android's normal APK installer for foreground installation progress. The installed release version defaults to the bundle version. Includes installer fixes for patched APKs and side-by-side installations. See [GitHub release publishing instructions](docs/NuvioApkUpdates.md).
+
+### Metadata
+
+- **Metadata add-on selection**: Choose an enabled metadata add-on per profile under **Settings > Layout > Santodan-Patches**. Separate, disabled-by-default switches apply its metadata/artwork to **Continue Watching** and its poster artwork to the **library**. Existing artwork remains the fallback when the selected provider has no replacement. The picker checks declared `meta` support; catalog/stream add-ons can also provide metadata. Restart after changing these settings. See [usage, capability filtering and verification](docs/NuvioMetadataAddon.md).
 
 ### Continue Watching
 
@@ -58,6 +62,6 @@ These sixteen patches target NuvioTV beta.13 only. See [beta.13 verification](do
 
 - **Side-by-side installation**: Lets you choose a different package name and launcher name so the patched app can coexist with the official app.
 
-The patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, **Streams**, **Android TV launcher**, and **Playback** labels. Labels appear only for installed patch groups. Package and launcher names are configured when patching the APK.
+Metadata selection and the independent Continue Watching/library artwork switches appear directly under **Layout > Santodan-Patches**. Other patch settings are grouped under **Continue Watching**, **UI**, **Streams**, **Android TV launcher**, and **Playback** labels. Labels appear only for installed patch groups. Package and launcher names are configured when patching the APK.
 
 <img src="images/NuvioTVMenu.png" width="800" alt="Santodan-Patches menu">

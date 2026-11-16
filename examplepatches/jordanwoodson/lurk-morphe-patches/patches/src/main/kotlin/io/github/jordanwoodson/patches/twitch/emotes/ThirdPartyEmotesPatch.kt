@@ -43,10 +43,13 @@ val thirdPartyEmotesPatch = bytecodePatch(
         "\"Emotes in the picker\" also lists them in the emote picker, one section per service, and in " +
         "autocomplete after ':', from the same lists; that part was checked with Twitch's own picker and " +
         "autocomplete code on Android's runtime, not in the app, which needs an account to open the picker. " +
+        "\"Autocomplete without ':'\" suggests emotes (Twitch's and these) for a plain word of three letters or " +
+        "more, checked the same way. \"Favorite emotes\" adds a Favorites section to the picker: long-press an " +
+        "emote to add it, long-press a favorite to remove it; kept on the phone, checked the same way. " +
         "Starts off. Turn it on in Lurk settings > Chat.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
-    dependsOn(twitchRNChatPatch, twitchSettingsPatch, chatImageSizePatch)
+    dependsOn(twitchRNChatPatch, twitchSettingsPatch, chatImageSizePatch, thirdPartyImageCachePatch)
     execute {
         hookLiveMatcher()
         hookReplayTokens()
@@ -71,6 +74,16 @@ val thirdPartyEmotesPatch = bytecodePatch(
             SwitchSetting("emotes_picker", "Emotes in the picker",
                 "Lists the emotes of the services turned on above in the emote picker, one section each, and in " +
                     "autocomplete after ':'. Uses the lists chat already loads and sends nothing else.",
+                Section.CHAT, default = false),
+            SwitchSetting("emotes_autocomplete_bare", "Autocomplete without ':'",
+                "Suggests emotes whose name starts with the word you are typing once it has three characters, " +
+                    "without typing ':' first. Twitch's emotes, plus the services' above while Emotes in the picker is on. " +
+                    "Not after a command (/...).",
+                Section.CHAT, default = false),
+            SwitchSetting("emotes_favorites", "Favorite emotes",
+                "Long-press an emote in the emote picker to add it to a Favorites section at the top; long-press a " +
+                    "favorite to remove it. Twitch's and the services' emotes. Emotes with Twitch's own variants " +
+                    "keep their long press. The list stays on this phone.",
                 Section.CHAT, default = false),
         )
     }

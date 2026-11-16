@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.flyout
@@ -42,6 +42,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -136,20 +137,18 @@ private fun hookContextualMenuItemClick(
     enumMethod: MethodReference,
 ) {
     ContextualMenuItemBuilderOnClickFingerprint.let {
-        val buttonInfoField = it.instructionMatches[0].instruction.getReference<FieldReference>()!!
-        val buttonInfoType = it.instructionMatches[1].instruction.let { instruction ->
-            (instruction as ReferenceInstruction).reference
-        }
+        val buttonInfoMatch = it.instructionMatches[1]
+        val buttonInfoRegister = buttonInfoMatch.getInstruction<OneRegisterInstruction>().registerA
 
         it.method.apply {
-            val register = findFreeRegister(0)
+            // R8 shares this callback with image rows. Hook only the native menu-item branch.
+            val insertIndex = buttonInfoMatch.index + 1
+            val register = findFreeRegister(insertIndex, buttonInfoRegister)
 
             addInstructionsWithLabels(
-                0,
+                insertIndex,
                 """
-                    iget-object v$register, p0, $buttonInfoField
-                    check-cast v$register, $buttonInfoType
-                    invoke-static { v$register }, $getCharSequenceReference
+                    invoke-static { v$buttonInfoRegister }, $getCharSequenceReference
                     move-result-object v$register
                     iget v$register, v$register, $enumIntField
                     invoke-static { v$register }, $enumMethod

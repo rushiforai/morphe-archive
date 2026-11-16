@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2625
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.music.patches.lyrics.requests;
@@ -813,14 +814,8 @@ public final class LocalLyricsFetcher {
 
         LrcParser.LrcParseResult result = LrcParser.parseSyncedWithCreditLines(raw);
         if (!result.lines.isEmpty()) {
-            boolean synced = false;
-            for (LyricsLine line : result.lines) {
-                if (line.hasWords()) {
-                    synced = true;
-                    break;
-                }
-            }
-            return new Lyrics(result.lines, "Local", synced, null, null, null,
+            // Line timestamps synchronize LRC lyrics without requiring karaoke word timestamps.
+            return new Lyrics(result.lines, "Local", true, null, null, null,
                     result.creditLines.isEmpty() ? null : result.creditLines,
                     raw, "lrc", null);
         }

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-11.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -47,10 +48,19 @@ internal fun BytecodePatchContext.resolveSongMenuPresentation(
             (it as? WideLiteralInstruction)?.wideLiteral == 98_150_882L
         } == true
     }).classDef.type
-    val handler = Fingerprint(parameters = listOf(commandType, "Ljava/util/Map;"), returnType = "V",
-        custom = { method, _ -> method.implementation?.instructions?.any {
-            it.getReference<FieldReference>()?.definingClass == endpoint
-        } == true }).match().originalMethod
+
+    // Music 9.45's endpoint handler no longer receives the unused context map.
+    val handler = Fingerprint(
+        returnType = "V",
+        custom = { method, _ ->
+            method.parameterTypes.map(CharSequence::toString) in listOf(
+                listOf(commandType, "Ljava/util/Map;"),
+                listOf(commandType),
+            ) && method.implementation?.instructions?.any {
+                it.getReference<FieldReference>()?.definingClass == endpoint
+            } == true
+        },
+    ).match().originalMethod
     val owner = classDefBy(handler.definingClass)
     val code = handler.implementation!!.instructions.toList()
     val dispatch = code.mapNotNull { it.getReference<MethodReference>() }.single {

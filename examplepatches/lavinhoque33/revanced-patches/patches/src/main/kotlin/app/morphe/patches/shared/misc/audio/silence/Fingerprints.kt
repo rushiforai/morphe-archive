@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.shared.misc.audio.silence
@@ -15,8 +16,10 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
  * DefaultAudioSink's applyAudioProcessorPlaybackParameters,
@@ -55,11 +58,16 @@ internal object ApplySkipSilenceFingerprint : Fingerprint(
 /**
  * DefaultAudioSink's setSkipSilenceEnabled.
  */
-internal object SetSkipSilenceEnabledFingerprint : Fingerprint(
+internal fun setSkipSilenceEnabledFingerprint(flag: FieldReference) = Fingerprint(
     classFingerprint = ApplySkipSilenceFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("Z")
+    parameters = listOf("Z"),
+    custom = { method, _ ->
+        method.implementation!!.instructions.any {
+            it.opcode == Opcode.IPUT_BOOLEAN && it.getReference<FieldReference>()?.toString() == flag.toString()
+        }
+    }
 )
 
 /**

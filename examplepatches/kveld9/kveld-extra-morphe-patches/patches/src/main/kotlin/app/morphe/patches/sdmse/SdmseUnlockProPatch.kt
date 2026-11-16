@@ -42,10 +42,10 @@ private const val TYPE_BOOLEAN = "Z"
 //   [6] iput-boolean v1, v0, Leu/darken/sdmse/common/upgrade/core/UpgradeRepoFoss$Info;->isSettled:Z
 //   [7] return-void
 //
-// In 2.2.2-rc0, .registers 5 maps p0..p4 directly to v0..v4:
-//   v0 = p0 = this
-//   v1 = p1 = isPro:Z parameter, reused as scratch register at [5]
-// Injecting `const/4 v1, 0x1` and `iput-boolean v1, v0, ...->isPro:Z` immediately before
+// In 2.2.2-rc0, .registers 5 maps p0..p4:
+//   p0 = this
+//   v1 = scratch register / isPro:Z parameter
+// Injecting `const/4 v1, 0x1` and `iput-boolean v1, p0, ...->isPro:Z` immediately before
 // RETURN_VOID safely overrides whatever parameter was passed to the constructor.
 private val UpgradeInfoConstructorFingerprint = Fingerprint(
     definingClass = FOSS_INFO_CLASS,
@@ -146,7 +146,7 @@ private fun hookInfoConstructor(method: MutableMethod) {
         returnIndex,
         """
             const/4 v1, 0x1
-            iput-boolean v1, v0, $FOSS_INFO_CLASS->$FIELD_IS_PRO:$TYPE_BOOLEAN
+            iput-boolean v1, p0, $FOSS_INFO_CLASS->$FIELD_IS_PRO:$TYPE_BOOLEAN
         """.trimIndent(),
     )
 }

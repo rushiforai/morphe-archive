@@ -68,8 +68,13 @@ jobs:
       contents: read
       issues: write
     steps:
-      - name: Checkout
+      # Scheduled runs start from main's copy of this file, but the scripts and
+      # certificates the bot works with are kept on dev. main's older copies
+      # reopened issues for versions dev already handled.
+      - name: Checkout dev
         uses: actions/checkout@v7
+        with:
+          ref: dev
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -136,8 +141,10 @@ jobs:
       contents: read
       issues: write
     steps:
-      - name: Checkout
+      - name: Checkout dev
         uses: actions/checkout@v7
+        with:
+          ref: dev
 
       - name: Download report
         uses: actions/download-artifact@v8
@@ -163,8 +170,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         with:
-          api-level: 34
+          # Android 17. Android 15 to 17 enforce rules that Android 14 does not,
+          # such as edge-to-edge layouts, foreground service types, and stricter
+          # receiver and background-start limits, so an older image passes apps
+          # that break on current phones. The 4 KB page image matches current
+          # phones; the ps16k images would flag 16 KB page devices only.
+          api-level: '37.0'
           arch: x86_64
+          # Android 17 did not finish booting in 10 minutes on the default 2
+          # cores. GitHub's Linux runners have 4 cores and 16 GB.
+          cores: 4
+          ram-size: 4096M
+          disk-size: 8G
+          emulator-boot-timeout: 1200
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
           target: google_apis
           disable-animations: true
           script: python3 .github/scripts/launch_check.py app-updates --issues

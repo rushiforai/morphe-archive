@@ -43,7 +43,9 @@ final class FutabaCatalogue {
         for(int i=0;i<Math.min(limit,topics.size());i++){SiteBoardProtocol.Topic topic=topics.get(i);resolved.add(new SiteBoardProtocol.Topic(topic.id,titles.getOrDefault(topic.id,topic.title),topic.count));}
         // Catalogue views can truncate the active list to 50. Index pages expose more OPs.
         resolved.addAll(discovered.values());
-        return resolved;
+        ArrayList<SiteBoardProtocol.Topic> labeled=new ArrayList<>();
+        for(SiteBoardProtocol.Topic topic:resolved)labeled.add(new SiteBoardProtocol.Topic(topic.id,SiteBoardProtocol.futabaTitle(board,topic.title),topic.count));
+        return labeled;
     }
     private FutabaCatalogue(){}
 }

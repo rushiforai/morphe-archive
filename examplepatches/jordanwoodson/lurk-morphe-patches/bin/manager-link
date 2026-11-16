@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Check where Morphe Manager's download button sends people for an app version.
 # Usage: bin/manager-link [app [version]] [--abi=ABI]
+#        bin/manager-link --newer [app] [--abi=ABI]
 #   app      twitch, kick, rumble; without one, every app's target version is checked
 #   version  defaults to the target in the app's Constants.kt
 #   --abi    the phone ABI Manager reports (default arm64-v8a)
+#   --newer  look for versions after the target that Manager can already download: the API has no list of
+#            versions, so this tries the likely next numbers (the next patch, minor and major releases, and
+#            the ones after any it finds) and prints one "newer <app> <version> <url>" line per hit. Exits 0
+#            whether or not it finds one; version-watch.yml runs it weekly and opens an issue per hit.
 # Manager asks Morphe's API for <package>~<version>~<abi> and opens wherever its redirects end. The API
 # finds versions through APKMirror, so a version APKMirror doesn't list as stable (a Google Play release
 # it hasn't posted yet) lands on a beta with the same number, or on a web search. A link is right when it
@@ -12,10 +17,11 @@
 source "$(dirname "$0")/lib/common.sh"
 
 API="https://api.morphe.software/v2/web-search"
-slug="" version="" abi="arm64-v8a"
+slug="" version="" abi="arm64-v8a" newer=0
 for arg in "$@"; do
     case "$arg" in
         --abi=*) abi="${arg#--abi=}" ;;
+        --newer) newer=1 ;;
         -*) die "unknown option $arg" ;;
         *) if [[ -z "$slug" ]]; then slug="$arg"; elif [[ -z "$version" ]]; then version="$arg"; else die "too many arguments"; fi ;;
     esac
@@ -57,6 +63,53 @@ check() {
         return 1
     fi
 }
+
+# Whether Manager's link for this version is right, quietly; prints the URL when it is.
+downloadable() {
+    local line
+    line="$(check "$1" "$2")" || return 1
+    sed -E 's/.*\((.*)\)$/\1/' <<<"$line"
+}
+
+# The versions after major.minor.patch worth trying: three patch releases, three minor releases, the next
+# major release and its first minor one.
+candidates() {
+    local major="$1" minor="$2" patch="$3" i
+    for i in 1 2 3; do echo "$major.$minor.$((patch + i))"; done
+    for i in 1 2 3; do echo "$major.$((minor + i)).0"; done
+    echo "$((major + 1)).0.0"
+    echo "$((major + 1)).1.0"
+}
+
+# Follows hits: a found version's own next numbers are tried too, a few rounds deep.
+newer_versions() {
+    local slug="$1" from seen=" " queue=() next candidate url round=0 major minor patch
+    from="$(target_version "$slug")"
+    [[ "$from" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "$slug: target $from isn't major.minor.patch, not searched" >&2; return 0; }
+    queue=("$from")
+    while (( ${#queue[@]} > 0 && round < 4 )); do
+        next=()
+        for from in "${queue[@]}"; do
+            IFS=. read -r major minor patch <<<"$from"
+            for candidate in $(candidates "$major" "$minor" "$patch"); do
+                [[ "$seen" == *" $candidate "* ]] && continue
+                seen+="$candidate "
+                if url="$(downloadable "$slug" "$candidate")"; then
+                    echo "newer $slug $candidate $url"
+                    next+=("$candidate")
+                fi
+            done
+        done
+        queue=("${next[@]}")
+        round=$((round + 1))
+    done
+}
+
+if (( newer )); then
+    [[ -z "$version" ]] || die "--newer takes an app, not a version"
+    for app in ${slug:-$(app_slugs)}; do newer_versions "$app"; done
+    exit 0
+fi
 
 status=0
 if [[ -n "$slug" ]]; then

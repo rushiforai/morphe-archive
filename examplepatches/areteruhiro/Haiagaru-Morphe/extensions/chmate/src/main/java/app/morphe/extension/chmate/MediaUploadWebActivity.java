@@ -59,7 +59,7 @@ public final class MediaUploadWebActivity extends HaiagaruComposeActivity {
         web.setWebViewClient(new WebViewClient() {
             private boolean block(String url) {
                 if (MediaUploadWebPolicy.page(provider, url)) return false;
-                status.setText("選択した送信先以外のページへの移動を停止しました。");return true;
+                status.setText("HTTPSのページを開いてください。");return true;
             }
             @Override public boolean shouldOverrideUrlLoading(WebView v, String url) { return block(url); }
             @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {

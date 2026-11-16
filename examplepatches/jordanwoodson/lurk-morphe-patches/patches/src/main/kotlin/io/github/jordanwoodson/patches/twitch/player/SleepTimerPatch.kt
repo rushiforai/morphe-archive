@@ -44,6 +44,20 @@ val sleepTimerPatch = bytecodePatch(
             }
         }
 
+        // Twitch's ExoPlayer 2 backend (Force ExoPlayer) never reaches IVS: its own start() arms the timer,
+        // pause() and stop() end it (issue 70). pause() is public, which the timer's last resort relies on.
+        val exoPlayer = mutableClassDefBy(ExoPlayerTeardownFingerprint.twitchMatch("ExoPlayer teardown").classDef.type)
+        Locators.record("twitch.sleep_timer.exo_player", exoPlayer.type)
+        listOf("start" to "onPlay", "pause" to "onStop", "stop" to "onStop").forEach { (name, hook) ->
+            val method = exoPlayer.methods.singleOrNull {
+                it.name == name && it.parameterTypes.isEmpty() && it.returnType == "V" &&
+                    AccessFlags.PUBLIC.isSet(it.accessFlags)
+            } ?: throw PatchException("Twitch: the ExoPlayer player has no public $name()")
+            method.apply {
+                addInstructions(0, invokeStatic("$PLAYER->$hook(Ljava/lang/Object;)V", parameterRegister(0)))
+            }
+        }
+
         // Twitch pauses every player before a Guest Star call through a registry each player presenter
         // joins in its constructor: registry.add(this) with an interface whose only method pauses.
         val presenter = playerPresenterClass()

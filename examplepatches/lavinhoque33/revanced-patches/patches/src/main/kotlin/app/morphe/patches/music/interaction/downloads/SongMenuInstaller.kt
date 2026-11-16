@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-11.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-10.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -24,6 +24,7 @@ import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -56,6 +57,41 @@ private fun Method.storedRequester(requesterType: String): FieldReference? {
         .filter { it.definingClass == definingClass && (it.type == requesterType || it.type == OBJECT) }
         .distinctBy { it.toString() }.singleOrNull()
 }
+
+/** Follow the native requester's cast back to its client field when R8 erases constructor parameter types. */
+private fun Method.erasedMenuRequesterField(requesterType: String): FieldReference {
+    val code = implementation!!.instructions.toList()
+
+    fun fieldBefore(castIndex: Int, castRegister: Int): FieldReference? {
+        var register = castRegister
+        for (index in castIndex - 1 downTo 0) {
+            val instruction = code[index] as? OneRegisterInstruction ?: continue
+            if (instruction.registerA != register) continue
+
+            when (instruction.opcode) {
+                Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 ->
+                    register = (instruction as TwoRegisterInstruction).registerB
+                Opcode.IGET_OBJECT -> return code[index].getReference<FieldReference>()?.takeIf {
+                    it.definingClass == definingClass && (it.type == requesterType || it.type == OBJECT)
+                }
+                else -> return null
+            }
+        }
+        return null
+    }
+
+    return code.indices.filter {
+        code[it].opcode == Opcode.CHECK_CAST && code[it].getReference<TypeReference>()?.type == requesterType
+    }.mapNotNull {
+        fieldBefore(it, (code[it] as OneRegisterInstruction).registerA)
+    }.distinctBy { it.toString() }.single()
+}
+
+/** Merged constructors may serve other variants too; rvxCanRequestMenu rejects those instances before capture. */
+private fun Method.storesMenuRequester(field: FieldReference): Boolean = implementation?.instructions?.any {
+    it.opcode == Opcode.IPUT_OBJECT && it is TwoRegisterInstruction && it.registerB == p0Register &&
+        it.registerA > p0Register && it.getReference<FieldReference>()?.toString() == field.toString()
+} == true
 
 /** Independent of Jam: isolate native renderer lookup from every queue-response consumer. */
 internal fun BytecodePatchContext.installSongMenus(commandType: String) {
@@ -127,14 +163,21 @@ internal fun BytecodePatchContext.installSongMenus(commandType: String) {
         val captures = client.methods.filter { it.name == "<init>" }.mapNotNull { constructor ->
             constructor.storedRequester(requesterType)?.let { constructor to it }
         }
-        val requesterField = captures.map { it.second }.distinctBy { it.toString() }.single()
+        val requesterField = if (captures.isNotEmpty()) {
+            captures.map { it.second }.distinctBy { it.toString() }.single()
+        } else {
+            lookup.erasedMenuRequesterField(requesterType)
+        }
         check(lookup.implementation!!.instructions.any {
             it.opcode == Opcode.IGET_OBJECT && it.getReference<FieldReference>()?.toString() == requesterField.toString()
         }) { "native lookup does not read the captured queue requester" }
         check(requesterField.type == requesterType || requesterType in lookup.createdTypes()) {
             "native lookup does not use the captured requester type"
         }
-        val constructors = captures.map { it.first }
+        val constructors = if (captures.isNotEmpty()) captures.map { it.first } else client.methods.filter {
+            it.name == "<init>" && it.storesMenuRequester(requesterField)
+        }
+        check(constructors.isNotEmpty()) { "no native menu requester constructor capture" }
         val responseClass = response?.let { mutableClassDefBy(it.type) }
         val rendererFields = metadata.associate { (type, getter) ->
             val field = getter.implementation!!.instructions.filter {

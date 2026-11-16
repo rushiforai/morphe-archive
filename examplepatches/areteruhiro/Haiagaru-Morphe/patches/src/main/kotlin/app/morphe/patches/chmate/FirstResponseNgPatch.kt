@@ -2,11 +2,14 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
-/** Remove only native row-1 exceptions at transparent-NG list projection boundaries. */
+private const val FIRST_NG = "Lapp/morphe/extension/chmate/FirstResponseNg;"
+
+/** Preserve the native row-1 exception only while the opt-out is enabled. */
 internal fun BytecodePatchContext.patchFirstResponseNg() {
     val version=packageMetadata.versionName
     val response=when(version){
@@ -24,12 +27,16 @@ internal fun BytecodePatchContext.patchFirstResponseNg() {
         var changed=0
         for(method in mutableClassDefBy(owner).methods.filter{it.name==name&&it.implementation!=null}){
             val body=method.implementation!!.instructions.toList()
-            for(i in 0 until body.size-2){
+            for(i in (0 until body.size-2).reversed()){
                 val ref=(body[i] as? ReferenceInstruction)?.reference as? FieldReference
                 if(version=="0.8.10.226 dev"&&owner=="Lo/setPushObserverokhttp;"&&
                     body[i].opcode==Opcode.IGET&&ref.toString()==response&&body[i+1].opcode==Opcode.IF_EQ){
                     check(body[i-1].opcode==Opcode.IF_EQZ&&body[i-2].opcode==Opcode.MOVE_RESULT)
-                    method.replaceInstruction(i+1,"nop")
+                    val number=(body[i] as TwoRegisterInstruction).registerA
+                    method.addInstructions(i+1,"""
+                        invoke-static/range {v$number .. v$number}, $FIRST_NG->legacyTreeNumber(I)I
+                        move-result v$number
+                    """.trimIndent())
                     changed++
                     continue
                 }
@@ -41,9 +48,8 @@ internal fun BytecodePatchContext.patchFirstResponseNg() {
                     val comparison=branch as TwoRegisterInstruction
                     val register=(constant as OneRegisterInstruction).registerA
                     check(setOf(comparison.registerA,comparison.registerB)==setOf(number,register))
-                    // Response numbers start at 1. Zero disables the exception without
-                    // changing registers, branch targets, flag maps, or source records.
-                    method.replaceInstruction(i+1,"const/4 v$register, 0x0")
+                    method.replaceInstruction(i+1,"invoke-static/range {v$number .. v$number}, $FIRST_NG->protectedNumber(I)I")
+                    method.addInstructions(i+2,"move-result v$register")
                     changed++
                 }
             }

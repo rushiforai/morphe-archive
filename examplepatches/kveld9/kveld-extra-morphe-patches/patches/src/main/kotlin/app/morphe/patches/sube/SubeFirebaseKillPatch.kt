@@ -113,10 +113,9 @@ private fun escapeSmaliLiteral(value: String): String =
 
 private fun applyRewrites(method: MutableMethod, rewrites: List<PendingRewrite>) {
     for (rewrite in rewrites.sortedByDescending { it.index }) {
-        val opcode = if (rewrite.register > 255) "const-string/jumbo" else "const-string"
         method.replaceInstruction(
             rewrite.index,
-            "$opcode v${rewrite.register}, \"${escapeSmaliLiteral(rewrite.replacement)}\"",
+            "const-string v${rewrite.register}, \"${escapeSmaliLiteral(rewrite.replacement)}\"",
         )
     }
 }

@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**33 apps · 69 patches** · current bundle: [v1.73.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.73.0)
+**33 apps · 68 patches** · current bundle: [v1.77.6](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.77.6)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.73.0. -->
+     block below on purpose. Reflects bundle v1.77.6. -->
 
 <!-- GRID_START -->
 <table>
@@ -203,29 +203,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.73.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.73.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;69 patches total
-<a id="app-com-strava" name="app-com-strava"></a>
-<details>
-<summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 486.9 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Add settings](#add-settings) | Long-press the Home tab in Strava's bottom bar to open 'Morphe patch settings'. Lets you toggle feed cleanup, route trim, bottom bar tabs and the launcher name/icon at runtime, without re-patching. |  |
-| [Custom app name and icon](#custom-app-name-and-icon) | Changes the app's displayed name and launcher icon. The icon choices are Strava's own built-in alternate icons, plus an accent-colored one. Name and icon can later be switched at runtime from the patch settings screen. | • App name<br>• App icon |
-| [Custom theme colors](#custom-theme-colors) | Replaces Strava's brand orange (#FC5200) accent color in the app's native screens with a color of your choice. | • Accent color |
-| [Enable password login](#enable-password-login) | Shows the email and password login option instead of forcing the one-time email code flow. Your password is still checked by Strava's servers exactly as in the official app. |  |
-| [Hide feed elements](#hide-feed-elements) | Hides who-to-follow suggestions, suggested challenges and other clutter cards from the activity feed. Requires the 'Hide subscription promotions' patch, which provides the shared feed filtering. | • Who to Follow<br>• Suggested Challenges<br>• Join Challenge<br>• Joined a club<br>• Activity lookback<br>• Local events |
-| [Hide subscription promotions](#hide-subscription-promotions) | Hides subscription upsell modules and promotional cards from the feed and other modular screens. UI cleanup only: does not unlock any paid features. | • Upselling<br>• Promotions |
-| [Local route privacy trim](#local-route-privacy-trim) | Trims extra route distance from both ends of the activity map on this device only, on top of Strava's own privacy filtering. Display-only: recorded and uploaded data are unchanged, and other people still see the activity exactly as your Strava privacy settings dictate. | • Meters to trim |
-
-</details>
-
+> **[v1.77.6](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.77.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;68 patches total
 <a id="app-com-diskwalaapp" name="app-com-diskwalaapp"></a>
 <details>
 <summary>DiskWala&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
@@ -461,7 +439,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 <a id="app-com-google-android-apps-youtube-music" name="app-com-google-android-apps-youtube-music"></a>
 <details>
-<summary>YouTube Music (Wear OS)&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>YouTube Music (Wear OS)&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **Supported versions:**
@@ -471,9 +449,14 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
+| [Disable QUIC protocol](#disable-quic-protocol) | Disables the QUIC (HTTP/3) network protocol in the Wear OS app's Cronet stack, forcing TCP-based HTTP/2 connections. |  |
+| [Disable audio ducking](#disable-audio-ducking) | Keeps the volume unchanged when another app plays a short sound, such as a notification, instead of ducking the music. |  |
 | [Disable network telemetry](#disable-network-telemetry) | Turns off the Cronet networking library's telemetry in the Wear OS app (its manifest switch ships set to true). Does not affect playback, downloads, or sign-in. |  |
+| [Enable downloads](#enable-downloads) | Unlocks the offline save gate (offlineability) for videos and playlists the app delivers, so attempted downloads save instead of refusing or showing a Premium dialog. Does not change what the server sends a free account. |  |
 | [GmsCore support](#gmscore-support) | Routes the app's Google services calls to MicroG (app.revanced.android.gms) instead of real Google Play services, so a re-signed build can sign in. Requires MicroG-RE with a signed-in account on the watch, and the stock app uninstalled first (the package name is not changed). Experimental: verified against 9.45.41-WEAR_RELEASE by dex scan, not yet tested on a watch. |  |
 | [Remove background playback restrictions](#remove-background-playback-restrictions) | Removes restrictions on background playback in the Wear OS app. Experimental: fingerprint verified against 9.45.41-WEAR_RELEASE, not yet tested on a watch. |  |
+| [Skip silence](#skip-silence) | Automatically skips silent pauses in audio playback. |  |
+| [Spoof app version](#spoof-app-version) | Tricks the app into thinking you are running an older version (8.23.51). |  |
 
 </details>
 
@@ -604,6 +587,22 @@ Some apps I patched and other apps that were requested if you would like to requ
 | [Free store](#free-store) | The in-game store is free. Just tap "Buy" and the item is yours — no payment needed. For an ad-free game, just buy the ad-block item from the store. |  |
 | [Unlimited gold](#unlimited-gold) | Your coin balance always shows 65,535 and spending coins always works without deducting any — pull the prize machine and buy coin characters as much as you want. |  |
 | [Unlock all characters](#unlock-all-characters) | Every character is unlocked and playable — paid, coin, prize machine, progress and secret characters included. Your real collection progress is not changed; characters are unlocked while the patch is applied. |  |
+
+</details>
+
+<a id="app-com-strava" name="app-com-strava"></a>
+<details>
+<summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 486.9 | 486.11 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Liquid Glass navigation](#liquid-glass-navigation) | Turns Strava's bottom bar into a floating Liquid Glass pill: detached from the screen edges, live blurred backdrop with a translucent tint, content scrolling underneath it, like the current YouTube and Proton VPN bars. Tweak it under Extra Settings at the top of Strava's Settings screen (on/off, floating vs docked, blur, tint opacity). Uses Strava's classic bottom bar to make the effect possible. |  |
 
 </details>
 

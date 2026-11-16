@@ -31,7 +31,7 @@ public final class OpenUrlActivity extends Activity {
                 target.setClass(this,HissiMenuActivity.class);
             } else {
                 String host=uri.getHost().toLowerCase(java.util.Locale.ROOT);
-                boolean addedSite=host.equals("bbs.animanch.com")||host.equals("bakusai.com")||host.endsWith(".2chan.net");
+                boolean addedSite=host.equals("bbs.animanch.com")||host.equals("bakusai.com")||host.endsWith(".2chan.net")||host.equals("die-or.work");
                 if(host.equals("bbs.animanch.com")&&AnimanchProtocol.threadId(uri.toString())!=null){
                     resolvingAnimanch=true;
                     final Uri original=uri;final boolean returnFromArchive=incoming.getBooleanExtra("haiagaru.archive.return",false);

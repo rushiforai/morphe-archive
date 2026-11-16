@@ -1,5 +1,7 @@
 package org.ungoogled.patches.maps.placesheet
 
+import org.ungoogled.patches.maps.ui.mapsId
+import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -25,19 +27,25 @@ import org.ungoogled.patches.maps.ui.activityContextHookPatch
 import org.ungoogled.patches.maps.ui.markPatched
 import org.ungoogled.patches.maps.ui.sharedExtensionPatch
 import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
+import org.ungoogled.patches.shared.addInstructionsAtLabel
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 /** org.ungoogled.ui.HideAi: Know before you go as an Overview tab card. */
 private const val HIDE_AI = "Lorg/ungoogled/ui/HideAi;"
 
 /** AI_REVIEW_SUMMARY_DISCLAIMER, "Summarized with Gemini" under the review summary. */
-private const val AI_REVIEW_SUMMARY_DISCLAIMER = 0x7f1401c3
+private val AI_REVIEW_SUMMARY_DISCLAIMER get() = mapsId(ResourceType.STRING, "AI_REVIEW_SUMMARY_DISCLAIMER")
 
 /** ASKMAPS_ENTRYPOINT_LABEL, "Ask Maps": only the Ask Maps chip under the search bar shows it. */
-private const val ASK_MAPS_CHIP_LABEL = 0x7f140320
+private val ASK_MAPS_CHIP_LABEL get() = mapsId(ResourceType.STRING, "ASKMAPS_ENTRYPOINT_LABEL")
 
 /** The Ask Maps chip's label getter; its class is the chip. */
 private object AskMapsChipFingerprint : Fingerprint(
-    filters = listOf(literal(ASK_MAPS_CHIP_LABEL)),
+    filters = listOf(literal({ ASK_MAPS_CHIP_LABEL.toLong() })),
 )
 
 /** Whether Ask Maps (Gemini) runs during navigation: its button on the navigation sheet and its voice session. */
@@ -47,18 +55,28 @@ private object AskMapsInNavigationFingerprint : Fingerprint(
     filters = listOf(string("AskMapsNavigationFeatureAvailabilityImpl.isAskMapsInNavigationEnabled")),
 )
 
+/** ASK_MAPS_MODE_ASSISTIVE_SHORTCUT, "Ask Maps": the home screen's shortcut chip, first under the search bar. */
+private val ASK_MAPS_SHORTCUT get() = mapsId(ResourceType.STRING, "ASK_MAPS_MODE_ASSISTIVE_SHORTCUT")
+
 /** SEARCH_LIST_NAVIGATION_HEADER_ASK_MAPS_MODE_BUTTON: loaded right after the "is Ask Maps on" checks. */
-private const val ASK_MAPS_SEARCH_HEADER_BUTTON = 0x7f141d38
+private val ASK_MAPS_SEARCH_HEADER_BUTTON get() = mapsId(ResourceType.STRING, "SEARCH_LIST_NAVIGATION_HEADER_ASK_MAPS_MODE_BUTTON")
+
+/** EDITORIAL_SUMMARY_DISCLAIMER, "Summarized with AI": under a place's description when Google's AI wrote it. */
+private val EDITORIAL_SUMMARY_DISCLAIMER get() = mapsId(ResourceType.STRING, "EDITORIAL_SUMMARY_DISCLAIMER")
+
+/** The icons a server-made place action can carry that mean Gemini: the spark, and the magnifier with a spark. */
+private val SPARK_ICON get() = mapsId(ResourceType.DRAWABLE, "gs_spark_vd_theme_24")
+private val SEARCH_SPARK_ICON get() = mapsId(ResourceType.DRAWABLE, "gs_search_spark_vd_theme_24")
 
 /** ASK_MAPS_PLACE_ACTION_TEXT, "Ask": the place sheet's Ask action. */
-private const val ASK_MAPS_PLACE_ACTION = 0x7f140373
+private val ASK_MAPS_PLACE_ACTION get() = mapsId(ResourceType.STRING, "ASK_MAPS_PLACE_ACTION_TEXT")
 
 /** ASK_MAPS_LIST_ACTION_TEXT, "Ask": the saved list's Ask action. */
-private const val ASK_MAPS_LIST_ACTION = 0x7f14035c
+private val ASK_MAPS_LIST_ACTION get() = mapsId(ResourceType.STRING, "ASK_MAPS_LIST_ACTION_TEXT")
 
 /** The review summary's layout, the only code that draws that label. */
 private object ReviewSummaryLayoutFingerprint : Fingerprint(
-    filters = listOf(literal(AI_REVIEW_SUMMARY_DISCLAIMER)),
+    filters = listOf(literal({ AI_REVIEW_SUMMARY_DISCLAIMER.toLong() })),
 )
 
 /**
@@ -69,6 +87,15 @@ private object ReviewSummaryLayoutFingerprint : Fingerprint(
 private val KBYG_GETTER_TAIL = listOf(
     Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT,
 )
+
+/** The same tail as 26.44 lays it out: `slot` and `null` meet at one return (a goto between them). */
+private val KBYG_GETTER_TAIL_MERGED = listOf(Opcode.IGET_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT)
+
+private fun Method.hasKbygTail(): Boolean {
+    val opcodes = implementation?.instructions?.map { it.opcode }?.filter { it != Opcode.GOTO && it != Opcode.GOTO_16 && it != Opcode.GOTO_32 }
+        ?: return false
+    return opcodes.takeLast(KBYG_GETTER_TAIL.size) == KBYG_GETTER_TAIL || opcodes.takeLast(KBYG_GETTER_TAIL_MERGED.size) == KBYG_GETTER_TAIL_MERGED
+}
 
 /** The review summary's "is there one" check, `return text.length() > 0`. */
 private val SUMMARY_CHECK = listOf(
@@ -101,7 +128,7 @@ internal val hideAiPatch = bytecodePatch(
             } == true
         val kbyg = header.methods.filter { m ->
             m.parameterTypes.isEmpty() && m.returnType.startsWith("L") &&
-                m.implementation?.instructions?.map { it.opcode }?.takeLast(KBYG_GETTER_TAIL.size) == KBYG_GETTER_TAIL &&
+                m.hasKbygTail() &&
                 header.methods.any { it != m && it.returnType == m.returnType && calls(it, m) }
         }.singleOrNull() ?: throw PatchException("Know before you go getter not found in ${header.type}")
         // v0 is its one local, overwritten by its own first instruction.
@@ -126,7 +153,7 @@ internal val hideAiPatch = bytecodePatch(
             // The header's Know before you go: its getter returns this field, filled from the place's slot table by
             // `slots.map.get(Integer.valueOf(place.data().slots.config.kbyg))` -- the names the extension follows.
             val getterCode = kbyg.implementation!!.instructions.toList()
-            val kbygField = (getterCode[getterCode.size - KBYG_GETTER_TAIL.size] as ReferenceInstruction).reference as FieldReference
+            val kbygField = (getterCode.last { it.opcode == Opcode.IGET_OBJECT } as ReferenceInstruction).reference as FieldReference
             var path: String? = null
             var slotTable: FieldReference? = null
             for (m in header.methods) {
@@ -138,13 +165,20 @@ internal val hideAiPatch = bytecodePatch(
                 }
                 if (store < 0) continue
                 fun ref(i: Int) = (code[i] as? ReferenceInstruction)?.reference
-                val get = (store downTo 0).firstOrNull { i ->
-                    code[i].opcode == Opcode.INVOKE_INTERFACE && (ref(i) as? MethodReference)?.let { it.definingClass == "Ljava/util/Map;" && it.name == "get" } == true
-                } ?: continue
-                val boxed = (get downTo 0).firstOrNull { i ->
-                    (ref(i) as? MethodReference)?.let { it.definingClass == "Ljava/lang/Integer;" && it.name == "valueOf" } == true
-                } ?: continue
-                val id = (boxed downTo 0).firstOrNull { code[it].opcode == Opcode.IGET } ?: continue
+                fun MethodReference.isMapGet() = definingClass == "Ljava/util/Map;" && name == "get"
+                fun MethodReference.isBoxing() = definingClass == "Ljava/lang/Integer;" && name == "valueOf"
+                // The slot id: the last int field read before the store. 26.36 looks it up right here; 26.44 hands
+                // it to a helper of the header that does `slots.map.get(Integer.valueOf(id))`.
+                val id = (store downTo 0).firstOrNull { code[it].opcode == Opcode.IGET } ?: continue
+                val looksUp = (id until store).any { i ->
+                    val r = ref(i) as? MethodReference ?: return@any false
+                    if (r.isMapGet()) return@any true
+                    if (r.definingClass != header.type) return@any false
+                    val helper = header.methods.firstOrNull { it.name == r.name && it.parameterTypes == r.parameterTypes && it.returnType == r.returnType }
+                    val refs = helper?.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
+                    refs.any { it.isMapGet() } && refs.any { it.isBoxing() }
+                } || (id until store).any { (ref(it) as? MethodReference)?.isBoxing() == true }
+                if (!looksUp) continue
                 val kbygSlot = ref(id) as FieldReference
                 val config = (id downTo 0).firstNotNullOfOrNull { i ->
                     (ref(i) as? FieldReference)?.takeIf { code[i].opcode == Opcode.IGET_OBJECT && it.type == kbygSlot.definingClass }
@@ -180,9 +214,11 @@ internal val hideAiPatch = bytecodePatch(
                     if (get < 3 || get + 4 >= code.size) continue
                     val ownSlot = (code[get - 3] as? ReferenceInstruction)?.reference as? FieldReference
                     if (code[get - 3].opcode != Opcode.IGET || ownSlot?.definingClass != c.type) continue
-                    if (code[get + 1].opcode != Opcode.MOVE_RESULT_OBJECT || code[get + 2].opcode != Opcode.CHECK_CAST ||
-                        code[get + 3].opcode != Opcode.IF_NEZ || code[get + 4].opcode != Opcode.RETURN_VOID
-                    ) continue
+                    // `if (content == null) return`: an if-nez over a return (26.36), or an if-eqz to the method's
+                    // final return (26.44)
+                    val nullReturns = (code[get + 3].opcode == Opcode.IF_NEZ && code[get + 4].opcode == Opcode.RETURN_VOID) ||
+                        (code[get + 3].opcode == Opcode.IF_EQZ && code.last().opcode == Opcode.RETURN_VOID)
+                    if (code[get + 1].opcode != Opcode.MOVE_RESULT_OBJECT || code[get + 2].opcode != Opcode.CHECK_CAST || !nullReturns) continue
                     // looked up in the place's slot table (other modules look up other tables the same way)
                     val readsSlots = code.take(get).any { insn ->
                         insn.opcode == Opcode.IGET_OBJECT && ((insn as ReferenceInstruction).reference as FieldReference).let {
@@ -273,7 +309,9 @@ internal val hideAiPatch = bytecodePatch(
         val check = mutableClassDefBy(model).methods.singleOrNull {
             it.name == gate.name && it.parameterTypes.isEmpty() && it.returnType == "Z"
         } ?: throw PatchException("review summary check not found in $model")
-        if (check.implementation?.instructions?.map { it.opcode } != SUMMARY_CHECK) {
+        // (26.44 joins the two returns: `true; goto; false; return`)
+        val shape = check.implementation?.instructions?.map { it.opcode }
+        if (shape != SUMMARY_CHECK && shape != SUMMARY_CHECK.take(5) + listOf(Opcode.GOTO, Opcode.CONST_4, Opcode.RETURN)) {
             throw PatchException("review summary check in $model has an unexpected shape")
         }
         // `if (length > 0) return true;` becomes `return !HIDE_AI`. The method has no spare register,
@@ -320,6 +358,104 @@ internal val hideAiPatch = bytecodePatch(
             (it as? NarrowLiteralInstruction)?.narrowLiteral == id
         } ?: -1
 
+        // The home screen's Ask Maps shortcut chip. Since 26.43 it has a server switch of its own, not the Ask Maps
+        // one below: the chip shows while `flags.shortcut()` says so, asked through one getter, `return
+        // this.flags.x()`. That answer goes through HIDE_AI (false stays false, true becomes !HIDE_AI).
+        run {
+            val shortcut = ASK_MAPS_SHORTCUT
+            val owners = mutableListOf<String>()
+            classDefForEach { c ->
+                if (!c.type.startsWith("Lorg/ungoogled/") && c.methods.any { it.literalAt(shortcut) >= 0 }) owners += c.type
+            }
+            val owner = mutableClassDefBy(owners.singleOrNull() ?: throw PatchException("Ask Maps shortcut chip: found ${owners.size}"))
+            val gates = owner.methods.filter { m ->
+                val code = m.implementation?.instructions?.toList() ?: return@filter false
+                m.returnType == "Z" && m.parameterTypes.isEmpty() &&
+                    code.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN) &&
+                    ((code[0] as ReferenceInstruction).reference as FieldReference).definingClass == owner.type
+            }
+            val gate = gates.singleOrNull() ?: throw PatchException("Ask Maps shortcut chip's switch: found ${gates.size}")
+            val ret = gate.implementation!!.instructions.last()
+            val r = (ret as OneRegisterInstruction).registerA
+            gate.addInstructionsWithLabels(
+                3,
+                """
+                    if-eqz v$r, :shortcut_off
+                    sget-boolean v$r, $SHAPES->HIDE_AI:Z
+                    xor-int/lit8 v$r, v$r, 0x1
+                """,
+                ExternalLabel("shortcut_off", ret),
+            )
+
+            // Issue #203: that switch only drives the chip's highlight. The chip itself is put in the home chip
+            // row's list either way: with Ask Maps on, or -- since 26.43 -- by a server flag of its own while Ask
+            // Maps is off, which is how it came back. Every chip row's list (a method returning a List that casts
+            // to the chips' interface) goes through a filter that leaves the shortcut out while HIDE_AI is on.
+            // The chip's interface and the chip row item interface it extends (not further up: that is every view model).
+            val chipTypes = owner.interfaces.flatMap { listOf(it) + classDefByOrNull(it)?.interfaces.orEmpty() }.toSet()
+            val rows = mutableListOf<Pair<String, Method>>()
+            classDefForEach { c ->
+                if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+                for (m in c.methods) {
+                    if (m.returnType != "Ljava/util/List;" || m.parameterTypes.isNotEmpty()) continue
+                    val casts = m.implementation?.instructions?.any { insn ->
+                        insn.opcode == Opcode.CHECK_CAST && ((insn as ReferenceInstruction).reference as TypeReference).type in chipTypes
+                    } == true
+                    if (casts) rows += c.type to m
+                }
+            }
+            if (rows.isEmpty()) throw PatchException("no chip row lists the Ask Maps shortcut chip's kind")
+            owner.methods.add(
+                ImmutableMethod(
+                    owner.type, "uaDropShortcut", listOf(ImmutableMethodParameter("Ljava/util/List;", null, null)), "Ljava/util/List;",
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(5),
+                ).toMutable().apply {
+                    addInstructions(
+                        0,
+                        """
+                            sget-boolean v0, $SHAPES->HIDE_AI:Z
+                            if-eqz v0, :keep
+                            if-eqz p0, :keep
+                            new-instance v1, Ljava/util/ArrayList;
+                            invoke-direct { v1 }, Ljava/util/ArrayList;-><init>()V
+                            invoke-interface { p0 }, Ljava/util/List;->iterator()Ljava/util/Iterator;
+                            move-result-object v2
+                            :loop
+                            invoke-interface { v2 }, Ljava/util/Iterator;->hasNext()Z
+                            move-result v0
+                            if-eqz v0, :done
+                            invoke-interface { v2 }, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                            move-result-object v3
+                            instance-of v0, v3, ${owner.type}
+                            if-nez v0, :loop
+                            invoke-interface { v1, v3 }, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                            goto :loop
+                            :done
+                            invoke-static { v1 }, Lcom/google/common/collect/ImmutableList;->copyOf(Ljava/util/Collection;)Lcom/google/common/collect/ImmutableList;
+                            move-result-object v1
+                            return-object v1
+                            :keep
+                            return-object p0
+                        """,
+                    )
+                },
+            )
+            for ((type, found) in rows) {
+                val m = mutableClassDefBy(type).methods.single { it.name == found.name && it.parameterTypes.isEmpty() && it.returnType == found.returnType }
+                val returns = m.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.map { it.index }
+                for (r in returns.reversed()) {
+                    val reg = (m.implementation!!.instructions[r] as OneRegisterInstruction).registerA
+                    m.addInstructionsAtLabel(
+                        r,
+                        """
+                            invoke-static/range { v$reg .. v$reg }, ${owner.type}->uaDropShortcut(Ljava/util/List;)Ljava/util/List;
+                            move-result-object v$reg
+                        """,
+                    )
+                }
+            }
+        }
+
         // Ask Maps as a whole (issue #82). Maps asks one server switch whether Ask Maps exists at all -- the
         // home screen's shortcut chip ("Ask Maps", first under the search bar), the search list's Ask Maps
         // button, "no results? Ask Maps", Ask Maps mode, its notifications and links, and the requests that
@@ -329,13 +465,14 @@ internal val hideAiPatch = bytecodePatch(
         // Ask Maps button label.
         run {
             var header: Pair<String, Method>? = null
+            val headerButton = ASK_MAPS_SEARCH_HEADER_BUTTON
             classDefForEach { c ->
                 if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
-                c.methods.firstOrNull { it.literalAt(ASK_MAPS_SEARCH_HEADER_BUTTON) >= 0 }?.let { header = c.type to it }
+                c.methods.firstOrNull { it.literalAt(headerButton) >= 0 }?.let { header = c.type to it }
             }
             val (_, headerMethod) = header ?: throw PatchException("Ask Maps search header button not found")
             val headerInsns = headerMethod.implementation!!.instructions.toList()
-            val at = headerMethod.literalAt(ASK_MAPS_SEARCH_HEADER_BUTTON)
+            val at = headerMethod.literalAt(headerButton)
             fun boolCall(insn: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
                 ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
                     insn.opcode == Opcode.INVOKE_VIRTUAL && it.returnType == "Z" && it.parameterTypes.isEmpty()
@@ -375,12 +512,17 @@ internal val hideAiPatch = bytecodePatch(
         // offers Ask Maps for it, whatever the switch above says; its "show it?" answers no.
         run {
             var owner: String? = null
+            val placeAction = ASK_MAPS_PLACE_ACTION
             classDefForEach { c ->
-                if (owner == null && c.methods.any { it.literalAt(ASK_MAPS_PLACE_ACTION) >= 0 }) owner = c.type
+                if (owner == null && c.methods.any { it.literalAt(placeAction) >= 0 }) owner = c.type
             }
-            val show = mutableClassDefBy(owner ?: throw PatchException("place sheet Ask action not found")).methods.singleOrNull {
-                it.name == "c" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Boolean;"
-            } ?: throw PatchException("place sheet Ask action has no visibility answer")
+            // The action's Boolean answers: constants (FALSE), and this one, a boxed flag of the action's own.
+            val show = mutableClassDefBy(owner ?: throw PatchException("place sheet Ask action not found")).methods.filter { m ->
+                m.parameterTypes.isEmpty() && m.returnType == "Ljava/lang/Boolean;" &&
+                    m.implementation?.instructions?.any { insn ->
+                        insn.opcode == Opcode.IGET_BOOLEAN && ((insn as ReferenceInstruction).reference as FieldReference).definingClass == owner
+                    } == true
+            }.singleOrNull() ?: throw PatchException("place sheet Ask action has no visibility answer")
             // It reads its flag into its only register, `this`, then boxes it: the flag is changed in between,
             // false stays false, true becomes !HIDE_AI.
             val read = show.implementation!!.instructions.indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN }
@@ -398,13 +540,240 @@ internal val hideAiPatch = bytecodePatch(
             )
         }
 
+        // Issue #199: a place's AI description ("Peaceful nature park featuring ... -- Summarized with AI"), first on the
+        // Overview tab and in the About tab. Both of its modules show the place's description and ask the place
+        // whether AI wrote it; while hiding AI the place answers "no description" when it did, which is what a place
+        // without one gets. The modules are the view models of the two layouts that show the disclaimer.
+        run {
+            val disclaimer = EDITORIAL_SUMMARY_DISCLAIMER
+            val layouts = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
+            classDefForEach { c ->
+                if (!c.type.startsWith("Lorg/ungoogled/") && c.methods.any { it.literalAt(disclaimer) >= 0 }) layouts += c
+            }
+            val models = layouts.flatMap { layout ->
+                val signature = layout.annotations.firstOrNull { it.type == "Ldalvik/annotation/Signature;" }?.elements
+                    ?.firstOrNull { it.name == "value" }?.value as? com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
+                val text = signature?.value?.joinToString("") { (it as com.android.tools.smali.dexlib2.iface.value.StringEncodedValue).value }.orEmpty()
+                Regex("<(L[^<>;]+;)>").findAll(text).map { it.groupValues[1] }.toList()
+            }.distinct().mapNotNull { classDefByOrNull(it) }
+            if (models.size < 2) throw PatchException("AI description modules: found ${models.size}")
+            fun MethodReference.key() = "$definingClass->$name()$returnType"
+            fun calls(c: com.android.tools.smali.dexlib2.iface.ClassDef, returnType: String) = c.methods.flatMap { m ->
+                m.implementation?.instructions?.mapNotNull { insn ->
+                    ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
+                        insn.opcode == Opcode.INVOKE_VIRTUAL && it.parameterTypes.isEmpty() && it.returnType == returnType
+                    }
+                }.orEmpty()
+            }.distinctBy { it.key() }
+            // What both modules ask the place: whether AI wrote the description, and the description texts.
+            val flags = models.map { m -> calls(m, "Z").map { it.key() }.toSet() }.reduce { a, b -> a intersect b }
+            val flagKey = flags.singleOrNull() ?: throw PatchException("AI description flag: found ${flags.size}")
+            val flag = calls(models.first(), "Z").first { it.key() == flagKey }
+            val place = mutableClassDefBy(flag.definingClass)
+            fun Method.fieldsRead() = implementation?.instructions?.mapNotNull { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { insn.opcode == Opcode.IGET_OBJECT }?.let { "${it.definingClass}->${it.name}" }
+            }.orEmpty().toSet()
+            val flagFields = place.methods.single { it.name == flag.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }.fieldsRead()
+            val texts = models.map { m -> calls(m, "Ljava/lang/String;").filter { it.definingClass == place.type }.map { it.key() }.toSet() }
+                .reduce { a, b -> a intersect b }
+            // The description the flag is about: the text getter reading the same part of the place as the flag.
+            val described = place.methods.filter { m ->
+                "${place.type}->${m.name}()${m.returnType}" in texts && m.parameterTypes.isEmpty() && (m.fieldsRead() intersect flagFields).isNotEmpty()
+            }
+            val text = described.singleOrNull() ?: throw PatchException("AI description text: found ${described.size}")
+            // The getter has no register to spare (`this` is its only one), so its body moves to uaDescription()
+            // and it becomes `return uaDescribed(this)`, which answers "" for an AI description while hiding AI.
+            if (AccessFlags.STATIC.isSet(text.accessFlags)) throw PatchException("${place.type}->${text.name} is static")
+            place.methods.add(
+                ImmutableMethod(
+                    place.type, "uaDescription", emptyList(), text.returnType,
+                    AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(text.implementation!!),
+                ).toMutable(),
+            )
+            place.methods.add(
+                ImmutableMethod(
+                    place.type, "uaDescribed", listOf(ImmutableMethodParameter(place.type, null, null)), text.returnType,
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(2),
+                ).toMutable().apply {
+                    addInstructions(
+                        0,
+                        """
+                            sget-boolean v0, $SHAPES->HIDE_AI:Z
+                            if-eqz v0, :described
+                            invoke-virtual { p0 }, ${place.type}->${flag.name}()Z
+                            move-result v0
+                            if-eqz v0, :described
+                            const-string v0, ""
+                            return-object v0
+                            :described
+                            invoke-virtual { p0 }, ${place.type}->uaDescription()${text.returnType}
+                            move-result-object v0
+                            return-object v0
+                        """,
+                    )
+                },
+            )
+            val body = text.implementation!!
+            while (body.instructions.isNotEmpty()) body.removeInstruction(0)
+            text.addInstructions(
+                0,
+                """
+                    invoke-static { p0 }, ${place.type}->uaDescribed(${place.type})${text.returnType}
+                    move-result-object p0
+                    return-object p0
+                """,
+            )
+        }
+
+        // Issue #199: the place sheet's server-made actions. Next to its own ones (Directions, Call, ...) the server
+        // can send action buttons of its own, each with a label and an icon picked from a list; Ask Maps comes as one
+        // ("Ask", the magnifier with a spark) beside the "Ask" action above. Such a button is added to the action row
+        // through `row.add(new ServerAction(..command..))`; while hiding AI that add skips a button whose icon is a
+        // spark. The icon list is the one method mapping icon numbers to Maps' drawables, the sparks among them.
+        run {
+            val spark = SPARK_ICON
+            val searchSpark = SEARCH_SPARK_ICON
+            val mappers = mutableListOf<Pair<String, Method>>()
+            classDefForEach { c ->
+                if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+                c.methods.filterTo(mutableListOf()) { m ->
+                    m.parameterTypes.isNotEmpty() && m.literalAt(spark) >= 0 && m.literalAt(searchSpark) >= 0 &&
+                        m.implementation?.instructions?.any { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } == true
+                }.forEach { mappers += c.type to it }
+            }
+            val (mapperOwner, mapperFound) = mappers.singleOrNull() ?: throw PatchException("server action icon list: found ${mappers.size}")
+            val mapper = mutableClassDefBy(mapperOwner).methods.single {
+                it.name == mapperFound.name && it.parameterTypes == mapperFound.parameterTypes && it.returnType == mapperFound.returnType
+            }
+            val icon = mapper.parameterTypes[0].toString()
+            val code = mapper.implementation!!.instructions
+            // `n = toNumber(icon.number); if (n == 0) n = 1; switch (n - 1)`
+            val read = code.indexOfFirst { insn ->
+                insn.opcode == Opcode.IGET && ((insn as ReferenceInstruction).reference as FieldReference).definingClass == icon
+            }
+            val number = (code.getOrNull(read) as? ReferenceInstruction)?.reference as? FieldReference
+                ?: throw PatchException("server action icon list no longer reads the icon's number")
+            val toNumber = (code.getOrNull(read + 1) as? ReferenceInstruction)?.reference as? MethodReference
+            if (code[read + 1].opcode != Opcode.INVOKE_STATIC || toNumber?.parameterTypes?.map { it.toString() } != listOf("I") ||
+                code.drop(read).take(8).none { it.opcode == Opcode.ADD_INT_LIT8 && (it as com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction).narrowLiteral == -1 }
+            ) throw PatchException("server action icon list no longer turns the icon's number into a case")
+            val payloads = code.filterIsInstance<com.android.tools.smali.dexlib2.builder.BuilderSwitchPayload>()
+            val sparkCases = payloads.flatMap { it.switchElements }.filter { element ->
+                val target = (element as com.android.tools.smali.dexlib2.builder.instruction.BuilderSwitchElement).target.location.index
+                // each case loads its drawable first: `const v0, <drawable>; goto`
+                (code[target] as? com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction)?.narrowLiteral in setOf(spark, searchSpark)
+            }.map { it.key }
+            if (sparkCases.size != 2) throw PatchException("server action icon list: ${sparkCases.size} spark cases")
+            // The server action: the class whose constructor picks its icon this way, from its command's
+            // `command.content.icon`, keeping the command in a field.
+            val actions = mutableListOf<String>()
+            classDefForEach { c ->
+                if (c.methods.any { m ->
+                        m.name == "<init>" && m.implementation?.instructions?.any { insn ->
+                            ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { it.definingClass == mapperOwner && it.name == mapper.name } == true
+                        } == true
+                    }
+                ) actions += c.type
+            }
+            // (Server-made header buttons pick their icon the same way but are kept in fields, never added to a row.)
+            var hooked = 0
+            for (actionType in actions) {
+            val action = mutableClassDefBy(actionType)
+            val init = action.methods.single { m ->
+                m.name == "<init>" && m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == mapper.name } == true
+            }
+            val initCode = init.implementation!!.instructions.toList()
+            fun fieldRead(type: String) = initCode.firstNotNullOfOrNull { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { insn.opcode == Opcode.IGET_OBJECT && it.type == type }
+            }
+            val iconField = fieldRead(icon) ?: throw PatchException("$actionType no longer reads its icon")
+            val contentField = fieldRead(iconField.definingClass) ?: continue
+            val commandField = initCode.firstNotNullOfOrNull { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf {
+                    insn.opcode == Opcode.IPUT_OBJECT && it.definingClass == action.type && it.type == contentField.definingClass
+                }
+            } ?: continue
+            // Where it joins the row: `new ServerAction(..)`, then `row.add(it)`.
+            val sites = mutableListOf<Triple<String, Method, Int>>()
+            classDefForEach { c ->
+                for (m in c.methods) {
+                    val insns = m.implementation?.instructions?.toList() ?: continue
+                    insns.forEachIndexed { i, insn ->
+                        // its constructor call, whose first register is the new action (the new-instance may use another)
+                        val ctor = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                        if ((insn.opcode != Opcode.INVOKE_DIRECT && insn.opcode != Opcode.INVOKE_DIRECT_RANGE) ||
+                            ctor?.definingClass != action.type || ctor.name != "<init>"
+                        ) return@forEachIndexed
+                        val made = when (insn) {
+                            is com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction -> insn.startRegister
+                            else -> (insn as com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c).registerC
+                        }
+                        val add = (i + 1 until minOf(insns.size, i + 3)).firstOrNull { j ->
+                            val r = (insns[j] as? ReferenceInstruction)?.reference as? MethodReference
+                            insns[j].opcode == Opcode.INVOKE_VIRTUAL && r?.parameterTypes?.map { it.toString() } == listOf("Ljava/lang/Object;") && r.returnType == "V" &&
+                                (insns[j] as com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c).let { it.registerCount == 2 && it.registerD == made }
+                        } ?: return@forEachIndexed
+                        sites += Triple(c.type, m, add)
+                    }
+                }
+            }
+            if (sites.isEmpty()) continue
+            hooked += sites.size
+            val keys = sparkCases.joinToString("\n") { "const/16 v1, $it\nif-eq v0, v1, :skip" }
+            val added = mutableSetOf<String>()
+            for ((owner, found, at) in sites) {
+                val m = mutableClassDefBy(owner).methods.single { it.name == found.name && it.parameterTypes == found.parameterTypes && it.returnType == found.returnType }
+                val call = m.implementation!!.instructions[at] as com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+                val list = (call as ReferenceInstruction).reference as MethodReference
+                val helper = "uaAdd" + list.definingClass.removePrefix("L").removeSuffix(";").replace('/', '_')
+                if (added.add(helper)) {
+                    action.methods.add(
+                        ImmutableMethod(
+                            action.type, helper,
+                            listOf(ImmutableMethodParameter(list.definingClass, null, null), ImmutableMethodParameter(action.type, null, null)), "V",
+                            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(4),
+                        ).toMutable().apply {
+                            addInstructions(
+                                0,
+                                """
+                                    sget-boolean v0, $SHAPES->HIDE_AI:Z
+                                    if-eqz v0, :add
+                                    iget-object v0, p1, ${action.type}->${commandField.name}:${commandField.type}
+                                    iget-object v0, v0, ${contentField.definingClass}->${contentField.name}:${contentField.type}
+                                    if-eqz v0, :add
+                                    iget-object v0, v0, ${iconField.definingClass}->${iconField.name}:${iconField.type}
+                                    if-eqz v0, :add
+                                    iget v0, v0, ${number.definingClass}->${number.name}:I
+                                    invoke-static { v0 }, $toNumber
+                                    move-result v0
+                                    if-nez v0, :known
+                                    const/4 v0, 0x1
+                                    :known
+                                    add-int/lit8 v0, v0, -0x1
+                                    $keys
+                                    :add
+                                    invoke-virtual { p0, p1 }, $list
+                                    :skip
+                                    return-void
+                                """,
+                            )
+                        },
+                    )
+                }
+                m.replaceInstruction(at, "invoke-static { v${call.registerC}, v${call.registerD} }, ${action.type}->$helper(${list.definingClass}${action.type})V")
+            }
+            }
+            if (hooked == 0) throw PatchException("no server action is added to a row")
+        }
+
         // A saved list's "Ask" action: added after its own server check; skipped the way that check skips it.
         run {
             var field: FieldReference? = null
+            val listAction = ASK_MAPS_LIST_ACTION
             classDefForEach { c ->
                 if (field != null) return@classDefForEach
                 val init = c.methods.firstOrNull { it.name == "<clinit>" } ?: return@classDefForEach
-                val at = init.literalAt(ASK_MAPS_LIST_ACTION)
+                val at = init.literalAt(listAction)
                 if (at < 0) return@classDefForEach
                 field = init.implementation!!.instructions.drop(at).firstNotNullOfOrNull { insn ->
                     ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { insn.opcode == Opcode.SPUT_OBJECT }

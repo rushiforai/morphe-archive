@@ -9,7 +9,9 @@
 //   hide          CSS selectors of chat lines to hide (subs and gifts, hosts, reward redemptions)
 //   sevenTv       show 7TV emotes. sevenTvChannel is the channel's slug and sevenTvUser its owner's Kick user ID,
 //                 each null when the app hasn't seen them; without either only global emotes show.
-//   keywords      Chat keywords: send each chat line to the app and tint or hide it by the app's verdict.
+//   sevenTvBadges show the 7TV badge each chatter chose, as 7TV's event service reports it for the channel of
+//                 sevenTvUser (its owner's Kick user ID); nothing without it.
+//   keywords     Chat keywords: send each chat line to the app and tint or hide it by the app's verdict.
 //   generation    this page's token, which the app requires on every message the page sends it.
 // The page is served by Kick and can change at any time, so every step only touches what it finds and does
 // nothing otherwise.
@@ -144,9 +146,163 @@
         applied.push('7tv ' + (options.sevenTvUser || options.sevenTvChannel || 'global only'));
     }
 
+    if (options.sevenTvBadges) {
+        if (sevenTvBadges(options.sevenTvUser)) applied.push('7tv badges ' + options.sevenTvUser);
+        else applied.push('7tv badges: channel owner unknown');
+    }
+
     if (options.keywords && options.generation && window.ReactNativeWebView) {
         keywords();
         applied.push('keywords');
+    }
+
+    // 7TV badges: 7TV publishes no list of badge holders. Its event service pushes, for a channel, the badge each
+    // chatter there chose (an entitlement naming the 7TV user and their linked Kick account) and each badge's image
+    // (a cosmetic), which is how 7TV's own browser extension learns them. One WebSocket to events.7tv.io subscribes
+    // to both for the channel's owner; no chatter is looked up. A line whose sender (data-sender-id, the Kick user
+    // ID) holds a badge gets its image after Kick's own badges, also when the badge arrives after the line.
+    function sevenTvBadges(user) {
+        if (typeof user !== 'string' || !/^[0-9]{1,20}$/.test(user)) return false;
+        const badges = new Map(), holders = new Map();
+        const timers = new Set();
+        let stopped = false, socket = null, reconnect = 0, heartbeat = null, observer = null, app = null;
+        const later = (fn, ms) => {
+            const timer = setTimeout(() => { timers.delete(timer); if (!stopped) fn(); }, ms);
+            timers.add(timer); return timer;
+        };
+        const cancel = (timer) => { clearTimeout(timer); timers.delete(timer); };
+        // { "id", "tooltip", "name", "host": { "url": "//cdn.7tv.app/badge/<id>", "files": [{ "name": "3x.webp",
+        // "static_name", "width", "frame_count" }] } }: the largest file up to 3x, its still copy when animated.
+        function badgeOf(data) {
+            const host = data && data.host;
+            if (!host || typeof host.url !== 'string' || !/^\/\/cdn\.7tv\.app\/badge\/[0-9A-Za-z]{1,32}$/.test(host.url) ||
+                !Array.isArray(host.files)) return null;
+            let chosen = null, width = 0;
+            for (const file of host.files.slice(0, 16)) {
+                if (!file || typeof file.name !== 'string') continue;
+                const w = Number(file.width) || 0;
+                if (file.name.startsWith('4x') || w > 72 || w <= width) continue;
+                const name = Number(file.frame_count) > 1 && typeof file.static_name === 'string' ? file.static_name : file.name;
+                if (!/^[1-3]x(?:_static)?\.(?:webp|png)$/.test(name)) continue;
+                chosen = name; width = w;
+            }
+            if (!chosen) return null;
+            const title = typeof data.tooltip === 'string' && data.tooltip ? data.tooltip
+                : typeof data.name === 'string' && data.name ? data.name : '7TV badge';
+            return {url: 'https:' + host.url + '/' + chosen, title: title.slice(0, 100)};
+        }
+        // The Kick user ID among a 7TV user's linked accounts.
+        function kickUser(account) {
+            const connections = account && Array.isArray(account.connections) ? account.connections : [];
+            for (const connection of connections.slice(0, 16)) {
+                if (connection && connection.platform === 'KICK' && /^[0-9]{1,20}$/.test(String(connection.id))) return String(connection.id);
+            }
+            return null;
+        }
+        function dispatch(d) {
+            const object = d && d.body && d.body.object;
+            if (!object || object.kind !== 'BADGE' || typeof d.type !== 'string') return;
+            const removed = /\.delete$/.test(d.type);
+            if (d.type.startsWith('cosmetic.')) {
+                const id = object.data && object.data.id;
+                if (typeof id !== 'string' || !id) return;
+                if (removed) badges.delete(id);
+                else {
+                    const badge = badgeOf(object.data);
+                    if (!badge) return;
+                    if (!badges.has(id) && badges.size >= 2000) return;
+                    badges.set(id, badge);
+                }
+                for (const [sender, badgeId] of holders) if (badgeId === id) decorateSender(sender);
+            } else if (d.type.startsWith('entitlement.')) {
+                const id = object.ref_id, sender = kickUser(object.user);
+                if (typeof id !== 'string' || !id || !sender) return;
+                if (removed) {
+                    if (holders.get(sender) !== id) return;
+                    holders.delete(sender);
+                } else {
+                    holders.delete(sender); holders.set(sender, id);
+                    if (holders.size > 20000) holders.delete(holders.keys().next().value);
+                }
+                decorateSender(sender);
+            }
+        }
+        function decorate(wrapper) {
+            const line = wrapper.closest('[data-sender-id]'), name = wrapper.querySelector(':scope > .username');
+            if (!line || !name) return;
+            const id = holders.get(line.dataset.senderId), badge = id && badges.get(id);
+            let mark = wrapper.querySelector(':scope > [data-lurk-badge]');
+            if (!badge) { if (mark) mark.remove(); return; }
+            if (mark && mark.dataset.lurkBadge === id) return;
+            if (!mark) {
+                mark = document.createElement('span');
+                const image = document.createElement('img');
+                image.classList.add('badge'); image.decoding = 'async'; image.referrerPolicy = 'no-referrer';
+                mark.appendChild(image);
+            }
+            mark.dataset.lurkBadge = id;
+            const image = mark.firstChild;
+            image.src = badge.url; image.alt = badge.title; image.title = badge.title;
+            if (mark.nextSibling !== name) wrapper.insertBefore(mark, name);
+        }
+        function decorateSender(sender) {
+            if (!app) return;
+            for (const line of app.querySelectorAll('[data-sender-id="' + CSS.escape(sender) + '"]')) {
+                line.querySelectorAll('.user-wrapper').forEach(decorate);
+            }
+            if (observer) observer.takeRecords();
+        }
+        function scan(root) {
+            if (root.matches && root.matches('.user-wrapper')) decorate(root);
+            if (root.querySelectorAll) root.querySelectorAll('.user-wrapper').forEach(decorate);
+        }
+        function connect() {
+            if (stopped || document.hidden || socket) return;
+            const ws = socket = new WebSocket('wss://events.7tv.io/v3');
+            let interval = 30000;
+            const watchdog = () => { cancel(heartbeat); heartbeat = later(() => ws.close(), interval * 2 + 1000); };
+            ws.onopen = () => {
+                if (socket !== ws || stopped) return;
+                for (const type of ['cosmetic.*', 'entitlement.*']) {
+                    ws.send(JSON.stringify({op: 35, d: {type, condition: {platform: 'KICK', ctx: 'channel', id: user}}}));
+                }
+                watchdog();
+            };
+            ws.onmessage = (event) => {
+                if (socket !== ws || stopped || typeof event.data !== 'string' || event.data.length > 262144) return;
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.op === 1) { interval = Math.max(1000, Math.min(60000, Number(message.d.heartbeat_interval) || 30000)); reconnect = 0; watchdog(); }
+                    if (message.op === 2) watchdog();
+                    if (message.op === 4 || message.op === 7) { ws.close(); return; }
+                    if (message.op === 0) dispatch(message.d);
+                } catch (_) { /* Ignore malformed dispatches. */ }
+            };
+            ws.onclose = () => {
+                if (socket !== ws) return;
+                socket = null; cancel(heartbeat);
+                if (stopped || document.hidden || reconnect >= 8) return;
+                later(connect, Math.min(60000, 1000 * Math.pow(2, Math.min(reconnect++, 6))) * (0.8 + Math.random() * 0.4));
+            };
+        }
+        whenReady((root) => {
+            if (stopped) return; app = root;
+            observer = new MutationObserver((records) => {
+                for (const record of records) for (const node of record.addedNodes) if (node.nodeType === 1) scan(node);
+            });
+            observer.observe(app, {childList: true, subtree: true}); scan(app);
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { if (socket) socket.close(); }
+            else { reconnect = 0; connect(); }
+        });
+        window.addEventListener('pagehide', () => {
+            stopped = true; timers.forEach(clearTimeout); timers.clear();
+            if (socket) socket.close(); if (observer) observer.disconnect();
+        }, {once: true});
+        window.lurkChat.sevenTvBadges = {badges, holders};
+        connect();
+        return true;
     }
 
     // Chat keywords: each chat line, already shown or new, goes to the app (sender's name and kick.com handle, the

@@ -38,6 +38,7 @@ public final class DirectBodySelection {
 
     /** Anchor gestures retain ChMate's own long-press context dispatch. */
     public static boolean selectionContext(Object object) {
+        if(ResponseMultiSelection.nativeToolsRequested())return false;
         if (!prepare(object)) return false;
         State state = STATES.get((TextView)object);
         return state != null && !state.nativeAnchor;

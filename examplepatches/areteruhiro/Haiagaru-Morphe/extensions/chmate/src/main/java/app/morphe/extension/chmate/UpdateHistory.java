@@ -278,7 +278,7 @@ final class UpdateHistory {
                         "videoFrameThumbnailsEnabled", true, null); break;
             case VIDEO_IMMERSIVE:
                 toggle(content, activity, FeatureSwitches.prefs(activity), "専用動画ビューアの横画面で没入表示",
-                        "videoLandscapeImmersive", true, null); break;
+                        "videoLandscapeImmersive", false, null); break;
             case IMAGE_NG:
                 toggle(content, activity, RegisteredImageNg.prefs(activity),
                         "登録画像に一致するレスをあぼーん", RegisteredImageNg.ENABLE, false,
@@ -302,6 +302,49 @@ final class UpdateHistory {
                         DeleteReadThreads.LONG_PRESS_KEY, true, null); break;
             case IP_WIFI: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（Wi-Fi）", 1); break;
             case IP_MOBILE: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（モバイル回線）", 2); break;
+            case THREAD_RENAME:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "スレタイトル長押しに「スレの名前を変更」を表示",
+                        DisplayNames.SHOW_RENAME, true, null); break;
+            case KEYWORD_NAMES:
+                Button names = new Button(activity);
+                names.setText("キーワードの表示名を設定");
+                names.setOnClickListener(view -> DisplayNames.showKeywords(activity));
+                content.addView(names); break;
+            case GLOBAL_SEARCH_BACKGROUND:
+                toggle(content, activity, main, "全板検索をバックグラウンドで実行",
+                        GlobalSearchHome.BACKGROUND, true, null); break;
+            case GLOBAL_SEARCH_HISTORY:
+                toggle(content, activity, main, "全板検索の取得済み結果を保存",
+                        GlobalSearchHome.HISTORY, true, null); break;
+            case GLOBAL_SEARCH_PARTIAL:
+                toggle(content, activity, main, "全板検索の途中結果を開けるようにする",
+                        GlobalSearchHome.PARTIAL, true, null); break;
+            case VIEWER_DOUBLE_BACK:
+                toggle(content, activity, VideoViewerSettings.prefs(activity), "専用ビューアーを戻るジェスチャー2回で閉じる",
+                        MediaViewerBackGesture.DOUBLE_BACK, false, null); break;
+            case ALWAYS_MOSAIC_GRAY:
+                toggle(content, activity, main, "常時モザイクにモノクロを重ねる",
+                        ThumbnailAppearance.ALWAYS_GRAY, false, null); break;
+            case ALWAYS_MOSAIC_STRENGTH:
+                toggle(content, activity, main, "常時モザイクにHaiagaruのモザイク強度を使う",
+                        ThumbnailAppearance.ALWAYS_STRENGTH, false, null); break;
+            case MODERATION_ADULT:
+            case MODERATION_GORE:
+            case MODERATION_LIST:
+                String label = option == ReleaseFeatureOptions.Option.MODERATION_ADULT ? "成人向け画像を検出してモザイク"
+                        : option == ReleaseFeatureOptions.Option.MODERATION_GORE ? "グロ画像を検出してモザイク"
+                        : "スレ一覧の画像にも自動検出を適用する";
+                String key = option == ReleaseFeatureOptions.Option.MODERATION_ADULT ? ImageModeration.ADULT
+                        : option == ReleaseFeatureOptions.Option.MODERATION_GORE ? ImageModeration.GORE : ImageModeration.LIST;
+                boolean installed = ImageModeration.available(activity);
+                toggle(content, activity, main, installed ? label : label + "（画像検出ZIPが必要）", key, false, null)
+                        .setEnabled(installed); break;
+            case UPLOAD_DESTINATION:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "画像・動画のアップロード時にアップロード先を選ぶ",
+                        MediaUploadHosts.ASK_DESTINATION, false, null); break;
+            case NG_REPLY_NOTIFICATIONS:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "NGされたレスの返信通知を無効にする",
+                        NotificationNg.KEY, true, null); break;
             case IMAGE_NG_SETTINGS:
                 Button images = new Button(activity);
                 images.setText("登録画像・判定レベル・一致枚数を設定");
@@ -331,7 +374,7 @@ final class UpdateHistory {
         content.addView(heading);
     }
 
-    private static void toggle(LinearLayout content, Activity activity, SharedPreferences prefs,
+    private static LiveSettings.Toggle toggle(LinearLayout content, Activity activity, SharedPreferences prefs,
                                String label, String key, boolean initial, Runnable effect) {
         LiveSettings.Toggle toggle = new LiveSettings.Toggle(activity);
         toggle.setText(label);
@@ -341,6 +384,7 @@ final class UpdateHistory {
             if (prefs == SettingsProfiles.prefs(activity)) SettingsEffects.changed(activity, key, on);
         });
         content.addView(toggle);
+        return toggle;
     }
 
     private static void addIpNetwork(LinearLayout content, Activity activity, SharedPreferences prefs,

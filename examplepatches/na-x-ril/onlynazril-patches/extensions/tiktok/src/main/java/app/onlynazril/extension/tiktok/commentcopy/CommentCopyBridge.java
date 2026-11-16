@@ -5,10 +5,10 @@ import app.onlynazril.extension.tiktok.settings.CommentCopySettings;
 
 /**
  * The copy-comment patch's hooks: what the clipboard receives when a comment is copied.
- *
+ * <p>
  * TikTok puts the commenter's name in front of the text before it copies. Two routes do it, and
  * both are answered here:
- *
+ * <p>
  *  - the comment sheet's own Copy builds its {@code ClipData} through one static builder that takes
  *    the name prefix, the text and the text's emoji spans apart. The patch blanks the prefix at the
  *    top of that builder; the text and its emoji are left exactly as the app built them. This is
@@ -16,7 +16,7 @@ import app.onlynazril.extension.tiktok.settings.CommentCopySettings;
  *  - another menu (Favorites → Comments, and the reply copy) joins the name and the text itself and
  *    hands the one string to a plain-text clipboard helper. There the patch replaces that string
  *    with the comment's own text at the call, so the joined name never reaches the clipboard.
- *
+ * <p>
  * Both ask the same switch, and each reports its own branch: a copy that keeps the username and a
  * hook that never ran look the same on screen.
  */

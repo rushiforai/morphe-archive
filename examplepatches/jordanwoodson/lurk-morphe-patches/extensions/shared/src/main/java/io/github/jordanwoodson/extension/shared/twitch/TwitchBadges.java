@@ -447,6 +447,8 @@ public final class TwitchBadges {
             this.url = url;
             this.users = users;
             this.title = title != null && !title.isEmpty() ? title : name;
+            // An image on the network (not one Lurk drew) is kept in Lurk's image cache, whatever its host.
+            TwitchImageCache.include(url);
         }
 
         Object model(Class<?> type) throws ReflectiveOperationException {

@@ -61,3 +61,12 @@ internal object PlayerStatisticsFingerprint : Fingerprint(
     definingClass = PLAYER_VIEW, name = "handlePlayerStatistics", returnType = "V",
     parameters = listOf("Lcom/amazonaws/ivs/player/Player;"),
 )
+
+/** React Native hands the player view each stream's address here; it loads it on the player executor. */
+internal object PlayerViewSetStreamUrlFingerprint : Fingerprint(
+    definingClass = PLAYER_VIEW, name = "setStreamUrl", returnType = "V", parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object PlayerViewSeekFingerprint : Fingerprint(
+    definingClass = PLAYER_VIEW, name = "seekTo", returnType = "V", parameters = listOf("D"),
+)

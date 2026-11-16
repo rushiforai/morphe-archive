@@ -37,6 +37,8 @@ final class SiteBoardMenuProtocol {
   // putIfAbsent preserves the upstream label and folder once the menu is updated.
   if(kind.equals("animanch")&&!rows.isEmpty())
    add(rows,kind,"家庭用ゲーム",AnimanchProtocol.ORIGIN+"/category32/","単発スレ");
+  if(kind.equals("futaba")&&!rows.isEmpty())
+   add(rows,kind,FutabaRanking.LABEL,SiteBoardProtocol.FUTABA_RANKING,"ふたば");
   if(rows.isEmpty())throw new IOException("板一覧がありません。認証・通信・サイトの形式を確認してください");
   return Collections.unmodifiableList(new ArrayList<>(rows.values()));
  }

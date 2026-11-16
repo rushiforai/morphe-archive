@@ -7,6 +7,7 @@
       "download_button",
       "download_button_position",
       "download_video_quality",
+      "download_video_codec",
       "download_ask_quality",
       "download_original_photos",
       "keep_photos_as_sent",
@@ -33,6 +34,7 @@
       "save_profile_picture",
       "save_story",
       "save_story_from_share",
+      "save_story_pick",
       "pick_grid_videos",
       "download_video_path",
       "download_photo_path",
@@ -55,6 +57,8 @@
       "video_length_on_grid",
       "profile_grid_sort",
       "liked_grid_sort",
+      "favorites_grid_sort",
+      "collection_grid_sort",
       "sound_grid_sort",
       "liked_jump_to_date",
       "grid_search",
@@ -128,6 +132,7 @@
       "comment_blocked_users",
       "block_from_comment",
       "block_from_comment_menu",
+      "country_from_comment_menu",
       "hide_comment_like_count",
       "hide_comment_dislike",
       "hide_comment_avatars",
@@ -163,6 +168,7 @@
     "Copy bio and IDs": [
       "copy_ids",
       "account_facts",
+      "country_on_profiles",
       "bio_mention_links"
     ],
     "Copy comments without username": [
@@ -329,7 +335,8 @@
     ],
     "Fit the video to the screen": [
       "fit_video_to_screen",
-      "fill_video_to_screen"
+      "fill_video_to_screen",
+      "stretch_video_to_screen"
     ],
     "Foldable split comment view": [
       "foldable_split_view",
@@ -404,7 +411,8 @@
       "turn_off_chat_swipe_reply",
       "hide_inbox_custom_titles",
       "show_inbox_filters",
-      "pin_more_chats"
+      "pin_more_chats",
+      "show_message_times"
     ],
     "Hide inbox stories": [
       "hide_inbox_stories"
@@ -443,6 +451,7 @@
       "hide_feed_surveys",
       "hide_footnotes",
       "hide_following_live_row",
+      "glass_stories_pill",
       "hide_following_all_button",
       "hide_story_create",
       "hide_repost_chip",
@@ -469,6 +478,7 @@
       "glass_haptics",
       "glass_haptic_style",
       "see_through_status_bar",
+      "status_bar_shade",
       "burn_in_guard",
       "hide_share_guide",
       "hide_rail_follow",
@@ -538,6 +548,7 @@
     "LIVE controls": [
       "stop_live_auto_enter",
       "hide_live_service_plus",
+      "hide_live_ai_summary",
       "show_exact_live_viewers",
       "offer_live_quality",
       "remember_live_quality",
@@ -691,6 +702,7 @@
       "morphe_language",
       "morphe_show_menu_icons",
       "hide_settings_row",
+      "settings_row_picks",
       "settings_as_list",
       "startup_message",
       "startup_message_title",
@@ -716,6 +728,7 @@
     "Show author region": [
       "show_author_region",
       "region_as_flag",
+      "country_date_under_caption",
       "show_author_handle"
     ],
     "Show commenter handle and region": [
@@ -1246,6 +1259,12 @@
       "type": "boolean",
       "default": false
     },
+    "collection_grid_sort": {
+      "field": "COLLECTION_GRID_SORT",
+      "key": "collection_grid_sort",
+      "type": "string",
+      "default": "favorites"
+    },
     "color_commenter_names": {
       "field": "COLOR_COMMENTER_NAMES",
       "key": "color_commenter_names",
@@ -1365,6 +1384,24 @@
       "key": "copy_ids",
       "type": "boolean",
       "default": true
+    },
+    "country_date_under_caption": {
+      "field": "COUNTRY_DATE_UNDER_CAPTION",
+      "key": "country_date_under_caption",
+      "type": "boolean",
+      "default": false
+    },
+    "country_from_comment_menu": {
+      "field": "COUNTRY_FROM_COMMENT_MENU",
+      "key": "country_from_comment_menu",
+      "type": "boolean",
+      "default": false
+    },
+    "country_on_profiles": {
+      "field": "COUNTRY_ON_PROFILES",
+      "key": "country_on_profiles",
+      "type": "boolean",
+      "default": false
     },
     "creator_filter_exceptions": {
       "field": "CREATOR_FILTER_EXCEPTIONS",
@@ -1650,6 +1687,12 @@
       "type": "boolean",
       "default": false
     },
+    "download_video_codec": {
+      "field": "DOWNLOAD_VIDEO_CODEC",
+      "key": "download_video_codec",
+      "type": "string",
+      "default": "auto"
+    },
     "download_video_filename_template": {
       "field": "DOWNLOAD_VIDEO_FILENAME_TEMPLATE",
       "key": "download_video_filename_template",
@@ -1767,6 +1810,12 @@
       "key": "fade_in_clear_display",
       "type": "boolean",
       "default": true
+    },
+    "favorites_grid_sort": {
+      "field": "FAVORITES_GRID_SORT",
+      "key": "favorites_grid_sort",
+      "type": "string",
+      "default": "profile"
     },
     "feed_author_text_size": {
       "field": "FEED_AUTHOR_TEXT_SIZE",
@@ -2025,6 +2074,12 @@
     "glass_refraction": {
       "field": "GLASS_REFRACTION",
       "key": "glass_refraction",
+      "type": "boolean",
+      "default": false
+    },
+    "glass_stories_pill": {
+      "field": "GLASS_STORIES_PILL",
+      "key": "glass_stories_pill",
       "type": "boolean",
       "default": false
     },
@@ -2439,6 +2494,12 @@
     "hide_live": {
       "field": "HIDE_LIVE",
       "key": "hide_live",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_live_ai_summary": {
+      "field": "HIDE_LIVE_AI_SUMMARY",
+      "key": "hide_live_ai_summary",
       "type": "boolean",
       "default": false
     },
@@ -3790,6 +3851,12 @@
       "type": "boolean",
       "default": false
     },
+    "save_story_pick": {
+      "field": "SAVE_STORY_PICK",
+      "key": "save_story_pick",
+      "type": "boolean",
+      "default": false
+    },
     "search_instead_of_home": {
       "field": "SEARCH_INSTEAD_OF_HOME",
       "key": "search_instead_of_home",
@@ -3944,6 +4011,12 @@
       "type": "boolean",
       "default": false
     },
+    "settings_row_picks": {
+      "field": "SETTINGS_ROW_PICKS",
+      "key": "settings_row_picks",
+      "type": "string",
+      "default": ""
+    },
     "share_added_apps": {
       "field": "SHARE_ADDED_APPS",
       "key": "share_added_apps",
@@ -4049,6 +4122,12 @@
     "show_join_date": {
       "field": "SHOW_JOIN_DATE",
       "key": "show_join_date",
+      "type": "boolean",
+      "default": false
+    },
+    "show_message_times": {
+      "field": "SHOW_MESSAGE_TIMES",
+      "key": "show_message_times",
       "type": "boolean",
       "default": false
     },
@@ -4190,6 +4269,12 @@
       "type": "string",
       "default": ""
     },
+    "status_bar_shade": {
+      "field": "STATUS_BAR_SHADE",
+      "key": "status_bar_shade",
+      "type": "boolean",
+      "default": false
+    },
     "stop_ai_profiling": {
       "field": "STOP_AI_PROFILING",
       "key": "stop_ai_profiling",
@@ -4265,6 +4350,12 @@
     "story_seekbar": {
       "field": "STORY_SEEKBAR",
       "key": "story_seekbar",
+      "type": "boolean",
+      "default": false
+    },
+    "stretch_video_to_screen": {
+      "field": "STRETCH_VIDEO_TO_SCREEN",
+      "key": "stretch_video_to_screen",
       "type": "boolean",
       "default": false
     },

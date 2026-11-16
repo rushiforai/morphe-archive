@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.flyout
@@ -22,6 +22,11 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object ContextualMenuItemBuilderFingerprint : Fingerprint(
+    classFingerprint = Fingerprint(
+        filters = listOf(
+            resourceLiteral(ResourceType.DIMEN, "poster_art_width_default"),
+        ),
+    ),
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL, AccessFlags.SYNTHETIC),
     returnType = "V",
     parameters = listOf("L", "L"),
@@ -43,7 +48,6 @@ internal object ContextualMenuItemBuilderFingerprint : Fingerprint(
             returnType = "I",
             location = MatchAfterWithin(7),
         ),
-        resourceLiteral(ResourceType.DIMEN, "poster_art_width_default"),
     )
 )
 
@@ -55,7 +59,6 @@ internal object ContextualMenuItemBuilderOnClickFingerprint : Fingerprint(
         fieldAccess(
             opcode = Opcode.IGET_OBJECT,
             definingClass = "this",
-            type = "Ljava/lang/Object;"
         ),
         opcode(Opcode.CHECK_CAST, location = MatchAfterImmediately()),
         opcode(Opcode.INVOKE_STATIC, location = MatchAfterImmediately()),

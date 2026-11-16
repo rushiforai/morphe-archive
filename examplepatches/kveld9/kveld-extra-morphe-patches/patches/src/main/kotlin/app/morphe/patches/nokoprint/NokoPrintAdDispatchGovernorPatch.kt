@@ -1,7 +1,6 @@
 package app.morphe.patches.nokoprint
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -9,6 +8,8 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.clearTryBlocks
 import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val nokoPrintAdManifestResourcePatch = resourcePatch(
@@ -135,7 +136,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("Z"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+            replaceWithReturnBoolean(true)
             hookedMethods.add("m4.g(isNoAds)")
         }
 
@@ -146,7 +147,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("Z"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("m4.w(bannerDispatcher)")
         }
 
@@ -157,7 +158,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Lcom/google/android/gms/ads/AdValue;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("m4.r(adMobRevenue)")
         }
 
@@ -168,7 +169,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lcom/applovin/mediation/MaxAd;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("m4.s(appLovinAdCallback)")
         }
 
@@ -265,7 +266,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("LicenseClient.checkLicense")
         }
 
@@ -276,7 +277,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = emptyList(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+            replaceWithReturnBoolean(false)
             hookedMethods.add("m4.i(initMobileAds)")
         }
 
@@ -287,7 +288,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = emptyList(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+            replaceWithReturnBoolean(false)
             hookedMethods.add("m4.k(initAppLovinSdk)")
         }
 
@@ -298,7 +299,7 @@ val nokoPrintAdDispatchGovernorPatch = bytecodePatch(
             parameters = listOf("J", "Z", "Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("m4.a(trackAdRevenue)")
         }
 

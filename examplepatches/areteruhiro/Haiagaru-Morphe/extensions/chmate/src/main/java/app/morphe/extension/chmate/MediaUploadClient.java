@@ -49,7 +49,7 @@ public final class MediaUploadClient {
         if(!root.optBoolean("success")||f==null)throw new IOException("uguu.seで送信を確認できません。再送前にサイトを確認してください");
         String link=f.optString("url");
         if(!MediaUploadPolicy.mediaUrl(MediaUploadPolicy.UGUU,link))throw new IOException("uguu.seの直接URLを確認できません。再送前にサイトを確認してください");
-        return new JSONObject().put("id",f.optString("name")).put("link",link).put("type",mime)
+        return new JSONObject().put("id",f.optString("filename",f.optString("name"))).put("link",link).put("type",mime)
                 .put("animated",mime.startsWith("video/")||mime.equals("image/gif")).put("haiagaruProvider",MediaUploadPolicy.UGUU);
     }
     private JSONObject imgpile(File file,String mime,String key) throws Exception {
@@ -78,7 +78,7 @@ public final class MediaUploadClient {
         HttpURLConnection home=open("https://imgbox.com/","GET");
         home.setRequestProperty("Accept","text/html");
         String html;
-        try { html=body(home,false); cookies.receive(home.getHeaderFields()); }
+        try { html=body(home,false); cookies.receive(home.getURL().getHost(),home.getHeaderFields()); }
         finally { home.disconnect(); }
         String csrf=csrf(html);
         HttpURLConnection token=open("https://imgbox.com/ajax/token/generate","POST");
@@ -93,7 +93,7 @@ public final class MediaUploadClient {
         try {
             try(OutputStream out=token.getOutputStream()) { out.write(tokenBody); }
             credentials=json(body(token,false));
-            cookies.receive(token.getHeaderFields());
+            cookies.receive(token.getURL().getHost(),token.getHeaderFields());
         } finally { token.disconnect(); }
         String id=credentials.optString("token_id"), secret=credentials.optString("token_secret");
         if(!id.matches("[A-Za-z0-9_-]{1,512}") || !secret.matches("[A-Za-z0-9_+=/-]{1,512}"))
@@ -154,7 +154,8 @@ public final class MediaUploadClient {
     /** Only this anonymous request's two cookies, only ever sent to fixed imgbox.com endpoints. */
     static final class ImgboxCookies {
         private final Map<String,String> values=new LinkedHashMap<>();
-        void receive(Map<String,List<String>> headers) {
+        void receive(Map<String,List<String>> headers) { receive("imgbox.com",headers); }
+        void receive(String originHost,Map<String,List<String>> headers) {
             if(headers==null)return;
             for(Map.Entry<String,List<String>> h:headers.entrySet()) {
                 if(!"Set-Cookie".equalsIgnoreCase(h.getKey()) || h.getValue()==null)continue;
@@ -168,7 +169,11 @@ public final class MediaUploadClient {
                         String attribute=parts[i].trim();int split=attribute.indexOf('=');
                         String key=(split<0?attribute:attribute.substring(0,split)).trim();
                         String val=split<0?"":attribute.substring(split+1).trim();
-                        if(key.equalsIgnoreCase("Domain") && !(val.equalsIgnoreCase("imgbox.com") || val.equalsIgnoreCase(".imgbox.com"))) allowed=false;
+                        if(key.equalsIgnoreCase("Domain")) {
+                            String domain=val.toLowerCase(Locale.ROOT).replaceFirst("^\\.","");
+                            String origin=originHost.toLowerCase(Locale.ROOT);
+                            if(!origin.equals(domain)&&!origin.endsWith("."+domain))allowed=false;
+                        }
                         if(key.equalsIgnoreCase("Path") && !val.equals("/")) allowed=false;
                         if(key.equalsIgnoreCase("Max-Age")) {
                             try {if(Long.parseLong(val)<=0)expired=true;}catch(NumberFormatException ignored){allowed=false;}

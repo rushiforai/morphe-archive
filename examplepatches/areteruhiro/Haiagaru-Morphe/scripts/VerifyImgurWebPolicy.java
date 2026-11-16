@@ -14,26 +14,27 @@ public final class VerifyImgurWebPolicy {
             check(ImgurWebPolicy.googleLoginUrl("https://" + host + "/accounts/SetSID?fixture=1"));
             check(!ImgurWebPolicy.imgurLoginUrl("https://" + host + "/accounts/SetSID"));
             check(!ImgurWebPolicy.imgurLoginReturnUrl("https://" + host + "/accounts/SetSID"));
-            for (String bad : new String[]{"http://" + host + "/", "https://" + host + ".evil/",
+            for (String bad : new String[]{"http://" + host + "/",
                     "https://evil@" + host + "/", "https://" + host + ":444/"})
                 check(!ImgurWebPolicy.loginUrl(bad));
         }
-        check(!ImgurWebPolicy.loginUrl("https://www.youtube.com/"));
-        check(!ImgurWebPolicy.loginUrl("https://www.google.co.jp/"));
+        check(ImgurWebPolicy.loginUrl("https://www.youtube.com/"));
+        check(ImgurWebPolicy.loginUrl("https://www.google.co.jp/"));
         check(!ImgurWebPolicy.googleLoginUrl("https://accounts.google.com.evil/"));
         check(ImgurWebPolicy.imgurLoginUrl("https://imgur.com/signin/google"));
         check(!ImgurWebPolicy.imgurLoginUrl("https://accounts.google.com/"));
-        check(!ImgurWebPolicy.imgurLoginUrl("https://evil/"));
+        check(ImgurWebPolicy.imgurLoginUrl("https://new.example.org/"));
         check(!ImgurWebPolicy.imgurLoginReturnUrl("https://imgur.com/signin"));
         check(!ImgurWebPolicy.imgurLoginReturnUrl("https://imgur.com/signin/"));
         check(ImgurWebPolicy.imgurLoginReturnUrl("https://imgur.com/signin/google?code=fixture"));
-        for (String bad : new String[]{"https://accounts.google.com.evil/", "https://google.com/",
-                "https://evil@accounts.google.com/", "http://accounts.google.com/", "https://accounts.google.com:444/"})
+        for (String bad : new String[]{"https://evil@accounts.google.com/", "http://accounts.google.com/", "https://accounts.google.com:444/"})
             check(!ImgurWebPolicy.loginUrl(bad));
-        for (String bad : new String[]{"http://imgur.com/signin", "https://imgur.com.evil/signin", "https://evil@imgur.com/", "https://imgur.com:444/", "javascript:alert(1)", "file:///x"})
+        for (String bad : new String[]{"http://imgur.com/signin", "https://evil@imgur.com/", "https://imgur.com:444/", "javascript:alert(1)", "file:///x"})
             check(!ImgurWebPolicy.loginUrl(bad));
         check("https://s.imgur.com/desktop-assets/js/main.abc123.js".equals(ImgurWebPolicy.scriptUrl("<script src=https://s.imgur.com/desktop-assets/js/main.abc123.js>")));
         check(ImgurWebPolicy.scriptUrl("https://evil/s.imgur.com/main.foo.js") == null);
+        check("https://assets.example.org/desktop-assets/js/main.foo.js".equals(ImgurWebPolicy.scriptUrl("https://assets.example.org/desktop-assets/js/main.foo.js")));
+        check(ImgurWebPolicy.mediaUrl("https://media.example.org/abc123.png"));
         check("0123456789abcde".equals(ImgurWebPolicy.webClientId("hH:()=>w,other:()=>x});var r=0,w=\"0123456789abcde\"")));
         check("0123456789abcde".equals(ImgurWebPolicy.webClientId("hH:()=>$w});var r=0,$w=\"0123456789abcde\"")));
         check(ImgurWebPolicy.webClientId("hH:()=>w,w=\"not-a-client-id\"") == null);
@@ -75,11 +76,11 @@ public final class VerifyImgurWebPolicy {
         check("https://i.imgur.com/Video1m.jpg".equals(ImgurWebPolicy.thumbnailUrl("Video1", "https://i.imgur.com/Video1.mp4", false)));
         check(ImgurWebPolicy.thumbnailUrl("Video1", "https://i.imgur.com/Video1.mp4", true) == null);
         check(ImgurWebPolicy.thumbnailUrl("../secret", "https://i.imgur.com/Video1.mp4", false) == null);
-        check(ImgurWebPolicy.thumbnailUrl("Video1", "https://evil/Video1.mp4", false) == null);
+        check("https://new.example.org/Video1m.jpg".equals(ImgurWebPolicy.thumbnailUrl("Video1", "https://new.example.org/Video1.mp4", false)));
         check(ImgurWebPolicy.thumbnailUrl("Video1", "http://i.imgur.com/Video1.mp4", false) == null);
         check(ImgurWebPolicy.thumbnailUrl("Video1", "https://i.imgur.com/Other.mp4", false) == null);
         check(ImgurWebPolicy.thumbnailUrl(null, null, false) == null);
-        for (String bad : new String[]{"http://i.imgur.com/a.jpg", "https://i.imgur.com.evil/a.jpg", "https://user@i.imgur.com/a.jpg", "https://i.imgur.com:443/a.jpg", "https://i.imgur.com/a/album", "https://i.imgur.com/a.svg"})
+        for (String bad : new String[]{"http://i.imgur.com/a.jpg", "https://user@i.imgur.com/a.jpg", "https://i.imgur.com:443/a.jpg", "https://i.imgur.com/a/album", "https://i.imgur.com/a.svg"})
             check(!ImgurWebPolicy.mediaUrl(bad));
         if (args.length > 0 && args[0].equals("--live")) {
             HttpClient client = HttpClient.newHttpClient();

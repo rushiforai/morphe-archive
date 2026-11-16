@@ -1,3 +1,12 @@
 # Words removed from the list (one per line). A # starts a comment.
 # Applied by tools/wordlists/build.py.
 WY
+LOL
+OPA
+PACZKIS
+PACZKI
+BAFTA
+EW
+BIBE
+IMAGIN
+OMA

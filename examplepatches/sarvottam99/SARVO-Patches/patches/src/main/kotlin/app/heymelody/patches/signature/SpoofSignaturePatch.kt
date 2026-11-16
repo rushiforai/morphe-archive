@@ -9,14 +9,14 @@ package app.heymelody.patches.signature
 
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch as baseSpoofSignaturePatch
-import app.morphe.patcher.patch.PatchAvailability
+import app.heymelody.patches.shared.Constants.COMPATIBILITY_HEY_MELODY
 
 @Suppress("unused")
 val spoofSignaturePatch = resourcePatch (
     name = "Spoof signature",
     description = "Spoofs the package signature of the original APK.",
-    default = false
+    default = true
 ) {
-    availability { _, _ -> PatchAvailability.ENABLED }
+    compatibleWith(COMPATIBILITY_HEY_MELODY)
     dependsOn(baseSpoofSignaturePatch)
 }

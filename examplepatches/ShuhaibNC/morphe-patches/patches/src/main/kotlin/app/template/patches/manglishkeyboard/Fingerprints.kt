@@ -11,8 +11,15 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 object IsPremiumFingerprint : Fingerprint(
-    definingClass = "Lcom/android/inputmethod/latin/settings/Settings;",
-    name = "isPremium",
+    definingClass = "Lcom/deshkeyboard/billing/d;",
+    name = "a",
     returnType = "Z",
     parameters = emptyList(),
+)
+
+object PremiumCallbackFingerprint : Fingerprint(
+    definingClass = "Lci/a;",
+    name = "b",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
 )

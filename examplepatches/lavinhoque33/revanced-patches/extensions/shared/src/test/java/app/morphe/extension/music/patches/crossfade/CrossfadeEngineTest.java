@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-12.
  */
 package app.morphe.extension.music.patches.crossfade;
@@ -536,6 +536,25 @@ public class CrossfadeEngineTest {
         assertNull(h.releases.get(in.identity));
         h.engine.observe(in.identity, 0.4f, true);
         assertEquals(CrossfadeEngine.State.STEADY, h.engine.state());
+    }
+
+    @Test public void dismissalAfterResetReleasesOutgoingWithoutWaitingForANextLoad() {
+        Harness h = new Harness();
+        CrossfadeEngine.Player outgoing = h.engine.current();
+        CrossfadeEngine.Player pending = h.next(CrossfadeEngine.Kind.MANUAL_SKIP);
+
+        h.engine.dispose(pending.identity);
+
+        assertEquals(CrossfadeEngine.State.DISPOSED, h.engine.state());
+        assertEquals(Integer.valueOf(1), h.releases.get(outgoing.identity));
+        assertNull(h.releases.get(pending.identity));
+        assertNull(h.engine.current());
+        assertFalse(h.engine.hasRetiredPlayers());
+        assertFalse(h.engine.transitioning());
+
+        h.frames(pending, 1, 512, 0, 0);
+        assertTrue(h.envelopes.isEmpty());
+        assertEquals(Integer.valueOf(1), h.releases.get(outgoing.identity));
     }
 
     @Test public void normalizationChangesNeverModifyPcmEnvelope() {

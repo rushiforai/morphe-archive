@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.4",
+  "version": "1.2.9",
   "patches": [
     {
       "name": "[Experimental] Ad-free",
@@ -57,8 +57,35 @@
       "options": []
     },
     {
+      "name": "[Experimental] Cross-promo-button-text",
+      "description": "Replaces the in-game \"GET STARS!\" cross-promo button label (a Nimble OBB string, all locales) with \"GitHub\" (same length per locale, no size change).",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ea.gp.bej3",
+          "name": "Bejeweled Classic",
+          "description": "Download build #2: https://www.apkmirror.com/apk/electronic-arts/bejeweled-classic/bejeweled-classic-4-0-0-release/bejeweled-classic-4-0-0-2-android-apk-download/",
+          "apkFileType": "APKM",
+          "appIconColor": "#00A550",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Download build #2: https://www.apkmirror.com/apk/electronic-arts/bejeweled-classic/bejeweled-classic-4-0-0-release/bejeweled-classic-4-0-0-2-android-apk-download/"
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "[Experimental] Cross-promo-redirect",
-      "description": "Redirects the GET STARS! cross-promo button to the GitHub repo (instead of promoting EA’s game). Temporary MorpheCanary diagnostics log each incoming URL.",
+      "description": "Redirects the GET STARS! cross-promo button to the GitHub repo (instead of promoting EA’s game).",
       "default": true,
       "category": null,
       "compatiblePackages": [

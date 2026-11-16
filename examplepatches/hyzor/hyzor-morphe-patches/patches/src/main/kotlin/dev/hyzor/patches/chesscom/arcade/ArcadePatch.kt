@@ -77,9 +77,12 @@ private fun MutableMethod.beforeEveryReturn(smali: String) {
 @Suppress("unused")
 val arcadePatch = bytecodePatch(
     name = "Arcade animations",
-    description = "Adds the chess.com website's Arcade piece animations to every board: light " +
+    description = "Adds the chess.com website's Arcade piece animations to the classic board " +
+        "(live games and the Puzzle Rush, Puzzle Battle, Learning and Review puzzle modes): light " +
         "trails, bursts when a piece is picked up, dropped or captured, a flash on check, " +
-        "outlined last-move squares and animated move hints. Switch it in Noam's Patches.",
+        "outlined last-move squares and animated move hints. The newer board used by bot games, " +
+        "the Daily Puzzle, Solve Puzzles and Lichess Puzzles is not covered yet. Switch it in " +
+        "Noam's Patches.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

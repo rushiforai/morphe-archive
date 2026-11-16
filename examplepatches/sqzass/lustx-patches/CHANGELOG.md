@@ -1,3 +1,112 @@
+## [1.21.0](https://github.com/sqzass/lustx-patches/compare/v1.20.0...v1.21.0) (2026-11-16)
+
+### ✨ New Features
+
+* **all:** add a disable ads patch ([cfb6b23](https://github.com/sqzass/lustx-patches/commit/cfb6b2396d3cdf70b63312b487ed19429bcaeec6))
+* **all:** add a remove telemetry patch ([8798d00](https://github.com/sqzass/lustx-patches/commit/8798d00e5d53fd01706063e5a3b01be90779a1be))
+* **all:** add force refresh rate patch ([c3c7245](https://github.com/sqzass/lustx-patches/commit/c3c72451c1ca85b617cc8cc6232cce9d002fa093))
+* **all:** add show toast on launch patch ([22cddc2](https://github.com/sqzass/lustx-patches/commit/22cddc242b26a9e84fe8be47848b10ec935b9c0a))
+
+## [1.20.0](https://github.com/sqzass/lustx-patches/compare/v1.19.1...v1.20.0) (2026-11-16)
+
+### ✨ New Features
+
+* **Pawxy:** adds a force-enable `Sniffer` patch (sniffer allows for downloading media easily). ([b54b3ca](https://github.com/sqzass/lustx-patches/commit/b54b3ca48f0ea690eeded46d3aabde818af95586))
+
+## [1.19.1](https://github.com/sqzass/lustx-patches/compare/v1.19.0...v1.19.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **Pawxy:** make the `Rate-us popup` patch Pawxy specific. ([b17d080](https://github.com/sqzass/lustx-patches/commit/b17d0801c3e593060a6f581948cca357c426c4f0))
+
+## [1.19.0](https://github.com/sqzass/lustx-patches/compare/v1.18.1...v1.19.0) (2026-11-15)
+
+### ✨ New Features
+
+* **Pawxy:** adds a new patch that removes the `rate us!` popup or lets you modify the text. ([68fc2bf](https://github.com/sqzass/lustx-patches/commit/68fc2bfee4ec224d7944f27e12f1f5cd50c1707c))
+
+## [1.18.1](https://github.com/sqzass/lustx-patches/compare/v1.18.0...v1.18.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **Pawxy:** added back missing brace i deleted on accident ([ed58e4b](https://github.com/sqzass/lustx-patches/commit/ed58e4b0be1d137753b2c756ac424ae38e4f5029))
+* **Pawxy:** fix premium patch so it doesn't cause clicks to no-op ( menus can now be used </3 ) ([50b612f](https://github.com/sqzass/lustx-patches/commit/50b612f53dbf0e3475a5ba38d9343e36ea4c8a7d))
+* **SpoofDeviceIdentityPatch.kt:** remove `tags`, `type`, `user`, and `host` from spoof. this helps with the `Spoof Root Environment` patch without actually compromising anything. ([47c969c](https://github.com/sqzass/lustx-patches/commit/47c969c2453a36a4763bad907b7bc99c451c9471))
+
+## [1.18.0](https://github.com/sqzass/lustx-patches/compare/v1.17.4...v1.18.0) (2026-11-15)
+
+### ✨ New Features
+
+* add `bypass tamper check` patch to PortDroid ([6b34cb5](https://github.com/sqzass/lustx-patches/commit/6b34cb54d77b57206162c8afd7d106be0e5cda2a))
+* most likely fixed Pawxy's erroring premium patch ([e4d88aa](https://github.com/sqzass/lustx-patches/commit/e4d88aa5df8c609786cfb72f08bee3c35983e678))
+
+### 🐛 Bug Fixes
+
+* seven patches that now use a shared helper plus lint fixes ([690a51b](https://github.com/sqzass/lustx-patches/commit/690a51b05152e9fca09494aa4802f3ba64b50676))
+
+## [1.17.4](https://github.com/sqzass/lustx-patches/compare/v1.17.3...v1.17.4) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **decompile.py:** let JADX run (previously had permission issues) ([575709b](https://github.com/sqzass/lustx-patches/commit/575709b84f126beffec975ea28a0bca23e7802ee))
+* **SpoofDeviceIdentityPatch.kt:** libraries keep the REAL device, leading to no crashes (hopefully). does not compromise the true nature of spoofing. ([7165732](https://github.com/sqzass/lustx-patches/commit/7165732ea2e30b3b7c73bb0d185826c0cd7b24a1))
+* **SpoofRootedEnvironmentPatch.kt:** add fixes to the spoof rooted, more patches soon ([f546412](https://github.com/sqzass/lustx-patches/commit/f5464125fbae5646b2ecddece15934767619b819))
+
+## [1.17.3](https://github.com/sqzass/lustx-patches/compare/v1.17.2...v1.17.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **BypassRootEmulatorPatch.kt:** potentially fix the root emulator bypass patch ([28f3029](https://github.com/sqzass/lustx-patches/commit/28f302990b1d1477b83398bbc7a3c46312e54ae4))
+* **SpoofRootedEnvironmentPatch.kt:** i hate this ([e7b56cc](https://github.com/sqzass/lustx-patches/commit/e7b56cc3aa3cb61f74095133fc71238c413315d9))
+
+## [1.17.2](https://github.com/sqzass/lustx-patches/compare/v1.17.1...v1.17.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **BypassrootEmulatorPatch.kt:** fix patching probably ([bca0514](https://github.com/sqzass/lustx-patches/commit/bca05141fc38332c94d10dd64b9bb0c81fff54b5))
+* **SpoofRootedEnvironmentPatch.kt:** potentially fix patching error. ([40c613b](https://github.com/sqzass/lustx-patches/commit/40c613b1f98d3b18c7897b3d8629194e6a7f8057))
+
+## [1.17.1](https://github.com/sqzass/lustx-patches/compare/v1.17.0...v1.17.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **SpoofDeviceIdentityPatch.kt:** accidentally used old code LMFAOAOOO ([40d706b](https://github.com/sqzass/lustx-patches/commit/40d706bf14ceb6a3059c71d3f2b2ce7718f0f137))
+
+## [1.17.0](https://github.com/sqzass/lustx-patches/compare/v1.16.0...v1.17.0) (2026-11-15)
+
+### ✨ New Features
+
+* add a bypass root emulator patch ([6b6277f](https://github.com/sqzass/lustx-patches/commit/6b6277f2d2e9d66de89f7f8397107bb2572aada9))
+* add a fake/spoof rooted environment ([a0ca680](https://github.com/sqzass/lustx-patches/commit/a0ca680e77ad233375b402dd4dcfc37c63202f3b))
+* add a unified 'spoof device identity' patch instead of having split files for things like devices, mac, android id, etc. ([faad53f](https://github.com/sqzass/lustx-patches/commit/faad53f415153b8b124f6c3171515111c0cbc671))
+
+### 🐛 Bug Fixes
+
+* **SpoofDeviceIdenitiyPatch.kt:** i dont know ([9b3e61f](https://github.com/sqzass/lustx-patches/commit/9b3e61f641ac22df94ec934aa2f9a15225735221))
+
+## [1.16.0](https://github.com/sqzass/lustx-patches/compare/v1.15.0...v1.16.0) (2026-11-15)
+
+### ✨ New Features
+
+* add a ktlintCheck command to ci.sh. unrelated to builds - github doesnt use it and i only use it locally before pushing (when i can remember to). ([aba5790](https://github.com/sqzass/lustx-patches/commit/aba579040a1de2d56c42b013b09ad630b129c79e))
+* add a linter for kt. mighve messed up the release.yml, so this push will see though ([43cec3d](https://github.com/sqzass/lustx-patches/commit/43cec3d7bee149a04911ce9f0abb3f77c359ca4f))
+* add allow text selection patch ([5c50d69](https://github.com/sqzass/lustx-patches/commit/5c50d690c02cd6c0dd734c3d531ad41d0b95fd07))
+* add bypass forced update patch ([6305424](https://github.com/sqzass/lustx-patches/commit/6305424b4267fc3d8b2bdc0ae2d7309e41575256))
+* add change version code and name patch ([f3517dd](https://github.com/sqzass/lustx-patches/commit/f3517dd9c20de11d684de123b3f17c77bd6fae8f))
+* add remove 'rate us' popup patch ([176fda3](https://github.com/sqzass/lustx-patches/commit/176fda3496fc7c721c23622c8360479abf66ebe5))
+* add rename app patch ([7f69791](https://github.com/sqzass/lustx-patches/commit/7f69791c716cfc5ba014a9371851df4e6d0c0433))
+
+### 🐛 Bug Fixes
+
+* (maybe) failure to build. ([def3fab](https://github.com/sqzass/lustx-patches/commit/def3fab581d9afbab0e73bd6d9abcfdfd110f100))
+* add back in lint (trust) ([a35c186](https://github.com/sqzass/lustx-patches/commit/a35c1862f478856e39f77f9ed1f182924d7eb281))
+* added imports, fixed renamed package name, and also fixed code... maybe. ([0d28175](https://github.com/sqzass/lustx-patches/commit/0d2817567cfca391e97f5c925d915da97a0011b3))
+* **deps:** resync package-lock and use compatible conventional-changelog-writer ([5451e64](https://github.com/sqzass/lustx-patches/commit/5451e6427fa8cbf5ea9ebf1e35c9b124feef6ca4))
+* formatting ([f4e4152](https://github.com/sqzass/lustx-patches/commit/f4e4152ddfa54f7c8354f753bfcbcc102a6e100c))
+* package.json and package-lock.json so they match, SHOULD fix failing builds. as for release.yml, removed FCM - that's morphe, i dont have any push notifications ([1814d80](https://github.com/sqzass/lustx-patches/commit/1814d806551e37e90ecc34b6d5fc81e13db8c9b7))
+* releases ([77d0ef7](https://github.com/sqzass/lustx-patches/commit/77d0ef72c95131700669d709ca54c3ba8d77d801))
+* remove lint. it's giving me a headache. ([8844450](https://github.com/sqzass/lustx-patches/commit/8844450160369d43a41455e34df37dd3ebb9a1b9))
+
 ## [1.15.0](https://github.com/sqzass/lustx-patches/compare/v1.14.0...v1.15.0) (2026-11-14)
 
 ### ✨ New Features

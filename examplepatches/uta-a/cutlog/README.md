@@ -89,7 +89,7 @@ Google でログインする場合は、[MicroG-RE の公式リリース](https:
 ./gradlew build
 ```
 
-`patches/build/libs/patches-<version>.mpp` ができます。パッチの仕組みと検証の記録は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)、設計は [docs/DESIGN.md](docs/DESIGN.md) にあります。
+`patches/build/libs/patches-<version>.mpp` ができます。Android 版の Morphe Manager が読む `classes.dex` も入ります（`jar` のあとに `buildAndroid` が必ず実行されます）。ビルドには Android SDK（`android.jar` と d8）も使います。パッチの仕組みと検証の記録は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)、設計は [docs/DESIGN.md](docs/DESIGN.md) にあります。
 
 ## ライセンス
 

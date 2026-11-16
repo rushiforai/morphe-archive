@@ -12,7 +12,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.feed.components
@@ -42,6 +42,7 @@ import app.morphe.patches.youtube.utils.playservice.is_20_10_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_26_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_28_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_13_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.resourceid.bar
 import app.morphe.patches.youtube.utils.resourceid.captionToggleContainer
@@ -75,6 +76,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val FEED_COMPONENTS_FILTER_CLASS_DESCRIPTOR =
     "$COMPONENTS_PATH/FeedComponentsFilter;"
@@ -365,11 +367,13 @@ val feedComponentsPatch = bytecodePatch(
 
         // region patch for hide mix playlists
 
-        ParseElementFromBufferFingerprint.let {
+        (if (is_21_41_or_greater) ParseElementFromBufferModernFingerprint
+        else ParseElementFromBufferFingerprint).let {
             it.method.apply {
-                val insertIndex = it.instructionMatches.first().index
+                val insertIndex = if (is_21_41_or_greater) 0 else it.instructionMatches.first().index
                 val byteArrayParameter = "p3"
-                val returnEmptyComponentIndex = it.instructionMatches[4].index
+                val returnMatchIndex = if (is_21_41_or_greater) 1 else 4
+                val returnEmptyComponentIndex = it.instructionMatches[returnMatchIndex].index
                 val returnEmptyComponentInstruction = getInstruction(returnEmptyComponentIndex)
                 val returnEmptyComponentRegister =
                     (returnEmptyComponentInstruction as FiveRegisterInstruction).registerC
@@ -503,19 +507,34 @@ val feedComponentsPatch = bytecodePatch(
                         .getInstruction<ReferenceInstruction>(nameFieldIndex).reference as FieldReference
 
                     val tabRegister = getInstruction<FiveRegisterInstruction>(handlerCallIndex).registerD
-                    val tabFieldIndex = indexOfFirstInstructionOrThrow {
-                        val ref = getReference<FieldReference>()
-                        opcode == Opcode.IGET_OBJECT &&
-                                ref?.type == nameFieldRef.definingClass &&
-                                (this as TwoRegisterInstruction).registerB == tabRegister
+                    val tabType = nameFieldRef.definingClass
+                    val typedTabFieldIndex = implementation!!.instructions.indexOfFirst {
+                        val reference = it.getReference<FieldReference>()
+                        it.opcode == Opcode.IGET_OBJECT &&
+                                reference?.type == tabType &&
+                                (it as TwoRegisterInstruction).registerB == tabRegister
                     }
-                    val tabFieldInstruction = getInstruction<TwoRegisterInstruction>(tabFieldIndex)
+                    val tabFieldIndex = if (typedTabFieldIndex >= 0) {
+                        typedTabFieldIndex
+                    } else {
+                        // 21.45 stores the protobuf as Object and casts it inside the loop.
+                        val castIndex = indexOfFirstInstructionOrThrow {
+                            opcode == Opcode.CHECK_CAST && getReference<TypeReference>()?.type == tabType
+                        }
+                        indexOfFirstInstructionReversedOrThrow(castIndex, Opcode.IGET_OBJECT)
+                    }
                     val tabFieldReference = getInstruction<ReferenceInstruction>(tabFieldIndex).reference
-                    val scratchRegister = tabFieldInstruction.registerA
+                    val scratchRegister = findFreeRegister(handlerCallIndex, tabRegister, iteratorRegister)
+                    val tabCastInstruction = if (typedTabFieldIndex >= 0) {
+                        ""
+                    } else {
+                        "check-cast v$scratchRegister, $tabType"
+                    }
 
                     addInstructionsWithLabels(
                         handlerCallIndex, """
                             iget-object v$scratchRegister, v$tabRegister, $tabFieldReference
+                            $tabCastInstruction
                             iget-object v$scratchRegister, v$scratchRegister, $nameFieldRef
                             invoke-static {v$scratchRegister}, $FEED_CLASS_DESCRIPTOR->hideChannelTab(Ljava/lang/String;)Z
                             move-result v$scratchRegister

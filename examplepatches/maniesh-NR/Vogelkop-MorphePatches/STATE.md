@@ -179,3 +179,50 @@ Full mechanism (verified in smali; classes/labels from recon dumps):
   sign): procedure in `docs/v1.3.1-R2/README.md`; patches as
   `docs/v1.3.1-R2/patches/*.smali.patch`.
 - Calibration: gate on C1 = 0, on E2 = 1 (r65.l phantom switch).
+
+---
+
+# Era B episode: custom universal APKs v2–v12 (2026-11-13 → 11-15)
+
+Compressed from the per-version PATCH-NOTES (release `sandbox-storage`) and
+`work/DIAGNOSIS-v12.md`. Full ladder with all 35 builds + verdicts:
+`docs/audit/2026-11-16-adversarial-review/BLUE-forensic-history.md`.
+
+| Build | Content delta | Device verdict |
+|---|---|---|
+| v2–v6 | split→universal merges, first patch sets (P1–P7, P2.x, P3–P5*, PD.x) | v5/v6/v7 boots (v7 = last of the early lineage) |
+| v8 | dex **re-merge** pipeline | crash: `ClassNotFoundException: Lz4;` — re-merge silently lost classes → **guardrail: dex byte-copy + class-set equality (45,244)** |
+| v9 | structural rebuild from stock | boots but **all patches silently absent** (rebuild never replayed the patch layer) → **guardrail: patches/ ledger + apply.py apply/verify** |
+| v10 | v9 structure + full patch replay (40 patches) | **boots — last device-proven build** (sha256 `44a70d1c…29ecd`) |
+| v11 | 40 patches + new adblock asset pipeline (rebuilt abp.manifest, 41 bundled lists) | **crash every launch** (white ~10 s → die; splash+load → white ~6 s → die); no Play Protect warning (user-observed) |
+| v12 | v11's 40 patches + **stock v9/v10 asset layer** (v11 fix) + AB.1–AB.4 maintainer-direct blocklist updates (37 mapped URLs) | **NOT YET DEVICE-TESTED** |
+
+**v11 root cause (proven):** the v11 asset pipeline's parser only understood
+the manifest's FIRST section; excising `opera_fixes` from the tail actually
+deleted an ADBLOCK_CSS-section entry without decrementing that section's
+count → parser misalignment (`bad hash None` at ADBLOCK_CSS[41]) → `vi3`
+parse exception → `zi3.h()` fallback to an EMPTY manifest (null base Uri) →
+blocklist subsystem failure during startup → white screen → crash. Negative
+control reproduced exactly (`scripts/abp_validate.py`).
+
+**v12 fix + addition:** ship byte-identical stock assets (19/19 entries
+verified); acceptable-ads/opera_fixes exclusion achieved at *selection* time
+(PD.9) instead of manifest surgery. AB.1–AB.4 patch the updater (f9/cv2/lj3,
+classes3) so the 37 mapped lists refresh from their maintainers
+(uBlock-Origin-style), gzip-normalized; unmapped hashes keep the hash-verified
+CDN fallback.
+
+## Adversarial audit (2026-11-16) — GO with conditions
+
+Four-agent RED/BLUE/GRAY/BLACK audit; synthesis + reports in
+`docs/audit/2026-11-16-adversarial-review/`. Key verdicts: 44/44 patches
+present in the shipped signed APK; class sets 45,244/45,244; asset layer
+byte-identical to v9/v10 with clean parse (v11 fix **HOLDS**); whole-APK diff
+vs stock = 2 dexes + 3 META-INF. Doc claim "v1+v2+v3" corrected to **v3-only**.
+Top risks: R2 (AB.4 unscoped checksum-gate bypass — any 2xx body trusted for
+all downloads), R3 (cross-host redirect trust; Estonia entry → swap in v13),
+N2 (AB.1 `<clinit>` = only v12-only startup-path code, prime bisect suspect),
+N3 (upgrade-over-crashed-v11 inherits unknown /data). **Decision: install v12
+now; run RD.1 device protocol within 24 h; v10 pinned rollback
+(`adb install -r -d`); bisect, don't rebuild, on failure; v13 = RD.2 + RD.3
+(see `docs/v13-ROADMAP.md`).** Verdict line for v12: _pending device result_.

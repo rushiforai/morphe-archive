@@ -35,8 +35,12 @@ internal fun BytecodePatchContext.patchEdgeReporterDisplay(version: String) {
     bind.addInstructionsWithLabels(index, "invoke-static/range {v${read.registerB} .. v${read.registerB}}, $runtime->subject(Ljava/lang/Object;)V")
     val returns = bind.implementation!!.instructions.withIndex().filter {
         it.value.opcode == Opcode.RETURN_OBJECT || it.value.opcode == Opcode.RETURN_VOID
-    }.map { it.index }
-    returns.asReversed().forEach { bind.addInstructionsWithLabels(it, "invoke-static {}, $runtime->end()V") }
+    }
+    returns.asReversed().forEach { (at, instruction) ->
+        val row = if (instruction.opcode == Opcode.RETURN_OBJECT)
+            "v${(instruction as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA}" else "p1"
+        bind.addInstructionsWithLabels(at, "invoke-static/range {$row .. $row}, $runtime->endRow(Ljava/lang/Object;)V")
+    }
     bind.addInstructionsWithLabels(0, "invoke-static/range {p0 .. p0}, $runtime->begin(Ljava/lang/Object;)V")
     println("Reporter display fallback: $version, native NG state unchanged")
 }

@@ -7,7 +7,6 @@ import com.dmoniak.patches.shared.Constants.COMPATIBILITY_CRYPTOMATOR_FREEMIUM
 import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
-@Suppress("unused")
 val cryptomatorAmoledThemePatch = bytecodePatch(
     name = "Pure AMOLED Dark Theme - Cryptomator",
     description = "Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings.",
@@ -28,9 +27,8 @@ fun BytecodePatchContext.executeCryptomatorAmoledThemeLogic(logger: Logger) {
         val type = classDef.type
         val tl = type.lowercase()
 
-        if (tl.contains("androidx") || tl.contains("com/google")) return@classDefForEach
-
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
+        if (!tl.contains("androidx") && !tl.contains("com/google")) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 1. SharedPreferencesHandler: Force screenStyleMode -> 2 (MODE_NIGHT_YES)
         if (type.contains("SharedPreferencesHandler")) {

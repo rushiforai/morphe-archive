@@ -10,14 +10,6 @@ internal object SettingsRowToStringFingerprint : Fingerprint(
     strings = listOf("SettingsMenuItem(id="),
 )
 
-/** toString() of the Home/More sale offer; its superclass is the premium offer type. */
-internal object SaleOfferToStringFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = listOf(),
-    strings = listOf("SaleItem(sale="),
-)
-
 /** toString() of the app's bot group model. */
 internal object BotGroupToStringFingerprint : Fingerprint(
     name = "toString",

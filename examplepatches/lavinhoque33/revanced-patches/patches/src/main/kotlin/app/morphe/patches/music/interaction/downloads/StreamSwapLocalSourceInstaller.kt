@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -36,9 +37,9 @@ private const val UPSTREAM_READ_WINDOW = 0x19000L
 private const val FILE_SOURCE_MARKER = "c.FileNotFound;src."
 
 /**
- * Every stock cache data source (9.40.51 `Ljqt`, 9.15.51 `Lrwz`, 8.30.54 `Lrgu`: the offline caches and the encrypted
- * online media cache) starts a read in `i(Z)V`. A swapped download must not depend on what those caches hold (they
- * can answer the format's cache key with the ORIGINAL stream) and must not go through their cache-read source (an AES
+ * Every stock cache data source (9.45.51 `Ljqi`, 9.40.51 `Ljqt`, 9.15.51 `Lrwz`, 8.30.54 `Lrgu`: the offline
+ * caches and the encrypted online media cache) starts a read in `i(Z)V`. A swapped download must not depend on their
+ * contents (they can answer the format's cache key with the ORIGINAL stream) or use their cache-read source (an AES
  * decrypting wrapper that would garble a plain file). So for a request the extension issued, the read is redirected
  * at the entry of `i`: a fresh plain file data source opens the raw download's `file://` URI at the requested position
  * and length, and execution continues at the code that follows the stock source selection. No socket, no cache lookup,
@@ -57,6 +58,14 @@ internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Unit {
             returnType = "J",
             parameters = listOf(dataSpec.type),
             strings = listOf(FILE_SOURCE_MARKER),
+            custom = { method, _ ->
+                method.implementation?.instructions?.any {
+                    it.opcode == Opcode.INVOKE_VIRTUAL && it.getReference<MethodReference>()?.let { call ->
+                        call.definingClass == "Ljava/io/RandomAccessFile;" && call.name == "seek" &&
+                            call.parameterTypes.map(CharSequence::toString) == listOf("J") && call.returnType == "V"
+                    } == true
+                } == true
+            },
         ).matchSingle().classDef
         check(fileReader.methods.any { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) ==
             listOf(LOCAL_STRING) }) { "file source has no (String) constructor" }
@@ -174,8 +183,8 @@ internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Unit {
 
 /**
  * `open(DataSpec)` must reach the cache reader as `i(false)`: the flag it passes is the constant 0 loaded last before
- * the call (identical on 9.40.51, 9.15.51 and 8.30.54). A version that opened with `i(true)` would bypass the hook
- * and send the swapped token URL to the network, so such a version fails this check and the swap stays unsupported.
+ * the call (identical on 9.45.51, 9.40.51, 9.15.51 and 8.30.54). A version that opened with `i(true)` would bypass
+ * the hook and send the swapped token URL to the network, so it fails this check and the swap stays unsupported.
  */
 private fun checkInitialOpenIsNotMidStream(cache: ClassDef, reader: Method, dataSpecType: String) {
     val open = cache.methods.single {

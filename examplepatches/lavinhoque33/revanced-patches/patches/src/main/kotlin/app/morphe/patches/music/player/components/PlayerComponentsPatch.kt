@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -645,7 +645,8 @@ val playerComponentsPatch = bytecodePatch(
                             move-result-object v$freeRegister
                             check-cast v$freeRegister, ${(colorMathPlayerIGetReference as FieldReference).definingClass}
                             iget v$freeRegister, v$freeRegister, $colorMathPlayerIGetReference
-                            invoke-static {v$freeRegister}, $PLAYER_CLASS_DESCRIPTOR->setLastMiniplayerColor(I)V
+                            invoke-static {v$freeRegister}, $PLAYER_CLASS_DESCRIPTOR->resolveMiniplayerColor(I)I
+                            move-result v$freeRegister
                             iput v$freeRegister, p0, $colorMathPlayerIPutReference
                             goto :off
                             :theme_color
@@ -733,7 +734,8 @@ val playerComponentsPatch = bytecodePatch(
                         if-eqz v$freeRegister, :theme_color
                         if-eqz p1, :off
                         ${readColorSmali(freeRegister)}
-                        invoke-static {v$freeRegister}, $PLAYER_CLASS_DESCRIPTOR->setLastMiniplayerColor(I)V
+                        invoke-static {v$freeRegister}, $PLAYER_CLASS_DESCRIPTOR->resolveMiniplayerColor(I)I
+                        move-result v$freeRegister
                         iput v$freeRegister, p0, $colorMathPlayerIPutReference
                         goto :off
                         :theme_color
@@ -1252,17 +1254,45 @@ val playerComponentsPatch = bytecodePatch(
                 // YT Music 9.00+ consumes the downward motion before the watch-page dismiss
                 // handler.
                 if (is_9_00_or_greater) {
-                    PlayerPageBehaviorFingerprint.method.addInstructionsWithLabels(
-                        0,
-                        """
-                            invoke-static {}, $PLAYER_CLASS_DESCRIPTOR->enableSwipeToDismissMiniPlayer()Z
-                            move-result v0
-                            if-eqz v0, :ignore
-                            return-void
-                            :ignore
-                            nop
-                        """
-                    )
+                    val motionSetter = PlayerPageBehaviorFingerprint.methodOrNull
+                    if (motionSetter != null) {
+                        motionSetter.addInstructionsWithLabels(
+                            0,
+                            """
+                                invoke-static {}, $PLAYER_CLASS_DESCRIPTOR->enableSwipeToDismissMiniPlayer()Z
+                                move-result v0
+                                if-eqz v0, :ignore
+                                return-void
+                                :ignore
+                                nop
+                            """
+                        )
+                    } else {
+                        // 9.43+ inlines the setter at several call sites. Disable its flag at both
+                        // readers so the native bottom-sheet touch handling still runs normally.
+                        val motionField = PlayerPageBehaviorInterceptTouchEventFingerprint
+                            .instructionMatches.first().fieldReference
+                        val touchMethods = listOf(
+                            PlayerPageBehaviorInterceptTouchEventFingerprint.method,
+                            PlayerPageBehaviorTouchEventFingerprint.method
+                        )
+
+                        touchMethods.forEach { method ->
+                            val freeRegister = method.findFreeRegister(0)
+                            method.addInstructionsWithLabels(
+                                0,
+                                """
+                                    invoke-static {}, $PLAYER_CLASS_DESCRIPTOR->enableSwipeToDismissMiniPlayer()Z
+                                    move-result v$freeRegister
+                                    if-eqz v$freeRegister, :ignore
+                                    const/4 v$freeRegister, 0x0
+                                    iput-boolean v$freeRegister, p0, $motionField
+                                    :ignore
+                                    nop
+                                """
+                            )
+                        }
+                    }
                 }
 
                 // endregion

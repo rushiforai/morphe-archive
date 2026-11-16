@@ -1,10 +1,10 @@
 package app.morphe.patches.nokoprint
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnNull
 import org.w3c.dom.Element
 
 private val nokoPrintBackgroundSyncResourcePatch = resourcePatch(
@@ -89,7 +89,7 @@ val nokoPrintBackgroundSyncOptimizerPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Ljava/lang/Object;",
         ).method.apply {
-            addInstructions(0, "const/4 v0, 0\nreturn-object v0")
+            replaceWithReturnNull()
             println("[Stop Background Sync] Neutralized WorkManagerInitializer.create")
         }
     }

@@ -78,6 +78,11 @@ public final class HomeThreadOrder {
         return result;
     }
     public static void menu(Object fragment,Menu menu){
+        GlobalSearchHome.menu(fragment,menu);
+        if(menu!=null&&menu.findItem(0x48690139)==null){
+            menu.add(Menu.NONE,0x48690139,Menu.NONE,"キーワードの表示名を設定")
+                .setOnMenuItemClickListener(item->{DisplayNames.showKeywords(Haiagaru.toolbarActivity(fragment));return true;});
+        }
         if(menu==null)return;MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{show(Haiagaru.toolbarActivity(fragment),mode(fragment));return true;});}item.setVisible(target(mode(fragment)));
     }
     static void show(Activity activity,final int mode){

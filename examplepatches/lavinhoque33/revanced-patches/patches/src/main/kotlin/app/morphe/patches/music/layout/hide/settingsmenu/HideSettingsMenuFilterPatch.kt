@@ -7,13 +7,13 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.music.layout.hide.settingsmenu
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.getReference
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.sharedExtensionPatch
 import app.morphe.patches.music.utils.patch.PatchList.SETTINGS_MENU_FILTER
@@ -21,12 +21,12 @@ import app.morphe.patches.music.utils.settings.CategoryType
 import app.morphe.patches.music.utils.settings.ResourceUtils.addCustomPreference
 import app.morphe.patches.music.utils.settings.ResourceUtils.updatePatchStatus
 import app.morphe.patches.music.utils.settings.settingsPatch
+import app.morphe.patches.music.utils.settings.settingsHeadersFragmentRegister
+import app.morphe.patches.music.utils.settings.settingsHeadersOnCreatePreferencesMethod
 import app.morphe.patches.shared.misc.settingsmenu.HIDE_MATCHING_METHOD
 import app.morphe.patches.shared.misc.settingsmenu.SETTINGS_MENU_FILTER_CLASS
 import app.morphe.patches.shared.misc.settingsmenu.injectHideMatchingHelper
 import app.morphe.patches.shared.misc.settingsmenu.injectSettingsMenuFilterHook
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/music/patches/SettingsMenuFilterPatch;"
@@ -61,39 +61,34 @@ val hideSettingsMenuFilterPatch = bytecodePatch(
         injectSettingsMenuFilterHook(EXTENSION_CLASS)
         injectHideMatchingHelper()
 
-        // Recover the fragment via peer.fragment using the register holding the peer object.
-        SettingsHeadersOnCreatePreferencesFingerprint.let {
-            val matchInstruction = it.instructionMatches.first().instruction
-            val fragmentField = matchInstruction.getReference<FieldReference>()!!
-            val peerRegister = (matchInstruction as TwoRegisterInstruction).registerB
+        settingsHeadersOnCreatePreferencesMethod.apply {
+            val fragmentRegister = settingsHeadersFragmentRegister
+            val getPreferenceScreen = "$SETTINGS_HEADERS_FRAGMENT_CLASS->getPreferenceScreen()" +
+                    "Landroidx/preference/PreferenceScreen;"
+            val insertIndex = implementation!!.instructions.size - 1
 
-            it.method.apply {
-                val insertIndex = implementation!!.instructions.size - 1
+            addInstructionsWithLabels(
+                insertIndex,
+                """
+                    invoke-virtual/range { v$fragmentRegister .. v$fragmentRegister }, $getPreferenceScreen
+                    move-result-object v0
+                    if-eqz v0, :ignore
 
-                addInstructionsWithLabels(
-                    insertIndex,
-                    """
-                        iget-object v0, v$peerRegister, $fragmentField
-                        invoke-virtual { v0 }, $SETTINGS_HEADERS_FRAGMENT_CLASS->getPreferenceScreen()Landroidx/preference/PreferenceScreen;
-                        move-result-object v0
-                        if-eqz v0, :ignore
+                    invoke-static { }, $EXTENSION_CLASS->getNeedles()[Ljava/lang/String;
+                    move-result-object v1
+                    if-eqz v1, :ignore
 
-                        invoke-static { }, $EXTENSION_CLASS->getNeedles()[Ljava/lang/String;
-                        move-result-object v1
-                        if-eqz v1, :ignore
+                    invoke-static { }, $SETTINGS_MENU_FILTER_CLASS->beginCapture()V
 
-                        invoke-static { }, $SETTINGS_MENU_FILTER_CLASS->beginCapture()V
+                    const/4 v2, 0x0
+                    invoke-virtual { v0, v1, v2 }, $HIDE_MATCHING_METHOD
 
-                        const/4 v2, 0x0
-                        invoke-virtual { v0, v1, v2 }, $HIDE_MATCHING_METHOD
+                    invoke-static { }, $SETTINGS_MENU_FILTER_CLASS->endCapture()V
 
-                        invoke-static { }, $SETTINGS_MENU_FILTER_CLASS->endCapture()V
-
-                        :ignore
-                        nop
-                    """
-                )
-            }
+                    :ignore
+                    nop
+                """
+            )
         }
     }
 }

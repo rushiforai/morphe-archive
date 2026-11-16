@@ -44,7 +44,7 @@ final class XPostPreviewPosition {
         }
     }
     private static boolean isRecycler(View view){for(Class<?> type=view.getClass();type!=null;type=type.getSuperclass())if(type.getName().equals("androidx.recyclerview.widget.RecyclerView"))return true;return false;}
-    private static boolean interacting(View view){
+    static boolean interacting(View view){
         Long last=INTERACTIONS.get(view);if(last!=null&&android.os.SystemClock.uptimeMillis()-last<800)return true;
         if(isRecycler(view))try{return ((Number)call(view,"getScrollState",new Class<?>[0])).intValue()!=0;}catch(Exception ignored){}
         return false;

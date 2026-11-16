@@ -1,6 +1,7 @@
 package app.onlynazril.patches.tiktok.customfont
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 
 /**
  * Anchors for the custom-font patch.
@@ -26,6 +27,14 @@ private const val TEXT_FONT = "font/TikTok-Text-Regular.otf"
 
 /** The bundled faces the factory falls back to, in either of its two families. */
 internal val FONT_KEYS = listOf(DISPLAY_FONT, TEXT_FONT)
+
+/**
+ * The common prefix of every face TikTok bundles. The WebView interceptor
+ * only carries the variable face (`font/TikTokSans-VF.otf`), which the two
+ * exact [FONT_KEYS] would miss, so the class lookup uses the prefix and the
+ * per-class shape checks decide what each candidate is.
+ */
+internal const val FONT_PREFIX = "font/TikTok"
 
 /** The factory's shape: TikTok's variable-font resolver, nine parameters. */
 internal val FACTORY_PARAMETERS = listOf(
@@ -61,6 +70,29 @@ internal const val ASSET_LOADER_ASSET_MANAGER = "Landroid/content/res/AssetManag
 internal const val ASSET_LOADER_PATH = "Ljava/lang/String;"
 
 /**
+ * The asset loader itself, found through the call its body makes rather
+ * than by scanning every method in the bundle. The class reads no font
+ * path of its own - its callers pass one - so the string index cannot
+ * find it; the `Typeface.createFromAsset` reference is what does.
+ *
+ * On 47.7.1 it is `LX/00kC;->C4(AssetManager, String)`, on 47.7.2
+ * `LX/00kA;->C4(...)`, on 47.7.3 `LX/00kD;->x4(...)`; every one is the
+ * one method in the bundle with this shape that creates a face from an
+ * asset.
+ */
+internal val AssetFontLoaderFingerprint = Fingerprint(
+    returnType = FACTORY_RETURN,
+    isStatic = true,
+    parameters = listOf(ASSET_LOADER_ASSET_MANAGER, ASSET_LOADER_PATH),
+    filters = listOf(
+        methodCall(
+            definingClass = FACTORY_RETURN,
+            name = "createFromAsset",
+        ),
+    ),
+)
+
+/**
  * The WebView font interceptor's shape: a `WebResourceResponse` answered
  * from a `WebView`, on a class that reads a bundled face. Hybrid (H5)
  * pages are drawn by Chromium, so the app serves them the font bytes
@@ -83,11 +115,9 @@ internal const val WEB_FONT_RESPONSE = "Landroid/webkit/WebResourceResponse;"
  * own, so neither half of the anchor moves.
  */
 internal object BaseActivityOnActivityResultFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/bytedance/ies/foundation/activity/BaseActivity;" &&
-            method.name == "onActivityResult" &&
-            method.parameterTypes == listOf("I", "I", "Landroid/content/Intent;") &&
-            method.returnType == "V" &&
-            method.implementation != null
-    },
+    definingClass = "Lcom/bytedance/ies/foundation/activity/BaseActivity;",
+    name = "onActivityResult",
+    parameters = listOf("I", "I", "Landroid/content/Intent;"),
+    returnType = "V",
+    custom = { method, _ -> method.implementation != null },
 )

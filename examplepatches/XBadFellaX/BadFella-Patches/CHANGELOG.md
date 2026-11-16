@@ -1,3 +1,254 @@
+## 1.5.0 (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **boldvoice:** neutralize PairIP DRM chain to fix Play Store installer check 53e1e16
+* **boldvoice:** preserve startup and complete local license state c6ff92c
+* **boldvoice:** preserve StartupLauncher to fix startup crash ed98d4d
+* **boldvoice:** restore PairIP virtualized startup, strings, and callbacks bceb8d6
+* **chatgpt:** preserve the registered OAuth redirect in clones 5e266fa
+* **linkedin:** expose premium navigation hook to app callers fd111d6
+* **linkedin:** include translated settings in combined development preview 36eb695, closes #6
+* **linkedin:** match settings shortcut to drawer cards 1bcdbd1
+* **linkedin:** never open the full screen Premium page instead of closing it 41905b7
+* **sciencenews:** bypass PairIP Play Store installer check 1f8c536
+
+### ✨ New Features
+
+* **boldvoice:** support BoldVoice 5.1.3 (build 470) 4167628
+* **chatgpt:** add Install next to ChatGPT clone patch (v1.4.1-dev.2) ca484a9
+* **linkedin:** add private performance diagnostics and report export 98ebaef
+* **linkedin:** support GmsCore push notifications and enable privacy by default (v1.5.0-dev.12) bbcda7e
+* **sciencenews:** support Science News Daily 23.8 (build 238) 4b168f6
+* **ticktick,linkedin:** support TickTick 8.3.0.2 and LinkedIn 4.1.1272 60d5b29
+
+## 1.5.0-dev.12 (2026-11-15)
+
+### LinkedIn
+
+- **GmsCore Push Notifications Fix:** Spoofs the `X-Android-Cert` request header to LinkedIn's official signing certificate when communicating with Firebase, resolving `API_KEY_ANDROID_APP_BLOCKED` and `FIS_AUTH_ERROR` so push notifications register and deliver reliably under microG / GmsCore.
+- **Privacy Defaults:** Enabled **Anonymous profile viewing** and **Block tracking** by default out of the box, ensuring private profile browsing and tracking suppression without requiring manual configuration.
+
+### Installation
+
+Enable pre-releases for BadFella Patches in Morphe Manager and refresh Sources. Repatch the app with dev.12, then install using your existing Manager signing key to preserve app data.
+
+## 1.5.0-dev.11 (2026-11-14)
+
+### BoldVoice 5.1.3 (build 470, ARM64)
+
+Complete devirtualization and PairIP neutralization fix:
+- Devirtualizes and inlines the 5 startup lifecycle methods moved to external DEX.
+- Restores 1,417 hoisted static strings across 32 classes via bytecode initialization.
+- Restores notification callbacks (`GuardedAsyncTask.doInBackground` and `NotificationsService.onReceive`) and provides `NotificationTask`.
+- Restores pristine ARM64 native shared libraries (`libreactnative.so`, `libonnxruntime.so`, and `libavformat.so`), completely severing the `libpairipcore.so` dependency and eliminating PairIP tampering detection / Play Store redirects / crashes.
+- Sets `extractNativeLibs=true` to ensure shared libraries load reliably.
+- Retains client-side subscription unlocks and Expo OTA protection.
+
+### Installation
+
+Enable pre-releases for BadFella Patches in Morphe Manager and refresh Sources. Repatch the original stock app with dev.11, then install using your existing Manager signing key to preserve app data.
+
+## 1.5.0-dev.10 (2026-11-14)
+
+### LinkedIn 4.1.1272
+
+Adds French translations for the Navigation bar, More tab and newer feed settings, plus the post-copy confirmation. Download buttons now use the selected language for their accessibility labels. Other languages retain English fallback for missing translations.
+
+### BoldVoice 5.1.3 (build 470, ARM64)
+
+Includes the dev.9 startup correction: initializes the local license state and preserves the native VM, application wrapper and protected lifecycle methods. Retains the subscription edits and Expo OTA guard. Server-controlled authentication, scoring and content access retain their existing requirements.
+
+### Installation
+
+Enable pre-releases for BadFella Patches in Morphe Manager and refresh Sources. Repatch the original stock app with dev.10, then install using your existing Manager signing key to preserve app data.
+
+## 1.5.0-dev.9 (2026-11-14)
+
+### BoldVoice 5.1.3 (build 470, ARM64)
+
+Corrects the local PairIP license-state handling used by the startup and Play Store checks. Keeps the native VM, application wrapper and protected lifecycle methods intact. The earlier preview disabled the outer license entry point but left the state at CHECK_REQUIRED; this preview initializes FULL_CHECK_OK and disables the inner license-check entry point and local installer restriction.
+
+Client-side subscription edits and the Expo OTA guard are retained. Server-controlled authentication, scoring and content access retain their existing requirements.
+
+### Installation
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources, and apply **BoldVoice subscription features** to the original BoldVoice 5.1.3 APKS. Install the result using the same Manager signing key and preserve existing app data.
+
+## 1.5.0-dev.8 (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **boldvoice:** preserve StartupLauncher to fix startup crash while keeping PairIP DRM neutralized
+
+### BoldVoice startup crash fix
+
+Fixes the startup crash (**"BoldVoice closed because this app has a bug"**) introduced in v1.5.0-dev.7.
+
+The root cause was neutralizing `StartupLauncher.launch()`. StartupLauncher is required to run `VMRunner.invoke()` which initializes the obfuscated reflection method table (`androidx.constraintlayout.widget.gp.BEMMk.bRWkwQWZoKIbUe`) invoked during `MainApplication.onCreate()`. Without this initialization, `MainApplication.onCreate()` threw a `NullPointerException` immediately upon opening the app.
+
+**Fix:**
+- Preserved `StartupLauncher.launch()` so the method pointers required by `MainApplication.onCreate()` are initialized properly.
+- Kept `SignatureCheck.verifyIntegrity()`, `LicenseClient.checkLicense()`, and `LicenseClient.startErrorDialogActivity()` neutralized with `return-void` to prevent the APK signature check and the Google Play licensing "Get this app from Play Store" dialog.
+- Also neutralized `LicenseClient.scheduleAppShutdown()` with `return-void` to prevent delayed shutdown triggers.
+
+## 1.5.0-dev.7 (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **boldvoice:** neutralize PairIP DRM chain to fix "Get this app from Play Store" dialog
+
+### BoldVoice PairIP DRM fix
+
+Fixes the **"Get this app from Play Store"** dialog shown after installing the patched BoldVoice 5.1.3 (build 470) outside Google Play.
+
+The root cause was the PairIP DRM chain executing during app startup even after the manifest application-class swap:
+
+- `StartupLauncher.launch()` is called from `MainApplication.<clinit>` and `CoreComponentFactory.<clinit>`, triggering `VMRunner` which runs the native `libpairipcore.so` DRM program.
+- `SignatureCheck.verifyIntegrity(Context)` compares the APK signature against Google Play's certificate hash and throws `SignatureTamperedException` when re-signed with a different key.
+- `LicenseClient.checkLicense(Context)` contacts Google Play's licensing service and, on failure, calls `LicenseClient.startErrorDialogActivity()` which displays the Play Store install dialog.
+
+**Fix:** All four methods — `StartupLauncher.launch`, `SignatureCheck.verifyIntegrity`, `LicenseClient.checkLicense`, and `LicenseClient.startErrorDialogActivity` — are now replaced with `return-void` in DEX before the manifest is rewritten, neutralizing the entire DRM chain at the bytecode level.
+
+## 1.5.0-dev.6 (2026-11-13)
+
+### 🚀 Features
+
+* **boldvoice:** support BoldVoice 5.1.3 (build 470)
+
+### BoldVoice 5.1.3 support
+
+Adds **BoldVoice subscription features** for com.wellocution.androidapp version 5.1.3 (build 470, ARM64). The patch unlocks client-side premium features and lessons by patching Hermes 99 bytecode targets (`hasClientPremiumAccess`, `selectIsSubscriber`, and `selectIsProSubscriber`) to return constant true. Google Play's PairIP licensing wrapper is neutralized by restoring the real application class (`com.wellocution.android.MainApplication`) and removing PairIP activities and stamp metadata. Expo OTA updates are disabled to prevent overwriting the patched bundle on launch.
+
+### Installation
+
+1. Enable pre-releases for the BadFella Patches source in Morphe Manager and refresh Sources.
+2. Select the original BoldVoice 5.1.3 APKS.
+3. Apply **BoldVoice subscription features**.
+4. Install with the existing Manager signing key and keep existing app data.
+
+### Limits
+
+Patch-output verification covers the reviewed 5.1.3 (build 470) input. Server-side AI processing and accounts remain untouched; microphone recording, pronunciation analysis, and authentication continue to function normally.
+
+## 1.5.0-dev.5 (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **sciencenews:** bypass PairIP Play Store installer check
+
+### Science News Daily PairIP bypass
+
+Restores the application class in AndroidManifest.xml to com.appsfornexus.sciencenews.AppController and removes the PairIP licensing activity and Google Play stamp metadata so the app launches cleanly when installed outside Google Play.
+
+## 1.5.0-dev.4 (2026-11-13)
+
+### 🚀 Features
+
+* **sciencenews:** support Science News Daily 23.8 (build 238)
+
+### Science News Daily 23.8 support
+
+Adds **Science News Daily local subscription** for com.appsfornexus.dailysciencenews version 23.8 (build 238, ARM64). The patch reports the cached subscription flag as active (CONST_4 0, 1 return), enabling ad-free reading, premium article browsing, offline downloads, and upsell-free screens. Google Play billing callbacks, authentication, restore flows, and server verification requests remain preserved.
+
+### Installation
+
+1. Enable pre-releases for the BadFella Patches source in Morphe Manager and refresh Sources.
+2. Select the original Science News Daily 23.8 APKS.
+3. Apply **Science News Daily local subscription**.
+4. Install with the existing Manager signing key and keep existing app data.
+
+### Limits
+
+Patch-output verification covers the reviewed 23.8 (build 238) input. Local subscription flag does not create a purchase or grant remote server-authorized content.
+
+## 1.5.0-dev.3 (2026-11-13)
+
+### 🚀 Features
+
+* **ticktick:** support TickTick 8.3.0.2 (build 8302)
+* **linkedin:** declare LinkedIn 4.1.1272 (build 218000) as a concrete target
+
+### TickTick 8.3.0.2 support
+
+TickTick 8.3.0.2 (build 8302) renames the obfuscated preferences class from `Ltv8` to `Lov8`. The reminder privacy gate now matches `Lov8->d()Z`, so the reminder scheduler still runs, and every other TickTick patch keeps its existing class, method and instruction anchors. 8.3.0.2 replaces 8.3.0.1 as the concrete target because the reminder gate's class no longer resolves on 8.3.0.1; the previous bundle remains available for that build.
+
+### LinkedIn 4.1.1272 support
+
+LinkedIn 4.1.1272 (build 218000) is declared as a concrete target alongside 4.1.1271 and 4.1.1267. The patches already resolve their classes, methods and instruction shapes, so no patch byte changed; Morphe and Helper for Morphe can now resolve the matching stock APK for 4.1.1272.
+
+### Installation
+
+1. Enable pre-releases for the BadFella Patches source in Morphe Manager and refresh Sources.
+2. Select the original TickTick 8.3.0.2 APKS or LinkedIn 4.1.1272 APK.
+3. Apply the TickTick or LinkedIn patches.
+4. Install with the existing Manager signing key and keep existing app data.
+
+### Limits
+
+Patch-output verification covers the reviewed 8.3.0.2 and 4.1.1272 inputs; it does not establish phone, account or server behavior.
+
+## 1.5.0-dev.2 (2026-11-13)
+
+The complete 45-patch bundle retains the existing ChatGPT clone and LinkedIn improvements.
+
+### LinkedIn 4.1.1271 (build 217900)
+
+* Add a Diagnostics section with a 20-second performance capture, clipboard report and text-file export.
+* Capture frame durations, slow-frame counts and aggregate SDUI hook timings only while the capture is running. It stops automatically and is off by default.
+* Reports include versions, device model, included patches, known boolean choices, fixed event counts and extension error locations. Account identity, messages, posts, links, cookies, tokens and custom setting text are excluded. Reports stay local until copied or saved; nothing is uploaded automatically.
+* Remove synchronous diagnostic log writes, verbose component-tree inspection and request-body formatting. Reuse scrolling-hook cache storage and glass-bar position buffers.
+* Include the French translation update and block the Premium takeover page before it opens.
+
+### Updating and diagnostics
+
+Enable pre-releases for the BadFella Patches source in Morphe Manager, refresh Sources, re-patch the original LinkedIn APK and install using the same signing key.
+
+Open BadFella Patches → Diagnostics. Start performance capture and scroll the screen that feels slow for 20 seconds. Reopen Diagnostics and use Save diagnostic report to create a text file. Review the file before sharing it. The capture adds some overhead and is diagnostic information, not a guarantee that scrolling is fixed. Results and event counts cover the current app process only.
+
+
+## 1.5.0-dev.1 (2026-11-12)
+
+The complete 45-patch BadFella Patches bundle includes ChatGPT clone support and the LinkedIn drawer layout fix.
+
+### ChatGPT 1.2026.307
+
+* Keep the original OAuth callback in sign-in requests instead of deriving an unregistered address from the clone package. The clone retains its separate Android package and app data.
+* Check the native redirect builder before applying the change and reject changed or ambiguous code.
+* If Android asks which app should handle the sign-in callback, choose the copy. Actual sign-in remains subject to the service's checks; a successful patch does not establish account sign-in compatibility.
+
+### LinkedIn 4.1.1271
+
+* Keep BadFella Patches below Groups with the same inset card width, icon and spacing as Puzzle games.
+
+### Updating
+
+Enable pre-releases for the BadFella Patches source in Morphe Manager, refresh Sources and patch the original app again with the same signing key.
+
+## 1.4.1-dev.2 (2026-11-12)
+
+The complete 45-patch BadFella Patches bundle includes ChatGPT clone support.
+
+### ✨ New Features
+
+* **ChatGPT:** add "Install next to ChatGPT" clone patch with dual OAuth redirect scheme registration for login callback handling, signature and package verification bypass, and Play Integrity escalation interception.
+
+### Updating
+
+Enable pre-releases for the BadFella Patches source in Morphe Manager, refresh Sources and patch the original app again with the same signing key.
+
+## 1.4.1-dev.1 (2026-11-12)
+
+The complete 44-patch BadFella Patches bundle includes this LinkedIn layout fix.
+
+### Fixes
+
+* **LinkedIn 4.1.1271:** place BadFella Patches directly after the Groups shortcut in the Me panel, with the same inset width, icon, spacing and native card styling as Puzzle games. If Groups is hidden or More items stay in their tab, settings remains available above Settings & Privacy.
+
+### Updating
+
+Enable pre-releases for the BadFella Patches source in Morphe Manager, refresh Sources and patch the original app again with the same signing key.
+
 ## 1.4.0 (2026-11-12)
 
 The complete 44-patch BadFella Patches bundle includes these improvements to our LinkedIn patches.

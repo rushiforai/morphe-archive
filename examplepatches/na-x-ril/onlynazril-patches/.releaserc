@@ -21,6 +21,9 @@
     [
         "@semantic-release/release-notes-generator", {
         "preset": "conventionalcommits",
+        "parserOpts": {
+            "issuePrefixes": ["GH-"]
+        },
         "presetConfig": {
             "types": [
                 { "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
@@ -32,6 +35,7 @@
         }
         }
     ],
+    "./.github/scripts/release-footer.cjs",
     [
       "@MorpheApp/changelog", {
         "releaseJson": {

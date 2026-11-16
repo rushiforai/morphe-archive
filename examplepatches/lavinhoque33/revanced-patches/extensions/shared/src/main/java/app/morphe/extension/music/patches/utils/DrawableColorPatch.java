@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -127,6 +127,7 @@ public class DrawableColorPatch {
             0xFF000000, // yt_black_pure
             0xCC000000, // yt_black_pure_opacity80
             0xFF131313, // yt_status_bar_background_dark
+            0xFF232323, // ytm_color_grey_11
             0xFF1D1D1D, // ytm_color_grey_12
             0xFF424242, // material_grey_800
             0xFF303030, // material_grey_850
@@ -476,6 +477,7 @@ public class DrawableColorPatch {
                 "morphe_runtime_dark_theme_black_pure",
                 "morphe_runtime_dark_theme_black_pure_opacity80",
                 "morphe_runtime_dark_theme_status_bar_background_dark",
+                "morphe_runtime_dark_theme_ytm_color_grey_11",
                 "morphe_runtime_dark_theme_ytm_color_grey_12",
                 "morphe_runtime_dark_theme_material_grey_800",
                 "morphe_runtime_dark_theme_material_grey_850",

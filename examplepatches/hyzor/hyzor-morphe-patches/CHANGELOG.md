@@ -1,3 +1,88 @@
+## [1.9.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.9.0...v1.9.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* **duolingo:** support 6.104.5 ([9230e59](https://github.com/hyzor/hyzor-morphe-patches/commit/9230e591a9183bcf3f2b0a903e20f417620590b9))
+
+## [1.9.1-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.9.0...v1.9.1-dev.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* **duolingo:** support 6.104.5 ([9230e59](https://github.com/hyzor/hyzor-morphe-patches/commit/9230e591a9183bcf3f2b0a903e20f417620590b9))
+
+## [1.9.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.8.0...v1.9.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **trakt:** address review findings for 3.28.0 ([2cf404d](https://github.com/hyzor/hyzor-morphe-patches/commit/2cf404d1b63082fdd543db90568f58ff403afa92))
+
+### ✨ New Features
+
+* **nzb360:** add Unlock All Access patch for 25.3 ([8042d3e](https://github.com/hyzor/hyzor-morphe-patches/commit/8042d3ed9c9cfe53e9200d18a7aaccb031bd14ed))
+* **projectivy:** support the GitHub release APK ([0541526](https://github.com/hyzor/hyzor-morphe-patches/commit/0541526d0fd7e6dd8372969efe516efff10d1211))
+* **trakt:** add Unlock VIP and sign-in support for 3.28.0 ([d29b966](https://github.com/hyzor/hyzor-morphe-patches/commit/d29b966df4d7c338afa99937dfbefcf19ac8859e))
+
+## [1.9.0-dev.3](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.9.0-dev.2...v1.9.0-dev.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **trakt:** address review findings for 3.28.0 ([2cf404d](https://github.com/hyzor/hyzor-morphe-patches/commit/2cf404d1b63082fdd543db90568f58ff403afa92))
+
+### ✨ New Features
+
+* **trakt:** add Unlock VIP and sign-in support for 3.28.0 ([d29b966](https://github.com/hyzor/hyzor-morphe-patches/commit/d29b966df4d7c338afa99937dfbefcf19ac8859e))
+
+## [1.9.0-dev.2](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.9.0-dev.1...v1.9.0-dev.2) (2026-11-15)
+
+### ✨ New Features
+
+* **nzb360:** add Unlock All Access patch for 25.3 ([8042d3e](https://github.com/hyzor/hyzor-morphe-patches/commit/8042d3ed9c9cfe53e9200d18a7aaccb031bd14ed))
+
+## [1.9.0-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* **projectivy:** support the GitHub release APK ([0541526](https://github.com/hyzor/hyzor-morphe-patches/commit/0541526d0fd7e6dd8372969efe516efff10d1211))
+
+## [1.8.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0...v1.8.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** make the board-theme choice and Arcade scope clearer ([4224928](https://github.com/hyzor/hyzor-morphe-patches/commit/4224928bf52debd9e2e826fc59e7c9ba80ec4c15))
+* **chesscom:** state where Arcade animations apply ([22ca5d2](https://github.com/hyzor/hyzor-morphe-patches/commit/22ca5d22dbcce741ff0ac88ec600efc538cbd2d5))
+
+### ✨ New Features
+
+* **chesscom:** allow the app board theme alongside Board colors ([7be9316](https://github.com/hyzor/hyzor-morphe-patches/commit/7be931600e7a5647e7c5c2bd76c45a192fe33d9c))
+
+### 🚀 Updated App Support
+
+* **chesscom:** support 4.10.27 ([3926058](https://github.com/hyzor/hyzor-morphe-patches/commit/392605832a603a597f86e2120ceb692b56bea6da))
+
+## [1.8.0-dev.3](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.8.0-dev.2...v1.8.0-dev.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** make the board-theme choice and Arcade scope clearer ([4224928](https://github.com/hyzor/hyzor-morphe-patches/commit/4224928bf52debd9e2e826fc59e7c9ba80ec4c15))
+
+## [1.8.0-dev.2](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.8.0-dev.1...v1.8.0-dev.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** state where Arcade animations apply ([22ca5d2](https://github.com/hyzor/hyzor-morphe-patches/commit/22ca5d22dbcce741ff0ac88ec600efc538cbd2d5))
+
+## [1.8.0-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.1-dev.1...v1.8.0-dev.1) (2026-11-14)
+
+### ✨ New Features
+
+* **chesscom:** allow the app board theme alongside Board colors ([7be9316](https://github.com/hyzor/hyzor-morphe-patches/commit/7be931600e7a5647e7c5c2bd76c45a192fe33d9c))
+
+## [1.7.1-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.7.0...v1.7.1-dev.1) (2026-11-14)
+
+### 🚀 Updated App Support
+
+* **chesscom:** support 4.10.27 ([3926058](https://github.com/hyzor/hyzor-morphe-patches/commit/392605832a603a597f86e2120ceb692b56bea6da))
+
 ## [1.7.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.6.2...v1.7.0) (2026-11-14)
 
 ### 🐛 Bug Fixes

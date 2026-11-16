@@ -11,6 +11,7 @@ import app.morphe.jadx.ui.components.codepanel.CodePanel
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.analysis.reflection.util.ReflectionUtils
 import jadx.api.plugins.JadxPluginContext
+import jadx.gui.ui.MainWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -165,14 +166,14 @@ class EvaluatorFrame(private val context: JadxPluginContext, options: PluginOpti
             val resultsPanel = JPanel()
             resultsPanel.layout = BoxLayout(resultsPanel, BoxLayout.Y_AXIS)
 
-            val matchBlocks = matches.map {
-                val classFQN = ReflectionUtils.dexToJavaName(it.definingClass)
+            val matchBlocks = matches.map { match ->
+                val classFQN = ReflectionUtils.dexToJavaName(match.definingClass)
                 // context.decompiler.searchJavaClassByOrigFullName is broken and searches aliases instead of the
                 // original identifiers
                 val javaKlass = context.decompiler.classesWithInners.firstOrNull {cls -> cls.rawName == classFQN } ?:
                     throw Exception("Could not find $classFQN in decompiled class list")
 
-                val javaMethod = javaKlass.searchMethodByShortId(it.methodShortId)
+                val javaMethod = javaKlass.searchMethodByShortId(match.methodShortId)
                 javaMethod?.let { jMethod ->
                     val block = JPanel()
                     block.layout = BoxLayout(block, BoxLayout.Y_AXIS)
@@ -192,9 +193,9 @@ class EvaluatorFrame(private val context: JadxPluginContext, options: PluginOpti
                     details.layout = BoxLayout(details, BoxLayout.Y_AXIS)
                     inset.add(details)
 
-                    it.firstInstructionIndex?.let { first ->
+                    match.firstInstructionIndex?.let { first ->
                         details.add(TextArea("First instruction: $first"))
-                        it.lastInstructionIndex?.let { last ->
+                        match.lastInstructionIndex?.let { last ->
                             details.add(TextArea("Last instruction: $last", topPadding = 0))
                         }
                     }
@@ -203,6 +204,12 @@ class EvaluatorFrame(private val context: JadxPluginContext, options: PluginOpti
                     jumpButton.addActionListener {
                         if (!guiContext.open(jMethod.codeNodeRef)) {
                             Log.error { "Failed to jump to method: ${jMethod.fullName}" }
+                        } else {
+                            InstructionHighlighter.highlight(
+                                guiContext.mainFrame as MainWindow,
+                                jMethod.methodNode.topParentClass,
+                                match
+                            )
                         }
                     }
                     details.add(jumpButton)

@@ -1,3 +1,39 @@
+## [1.5.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.5...v1.5.0) (2026-11-15)
+
+### ✨ New Features
+
+* Media enhancements patch for Classic Joey ([92da974](https://github.com/ZoomSass/Mighty-Morphing/commit/92da974c2407d24677c3495f8611f1671d724a76))
+
+## [1.4.5](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.4...v1.4.5) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Link preview fix. ([ddcacab](https://github.com/ZoomSass/Mighty-Morphing/commit/ddcacab76cd33cc1da6af992f3f78cbef41ff481))
+
+## [1.4.4](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.3...v1.4.4) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Image style refinements. ([68adb55](https://github.com/ZoomSass/Mighty-Morphing/commit/68adb555a198cd84fddd75e379add3ac8766d1e9))
+
+## [1.4.3](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.2...v1.4.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* New Arctic Shift restore patch (initial release). README credits and to be added updates. ([15aa749](https://github.com/ZoomSass/Mighty-Morphing/commit/15aa749dc03407b2f2bce18fb6b64584c8ba3a04))
+
+## [1.4.2](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.1...v1.4.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Reply button bug fix. Revised a couple of settings names and descriptions. ([20a8f62](https://github.com/ZoomSass/Mighty-Morphing/commit/20a8f620c681a993c8dc8350e5a1ab5f77b7fa1b))
+
+## [1.4.1](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.0...v1.4.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Opened post image style can be changed in Morphe Settings - Appearance - Image style to match Joey stock options. ([8aae485](https://github.com/ZoomSass/Mighty-Morphing/commit/8aae4855992ac774d72021d1df60cdaee95cbfc2))
+
 ## [1.4.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.8...v1.4.0) (2026-11-14)
 
 ### ✨ New Features

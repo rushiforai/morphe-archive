@@ -47,7 +47,7 @@ PLATFORM = {
 }
 
 if __name__ == '__main__':
-    run('TwitchProvidersProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java',
+    run('TwitchProvidersProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java', 'twitch/TwitchImageCache.java', 'twitch/TwitchContext.java', 'twitch/TwitchEmoteFavorites.java',
         'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
         Path(__file__).with_name('TwitchProvidersProbe.java').read_text(),
         sys.argv[1:] or ['unicode', 'multiline', 'queued-disable', 'badges-disable', 'pronouns-disable', 'rn-dispose', 'rn-native-demand', 'rn-badges-dispose',
@@ -70,7 +70,7 @@ if __name__ == '__main__':
      public boolean hasNext(){return peek()!=JsonToken.END_OBJECT;} public void close(){} }
     '''
     completion['android/graphics/Bitmap.java']=completion['android/graphics/Bitmap.java'].replace('throw new AssertionError("unexpected image rendering");','return new Bitmap();')
-    run('PronounCompletionProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java',
+    run('PronounCompletionProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java', 'twitch/TwitchImageCache.java', 'twitch/TwitchContext.java', 'twitch/TwitchEmoteFavorites.java',
         'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
         Path(__file__).with_name('PronounCompletionProbe.java').read_text(),
         ['user-live','names-live','user-retired','names-retired','user-off','names-off','user-native'],extra=completion | JSON_DOUBLE)

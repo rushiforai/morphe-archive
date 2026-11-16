@@ -8,6 +8,8 @@ final class BoardCookiePolicy {
         try{
             URI uri=URI.create(address);String host=uri.getHost();
             if(host==null||uri.getUserInfo()!=null||!("http".equalsIgnoreCase(uri.getScheme())||"https".equalsIgnoreCase(uri.getScheme())))return null;
+            // BE authentication, redirect and status share the native account jar.
+            if(Set.of("be.5ch.io","be.5ch.net","be.2ch.net","be.2ch.sc").contains(host.toLowerCase(Locale.ROOT)))return null;
             String path=uri.getPath(),name=null;String[] parts=path.split("/");
             if(formBoard!=null)name=formBoard;
             else if(path.startsWith("/test/read.cgi/")&&parts.length>3)name=parts[3];

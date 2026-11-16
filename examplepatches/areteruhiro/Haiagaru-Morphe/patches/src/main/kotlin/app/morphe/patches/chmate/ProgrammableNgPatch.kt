@@ -149,16 +149,22 @@ internal fun BytecodePatchContext.patchProgrammableNgModern(
             invoke-static/range {p0 .. p0}, $PROGRAMMABLE_NG->bindModernResponses(Ljava/lang/Object;)V
         """)
     }
+    fun firstResponseFlags(reg: String) = if (packageMetadata.versionName == "0.8.10.242 dev") """
+        invoke-static/range {$reg .. $reg}, Lapp/morphe/extension/chmate/FirstResponseNg;->modernFlags(Ljava/util/Map;)Ljava/util/Map;
+        move-result-object $reg
+    """.trimIndent() else ""
     full.addInstructionsWithLabels(0, """
         invoke-static/range {p4 .. p4}, $PROGRAMMABLE_NG->pendingModernResponses(Ljava/lang/Object;)V
         invoke-static/range {p9 .. p9}, $PROGRAMMABLE_NG->applyPendingModernResponseFlags(Ljava/lang/Object;)Ljava/util/Map;
         move-result-object p9
         $hiddenIdFull
+        ${firstResponseFlags("p9")}
     """)
     compact.addInstructionsWithLabels(0, """
         invoke-static/range {p0 .. p0}, $PROGRAMMABLE_NG->pendingModernResponses(Ljava/lang/Object;)V
         invoke-static/range {p2 .. p2}, $PROGRAMMABLE_NG->applyPendingModernResponseFlags(Ljava/lang/Object;)Ljava/util/Map;
         move-result-object p2
         $hiddenIdCompact
+        ${firstResponseFlags("p2")}
     """)
 }

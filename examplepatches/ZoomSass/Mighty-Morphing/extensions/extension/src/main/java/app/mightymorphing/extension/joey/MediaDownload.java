@@ -138,7 +138,6 @@ public final class MediaDownload {
     /** The viewer calls Joey's save directly. Register the chosen name first. */
     public static void prepare(Activity activity, String url) {
         if (activity == null || url == null || url.isEmpty()) return;
-        if (!ModernUi.isModernUiEnabled(activity)) return;
         String leaf = joeyLeaf(url);
         if (ARMED.remove(leaf) != null) return;
         File known = KNOWN.get(leaf);
@@ -168,6 +167,24 @@ public final class MediaDownload {
     }
 
     public static void attach(View item, Object submission) {
+        attach(item, submission, true);
+    }
+
+    /**
+     * Classic: the same button beside Joey's save star on Joey's own bar. The star is left as
+     * Joey draws it, and the Downloads popup's switch can take the button away.
+     */
+    static void attachClassic(View item, Object submission) {
+        if (item == null) return;
+        if (!ModernUi.classicDownloads(item.getContext())) {
+            View button = button(item);
+            if (button != null && button.getVisibility() != View.GONE) button.setVisibility(View.GONE);
+            return;
+        }
+        attach(item, submission, false);
+    }
+
+    private static void attach(View item, Object submission, boolean modern) {
         if (item == null) return;
         List<File> files = submission == null ? Collections.<File>emptyList() : files(submission);
         catalog(submission, files);
@@ -203,7 +220,7 @@ public final class MediaDownload {
         POSTS.put(button, submission);
         int shown = showButton(item, submission, files) ? View.VISIBLE : View.GONE;
         if (button.getVisibility() != shown) button.setVisibility(shown);
-        restoreSave(item);
+        if (modern) restoreSave(item);
     }
 
     /** Joey already shows the link icon for a non-text post. Keep web links and YouTube off the button. */
@@ -246,6 +263,13 @@ public final class MediaDownload {
         float density = activity.getResources().getDisplayMetrics().density;
         int pad = Math.round(16 * density);
         int text0 = MorpheDialog.text(activity);
+        if (!ModernUi.modernLook(activity)) {
+            // Classic has no Post buttons & menu, so the post button has its own switch here.
+            android.widget.CheckBox postButton = MorpheDialog.check(activity,
+                    "Download button on posts", ModernUi.classicDownloads(activity), null);
+            postButton.setOnCheckedChangeListener((button, checked) -> ModernUi.setClassicDownloads(activity, checked));
+            page.addView(postButton);
+        }
         int sub = MorpheDialog.sub(activity);
 
         // Folder: one row, the folder on the left and Change on the right.

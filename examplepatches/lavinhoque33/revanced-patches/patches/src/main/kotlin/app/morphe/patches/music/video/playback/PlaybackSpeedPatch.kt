@@ -3,10 +3,9 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3295
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
-// Modified by lavinhoque33, 2026-10-24: port of Morphe's music "Playback speed" ExoPlayer hooks (speed override and
-// "Change pitch with speed"), built on the pitch hook added on 2026-10-17.
 package app.morphe.patches.music.video.playback
 
 import app.morphe.patcher.Fingerprint
@@ -18,8 +17,11 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.music.utils.extension.Constants.VIDEO_PATH
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.video.information.videoInformationPatch
 import app.morphe.patches.music.video.information.videoTimeHook
+import app.morphe.util.Utils.printWarn
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -91,9 +93,17 @@ internal val playbackSpeedPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
 
-    dependsOn(videoInformationPatch)
+    dependsOn(videoInformationPatch, versionCheckPatch)
 
     execute {
+        if (!is_7_25_or_greater) {
+            printWarn(
+                "Playback speed slider and pitch control require YouTube Music 7.25 or newer. " +
+                        "Skipping the incompatible ExoPlayer hook; keeping the other Video playback features."
+            )
+            return@execute
+        }
+
         val playbackParametersType = MusicPlaybackParametersToStringFingerprint.classDef.type
 
         // The PlaybackParameters primary constructor with 2 arguments (speed, pitch).

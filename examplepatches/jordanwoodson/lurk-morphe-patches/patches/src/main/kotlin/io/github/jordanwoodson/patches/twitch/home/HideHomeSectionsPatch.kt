@@ -27,12 +27,13 @@ private const val STORIES = "hide_home_stories"
 private const val CONTINUE_WATCHING = "hide_home_continue_watching"
 private const val OFFLINE = "hide_home_offline_channels"
 private const val RECOMMENDED = "hide_home_recommended"
+private const val RECAPS = "hide_home_recaps"
 
 @Suppress("unused")
 val hideHomeSectionsPatch = bytecodePatch(
     name = "Hide Home sections",
     description = "Hides Stories on Home and, each with its own switch, the Continue watching, offline " +
-        "channels and recommended channels sections of Following.",
+        "channels and recommended channels sections of Following and the recent streams shelf of the Live tab.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -50,6 +51,9 @@ val hideHomeSectionsPatch = bytecodePatch(
                 Section.INTERFACE, default = false, restart = true),
             SwitchSetting(RECOMMENDED, "Hide recommended channels",
                 "Recommended live channels in Following.", Section.INTERFACE, restart = true),
+            SwitchSetting(RECAPS, "Hide recent streams",
+                "The \"From channels you follow\" shelf of past streams on Home's Live tab.", Section.INTERFACE,
+                default = false, restart = true),
         )
     }
 }
@@ -118,4 +122,8 @@ internal fun HermesBundle.hideHomeSections() {
     replace(reader, CONTINUE_WATCHING, body.copyOfRange(0x12, 0x18),
         byteArrayOf(0x96.toByte(), register, 0x96.toByte(), register, 0x96.toByte(), register), defaultEnabled = false)
     returnNull("FollowingContinueWatching", CONTINUE_WATCHING, defaultEnabled = false)
+    // The RN Following page's "Your Offline Channels" section (issue 73) and the "From channels you follow"
+    // shelf of recent streams on the Live tab (discussion 50) are components of their own.
+    returnNull("FollowingOfflineChannels", OFFLINE, defaultEnabled = false)
+    returnNull("RecapsShelf", RECAPS, defaultEnabled = false)
 }

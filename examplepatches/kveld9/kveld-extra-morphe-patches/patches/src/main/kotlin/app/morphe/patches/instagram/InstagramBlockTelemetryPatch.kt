@@ -1,11 +1,11 @@
 package app.morphe.patches.instagram
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.disableComponentsByName
+import app.morphe.patches.shared.replaceWithReturnVoid
 import app.morphe.patches.shared.stripPermissionsWhere
 
 private val instagramTelemetryResourcePatch = resourcePatch(
@@ -94,32 +94,32 @@ val instagramBlockTelemetryPatch = bytecodePatch(
 
         Fingerprint(
             definingClass = "Lcom/instagram/analytics/analytics2/IgAnalytics2TaskBasedUploader;",
-            name = "HZG",
-            parameters = listOf("LX/KpT;", "LX/ArQ;", "LX/Av0;"),
+            name = "HlU",
+            parameters = listOf("LX/0mQV;", "LX/0VWx;", "LX/08qB;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
-            hookedMethods.add("IgAnalytics2TaskBasedUploader.HZG")
+            replaceWithReturnVoid()
+            hookedMethods.add("IgAnalytics2TaskBasedUploader.HlU")
         }
 
         Fingerprint(
             definingClass = "Lcom/instagram/analytics/analytics2/IGAnalytics2SimpleUploader;",
-            name = "HZG",
-            parameters = listOf("LX/KpT;", "LX/ArQ;", "LX/Av0;"),
+            name = "HlU",
+            parameters = listOf("LX/0mQV;", "LX/0VWx;", "LX/08qB;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
-            hookedMethods.add("IGAnalytics2SimpleUploader.HZG")
+            replaceWithReturnVoid()
+            hookedMethods.add("IGAnalytics2SimpleUploader.HlU")
         }
 
         Fingerprint(
             definingClass = "Lcom/facebook/analytics2/logger/legacy/uploader/PrivacyControlledUploader;",
-            name = "HZG",
-            parameters = listOf("LX/KpT;", "LX/ArQ;", "LX/Av0;"),
+            name = "HlU",
+            parameters = listOf("LX/0mQV;", "LX/0VWx;", "LX/08qB;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
-            hookedMethods.add("PrivacyControlledUploader.HZG")
+            replaceWithReturnVoid()
+            hookedMethods.add("PrivacyControlledUploader.HlU")
         }
 
         println("[Instagram Telemetry] Neutralized ${hookedMethods.size} telemetry dispatch methods: ${hookedMethods.joinToString(", ")}.")

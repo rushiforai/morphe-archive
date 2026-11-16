@@ -11,6 +11,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.feed.components
@@ -119,7 +120,6 @@ internal val channelTabBuilderFingerprint = "channelTabBuilderFingerprint" to Fi
 internal val channelTabRendererFingerprint = "channelTabRendererFingerprint" to Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("L", "Ljava/util/List;", "I"),
     filters = listOf(
         opcode(Opcode.IF_EQ),
         anyInstruction(
@@ -145,16 +145,38 @@ internal val channelTabRendererFingerprint = "channelTabRendererFingerprint" to 
             MatchAfterImmediately()
         )
     ),
-    strings = listOf("TabRenderer.content contains SectionListRenderer but the tab does not have a section list controller.")
+    strings = listOf(
+        "TabRenderer.content contains SectionListRenderer but the tab does not have a section list controller."
+    ),
+    custom = { method, _ ->
+        val parameters = method.parameterTypes
+        parameters.size in 3..4 &&
+                parameters[0].startsWith("L") &&
+                parameters[1] == "Ljava/util/List;" &&
+                parameters[2] == "I" &&
+                (parameters.size == 3 || parameters[3].startsWith("L"))
+    },
 )
 
 internal val contentPillFingerprint = "contentPillFingerprint" to Fingerprint(
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("L", "Z"),
     filters = listOf(
         literal(contentPill),
     ),
+)
+
+internal object ParseElementFromBufferModernFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "L", "[B", "L", "L"),
+    filters = listOf(
+        string("Failed to parse Element", StringComparisonType.STARTS_WITH),
+        methodCall(
+            opcode = Opcode.INVOKE_STATIC,
+            parameters = listOf("L"),
+            returnType = "L"
+        ),
+        opcode(Opcode.RETURN_OBJECT, location = MatchAfterWithin(4))
+    )
 )
 
 internal object ParseElementFromBufferFingerprint : Fingerprint(

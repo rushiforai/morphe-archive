@@ -17,7 +17,7 @@ final class MediaUploadDeletionClient {
             throw new IOException("削除権限を確認できません");
         if (provider.equals("imgpile")) {
             // Same cookie-authorised owner action used by the current public site's Delete button.
-            HttpURLConnection c = http.site(management + "/delete", "POST", "imgpile.com");
+            HttpURLConnection c = http.site(management + "/delete", "POST");
             c.setFixedLengthStreamingMode(0);
             try {
                 try (OutputStream out = c.getOutputStream()) { }
@@ -27,12 +27,12 @@ final class MediaUploadDeletionClient {
         }
         String id = row.optString("id");
         if (!id.matches("[A-Za-z0-9_-]{1,512}")) throw new IOException("この履歴には画像IDがありません。管理ページで確認してください");
-        HttpURLConnection page = http.site(management, "GET", "imgbox.com");
+        HttpURLConnection page = http.site(management, "GET");
         String html;
         try { html = http.response(page, false); } finally { page.disconnect(); }
-        DeleteForm form = form(html, id);
+        DeleteForm form = form(html, id, management);
         if (form == null) throw new IOException("画像単位の削除フォームを確認できません。管理ページで確認してください");
-        HttpURLConnection post = http.site(form.url, "POST", "imgbox.com");
+        HttpURLConnection post = http.site(form.url, "POST");
         post.setRequestProperty("X-CSRF-Token", MediaUploadClient.csrf(html));
         post.setRequestProperty("X-Requested-With", "XMLHttpRequest");
         post.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
@@ -58,14 +58,17 @@ final class MediaUploadDeletionClient {
         Matcher m = Pattern.compile("(?i)(?:^|\\s)" + Pattern.quote(name) + "\\s*=\\s*(['\"])(.*?)\\1", Pattern.DOTALL).matcher(tag);
         return m.find() ? m.group(2).replace("&amp;", "&").replace("&quot;", "\"").replace("&#39;", "'") : "";
     }
-    static DeleteForm form(String html, String id) throws Exception {
+    static DeleteForm form(String html, String id) throws Exception { return form(html,id,"https://imgbox.com/"); }
+    static DeleteForm form(String html, String id, String base) throws Exception {
         if (html == null || html.length() > 2 * 1024 * 1024 || !id.matches("[A-Za-z0-9_-]{1,512}")) return null;
         Matcher forms = Pattern.compile("(?is)<form\\b([^>]*)>(.*?)</form>").matcher(html);
         while (forms.find()) {
             if (!attr(forms.group(1), "method").equalsIgnoreCase("post")) continue;
             String action = attr(forms.group(1), "action");
-            if (!action.startsWith("/") || action.startsWith("//")) continue;
-            URI u = new URI("https://imgbox.com" + action);
+            if (action.isEmpty()) continue;
+            URI u = new URI(base).resolve(action);
+            if (!"https".equals(u.getScheme()) || u.getHost() == null || u.getRawUserInfo() != null
+                    || (u.getPort() != -1 && u.getPort() != 443)) continue;
             String path = u.getRawPath();
             if (u.getRawQuery() != null || u.getRawFragment() != null || path.contains("%")
                     || path.toLowerCase(Locale.ROOT).contains("gallery")

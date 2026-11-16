@@ -1,10 +1,10 @@
 package app.morphe.patches.nokoprint
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val nokoPrintTelemetryResourcePatch = resourcePatch(
@@ -97,7 +97,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/os/Bundle;", "Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("FirebaseAnalytics.a(logEvent)")
         }
 
@@ -108,7 +108,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Landroid/os/Bundle;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AppMeasurement.logEventInternal")
         }
 
@@ -119,7 +119,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/Exception;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("App.v(crashlyticsReport)")
         }
 
@@ -130,7 +130,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Ljava/lang/Throwable;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("App.w(crashlyticsLog)")
         }
 
@@ -141,7 +141,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Lcom/tiktok/TikTokBusinessSdk\$TTConfig;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("TikTokBusinessSdk.initializeSdk")
         }
 
@@ -152,7 +152,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = emptyList(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("TikTokBusinessSdk.startTrack")
         }
 
@@ -163,7 +163,7 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/os/Bundle;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("zzez.zzL")
         }
 

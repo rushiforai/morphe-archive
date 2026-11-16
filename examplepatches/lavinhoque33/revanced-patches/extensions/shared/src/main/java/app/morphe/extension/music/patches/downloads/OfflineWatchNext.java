@@ -2,14 +2,16 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-09.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 package app.morphe.extension.music.patches.downloads;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,7 +112,28 @@ final class OfflineWatchNext {
             throw new IllegalArgumentException("currentIndex " + currentIndex + " outside " + items.size() + " items");
         }
 
-        byte[] panel = panel(playlistId, items, currentIndex);
+        Item current = items.get(currentIndex);
+        return response(panel(playlistId, items, currentIndex),
+                OfflineWatchCommand.build(current.videoId(), playlistId, currentIndex, current.musicVideoType()));
+    }
+
+    /** Replays the native queue's complete rows and online endpoints without substituting a downloaded-only list. */
+    static byte[] buildCaptured(String playlistId, List<byte[]> renderers, int currentIndex, byte[] command)
+            throws IOException {
+        ProtoWriter panel = new ProtoWriter();
+        for (int index = 0; index < renderers.size(); index++) {
+            byte[] renderer = ResponseFields.without(renderers.get(index), Set.of(TRACK_SELECTED_FIELD));
+            byte[] selected = new ProtoWriter().raw(renderer, 0, renderer.length)
+                    .int32(TRACK_SELECTED_FIELD, index == currentIndex ? 1 : 0).toByteArray();
+            panel.message(PANEL_ITEMS_FIELD, new ProtoWriter().message(ITEM_TRACK_FIELD, selected).toByteArray());
+        }
+        byte[] bytes = panel.int32(PANEL_CURRENT_INDEX_FIELD, currentIndex)
+                .string(PANEL_PLAYLIST_ID_FIELD, playlistId == null ? "" : playlistId)
+                .int32(PANEL_COUNT_FIELD, renderers.size()).toByteArray();
+        return response(bytes, command);
+    }
+
+    private static byte[] response(byte[] panel, byte[] command) {
         byte[] panelHolder = new ProtoWriter().message(PANEL_RENDERER_FIELD, panel).toByteArray();
         byte[] panelContent = new ProtoWriter().message(PANEL_HOLDER_RENDERER_FIELD, panelHolder).toByteArray();
         byte[] tabContent = new ProtoWriter().message(TAB_PANEL_HOLDER_FIELD, panelContent).toByteArray();
@@ -124,12 +147,9 @@ final class OfflineWatchNext {
         byte[] queue = new ProtoWriter().message(QUEUE_TABS_HOLDER_FIELD, tabsRenderer).toByteArray();
         byte[] contents = new ProtoWriter().message(CONTENTS_QUEUE_FIELD, queue).toByteArray();
 
-        Item current = items.get(currentIndex);
         return new ProtoWriter()
                 .message(RESPONSE_CONTENTS_FIELD, contents)
-                .message(RESPONSE_CURRENT_ENDPOINT_FIELD,
-                        OfflineWatchCommand.build(current.videoId(), playlistId, currentIndex,
-                                current.musicVideoType()))
+                .message(RESPONSE_CURRENT_ENDPOINT_FIELD, command)
                 .toByteArray();
     }
 

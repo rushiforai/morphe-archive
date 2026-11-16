@@ -1,6 +1,7 @@
 # Projectivy Launcher
 
-Package `com.spocky.projengmenu`, supported target `4.73` (versionCode `98`, APKM).
+Package `com.spocky.projengmenu`, supported target `4.73` (versionCode `98`), as both the
+APKMirror APKM and the GitHub release APK.
 Source: [`patches/src/main/kotlin/dev/hyzor/patches/projectivy/`](../../patches/src/main/kotlin/dev/hyzor/patches/projectivy/).
 
 | Patch | Default | What it does |
@@ -20,9 +21,26 @@ flow through Kotlin's `MutableStateFlow` factory:
 | premium state | `PTApplication` field seeded in `<init>` | same, seeded through `os1.a(Boolean.TRUE)` |
 | licence writer | static `a(PTApplication, boolean)` | instance `d(boolean)` |
 
-The tested artifact is the APKMirror APKM (`base.apk` plus `arm64-v8a` and `xhdpi` splits,
-versionCode `98`). Morphe merges the splits and patches `base.apk`'s `classes.dex`; all of
-the patched code is in `base.apk`.
+4.73 exists as two separately compiled builds with the same identity:
+
+| Source | Artifact | ABIs |
+|---|---|---|
+| APKMirror (Play bundle) | `base.apk` + `arm64-v8a`/`xhdpi` splits, versionCode `98` | one or two, depending on the variant |
+| GitHub, [spocky/miproja1](https://github.com/spocky/miproja1/releases) | `ProjectivyLauncher-4.73-c98-xda-release.apk`, a single universal APK | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` |
+
+Both declare versionName `4.73` / versionCode `98` and carry the same code, but they do not
+share R8 names: the APKM's premium flow is `Lze4;` (preference holder `Lcj3;`), the GitHub
+build's is `Llf4;` (preference holder `Lmj3;`). The fingerprints therefore avoid obfuscated
+class names and anchor on structure present in both builds: the `Boolean.TRUE` seed in
+`PTApplication.<init>`, the `(Z)V` shape of the licence writer, its `0x2932e000` eight-day
+window, `System.currentTimeMillis`, and the `x` premium-flow field (the field name is stable
+even though its type is re-obfuscated per build).
+
+Because `ApkFileType` is part of `Compatibility`, the bundle declares two targets for 4.73 —
+one `APKM` and one `APK` — and every Projectivy patch is `compatibleWith` both.
+
+Morphe merges an APKM's splits and patches `base.apk`'s `classes.dex`; all of the patched
+code is in `base.apk`. With the GitHub APK there is nothing to merge.
 
 ## Install compatibility
 
@@ -33,9 +51,13 @@ contains only the native libraries of the bundle it was built from, so patching 
 `INSTALL_FAILED_NO_MATCHING_ABIS`. The `arm64-v8a + armeabi-v7a` bundle is the safe choice
 when the ABI is unknown.
 
-The app ships `android:extractNativeLibs="false"` and keeps its libraries uncompressed in
-the APK. Morphe repackages the APK, and on Android 15/16 devices with **16 KB memory pages**
-the repackaged file can be rejected with:
+The GitHub release avoids that whole class of mistake: it is one universal APK with all four
+ABIs, so the same patched file installs on 64-bit and 32-bit TVs. It is a separate build of
+4.73, which is why the bundle supports both it and the APKMirror APKM.
+
+Both 4.73 builds ship `android:extractNativeLibs="false"` and keep their libraries
+uncompressed in the APK. Morphe repackages the APK, and on Android 15/16 devices with
+**16 KB memory pages** the repackaged file can be rejected with:
 
 ```text
 INSTALL_FAILED_NO_MATCHING_ABIS: Failed to extract native libraries, res=-113
@@ -95,13 +117,15 @@ untouched.
 
 Static checks:
 
-- `tools/verify_fingerprints.py` resolves both anchors against the stock APKM.
-- Morphe 2.1.1 applies the bundle to all three 4.73 APKM variants with `--validate`: the
-  premium patch changes 1 of 7,584 classes (`PTApplication`), the class is stripped from its
-  original DEX, and the output is signed and still declares `com.spocky.projengmenu` `4.73`
-  (`98`).
-- The manifest hook sets `android:extractNativeLibs="true"` in all three outputs, and the
-  native libraries of the input variant are preserved (`arm64-v8a`, `armeabi-v7a`, or both).
+- `tools/verify_fingerprints.py` resolves both anchors against the stock APKM and the stock
+  GitHub APK (it checks class/method names only, not the fingerprint filters).
+- Morphe 2.1.1 applies the bundle with `--validate` to all three 4.73 APKM variants and to the
+  GitHub universal APK: the premium patch changes 1 of 7,584 classes (`PTApplication`) in the
+  APKMs and 1 of 7,596 in the GitHub APK, the class is stripped from its original DEX, and
+  each output is signed and still declares `com.spocky.projengmenu` `4.73` (`98`).
+- The manifest hook sets `android:extractNativeLibs="true"` in every output, and the native
+  libraries of the input are preserved (`arm64-v8a`, `armeabi-v7a`, both, or all four for the
+  GitHub APK).
 - The patched DEX was disassembled:
   - `PTApplication.<init>` loads `Ljava/lang/Boolean;->FALSE` where the stock build loads
     `TRUE`;
@@ -112,6 +136,9 @@ Install check on the Android TV emulator (`sdk_google_atv64_x86_64`, Android 16 
 cold-start into onboarding with no `FATAL EXCEPTION` in `logcat`. `dumpsys package` reports
 `extractNativeLibs=true` and `primaryCpuAbi=arm64-v8a`, and the three libraries are extracted
 under `/data/app/…/lib/arm64/`, which is the path the 16 KB fix relies on.
+
+The patched GitHub universal APK also installs and cold-starts on the same image
+(`primaryCpuAbi=x86_64`, all four ABIs retained).
 
 Installing the `armeabi-v7a`-only output on this arm64 device fails with the issue's exact
 message — `INSTALL_FAILED_NO_MATCHING_ABIS: … Failed to extract native libraries, res=-113` —
@@ -133,13 +160,16 @@ adb shell am start -a android.intent.action.VIEW \
 
 | Build | Result |
 |---|---|
-| stock 4.73 | `PremiumActivity`, "Premium only!" / Activate license |
-| 4.73 + Unlock Premium | import activity runs and finishes; `PremiumActivity` is never started |
+| stock 4.73 APKM | `PremiumActivity`, "Premium only!" / Activate license |
+| 4.73 APKM + Unlock Premium | import activity runs and finishes; `PremiumActivity` is never started |
+| stock 4.73 GitHub APK | `PremiumActivity` (re-checked on a fresh install) |
+| 4.73 GitHub APK + Unlock Premium | import activity runs and finishes; `PremiumActivity` is never started |
 
-The patched run was repeated after a 15-second cold start so the startup re-check and the
-billing collector had run; it still did not redirect, which is the `return-void` hook holding.
+The patched runs were repeated after a 15-second cold start (APKM) and a 13-second one
+(GitHub APK), so the startup re-check and the billing collector had run; neither redirected,
+which is the `return-void` hook holding.
 
-Also exercised on the patched build: Settings → Projectivy settings opens, and the
+Also exercised on the patched APKM build: Settings → Projectivy settings opens, and the
 premium-only Display Profiles editor loads (Profile #1, colour bars, per-profile options).
 
 Not exercised: a real theme/background import (the probe file was deliberately invalid, so

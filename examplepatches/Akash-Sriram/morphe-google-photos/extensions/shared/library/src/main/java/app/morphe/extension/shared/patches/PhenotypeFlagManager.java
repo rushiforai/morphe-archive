@@ -881,7 +881,7 @@ public final class PhenotypeFlagManager {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
-    private static volatile String sPatchComponentsMode = "flags";
+    private static volatile String sPatchComponentsMode = "both";
 
     public static void setComponentsMode(String mode) {
         if (mode != null && !mode.trim().isEmpty()) {
@@ -1062,11 +1062,22 @@ public final class PhenotypeFlagManager {
         if (resId <= 0) {
             return "";
         }
-        if (resId == sInternalStringResId || resId == 0x7f14210f) {
+        if (resId == sInternalStringResId || resId == 0x7f14210f || resId == 0x7f142188) {
             return "Morphe";
         }
+        try {
+            Context ctx = app.morphe.extension.shared.Utils.getContext();
+            if (ctx != null) {
+                String entryName = ctx.getResources().getResourceEntryName(resId);
+                if ("photos_settings_internal".equals(entryName)) {
+                    sInternalStringResId = resId;
+                    return "Morphe";
+                }
+            }
+        } catch (Throwable ignored) {}
         return null;
     }
+
 
     public static void hookInternalActivity(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
@@ -2084,7 +2095,7 @@ public final class PhenotypeFlagManager {
                     } else {
                         activeFlagsCount = Math.max(0, activeFlagsCount - 1);
                     }
-                    if ("45531621".equals(item.getKey()) || "45531625".equals(item.getKey())) {
+                    if ("45781251".equals(item.getKey()) || "45531621".equals(item.getKey()) || "45531625".equals(item.getKey())) {
                         GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
                     }
                     updateSubtitleText();
@@ -3745,7 +3756,7 @@ public final class PhenotypeFlagManager {
                     ed.putStringSet(CUSTOM_FLAGS_KEY, custom);
                 }
                 ed.apply();
-                if ("45531621".equals(k) || "45531625".equals(k)) {
+                if ("45781251".equals(k) || "45531621".equals(k) || "45531625".equals(k)) {
                     GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
                 }
                 Toast.makeText(activity, "✓ Saved custom flag (" + typeNames[selectedType[0]] + ")", Toast.LENGTH_SHORT).show();
@@ -3812,7 +3823,7 @@ public final class PhenotypeFlagManager {
                     ed.putString(key, v);
                 }
                 ed.apply();
-                if ("45531621".equals(key) || "45531625".equals(key)) {
+                if ("45781251".equals(key) || "45531621".equals(key) || "45531625".equals(key)) {
                     GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
                 }
                 Toast.makeText(activity, "Updated " + title, Toast.LENGTH_SHORT).show();

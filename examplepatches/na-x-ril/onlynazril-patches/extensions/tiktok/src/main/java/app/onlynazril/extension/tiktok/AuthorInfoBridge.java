@@ -20,20 +20,20 @@ import app.onlynazril.extension.tiktok.settings.HandleSettings;
 
 /**
  * The feed header's post-time view.
- *
+ * <p>
  * Two things shape this class. The view is only reachable by id (`tv_post_time`; the header's other
  * ids are obfuscated), so the root view is taken at view creation and the time view resolved once
  * from it. And the values must come from *the item this header is showing*, read off the component
- * itself: reading a "last seen" value at write time gives the neighbouring video's region and age,
+ * itself: reading a "last seen" value at write time gives the neighboring video's region and age,
  * which is what a shared, deferred value produces once the list starts prefetching.
- *
+ * <p>
  * This class writes one view and owns nothing beyond it: the region comes from `RegionSource`, the
  * text from `StampText`. The post time and the region are therefore two switches over one line
  * rather than two writers over one view — a view can only be written once per bind, so both switches
  * have to be read before that write, not after it.
- *
- * Writing here rather than appending to the author name is also what gives the region its colour:
- * the time view already carries TikTok's dimmer colour, while a suffix in the name would take the
+ * <p>
+ * Writing here rather than appending to the author name is also what gives the region its color:
+ * the time view already carries TikTok's dimmer color, while a suffix in the name would take the
  * name's, and a String return from the name getter cannot carry a per-part span.
  */
 public final class AuthorInfoBridge {
@@ -128,7 +128,7 @@ public final class AuthorInfoBridge {
 
     private static void apply(View view, Object aweme) {
         try {
-            if (!(view instanceof TextView)) {
+            if (!(view instanceof TextView timeView)) {
                 reportGate("the time view is not a TextView");
                 return;
             }
@@ -137,7 +137,6 @@ public final class AuthorInfoBridge {
                 return;
             }
 
-            TextView timeView = (TextView) view;
             boolean showTime = HandleSettings.timeOn(Surfaces.FEED);
             boolean showRegion = HandleSettings.regionOn(Surfaces.FEED);
             long createTime = createTimeOf(aweme);
@@ -147,8 +146,21 @@ public final class AuthorInfoBridge {
             // here would leave TikTok's time on screen, which is what a switch called "post time"
             // cannot look like. What may remain is the region, which is a separate switch.
             String current = currentText(timeView);
-            String base = showTime ? StampText.timeText(timeView, current, createTime, true) : "";
+            boolean compact = HandleSettings.isCompactEnabled(timeView.getContext());
+            String base = showTime
+                    ? StampText.timeText(
+                            timeView,
+                            current,
+                            createTime,
+                            true,
+                            compact,
+                            HandleSettings.datePattern(timeView.getContext()),
+                            HandleSettings.isClockEnabled(timeView.getContext()))
+                    : "";
             String region = showRegion ? RegionSource.forAweme(aweme) : null;
+            if (region != null && HandleSettings.isRegionName(timeView.getContext())) {
+                region = CountryName.of(timeView.getContext(), region);
+            }
             if (base.isEmpty() && region == null) {
                 hide(timeView);
                 reportHide(showTime, showRegion);
@@ -161,9 +173,7 @@ public final class AuthorInfoBridge {
             String target = StampText.headerTime(base, region);
             report(aweme, region, createTime, showTime, showRegion, current, target);
             if (target.equals(current) && timeView.getVisibility() == View.VISIBLE) return;
-            // Exactly what was rendered, and the time text it was built from. The base is
-            // remembered rather than recovered from the text later: a view carrying a region on its
-            // own has no time to rebuild from, and a recycled view is recognised by its own render.
+            // Exactly what was rendered, so the watcher can put it back if TikTok overwrites it.
             // Written before the text, because the watcher reads the tag: with the old target still
             // on the view it would put the previous render back the moment this one is set.
             timeView.setTag(StampText.TARGET_TAG, target);
@@ -178,11 +188,11 @@ public final class AuthorInfoBridge {
     /**
      * Takes TikTok's own time off this view, and its copy with it. Called when the time element is
      * off and there is no region to keep, so nothing on the view belongs to the extension and
-     * TikTok's text is not left behind. The tags go too: a view that carries no render must not be
-     * read as one, or turning the switch back on rebuilds from a base that was never on screen.
+     * TikTok's text is not left behind. The tag goes too: a view that carries no render must not be
+     * read as one, or turning the switch back on restores a render that was never on screen.
      */
     private static void hide(TextView timeView) {
-        // The tags go first: the watcher restores whatever the tag holds, and this is the one write
+        // The tag goes first: the watcher restores whatever the tag holds, and this is the one write
         // that has to stand. A view the extension has nothing to put on must stay empty.
         timeView.setTag(StampText.TARGET_TAG, null);
         timeView.setTag(StampText.BASE_TAG, null);
@@ -256,7 +266,7 @@ public final class AuthorInfoBridge {
 
     /**
      * Puts the rendered line back when something else writes over the time view.
-     *
+     * <p>
      * The post time is not written by the component this patch hooks: the header is also updated
      * from the view model's state, and that path sets the time text itself. Which of the two writes
      * lands last is a question of timing, so the answer is not one more hook but a view that always
@@ -281,8 +291,7 @@ public final class AuthorInfoBridge {
         public void afterTextChanged(Editable editable) {
             if (writing) return;
             Object tag = view.getTag(StampText.TARGET_TAG);
-            if (!(tag instanceof String)) return;
-            String target = (String) tag;
+            if (!(tag instanceof String target)) return;
             String current = editable == null ? "" : editable.toString();
             if (target.equals(current)) return;
             writing = true;

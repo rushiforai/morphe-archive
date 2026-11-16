@@ -21,12 +21,14 @@ public final class VerifyImgurSessionCookies {
         ImgurWebPolicy.receiveCookies("https://api.imgur.com/3/account/me", headers, sink);
         if (!sink.values.equals(List.of(rotated, dated, expired)) || sink.flushes != 1)
             throw new AssertionError("Rotation/expiry/multiple cookie preservation");
-        for (String url : List.of("http://api.imgur.com/", "https://api.imgur.com.evil.test/",
-                "https://imgur.com/", "https://i.imgur.com/", "https://api.imgur.com:8443/",
+        for (String url : List.of("http://api.imgur.com/", "https://api.imgur.com:8443/",
                 "https://user@api.imgur.com/", "invalid")) {
             sink = new Sink(); ImgurWebPolicy.receiveCookies(url, headers, sink);
             if (!sink.values.isEmpty() || sink.flushes != 0) throw new AssertionError("Untrusted origin: " + url);
         }
+        sink = new Sink();
+        ImgurWebPolicy.receiveCookies("https://new-api.example.org/account", headers, sink);
+        if (sink.values.size()!=3 || sink.flushes!=1) throw new AssertionError("alternate cookie response host");
         sink = new Sink();
         ImgurWebPolicy.receiveCookies("https://api.imgur.com/", null, sink);
         ImgurWebPolicy.receiveCookies("https://api.imgur.com/", Map.of(), sink);
@@ -34,6 +36,6 @@ public final class VerifyImgurSessionCookies {
         malformed.put("Set-Cookie", Arrays.asList(null, "", "a=b\r\nInjected: test"));
         ImgurWebPolicy.receiveCookies("https://api.imgur.com/", malformed, sink);
         if (!sink.values.isEmpty() || sink.flushes != 0) throw new AssertionError("Empty/malformed headers");
-        System.out.println("PASS session cookies: rotation, expiry, multiple headers, exact origin and malformed headers");
+        System.out.println("PASS session cookies: rotation, expiry, multiple headers, alternate HTTPS origins and malformed headers");
     }
 }

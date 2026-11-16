@@ -3,14 +3,18 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2261
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.youtube.patches;
+
+import android.content.Context;
 
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.youtube.settings.Settings;
 
 /**
@@ -41,6 +45,22 @@ public final class PlaybackInFeedsPatch {
     @Nullable
     private static volatile PlaybackInFeedsController controller;
 
+    // Preserve an imported mode until YouTube has constructed its native controller.
+    public static final Setting.ImportExportCallback IMPORT_EXPORT_CALLBACK = new Setting.ImportExportCallback() {
+        @Override
+        public void settingsImported(@Nullable Context context) {
+            if (controller == null) {
+                Settings.PLAYBACK_IN_FEEDS_IMPORTED.save(true);
+            } else {
+                setMode(Settings.PLAYBACK_IN_FEEDS.get());
+            }
+        }
+
+        @Override
+        public void settingsExported(@Nullable Context context) {
+        }
+    };
+
     /**
      * Injection point.
      */
@@ -50,7 +70,14 @@ public final class PlaybackInFeedsPatch {
         // Refresh the copy on startup, otherwise exporting can save a stale mode
         // if the mode was changed using the settings of YouTube.
         // Must not run inline, since YouTube is still inside its own constructor.
-        Utils.runOnMainThread(PlaybackInFeedsPatch::updateSettingFromApp);
+        Utils.runOnMainThread(() -> {
+            if (Settings.PLAYBACK_IN_FEEDS_IMPORTED.get()) {
+                Settings.PLAYBACK_IN_FEEDS_IMPORTED.save(false);
+                setMode(Settings.PLAYBACK_IN_FEEDS.get());
+            } else {
+                updateSettingFromApp();
+            }
+        });
     }
 
     /**

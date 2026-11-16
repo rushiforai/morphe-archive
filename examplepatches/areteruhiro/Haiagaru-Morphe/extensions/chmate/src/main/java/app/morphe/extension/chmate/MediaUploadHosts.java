@@ -15,6 +15,7 @@ import org.json.JSONObject;
 /** Destination selection shared by the existing picker, resize step and native upload callbacks. */
 public final class MediaUploadHosts {
     private static final String HELP_URL = "https://github.com/areteruhiro/Haiagaru-Morphe/blob/master/docs/upload-hosts/README.md";
+    static final String ASK_DESTINATION="chooseUploadHostEachTime";
     private static volatile Context context;
     private static final int MENU_ID=0x48690107;
     private static final WeakHashMap<MenuItem,WeakReference<Activity>> ACTIVITIES=new WeakHashMap<>();
@@ -24,6 +25,7 @@ public final class MediaUploadHosts {
     private static final java.util.Map<EditText,String> editorUrls=java.util.Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile WeakReference<EditText> currentEditor=new WeakReference<>(null);
     private static final ThreadLocal<Destination> activeDestination=new ThreadLocal<>();
+    private static final java.util.concurrent.Semaphore PROMPT_LOCK=new java.util.concurrent.Semaphore(1,true);
     private static final class Destination {
         final String image,video,key;final boolean adult;
         Destination(String image,String video,String key,boolean adult){this.image=image;this.video=video;this.key=key;this.adult=adult;}
@@ -76,12 +78,63 @@ public final class MediaUploadHosts {
         Destination selected=new Destination(prefs(c));
         Destination reply=replyDestinations.get(currentEditor.get());
         if(reply!=null)selected=reply;
-        if(MediaUploadPolicy.NATIVE.equals(selected.image)
+        boolean asking=FeatureSwitches.prefs(c).getBoolean(ASK_DESTINATION,false);
+        if(!asking&&MediaUploadPolicy.NATIVE.equals(selected.image)
                 &&MediaUploadPolicy.NATIVE.equals(selected.video))return false;
         String mime=MediaUploadPolicy.mime(file(args));
+        if(asking)selected=chooseDestination(selected,mime,file(args).length());
         boolean custom=!MediaUploadPolicy.NATIVE.equals(MediaUploadPolicy.destination(selected.image,selected.video,mime));
         if(custom)activeDestination.set(selected);
         return custom;
+    }
+    /** Wait only on the uploader worker; no bytes are sent before the user's selection. */
+    private static Destination chooseDestination(Destination initial,String mime,long size)throws IOException{
+        if(Looper.myLooper()==Looper.getMainLooper())throw new IOException("アップロード先の選択はバックグラウンドから開始してください");
+        boolean acquired=false;
+        try{
+            PROMPT_LOCK.acquire();acquired=true;
+            return askDestination(initial,mime,size);
+        }catch(InterruptedException interrupted){
+            Thread.currentThread().interrupt();throw new IOException("アップロードをキャンセルしました",interrupted);
+        }finally{if(acquired)PROMPT_LOCK.release();}
+    }
+    private static Destination askDestination(Destination initial,String mime,long size)throws IOException{
+        java.util.concurrent.CountDownLatch done=new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicReference<Destination> selected=new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<HaiagaruDialog> shown=new java.util.concurrent.atomic.AtomicReference<>();
+        android.os.Handler main=new android.os.Handler(Looper.getMainLooper());
+        EditText body=currentEditor.get();
+        main.post(()->{
+            if(done.getCount()==0)return;
+            Activity activity=null;
+            for(java.util.Map.Entry<Activity,WeakReference<EditText>> entry:editors.entrySet())
+                if(entry.getValue().get()==body&&body!=null){activity=entry.getKey();break;}
+            if(activity==null||activity.isFinishing()||activity.isDestroyed()||!body.isAttachedToWindow()){done.countDown();return;}
+            Activity host=activity;
+            boolean video=mime.startsWith("video/");
+            String[] ids=video?new String[]{"native","imgpile-web","imgpile","sendvid","uguu"}:
+                    new String[]{"native","imgbox","imgpile-web","imgpile","uguu"};
+            String[] labels=video?new String[]{"Imgur","imgpile（API不要）","imgpile API","Sendvid","uguu.se"}:
+                    new String[]{"Imgur","imgbox","imgpile（API不要）","imgpile API","uguu.se"};
+            String current=video?initial.video:initial.image;int checked=-1;
+            for(int i=0;i<ids.length;i++)if(ids[i].equals(current))checked=i;
+            HaiagaruDialog dialog=new HaiagaruDialog.Builder(host).setTitle(video?"動画のアップロード先を選択":"画像のアップロード先を選択")
+                    .setSingleChoiceItems(labels,checked,(d,index)->{
+                        String provider=ids[index];
+                        try{if(!provider.equals("native"))MediaUploadPolicy.validate(provider,mime,size,initial.key);}
+                        catch(IOException invalid){Toast.makeText(host,invalid.getMessage(),Toast.LENGTH_LONG).show();return;}
+                        selected.set(new Destination(video?initial.image:provider,video?provider:initial.video,initial.key,initial.adult));
+                        d.dismiss();
+                    }).setNegativeButton("キャンセル",null).create();
+            dialog.setOnDismissListener(d->done.countDown());shown.set(dialog);
+            try{dialog.show();}catch(RuntimeException unavailable){done.countDown();}
+        });
+        try{
+            if(!done.await(5,java.util.concurrent.TimeUnit.MINUTES))throw new IOException("アップロード先の選択を中止しました");
+        }catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new IOException("アップロードをキャンセルしました",interrupted);}
+        finally{done.countDown();main.post(()->{HaiagaruDialog dialog=shown.get();if(dialog!=null&&dialog.isShowing())dialog.dismiss();});}
+        if(selected.get()==null)throw new IOException("アップロードをキャンセルしました");
+        return selected.get();
     }
     static Object upload(Object[] args,Class<?> responseType) throws Exception {
         if(Looper.myLooper()==Looper.getMainLooper()) throw new IOException("アップロードはバックグラウンドで実行してください");
@@ -112,9 +165,13 @@ public final class MediaUploadHosts {
         SharedPreferences p=prefs(activity);
         WeakReference<EditText> editorRef=editors.get(activity);
         EditText editor=editorRef==null?null:editorRef.get();
-        Destination reply=editor==null?null:replyDestinations.get(editor);
+        boolean hasPostingEditor=editor!=null&&editor.isAttachedToWindow();
+        Destination reply=hasPostingEditor?replyDestinations.get(editor):null;
         Destination initial=reply==null?new Destination(p):reply;
         LinearLayout root=new LinearLayout(activity); root.setOrientation(LinearLayout.VERTICAL);
+        Switch ask=new Switch(activity);ask.setText("画像・動画のアップロード時にアップロード先を選ぶ");
+        ask.setChecked(FeatureSwitches.prefs(activity).getBoolean(ASK_DESTINATION,false));
+        root.addView(ask);
         int pad=(int)(20*activity.getResources().getDisplayMetrics().density);root.setPadding(pad,pad,pad,pad);
         String[] imageIds={"native","imgbox","imgpile-web","imgpile","uguu"},videoIds={"native","imgpile-web","imgpile","sendvid","uguu"};
         Spinner image=choice(activity,root,"画像のアップロード先",new String[]{"Imgur（従来の設定）","imgbox（10MB）","imgpile（API不要・100MB）","imgpile API（97MB）","uguu.se（128MiB・3時間で削除）"},
@@ -127,10 +184,15 @@ public final class MediaUploadHosts {
         key.setText(initial.key);key.setHint("APIキーはチャットへ送らないでください");root.addView(key);
         CheckBox adult=new CheckBox(activity);adult.setText("imgboxをAdult Contentとして送信");
         adult.setChecked(initial.adult);root.addView(adult);
-        Switch once=new Switch(activity);once.setText("このレスでだけアップロード先を変更する");once.setChecked(reply!=null);
-        once.setEnabled(editor!=null&&editor.isAttachedToWindow());root.addView(once);
-        TextView onceHelp=new TextView(activity);
-        onceHelp.setText(editor==null?"レス限定の変更は書き込み画面から設定できます。":"オンにすると、この書き込み画面の画像・動画すべてに適用します。書き込み完了・画面を閉じると解除し、保存済みのアップロード先は変更しません。");root.addView(onceHelp);
+        Switch once=hasPostingEditor?new Switch(activity):null;
+        if(once!=null) {
+            once.setText("このレスでだけアップロード先を変更する");
+            once.setChecked(reply!=null);
+            root.addView(once);
+            TextView onceHelp=new TextView(activity);
+            onceHelp.setText("オンにすると、この書き込み画面の画像・動画すべてに適用します。書き込み完了・画面を閉じると解除し、保存済みのアップロード先は変更しません。");
+            root.addView(onceHelp);
+        }
         TextView help=new TextView(activity);
         help.setText("uguu.seは一時共有用で、現在は3時間で自動削除されます。保存期間・上限はサイト側で変更される場合があります。\n\n標準添付は選択したサイトへ送信し、URLと標準履歴を自動で登録します。アクセス確認が出る場合は下のWeb画面で確認してください。手動Web送信とは別です。認証情報を含むバックアップは共有しないでください。");root.addView(help);
         Button guide = new Button(activity);guide.setText("使い方・制限を見る（GitHub）");
@@ -165,15 +227,16 @@ public final class MediaUploadHosts {
             if((i.equals("imgpile")||m.equals("imgpile")) && !MediaUploadPolicy.validKey(api)) {
                 key.setError("imgpileのAPIキーを入力してください");return;
             }
-            if(once.isChecked()) {
+            if(once!=null&&once.isChecked()) {
                 if(editor==null||!editor.isAttachedToWindow()){dialog.dismiss();return;}
                 replyDestinations.put(editor,new Destination(i,m,api,adult.isChecked()));
             }
             else {
-                if(editor!=null)replyDestinations.remove(editor);
+                if(hasPostingEditor)replyDestinations.remove(editor);
                 p.edit().putString("imageHost",i).putString("videoHost",m).putString("imgpileApiKey",api)
                         .putBoolean("imgboxAdult",adult.isChecked()).apply();
             }
+            FeatureSwitches.prefs(activity).edit().putBoolean(ASK_DESTINATION,ask.isChecked()).apply();
             dialog.dismiss();
         });
     }

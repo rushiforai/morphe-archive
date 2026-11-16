@@ -20,8 +20,13 @@ assert 'check(inputFile.isFile)' in SOURCE
 assert "check(actual == expected)" in SOURCE
 assert 'root.resolve(path)' in SOURCE
 assert 'path == "AndroidManifest.xml" || path == "resources.arsc" || path.startsWith("res/")' in SOURCE
-assert re.search(r'^version = 2\.0\.4-dev\.1$', GRADLE, flags=re.MULTILINE)
-assert 'setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1")' in BUILD
+# Retain historical RAW_ONLY checks after the development version becomes stable.
+active_version = re.search(r'^version\s*=\s*(\d+\.\d+\.\d+(?:-dev\.[1-9]\d*)?)\s*$', GRADLE, flags=re.MULTILINE)
+assert active_version, "Missing or malformed Gradle version"
+version = active_version.group(1)
+release_tuple = tuple(int(part) for part in version.split("-", 1)[0].split("."))
+assert version == "2.0.4-dev.1" or release_tuple >= (2, 0, 5), version
+assert '"2.0.4-dev.1"' in BUILD and '"2.0.5-dev.1"' in BUILD and '"2.0.5-dev.2"' in BUILD and '"2.0.5-dev.3"' in BUILD and '"2.0.5-dev.4"' in BUILD and '"2.0.5-dev.5"' in BUILD and '"2.0.5-dev.6"' in BUILD and '"2.0.5-dev.7"' in BUILD and '"2.0.5-dev.8"' in BUILD and '"2.0.5-dev.9"' in BUILD and '"2.0.5-dev.10"' in BUILD and '"2.0.5-dev.11"' in BUILD
 assert 'DEVELOPMENT = ROOT.parent / "v2.0.3-dev.18"' in BUILDER
 assert 'builder.VERSION = VERSION' in BUILDER
 assert "2.0.4-dev.1" in VERIFY and "2.0.4-dev.1" in WORKFLOW
@@ -33,5 +38,5 @@ assert 'python3 "$builder/combine_mpp.py"' in WORKFLOW
 hashes = (ROOT / "patches/src/main/resources/nicoid/input-hashes.txt").read_text().splitlines()
 assert {line.split(maxsplit=1)[1] for line in hashes} == {"classes.dex", "resources.arsc", "AndroidManifest.xml"}
 print("PASS: lazy RAW_ONLY hashes mandatory DEX/ARSC, safely omits unstaged manifest only")
-print("PASS: v2.0.4-dev.1 wrapper and guarded MPP version")
+print("PASS: archived v2.0.4-dev.1 wrapper and release-aware version guard")
 print("NOT TESTED: actual Morphe 2.3.0 execution against original nicoid 6.49 APK")

@@ -33,6 +33,9 @@ public final class PatchSettingsBackup {
         } else if (scope.equals("santodan_introdb")) {
             if (key.equals("enabled")) return "boolean";
             if (key.equals("key")) return "string";
+        } else if (scope.matches("santodan_metadata_addon_[0-9]+")) {
+            if (key.equals("addon")) return "string";
+            if (key.equals("continue_watching") || key.equals("library_posters")) return "boolean";
         } else if (scope.matches("santodan_preferred_addon_[0-9]+")) {
             if (key.equals("addon")) return "string";
             if (key.equals("autoplay")) return "boolean";
@@ -51,7 +54,7 @@ public final class PatchSettingsBackup {
     }
 
     public static boolean scope(String name) {
-        return Arrays.asList(SCOPES).contains(name) || name.matches("santodan_(preferred_addon|launcher)_[0-9]+");
+        return Arrays.asList(SCOPES).contains(name) || name.matches("santodan_(preferred_addon|metadata_addon|launcher)_[0-9]+");
     }
 
     public static String encode(Map<String, Map<String, Object>> values) throws JSONException {

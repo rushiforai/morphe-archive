@@ -17,9 +17,11 @@ final class LightweightSetup {
     private static Map<String,Map<String,Object>> changes(Activity activity)throws Exception{
         SettingsProfiles.catalog(activity);
         Map<String,Map<String,Object>> groups=new LinkedHashMap<>();
-        groups.put(WacchoiSearchOptions.PREFS,SettingsProfiles.adsOnlyValues());
+        Map<String,Object> settings=SettingsProfiles.adsOnlyValues();
+        settings.put(MinimalSetup.ACTIVE,false);
+        groups.put(WacchoiSearchOptions.PREFS,settings);
         for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,
-                "haiagaru.hidden-id-ng","haiagaru_imgur_web",StringReplacement.PREFS})
+                "haiagaru.hidden-id-ng","haiagaru_imgur_web",StringReplacement.PREFS,RegisteredImageNg.PREFS})
             groups.put(name,new LinkedHashMap<>(java.util.Collections.singletonMap("enabled",false)));
         groups.put("haiagaru.mega-sync.options",new LinkedHashMap<>(java.util.Collections.singletonMap("automatic",false)));
         Map<String,Object> hosts=new LinkedHashMap<>();hosts.put("imageHost","native");hosts.put("videoHost","native");
@@ -45,9 +47,7 @@ final class LightweightSetup {
             for(int i=0;i<buttons.length();i++){
                 JSONObject button=buttons.optJSONObject(i);if(button==null)continue;
                 int id=button.optInt("id",Integer.MIN_VALUE);
-                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB||id==HomeRefreshTargets.TAB;
-                for(int action:ResponseMenuSettings.IDS)if(id==action)custom=true;
-                if(custom){button.put("visible",false);changed=true;}
+                if(MinimalSetup.isCustomToolbarAction(id)){button.put("visible",false);changed=true;}
             }
             if(changed)groups.computeIfAbsent(name,k->new LinkedHashMap<>()).put("toolbarSettings",toolbar.toString());
         }

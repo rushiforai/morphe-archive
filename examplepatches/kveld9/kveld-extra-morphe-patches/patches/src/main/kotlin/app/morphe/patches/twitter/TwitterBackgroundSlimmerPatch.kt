@@ -6,27 +6,6 @@ import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.disableComponentsByName
 import org.w3c.dom.Element
 
-private val disableWorkManager by booleanOption(
-    key = "disableWorkManager",
-    default = true,
-    title = "Disable WorkManager and Boot Receivers",
-    description = "Disables background WorkManager periodic job services and reschedule receivers.",
-)
-
-private val disableWidgets by booleanOption(
-    key = "disableWidgets",
-    default = true,
-    title = "Disable Home Screen Widgets",
-    description = "Disables news and search widget receivers and Glance remote views service.",
-)
-
-private val disableCastNfc by booleanOption(
-    key = "disableCastNfc",
-    default = true,
-    title = "Disable Cast and NFC Companion Services",
-    description = "Disables Google Cast reconnection service, media router receivers, and NFC profile tag APDU service.",
-)
-
 @Suppress("unused")
 val twitterBackgroundSlimmerPatch = resourcePatch(
     name = "Background Slimmer",
@@ -34,6 +13,27 @@ val twitterBackgroundSlimmerPatch = resourcePatch(
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TWITTER)
+
+    val disableWorkManager by booleanOption(
+        key = "disableWorkManager",
+        default = true,
+        title = "Disable WorkManager and Boot Receivers",
+        description = "Disables background WorkManager periodic job services and reschedule receivers.",
+    )
+
+    val disableWidgets by booleanOption(
+        key = "disableWidgets",
+        default = true,
+        title = "Disable Home Screen Widgets",
+        description = "Disables news and search widget receivers and Glance remote views service.",
+    )
+
+    val disableCastNfc by booleanOption(
+        key = "disableCastNfc",
+        default = true,
+        title = "Disable Cast and NFC Companion Services",
+        description = "Disables Google Cast reconnection service, media router receivers, and NFC profile tag APDU service.",
+    )
 
     execute {
         val manifestFile = get("AndroidManifest.xml")

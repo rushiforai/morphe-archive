@@ -1205,7 +1205,7 @@ Still here. Nothing is waiting.	Всё ещё здесь. Ничего не ож
 Still reading the record. Tap again in a moment.	Запись всё ещё читается. Нажмите ещё раз через момент.
 Still saving the last one	Последнее всё ещё сохраняется
 The last one is still waiting to start	Последнее всё ещё ожидает начала
-Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	TikTok перестаёт отправлять отчёты об использовании, данные для рекламы и отчёты о сбоях. Собственные средства диагностики TikTok тоже затихают.
+Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.	TikTok перестаёт отправлять отчёты об использовании, данные для рекламы и отчёты о сбоях. Собственные средства диагностики TikTok тоже затихают. Настройки, которые TikTok загружает для проверки своих запросов, по-прежнему приходят.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Не даёт TikTok замедлять экран до частоты кадров каждого видео. На телефоне с 90 или 120 Гц из-за этого весь экран приложения, включая прокрутку, работает медленнее.
 Keep the screen's brightness in the camera	Сохранять яркость экрана в камере
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Не даёт TikTok делать экран ярче, пока вы снимаете, редактируете или публикуете видео. Фронтальная вспышка по-прежнему делает экран белым, но с вашей яркостью.
@@ -1898,13 +1898,16 @@ Video of photos	Видео из фото
 # context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
 debug debugging logs logging	отладка дебаг логи журналы
 Export comments	Экспорт комментариев
-Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.	Добавляет под полем поиска кнопки Export CSV и Export JSON, поэтому «Поиск по комментариям» должен быть включён. Они сохраняют в выбранный вами файл комментарии и ответы, загруженные на данный момент. Сначала откройте нужные ветки ответов.
+Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.	Добавляет под полем поиска кнопки Export CSV и Export JSON, поэтому «Поиск по комментариям» должен быть включён. Они сохраняют в выбранный вами файл комментарии, загруженные на данный момент, и сначала подгружают все ответы к ним.
 Export CSV	Экспорт CSV
 Export JSON	Экспорт JSON
 1 comment or reply loaded	Загружен 1 комментарий или ответ
 %1$d comments and replies loaded	Загружено комментариев и ответов: %1$d
 No comments are loaded to export yet.	Пока нет загруженных комментариев для экспорта.
 Exported %1$d comments and %2$d replies	Экспортировано комментариев: %1$d, ответов: %2$d
+# context: Shown beside the Export buttons while the replies load. The first number is the replies loaded so far, the second how many TikTok says there are
+Loading replies, %1$d of %2$d	Загрузка ответов: %1$d из %2$d
+Some replies weren't loaded, so they aren't in the file.	Некоторые ответы не загрузились, поэтому их нет в файле.
 Comment export failed	Не удалось экспортировать комментарии
 %1$d comments and replies loaded|one	Загружен %1$d комментарий или ответ
 %1$d comments and replies loaded|few	Загружено %1$d комментария или ответа
@@ -1974,7 +1977,7 @@ A LIVE you swipe to comes back with its chat, gifts and buttons showing. This ke
 Dark LIVE panels in dark mode	Тёмные панели LIVE в тёмной теме
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Даже в тёмной теме комната LIVE открывает меню «Поделиться», фан-клуб и другие панели в светлых цветах. С этим переключателем они открываются тёмными.
 Keep watching in a small window	Смотреть в маленьком окне
-When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Если выйти из TikTok во время воспроизведения видео, оно продолжит воспроизводиться в маленьком окне поверх других приложений, с кнопкой паузы. Работает в ленте и в видео, открытых из профиля, поиска или звука. Требуется Android 8 или новее.
+When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Если выйти из TikTok во время воспроизведения видео, оно продолжит воспроизводиться в маленьком окне поверх других приложений, с кнопками паузы и перехода к предыдущему или следующему видео. Работает в ленте, в LIVE и в видео, открытых из профиля, поиска или звука. Требуется Android 8 или новее.
 Play	Воспроизвести
 Pause	Пауза
 Posting	Публикация
@@ -2370,7 +2373,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	Автоперевод чата LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	Кнопке «Перевести комментарии» в LIVE-комнате нужна ещё и японская SIM. Включите «Переопределять данные SIM» в настройках Hushfeed > Регион, выберите в «Предустановка страны SIM» вариант Japan, NTT DOCOMO (44010) и перезапустите TikTok.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Бегущие комментарии появляются только на видео, для которых TikTok их включил, поэтому большинство видео не изменится.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	На широких видео, где TikTok это разрешает, под видео появляется кнопка для однострочных комментариев, а в полноэкранном режиме панель для них. Остальные видео не меняются.
 
 Pick videos to save from profile grids	Выбирать видео для сохранения в сетках профилей
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Ставит кружок на каждое видео в сетке профиля, «Понравилось» или «Избранное». Выберите до %1$s, затем нажмите «Сохранить», чтобы сохранить их по очереди, со счётчиком и кнопкой «Отмена».
@@ -2448,7 +2451,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	Скрывать «Баланс» в меню профиля
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	Скрывать «Баланс» в меню, которое открывает кнопка справа вверху вашего профиля. Ваши монеты и подарки остаются как есть.
 See-through status bar	Прозрачная строка состояния
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	В основной ленте видео доходит до верхнего края экрана, а часы и значки состояния показываются поверх него. Вкладки вверху остаются на месте.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	Видео доходит до верхнего края экрана, а часы и значки состояния показываются поверх него. Работает в основной ленте и в видео, которые вы открываете из поиска, профиля или своих разделов «Понравившиеся» и «Избранное». Вкладки вверху остаются на месте.
 Floating bottom bar	Плавающая нижняя панель
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	Вкладки основной ленты показываются на скруглённой полупрозрачной тёмной плашке, которая парит над видео. Нужна «Прозрачная нижняя панель».
 Liquid glass look	Эффект жидкого стекла
@@ -2467,9 +2470,9 @@ Most see-through	Самое прозрачное
 More see-through	Прозрачнее
 Frosted	Матовое
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Сколько видео видно сквозь стеклянную плашку в основной ленте. «Самое прозрачное» показывает больше всего, «Матовое» меньше всего.
-On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	В основной ленте за открытой вкладкой лежит выпуклый стеклянный пузырь, и он переезжает к следующей вкладке, которую вы выберете. Нужен «Эффект жидкого стекла».
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	В основной ленте за открытой вкладкой лежит выпуклый стеклянный пузырь, и он переезжает к следующей вкладке, которую вы выберете. Работает с любой нижней панелью, включён «Эффект жидкого стекла» или нет.
 Slide across the tabs	Скольжение по вкладкам
-On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	В основной ленте проведите пальцем по стеклянной плашке, и линза последует за ним. Отпустите, и откроется эта вкладка. Нажатия и долгие нажатия работают как раньше. Нужна «Стеклянная линза на текущей вкладке».
+On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	В основной ленте проведите пальцем по вкладкам, и линза последует за ним. Отпустите, и откроется эта вкладка. Нажатия и долгие нажатия работают как раньше. Нужна «Стеклянная линза на текущей вкладке».
 Haptics on the tabs	Вибрация на вкладках
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	В основной ленте лёгкий щелчок каждый раз, когда стеклянная линза проходит вкладку, после нажатия или под вашим пальцем. Нужна «Стеклянная линза на текущей вкладке».
 Haptic style	Стиль вибрации
@@ -2566,6 +2569,54 @@ Collapsed	Свернуто
 This setting isn't available. Search for another setting.	Эта настройка недоступна. Найдите другую настройку.
 Hide the Hushfeed row	Скрыть строку Hushfeed
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Убирает Hushfeed из раздела «Настройки и конфиденциальность» TikTok. Чтобы открыть эти настройки, удерживайте «Рекомендации» вверху ленты или «Главная», если включено «Долгое нажатие на Главная открывает настройки Hushfeed». Если ни то, ни другое не может их открыть, строка остаётся.
+# context: Title of the checklist that hides rows from TikTok's own Settings and privacy page
+Hide Settings and privacy rows	Скрыть строки в «Настройках и конфиденциальности»
+# context: Note under that title. A section's title is the small heading over a group of rows on that page
+Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.	Выберите строки, которые нужно убрать со страницы «Настройки и конфиденциальность» TikTok. Это сработает при следующем открытии страницы, а раздел, где не осталось строк, теряет и заголовок.
+# context: Checklist rows, each one a row of TikTok's Settings and privacy page. Use the label TikTok itself shows for that row in this language
+Activity center	Центр активности
+Manage posts	Управление публикациями
+Content preferences	Настройки контента
+Notifications	Уведомления
+Time and well-being	Время и благополучие
+Family Pairing	Семейный режим
+Sign up	Регистрация
+Account	Аккаунт
+Security & permissions	Безопасность и разрешения
+Analytics	Аналитика
+Orders	Заказы
+Balance	Баланс
+QR code	QR-код
+Share profile	Поделиться профилем
+TikTok Plus	TikTok Plus
+Invite friends	Пригласить друзей
+Inbox mode	Режим входящих
+Audience controls	Управление аудиторией
+Background audio	Фоновое аудио
+Display	Экран
+Commercial content library	Библиотека коммерческого контента
+Accessibility	Специальные возможности
+Home screen shortcuts	Ярлыки на главном экране
+Join Amplify	Присоединиться к Amplify
+Contacts and location	Контакты и местоположение
+Shake to report	Встряхнуть, чтобы сообщить
+Free up space	Освободить место
+Data Saver	Экономия трафика
+Free data	Бесплатный трафик
+Live wallpaper	Живые обои
+Check for updates	Проверить обновления
+Lite mode	Облегчённый режим
+TikTok Beta	TikTok Beta
+Safety Center	Центр безопасности
+Privacy Center	Центр конфиденциальности
+Privacy checkup	Проверка конфиденциальности
+Support	Поддержка
+Deactivate or delete account	Деактивировать или удалить аккаунт
+Terms and Policies	Условия и правила
+Policy updates	Обновления правил
+What's new on TikTok	Новое в TikTok
+Switch account	Сменить аккаунт
+Log out	Выйти
 Open the search page	Открыть страницу поиска
 Search didn't open. Restart TikTok and try again.	Поиск не открылся. Перезапустите TikTok.
 Fold the search into a button	Свернуть поиск в кнопку
@@ -2949,3 +3000,47 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	Вкладки поиска пока не встречались
 Search for something once, then return here to choose its tabs.	Один раз что-нибудь найдите, затем вернитесь сюда, чтобы выбрать вкладки.
+Video download codec	Кодек скачивания видео
+HEVC first	Сначала HEVC
+H.264 only	Только H.264
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	При одинаковом качестве Автоматически сохраняет в H.264, который открывает почти любой плеер. HEVC часто чётче, но некоторые старые плееры и телевизоры не могут его воспроизвести.
+Pick which stories to save	Выбирать, какие истории сохранить
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	Когда у человека больше одной истории, при сохранении появляется вопрос, какие оставить. История, которую вы смотрите, уже отмечена.
+Pick stories to save	Выберите истории для сохранения
+%1$s of %2$s stories are loaded. Watch further to load the rest.	Загружено историй: %1$s из %2$s. Смотрите дальше, чтобы загрузить остальные.
+Story %1$s	История %1$s
+On screen	На экране
+Pick at least one story	Выберите хотя бы одну историю
+Shade behind the status bar	Затемнение под строкой состояния
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	Мягкий тёмный градиент за часами и значками состояния, чтобы их было легко читать на светлом видео. Нужна «Прозрачная строка состояния».
+Glass Stories button on Following	Стеклянная кнопка историй в «Подписках»
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	Кнопка историй вверху ленты «Подписки» становится стеклянной с закруглёнными краями. На Android 12 и новее видео за ней тоже размывается.
+# context: Row title of the Inbox switch that shows the send time under each message in a chat
+Show message times	Показывать время сообщений
+# context: Summary under that switch; TikTok itself only shows a time over a message after a gap
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.	Показывает под каждым сообщением в чате время его отправки. Отметки времени самого TikTok остаются на месте.
+This photo post is already saved	Эта фотопубликация уже сохранена
+This story is already saved	Эта история уже сохранена
+Stretch the video to the screen	Растягивать видео на экран
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.	Заполняет всё окно, ничего не обрезая. Для этого видео становится немного выше или шире. Видео, форма которого сильно отличается от экрана, сохраняет размер TikTok.
+Sort loaded videos on Favorites grids	Сортировать загруженные видео в сетках «Избранное»
+Show the country and date under the caption	Показывать страну и дату под описанием
+Moves the country and the post date off the creator's row onto a line of their own below the caption.	Переносит страну и дату публикации из строки автора на отдельную строку под описанием.
+# context: picture-in-picture window button that moves TikTok's feed
+Previous video	Предыдущее видео
+# context: picture-in-picture window button that moves TikTok's feed
+Next video	Следующее видео
+Sort loaded videos in collections	Сортировать загруженные видео в коллекциях
+Same as Favorites grids	Как в сетках «Избранное»
+Hide the summary on LIVE previews	Скрывать сводку в превью LIVE
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.	LIVE в ленте может показывать карточку «Сводка» с кратким описанием эфира. С этим она остаётся скрытой.
+Look up a commenter's country	Узнать страну автора комментария
+Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.	Нажмите и удерживайте комментарий, чтобы найти в меню пункт «Показать страну аккаунта». Он спрашивает у TikTok, где находится этот аккаунт или откуда опубликованы его последние видео.
+Show account country	Показать страну аккаунта
+Account based in %1$s	Страна аккаунта: %1$s
+TikTok gives no country for this account	TikTok не сообщает страну этого аккаунта
+Couldn't get the country. Try again.	Не удалось узнать страну. Попробуйте ещё раз.
+Account country on profiles	Страна аккаунта в профилях
+A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	В меню «Поделиться» профиля появляется кнопка «Страна аккаунта». Она спрашивает у TikTok, где находится этот аккаунт или откуда опубликованы его последние видео.
+Account country	Страна аккаунта
+Videos posted from %1$s	Страна публикации видео: %1$s

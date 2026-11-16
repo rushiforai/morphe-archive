@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -9,7 +11,9 @@ package app.morphe.extension.music.patches.downloads;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What Android Auto may see of the stream copies: the albums and playlists that have songs with stored data, those
@@ -21,10 +25,11 @@ public final class OfflineStreamBrowse {
     public static final String SONGS = OfflineReplay.SONGS;
 
     /** A downloaded list. {@code title} is empty for {@link #SONGS} and while the title is not known. */
-    public record Source(String id, String title, int trackCount, @Nullable String coverVideoId) {}
+    public record Source(String id, String title, int trackCount, @Nullable String coverVideoId,
+                         int totalCount, boolean album, String canonicalId) {}
 
-    /** A song with stored data; {@code subtitle} is its artist and duration. */
-    public record Track(String videoId, String title, String subtitle) {}
+    /** All remembered source tracks, including tracks whose stream copy is not ready. */
+    public record Track(String videoId, String title, String artist, String artwork, boolean ready) {}
 
     private OfflineStreamBrowse() {}
 
@@ -45,25 +50,75 @@ public final class OfflineStreamBrowse {
      */
     public static List<Source> sources() {
         List<Source> sources = new ArrayList<>();
-        for (OfflineLibraryLogic.SourceRow row : OfflineLibraryLogic.sourceRows(
-                OfflineCopyStore.sources(), OfflineCopyStore::tracksOf)) {
-            if (row.availableCount() > 0) {
-                sources.add(new Source(row.sourceId(), row.title(), row.availableCount(), row.coverVideoId()));
-            }
+        List<OfflineSourceStore.Source> stored = OfflineCopyStore.sources();
+        Map<String, OfflineSourceStore.Source> byId = new HashMap<>();
+        for (OfflineSourceStore.Source source : stored) byId.put(source.id(), source);
+        OfflineBrowsePages.load();
+        for (OfflineLibraryLogic.SourceRow row : OfflineLibraryLogic.sourceRows(stored, OfflineCopyStore::tracksOf)) {
+            if (row.availableCount() <= 0) continue;
+
+            OfflineSourceStore.Source source = byId.get(row.sourceId());
+            sources.add(new Source(row.sourceId(), row.title(), row.availableCount(), row.coverVideoId(),
+                    source.videoIds().size(), source.kind() == OfflineSourceStore.Kind.ALBUM,
+                    OfflineBrowsePages.sourceOf(row.sourceId())));
         }
         List<OfflineWatchNext.Item> songs = OfflineReplay.queueOf(SONGS);
-        if (!songs.isEmpty()) sources.add(new Source(SONGS, "", songs.size(), songs.get(0).videoId()));
+        if (!songs.isEmpty()) {
+            sources.add(new Source(SONGS, "", songs.size(), songs.get(0).videoId(), songs.size(), false, SONGS));
+        }
         return sources;
     }
 
-    /** The songs of a list that have stored data, in the order of its offline queue. A worker thread. */
+    /** Full source order; unlike the replay queue this includes missing and not-yet-ready copies. */
     public static List<Track> tracksOf(String sourceId) {
         List<Track> tracks = new ArrayList<>();
-        for (OfflineWatchNext.Item item : OfflineReplay.queueOf(sourceId)) {
-            tracks.add(new Track(item.videoId(), item.title(),
-                    OfflineLibraryLogic.songSubtitle(item.artist(), item.durationMs())));
+        if (SONGS.equals(sourceId)) {
+            for (OfflineWatchNext.Item item : OfflineReplay.queueOf(sourceId)) {
+                tracks.add(new Track(item.videoId(), item.title(), item.artist(),
+                        item.thumbnailUrl() == null ? "" : item.thumbnailUrl(), true));
+            }
+            return tracks;
+        }
+        var copyIds = RawAudioStore.copyIds();
+        for (String id : OfflineCopyStore.allTrackLists().getOrDefault(sourceId, List.of())) {
+            OfflineCopyMetadata metadata = OfflineCopyStore.metadataOf(id);
+            tracks.add(new Track(id, metadata == null ? "" : metadata.title(),
+                    metadata == null ? "" : metadata.artist(),
+                    metadata == null || metadata.thumbnailUrl() == null ? "" : metadata.thumbnailUrl(),
+                    copyIds.contains(id) && metadata != null));
         }
         return tracks;
+    }
+
+    public static String sourceId(String canonicalId) {
+        Map<String, List<String>> lists = OfflineCopyStore.allTrackLists();
+        if (SONGS.equals(canonicalId) || lists.containsKey(canonicalId)) return canonicalId;
+        OfflineBrowsePages.load();
+        for (String id : lists.keySet()) {
+            if (canonicalId.equals(OfflineBrowsePages.sourceOf(id))) return id;
+        }
+        return canonicalId;
+    }
+
+    public static Map<String, String> aliases() {
+        Map<String, String> aliases = new HashMap<>(RawAudioStore.aliases());
+        aliases.putAll(VideoCopyStore.pairs());
+        return aliases;
+    }
+
+    public static List<String> readyIds(String sourceId) {
+        List<String> ids = new ArrayList<>();
+        for (OfflineWatchNext.Item item : OfflineReplay.queueOf(sourceId)) ids.add(item.videoId());
+        return ids;
+    }
+
+    @Nullable
+    public static byte[] savedPage(String sourceId) {
+        return OfflineBrowsePages.readSource(sourceId);
+    }
+
+    public static byte[] onlineCommand(String videoId, String playlistId, int index) {
+        return OnlineWatchCommand.build(videoId, playlistId, index);
     }
 
     /** Resolves the selected song in the same order as browse. Reads copy metadata: a worker thread only. */

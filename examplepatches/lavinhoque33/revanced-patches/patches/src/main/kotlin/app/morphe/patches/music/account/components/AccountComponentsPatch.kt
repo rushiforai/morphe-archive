@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-13.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -60,7 +61,6 @@ import app.morphe.patches.music.utils.settings.addTextPreference
 import app.morphe.patches.music.utils.settings.addSwitchPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
 import app.morphe.patches.shared.misc.settings.preference.InputType
-import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
@@ -227,15 +227,11 @@ val accountComponentsPatch = bytecodePatch(
             "false",
             "revanced_hide_account_menu"
         )
-        if (!is_8_51_or_greater) {
-            addSwitchPreference(
-                CategoryType.ACCOUNT,
-                "revanced_hide_handle",
-                "true"
-            )
-        } else {
-            printWarn("\"Hide handle\" is not supported in this version. Use YouTube Music 8.30.54 or earlier.")
-        }
+        addSwitchPreference(
+            CategoryType.ACCOUNT,
+            "revanced_hide_handle",
+            "false"
+        )
         addSwitchPreference(
             CategoryType.ACCOUNT,
             "revanced_hide_terms_container",

@@ -25,6 +25,7 @@ final class ThreadListThumbnailRules {
             return "https://"+host+"/test/read.cgi/"+name+"/"+id+"/";
         }
         String openingDatUrl(String id){
+            if(host.equals("die-or.work"))return "https://"+host+"/"+name+"/dat/"+id+".dat";
             return host.equals("bbs.eddibb.cc")?"https://"+host+"/"+name+"/dat/"+id+".dat":null;
         }
         String settingsKey(){return "5ch:"+host+"/"+name;}
@@ -33,7 +34,7 @@ final class ThreadListThumbnailRules {
     private static final Pattern DIAGNOSTIC=Pattern.compile("^\\{server:([^,]+), name:([^,]+), created:");
     private static final Pattern NAME=Pattern.compile("[a-zA-Z0-9_-]{1,80}");
     private static final Pattern IMAGE=Pattern.compile("(?i)\\.(?:jpe?g|png|webp|gif|avif)$");
-    private static final Pattern TEXT_URL=Pattern.compile("https://[^\\s<>\"'\\u3000\\u3001\\u3002]+",Pattern.CASE_INSENSITIVE);
+    private static final Pattern TEXT_URL=Pattern.compile("https?://[^\\s<>\"'\\u3000\\u3001\\u3002]+",Pattern.CASE_INSENSITIVE);
 
     static Board board(String address){
         if(address==null)return null;
@@ -47,6 +48,10 @@ final class ThreadListThumbnailRules {
                     ||host==null||uri.getUserInfo()!=null||uri.getPort()!=-1||uri.getRawQuery()!=null||uri.getRawFragment()!=null||path==null)return null;
             host=host.toLowerCase(Locale.ROOT);
             boolean edge=host.equals("bbs.eddibb.cc");
+            if(host.equals("die-or.work")){
+                Matcher mirror=Pattern.compile("^/(?:(?:test/read\\.cgi/)?)(img/b|may/b)(?:/[0-9]{9,11})?/?$").matcher(path);
+                return mirror.matches()?new Board(host,mirror.group(1)):null;
+            }
             if(!(host.endsWith(".5ch.io")||host.endsWith(".5ch.net")||edge))return null;
             Matcher thread=Pattern.compile("^/test/read\\.cgi/([a-zA-Z0-9_-]{1,80})/[0-9]{9,11}/?$",Pattern.CASE_INSENSITIVE).matcher(path);
             Matcher edgeThread=Pattern.compile("^/liveedge/[0-9]{9,11}/?$",Pattern.CASE_INSENSITIVE).matcher(path);
@@ -80,7 +85,7 @@ final class ThreadListThumbnailRules {
         Element opening=edge?doc.selectFirst("[data-ng-target=body][data-ng-response-id=1]"):
                 doc.selectFirst(FIVE_OPENING_SELECTOR);
         if(opening==null)return Collections.emptyList();
-        return collectMedia(opening,maxImages,edge);
+        return collectMedia(opening,maxImages,true);
     }
     /** Accept only images, public direct videos and official YouTube preview images. */
     static List<String> openingTextMedia(String html,String base,int limit){
@@ -121,6 +126,7 @@ final class ThreadListThumbnailRules {
     }
     static boolean videoUrl(String url){return publicImage(url)&&DirectVideoUrls.supported(url);}
     private static String mediaUrl(String url){
+        if(url.regionMatches(true,0,"http://",0,7))url="https://"+url.substring(7);
         if(imageUrl(url)||videoUrl(url))return url;
         return youtubeImage(url);
     }

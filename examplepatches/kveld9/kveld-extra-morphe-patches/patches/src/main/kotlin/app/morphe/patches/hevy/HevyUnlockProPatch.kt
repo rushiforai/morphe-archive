@@ -296,26 +296,21 @@ val hevyUnlockProPatch = rawResourcePatch(
     execute {
         val bundleFile = get("assets/index.android.bundle")
         if (!bundleFile.exists() || !bundleFile.isFile) {
-            println("[Unlock Pro] assets/index.android.bundle not found - skipping Hermes unlock.")
-            return@execute
+            error("[Unlock Pro] assets/index.android.bundle not found in APK. Target bundle is required.")
         }
 
         val bundleBytes = bundleFile.readBytes()
         val buffer = ByteBuffer.wrap(bundleBytes).order(ByteOrder.LITTLE_ENDIAN)
 
         val header = parseHermesHeader(buffer)
-        if (header == null) {
-            println("[Unlock Pro] Bundle is not a valid Hermes HBC96 binary (${describeHermesBundle(buffer)}) - skipping.")
-            return@execute
-        }
+            ?: error("[Unlock Pro] Bundle is not a valid Hermes HBC96 binary (${describeHermesBundle(buffer)}). Target requires HBC96.")
 
         val offsets = calculateTableOffsets(header)
         val trueTargets = resolvePropertyTargets(TARGET_PRO_PROPERTIES, header, offsets, buffer, bundleBytes)
         val falseTargets = resolvePropertyTargets(TARGET_FALSE_PROPERTIES, header, offsets, buffer, bundleBytes)
 
         if (trueTargets.isEmpty() && falseTargets.isEmpty()) {
-            println("[Unlock Pro] No Pro getter or function targets found in Hermes bundle - skipping.")
-            return@execute
+            error("[Unlock Pro] No Pro getter or function targets found in Hermes bundle. Target properties shifted or removed.")
         }
 
         var patchedCount = 0

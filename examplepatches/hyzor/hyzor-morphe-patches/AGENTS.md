@@ -8,7 +8,7 @@ conventions the repository follows.
 
 ## What this repository is
 
-- A **Morphe patch bundle** for eight Android apps. It contains Kotlin patches that edit
+- A **Morphe patch bundle** for eleven Android apps. It contains Kotlin patches that edit
   Dalvik bytecode and decoded resources, plus one Java extension that is merged into the
   patched app as extra classes.
 - **Not an app, and not a fork of the apps.** The build output is `patches/build/libs/patches-<version>.mpp`
@@ -23,14 +23,17 @@ conventions the repository follows.
 
 | App | Package | Targets | Sources |
 |---|---|---|---|
-| Sleep as Android | `com.urbandroid.sleep` | `20261006` | `patches/.../sleep/` |
+| Sleep as Android | `com.urbandroid.sleep` | `20261016` | `patches/.../sleep/` |
 | SnoreLab | `com.snorelab.app` | `2.33.7.7953` | `patches/.../snorelab/` |
 | NYT Games | `com.nytimes.crossword` | `6.50.0` | `patches/.../nytgames/` |
-| Chess.com | `com.chess` | `4.10.23` | `patches/.../chesscom/` + `extensions/chesscom/` |
-| Duolingo | `com.duolingo` | `6.104.3` | `patches/.../duolingo/` |
+| Chess.com | `com.chess` | `4.10.27` | `patches/.../chesscom/` + `extensions/chesscom/` |
+| Duolingo | `com.duolingo` | `6.104.5` | `patches/.../duolingo/` |
 | Nova Launcher | `com.teslacoilsw.launcher` | `8.9.7` | `patches/.../nova/` |
 | FolderSync | `dk.tacit.android.foldersync.lite` | `4.14.0` | `patches/.../foldersync/` |
+| Projectivy Launcher | `com.spocky.projengmenu` | `4.73` | `patches/.../projectivy/` |
 | Solid Explorer | `pl.solidexplorer2` | `3.6.4` | `patches/.../solidexplorer/` |
+| nzb360 | `com.kevinforeman.nzb360` | `25.3` | `patches/.../nzb360/` |
+| Trakt | `tv.trakt.trakt` | `3.28.0` | `patches/.../trakt/` |
 
 ## Repository map
 
@@ -52,18 +55,19 @@ docs/apps/                            per-app technical write-ups
 .tmp/<app>/                           working directory: stock and patched APKs, harnesses (gitignored)
 ```
 
-`.tmp/` is the working directory for everything temporary: stock APKs and XAPKs, patched
-outputs, decompiles, harnesses and logs. Keep one folder per app, named after the app
-(`.tmp/chesscom/`, `.tmp/duolingo/`, `.tmp/foldersync/`, `.tmp/nova_launcher/`,
-`.tmp/nytimes_games/`, `.tmp/sleep_as_android/`, `.tmp/snorelab/`), instead of dropping files
-at the top of `.tmp/` or in the repository root.
+`.tmp/` is the working directory for everything temporary: stock APKs, APKMs and XAPKs,
+patched outputs, decompiles, harnesses and logs. Keep one folder per app, named after the app
+(`.tmp/chess_com/`, `.tmp/duolingo/`, `.tmp/foldersync/`, `.tmp/nova_launcher/`,
+`.tmp/nyt_games/`, `.tmp/nzb360/`, `.tmp/projectivy_launcher/`, `.tmp/sleep_as_android/`,
+`.tmp/snorelab/`, `.tmp/solid_explorer/`, `.tmp/trakt/`), instead of dropping files at the top
+of `.tmp/` or in the repository root.
 It is gitignored: nothing the build needs may live there, and it is never committed.
 
 ## Toolchain
 
 | Software | Needed for | Notes |
 |---|---|---|
-| JDK 21+ | everything | CI uses Temurin 21. Gradle comes from the wrapper (9.8.1). |
+| JDK 21+ | everything | CI uses Temurin 21. Gradle comes from the wrapper (9.8.2). |
 | GitHub token, `read:packages` | building | Resolves the `app.morphe.patches` plugin and Morphe Patcher 2.0.0 from GitHub Packages. Public packages still need auth. |
 | Android SDK | the `extensions/*` modules | The Android Gradle plugin needs a platform and build-tools. Point Gradle at it with `ANDROID_HOME` or `local.properties` (`sdk.dir=…`, gitignored). GitHub-hosted runners already have it. |
 | `adb` | device testing | From platform-tools. |
@@ -80,8 +84,8 @@ Libraries (pinned in `gradle/libs.versions.toml`):
 | Morphe Patcher (`app.morphe:morphe-patcher`) | 2.0.0 | The patch API, brought in by the `app.morphe.patches` plugin |
 | smali/dexlib2 | via Morphe Patcher | The bytecode model and smali assembly used by patches |
 | ARSCLib | via Morphe Patcher | Resource decoding/encoding |
-| Gson | 2.14.0 | `PatchListGenerator` only, on a separate classpath (never bundled) |
-| Kotlin stdlib | 2.3.21 | The extension, `compileOnly` — the target app provides it |
+| Gson | 2.15.0 | `PatchListGenerator` only, on a separate classpath (never bundled) |
+| Kotlin stdlib | 2.4.21 | The extension, `compileOnly` — the target app provides it |
 | androidx.annotation | 1.9.1 | The extension, `compileOnly` |
 
 Credentials go in the environment or in your **user** Gradle properties — never in the
@@ -350,7 +354,10 @@ claim in the PR.
 | Duolingo | Fresh install + email login works; Super Dashboard and profile badge; debug options open; one launcher icon; RampUp timer only if the account has a challenge. |
 | Nova Launcher | Settings → version row reads `Nova Prime <version>` instead of `Nova Launcher <version>`; `Prime` badges next to App drawer → Hide apps (and similar rows) are gone and the rows open instead of the subscription screen. |
 | FolderSync | About / settings report the Premium version; no ads on the dashboard; more than two accounts and folder pairs can be created; the premium-only options are not locked. |
+| Projectivy Launcher | The Premium page and the premium-only editors (Display Profiles, theme/background import, parental control) open instead of redirecting to `PremiumActivity`. |
 | Solid Explorer | The drawer header shows the **Pro** badge, Settings → Icon set → **Paper** applies instead of opening the Pro paywall, and no ads appear. |
+| nzb360 | The side-menu header reads `nzb360 │ All ∞ Access`, Settings → Upgrade Center reads `Everything unlocked`, and every module in the Upgrade Center reads `Unlocked via ∞`. |
+| Trakt | Sign-in completes through a regular Custom Tab and returns to `MainActivity`; the profile shows the VIP badge; Discover → Filters opens the advanced VIP panel. |
 
 Record what was **not** exercised (e.g. “MAX variant applied but not installed”, “RampUp
 verified in the patched DEX, account has no challenge”). Be explicit about static-only
@@ -395,7 +402,8 @@ force-stop the app so the next test starts cold.
 
 ## Git and releases
 
-- Work on `dev` (or a feature branch that merges into it). `main` is stable.
+- Work on `dev` (or a feature branch that merges into it). `main` is stable; documentation-only
+  changes may go straight to `main` with a `docs:` commit.
 - **Fetch before you branch and again before you open a PR.** `git status` compares against
   the cached `origin/dev` ref, not the server, so a clean tree can still be hours behind.
   Run `git fetch origin` and check `git log --oneline HEAD..origin/dev` first; a stale base is
@@ -403,11 +411,12 @@ force-stop the app so the next test starts cold.
 - Conventional commits drive semantic-release:
   `fix` → patch, `feat` → minor, `perf` → patch, `bump` → “Updated App Support”,
   `build` with scope `Needs bump` → patch, `chore`/`docs`/`ci` → no release.
-- Scopes used here: `chesscom`, `duolingo`, `foldersync`, `nova`, `nytgames`, `sleep`,
-  `snorelab`, `solidexplorer`.
-- Pushing to `dev` publishes a pre-release (`vX.Y.Z-dev.N`); pushing to `main` publishes a
-  stable release. Merge `dev` into `main` with a merge commit — don't squash, the history is
-  what semantic-release reads.
+- Scopes used here: `chesscom`, `duolingo`, `foldersync`, `nova`, `nytgames`, `nzb360`,
+  `projectivy`, `sleep`, `snorelab`, `solidexplorer`, `trakt`.
+- Pushing a release-triggering commit (`fix`, `feat`, `bump`, `perf`, or `build` with scope
+  `Needs bump`) to `dev` publishes a pre-release (`vX.Y.Z-dev.N`); the same on `main` publishes
+  a stable release. `chore`, `docs` and `ci` commits never publish. Merge `dev` into `main`
+  with a merge commit — don't squash, the history is what semantic-release reads.
 - The release job runs `gradle-semantic-release-plugin`, regenerates `patches-list.json`, the
   README patch block and `patches-bundle.json`, commits them with `[skip ci]`, publishes the
   bundle and attests it, then backmerges `main` into `dev`.

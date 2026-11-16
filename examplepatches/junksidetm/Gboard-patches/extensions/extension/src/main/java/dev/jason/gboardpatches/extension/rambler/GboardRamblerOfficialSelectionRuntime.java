@@ -19,6 +19,9 @@ public final class GboardRamblerOfficialSelectionRuntime {
     }
 
     public static boolean shouldEnableAgenticDictation() {
+        if (GboardAdvancedVoiceRuntimeSettings.isRamblerEnabled()) {
+            return true;
+        }
         if (isDefaultSelectionSuppressed()) {
             return false;
         }
@@ -27,9 +30,6 @@ public final class GboardRamblerOfficialSelectionRuntime {
         }
         Boolean selected = officialRamblerSelected;
         if (selected == null) {
-            if (GboardAdvancedVoiceRuntimeSettings.isRamblerEnabled()) {
-                return true;
-            }
             selected = readOfficialSelection();
         }
         return Boolean.TRUE.equals(selected);

@@ -96,7 +96,7 @@ public final class AlbumChrome {
      * is set back to shown, so its own tap toggle stays in step, and its top bar is shown again.
      */
     public static void showOnOpen(Activity activity) {
-        if (activity == null || !ModernUi.isModernUiEnabled(activity)) return;
+        if (activity == null || !ModernUi.albumViewer(activity)) return;
         try {
             android.content.SharedPreferences media = activity.getSharedPreferences("media_prefs", Context.MODE_PRIVATE);
             if (!media.getBoolean("MEDIA_CONTROLS_VISIBILITY", true)) {
@@ -112,7 +112,7 @@ public final class AlbumChrome {
     }
 
     public static void attach(Activity activity) {
-        if (activity == null || !ModernUi.isModernUiEnabled(activity)) return;
+        if (activity == null || !ModernUi.albumViewer(activity)) return;
         try {
             View decor = activity.getWindow().getDecorView();
             if (decor.getTag(TAG) != null) return;
@@ -600,7 +600,7 @@ public final class AlbumChrome {
      * Returns true when the Modern grid is shown, so Joey's dialog is not.
      */
     public static boolean grid(Activity activity, Dialog joey, GridView grid) {
-        if (activity == null || grid == null || !ModernUi.isModernUiEnabled(activity)) return false;
+        if (activity == null || grid == null || !ModernUi.albumViewer(activity)) return false;
         try {
             State s = state(activity);
             int current = s != null ? Math.max(0, s.index) : 0;

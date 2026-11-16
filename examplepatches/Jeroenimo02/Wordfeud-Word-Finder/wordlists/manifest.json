@@ -14,28 +14,28 @@
       "words": 341891
     },
     "de": {
-      "added": 0,
+      "added": 5,
       "attribution": "enz/german-wordlist",
       "file": "wordlists/de/words.txt.gz",
       "license": "CC0 1.0",
-      "removed": 0,
-      "sha256": "264deba1e85b14fc797070e173b445bd547adf02af13f2d1365045aa6f228cd5",
-      "size": 1445448,
+      "removed": 2,
+      "sha256": "15df8b782215e852c27bd9d6f3aecef9954630480c3921848f7b023f0f498609",
+      "size": 1445453,
       "source_words": 590890,
-      "version": 1,
-      "words": 590890
+      "version": 7,
+      "words": 590893
     },
     "en-intl": {
       "added": 0,
       "attribution": "ENABLE2K via dolph/dictionary; Wordnik open word list; lorenbrichter/Words en.txt (Letterpress)",
       "file": "wordlists/en-intl/words.txt.gz",
       "license": "Public domain (ENABLE), MIT (Wordnik, Copyright (c) 2020 Wordnik), CC0 1.0 (Letterpress, as published)",
-      "removed": 1,
-      "sha256": "5bf36288a6ae710a2fbfb47c393cb3e6acae61cd80a6ad50a9c0d075bb0f5fb3",
-      "size": 713728,
+      "removed": 10,
+      "sha256": "ef0a64784536771f817d4b7824cf449f5cb898cd7051ba1e98fe3b7dac31539d",
+      "size": 713706,
       "source_words": 275412,
-      "version": 3,
-      "words": 275411
+      "version": 12,
+      "words": 275402
     },
     "en-us": {
       "added": 0,
@@ -74,16 +74,16 @@
       "words": 1456175
     },
     "fr": {
-      "added": 0,
+      "added": 1,
       "attribution": "Lexique des formes fléchies du français, Grammalecte v7.7 (Olivier R.)",
       "file": "wordlists/fr/words.txt.gz",
       "license": "MPL 2.0",
       "removed": 15,
-      "sha256": "45065e52b3948663de0b227092ee270649142dc1e45212cccbeb2e7e505b71c4",
-      "size": 970515,
+      "sha256": "195be7290f8ce774c75145c7c6166f6120efabec8d375b784b561e40c101d10a",
+      "size": 970518,
       "source_words": 407899,
-      "version": 6,
-      "words": 407895
+      "version": 7,
+      "words": 407896
     },
     "nb": {
       "added": 0,
@@ -98,16 +98,16 @@
       "words": 126426
     },
     "nl": {
-      "added": 8,
+      "added": 14,
       "attribution": "OpenTaal word list, via jensanjo/wordfeud-wordlists",
       "file": "wordlists/nl/words.txt.gz",
       "license": "Revised BSD and/or CC BY 3.0 (OpenTaal)",
-      "removed": 7,
-      "sha256": "ab0850a32f42ccb87f1fa6d74f29cf7daa5e51a04748b1e6474dcd5b1b527ed6",
-      "size": 1018313,
+      "removed": 9,
+      "sha256": "049f15258a84745961c3a15c389797752e1f018a88f7ce33c554f204c00f98be",
+      "size": 1018322,
       "source_words": 340672,
-      "version": 13,
-      "words": 340673
+      "version": 20,
+      "words": 340677
     },
     "nn": {
       "added": 12,
@@ -122,28 +122,28 @@
       "words": 98474
     },
     "pt": {
-      "added": 2,
+      "added": 6,
       "attribution": "jfoclpf/words-pt (European Portuguese, from the Natura word lists of Universidade do Minho)",
       "file": "wordlists/pt/words.txt.gz",
       "license": "GPL-3.0",
       "removed": 0,
-      "sha256": "8ade4309b18b2d3d65641a7b80f7b27c6b75693dadf54f83153dc1aa529951ed",
-      "size": 856659,
+      "sha256": "04f0ff933f5463a0b405e67b92c1cbf8ee3435937c7c6ffc3008007eea6ad11b",
+      "size": 856671,
       "source_words": 372377,
-      "version": 3,
-      "words": 372379
+      "version": 8,
+      "words": 372383
     },
     "sv": {
-      "added": 0,
+      "added": 3,
       "attribution": "Den stora svenska ordlistan (Göran Andersson), as adapted in mrcz/Wordfeud-Player",
       "file": "wordlists/sv/words.txt.gz",
       "license": "CC BY-SA 3.0",
       "removed": 0,
-      "sha256": "a04653ee45f2b401932a26ca1dc55905fe56f6a24375c168796af404b95b5bca",
-      "size": 895056,
+      "sha256": "3272d4e8cfb3d8ed2d6f4a58ead3618f0834b512fc3457806656e4423866889d",
+      "size": 895061,
       "source_words": 370672,
-      "version": 1,
-      "words": 370672
+      "version": 4,
+      "words": 370675
     },
     "sv-strict": {
       "added": 1,

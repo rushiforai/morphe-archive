@@ -165,6 +165,50 @@ public final class ChatStyleArtProbe {
         check(!(boolean) live.invoke(null, "l4", sender("viewer"), tokens("spam")), "Off must drop nothing");
     }
 
+    /** The row color the line's mark asks for (0: the default highlight). */
+    private static int color(Object spans) throws Exception {
+        Method color = Class.forName(KEYWORDS).getDeclaredMethod("color", CharSequence.class);
+        color.setAccessible(true);
+        return (int) color.invoke(null, joined(spans));
+    }
+
+    private static Object badge(String name) throws Exception {
+        return Class.forName("nsp").getConstructor(String.class, String.class)
+            .newInstance(name, "https://static-cdn.jtvnw.net/badges/v1/00000000-0000-0000-0000-000000000000/2");
+    }
+
+    private static void highlightUsers() throws Exception {
+        reset();
+        settings.put("chat_highlight_mentions", false);
+        Object plain = lineFrom("someone", Collections.singletonList(badge("moderator")), "hello", "Chat");
+        check(verdict(plain) == 0, "Empty list: a moderator's line stays plain");
+        settings.put("chat_highlight_users", "@Friend, pal=#FF8800, @mod=#00ff00, @vip, carol=#80112233, bad=#zz");
+        check(verdict(lineFrom("friend", Collections.emptyList(), "hello", "Chat")) == 1, "A listed user is highlighted");
+        Object friend = lineFrom("Friend", Collections.emptyList(), "hello", "Other");
+        check(verdict(friend) == 1 && color(friend) == 0, "Any case, VOD replay too, in the default tint");
+        Object pal = lineFrom("pal", Collections.emptyList(), "hello", "Chat");
+        check(verdict(pal) == 1 && color(pal) == 0x4DFF8800, "Own color at 30%: " + Integer.toHexString(color(pal)));
+        check(color(lineFrom("carol", Collections.emptyList(), "hi", "Chat")) == 0x80112233, "Eight digits as written");
+        Object bad = lineFrom("bad", Collections.emptyList(), "hi", "Chat");
+        check(verdict(bad) == 1 && color(bad) == 0, "An unreadable color is the default tint");
+        Object mod = lineFrom("someone", Collections.singletonList(badge("moderator")), "hello", "Chat");
+        check(verdict(mod) == 1 && color(mod) == 0x4D00FF00, "@mod matches the moderator badge, with its color");
+        Object vip = lineFrom("someone", java.util.Arrays.asList(badge("subscriber"), badge("vip")), "hello", "Chat");
+        check(verdict(vip) == 1 && color(vip) == 0, "@vip in the default tint");
+        check(verdict(lineFrom("someone", Collections.singletonList(badge("subscriber")), "hello", "Chat")) == 0,
+            "Unlisted roles stay plain");
+        Object both = lineFrom("pal", Collections.singletonList(badge("moderator")), "hello", "Chat");
+        check(color(both) == 0x4DFF8800, "The user's own color wins over a role's");
+        check(verdict(lineFrom("pal", Collections.emptyList(), "hello", "Whisper")) == 0, "Whispers stay unchanged");
+        settings.put("chat_blocked_words", "spam");
+        check(verdict(lineFrom("pal", Collections.emptyList(), "spam", "Chat")) == 2, "Blocked words still hide");
+        Method live = Class.forName(KEYWORDS).getMethod("onLiveMessage", String.class, Object.class, List.class, List.class);
+        check(!(boolean) live.invoke(null, "h1", sender("someone"), tokens("hello"), Collections.singletonList(badge("moderator"))),
+            "Highlighted live lines reach the chat list");
+        settings.put("chat_keywords", false);
+        check(verdict(lineFrom("pal", Collections.emptyList(), "hello", "Chat")) == 0, "Off must leave every line alone");
+    }
+
     private static void appearance() throws Exception {
         reset();
         settings.put("chat_keywords", false);
@@ -385,6 +429,11 @@ public final class ChatStyleArtProbe {
 
     /** The real line builder with these badge view models, as in ChatStyleArtProbe#line. */
     private static Object lineWithBadges(List<Object> badges) throws Exception {
+        return lineFrom("viewer", badges, "hi", "Chat");
+    }
+
+    /** The real line builder for {@code login}'s message with these badge view models. */
+    private static Object lineFrom(String login, List<Object> badges, String text, String source) throws Exception {
         Method build = null;
         for (Method method : Class.forName("va6").getDeclaredMethods()) {
             if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
@@ -397,8 +446,8 @@ public final class ChatStyleArtProbe {
         contrast.setAccessible(true);
         contrast.set(readable, allocate("xnw"));
         colors.set(builder, readable);
-        return build.invoke(null, builder, context, badges, sender("viewer"), 0xFFFEFEFE, tokens("hi"),
-            false, false, false, "b1", null, staticField("e340", "f"), false, config("Chat"), null, null, null, null, null, true, 0);
+        return build.invoke(null, builder, context, badges, sender(login), 0xFFFEFEFE, tokens(text),
+            false, false, false, "b1", null, staticField("e340", "f"), false, config(source), null, null, null, null, null, true, 0);
     }
 
     private static android.content.Context viewContext() throws Exception {
@@ -440,6 +489,7 @@ public final class ChatStyleArtProbe {
         if (args.length > 0) ProbeLocators.load(args[0]);
         install();
         section("chat keywords: mentions, highlight and blocked words, blocked users, live drops", ChatStyleArtProbe::keywords);
+        section("chat keywords: highlighted users and roles, with their colors", ChatStyleArtProbe::highlightUsers);
         section("chat appearance: /me style, alternating rows, landscape width", ChatStyleArtProbe::appearance);
         section("chat appearance: emote and badge size, emote image scale, text size and spacing on views", ChatStyleArtProbe::sizes);
         section("emote and badge info: tap spans, Twitch's emote card signed in, badge names", ChatStyleArtProbe::info);

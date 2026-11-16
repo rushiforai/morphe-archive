@@ -1,6 +1,7 @@
 /*
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/3386
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -8,6 +9,9 @@
 package app.morphe.patches.youtube.video.buffer
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -21,8 +25,9 @@ internal object ShouldContinueLoadingFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("L"),
     filters = listOf(
-        opcode(Opcode.IGET_WIDE),
-        literal(500000L),
+        // 21.45 reads this buffered-duration field on both loading paths.
+        fieldAccess(opcode = Opcode.IGET_WIDE, type = "J"),
+        opcode(Opcode.CMP_LONG, location = MatchAfterWithin(3)),
         literal(120000),
         literal(15000L)
     )
@@ -38,6 +43,9 @@ internal object TracksSelectedFingerprint : Fingerprint(
     filters = listOf(
         literal(389),
         literal(38),
-        literal(1024, listOf(Opcode.MUL_INT_LIT16)),
+        anyInstruction(
+            literal(1024, listOf(Opcode.MUL_INT_LIT16)),
+            literal(10, listOf(Opcode.SHL_INT_LIT8))
+        ),
     )
 )

@@ -1,10 +1,11 @@
 package app.morphe.patches.xiaomi.earbuds
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val xiaomiEarbudsBackgroundResourcePatch = resourcePatch(
@@ -96,7 +97,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("KeepAliveForegroundService\$Companion.start")
         }
 
@@ -107,7 +108,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("KeepAliveForegroundService.startForegroundServiceInternal")
         }
 
@@ -118,13 +119,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("KeepAliveForegroundService.isStarted")
         }
 
@@ -135,7 +130,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Z"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("KeepAliveImpl.setActiveDevice")
         }
 
@@ -146,13 +141,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
             hookedMethods.add("KeepAliveImpl.isAssociated")
         }
 
@@ -163,7 +152,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Z"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("GoogleCompanionDeviceManager.ensureObserve")
         }
 
@@ -174,7 +163,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("MiuiKeepAliveManager.setConnectionListenerConfig")
         }
 
@@ -185,7 +174,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("MiuiKeepAliveManager.initSdk")
         }
 
@@ -196,7 +185,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("MiuiNearByService.startForegroundCompat")
         }
 
@@ -207,7 +196,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("ConnectivityCompanionDeviceService.onDeviceAppeared(String)")
         }
 
@@ -218,7 +207,7 @@ val xiaomiEarbudsBackgroundOptimizerPatch = bytecodePatch(
             parameters = listOf("Landroid/companion/AssociationInfo;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("ConnectivityCompanionDeviceService.onDeviceAppeared(AssociationInfo)")
         }
 

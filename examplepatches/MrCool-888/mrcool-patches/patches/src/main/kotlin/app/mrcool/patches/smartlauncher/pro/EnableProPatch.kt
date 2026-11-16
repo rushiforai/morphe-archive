@@ -5,6 +5,7 @@
 
 package app.mrcool.patches.smartlauncher.pro
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -51,6 +52,13 @@ val enableProPatch = bytecodePatch(
                 """.trimIndent(),
                 ExternalLabel("end", this.method.instructions.last())
             )
+        }
+
+        // Play Billing returns no purchases for a sideloaded app and this refresh treats that as
+        // authoritative, clearing the license. Disable its revocation path.
+        LicenseRefreshFingerprint.apply {
+            val revokeParam = method.implementation!!.registerCount - method.parameterTypes.size + method.parameterTypes.indexOf("Z")
+            method.addInstructions(0, "const/4 v$revokeParam, 0x0")
         }
     }
 }

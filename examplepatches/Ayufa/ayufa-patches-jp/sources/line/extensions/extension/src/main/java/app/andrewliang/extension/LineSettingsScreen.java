@@ -128,9 +128,12 @@ final class LineSettingsScreen {
         boolean buttons = LineSettings.hideAiFriendsIncluded() || LineSettings.hideCommunityButtonIncluded()
                 || LineSettings.hideCalendarIncluded() || LineSettings.hideEventsIncluded()
                 || LineSettings.hideGiftIncluded() || LineSettings.hideTransferIncluded()
-                || LineSettings.hideAttachToolsIncluded() || LineSettings.hideChatTipsIncluded();
+                || LineSettings.hideAttachToolsIncluded() || LineSettings.hideChatTipsIncluded()
+                || LineSettings.hideLineAiImageEditIncluded() || LineSettings.hideAgentIIncluded();
+        boolean calls = LineSettings.autoRecordCallsIncluded() || LineSettings.silentCallRecordingIncluded()
+                || LineSettings.saveCallRecordingsToDeviceIncluded() || LineSettings.removeCallRecordingLimitIncluded();
 
-        if (!chats && !general && !tabs && !buttons) {
+        if (!chats && !general && !tabs && !buttons && !calls) {
             content.addView(note(activity, "このビルドにはスイッチ付きのパッチがありません。"));
             return;
         }
@@ -186,6 +189,15 @@ final class LineSettingsScreen {
                 content.addView(toggle(activity, LineSettings.HIDE_CHAT_TIPS, "メッセージ下のヒントを非表示",
                         "一部のメッセージの下にある「CHECK」のヒント。", showRestart));
             }
+            if (LineSettings.hideLineAiImageEditIncluded()) {
+                content.addView(toggle(activity, LineSettings.HIDE_LINE_AI_IMAGE_EDIT, "LINE AI画像編集を非表示",
+                        "トーク内の「AI Edit」と、写真ビューアのAIボタン。", showRestart));
+            }
+            if (LineSettings.hideAgentIIncluded()) {
+                content.addView(toggle(activity, LineSettings.HIDE_AGENT_I, "Agent iを非表示",
+                        "ホームタブ、検索バー、トーク、「+」メニュー、ウォレットタブ、設定内。",
+                        showRestart));
+            }
             content.addView(note(activity, "一部のボタンの変更はLINEの再起動後に表示されます。"));
             content.addView(restart);
         }
@@ -209,6 +221,30 @@ final class LineSettingsScreen {
                         "LINEのフォントページでアップロードしたフォントを使います。",
                         () -> close.setVisibility(View.VISIBLE)));
                 content.addView(close);
+            }
+        }
+
+        if (calls) {
+            content.addView(section(activity, "通話"));
+            if (LineSettings.autoRecordCallsIncluded()) {
+                content.addView(toggle(activity, LineSettings.AUTO_RECORD_CALLS, "通話を自動録音",
+                        "1対1の通話がつながるとすぐに録音を開始します。", null));
+            }
+            if (LineSettings.silentCallRecordingIncluded()) {
+                content.addView(toggle(activity, LineSettings.SILENT_CALL_RECORDING, "相手に知らせず録音",
+                        "相手に録音を知らせず、録音のアナウンスも流れません。", null));
+            }
+            if (LineSettings.saveCallRecordingsToDeviceIncluded()) {
+                content.addView(toggle(activity, LineSettings.SAVE_CALL_RECORDINGS_TO_DEVICE, "録音を端末に保存",
+                        "オン: 各録音を端末のMovies/LINEに保存します。オフ: Keepメモへ共有しますが、"
+                                + "1GBを超えるファイルは受け付けられません。各録音はトークの「通話の録音」リストにも残ります。",
+                        null));
+            }
+            if (LineSettings.removeCallRecordingLimitIncluded()) {
+                content.addView(toggle(activity, LineSettings.REMOVE_CALL_RECORDING_LIMIT, "録音時間の制限を解除",
+                        "通話が終わるまで録音します。オフの場合、LINEは音声録音を60分、"
+                                + "ビデオ録音を20分または50分で止めます。",
+                        null));
             }
         }
 

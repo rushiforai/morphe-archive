@@ -9,3 +9,6 @@ android {
 configurations.configureEach {
     exclude(group = "org.jetbrains.kotlin")
 }
+dependencies {
+    implementation(libs.annotation)
+}

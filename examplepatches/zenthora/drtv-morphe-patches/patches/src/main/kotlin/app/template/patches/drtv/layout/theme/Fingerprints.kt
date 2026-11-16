@@ -2,6 +2,7 @@ package app.template.patches.drtv.layout.theme
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
@@ -10,6 +11,7 @@ import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
 
+internal const val APP_R_COLOR_CLASS = "Laxis/androidtv/sdk/app/R\$color;"
 internal const val CLIENT_R_COLOR_CLASS = "Laxis/android/sdk/client/R\$color;"
 internal const val UICOMPONENTS_R_COLOR_CLASS = "Laxis/android/sdk/uicomponents/R\$color;"
 internal const val CHROMECAST_R_COLOR_CLASS = "Laxis/android/sdk/chromecast/R\$color;"
@@ -34,7 +36,14 @@ object ItemSummarySetupDefaultAssetTitleFingerprint : Fingerprint(
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
-        resourceLiteral(ResourceType.COLOR, "black_one"),
+        anyInstruction(
+            resourceLiteral(ResourceType.COLOR, "black_one"),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = APP_R_COLOR_CLASS,
+                name = "black_one",
+            ),
+        ),
     ),
 )
 
@@ -44,7 +53,19 @@ object TvStandardSetupAssetTitleBelowFingerprint : Fingerprint(
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
-        resourceLiteral(ResourceType.COLOR, "black_six"),
+        anyInstruction(
+            resourceLiteral(ResourceType.COLOR, "black_six"),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = CLIENT_R_COLOR_CLASS,
+                name = "black_six",
+            ),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = APP_R_COLOR_CLASS,
+                name = "black_six",
+            ),
+        ),
     ),
 )
 
@@ -175,7 +196,14 @@ object SearchFragmentSetupAutoCompleteViewFingerprint : Fingerprint(
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
-        resourceLiteral(ResourceType.COLOR, "black"),
+        anyInstruction(
+            resourceLiteral(ResourceType.COLOR, "black"),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = APP_R_COLOR_CLASS,
+                name = "black",
+            ),
+        ),
     ),
 )
 
@@ -184,7 +212,14 @@ object SplashFragmentHideCoverViewFingerprint : Fingerprint(
     name = "hideCoverView\$lambda\$2\$lambda\$1",
     returnType = "V",
     filters = listOf(
-        resourceLiteral(ResourceType.COLOR, "white_one"),
+        anyInstruction(
+            resourceLiteral(ResourceType.COLOR, "white_one"),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = APP_R_COLOR_CLASS,
+                name = "white_one",
+            ),
+        ),
     ),
 )
 
@@ -193,7 +228,14 @@ object EpisodesVhSetupLayoutFingerprint : Fingerprint(
     name = "setupLayout\$lambda\$5",
     returnType = "V",
     filters = listOf(
-        resourceLiteral(ResourceType.COLOR, "colorPrimary"),
+        anyInstruction(
+            resourceLiteral(ResourceType.COLOR, "colorPrimary"),
+            fieldAccess(
+                opcode = Opcode.SGET,
+                definingClass = APP_R_COLOR_CLASS,
+                name = "colorPrimary",
+            ),
+        ),
     ),
 )
 

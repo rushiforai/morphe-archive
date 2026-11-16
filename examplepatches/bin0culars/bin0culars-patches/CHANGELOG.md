@@ -1,3 +1,46 @@
+## [1.6.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.5.1...v1.6.0) (2026-11-16)
+
+### ✨ New Features
+
+* **reddit:** add feed auto-scroll for the Home feed (beta) ([#26](https://github.com/bin0culars/bin0culars-patches/issues/26)) ([102557a](https://github.com/bin0culars/bin0culars-patches/commit/102557aa70f54b6a555a737aa8123b768b148c3b))
+* **reddit:** auto-scroll the feed on screen and hide over post pages ([#28](https://github.com/bin0culars/bin0culars-patches/issues/28)) ([5ad48fb](https://github.com/bin0culars/bin0culars-patches/commit/5ad48fbed679adb3cad3f49644e5f8ecd3ea4157))
+
+## [1.6.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-15)
+
+### ✨ New Features
+
+* **reddit:** auto-scroll the feed on screen and hide over post pages ([#28](https://github.com/bin0culars/bin0culars-patches/issues/28)) ([5ad48fb](https://github.com/bin0culars/bin0culars-patches/commit/5ad48fbed679adb3cad3f49644e5f8ecd3ea4157))
+
+## [1.6.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.5.1...v1.6.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* **reddit:** add feed auto-scroll for the Home feed (beta) ([#26](https://github.com/bin0culars/bin0culars-patches/issues/26)) ([102557a](https://github.com/bin0culars/bin0culars-patches/commit/102557aa70f54b6a555a737aa8123b768b148c3b))
+
+## [1.5.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.5.0...v1.5.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **reddit:** keep bin0culars mods at the top of the menu when About is collapsed ([#24](https://github.com/bin0culars/bin0culars-patches/issues/24)) ([165ae34](https://github.com/bin0culars/bin0culars-patches/commit/165ae343625f80067d25c59e12bd4a2425713a49))
+
+## [1.5.1-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.5.0...v1.5.1-dev.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **reddit:** keep bin0culars mods at the top of the menu when About is collapsed ([#24](https://github.com/bin0culars/bin0culars-patches/issues/24)) ([165ae34](https://github.com/bin0culars/bin0culars-patches/commit/165ae343625f80067d25c59e12bd4a2425713a49))
+
+## [1.5.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.4.0...v1.5.0) (2026-11-15)
+
+### ✨ New Features
+
+* **reddit:** support Reddit 2026.46.0 ([#22](https://github.com/bin0culars/bin0culars-patches/issues/22)) ([cadc4f6](https://github.com/bin0culars/bin0culars-patches/commit/cadc4f6933b9e211b057723a606d26d67cb7ae4b))
+
+## [1.5.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* **reddit:** support Reddit 2026.46.0 ([#22](https://github.com/bin0culars/bin0culars-patches/issues/22)) ([cadc4f6](https://github.com/bin0culars/bin0culars-patches/commit/cadc4f6933b9e211b057723a606d26d67cb7ae4b))
+
 ## [1.4.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.3.0...v1.4.0) (2026-11-10)
 
 ### ✨ New Features

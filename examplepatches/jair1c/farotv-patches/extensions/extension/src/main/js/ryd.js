@@ -11,7 +11,7 @@
 
     function compact(n) {
         try {
-            return new Intl.NumberFormat("es", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+            return new Intl.NumberFormat(youtv.locale(), { notation: "compact", maximumFractionDigits: 1 }).format(n);
         } catch (e) {}
         if (n >= 1e6) return (Math.round(n / 1e5) / 10) + " M";
         if (n >= 1e3) return (Math.round(n / 1e2) / 10) + " K";
@@ -23,10 +23,10 @@
     }
 
     function apply(renderer, dislikes) {
-        var label = dislikes + " “No me gusta”";
+        var label = youtv.t("ryd.count", { count: dislikes });
         renderer.dislikeCountText = text(compact(dislikes), label);
         renderer.dislikeCountWithUndislikeText = text(compact(dislikes), label);
-        renderer.dislikeCountWithDislikeText = text(compact(dislikes + 1), (dislikes + 1) + " “No me gusta”");
+        renderer.dislikeCountWithDislikeText = text(compact(dislikes + 1), youtv.t("ryd.count", { count: dislikes + 1 }));
     }
 
     function findLikeButtons(node, depth, out) {
@@ -43,12 +43,17 @@
 
     youtv.feature({
         id: "ryd",
-        name: "Mostrar los “No me gusta”",
-        summary: "Muestra cuántos “No me gusta” tiene el video (estimado por Return YouTube Dislike)",
+        nameKey: "feature.ryd.name",
+        summaryKey: "feature.ryd.summary",
         defaultEnabled: true,
-        onResponse: function (response) {
+        onResponse: function (response, settings, text) {
             if (!response.transportControls && !response.contents && !response.frameworkUpdates) return;
-            var buttons = findLikeButtons(response, 0, []);
+            if (!youtv.mentions(text, ["likeButtonRenderer"])) return;
+            // The like button is one of the player controls (/next); only other responses are walked.
+            var controls = response.transportControls && response.transportControls.transportControlsRenderer;
+            var buttons = controls
+                ? findLikeButtons([controls.promotedActions, controls.engagementActions, controls.settingActions], 0, [])
+                : findLikeButtons(response, 0, []);
             buttons.forEach(function (renderer) {
                 if (renderer.hideDislikeButton) return;
                 var id = renderer.target.videoId;

@@ -22,8 +22,9 @@ object UserFingerprint : Fingerprint(
 /**
  * The helper that reads the user's "paid" bit. It is a public static `(User, L…)Z` that starts
  * with `getClass()` and immediately reads the boolean `User` field (`z22.k(User, f9d)Z` in
- * 6.104.3, the field is `R0`). The field is computed rather than serialized, which is why it is
- * located through its usage instead of the serializer's field names.
+ * 6.104.5, unchanged since 6.104.3; the field is `R0`). The field is computed rather than
+ * serialized, which is why it is located through its usage instead of the serializer's field
+ * names.
  *
  * `MatchFirst` + `MatchAfterImmediately` pin that exact two-instruction shape: the other public
  * static `(User, …)Z` helper (`Ljev.f`) also calls `getClass()`, but only after a second
@@ -47,7 +48,8 @@ object UserIsPaidFieldUsageFingerprint : Fingerprint(
 )
 
 /**
- * `MaxHooksUserData` reads the user's "MAX" bit in its constructor (`Q0` in 6.104.3).
+ * `MaxHooksUserData` reads the user's "MAX" bit in its constructor (`Q0` in 6.104.5,
+ * unchanged since 6.104.3).
  */
 object UserHasGoldFieldUsageFingerprint : Fingerprint(
     classFingerprint = Fingerprint(
@@ -88,15 +90,16 @@ fun getVideoCallTabCtaButtonStateFieldFingerprint(field: String): Fingerprint {
         strings = listOf("VideoCallTabCtaButtonState(userHasMax="),
         filters = listOf(
             string(field),
-            // `const-string` / `append` / `iget-boolean` / `append` in 6.104.3.
+            // `const-string` / `append` / `iget-boolean` / `append` in 6.104.5 (and 6.104.3).
             opcode(Opcode.IGET_BOOLEAN, InstructionLocation.MatchAfterAnywhere()),
         ),
     )
 }
 
 /**
- * `EnergyConfig.<init>(current, max, …)` in 6.104.3: the primary constructor, which the app uses
- * when it updates the energy config. Its first two parameters are the current and maximum energy.
+ * `EnergyConfig.<init>(current, max, …)` in 6.104.5 (same signature as 6.104.3): the primary
+ * constructor, which the app uses when it updates the energy config. Its first two parameters
+ * are the current and maximum energy.
  */
 object EnergyConfigCtorFingerprint : Fingerprint(
     definingClass = "Lcom/duolingo/core/energy/models/EnergyConfig;",

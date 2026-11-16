@@ -1,3 +1,7 @@
+## Pending changes since v0.18.1
+
+- **nuviotv:** Add **Metadata add-on selection** for NuvioTV **1.1.0 / 1077**, with a per-profile provider picker and independent switches for Continue Watching metadata/artwork and library poster artwork. Preserve native fetching, caching, cancellation and fallback artwork; include the new settings in export/import. The picker lists enabled add-ons declaring `meta` support, including add-ons that also provide streams or catalogs. Original-DEX, runtime/settings, standalone/combined bundle and rebuilt unsigned-APK checks passed; device interaction remains unverified.
+
 ## Pending changes since v0.16.4
 
 - **nuviotv:** Add resume-position regression coverage through the corrected suspended-save bridge: a 6:14 partial position remains available in merged progress/details without marking the episode watched. The user's pre-fix restart-at-zero capture is documented; actual player resume confirmation remains pending.

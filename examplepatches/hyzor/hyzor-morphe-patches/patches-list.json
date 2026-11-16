@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.7.0",
+  "version": "1.9.1",
   "patches": [
     {
       "name": "AMOLED Black",
@@ -50,7 +50,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -77,7 +77,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -90,7 +90,7 @@
     },
     {
       "name": "Arcade animations",
-      "description": "Adds the chess.com website's Arcade piece animations to every board: light trails, bursts when a piece is picked up, dropped or captured, a flash on check, outlined last-move squares and animated move hints. Switch it in Noam's Patches.",
+      "description": "Adds the chess.com website's Arcade piece animations to the classic board (live games and the Puzzle Rush, Puzzle Battle, Learning and Review puzzle modes): light trails, bursts when a piece is picked up, dropped or captured, a flash on check, outlined last-move squares and animated move hints. The newer board used by bot games, the Daily Puzzle, Solve Puzzles and Lichess Puzzles is not covered yet. Switch it in Noam's Patches.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -104,7 +104,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -131,7 +131,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -158,7 +158,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -185,7 +185,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -212,7 +212,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -239,7 +239,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -266,12 +266,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "6.104.3",
+              "version": "6.104.5",
               "versionCodes": {
-                "ARM64_V8A": 2492,
-                "ARMEABI_V7A": 2492,
-                "X86_64": 2492,
-                "X86": 2492
+                "ARM64_V8A": 2494,
+                "ARMEABI_V7A": 2494,
+                "X86_64": 2494,
+                "X86": 2494
               },
               "isExperimental": false,
               "minSdk": null,
@@ -325,12 +325,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "6.104.3",
+              "version": "6.104.5",
               "versionCodes": {
-                "ARM64_V8A": 2492,
-                "ARMEABI_V7A": 2492,
-                "X86_64": 2492,
-                "X86": 2492
+                "ARM64_V8A": 2494,
+                "ARMEABI_V7A": 2494,
+                "X86_64": 2494,
+                "X86": 2494
               },
               "isExperimental": false,
               "minSdk": null,
@@ -493,12 +493,44 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "6.104.3",
+              "version": "6.104.5",
               "versionCodes": {
-                "ARM64_V8A": 2492,
-                "ARMEABI_V7A": 2492,
-                "X86_64": 2492,
-                "X86": 2492
+                "ARM64_V8A": 2494,
+                "ARMEABI_V7A": 2494,
+                "X86_64": 2494,
+                "X86": 2494
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix sign-in",
+      "description": "Signs in through a regular browser tab so the OAuth callback can return to a re-signed build. If the browser offers to open Trakt, choose it.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "tv.trakt.trakt",
+          "name": "Trakt",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#ED1C24",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.28.0",
+              "versionCodes": {
+                "ARM64_V8A": 452,
+                "ARMEABI_V7A": 452,
+                "X86_64": 452,
+                "X86": 452
               },
               "isExperimental": false,
               "minSdk": null,
@@ -525,7 +557,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -552,7 +584,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -579,7 +611,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -606,7 +638,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -633,7 +665,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -660,7 +692,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -687,7 +719,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -714,7 +746,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -741,7 +773,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -768,7 +800,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -795,12 +827,44 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "6.104.3",
+              "version": "6.104.5",
               "versionCodes": {
-                "ARM64_V8A": 2492,
-                "ARMEABI_V7A": 2492,
-                "X86_64": 2492,
-                "X86": 2492
+                "ARM64_V8A": 2494,
+                "ARMEABI_V7A": 2494,
+                "X86_64": 2494,
+                "X86": 2494
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock All Access",
+      "description": "Unlocks All Access without the in-app purchase, so every service module and the Upgrade Center behave as if the subscription is active.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.kevinforeman.nzb360",
+          "name": "nzb360",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1565C0",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "25.3",
+              "versionCodes": {
+                "ARM64_V8A": 537,
+                "ARMEABI_V7A": 537,
+                "X86_64": 537,
+                "X86": 537
               },
               "isExperimental": false,
               "minSdk": null,
@@ -871,6 +935,29 @@
               "description": null
             }
           ]
+        },
+        {
+          "packageName": "com.spocky.projengmenu",
+          "name": "Projectivy Launcher",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#F08029",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.73",
+              "versionCodes": {
+                "ARM64_V8A": 98,
+                "ARMEABI_V7A": 98,
+                "X86_64": 98,
+                "X86": 98
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -891,7 +978,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -935,6 +1022,38 @@
       "options": []
     },
     {
+      "name": "Unlock VIP",
+      "description": "Reports the signed-in account as VIP to the app's own checks, unlocking the local VIP gates (the recap screens, the VIP badge and the other surfaces gated on that flag). Client side only: limits and perks the Trakt API enforces server-side still follow the real account tier.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "tv.trakt.trakt",
+          "name": "Trakt",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#ED1C24",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.28.0",
+              "versionCodes": {
+                "ARM64_V8A": 452,
+                "ARMEABI_V7A": 452,
+                "X86_64": 452,
+                "X86": 452
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock all bots",
       "description": "Every bot in Versus Bots can be played, including ones only Premium members may play.",
       "default": true,
@@ -950,7 +1069,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.10.23-googleplay",
+              "version": "4.10.27-googleplay",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

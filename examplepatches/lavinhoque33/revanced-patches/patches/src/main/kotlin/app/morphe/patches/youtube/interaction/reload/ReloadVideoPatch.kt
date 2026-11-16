@@ -150,7 +150,7 @@ val reloadVideoPatch = bytecodePatch(
                 }
             }
 
-            BackButtonFinishActivityOnNewVideoIntentFingerprint.method.addInstruction(
+            backButtonFinishActivityOnNewVideoIntentFingerprint().method.addInstruction(
                 0,
                 "return-void"
             )

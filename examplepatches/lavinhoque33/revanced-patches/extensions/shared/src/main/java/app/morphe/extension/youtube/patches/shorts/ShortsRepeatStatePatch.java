@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.EngagementPanel;
 
 @SuppressWarnings("unused")
 public class ShortsRepeatStatePatch {
@@ -90,14 +91,24 @@ public class ShortsRepeatStatePatch {
     }
 
     /**
+     * Keep the current Short's panel attached to its player until the panel closes.
+     * Background PiP has no visible engagement panel.
+     */
+    static boolean shouldAutoplay(boolean autoplayEnabled, boolean inBackgroundPiP, boolean panelOpen) {
+        return autoplayEnabled && (inBackgroundPiP || !panelOpen);
+    }
+
+    /**
      * Injection point.
      */
     @Nullable
     public static Enum<?> changeShortsRepeatBehavior(@Nullable Enum<?> original) {
         try {
-            boolean autoplay = isAppInBackgroundPiPMode()
+            boolean inBackgroundPiP = isAppInBackgroundPiPMode();
+            boolean autoplayEnabled = inBackgroundPiP
                     ? Settings.SHORTS_AUTOPLAY_BACKGROUND.get()
                     : Settings.SHORTS_AUTOPLAY.get();
+            boolean autoplay = shouldAutoplay(autoplayEnabled, inBackgroundPiP, EngagementPanel.isOpen());
 
             ShortsLoopBehavior autoPlayBehavior = ShortsLoopBehavior.AUTO_ADVANCE.ytEnumValue != null
                     ? ShortsLoopBehavior.AUTO_ADVANCE

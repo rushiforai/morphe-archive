@@ -5,10 +5,10 @@ import android.content.SharedPreferences;
 
 /**
  * The copy-comment switch.
- *
+ * <p>
  * One switch, and it is on out of the box: copying a comment gives the comment's own text and
  * leaves the username out. Off restores TikTok's own copied string, username and all.
- *
+ * <p>
  * It is not part of the @handle stamp and takes no surface switch: what the clipboard receives has
  * nothing to do with what a name is drawn with, so no other switch may change it.
  */

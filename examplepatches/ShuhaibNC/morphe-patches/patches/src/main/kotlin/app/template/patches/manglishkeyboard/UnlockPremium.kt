@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.MALAYALAM_KEYBOARD_COMPATIBILITY
 import app.template.patches.manglishkeyboard.IsPremiumFingerprint
+import app.template.patches.manglishkeyboard.PremiumCallbackFingerprint
 import app.template.patches.shared.clearBody
 
 @Suppress("unused")
@@ -25,6 +26,15 @@ val unlockPremiumPatch = bytecodePatch(
                 """
                     const/4 v0, 0x1
                     return v0
+                """
+            )
+        }
+
+        PremiumCallbackFingerprint.method.apply {
+            addInstructions(
+                4,
+                """
+                    const/4 p1, 0x1
                 """
             )
         }

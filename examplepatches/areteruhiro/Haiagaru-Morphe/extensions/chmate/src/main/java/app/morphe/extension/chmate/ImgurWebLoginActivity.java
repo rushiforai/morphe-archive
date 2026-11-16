@@ -108,7 +108,7 @@ public final class ImgurWebLoginActivity extends HaiagaruComposeActivity {
             }
             private boolean block(String url) {
                 if (ImgurWebPolicy.loginUrl(url)) return false;
-                status.setText("許可されていないサイトへの移動を停止しました。ImgurまたはGoogleのログイン画面をご利用ください。");
+                status.setText("HTTPSのログインページを開いてください。");
                 return true;
             }
             @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {

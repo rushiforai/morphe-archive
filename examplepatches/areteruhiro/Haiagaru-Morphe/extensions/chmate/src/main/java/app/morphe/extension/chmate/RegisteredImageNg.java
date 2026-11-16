@@ -64,6 +64,16 @@ public final class RegisteredImageNg {
         CACHED.clear(); DECISIONS.clear(); PENDING.clear();
     }
     static void settingsChanged() { invalidate(); }
+    static long listRevision(Context context) {
+        if(SystemClock.elapsedRealtime()-lastScan>60000||!loaded)scheduleLoad();
+        return revision;
+    }
+    static boolean listMatch(Context context, byte[] bytes) {
+        List<RegisteredImageHash.Stamp> snapshot=references;
+        if(snapshot.isEmpty())return false;
+        RegisteredImageHash.Stamp stamp=decode(bytes);
+        return stamp!=null&&snapshot.stream().anyMatch(ref->RegisteredImageHash.similar(stamp,ref,level(context)));
+    }
 
     /** Safe to invoke from the existing NG map hook: network and pixel work stay on WORKER. */
     public static void apply(Object owner) {
@@ -177,6 +187,7 @@ public final class RegisteredImageNg {
         registeredCount = entries.size();
         folderFingerprint = current;
         loaded = true; invalidate();
+        ThreadListThumbnail.refresh();
         status = "フォルダ内 " + entries.size() + "枚／判定対象 " + stamps.size() + "枚（異なる画像 "
                 + distinct.size() + "枚、次にスレを開くと反映）"
                 + (entries.size() > MAX_REFERENCE_IMAGES ? "。上限" + MAX_REFERENCE_IMAGES + "枚を超える画像は対象外" : "");

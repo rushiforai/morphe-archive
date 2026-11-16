@@ -10,6 +10,7 @@ package dev.hyzor.patches.projectivy.premium
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -28,9 +29,13 @@ private const val PT_APPLICATION = "Lcom/spocky/projengmenu/PTApplication;"
  *   invoke-static {v0}, Lmv4;->c(Lze4;)Lyp3;               // asStateFlow()
  *   iput-object v0, p0, PTApplication;->y:Lyp3;
  *
+ * (The helper/field types above are from the APKMirror build; the GitHub build renames them.
+ * Neither is pinned by the match.)
+ *
  * `TRUE` is the "premium is locked" state (see [PremiumLockWriterFingerprint]), so the patch
  * swaps this one constant for `Boolean.FALSE`. The `sget-object` reference is the anchor: it
- * does not pin the obfuscated `x`/`y` field names or the `os1`/`mv4` helper classes.
+ * does not pin the obfuscated `x`/`y` field names or the helper classes, so it matches both
+ * the APKMirror APKM and the GitHub APK.
  */
 object PremiumSeedFingerprint : Fingerprint(
     definingClass = PT_APPLICATION,
@@ -60,32 +65,39 @@ object PremiumSeedFingerprint : Fingerprint(
  * soon as the (always failing) purchase check reports in. The patch replaces its body with
  * `return-void`, which leaves the seeded `false` in place.
  *
- * `d` has no stable name, so the match is structural: the `(Z)V` shape in `PTApplication`
- * plus the three accesses that make up the writer — the `cj3.l` "last start" preference, the
- * flow field, and the `h()` write on the flow. `x`/`l`/`h` are obfuscated and can move on a
- * later release, so re-resolve this fingerprint when bumping the target version.
+ * `d` has no stable name, and the two 4.73 builds do not share R8 names: the APKMirror APKM
+ * reads `Lcj3;->l` and writes through `Lze4;->h`, the GitHub APK reads `Lmj3;->l` and writes
+ * through `Llf4;->h`. Anchoring on either mapping would tie the patch to one build, so the
+ * match uses only what both share:
+ *
+ *   invoke-static {}, Ljava/lang/System;->currentTimeMillis:()J
+ *   ...
+ *   const-wide/32 v0, #0x2932e000        // 691,200,000 ms, the eight-day window
+ *   ...
+ *   iget-object v4, v4, LPTApplication;->x:...   // the premium flow field
+ *
+ * The field name `x` is stable across both builds even though its type is re-obfuscated, and
+ * the `(Z)V` shape plus these three anchors is unique in `PTApplication` in both. If a future
+ * release changes the eight-day constant, re-resolve this fingerprint.
  */
 object PremiumLockWriterFingerprint : Fingerprint(
     definingClass = PT_APPLICATION,
     returnType = "V",
     parameters = listOf("Z"),
     filters = listOf(
-        // sget-object p1, Lcj3;->l:Lvh3;   the "general_last_start_date_nexp" preference
-        fieldAccess(
-            opcode = Opcode.SGET_OBJECT,
-            definingClass = "Lcj3;",
-            name = "l",
+        // invoke-static {}, Ljava/lang/System;->currentTimeMillis:()J
+        methodCall(
+            definingClass = "Ljava/lang/System;",
+            name = "currentTimeMillis",
+            returnType = "J",
         ),
-        // iget-object p0, p0, LPTApplication;->x:Lze4;
+        // const-wide/32 v0, #0x2932e000   691,200,000 ms = the eight-day re-check window
+        literal(0x2932E000),
+        // iget-object v4, v4, LPTApplication;->x:...   the premium flow field
         fieldAccess(
             opcode = Opcode.IGET_OBJECT,
             definingClass = PT_APPLICATION,
             name = "x",
-        ),
-        // invoke-virtual {p0, p1}, Lze4;->h(Ljava/lang/Object;)V
-        methodCall(
-            definingClass = "Lze4;",
-            name = "h",
         ),
     ),
 )

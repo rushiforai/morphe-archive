@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.18.1](https://github.com/Santodan/santodan-patches/releases/tag/v0.18.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;38 patches total
+> **[v0.19.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;39 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -102,12 +102,16 @@ Startup app selection and **After standby** are cumulative: enabling both is int
 </details>
 
 <details>
-<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
+<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
 <br>
 
-These sixteen patches target NuvioTV beta.13 only. See [beta.13 verification](docs/NuvioBeta13.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
+These seventeen patches target NuvioTV **1.1.0 (1077)** only. See [1.1.0 verification](docs/Nuvio110.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
 
 - **GitHub APK updates**: Optional patch that checks APK releases from `Santodan/santodan-patches`, shares background download progress with the native banner, and opens Android's normal APK installer for foreground installation progress. The installed release version defaults to the bundle version. Includes installer fixes for patched APKs and side-by-side installations. See [GitHub release publishing instructions](docs/NuvioApkUpdates.md).
+
+### Metadata
+
+- **Metadata add-on selection**: Choose an enabled metadata add-on per profile under **Settings > Layout > Santodan-Patches**. Separate, disabled-by-default switches apply its metadata/artwork to **Continue Watching** and its poster artwork to the **library**. Existing artwork remains the fallback when the selected provider has no replacement. The picker checks declared `meta` support; catalog/stream add-ons can also provide metadata. Restart after changing these settings. See [usage, capability filtering and verification](docs/NuvioMetadataAddon.md).
 
 ### Continue Watching
 
@@ -165,7 +169,7 @@ These sixteen patches target NuvioTV beta.13 only. See [beta.13 verification](do
 
 - **Side-by-side installation**: Lets you choose a different package name and launcher name so the patched app can coexist with the official app.
 
-The patch settings are under **Layout > Santodan-Patches**, grouped under **Continue Watching**, **UI**, **Streams**, **Android TV launcher**, and **Playback** labels. Labels appear only for installed patch groups. Package and launcher names are configured when patching the APK.
+Metadata selection and the independent Continue Watching/library artwork switches appear directly under **Layout > Santodan-Patches**. Other patch settings are grouped under **Continue Watching**, **UI**, **Streams**, **Android TV launcher**, and **Playback** labels. Labels appear only for installed patch groups. Package and launcher names are configured when patching the APK.
 
 <img src="images/NuvioTVMenu.png" width="800" alt="Santodan-Patches menu">
 
@@ -184,6 +188,7 @@ The patch settings are under **Layout > Santodan-Patches**, grouped under **Cont
 | [NuvioTV - Indicate current stream](docs/NuvioCurrentStream.md) | Labels the current stream with [Playing], with an enabled-by-default toggle in Santodan-Patches > Streams. |  |
 | [NuvioTV - Keep airing series in Upcoming](#nuviotv-keep-airing-series-in-upcoming) | Adds a disabled-by-default setting that keeps currently-airing library series in Upcoming until the scheduled finale. |  |
 | [NuvioTV - Merge tracking progress](#nuviotv-merge-tracking-progress) | Merges Nuvio Sync and connected tracking-provider progress, preserving the previous snapshot while providers refresh. |  |
+| [NuvioTV - Metadata add-on selection](docs/NuvioMetadataAddon.md) | Choose a per-profile metadata add-on, with independent options for Continue Watching and library poster artwork. |  |
 | [NuvioTV - Preferred source add-on](docs/NuvioPreferredAddon.md) | Choose a per-profile add-on to refresh and display first, with optional automatic playback of its first playable stream. |  |
 | [NuvioTV - Preload streams for next episode](#nuviotv-preload-streams-for-next-episode) | Adds an opt-in Streams setting to fetch the next episode's source list after 30 seconds of playback, reusing Nuvio's native search cache. |  |
 | [NuvioTV - Preload streams in Continue Watching](#nuviotv-preload-streams-in-continue-watching) | Adds an opt-in Streams setting to search sources in the background for visible Continue Watching episodes and movies, reusing Nuvio's native search cache. |  |

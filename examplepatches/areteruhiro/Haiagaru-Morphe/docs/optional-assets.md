@@ -5,7 +5,10 @@
 | 必要な機能 | 保存するファイル | Morpheで選ぶ場所 | 未選択の場合 |
 | --- | --- | --- | --- |
 | 端末にない絵文字の補完 | NotoColorEmoji.ttf | Haiagaru → オプション → 絵文字フォントを選択 | 端末標準の絵文字。新しい絵文字が表示できない場合があります |
-| 191 devの自動NG画像判定クラッシュ修正 | haiagaru-image-ng.zip | Haiagaru → オプション → 191画像判定の修正ファイルを選択 | 本体の判定ライブラリを維持。既知のクラッシュ修正は適用しません |
+| 191 devの自動NG画像判定クラッシュ修正 | haiagaru-image-ng.zip | Haiagaru → オプション → 191画像判定の修正ファイルを選択 | 本体ライブラリを維持し、既知のJNIクラッシュを避けるため標準Image NGの推論を保護停止します |
+| 成人向け・グロ画像の個別検出（Android 7以上） | haiagaru-image-moderation.zip | 成人向け・グロ画像の自動検出 → オプション | 追加モデルを使いません。ChMate標準のImage NGとは独立です |
+| 画像判定と画像取得専用VPNを一括導入 | haiagaru-image-moderation-vpn.zip | 成人向け・グロ画像の自動検出と画像取得専用VPNの両方で同じZIPを選択 | 各パッチを個別に選択できます |
+| 画像検出のモデルと実行ライブラリを個別に指定 | haiagaru-image-moderation-model.zip ＋ haiagaru-image-moderation-runtime.zip | 同パッチの「個別指定: 画像検出モデルZIP」「個別指定: ONNX Runtime ZIP」 | モデルと実行ライブラリの両方が必要です |
 | 対象画像のVPN取得（実験用） | haiagaru-image-vpn-v2.zip（従来image-stack.aarも可） | 画像取得専用VPN → オプション → VPN用ZIP／AARを選択 | VPNを追加しません。このパッチのチェックは外してください |
 
 ## 初めて使う場合
@@ -15,10 +18,14 @@
 3. 必要な項目のファイル選択を押し、保存したファイルを選びます。選んだファイル名を確認してください。PC版ではファイルの絶対パスも使用できます。
 4. 絵文字の範囲は `missing`（端末にない絵文字だけ）を推奨します。`all` は全絵文字、`off` は追加フォントを使いません。
 5. 画像判定の修正は191 devだけが対象です。「191の自動NG画像判定クラッシュを修正」を `true` にし、修正ZIPも選んでください。226／242は選択不要です。
-6. VPNが必要なら「画像取得専用VPN」にチェックし、そのオプションで `haiagaru-image-vpn-v2.zip` または従来の `image-stack.aar` を選択します。パッチ適用・インストール後にHaiagaru設定で有効化してください。
+6. VPNが必要なら「画像取得専用VPN」にチェックし、そのオプションで統合ZIP、`haiagaru-image-vpn-v2.zip`、または `image-stack.aar` を選択します。パッチ適用・インストール後にHaiagaru設定で有効化してください。
 7. パッチを適用して生成APKをインストールします。後から追加・変更する場合は元APKへ再度パッチを適用します。端末標準のファイル選択が表示されるので、ファイル名を選択すれば構いません。
 
 選択したファイルが削除・移動された場合は、再度ダウンロードして選び直してください。ライブラリの不一致はエラーにして適用を止めます。
+
+## 画像判定とVPNを1ファイルで導入する
+
+`haiagaru-image-moderation-vpn.zip` をダウンロードし、Morpheで「成人向け・グロ画像の自動検出」と「画像取得専用VPN（実験用・検証中）」を選択します。画像判定の一括ZIP欄とVPN用ファイル欄に、展開せず同じZIPを指定してください。それぞれのパッチが使うファイルだけをAPKに組み込みます。
 
 ### libgojni.soが含まれるファイルを選ぶよう表示された場合
 
@@ -38,6 +45,14 @@ ZIPはどちらも展開せず選びます。ファイル名を変更して代�
 画像判定ZIPとVPN用ZIP／AARはそれぞれ4種類のCPU向けライブラリを含み、利用者がCPUを調べて選ぶ必要はありません。画像判定は対応する226 dev元APKの選択にも対応しています。
 
 ## 開発者向け
+
+成人向け・グロ画像の自動検出には、[Image Safety Classifier XS](https://huggingface.co/OwenElliott/image-safety-classifier-xs)（モデルカードの表記はMIT）と [ONNX Runtime](https://github.com/microsoft/onnxruntime/tree/v1.23.2)（MIT）を使用します。モデルと4 ABIのライブラリ、191用のImage NG修正、ライセンスをZIPにまとめます。対応するReleaseから `haiagaru-image-moderation.zip` を保存し、Morpheの任意パッチで展開せずに選びます。191でもこのZIPを選んだ場合は旧修正ZIPを別に選ぶ必要はありません。端末内でサムネイルだけを判定し、画像を判定サービスへ送信しません。動画全体の判定は行わず、見逃しや誤検出もあります。
+
+手元では `python scripts/build-image-moderation-zip.py build/optional-assets/haiagaru-image-moderation.zip` で生成できます。
+
+統合ZIPも作るには `--vpn-output build/optional-assets/haiagaru-image-moderation-vpn.zip` を追加します。
+
+一括ZIPの代わりに、モデルZIP（約11 MB）とONNX Runtime ZIP（約30 MB）を個別に選べます。個別指定時は一括ZIP欄を空にし、両方の個別欄を指定してください。191のChMate標準Image NGも使用する場合は、Haiagaru側で従来の `haiagaru-image-ng.zip` を追加選択してください。成人向け・グロ画像の追加モデルだけなら、この旧修正ZIPは不要です。生成コマンドに `--split` を付けると、個別ZIPも生成します。
 
 `./gradlew :patches:buildAndroid` は画像判定ZIPとVPN用ZIPを生成し、通常のSemantic Release CIでMPPと別々に添付します。巨大資材のソース・ライセンスはリポジトリに残し、MPPのリソースからだけ除外します。生成先は画像判定が `optional-assets/haiagaru-image-ng.zip`、VPN版が `build/optional-assets/haiagaru-image-vpn-v2.zip` です。VPN ZIPにはAAR内のJNIライブラリと対応する第三者ライセンスを含めます。
 

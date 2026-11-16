@@ -4,6 +4,7 @@ import app.morphe.extension.shared.utils.Utils;
 
 public final class Dim {
     public static final int dp1 = Utils.dipToPixels(1);
+    public static final int dp2 = Utils.dipToPixels(2);
     public static final int dp4 = Utils.dipToPixels(4);
     public static final int dp6 = Utils.dipToPixels(6);
     public static final int dp8 = Utils.dipToPixels(8);
@@ -31,6 +32,10 @@ public final class Dim {
 
     public static int dp(int value) {
         return Utils.dipToPixels(value);
+    }
+
+    public static float dp(float value) {
+        return value * getMetrics().density;
     }
 
     public static float[] roundedCorners(int radiusDp) {

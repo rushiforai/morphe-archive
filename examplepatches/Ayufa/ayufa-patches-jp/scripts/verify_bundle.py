@@ -16,7 +16,7 @@ Checks that the single bundle really contains all four patch sets:
   from the build is given, it must contain exactly the patches of the
   four source copies -- 52 for X (com.twitter.android), 14 for
   Twitch (tv.twitch.android.app; upstream 13 plus one Ayufa original),
-  32 for LINE (jp.naver.line.android) and 76 for KakaoTalk
+  39 for LINE (jp.naver.line.android) and 76 for KakaoTalk
   (com.kakao.talk) -- plus upstream's named universal patch
   "Disable Sentry telemetry" (no compatible packages; the KakaoTalk
   "Disable Sentry" patch depends on it, and it is part of upstream's
@@ -173,6 +173,13 @@ EXPECTED_PATCHES = {
         "[Chat] Keep unsent messages",
         "[Ad] Remove banner ads",
         "[General] Andrew's Patch Setting",
+        "[Call] Auto-record calls",
+        "[Call] Record calls without notifying",
+        "[Call] Remove recording time limit",
+        "[Call] Save recordings to device",
+        "[Fix] Restore Google login via MicroG-RE",
+        "[General] Enable themes on sub devices",
+        "[General] Hide LINE AI image editing",
     },
     # KakaoTalk patches from AmpleReVanced/revanced-patches (v1.5.0 base).
     # Only the KakaoTalk set is bundled; upstream's other apps' patches

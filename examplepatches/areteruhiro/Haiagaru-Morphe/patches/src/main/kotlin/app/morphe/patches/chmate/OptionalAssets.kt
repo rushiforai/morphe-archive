@@ -10,6 +10,14 @@ internal const val OPTIONAL_ASSET_EMOJI_URL = "https://raw.githubusercontent.com
 internal const val OPTIONAL_ASSET_IMAGE_NG_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/optional-assets/haiagaru-image-ng.zip"
 internal const val OPTIONAL_ASSET_VPN_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/vpn/image-stack/prebuilt/image-stack.aar"
 internal const val OPTIONAL_ASSET_VPN_ZIP_URL = "https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-vpn-v2.zip"
+internal const val OPTIONAL_ASSET_MODERATION_VPN_URL = "https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-moderation-vpn.zip"
+
+internal val IMAGE_VPN_NOTICES = listOf("open-sstp/LICENSE", "image-stack/NOTICE.md") +
+    listOf("go", "gvisor", "btree", "x-mobile", "x-sys", "x-time").map { "image-stack/$it/LICENSE" }
+
+internal val IMAGE_VPN_BUNDLE_ENTRIES = setOf("vpn/VERSION.txt") +
+    IMAGE_VPN_NOTICES.filter { it.startsWith("image-stack/") }.map { "vpn/licenses/$it" } +
+    listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64").map { "vpn/jni/$it/libgojni.so" }
 
 /** Read named entries without extracting archive paths onto disk. Verify before modifying the APK. */
 internal fun optionalLibraries(path: String, names: Map<String, String>, library: String): Map<String, ByteArray> {
@@ -18,11 +26,11 @@ internal fun optionalLibraries(path: String, names: Map<String, String>, library
     try {
         return ZipFile(file).use { zip ->
             val isVpn = library == "libgojni.so"
-            val asset = if (isVpn) "画像取得専用VPN用のhaiagaru-image-vpn-v2.zip（またはimage-stack.aar）" else "191画像判定用のhaiagaru-image-ng.zip（または対応する226元APK）"
+            val asset = if (isVpn) "VPN入りのhaiagaru-image-moderation-vpn.zip、haiagaru-image-vpn-v2.zip、またはimage-stack.aar" else "191画像判定用のhaiagaru-image-ng.zip（または対応する226元APK）"
             val otherLibrary = if (isVpn) "libtensorflowlite_jni.so" else "libgojni.so"
             if (zip.entries().asSequence().none { !it.isDirectory && it.name.endsWith("/$library") } &&
                 zip.entries().asSequence().any { !it.isDirectory && it.name.endsWith("/$otherLibrary") }) {
-                throw PatchException("選択した追加ファイルの種類が違います。Image NGと画像取得VPNは別ファイルです。$asset を展開せず選択してください。VPN不要ならVPNパッチのチェックを外してください。$OPTIONAL_ASSET_GUIDE")
+                throw PatchException("選択ファイルには必要な $library がありません。$asset を展開せず選択してください。$OPTIONAL_ASSET_GUIDE")
             }
             names.mapValues { (abi, expected) ->
                 val candidates = zip.entries().asSequence().filter {

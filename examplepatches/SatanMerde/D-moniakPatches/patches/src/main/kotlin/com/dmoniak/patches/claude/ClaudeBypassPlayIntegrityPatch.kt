@@ -8,7 +8,7 @@ import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
 val claudeBypassPlayIntegrityPatch = bytecodePatch(
-    name = "Bypass Play Integrity & Installer Check - Claude AI (Experimental)",
+    name = "Bypass Play Integrity and Installer Check - Claude AI (Experimental)",
     description = "Spoofs Google Play Store (com.android.vending) installation source and neutralizes client-side Play Integrity attestation during sign-in and session initialization.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
@@ -20,7 +20,7 @@ val claudeBypassPlayIntegrityPatch = bytecodePatch(
 }
 
 fun BytecodePatchContext.executeClaudeBypassPlayIntegrityLogic(logger: Logger) {
-    logger.info("Executing Bypass Play Integrity & Installer Check patch for Claude AI (com.anthropic.claude)...")
+    logger.info("Executing Bypass Play Integrity and Installer Check patch for Claude AI (com.anthropic.claude)...")
     var installerHooksCount = 0
     var integrityHooksCount = 0
 
@@ -31,35 +31,15 @@ fun BytecodePatchContext.executeClaudeBypassPlayIntegrityLogic(logger: Logger) {
         if (!tl.contains("androidx") && !tl.contains("android/support")) {
             val mutableClass by lazy { mutableClassDefBy(classDef) }
 
-            // 1. Installer Package / Source resolution spoofing
-            // Maps the installer source to Google Play Store (Llt1;->c)
             for (method in classDef.methods.toList()) {
                 if (method.implementation == null) continue
                 val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
                 val mName = method.name
                 val pTypes = method.parameterTypes
                 val retType = method.returnType
-
-                // Hook installer resolver (La01;->n(String)Llt1;)
-                if (isStatic && pTypes.size == 1 && pTypes[0].toString() == "Ljava/lang/String;" && retType == "Llt1;") {
-                    try {
-                        mutableClass.replaceMethod(
-                            method,
-                            registerCount = 2,
-                            smaliCode = """
-                                sget-object v0, Llt1;->c:Llt1;
-                                return-object v0
-                            """.trimIndent(),
-                        )
-                        installerHooksCount++
-                        logger.info("[Claude Integrity] Spoofed installer source resolver ${type}->${method.name} -> Google Play (Llt1;->c)")
-                    } catch (e: Exception) {
-                        logger.warning("[Claude Integrity] Failed to hook installer resolver ${method.name}: ${e.message}")
-                    }
-                }
+                val mNameLower = mName.lowercase()
 
                 // Generic installer string getter -> "com.android.vending"
-                val mNameLower = mName.lowercase()
                 if (!isStatic && pTypes.isEmpty() && retType == "Ljava/lang/String;" && (
                     mNameLower == "getinstallerpackagename" ||
                     mNameLower == "getinstallersource" ||
@@ -81,8 +61,7 @@ fun BytecodePatchContext.executeClaudeBypassPlayIntegrityLogic(logger: Logger) {
                     }
                 }
 
-                // 2. Play Integrity Attestation and verification flags
-                // Hook boolean checks related to play integrity and attestation
+                // Play Integrity Attestation and verification flags
                 if (retType == "Z" && pTypes.isEmpty() && (
                     mNameLower.contains("asksplay") ||
                     mNameLower.contains("playintegrity") ||

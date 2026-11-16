@@ -86,6 +86,24 @@ private fun findArm64LibEntry(context: ResourcePatchContext): String? {
 
 private fun patchNativeBinary(libFile: File) {
     RandomAccessFile(libFile, "rw").use { raf ->
+        val fileLength = raf.length()
+        if (IS_FAILURE_OFFSET + IS_FAILURE_EXPECTED.size > fileLength ||
+            IS_FAILURE_OFFSET + IS_FAILURE_PATCH.size > fileLength
+        ) {
+            error(
+                "[Enable Prime membership] Binary bounds check failed: isFailure offset 0x${IS_FAILURE_OFFSET.toString(16)} " +
+                    "exceeds file size $fileLength bytes."
+            )
+        }
+        if (IS_PROMO_OFFSET + IS_PROMO_EXPECTED.size > fileLength ||
+            IS_PROMO_OFFSET + IS_PROMO_PATCH.size > fileLength
+        ) {
+            error(
+                "[Enable Prime membership] Binary bounds check failed: isPromotionalPrimeMember offset 0x${IS_PROMO_OFFSET.toString(16)} " +
+                    "exceeds file size $fileLength bytes."
+            )
+        }
+
         raf.seek(IS_FAILURE_OFFSET)
         val failureBuf = ByteArray(IS_FAILURE_EXPECTED.size)
         raf.readFully(failureBuf)

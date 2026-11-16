@@ -7,7 +7,7 @@ import com.android.tools.smali.dexlib2.Opcode
 
 /**
  * `BuildTarget` provider: a map that contains `BUILD_TARGET` = `"debug"` or `"release"`, chosen
- * by the boolean field read here (`Lgo3;->a:Z` in 6.104.3).
+ * by the boolean field read here (`Lgo3;->a:Z` in 6.104.5, same class as 6.104.3).
  */
 object BuildTargetFieldFingerprint : Fingerprint(
     strings = listOf("BUILD_TARGET", "debug", "release"),

@@ -1,8 +1,6 @@
 package app.morphe.patches.youtube.swipe.controls
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.util.getReference
 import app.morphe.patches.youtube.utils.extension.Constants.EXTENSION_PATH
@@ -89,20 +87,11 @@ internal object PlayerDragGestureInitFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "I",
     parameters = listOf("I", "I", "I", "I"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IGET_OBJECT,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.IGET,
-        Opcode.IF_NE,
-        Opcode.IGET,
-        Opcode.IF_NE,
-        Opcode.CONST_4,
-        Opcode.RETURN
-    ) + fieldAccess(
-        opcode = Opcode.IGET_OBJECT,
-        type = "/NextGenWatchLayout;",
-        location = MatchAfterImmediately()
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = "/NextGenWatchLayout;"
+        )
     )
 )
 

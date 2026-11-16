@@ -219,7 +219,7 @@ export GITHUB_TOKEN=<a token with read:packages>
 ./gradlew :patches:buildAndroid
 ```
 
-Run `generatePatchesList` first, or the bundle loses its Android payload. It lands in `patches/build/release/patches-<version>.mpp` with its SHA-256 and a CycloneDX SBOM. A bundle you build comes out unsigned, so it differs from a release's only in the signature at the end of the file. Tests are `./gradlew :patches:test :extensions:telegram:test`. Before you push a patch change, point `HUSHTELEGRAM_FIXTURE_DIR` at a folder holding every APK named in `AppCompatibilities.kt` and `patches-list.json`. Keep older catalog inputs while a release is held. The [Telegram app reference](docs/telegram-app-reference.md) covers moving to a new Telegram build and the anchors that hold up across updates.
+Run `generatePatchesList` first, or the bundle loses its Android payload. It lands in `patches/build/release/patches-<version>.mpp` with its SHA-256 and a CycloneDX SBOM. A bundle you build comes out unsigned, so it differs from a release's only in the signature at the end of the file. Tests are `./gradlew :patches:test :extensions:telegram:test`. Before a release push, or one made with `HUSHTELEGRAM_FULL_GATE=1`, point `HUSHTELEGRAM_FIXTURE_DIR` at a folder holding every APK named in `AppCompatibilities.kt` and `patches-list.json`. Keep older catalog inputs while a release is held. The [Telegram app reference](docs/telegram-app-reference.md) covers moving to a new Telegram build and the anchors that hold up across updates.
 
 Where things live:
 

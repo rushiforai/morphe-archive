@@ -44,6 +44,19 @@ internal object SubscribeButtonClickFingerprint : Fingerprint(
 )
 
 /**
+ * Fingerprints the central premium entitlement check: a.a.r(ContextWrapper).
+ * Called from SheetVPN, the VPN service, surf, bridge, and core to gate
+ * every premium feature. Forcing this true is the single-point unlock.
+ * (jadx renders package 'a' as 'p000a'; the dex type is La/a;.)
+ */
+internal object PremiumEntitlementFingerprint : Fingerprint(
+    definingClass = "La/a;",
+    name = "r",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+)
+
+/**
  * Fingerprints the SheetVPN premium upsell / VPN ad badge visibility logic.
  * Uses the unique "wad_tag" string from the VPN sheet view binding.
  * The method sets visibility of the "PREMIUM" upsell tag based on subscribe state.

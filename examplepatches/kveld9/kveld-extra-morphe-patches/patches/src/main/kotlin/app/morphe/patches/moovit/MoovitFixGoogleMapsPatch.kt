@@ -6,10 +6,14 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.Constants.COMPATIBILITY_MOOVIT
 import app.morphe.patches.shared.setApplicationMetaData
 import app.morphe.patches.shared.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.w3c.dom.Element
 
 private val mapsApiKeyOption = stringOption(
@@ -71,12 +75,6 @@ private val moovitMapsApiKeyResourcePatch = resourcePatch(
     }
 }
 
-private val moovitApplicationOnCreateFingerprint = Fingerprint(
-    definingClass = "Lcom/moovit/MoovitApplication;",
-    name = "onCreate",
-    returnType = "V",
-)
-
 private val acquireMapViewFactoryFingerprint = Fingerprint(
     parameters = listOf("Lcom/moovit/map/MapImplType;"),
     strings = listOf("acquireMapViewFactory mapImplType: "),
@@ -95,11 +93,38 @@ val moovitFixGoogleMapsPatch = bytecodePatch(
     forceGoogleMapsOption()
 
     execute {
-        moovitApplicationOnCreateFingerprint.method.addInstructions(
-            0,
-            "invoke-static {p0}, Lcom/kveld9/morphe/extra/extension/MoovitHelper;->init(Landroid/app/Application;)V",
-        )
-        println("[Fix Google Maps] Injected signature spoofing initializer into MoovitApplication.onCreate -> Maps rendering restored.")
+        val appClass = mutableClassDefBy("Lcom/moovit/MoovitApplication;")
+        val attachBaseContextMethod = appClass.methods.firstOrNull { it.name == "attachBaseContext" }
+        if (attachBaseContextMethod != null) {
+            attachBaseContextMethod.addInstructions(
+                0,
+                "invoke-static {p1}, Lcom/kveld9/morphe/extra/extension/MoovitHelper;->init(Landroid/content/Context;)V",
+            )
+        } else {
+            val method = MutableMethod(
+                ImmutableMethod(
+                    "Lcom/moovit/MoovitApplication;",
+                    "attachBaseContext",
+                    listOf(ImmutableMethodParameter("Landroid/content/Context;", emptySet(), null)),
+                    "V",
+                    AccessFlags.PROTECTED.value,
+                    emptySet(),
+                    null,
+                    MutableMethodImplementation(2)
+                )
+            ).apply {
+                addInstructions(
+                    0,
+                    """
+                        invoke-super {p0, p1}, Landroid/app/Application;->attachBaseContext(Landroid/content/Context;)V
+                        invoke-static {p1}, Lcom/kveld9/morphe/extra/extension/MoovitHelper;->init(Landroid/content/Context;)V
+                        return-void
+                    """.trimIndent()
+                )
+            }
+            appClass.methods.add(method)
+        }
+        println("[Fix Google Maps] Injected signature spoofing initializer into MoovitApplication.attachBaseContext -> Maps rendering restored.")
 
         if (forceGoogleMapsOption.value == true) {
             val targetMethod = acquireMapViewFactoryFingerprint.method

@@ -24,10 +24,10 @@ private const val KEY = "chat_keywords"
 @Suppress("unused")
 val chatKeywordsPatch = bytecodePatch(
     name = "Chat keywords",
-    description = "Highlights chat messages that mention you or contain your highlight words with a tinted " +
-        "background, optionally with a vibration, and hides messages with blocked words or from blocked users. " +
-        "Mentions are on by default; the word and user lists start empty and are set in Lurk settings. Native and React Native " +
-        "live chat and history, plus native VOD chat replay.",
+    description = "Highlights chat messages that mention you, contain your highlight words or come from users or " +
+        "roles you pick with a tinted background, optionally with a vibration, and hides messages with blocked words " +
+        "or from blocked users. Mentions are on by default; the word and user lists start empty and are set in Lurk " +
+        "settings. Native and React Native live chat and history, plus native VOD chat replay.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchRNChatPatch, twitchSettingsPatch)
@@ -44,6 +44,11 @@ val chatKeywordsPatch = bytecodePatch(
                 "Tint messages that mention your username. Needs a signed-in account.", Section.CHAT, parent = KEY),
             TextSetting("chat_highlight_words", "Highlight words",
                 "Tint messages containing any of these words or phrases, separated by commas.",
+                Section.CHAT, parent = KEY),
+            TextSetting("chat_highlight_users", "Highlight users",
+                "Tint every message from these usernames, separated by commas. Add a color of its own as " +
+                    "name=#RRGGBB. Roles by badge: @broadcaster, @mod, @vip, @sub, @founder, @staff, @verified, or " +
+                    "any badge ID after @ (native chat; React Native chat matches names only, in the usual tint).",
                 Section.CHAT, parent = KEY),
             SwitchSetting("chat_highlight_vibrate", "Vibrate on highlights",
                 "Vibrate when a highlighted message arrives in live chat.", Section.CHAT, default = false, parent = KEY),
@@ -64,11 +69,14 @@ val chatKeywordsPatch = bytecodePatch(
  */
 private fun BytecodePatchContext.markLines() {
     val method = chatLineBuilder()
+    // Parameter 2 is the sender's badges (view models with the badge set ID as name=), for highlighted roles.
+    if (method.parameterTypes[2].toString() != "Ljava/util/List;") throw PatchException("Twitch: the chat line builder's badges moved")
     // At the start every local is unset.
     method.addInstructions(0, """
         move-object/from16 v0, p3
         move-object/from16 v1, p13
-        invoke-static { v0, v1 }, $KEYWORDS->beginLine(Ljava/lang/Object;Ljava/lang/Object;)V
+        move-object/from16 v2, p2
+        invoke-static { v0, v1, v2 }, $KEYWORDS->beginLine(Ljava/lang/Object;Ljava/lang/Object;Ljava/util/List;)V
     """)
     val (init, start) = method.spanGroupConstructor()
     val sender = start + 3
@@ -87,7 +95,7 @@ private fun BytecodePatchContext.filterLiveMessages() {
     val line = liveChatLine()
     val parent = classDefBy(line.type).superclass ?: throw PatchException("Twitch: live chat message has no parent")
     val feeder = chatListFeederFingerprint(line, parent).twitchMatch("chat list feeder").method
-    feeder.requireLocals(3)
+    feeder.requireLocals(4)
     if (!AccessFlags.FINAL.isSet(classDefBy(line.type).accessFlags)) throw PatchException("Twitch: live chat message isn't final")
     // A class comparison rather than instance-of: Chat overlay finds its hook by the feeder's own instance-of.
     feeder.addInstructionsWithLabels(0, """
@@ -99,8 +107,9 @@ private fun BytecodePatchContext.filterLiveMessages() {
         check-cast v0, ${line.type}
         iget-object v1, v0, ${line.id}
         iget-object v2, v0, ${line.sender}
+        iget-object v3, v0, ${line.badges}
         iget-object v0, v0, ${line.tokens}
-        invoke-static { v1, v2, v0 }, $KEYWORDS->onLiveMessage(Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;)Z
+        invoke-static { v1, v2, v0, v3 }, $KEYWORDS->onLiveMessage(Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;Ljava/util/List;)Z
         move-result v0
         if-eqz v0, :lurk_keep
         return-void

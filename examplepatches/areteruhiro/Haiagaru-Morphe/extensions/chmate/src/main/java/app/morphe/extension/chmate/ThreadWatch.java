@@ -77,6 +77,9 @@ public final class ThreadWatch {
         android.widget.CheckBox check=new android.widget.CheckBox(a);check.setText(label);check.setChecked(value);box.addView(check);return check;
     }
     static void addSettingsButton(android.widget.LinearLayout box,Activity a){
+        android.widget.Switch ng=new android.widget.Switch(a);ng.setText("NGされたレスの返信通知を無効にする");
+        ng.setChecked(NotificationNg.enabled(a));box.addView(ng);
+        ng.setOnCheckedChangeListener((button,value)->FeatureSwitches.prefs(a).edit().putBoolean(NotificationNg.KEY,value).apply());
         android.widget.Button button=new android.widget.Button(a);button.setText("スレの新着通知・書き込み後の自動監視");button.setAllCaps(false);box.addView(button);
         button.setOnClickListener(v->showDefaults(a));
         ThreadWatchManagement.addButton(box,a);
@@ -232,7 +235,13 @@ public final class ThreadWatch {
                     Set<Integer> directReplies=new HashSet<>();
                     if(ThreadWatchRules.increase(known,count)>0){
                         try{
-                            Map<Integer,String> bodies=ThreadWatchRules.newBodies(t,fetch(t.dat,stopped),known,count);
+                            String dat=fetch(t.dat,stopped);
+                            Map<Integer,String> bodies=NotificationNg.filter(c,t,dat,known,count);
+                            if(NotificationNg.enabled(c)&&bodies.isEmpty()){
+                                synchronized(LOCK){JSONObject item=new JSONObject(prefs(c).getString(key,"{}"));
+                                    if(tokens.get(key).equals(item.optString("token"))&&prefs(c).contains(key)){item.put("count",count);prefs(c).edit().putString(key,item.toString()).commit();}}
+                                continue;
+                            }
                             if(bodies.isEmpty()&&(repliesOnly||stopAfter))continue;
                             Set<Integer> own=new HashSet<>();
                             if(repliesOnly||stopAfter){
@@ -253,7 +262,7 @@ public final class ThreadWatch {
                         }catch(Exception unavailable){
                             if(stopped.get())return;
                             // Reply-only / stop-on-reply checks must retry after body/index failure.
-                            if(repliesOnly||stopAfter)continue;
+                            if(repliesOnly||stopAfter||NotificationNg.enabled(c))continue;
                         }
                     }
                     // Reading may have advanced while subject/DAT I/O was in flight.
@@ -279,7 +288,7 @@ public final class ThreadWatch {
                                 preview=android.text.TextUtils.join("\n",uniqueLines);
                             }
                             int unique=ThreadWatchNative.seenCount(c,key,before+1,count);
-                            int delivered=repliesOnly?matching:Math.max(0,delta-unique);
+                            int delivered=repliesOnly||NotificationNg.enabled(c)?matching:Math.max(0,delta-unique);
                             if(delivered==0){item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();continue;}
                             if(!notify(c,t,delivered,count,titles.get(t.id),preview,firstMatch>0?firstMatch:Math.max(1,count-delta+1),repliesOnly))continue;
                             notified.add(t.url);

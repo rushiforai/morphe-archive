@@ -171,9 +171,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     "Export comments",
                     "Adds Export CSV and Export JSON buttons under the search box, so Search "
-                            + "within comments must be on. They save the comments and replies "
-                            + "loaded so far to a file you pick. Open the reply threads you "
-                            + "want first.",
+                            + "within comments must be on. They save the comments loaded so far "
+                            + "to a file you pick, and load every reply under them first.",
                     Settings.COMMENT_EXPORT
             ));
             addPreference(new TogglePreference(
@@ -244,6 +243,15 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Give each commenter's name a color of its own, the same one every time you see "
                             + "that account, so a long thread is easier to follow.",
                     Settings.COLOR_COMMENTER_NAMES
+            ));
+        }
+        if (SettingsStatus.commentToolsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Look up a commenter's country",
+                    "Press and hold a comment to find Show account country in its menu. It asks "
+                            + "TikTok where that account is based, or where its latest videos were posted from.",
+                    Settings.COUNTRY_FROM_COMMENT_MENU
             ));
         }
 

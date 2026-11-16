@@ -6,7 +6,10 @@ SHA-256: `a95f94e0bb7da2d0d72e6c93a8dda34bdb4a8bc46c7fa4234834d4c779de1db6`.
 The manifest was inspected with SDK aapt; the hash matches the universal APK
 asset digest in the official GitHub release `NuvioMedia/NuvioTV`, tag `1.1.0`.
 
-All sixteen public patches now declare exact compatibility with official 1.1.0.
+The release migration ported the original sixteen public patches to official 1.1.0.
+The later optional [metadata add-on selection](NuvioMetadataAddon.md) patch brings
+the current total to seventeen, with per-profile settings for the metadata source,
+Continue Watching and library poster artwork.
 The active contract points to the release original. The native symbols and all
 thirteen centralized guarded method fingerprints are unchanged from beta.13.
 The GitHub APK updater has seven additional guarded method fingerprints that

@@ -3,8 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2964
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24: the endpoint field read is found in the patch, as this
- * patcher has no MatchBeforeAnywhere, and the search submit of YouTube 20.05 is matched too.
+ * Modified by lavinhoque33, 2026-11-14: resolve endpoint fields in the patch and preserve
+ * search submit signatures from YouTube 20.05 through 21.43 and newer.
  */
 
 package app.morphe.patches.youtube.interaction.channelsearch
@@ -95,6 +95,15 @@ internal object SearchSubmitFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(
         anyInstruction(
+            methodCall( // 21.43 and newer add the search context.
+                parameters = SEARCH_REQUEST_PARAMETERS + listOf(
+                    "Ljava/lang/String;",
+                    "Ljava/lang/String;",
+                    "Z",
+                    "Ljava/lang/String;"
+                ),
+                returnType = "V"
+            ),
             methodCall( // 21.13 and newer.
                 parameters = SEARCH_REQUEST_PARAMETERS + listOf(
                     "Ljava/lang/String;",
@@ -117,7 +126,15 @@ internal object SearchSubmitFingerprint : Fingerprint(
         )
     ),
     custom = { method, _ ->
-        parametersMatch( // 21.13 and newer.
+        parametersMatch( // 21.43 and newer.
+            method.parameters,
+            SEARCH_SUBMIT_PARAMETERS + listOf(
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Z",
+                "Ljava/lang/String;"
+            )
+        ) || parametersMatch( // 21.13 and newer.
             method.parameters,
             SEARCH_SUBMIT_PARAMETERS + listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z")
         ) || parametersMatch( // Some versions between 20.05 and 21.13.

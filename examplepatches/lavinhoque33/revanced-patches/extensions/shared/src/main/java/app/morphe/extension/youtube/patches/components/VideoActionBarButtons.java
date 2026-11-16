@@ -9,8 +9,8 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-13
  * Copyright (C) 2026 lavinhoque33
- * Written by lavinhoque33, 2026-11-06.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -128,6 +128,8 @@ final class VideoActionBarButtons {
     private static final ActionButton[] BUTTONS = ActionButton.values();
     private static final ByteTrieSearch elementSearch = new ByteTrieSearch(
             ByteTrieSearch.convertStringsToBytes("video_action_bar.e"));
+    private static final ByteTrieSearch askPanelSearch = new ByteTrieSearch(
+            ByteTrieSearch.convertStringsToBytes("PAyouchat"));
 
     static boolean shouldHideChannelBar(boolean hideChannelAndSubscribe, boolean hideActionBar) {
         return hideChannelAndSubscribe || hideActionBar;
@@ -162,6 +164,11 @@ final class VideoActionBarButtons {
     }
 
     static boolean isHidden(VideoActionBarItemContent content, Set<ActionButton> hidden) {
+        // Portrait layouts can use a non-plain button; its panel identity is stable across models.
+        if (hidden.contains(ActionButton.ASK) && askPanelSearch.matches(content.toByteArray())) {
+            return true;
+        }
+
         return hidden.contains(classify(content));
     }
 

@@ -1,9 +1,10 @@
 package app.morphe.patches.xiaomi.earbuds
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnNull
 
 @Suppress("unused")
 val xiaomiEarbudsSoundFeaturesUnlockPatch = bytecodePatch(
@@ -23,13 +24,7 @@ val xiaomiEarbudsSoundFeaturesUnlockPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "B"),
             returnType = "[B",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return-object v0
-                """.trimIndent(),
-            )
+            replaceWithReturnNull()
             hookedMethods.add("DeviceManagerImpl.queryRestrictItem")
         }
 
@@ -40,13 +35,7 @@ val xiaomiEarbudsSoundFeaturesUnlockPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("SpatialAudioVM.isNotSupport96K")
         }
 
@@ -57,13 +46,7 @@ val xiaomiEarbudsSoundFeaturesUnlockPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
             hookedMethods.add("SoundEffectVM.isEnableSpatialAudio")
         }
 

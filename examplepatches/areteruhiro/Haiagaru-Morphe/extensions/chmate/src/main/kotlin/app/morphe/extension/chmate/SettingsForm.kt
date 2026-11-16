@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -128,7 +129,7 @@ private fun BoundSetting.inheriting(parent: () -> Boolean, trail: String): Bound
     val own = available
     val combined = { parent() && own() }
     return copy(available = combined, enabled = control.isEnabled && combined(),
-        children = children?.map { it.inheriting(parent, trail) }, searchTrail = trail + " " + searchTrail)
+        children = children?.map { it.inheriting(parent, trail) }, searchTrail = listOf(trail, searchTrail).filter { it.isNotBlank() }.joinToString(" > "))
 }
 
 internal fun sectionSetting(section: SettingsSection, includeHidden: Boolean = false): BoundSetting =
@@ -143,6 +144,38 @@ internal fun flattenedSettingsRows(root: ViewGroup, includeHidden: Boolean = fal
     return flatten(settingsRows(root, includeHidden))
 }
 
+@Composable
+private fun SelectableSettingLabel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    if (LocalSettingCopyPath.current.isEmpty()) Box(modifier) { content() }
+    else androidx.compose.foundation.text.selection.SelectionContainer(modifier) { content() }
+}
+
+@Composable
+internal fun SettingSwitchRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+    label: @Composable () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .toggleable(checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Box(Modifier.weight(1f)) { label() }
+        val dark = MaterialTheme.colorScheme.surface.luminance() < .5f
+        Switch(
+            checked = checked, onCheckedChange = null, enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedTrackColor = if (dark) HaiagaruUi.settingsCategoryColor else Color(0xFF4A8FC6),
+                checkedThumbColor = Color(0xFF102E48),
+            ),
+        )
+    }
+}
+
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
@@ -151,11 +184,10 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
         is SettingsSection -> {
             var expanded by remember(view) { mutableStateOf(!view.collapsed) }
             Column(Modifier.fillMaxWidth()) {
-                ListItem(headlineContent = { Text(item.label, style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurface) },
+                ListItem(headlineContent = { SelectableSettingLabel { Text(item.label, style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface) } },
                     supportingContent = { if (item.description.isNotBlank()) Text(item.description) },
-                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
-                        Modifier.rotate(if (expanded) 90f else 0f)) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, Modifier.rotate(if (expanded) 90f else 0f)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded })
                 if (expanded) {
@@ -178,19 +210,20 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
                 changed()
             }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = item.checked == true, onClick = null, enabled = item.enabled)
-                Text(item.label, Modifier.weight(1f).padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
+                SelectableSettingLabel(Modifier.weight(1f).padding(start = 12.dp)) { Text(item.label, style = MaterialTheme.typography.bodyLarge) }
             }
         }
         is CompoundButton -> {
-            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                .toggleable(item.checked == true, enabled = item.enabled, role = Role.Switch) {
-                    if (view.isChecked != it) view.performClick()
-                    changed()
-                }.padding(horizontal = 12.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(item.label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge,
-                    color = if (item.enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
-                Switch(checked = item.checked == true, onCheckedChange = null, enabled = item.enabled)
+            var checked by remember(view, item.checked) { mutableStateOf(view.isChecked) }
+            SettingSwitchRow(checked, onCheckedChange = {
+                if (view.isChecked != it) view.performClick()
+                checked = view.isChecked
+                changed()
+            }, enabled = item.enabled) {
+                SelectableSettingLabel {
+                    Text(item.label, style = MaterialTheme.typography.bodyLarge,
+                        color = if (item.enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
         is SeekBar -> BoundSeekBar(view, item.label, changed)
@@ -205,7 +238,7 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
         }
         is Spinner -> {
             var choosing by remember(view) { mutableStateOf(false) }
-            ListItem(headlineContent = { Text(item.label) },
+            ListItem(headlineContent = { SelectableSettingLabel { Text(item.label) } },
                 supportingContent = { Text(view.selectedItem?.toString().orEmpty()) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -227,21 +260,21 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
                     }
                 }, confirmButton = { TextButton(onClick = { choosing = false }) { Text("閉じる") } })
         }
-        is Button -> ListItem(headlineContent = { Text(item.label) },
+        is Button -> ListItem(headlineContent = { SelectableSettingLabel { Text(item.label) } },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             modifier = Modifier.fillMaxWidth().combinedClickable(enabled = item.enabled,
-                onClick = { view.performClick(); changed() }, onLongClick = { view.performLongClick(); changed() }))
+                onClick = { view.performClick(); changed() }, onLongClick = if (LocalSettingCopyPath.current.isEmpty()) ({ view.performLongClick(); changed() }) else null))
         is TextView -> {
             if (item.previewColor != null) Text(view.text.toString(),
                 style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.fillMaxWidth().background(Color(item.previewColor), MaterialTheme.shapes.small).padding(12.dp))
-            else if (view.hasOnClickListeners() || view.isLongClickable) Text(view.text.toString(),
+            else if (view.hasOnClickListeners() || view.isLongClickable) SelectableSettingLabel { Text(view.text.toString(),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                     .combinedClickable(enabled = view.isEnabled, onClick = { view.performClick(); changed() },
-                        onLongClick = { view.performLongClick(); changed() }).padding(12.dp))
+                        onLongClick = if (LocalSettingCopyPath.current.isEmpty()) ({ view.performLongClick(); changed() }) else null).padding(12.dp)) }
             else if (view.text.isNotBlank()) androidx.compose.foundation.text.selection.SelectionContainer {
                 val content = androidx.compose.ui.text.buildAnnotatedString {
                     append(view.text.toString())
@@ -311,8 +344,8 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
         value = it
         if (it.text != view.text.toString()) view.setText(it.text)
         changed()
-    }, label = { Text(title.ifBlank { "入力" }, maxLines = 1,
-        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+    }, label = { SelectableSettingLabel { Text(title.ifBlank { "入力" }, maxLines = 1,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         enabled = enabled, singleLine = view.maxLines == 1,
         minLines = if (view.maxLines == 1) 1 else view.minLines.coerceIn(1, 12),
@@ -332,7 +365,7 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
 internal fun BoundSeekBar(view: SeekBar, label: String, changed: () -> Unit) {
     var progress by remember(view) { mutableIntStateOf(view.progress) }
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
-        Text(label, style = MaterialTheme.typography.bodyLarge)
+        SelectableSettingLabel { Text(label, style = MaterialTheme.typography.bodyLarge) }
         if (view is LiveSettings.Range) Text(view.valueText(), style = MaterialTheme.typography.bodyMedium)
         Slider(value = progress.toFloat().coerceIn(0f, view.max.coerceAtLeast(1).toFloat()),
             onValueChange = { value ->

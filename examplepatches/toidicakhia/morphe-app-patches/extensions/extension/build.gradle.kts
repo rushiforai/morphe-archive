@@ -3,7 +3,7 @@ extension {
 }
 
 android {
-    namespace = "app.apppatches.extension"
+    namespace = "me.toidicakhia.extension"
     buildFeatures {
         buildConfig = true
     }

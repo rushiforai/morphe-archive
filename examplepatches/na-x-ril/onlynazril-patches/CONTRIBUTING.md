@@ -43,11 +43,11 @@ branch and no pull request for one.
 | `build` with scope `Needs bump` | patch |
 | `chore`, `build`, `docs`, `refactor`, `test` | no release |
 
-- **The scope is optional.** When it is written, it names the app and the patch, `TikTok/Custom
-  font`, matching the directory under `patches/tiktok/customfont/`. The changelog renders it as a
-  bold prefix, so `fix(TikTok/Download):` reaches a user as `* **TikTok/Download:** ...`. A commit
-  without one reaches them as a bare sentence, which is fine when the subject already says which app
-  and which surface it is about.
+- **The scope is optional.** When it is written, it names the app and the patch, `TikTok - Custom
+  font`, with a hyphen between them, matching the style used by Morphe, Piko and Anddea. The
+  changelog renders it as a bold prefix, so `fix(TikTok - Download):` reaches a user as
+  `* **TikTok - Download:** ...`. A commit without one reaches them as a bare sentence, which is
+  fine when the subject already says which app and which surface it is about.
 
 Summary rules:
 

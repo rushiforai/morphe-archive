@@ -190,7 +190,7 @@ Added 1 seen video,添加了 1 个看过的视频
 Added 1 seen video.,添加了 1 个看过的视频.
 Added one older seen video to this account,向此账号添加了一个较早看过的视频
 Added to this account.,添加到此账号.
-"Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.",在搜索框下方添加“导出 CSV”和“导出 JSON”按钮，因此必须打开“在评论中搜索”。这些按钮会把目前已加载的评论和回复保存到你选择的文件中。请先打开需要保存的回复串.
+"Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.",在搜索框下方添加“导出 CSV”和“导出 JSON”按钮，因此必须打开“在评论中搜索”。这些按钮会先加载已加载评论下的所有回复，再把它们保存到你选择的文件中.
 "Adds Save cover next to Download when you share a video, so you save the cover only when you want it. While this is on, Download saves just the video, even with Save the cover as well on.",分享视频时，在“下载”旁边添加“保存封面”，让你只在需要时保存封面。启用后，“下载”只保存视频，即使“封面也保存下来”已开启.
 "Adds TikTok's translate button next to the comment count. One tap translates every comment, and another shows the originals again.",在评论计数旁边添加 TikTok 的翻译按钮。只需轻按一下即可翻译每条评论，再轻按一下即可再次显示原文.
 "Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.",添加一个搜索框，可按单词或用户名查找已加载到该视频的评论。它不会搜索整个 TikTok.
@@ -570,6 +570,8 @@ Export comments,导出评论
 Export diagnostic report,导出诊断报告
 Export loaded values,导出加载的值
 Exported %1$d comments and %2$d replies,已导出 %1$d 评论和 %2$d 回复
+"Loading replies, %1$d of %2$d",正在加载回复，%1$d/%2$d
+"Some replies weren't loaded, so they aren't in the file.",有些回复未能加载，因此不在文件中.
 Exported %1$d loaded values,导出的 %1$d 加载值
 Exported 1 loaded value,导出 1 个加载值
 "Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10.",将视频上的按钮、标题和选项卡淡入淡出至此级别，而不是隐藏它们。 100 留下它们，因为 TikTok 绘制它们。褪色的控件仍然需要点击。为 0 时，按钮和标题被隐藏，选项卡保持为 10.
@@ -951,7 +953,7 @@ Kinds of post,帖子种类
 LIVE,LIVE
 LIVE chat auto-translate,LIVE 聊天自动翻译
 "The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.","LIVE 直播间里的“翻译评论”按钮还需要日本 SIM 卡。在 Hushfeed 设置 > 地区中开启“覆盖 SIM 卡详细信息”，将“SIM 卡国家/地区预设”设为 Japan, NTT DOCOMO (44010)，然后重启 TikTok."
-"Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.",只有 TikTok 开启了此功能的视频才会显示滚动评论，因此大多数视频保持不变.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.,TikTok 允许的横屏视频会在视频下方显示添加单行评论的按钮，全屏时还会显示单行评论栏。其他视频保持不变.
 LIVE feed,LIVE 信息流
 LIVE followers range,LIVE 关注者范围
 LIVE recording saved to %1$s,LIVE 录音已保存到 %1$s
@@ -988,7 +990,7 @@ Let a LIVE fill the screen up to the top edge. The status bar comes back when yo
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,让离线视频菜单使用你自己的限制，而不是 TikTok 的固定限制。重新启动 TikTok 以应用此操作.
 Let the last video finish,让最后一个视频结束吧
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,让视频到达主信息流的屏幕底部，并在其上方显示选项卡，且后面没有任何栏.
-"Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.",让视频到达主信息流的屏幕顶部，并在其上方显示时钟和状态图标。顶部的选项卡保持在原来的位置.
+"Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.",让视频延伸到屏幕顶部，并在其上方显示时钟和状态图标。适用于主信息流，以及你从搜索、个人主页或你的“喜欢”和“收藏”中打开的视频。顶部的选项卡保持在原来的位置.
 Licenses,许可证
 Lift text length limits,解除文本长度限制
 Like,喜欢
@@ -1653,9 +1655,9 @@ Most see-through,最透明
 More see-through,更透明
 Frosted,磨砂
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.,在主信息流上透过玻璃药丸能看到多少视频。最透明露出的最多，磨砂最少.
-"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.",在主信息流上，一个凸起的玻璃气泡位于你所在的选项卡后面，并滑到你选择的下一个选项卡。需要液态玻璃外观.
+"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.",在主信息流上，一个凸起的玻璃气泡位于你所在的选项卡后面，并滑到你选择的下一个选项卡。适用于任何底部栏，无论是否开启液态玻璃外观.
 Slide across the tabs,在选项卡上滑动
-"On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.",在主信息流上，手指沿玻璃药丸滑动，透镜会跟着手指移动。松开手指就会打开那个选项卡。点按和长按照常使用。需要当前选项卡上的玻璃透镜.
+"On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.",在主信息流上，手指沿选项卡滑动，透镜会跟着手指移动。松开手指就会打开那个选项卡。点按和长按照常使用。需要当前选项卡上的玻璃透镜.
 Haptics on the tabs,选项卡触感反馈
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.",在主信息流上，玻璃透镜每经过一个选项卡就轻震一下，无论是点按后滑动还是在手指下滑动。需要当前选项卡上的玻璃透镜.
 Haptic style,触感样式
@@ -1792,7 +1794,7 @@ Stopped waiting for the file app. Nothing was imported.,停止等待文件应用
 Stopping after this file,在此文件后停止
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.,阻止 TikTok 读取手机的运动和指南针传感器。应用程序可以使用它们来识别你的手机.
 "Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen.",阻止 TikTok 报告你观看的视频，这样它们就不会添加到活动中心的观看历史记录中。你的观点不会起作用，而 For You 学到的东西会更少。点赞、关注和搜索仍然可见.
-"Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.",阻止 TikTok 发送使用报告、广告跟踪和崩溃报告。 TikTok 自己的诊断工具也变得安静.
+"Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.",阻止 TikTok 发送使用报告、广告跟踪和崩溃报告。 TikTok 自己的诊断工具也变得安静。 TikTok 为检查自身请求而下载的设置仍会照常送达.
 "Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.",阻止 TikTok 减慢屏幕速度以匹配每个视频的帧速率。在 90 或 120 Hz 手机上，该请求会使整个应用程序（包括滚动）运行速度变慢.
 Keep the screen's brightness in the camera,在相机中保持屏幕亮度
 "Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.",阻止 TikTok 在你拍摄、编辑或发布视频时调亮屏幕。前置闪光灯仍会让屏幕变白，但使用你自己的亮度.
@@ -2217,7 +2219,7 @@ What's new,有什么新消息
 "When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.",当预算用完时，屏幕上的视频会在暂停开始之前播放到最后，并且你无法同时滑动到另一个视频。如果淡入淡出已经使信息流变暗，则立即开始保持。需要抓住。它最多等待 %1$d 分钟.
 "When the video without the watermark can't be fetched, save TikTok's own watermarked copy instead and say so. It's the size TikTok's own save uses, so it may be smaller than the quality you picked.",当无法获取没有水印的视频时，请保存TikTok自己的带水印的副本并说出来。这是TikTok自己保存使用的尺寸，因此它可能比你选择的质量小.
 When to send,何时发送
-"When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.",当你在视频播放时离开 TikTok 时，视频会在其他应用程序上方的小窗口中继续播放，并有一个按钮可以暂停。适用于信息流以及通过个人资料、搜索或声音打开的视频。需要 Android 8 或更高版本.
+"When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.",当你在视频播放时离开 TikTok 时，视频会在其他应用程序上方的小窗口中继续播放，并有按钮可以暂停以及切换到上一个或下一个视频。适用于信息流、LIVE 以及通过个人资料、搜索或声音打开的视频。需要 Android 8 或更高版本.
 "When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.",当你从图标打开 TikTok 时，信息流中的第一个视频会等待点击一下才能播放。链接、通知或快捷方式照常打开.
 "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.",启用“清晰显示”时，还隐藏底部的进度条、关闭按钮以及暂停和速度按钮。你仍然可以沿着底部边缘拖动以在视频中移动。要离开清晰显示，请按住视频并点击恢复显示，或捏合屏幕.
 "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.",当诊断日志记录打开时，一条消息会指出 Hushfeed 失败的部分。关闭仅在报告中保留失败.
@@ -2338,6 +2340,51 @@ Some recording files remain. Try deleting them again.,仍有录制文件未删�
 This setting isn't available. Search for another setting.,此设置不可用. 请搜索其他设置.
 Hide the Hushfeed row,隐藏 Hushfeed 入口
 "Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.",从 TikTok 的“设置和隐私”中移除 Hushfeed。要打开这些设置，请长按信息流顶部的“为你”，如果已开启“长按 Home 进行 Hushfeed 设置”，也可以长按 Home。如果两者都无法打开，此行会保留.
+Hide Settings and privacy rows,隐藏“设置和隐私”中的行
+"Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.",选择要从 TikTok 的“设置和隐私”页面中移除的行。下次打开该页面时生效，没有剩余行的分区也会隐藏其标题.
+Activity center,活动中心
+Manage posts,管理作品
+Content preferences,内容偏好
+Notifications,通知
+Time and well-being,时间与健康
+Family Pairing,家庭安全模式
+Sign up,注册
+Account,账号
+Security & permissions,安全与权限
+Analytics,数据分析
+Orders,订单
+Balance,余额
+QR code,二维码
+Share profile,分享主页
+TikTok Plus,TikTok Plus
+Invite friends,邀请好友
+Inbox mode,收件箱模式
+Audience controls,观众控制
+Background audio,后台播放音频
+Display,显示
+Commercial content library,商业内容库
+Accessibility,无障碍
+Home screen shortcuts,主屏幕快捷方式
+Join Amplify,加入 Amplify
+Contacts and location,通讯录和位置
+Shake to report,摇一摇反馈
+Free up space,释放空间
+Data Saver,流量节省
+Free data,免流量
+Live wallpaper,动态壁纸
+Check for updates,检查更新
+Lite mode,轻量模式
+TikTok Beta,TikTok Beta
+Safety Center,安全中心
+Privacy Center,隐私中心
+Privacy checkup,隐私检查
+Support,支持
+Deactivate or delete account,停用或删除账号
+Terms and Policies,条款和政策
+Policy updates,政策更新
+What's new on TikTok,TikTok 新功能
+Switch account,切换账号
+Log out,退出登录
 Open the search page,打开搜索页面
 Search didn't open. Restart TikTok and try again.,搜索未打开。请重启 TikTok 后重试.
 Fold the search into a button,将搜索收起为按钮
@@ -2635,3 +2682,43 @@ Hide search result tabs,隐藏搜索结果标签
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.",选择要从搜索结果顶部移除的标签，例如商店、LIVE 或地点。列表中是 TikTok 向你显示过的标签，“综合”始终保留.
 No search tabs have been seen yet,尚未看到搜索标签
 "Search for something once, then return here to choose its tabs.",先搜索一次，然后回到这里选择标签.
+Video download codec,视频下载编码
+HEVC first,优先 HEVC
+H.264 only,仅 H.264
+"At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.",在相同画质下，自动会保存为几乎所有播放器都能打开的 H.264。HEVC 通常更清晰，但一些较旧的播放器和电视无法播放.
+Pick which stories to save,选择要保存的快拍
+"When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.",当某人有不止一条快拍时，保存时会询问要保留哪些。你正在看的那条已勾选.
+Pick stories to save,选择要保存的快拍
+%1$s of %2$s stories are loaded. Watch further to load the rest.,已加载 %1$s / %2$s 条快拍。继续观看即可加载其余快拍.
+Story %1$s,快拍 %1$s
+On screen,屏幕上
+Pick at least one story,请至少选择一条快拍
+Shade behind the status bar,状态栏后的阴影
+"A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.",在时钟和状态图标后面加一层柔和的深色渐变，让它们在明亮的视频上也清晰易读。需要透视状态栏.
+Glass Stories button on Following,“正在关注”中的玻璃故事按钮
+"The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.",“正在关注”信息流顶部的故事按钮会变成两端圆润的玻璃效果。在 Android 12 及更高版本上，它后面的视频也会被模糊处理.
+Show message times,显示消息时间
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.,在聊天中的每条消息下方显示它的发送时间。TikTok 自带的时间标记保持不变.
+This photo post is already saved,该照片帖子已保存
+This story is already saved,该故事已保存
+Stretch the video to the screen,将视频拉伸至屏幕
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.,不裁剪任何内容，铺满整个窗口。为此视频会稍微变高或变宽。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
+Sort loaded videos on Favorites grids,对“收藏”网格中已加载的视频排序
+Show the country and date under the caption,在说明文字下方显示国家和日期
+Moves the country and the post date off the creator's row onto a line of their own below the caption.,将国家和发布日期从创作者那一行移到说明文字下方单独的一行.
+Previous video,上一个视频
+Next video,下一个视频
+Sort loaded videos in collections,对收藏夹中已加载的视频排序
+Same as Favorites grids,与“收藏”网格相同
+Hide the summary on LIVE previews,隐藏 LIVE 预览上的摘要
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.,信息流中的 LIVE 可以显示一张概括直播内容的摘要卡片。这会让它保持隐藏.
+Look up a commenter's country,查询评论者的国家/地区
+"Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.",按住评论可在其菜单中找到“显示账号国家/地区”。它会向 TikTok 询问该账号所在的位置，或其最新视频的发布地.
+Show account country,显示账号国家/地区
+Account based in %1$s,账号所在地：%1$s
+TikTok gives no country for this account,TikTok 未提供该账号的国家/地区
+Couldn't get the country. Try again.,无法获取国家/地区，请重试.
+Account country on profiles,个人资料上的账号国家/地区
+"A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.",个人资料的分享面板会多一个“账号国家/地区”按钮。它会向 TikTok 询问该账号所在的位置，或其最新视频的发布地.
+Account country,账号国家/地区
+Videos posted from %1$s,视频发布地：%1$s

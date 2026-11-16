@@ -36,6 +36,8 @@ NAVIGATION_BAR = "Lapp/badfella/extension/linkedin/NavigationBar;"
 SLIM_BEHAVIOR = "Lcom/linkedin/android/home/bottomnav/SlimBottomNavigationBehavior;"
 APP_COMPAT = "Landroidx/appcompat/app/AppCompatActivity;"
 MAIN_ACTIVITY = "Lcom/linkedin/android/infra/navigation/MainActivity;"
+NAV_PANEL_TRANSFORMER = "Lcom/linkedin/android/home/navpanel/HomeNavPanelTransformer;"
+NAV_PANEL_PRESENTER = "Lcom/linkedin/android/home/navpanel/presenter/HomeNavPanelSectionV2Presenter;"
 
 LINKEDIN_SIGNATURE = "443cb997718d0ac5162888bae5e4724582862676"
 
@@ -58,7 +60,7 @@ manifest = subprocess.check_output(
     [str(SDK / "aapt2.exe"), "dump", "badging", str(APK)],
     text=True, encoding="utf-8", errors="replace")
 expected_package = CLONE or "com.linkedin.android"
-assert f"package: name='{expected_package}' versionCode='217900' versionName='4.1.1271'" in manifest, manifest[:400]
+assert f"package: name='{expected_package}' versionCode='218000' versionName='4.1.1272'" in manifest, manifest[:400]
 if CLONE:
     assert "Install next to LinkedIn" in applied, "Clone patch not applied"
     assert f"application-label:'{args.clone_label}'" in manifest, "Clone app name missing"
@@ -120,7 +122,8 @@ with tempfile.TemporaryDirectory() as workspace:
                 classes[descriptor] += 1
                 if descriptor in (SDUI_FILTER, POST_MENU, COMPONENT_TRANSFORMER, SETTINGS, SETTINGS_ACTIVITY,
                                   MATERIAL_YOU, HIDE_ADS, GLASS_BAR, NAVIGATION_BAR, SLIM_BEHAVIOR,
-                                  APP_COMPAT, MAIN_ACTIVITY):
+                                  APP_COMPAT, MAIN_ACTIVITY, NAV_PANEL_TRANSFORMER, NAV_PANEL_PRESENTER) or descriptor.startswith(
+                                      "Lcom/linkedin/android/home/navpanel/HomeNavPanelFeature$"):
                     targets.setdefault(descriptor, name)
 
     assert classes[SDUI_FILTER] == 1, "LinkedIn SDUI filter is missing or duplicated"
@@ -150,6 +153,16 @@ with tempfile.TemporaryDirectory() as workspace:
     main_act = disassemble(targets[MAIN_ACTIVITY])
     assert "SettingsShortcut" in main_act and "onMainActivityCreated:" in main_act, \
         "SettingsShortcut hook not injected into MainActivity"
+
+    panel = disassemble(targets[NAV_PANEL_TRANSFORMER])
+    assert "NavPanelPatch;.filterPanel:" in panel, "Native Games filter missing"
+    assert "NavPanelPatch;.addSettingsItem:" not in panel, "Old full-width settings entry remains"
+    presenter = disassemble(targets[NAV_PANEL_PRESENTER])
+    assert "MoreMenu;.onSectionBind:" in presenter, "Shared shortcut card binding missing"
+    footer_dex = {name for descriptor, name in targets.items()
+                  if descriptor.startswith("Lcom/linkedin/android/home/navpanel/HomeNavPanelFeature$")}
+    assert any("MoreMenu;.addToFooter:" in disassemble(name) for name in footer_dex), \
+        "Footer settings card insertion missing"
 
     # The scroll hot path must carry the per-component memo and must not serialize every component.
     filter_dex = disassemble(targets[SDUI_FILTER])
@@ -242,7 +255,7 @@ with tempfile.TemporaryDirectory() as workspace:
             "appfinder_authority still names the stock suggestion provider"
 
 subprocess.run([str(SDK / "zipalign.exe"), "-c", "4", str(APK)], check=True)
-print(f"PASS: LinkedIn 4.1.1271, {len(applied)} patches, SDUI transformer hooks, "
+print(f"PASS: LinkedIn 4.1.1272, {len(applied)} patches, SDUI transformer hooks, "
       f"SettingsShortcut hook, sponsored/promoted/boosted filters, Pitch black resources and hooks, "
       f"floating glass navigation bar with a full-height slide, "
       f"{len(classes)} unique classes, ZIP alignment" +

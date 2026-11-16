@@ -2,9 +2,7 @@ package app.heymelody.patches.theme
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
+import app.heymelody.patches.shared.Constants.COMPATIBILITY_HEY_MELODY
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -23,19 +21,6 @@ private const val HEY_MELODY_APPLICATION =
     "Lcom/heytap/headset/HeyMelodyApplication;"
 private const val APPCOMPAT_DELEGATE = "Landroidx/appcompat/app/k;"
 private const val APP_MODE_GATE_CLASS = "LN8/c;"
-
-private val COMPATIBILITY_HEY_MELODY = Compatibility(
-    name = "HeyMelody",
-    packageName = "com.heytap.headset",
-    apkFileType = ApkFileType.APKM,
-    targets = listOf(
-        AppTarget(
-            version = "117.6.6",
-            isExperimental = false,
-            minSdk = 29
-        )
-    )
-)
 
 private val HEY_MELODY_THEME_NAMES = setOf(
     "MelodyUiBaseTheme",

@@ -1,5 +1,7 @@
 package org.ungoogled.patches.maps.misc
 
+import org.ungoogled.patches.maps.ui.mapsId
+import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -26,10 +28,10 @@ import org.w3c.dom.Element
 
 private const val PLAYING_MEDIA = "Lorg/ungoogled/ui/PlayingMedia;"
 // string/EXPAND_ and MINIMIZE_MEDIA_REMOTE_CONTROL_CONTENT_DESCRIPTION: the media button's two labels.
-private const val EXPAND_MEDIA_CONTROLS = 0x7f140c75
-private const val MINIMIZE_MEDIA_CONTROLS = 0x7f14136e
+private val EXPAND_MEDIA_CONTROLS get() = mapsId(ResourceType.STRING, "EXPAND_MEDIA_REMOTE_CONTROL_CONTENT_DESCRIPTION")
+private val MINIMIZE_MEDIA_CONTROLS get() = mapsId(ResourceType.STRING, "MINIMIZE_MEDIA_REMOTE_CONTROL_CONTENT_DESCRIPTION")
 // string/DEFAULT_MEDIA_APP_DIALOG_TITLE: the Default media app list (also shown by Show media playback controls).
-private const val DEFAULT_MEDIA_APP_TITLE = 0x7f140981
+private val DEFAULT_MEDIA_APP_TITLE get() = mapsId(ResourceType.STRING, "DEFAULT_MEDIA_APP_DIALOG_TITLE")
 private const val COMPAT_TOKEN = "Landroid/support/v4/media/session/MediaSessionCompat\$Token;"
 
 /**
@@ -281,14 +283,17 @@ val followPlayingMediaPatch = bytecodePatch(
         //    dialog, as it is handed back to be shown).
         fun Method.hasLiteral(id: Int) = implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == id.toLong() } == true
         val buttons = mutableListOf<String>()
+        val expand = EXPAND_MEDIA_CONTROLS
+        val minimize = MINIMIZE_MEDIA_CONTROLS
+        val defaultAppTitle = DEFAULT_MEDIA_APP_TITLE
         val lists = mutableListOf<Method>()
         classDefForEach { c ->
             if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
-            if (c.methods.any { it.hasLiteral(EXPAND_MEDIA_CONTROLS) } && c.methods.any { it.hasLiteral(MINIMIZE_MEDIA_CONTROLS) }) buttons += c.type
-            c.methods.filterTo(lists) { it.returnType.startsWith("L") && it.hasLiteral(DEFAULT_MEDIA_APP_TITLE) }
+            if (c.methods.any { it.hasLiteral(expand) } && c.methods.any { it.hasLiteral(minimize) }) buttons += c.type
+            c.methods.filterTo(lists) { it.returnType.startsWith("L") && it.hasLiteral(defaultAppTitle) }
         }
         val button = classDefBy(buttons.singleOrNull() ?: throw PatchException("media button: found ${buttons.size}"))
-        val relabel = button.methods.singleOrNull { it.name != "<init>" && it.hasLiteral(MINIMIZE_MEDIA_CONTROLS) }
+        val relabel = button.methods.singleOrNull { it.name != "<init>" && it.hasLiteral(minimize) }
             ?: throw PatchException("media button's relabelling method not found")
         val context = button.fields.singleOrNull { it.type == "Landroid/content/Context;" && !AccessFlags.STATIC.isSet(it.accessFlags) }
             ?: throw PatchException("media button keeps no Context")
@@ -299,7 +304,8 @@ val followPlayingMediaPatch = bytecodePatch(
         } ?: -1
         val click = mutable(
             button.methods.singleOrNull { m ->
-                !AccessFlags.STATIC.isSet(m.accessFlags) && m.parameterTypes.size == 1 && m.returnType != "V" && m.relabelAt() >= 0
+                // (it returned a click result up to 26.36, nothing since 26.43)
+                !AccessFlags.STATIC.isSet(m.accessFlags) && m.parameterTypes.size == 1 && m.relabelAt() >= 0
             } ?: throw PatchException("media button's click not found"),
         )
         val clickIns = click.refs()
@@ -309,7 +315,7 @@ val followPlayingMediaPatch = bytecodePatch(
         if (toggle?.opcode != Opcode.IPUT_BOOLEAN) throw PatchException("media button's click no longer toggles the panel right before relabelling")
         val free = (toggle as TwoRegisterInstruction).registerA
         if (free > 15) throw PatchException("media button's toggle in v$free, out of invoke range")
-        if (clickIns.drop(toggled + 1).any { it.opcode !in setOf(Opcode.SGET_OBJECT, Opcode.RETURN_OBJECT) }) {
+        if (clickIns.drop(toggled + 1).any { it.opcode !in setOf(Opcode.SGET_OBJECT, Opcode.RETURN_OBJECT, Opcode.RETURN_VOID) }) {
             throw PatchException("media button's click does more after relabelling")
         }
         click.addInstructions(

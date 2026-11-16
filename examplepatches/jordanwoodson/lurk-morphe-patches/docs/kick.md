@@ -253,6 +253,8 @@ details and validation follow.
 | Normal latency | Yes | Off | Turns off low-latency mode for live streams. |
 | Fill screen | Yes | Off | In landscape, 16:9 streams fill a taller phone's screen, cropped top and bottom, instead of showing side bars. |
 | Show video stats | Yes | Off | A panel over the player with latency, bitrate, buffer, dropped frames, quality and codecs, refreshed every second. |
+| Player gestures | Yes | Off | In landscape, vertical swipes on the left of the video set the brightness, on the right the volume. |
+| Refresh stream | Yes | On | Long-press the video to load its stream again; a video picks up where it was. |
 | Sleep timer | Yes | Off (choice) | Pauses playback a chosen time after it last started. |
 | Default startup tab | Yes | Home (choice) | Opens Kick on Browse or Following instead. |
 | Hide Home sections | Yes | Three switches, all off | Featured, recommended streams and categories rows on Home. |
@@ -262,6 +264,7 @@ details and validation follow.
 | Don't save searches | Yes | On | New searches aren't added to the search history. |
 | AMOLED black | Yes | Off (choice) | Pure black background, optionally near-black cards and sheets. |
 | Third-party emotes | Yes | 7TV emotes, off | The channel's and 7TV's global emotes in live chat. |
+| Third-party badges | Yes | 7TV badges, off | The 7TV badge each chatter chose, next to their name in live chat. |
 | Chat timestamps | Yes | Off; clock 24-hour | The time next to each chat message, signed out too, as 13:05 or 1:05. |
 | Chat text size | Yes | Kick's size; Compact chat, off | Chat text from 12 to 24 px; less space between messages. |
 | Chat keywords | Yes | Off; mentions on, vibration off, lists empty | Tints messages that mention you or contain highlight words, optionally vibrating; hides blocked words and users. |
@@ -277,7 +280,12 @@ screen), nags (Hide rating prompt), local privacy (Don't save searches), and fea
 what the same patch does by default on Twitch (Show deleted messages, Background audio).
 
 There is no cookie-notice or Premium-unlock patch: no corresponding Kick feature
-was established. The VOD patch does not promise removal of ads already stitched
+was established. Kick 40.34.0 shows no cookie or consent notice: its only consent code,
+`AdsConsentInitializer`, asks OneTrust's mobile API (`mobile-data.onetrust.io/cfw/cmp/v1/banner`) at start
+whether a banner applies and, when OneTrust answers that none does (`showBanner` false with Kick's reason code)
+and nothing is stored, records the default consent there (`/save-log-consent`, `BANNER_CLOSE`) without drawing
+anything. Nothing in the bundle renders a banner, so *Block cookie notice* (Twitch, Rumble) has nothing to hide on
+Kick. The VOD patch does not promise removal of ads already stitched
 into the source stream. Its generator still completes with an object, allowing
 both the VOD and live-rewind consumers to use their existing original-URL fallback.
 Live playback authorization and media URLs remain unchanged.
@@ -599,6 +607,65 @@ gone a second after the switch was turned off. `bin/test-kick` runs Kick's real 
 (`PlayerProbe`) with a stand-in IVS player and Amazon's own `Statistics` and `Quality`: the six expected lines with the
 switch on, drawn in the top left corner only, Kick's own code still running after the hook, nothing read from the
 player while off, a player that throws tolerated, and the panel removed once the switch is off.
+
+### Player gestures
+
+The same gestures as on Rumble, under the same key (`player_gestures`, off by default): in landscape, a vertical
+swipe on the left third of the video sets the window's brightness, on the right third the media volume, with a
+"Brightness 80%" or "Volume 47%" label in the middle of the screen. Kick's player controls are React Native views
+laid over its native player view (`KickIvsPlayerV2View`), and they take the touches, so no view of the player can
+see a swipe first. The touch is taken where it enters the app instead: `MainActivity` has no `dispatchTouchEvent`
+of its own, and the patch adds one that asks `KickTouch.dispatch` first and otherwise calls its superclass's, as
+Rumble's does. The patch hands `KickTouch` the player view's class (found as the class of
+`updateSurfaceViewTransform`, Fill screen's fingerprint), and a touch counts only when it starts on a shown
+instance of it that is at least half the window wide, between its top 15% (the minimize, cast and settings
+buttons) and bottom 20% (the seek bar), outside picture-in-picture and TalkBack. The touch down always reaches
+Kick; it becomes a swipe only once it moves past the touch slop and more than twice as far vertically as
+sideways, and then Kick gets a cancel and Lurk the rest of the touch. Taps, a second finger (pinch to zoom),
+sideways drags and the middle third of the video stay Kick's, which keeps Kick's own vertical swipe there (in
+fullscreen it leaves fullscreen). The brightness is the window's own, so it doesn't change the system setting,
+and it goes back to the system's at the first touch after leaving landscape. The patch fails if `MainActivity`
+ever gets a `dispatchTouchEvent` of its own.
+
+Checked: `tests/kick/test_touch.py` (in `bin/test-host`) runs the production `KickTouch` on the JVM with a window
+double: which touches it takes and which it leaves to Kick (off, unregistered, the middle, the edges, the chat
+column, portrait, picture-in-picture, TalkBack, a small or hidden player, a sideways drag, two fingers), the
+single cancel, the volume and brightness it sets and the brightness handed back in portrait. On the emulator
+(Android 16, 1600x720 in landscape), signed out, on a live channel in fullscreen with the chat beside the player:
+with the switch on, a swipe up on the right of the video raised the media volume from 7 to 14 of 15 and a swipe
+down lowered it to 7, a swipe up on the left set the window's brightness override to 0.82, a swipe in the middle
+left both alone and let Kick leave fullscreen, and the first tap back in portrait cleared the override; with the
+switch off (no restart), the same swipes changed neither and Kick's own swipe left fullscreen.
+
+### Refresh stream
+
+The same switch as on Twitch and Rumble (`refresh_stream`, on by default). Kick's player view keeps the address
+React Native last gave it (`streamUri`) and loads one through `setStreamUrl(String)`, which also resets the
+view's per-stream state and sends React Native `onLoadStart`, as for any new stream. A long press on the video
+(the area Player gestures uses, in either orientation, outside picture-in-picture and TalkBack: the touch held
+within the touch slop for Android's long-press timeout) calls that method again with the same address. Kick's
+IVS addresses carry a playback token that expires after about ten minutes, but its channels don't require it: on
+2026-11-15 a live channel's playlist loaded with a token past its expiry and with no token at all (a malformed
+token is refused), so the reload works however long the stream has been open. A stream with a finite duration
+(a video; the view's `lastDuration`, from the IVS player) then seeks back to the second it was at
+(`lastPositionInSeconds`, through the view's `seekTo`); a live stream loads at the live edge. Kick's own touch
+gets a cancel, so the press doesn't end as a tap on its controls; a haptic tick and a "Refreshing stream" label
+say it happened. The touch comes in through the same `MainActivity.dispatchTouchEvent` as Player gestures; the
+patch bridges `KickTouch`'s `reload`, `duration`, `position` and `seek` stubs to the view's fields and methods and
+fails if any of them is gone. Kick has no long press of its own on the player (checked on the emulator: nothing
+happened). Kick's player error screens are React Native and replace the player, so unlike Rumble's, they aren't a
+place to tap; Kick retries once by itself when a load fails on its playback token.
+
+Checked: `tests/kick/test_touch.py` runs `KickTouch` with the four bridges swapped for recorders (as the patch swaps
+them for the view's code): a press held past the timeout reloads once with one cancel and the label, in portrait
+and with Player gestures on; moving past the slop, lifting early, a second finger, beside the player, its top edge,
+the switch off, picture-in-picture or no stream address leave the touch to Kick; a video seeks back, a live stream
+(duration -1 or endless) doesn't.
+On the emulator (Android 16), signed out, with Show video stats on, on a live channel in portrait: a long press on
+the video logged `refresh stream: reloaded (duration -1)`, showed the label, and the stats panel's dropped frames went
+from 200 to 0 and its bitrate restarted at 731 kbps while the stream kept playing; with the switch off the same press
+logged nothing and the counters kept counting. Not seen on the device: a video seeking back (both VOD pages tried
+stayed black on the signed-out emulator before any long press) and a stream that was really stuck.
 
 ### Mute stitched live ads
 
@@ -982,7 +1049,12 @@ transient attempts; 429 honors a capped Retry-After. Successful globals render w
 owner lookup stalls. Failed or malformed refreshes retain the last valid catalog. Authoritative no-set responses
 and omitted empty emote vectors clear the removed entries and reconcile set subscriptions. The owner's Kick
 user ID comes from the same Kick response the app already received for the channel (`KickHttp`), so the page
-never asks Kick itself; a channel whose owner the app hasn't seen gets globals only. Native channel lookup maps
+never asks Kick itself; a channel whose owner the app hasn't seen gets globals only. Kick 40.34.0's stream screen
+asks only for the channel info (`/api/v2/channels/{slug}/info`), which has no `user_id`; its owner's
+`profile_pic` lives at `https://files.kick.com/images/user/{user ID}/profile_image/...`, so `KickChat` reads the
+ID from that address when the response has no `user_id` (four channels checked against their full responses).
+Before, a chat opened from the stream screen got globals only; on the emulator, a live channel opened from its
+channel page now loads its 270 channel emotes next to the 45 globals (the page's `sevenTvCount`). Native channel lookup maps
 hold at most 256 entries.
 
 Active-set and emote-data zero-width flags layer over the adjacent emote, including a
@@ -1001,7 +1073,7 @@ normal request IP metadata; it receives no Kick credentials or chat draft. Becau
 lookup repeats every five minutes and the socket stays open while a chat is visible, 7TV can
 tell from your IP address which channels you watch and for how long; the patch description and
 the switch say so. Images load from **cdn.7tv.app**. With the patch excluded or the switch off, Lurk makes no provider
-requests. 7TV badges and paints are not included.
+requests. 7TV paints are not included; 7TV badges are their own switch (Third-party badges).
 
 The WebView sends only bounded catalog snapshots for its current native document token
 and channel. Native validation strips unknown fields, rejects foreign origins/stale
@@ -1042,6 +1114,45 @@ host event counter, followed by stock draft/selection setters. Text and caret ch
 atomically, so the later native span replacement preserves the caret's distance from
 the new end. There is no delayed correction to overwrite later user movement. Authenticated
 send correctness requires a separately authorized send test.
+
+### Third-party badges
+
+"7TV badges" (`badges_7tv`, Twitch's key, off by default, applies after a restart) shows the 7TV badge each chatter
+chose after Kick's own badges, before the name. Of the badge sources Twitch has, only 7TV knows Kick accounts:
+FrankerFaceZ and Chatterino list Twitch user IDs and pronouns.alejo.io looks up Twitch logins, so Kick has no
+switches for them. 7TV publishes no list of badge holders. Its event service (`wss://events.7tv.io/v3`) pushes, for
+a channel, the badge each chatter there chose (an `entitlement` whose user lists their linked accounts, the Kick one
+as `platform: "KICK"` with the Kick user ID) and each badge's images (a `cosmetic`), which is how 7TV's browser
+extension learns them; for Kick the channel is named by its owner's Kick user ID. Subscribing to `cosmetic.*` and
+`entitlement.*` with `{platform: "KICK", ctx: "channel", id: <owner>}` for 40 s delivered six badges and their
+holders on a large channel (xQc) and two on a 5,000-viewer one (2026-11-15).
+
+The chat page script does it all (`sevenTvBadges` in `chat-page.js`): one socket, the same heartbeat watchdog and
+capped reconnects as the 7TV emotes socket, closed while the page is hidden and at teardown. A badge's image is
+the largest file up to 3x from its `//cdn.7tv.app/badge/<id>` host, the still copy when it's animated, as on
+Twitch; any other host or file name is refused. Each chat line carries its sender's Kick user ID
+(`data-sender-id`, pinned in the page contract), and its `.user-wrapper` holds the timestamp, Kick's badges and
+the `.username`; the badge goes in as one more `<img class="badge">` before the name, on lines already shown, on
+new ones and when a holder's badge arrives, changes or is removed later. At most 20,000 holders and 2,000 badges
+are kept per page. `KickChat` passes `sevenTvBadges` and the owner (`sevenTvUser`, from `KickHttp` as for 7TV
+emotes; see there for the channel info response) to the script; KickHttp, which learns the owner, is added to
+Kick's HTTP clients while either 7TV switch is on, when they are built at start, hence the restart. Without a
+known owner nothing connects. 7TV learns the channel's owner and the viewer's IP address while the chat is open,
+nothing about the account or the chatters on screen, and no chatter is looked up; images load from
+`cdn.7tv.app` with no referrer.
+
+Checked: `tests/kick/test_chat_page.py` (headless Chrome, in `bin/test-host`) runs the script with a stand-in event
+socket: the two subscriptions, no HTTP lookups, a holder whose badge isn't defined yet, the badge's place and file,
+new lines, a changed and a removed badge, refused hosts and file names, teardown without reconnects and nothing
+without an owner. `bin/test-kick-chat` checks on ART that `KickChat` passes the switch and the owner without turning
+on 7TV emotes. On the emulator, signed out, with only 7TV badges on and Kick restarted, on a live channel with about
+5,000 viewers: the page reported `7tv badges 1820952` (the owner, read from the channel info response), and through
+the WebView debugger its socket had received one badge (a Christmas 2024 gifter badge) and its holder within a
+minute. That holder didn't chat while it was watched (about six minutes), so a copy of one of the page's own chat
+lines with the holder's Kick ID as sender was added to the list: it got the badge between the timestamp and the
+name, at Kick's badge size, with its image loaded from cdn.7tv.app (54 px wide, `3x_static.webp`). With the switch
+off and Kick restarted, the page reported no badges and opened no badge socket. A real chat line from a badge holder
+on the device was not seen.
 
 ## Implementation contracts and verification
 

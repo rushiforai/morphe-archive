@@ -43,6 +43,15 @@ Implication: installing this file alone fails (missing required splits). Patch t
 are the same. Known difference: `MastheadAdManagerDelegate` has no deferred loader in 26.12.0.
 Patches are verified to apply to both versions with Morphe CLI 1.18.1.
 
+### 26.16.1 (APKMirror bundle)
+`com.fivemobile.thescore_26.16.1-40216_…apkmirror.com.apkm`: versionCode 40216, a complete bundle
+(base + `config.arm64_v8a` + `config.xxxhdpi`). All fingerprints resolve unchanged and hook the same methods as
+26.15.0 (checked by diffing the original and patched dex). Differences:
+- The `com.thescore.new_matchup_page` check moved out of an R8 lambda into `MatchupNavigationInterceptor.a()`
+  (`Llbg;`). The key is also listed in a new `MatchupFeatureFlagKeys.kt` list (with `matchup_view_bracket_enabled`,
+  `play_by_play_redesign`, `soccer_goals_section`, `matchup_live_data_refresh`), which is not a check.
+- `MatchupPageStrategy.kt` has more strategy classes (19 hooked getters vs 16), all covered by the generic hook.
+
 ## 2. Ads
 
 ### SDKs present

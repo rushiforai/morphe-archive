@@ -26,12 +26,12 @@ Third-party attribution
 The chess.com patches (patches/src/main/kotlin/dev/hyzor/patches/chesscom and
 extensions/chesscom) are derived from Noam's Morphe Patches
 (https://github.com/ImNoammm/Noams-Morphe-Patches), GPLv3, with additional
-chess.com 4.10.23 support. The chess.com clone patch is derived from
+chess.com 4.10.27 support. The chess.com clone patch is derived from
 PrathxmOp/Prathxm-Patches (https://github.com/PrathxmOp/Prathxm-Patches), GPL-3.0.
 
 The Sleep as Android patches (patches/src/main/kotlin/dev/hyzor/patches/sleep) descend from
 Entree3k/Morning-Entree-Patches (https://github.com/Entree3k/Morning-Entree-Patches), GPLv3,
-with additional 20261006 support, fingerprint hooks and a cloud patch.
+with additional 20261016 support, fingerprint hooks and a cloud patch.
 
 The SnoreLab patch (patches/src/main/kotlin/dev/hyzor/patches/snorelab) is derived from
 hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), GPLv3.
@@ -46,7 +46,7 @@ additional Duolingo 6.104.3 support.
 The Nova Launcher patch (patches/src/main/kotlin/dev/hyzor/patches/nova) is derived from
 rushiranpise/morphe-patches (https://github.com/rushiranpise/morphe-patches) and
 hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), both GPLv3, with
-additional Nova Launcher 8.9.6 support.
+additional Nova Launcher 8.9.7 support.
 
 The FolderSync patch (patches/src/main/kotlin/dev/hyzor/patches/foldersync) is derived from
 arandomhooman/hoomans-morphe-patches (https://github.com/arandomhooman/hoomans-morphe-patches),
@@ -59,3 +59,14 @@ with additional Projectivy Launcher 4.73 support.
 The Solid Explorer patch (patches/src/main/kotlin/dev/hyzor/patches/solidexplorer) is derived
 from hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), GPLv3, with
 additional Solid Explorer 3.6.4 support.
+
+The nzb360 patch (patches/src/main/kotlin/dev/hyzor/patches/nzb360) is derived from
+rushiranpise/morphe-patches (https://github.com/rushiranpise/morphe-patches), GPLv3, with
+additional nzb360 25.3 support.
+
+The Trakt patch (patches/src/main/kotlin/dev/hyzor/patches/trakt) is derived from
+ineednotitle/Proteus-Patches (https://github.com/ineednotitle/Proteus-Patches), GPLv3, with
+additional Trakt 3.28.0 support.
+
+The Trakt `Fix sign-in` patch (patches/src/main/kotlin/dev/hyzor/patches/trakt/auth) is original
+to this bundle.

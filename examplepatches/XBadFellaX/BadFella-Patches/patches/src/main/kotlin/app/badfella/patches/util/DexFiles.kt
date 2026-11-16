@@ -24,6 +24,11 @@ internal class DexHandle(
         changed = true
     }
 
+    fun addClass(newClass: ClassDef) {
+        classes = classes + newClass
+        changed = true
+    }
+
     fun pending(): PendingFile? = if (!changed) null else PendingFile(file) { temp ->
         DexPool.writeTo(temp.absolutePath, ImmutableDexFile(dex.opcodes, classes))
     }

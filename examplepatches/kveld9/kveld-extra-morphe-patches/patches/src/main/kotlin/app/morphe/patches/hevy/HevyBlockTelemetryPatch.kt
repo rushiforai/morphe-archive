@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val hevyTelemetryResourcePatch = resourcePatch(
@@ -17,8 +18,7 @@ private val hevyTelemetryResourcePatch = resourcePatch(
     execute {
         val manifestFile = get("AndroidManifest.xml")
         if (!manifestFile.exists()) {
-            println("[Block Trackers] AndroidManifest.xml not found - skipping manifest purge.")
-            return@execute
+            error("[Block Trackers] AndroidManifest.xml not found.")
         }
 
         val blockedPermissions = setOf(
@@ -146,14 +146,14 @@ val hevyBlockTelemetryPatch = bytecodePatch(
             definingClass = "Lcom/adjust/sdk/PackageHandler;",
             name = "addPackage",
         )
-        adjustAddFp.method.addInstructions(0, "return-void")
+        adjustAddFp.method.replaceWithReturnVoid()
         hookedMethods.add("PackageHandler.addPackage")
 
         val adjustSendFp = Fingerprint(
             definingClass = "Lcom/adjust/sdk/PackageHandler;",
             name = "sendFirstPackage",
         )
-        adjustSendFp.method.addInstructions(0, "return-void")
+        adjustSendFp.method.replaceWithReturnVoid()
         hookedMethods.add("PackageHandler.sendFirstPackage")
 
         // 3. Facebook AppEvents flush
@@ -161,7 +161,7 @@ val hevyBlockTelemetryPatch = bytecodePatch(
             definingClass = "Lcom/facebook/reactnative/androidsdk/FBAppEventsLoggerModule;",
             name = "flush",
         )
-        fbFlushFp.method.addInstructions(0, "return-void")
+        fbFlushFp.method.replaceWithReturnVoid()
         hookedMethods.add("FBAppEventsLoggerModule.flush")
 
         // 4. Branch Metrics tracking stub

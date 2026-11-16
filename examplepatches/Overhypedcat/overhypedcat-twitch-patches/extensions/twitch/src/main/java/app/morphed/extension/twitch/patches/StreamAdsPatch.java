@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.lang.reflect.Method;
 
+import app.morphed.extension.twitch.Included;
 import app.morphed.extension.twitch.adblock.AccessTokenClient;
 import app.morphed.extension.twitch.adblock.AdBlocker;
 import app.morphed.extension.twitch.adblock.BackupStreamFinder;
@@ -16,6 +17,7 @@ import app.morphed.extension.twitch.adblock.LoggingHttp;
 import app.morphed.extension.twitch.adblock.Problem;
 import app.morphed.extension.twitch.adblock.UrlConnectionHttp;
 import app.morphed.extension.twitch.hls.FakeAd;
+import app.morphed.extension.twitch.settings.PatchSettings;
 
 /**
  * Entry point used by the patched IVS HTTP client.
@@ -25,8 +27,8 @@ public final class StreamAdsPatch {
     private static final String TAG = "TwitchMorphed";
 
     /**
-     * Logcat and, while the Detailed log setting is on, the log file. Lines for every poll and request
-     * are only written while the Detailed log is on.
+     * Logcat and, while Debug mode is on, the log file. Lines for every poll and request are only written
+     * while Debug mode is on.
      */
     static final Logger LOGGER = new Logger() {
         @Override
@@ -70,6 +72,15 @@ public final class StreamAdsPatch {
     public static void setupFailed(Throwable t) {
         DebugLog.log("Ad blocker setup failed: " + Log.getStackTraceString(t));
         PROBLEMS.report(Problem.PROCESSING_FAILED, "setup: " + t);
+    }
+
+    /** Whether a usher playlist is a preview's (feed thumbnails that play): not the stream being watched. */
+    public static boolean isPreview(String usherUrl) {
+        try {
+            return AdBlocker.isPreview(usherUrl);
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /** Called as the first player HTTP client is made, so the label is ready before the first ad. */
@@ -157,6 +168,8 @@ public final class StreamAdsPatch {
     }
 
     public static boolean shouldInspect(String url) {
+        if (!Included.adBlock()
+                || !PatchSettings.adBlock()) return false; // left out, or switched off
         try {
             if (AD_BLOCKER.shouldInspect(url)) return true;
             AD_BLOCKER.checkRequest(url);

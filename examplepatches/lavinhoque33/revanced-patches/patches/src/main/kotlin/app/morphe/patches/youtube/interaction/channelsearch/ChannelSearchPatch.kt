@@ -3,17 +3,21 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2964
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24: adapted to the RVX settings, toolbar hook and patcher.
+ * Modified by lavinhoque33, 2026-11-14: adapted to the RVX settings, toolbar hook and patcher.
  */
 
 package app.morphe.patches.youtube.interaction.channelsearch
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
+import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -137,7 +141,8 @@ private fun Method.indexOfEndpointRead(stringIndex: Int) =
     }
 
 /**
- * Matches two identical methods in different classes, either method works here.
+ * Returns the browse id unchanged, or null when browse data is absent.
+ * Excludes other strings of the same extension that normalize an empty value to null.
  */
 context(context: BytecodePatchContext)
 private fun findBrowseIdMethod(endpointField: FieldReference, browseDataExtensionField: FieldReference) =
@@ -146,7 +151,10 @@ private fun findBrowseIdMethod(endpointField: FieldReference, browseDataExtensio
         returnType = "Ljava/lang/String;",
         parameters = listOf(endpointField.type),
         filters = listOf(
-            fieldAccess(browseDataExtensionField, Opcode.SGET_OBJECT)
+            fieldAccess(browseDataExtensionField, Opcode.SGET_OBJECT),
+            fieldAccess(opcode = Opcode.IGET_OBJECT, type = "Ljava/lang/String;"),
+            literal(0L, location = MatchAfterWithin(2)),
+            opcode(Opcode.RETURN_OBJECT, location = MatchAfterImmediately())
         )
     ).matchAll(1..2).first().originalMethod
 

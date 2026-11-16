@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3446
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * modified by lavinhoque33, 2026-10-17: ported from Morphe dev into the RVX fork; fork imports,
  * and the setting is added with the fork's RVX-style addListPreference from a resource patch.
@@ -17,9 +18,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-// modified by lavinhoque33, 2026-10-17: fork package paths for compatibility, extension and settings
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.sharedExtensionPatch
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.utils.settings.CategoryType
 import app.morphe.patches.music.utils.settings.addListPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
@@ -31,8 +33,6 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/music/patches/PlaylistTrackTapPatch;"
 private const val EXTENSION_COMMAND_INTERFACE = $$"Lapp/morphe/extension/music/patches/PlaylistTrackTapPatch$Command;"
 
-// modified by lavinhoque33, 2026-10-17: fork settings UI is RVX XML; Morphe's PreferenceScreen.PLAYER
-// ListPreference becomes an in-process list preference in the Player category.
 private val playlistTrackTapResourcePatch = resourcePatch {
     dependsOn(settingsPatch)
     execute {
@@ -53,8 +53,8 @@ val playlistTrackTapPatch = bytecodePatch(
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,
-        // modified by lavinhoque33, 2026-10-17: settings are added by the fork resource patch.
         playlistTrackTapResourcePatch,
+        versionCheckPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
@@ -62,7 +62,12 @@ val playlistTrackTapPatch = bytecodePatch(
     execute {
         // region Resolve the obfuscated proto classes.
 
-        val builderMatches = WatchEndpointCommandBuilderFingerprint.instructionMatches
+        val builderMatches = if (is_7_25_or_greater) {
+            WatchEndpointCommandBuilderFingerprint.instructionMatches
+        } else {
+            LegacyWatchEndpointCommandBuilderFingerprint.instructionMatches
+        }
+        val musicVideoFieldOffset = if (is_7_25_or_greater) 1 else 0
 
         val watchEndpointDefaultInstanceField = builderMatches[0].getFieldAccessed()
         val watchEndpointClass = watchEndpointDefaultInstanceField.definingClass
@@ -73,22 +78,26 @@ val playlistTrackTapPatch = bytecodePatch(
         val messageBuilderClass = createBuilderMethod.returnType
 
         val playlistIdField = builderMatches[3].getFieldAccessed()
-        val presenceBitsField = builderMatches[5].getFieldAccessed()
-        val playlistIndexField = builderMatches[6].getFieldAccessed()
+        val presenceBitsField = builderMatches[4 + musicVideoFieldOffset].getFieldAccessed()
+        val playlistIndexField = builderMatches[5 + musicVideoFieldOffset].getFieldAccessed()
 
-        val commandDefaultInstanceField = builderMatches[7].getFieldAccessed()
-        val watchEndpointExtensionField = builderMatches[8].getFieldAccessed()
+        val commandDefaultInstanceField = builderMatches[6 + musicVideoFieldOffset].getFieldAccessed()
+        val watchEndpointExtensionField = builderMatches[7 + musicVideoFieldOffset].getFieldAccessed()
         val commandClass = commandDefaultInstanceField.definingClass
 
-        val setExtensionMethod = builderMatches[9].getMethodCalled()
+        val setExtensionMethod = builderMatches[8 + musicVideoFieldOffset].getMethodCalled()
         val extendableBuilderClass = setExtensionMethod.definingClass
 
         val getExtensionMethod = getCommandBuilderExtensionFingerprint(
             extendableBuilderClass, setExtensionMethod.parameterTypes.first().toString()
         ).method
 
-        val queueAddEndpointExtensionField = QueueAddEndpointCommandFingerprint
-            .instructionMatches.first().getFieldAccessed()
+        val queueAddEndpointFingerprint = if (is_7_25_or_greater) {
+            QueueAddEndpointCommandFingerprint
+        } else {
+            LegacyQueueAddEndpointCommandFingerprint
+        }
+        val queueAddEndpointExtensionField = queueAddEndpointFingerprint.instructionMatches.first().getFieldAccessed()
         val queueAddEndpointClass = queueAddEndpointExtensionField.definingClass
         val queueAddEndpointDefaultInstanceField = classDefBy(queueAddEndpointClass).fields.first {
             AccessFlags.STATIC.isSet(it.accessFlags) && it.type == queueAddEndpointClass

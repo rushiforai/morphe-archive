@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.spicetify.patches.spotify.spotifyCompatibility
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.value.IntEncodedValue
@@ -75,6 +76,14 @@ val shufflePlusPatch = bytecodePatch(
         description = "A tap on the shuffle button runs Shuffle+ too, instead of Spotify's own shuffle.",
     )
 
+    val commandShuffles by booleanOption(
+        key = "commandShuffles",
+        default = false,
+        title = "Shuffle from car screens and other controls",
+        description = "Turning shuffle on from Android Auto or any other control runs Shuffle+ " +
+            "instead of Spotify's own shuffle.",
+    )
+
     val recentHours by intOption(
         key = "recentHours",
         default = 24,
@@ -123,7 +132,60 @@ val shufflePlusPatch = bytecodePatch(
             mutableClassDefBy("$EXT/NowPlayingShuffle;").methods.single { it.name == "tapShuffles" }
                 .replaceInstruction(0, "const/4 v0, 0x1")
         }
+
+        // C1: the player's "set shuffle" sender, which every shuffle toggle passes (phone, Android Auto, other controls).
+        // Only hooked when the option is on, so the default build is unchanged.
+        if (commandShuffles == true) {
+            val (sender, valueStore) = findShuffleSender()
+            mutableClassDefBy(sender.first).methods.single { it.name == sender.second.name && it.parameterTypes == sender.second.parameterTypes }
+                .addInstructions(
+                    valueStore.first,
+                    "invoke-static {v${valueStore.second}}, $EXT/CommandShuffle;->onShuffleCommand(Z)Z\n" +
+                        "move-result v${valueStore.second}",
+                )
+            // C2: Spotify's Esperanto sender, where the shuffle toggle's SetOptions request is rewritten.
+            val client = mutableClassDefBy("Lcom/spotify/esperanto/esperanto/ClientBase;").methods
+                .single { it.name == "callSingle" && it.parameterTypes.size == 3 }
+            client.addInstructions(
+                0,
+                listOf(
+                    "invoke-static {p1, p2, p3}, $EXT/CommandShuffle;->onCall(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;",
+                    "move-result-object p3",
+                    "check-cast p3, ${client.parameterTypes[2]}",
+                ).joinToString("\n"),
+            )
+            mutableClassDefBy("$EXT/CommandShuffle;").methods.single { it.name == "commandShuffles" }
+                .replaceInstruction(0, "const/4 v0, 0x1")
+        }
     }
+}
+
+private const val SET_SHUFFLING_COMMAND = "Lcom/spotify/player/model/command/SetShufflingContextCommand;"
+private const val SET_SHUFFLING_VALUE = "$SET_SHUFFLING_COMMAND->value()Z"
+
+/**
+ * The method that sends Spotify's "SetShufflingContext" request for a SetShufflingContextCommand, and where to
+ * hook it: the index after the move-result of the command's value() and that result's register. Exactly one
+ * method must take the command, read its value and name the request, or the patch refuses.
+ */
+private fun BytecodePatchContext.findShuffleSender():
+    Pair<Pair<String, com.android.tools.smali.dexlib2.iface.Method>, Pair<Int, Int>> {
+    val found = mutableListOf<Pair<Pair<String, com.android.tools.smali.dexlib2.iface.Method>, Pair<Int, Int>>>()
+    classDefForEach { cls ->
+        for (method in cls.methods) {
+            if (method.parameterTypes != listOf(SET_SHUFFLING_COMMAND)) continue
+            val code = method.implementation?.instructions?.toList() ?: continue
+            val refs = code.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+            if (refs.none { it == SET_SHUFFLING_VALUE }) continue
+            if (code.none { (it as? ReferenceInstruction)?.reference?.toString() == "SetShufflingContext" }) continue
+            val call = code.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == SET_SHUFFLING_VALUE }
+            val result = code.getOrNull(call + 1)
+            if (result?.opcode != Opcode.MOVE_RESULT) continue
+            found += (cls.type to method) to ((call + 2) to (result as OneRegisterInstruction).registerA)
+        }
+    }
+    return found.singleOrNull()
+        ?: throw PatchException("Spotify ABI changed: found ${found.size} shuffle command senders. $ABI_HINT")
 }
 
 /** Right after the only store of the `nativeRouter` field, made on [self], the `this` register. Null for any other shape. */

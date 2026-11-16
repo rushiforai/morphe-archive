@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2029
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.music.layout.hide.settingsmenu
@@ -15,8 +16,8 @@ private const val SETTINGS_HEADERS_FRAGMENT_CLASS =
     "Lcom/google/android/apps/youtube/music/settings/fragment/SettingsHeadersFragment;"
 
 /**
- * YT Music top-level Settings fragment. onCreatePreferences reassigns p0 to the peer object at
- * entry, so the captured iget-object recovers the original fragment from `peer.fragment` at exit.
+ * YT Music top-level Settings fragment. Capture the native fragment field read before its peer
+ * and parameter registers are reused, so settings hooks can retain the actual fragment until exit.
  */
 internal object SettingsHeadersOnCreatePreferencesFingerprint : Fingerprint(
     definingClass = SETTINGS_HEADERS_FRAGMENT_CLASS,

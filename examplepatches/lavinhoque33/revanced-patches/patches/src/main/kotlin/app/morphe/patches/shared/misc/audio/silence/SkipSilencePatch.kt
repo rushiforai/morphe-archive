@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3467
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.shared.misc.audio.silence
@@ -53,7 +54,8 @@ internal fun skipSilencePatch(
             )
         }
 
-        SetSkipSilenceEnabledFingerprint.matchSingle().method.addInstructions(
+        val silenceFlag = ApplySkipSilenceFingerprint.instructionMatches[1].getFieldAccessed()
+        setSkipSilenceEnabledFingerprint(silenceFlag).matchSingle().method.addInstructions(
             0,
             """
                 invoke-static { p1 }, $EXTENSION_CLASS->isSkipSilenceEnabled(Z)Z

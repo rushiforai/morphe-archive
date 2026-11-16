@@ -1,7 +1,7 @@
 package arpit.morphe.patches.c131.premium
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import arpit.morphe.patches.c131.shared.Constants.COMPATIBILITY_C131
 
 /**

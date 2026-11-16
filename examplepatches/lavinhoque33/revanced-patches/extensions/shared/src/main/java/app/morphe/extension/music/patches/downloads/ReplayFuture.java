@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -21,7 +22,7 @@ import app.morphe.extension.shared.utils.Logger;
  * The future the offline replay answers a watch-next request with. Only the app's {@link ListenableFuture} interface
  * is used: the app's other future classes are shrunk and renamed, so the extension cannot name them.
  */
-final class ReplayFuture implements ListenableFuture<Object> {
+class ReplayFuture implements ListenableFuture<Object> {
     private record Listener(Runnable task, Executor executor) {}
 
     private final Object lock = new Object();

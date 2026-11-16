@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -40,6 +41,15 @@ public final class PlayerFlyoutMenuFilter extends Filter {
     private final ByteArrayFilterGroup shortsPlayerSettingsCaptionsButton = new ByteArrayFilterGroup(
             null,
             "closed_captions"
+    );
+    private final ByteArrayFilterGroup premiumUpsell = new ByteArrayFilterGroup(
+            null,
+            "premium_upsell"
+    );
+    private final ByteArrayFilterGroup onTheGoUpsellParameters = new ByteArrayFilterGroup(
+            null,
+            // Base64 protobuf field 145.1 = 15 identifies this upsell; omit URL/base64 padding.
+            "igkCCA8"
     );
     private final ByteArrayFilterGroup flyoutLoopVideoButton;
     private final ByteArrayFilterGroup qualityMenuButton;
@@ -214,6 +224,12 @@ public final class PlayerFlyoutMenuFilter extends Filter {
 
             if (byteArrayException.check(buffer).isFiltered()) {
                 return false;
+            }
+
+            if (Settings.HIDE_PLAYER_FLYOUT_ON_THE_GO.get()
+                    && onTheGoUpsellParameters.check(buffer).isFiltered()
+                    && premiumUpsell.check(buffer).isFiltered()) {
+                return true;
             }
 
             if (Settings.HIDE_PLAYER_FLYOUT_MENU_LOOP.get() && flyoutLoopVideoButton.check(buffer).isFiltered()) {

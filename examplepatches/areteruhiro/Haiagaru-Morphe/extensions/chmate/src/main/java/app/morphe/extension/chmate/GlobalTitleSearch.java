@@ -25,10 +25,11 @@ public final class GlobalTitleSearch {
     private static int cachedCharacters;
     private static final class Cached{final String text;final long until;Cached(String t){text=t;until=SystemClock.elapsedRealtime()+180000;}}
     static final class Board{final String url,title;Board(String u,String t){url=u;title=t==null||t.isBlank()?u:t;}}
-    private static final class Job{
+    static final class Job{
         final String query;final AtomicBoolean canceled=new AtomicBoolean();
         final Set<HttpURLConnection> connections=ConcurrentHashMap.newKeySet();
         ExecutorService executor;
+        boolean silent,incomplete; Progress progress;
         final boolean fast;
         final GlobalTitleSearchRules.Query matcher;
         Job(String q){this(q,false);}
@@ -41,6 +42,7 @@ public final class GlobalTitleSearch {
         boolean stopped(){return canceled.get()||Thread.currentThread().isInterrupted();}
     }
     public static void addSettings(LinearLayout root,Activity activity){
+        GlobalSearchHome.settings(root,activity);
         SharedPreferences prefs=activity.getSharedPreferences(PREFS,0);
         LiveSettings.Toggle toggle=new LiveSettings.Toggle(activity);toggle.setText("全板検索に登録済みの外部板・bbspinkも含める");toggle.setChecked(prefs.getBoolean(KEY,false));root.addView(toggle);
         TextView help=new TextView(activity);help.setText("HOMEの「全板から検索」に、有効な外部板とbbspinkを含めます。\n\n高速：取得済みの一覧を端末内で検索します。検索中の追加通信はありません。\n最新：未取得の板や新しいスレを含めるため、対象板の一覧を取得して検索します（2並列・最大30秒）。取得できた結果だけを表示します。\n\n本文はスレを開いたときに取得します。");help.setTextSize(13);help.setSingleLine(false);help.setMaxLines(Integer.MAX_VALUE);help.setHorizontallyScrolling(false);help.setEllipsize(null);help.setIncludeFontPadding(true);help.setPadding(0,8,0,8);root.addView(help,new LinearLayout.LayoutParams(-1,-2));
@@ -58,7 +60,7 @@ public final class GlobalTitleSearch {
     }
     /** Called on the native network worker, before its original TSV parser. */
     public static String extend(Object provider,String original){
-        Job job=QUERIES.remove(provider);Context context=Haiagaru.applicationContextForExtension();
+        Job job=QUERIES.remove(provider);if(GlobalSearchHome.viewing(provider)){if(job!=null)job.cancel();return original;}Context context=Haiagaru.applicationContextForExtension();
         if(job==null)return original;
         if(job.stopped()||!enabled(context)||Looper.myLooper()==Looper.getMainLooper()){job.cancel();ACTIVE.compareAndSet(job,null);return original;}
         try{return extend(context,job,original);}
@@ -117,9 +119,11 @@ public final class GlobalTitleSearch {
                 }
             }catch(ExecutionException|CancellationException error){failed++;}
             if(urls.size()>=5000||output.length()>=2*1024*1024)break;
+            if(job.progress!=null&&!job.stopped())job.progress.update(output.toString(),"取得中 "+complete+"/"+boards.size()+"板");
             if(submitted<boards.size())submit(finished,context,job,boards.get(submitted++));
         }
-        if(!job.stopped()&&(failed>0||complete<boards.size())){
+        if(failed>0||complete<boards.size())job.incomplete=true;
+        if(!job.silent&&!job.stopped()&&(failed>0||complete<boards.size())){
             String message="外部板検索："+(complete-failed)+"/"+boards.size()+"板を取得。取得できた結果を表示します";
             new Handler(Looper.getMainLooper()).post(()->{if(ACTIVE.get()==null||ACTIVE.get()==job)Toast.makeText(context,message,Toast.LENGTH_LONG).show();});
         }
@@ -153,7 +157,7 @@ public final class GlobalTitleSearch {
             if(job.stopped()||SystemClock.elapsedRealtime()>=deadline||urls.size()>=5000||out.length()>=2*1024*1024)return false;
             if(seen.add(id))GlobalTitleSearchRules.append(out,text,wanted.get(id).url,job.matcher,urls,t->Html.fromHtml(t).toString());return true;
         });
-        if(!job.stopped()){String message="外部板（高速）：保存済み "+seen.size()+"/"+boards.size()+"板を検索。最新情報は最新モードで取得できます";
+        if(!job.silent&&!job.stopped()){String message="外部板（高速）：保存済み "+seen.size()+"/"+boards.size()+"板を検索。最新情報は最新モードで取得できます";
             new Handler(Looper.getMainLooper()).post(()->{if(ACTIVE.get()==null||ACTIVE.get()==job)Toast.makeText(context,message,Toast.LENGTH_LONG).show();});}
         return job.stopped()?original:out.toString();
     }
@@ -176,6 +180,49 @@ public final class GlobalTitleSearch {
             rememberSubject(context,board,text);
             return text;
         }finally{job.connections.remove(connection);connection.disconnect();}
+    }
+    interface Progress {void update(String text,String status);}
+    static void background(Context context,GlobalTitleSearchService.Job state,Progress progress)throws Exception{
+        Job request=state.request;request.silent=true;request.progress=progress;
+        Thread primary=new Thread(()->{
+            HttpURLConnection connection=null;
+            try{
+                connection=(HttpURLConnection)new URL("https://ff5ch.syoboi.jp/?alt=tsv&q="+URLEncoder.encode(state.query,"UTF-8")).openConnection();
+                request.connections.add(connection);connection.setConnectTimeout(5000);connection.setReadTimeout(5000);
+                if(request.stopped())return;
+                if(connection.getResponseCode()!=200)throw new IOException("HTTP "+connection.getResponseCode());
+                ByteArrayOutputStream out=new ByteArrayOutputStream();
+                try(InputStream in=connection.getInputStream()){
+                    byte[] bytes=new byte[8192];int n;
+                    long deadline=SystemClock.elapsedRealtime()+12000;
+                    while((n=in.read(bytes))!=-1){
+                        if(request.stopped())return;
+                        if(out.size()+n>GlobalSearchResults.MAX_BYTES||SystemClock.elapsedRealtime()>deadline)throw new IOException("検索応答の上限");
+                        out.write(bytes,0,n);
+                    }
+                }
+                String response=out.toString("UTF-8");
+                if(!response.startsWith("ff2ch"+Character.toString(9))&&GlobalSearchResults.count(GlobalSearchResults.merge("",response))==0)throw new IOException("検索応答の形式が不正です");
+                if(!request.stopped())progress.update(response,"標準の全板検索を取得");
+            }catch(Exception error){if(!request.stopped())state.failed=true;}
+            finally{if(connection!=null){request.connections.remove(connection);connection.disconnect();}}
+        },"Haiagaru-global-provider");
+        primary.setDaemon(true);primary.start();
+        try{
+            if(enabled(context)){
+                ArrayList<Board> boards=boards(context);
+                Job fast=new Job(state.query,true);fast.silent=true;
+                try{String initial=cached(context,fast,"",boards);if(!request.stopped())progress.update(initial,"取得済みの外部板を検索・最新を取得中");}finally{fast.cancel();}
+                if(!request.stopped()&&context.getSharedPreferences(PREFS,0).getInt(MODE,0)==1){
+                    String result=extend(context,request,"");if(request.incomplete)state.failed=true;
+                    if(!request.stopped())progress.update(result,"外部板の検索を取得");
+                }
+            }
+        }catch(Exception unavailable){state.failed=true;}
+        finally{
+            primary.join(14000);
+            if(primary.isAlive()){request.cancel();state.failed=true;throw new IOException("標準検索が時間内に完了しませんでした");}
+        }
     }
     private GlobalTitleSearch(){}
 }

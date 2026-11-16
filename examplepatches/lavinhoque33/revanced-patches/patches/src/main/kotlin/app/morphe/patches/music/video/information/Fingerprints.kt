@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -95,11 +95,10 @@ internal object ModernVideoIdFingerprint : Fingerprint(
     }
 )
 
+// 9.45 can dispatch progress through the active player immediately after constructing the event,
+// rather than reading a director field. The diagnostic still identifies the same progress callback.
 internal object ModernPlayerControllerSetTimeReferenceFingerprint : Fingerprint(
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_DIRECT_RANGE,
-        Opcode.IGET_OBJECT
-    ),
+    returnType = "V",
     strings = listOf(string("Media progress reported outside media playback: ", StringComparisonType.STARTS_WITH))
 )
 

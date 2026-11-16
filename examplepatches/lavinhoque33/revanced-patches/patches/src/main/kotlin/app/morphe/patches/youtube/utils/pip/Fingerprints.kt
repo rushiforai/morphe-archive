@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -82,5 +82,18 @@ internal val pipPlaybackModernV2Fingerprint = legacyFingerprint(
         Opcode.INVOKE_VIRTUAL,
         Opcode.MOVE_RESULT,
         Opcode.IF_NEZ
+    )
+)
+
+// 21.45 makes the eligibility helper private and branches to the failure path when it returns false.
+internal val pipPlaybackModernV3Fingerprint = legacyFingerprint(
+    name = "pipPlaybackModernV3Fingerprint",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/View;"),
+    strings = listOf("Error entering picture and picture"),
+    opcodes = listOf(
+        Opcode.INVOKE_DIRECT,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_EQZ
     )
 )

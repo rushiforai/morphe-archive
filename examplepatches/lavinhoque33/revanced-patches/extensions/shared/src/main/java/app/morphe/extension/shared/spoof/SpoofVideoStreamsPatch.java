@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.shared.spoof;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import app.morphe.extension.shared.requests.Route;
+import app.morphe.extension.shared.oauth2.requests.OAuth2Requester;
 import app.morphe.extension.shared.patches.PatchStatus;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.Setting;
@@ -177,8 +178,16 @@ public class SpoofVideoStreamsPatch {
         if (SPOOF_VIDEO_STREAMS) {
             StreamOrDetailsDataRequest.setClientOrderToUse(availableClients, client);
 
-            // Prefetch visitorId for default client.
-            Utils.runOnBackgroundThread(() -> VisitorIdRequester.getVisitorId(client));
+            // Startup can precede network readiness. Playback retries and reports genuine failures.
+            Utils.runOnBackgroundThread(() -> {
+                if (!Utils.isNetworkConnected()) return;
+                if (client.supportsOAuth2 && client.requireLogin
+                        && !Utils.isNotEmpty(OAuth2Requester.getAndUpdateAccessTokenIfNeeded(false))) {
+                    return;
+                }
+
+                VisitorIdRequester.getVisitorId(client);
+            });
         }
     }
 

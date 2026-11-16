@@ -33,6 +33,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build the optional image moderation asset
+        if: github.ref_name == 'dev' || github.ref_name == 'master'
+        run: python3 scripts/build-image-moderation-zip.py build/optional-assets/haiagaru-image-moderation.zip --split
+
       - name: Allow time for Gradle distribution download
         run: |
           sed -i 's/^networkTimeout=.*/networkTimeout=120000/; s/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties

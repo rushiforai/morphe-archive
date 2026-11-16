@@ -7,7 +7,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.patches.music.misc.audio
@@ -18,6 +18,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -28,6 +31,8 @@ val enableExclusiveAudioPlaybackPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
 
+    dependsOn(versionCheckPatch)
+
     execute {
         // The methods keep the same purpose across versions, but their instructions differ between older
         // and newer app versions, so the newer shape is tried first and the older one is the fallback.
@@ -36,6 +41,14 @@ val enableExclusiveAudioPlaybackPatch = bytecodePatch(
             AllowExclusiveAudioPlaybackLegacyFingerprint
         )
         allowExclusiveAudioPlayback.method.returnEarly(true)
+
+        if (!is_7_25_or_greater) {
+            printWarn(
+                "External audio restriction bypass requires YouTube Music 7.25 or newer. " +
+                        "Keeping exclusive audio playback enabled and skipping the newer podcast restriction hook."
+            )
+            return@execute
+        }
 
         // YTM tries to skip podcast episodes marked FEATURE_AVAILABILITY_BLOCKED ("Audio-only not available")
         // and stops playback if the skip request returns "action unavailable" (11). Bypass that restriction

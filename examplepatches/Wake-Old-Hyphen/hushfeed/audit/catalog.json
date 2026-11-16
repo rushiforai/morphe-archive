@@ -377,6 +377,12 @@
     "row": "Save a story from its share sheet"
    },
    {
+    "key": "save_story_pick",
+    "default": false,
+    "type": "bool",
+    "row": "Pick which stories to save"
+   },
+   {
     "key": "pick_grid_videos",
     "default": false,
     "type": "bool",
@@ -874,6 +880,18 @@
     "default": "profile",
     "type": "string",
     "row": "Sort loaded videos on Liked grids"
+   },
+   {
+    "key": "favorites_grid_sort",
+    "default": "profile",
+    "type": "string",
+    "row": "Sort loaded videos on Favorites grids"
+   },
+   {
+    "key": "collection_grid_sort",
+    "default": "favorites",
+    "type": "string",
+    "row": "Sort loaded videos in collections"
    },
    {
     "key": "sound_grid_sort",
@@ -6131,6 +6149,12 @@
     "default": false,
     "type": "bool",
     "row": "Fill the screen with the video"
+   },
+   {
+    "key": "stretch_video_to_screen",
+    "default": false,
+    "type": "bool",
+    "row": "Stretch the video to the screen"
    }
   ],
   "surface": "feed",
@@ -6227,13 +6251,51 @@
     "auto": true
    },
    {
-    "id": "off-leaves-feed-alone",
-    "what": "With both off VideoFit records nothing new and the feed still plays.",
+    "id": "stretch-decision-recorded",
+    "what": "With Stretch on (Fit and Fill off) the export records a Stretch decision. It swipes three times, since a photo post records no decision.",
     "steps": [
      {
       "set": {
        "fit_video_to_screen": "false",
-       "fill_video_to_screen": "false"
+       "fill_video_to_screen": "false",
+       "stretch_video_to_screen": "true"
+      }
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
+      "probe": "report",
+      "expect": "Stretch, feed: TikTok\\'s size \\d+x\\d+, space \\d+x\\d+, (left as it was|made \\d+x\\d+)",
+      "waitMs": 10000
+     }
+    ],
+    "auto": true
+   },
+   {
+    "id": "off-leaves-feed-alone",
+    "what": "With all three off VideoFit records nothing new and the feed still plays.",
+    "steps": [
+     {
+      "set": {
+       "fit_video_to_screen": "false",
+       "fill_video_to_screen": "false",
+       "stretch_video_to_screen": "false"
       }
      },
      {
@@ -7936,6 +7998,12 @@
     "default": false,
     "type": "bool",
     "row": "Pin more chats"
+   },
+   {
+    "key": "show_message_times",
+    "default": false,
+    "type": "bool",
+    "row": "Show message times"
    }
   ],
   "surface": "inbox",
@@ -14144,6 +14212,18 @@
     "default": true,
     "type": "bool",
     "row": "Long-press Home for Hushfeed settings"
+   },
+   {
+    "key": "settings_row_picks",
+    "default": "",
+    "type": "string",
+    "row": "Hide Settings and privacy rows"
+   },
+   {
+    "key": "settings_row_catalog",
+    "default": "",
+    "type": "string",
+    "row": "(internal list behind the Hide Settings and privacy rows checklist, no row)"
    }
   ],
   "surface": "settings",
@@ -14605,6 +14685,12 @@
     "default": false,
     "type": "bool",
     "row": "Show the country as a flag"
+   },
+   {
+    "key": "country_date_under_caption",
+    "default": false,
+    "type": "bool",
+    "row": "Show the country and date under the caption"
    },
    {
     "key": "show_author_handle",

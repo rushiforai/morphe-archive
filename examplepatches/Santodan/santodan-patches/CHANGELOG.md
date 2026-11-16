@@ -1,3 +1,9 @@
+## [0.19.0](https://github.com/Santodan/santodan-patches/compare/v0.18.1...v0.19.0) (2026-11-15)
+
+### ✨ New Features
+
+* **nuviotv:** add metadata provider and artwork controls ([b43083a](https://github.com/Santodan/santodan-patches/commit/b43083a99018cd7794654f3ed126f5c0f1c139aa))
+
 ## [0.18.1](https://github.com/Santodan/santodan-patches/compare/v0.18.0...v0.18.1) (2026-11-10)
 
 ### 🐛 Bug Fixes

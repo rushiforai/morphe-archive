@@ -120,6 +120,7 @@ public final class ResponseArchive {
     }
 
     private static void append(Object owner, Object menuObject, Object response, Object board) throws Exception {
+        ResponseMultiSelection.append(owner,menuObject,response,board);
         SharedNgResponseExclusion.append(menuObject, response, board);
         PosterHighlight.append(menuObject, response, board);
         appendViewMenu(menuObject);
@@ -135,6 +136,7 @@ public final class ResponseArchive {
     }
 
     public static boolean handle(Object object) {
+        if(ResponseMultiSelection.handle(object))return true;
         if (SharedNgResponseExclusion.handle(object)) return true;
         if(ResponseMenuSettings.handleTools(object))return true;
         if(WacchoiLongPressMenu.handlePrefixNg(object))return true;
@@ -166,6 +168,7 @@ public final class ResponseArchive {
             Object flow = ResponseArchiveEntry.field(model, "af");
             Method get = flow.getClass().getMethod("d"); get.setAccessible(true);
             Object board = get.invoke(flow);
+            ResponseMultiSelection.appendSheet(builder,response,board);
             SharedNgResponseExclusion.appendSheet(builder, response, board);
             PosterHighlight.appendSheet(builder, response, board);
             ResponseArchiveEntry entry = snapshot(response, board);
@@ -203,6 +206,7 @@ public final class ResponseArchive {
     }
 
     private static void confirm(Activity a, ResponseArchiveEntry entry) {
+        if(ResponseMultiSelection.saveSelected(a))return;
         if (a.isFinishing()) return;
         chooseCollection(a, entry);
     }
@@ -218,6 +222,43 @@ public final class ResponseArchive {
                     }
                     catch (Exception e) { MAIN.post(() -> failure(a, e)); }
                 })).show();
+    }
+
+    static ResponseArchiveEntry combined(List<ResponseArchiveEntry> entries)throws Exception{
+        if(entries.isEmpty())throw new IllegalArgumentException("保存するレスがありません");
+        StringBuilder body=new StringBuilder();
+        for(ResponseArchiveEntry e:entries){
+            body.append("<b>&gt;&gt;").append(e.number).append(" ").append(e.name).append(" ").append(e.date)
+                .append("</b><br><a href=\"").append(android.text.TextUtils.htmlEncode(e.url)).append("\">")
+                .append(android.text.TextUtils.htmlEncode(e.url)).append("</a><br>").append(e.body).append("<br><br>");
+            if(body.length()>1000000)throw new IllegalArgumentException("保存内容が大きすぎます。選択するレスを減らしてください");
+        }
+        ResponseArchiveEntry first=entries.get(0);String url=first.url.split("#",2)[0]+"#haiagaru-selection-"+UUID.randomUUID();
+        return new ResponseArchiveEntry(url,first.title+"（選択した"+entries.size()+"レス）",first.number,first.name,first.date,body.toString(),first.mail);
+    }
+    static void saveSelection(Activity a,List<ResponseArchiveEntry> source,boolean together){
+        final ArrayList<ResponseArchiveEntry> entries=new ArrayList<>();
+        try{if(together)entries.add(combined(source));else entries.addAll(source);}catch(Exception error){failure(a,error);return;}
+        IO.execute(()->{try{
+            List<Collection> destinations=collections(a);ArrayList<String> labels=new ArrayList<>();labels.add("新しい保存用スレを作成");for(Collection c:destinations)labels.add(c.title);
+            MAIN.post(()->{if(a.isFinishing()||a.isDestroyed())return;
+                new HaiagaruDialog.Builder(a).setTitle("保存先を選択（"+source.size()+"レス）").setItems(labels.toArray(new String[0]),(d,at)->{
+                    if(at>0){confirmSelection(a,entries,destinations.get(at-1),null);return;}
+                    EditText name=new EditText(a);String initial=source.get(0).title;name.setText(initial.length()>190?initial.substring(0,190):initial);
+                    HaiagaruDialog dialog=new HaiagaruDialog.Builder(a).setTitle("保存用スレの名前").setView(name).setNegativeButton("キャンセル",null).setPositiveButton("確認",null).create();
+                    dialog.setOnShowListener(ignored->dialog.getButton(-1).setOnClickListener(v->{try{String title=collectionTitle(name.getText().toString());dialog.dismiss();confirmSelection(a,entries,null,title);}catch(Exception error){name.setError(error.getMessage());}}));dialog.show();
+                }).setNegativeButton("キャンセル",null).show();
+            });
+        }catch(Exception error){MAIN.post(()->failure(a,error));}});
+    }
+    private static void confirmSelection(Activity a,List<ResponseArchiveEntry> entries,Collection destination,String newTitle){
+        new HaiagaruDialog.Builder(a).setTitle("「"+(destination==null?newTitle:destination.title)+"」に保存")
+            .setMessage(entries.size()+"件として保存します。名前・日時・本文・URLを保持します。同じURLの保存済みレスは上書きします。画像・動画ファイルは含みません。")
+            .setNegativeButton("キャンセル",null).setPositiveButton("保存",(d,w)->IO.execute(()->{int saved=0;try{
+                Collection collection=destination==null?createCollection(a,newTitle):destination;
+                for(ResponseArchiveEntry entry:entries){saveToCollection(a,collection.id,entry);saved++;}
+                MAIN.post(()->toast(a,"「"+collection.title+"」に保存しました"));
+            }catch(Exception error){final int done=saved;MAIN.post(()->{report(error);toast(a,"保存を中断しました。保存済み "+done+"/"+entries.size()+"件");});}})).show();
     }
 
     private static File directory(Context context) throws IOException {

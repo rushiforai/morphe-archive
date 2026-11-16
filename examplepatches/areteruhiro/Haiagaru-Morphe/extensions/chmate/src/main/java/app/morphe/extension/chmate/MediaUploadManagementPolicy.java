@@ -3,7 +3,7 @@ package app.morphe.extension.chmate;
 import java.net.URI;
 import org.json.JSONObject;
 
-/** Fixed-origin management links only. A CDN URL is never a deletion credential. */
+/** Validated management links. A CDN URL is never a deletion credential. */
 public final class MediaUploadManagementPolicy {
     private MediaUploadManagementPolicy() {}
     private static boolean token(String value) { return value != null && value.matches("[A-Za-z0-9_-]{1,512}"); }
@@ -17,12 +17,10 @@ public final class MediaUploadManagementPolicy {
         if (!MediaUploadPolicy.mediaUrl(provider, link)) return false;
         try {
             URI u = new URI(management);
-            if (!"https".equals(u.getScheme()) || u.getRawUserInfo() != null || u.getPort() != -1
+            if (!"https".equals(u.getScheme()) || u.getHost() == null || u.getRawUserInfo() != null || u.getPort() != -1
                     || u.getRawQuery() != null || u.getRawFragment() != null) return false;
-            if (MediaUploadPolicy.IMGBOX.equals(provider)) return "imgbox.com".equals(u.getHost())
-                    && u.getRawPath().matches("/upload/edit/[A-Za-z0-9_-]{1,512}/[A-Za-z0-9_-]{1,512}");
-            return MediaUploadPolicy.IMGPILE.equals(provider) && "imgpile.com".equals(u.getHost())
-                    && u.getRawPath().matches("/m/[A-Za-z0-9_-]{1,512}");
+            if (MediaUploadPolicy.IMGBOX.equals(provider)) return u.getRawPath().matches("/upload/edit/[A-Za-z0-9_-]{1,512}/[A-Za-z0-9_-]{1,512}");
+            return MediaUploadPolicy.IMGPILE.equals(provider) && u.getRawPath().matches("/m/[A-Za-z0-9_-]{1,512}");
         } catch (Exception ignored) { return false; }
     }
     static JSONObject record(JSONObject result, long now) throws Exception {
@@ -37,7 +35,7 @@ public final class MediaUploadManagementPolicy {
             URI u = new URI(link);
             return ("https".equals(u.getScheme()) || "http".equals(u.getScheme()))
                     && u.getRawUserInfo() == null && (u.getPort() == -1 || u.getPort() == 443 || u.getPort() == 80)
-                    && ("i.imgur.com".equals(u.getHost()) || "imgur.com".equals(u.getHost()));
+                    && u.getHost() != null;
         } catch (Exception ignored) { return false; }
     }
 }

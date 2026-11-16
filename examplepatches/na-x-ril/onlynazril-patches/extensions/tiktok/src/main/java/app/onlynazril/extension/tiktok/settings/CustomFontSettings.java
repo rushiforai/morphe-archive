@@ -17,15 +17,17 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.onlynazril.extension.tiktok.internal.Debug;
+
 /**
  * The custom-font switch, the imported fonts, and the one in use.
- *
+ * <p>
  * An imported font is copied into the app's own files directory,
  * where the extension reads it without a permission: the picker is
  * only the way in. The list and the selection live in the same
  * prefs as every other switch, and the selection is what the
  * patch's hook answers the factory with.
- *
+ * <p>
  * The face is loaded once and cached against the file's
  * timestamp, because the factory is asked for a face on
  * every text the app lays out, and a font file is not
@@ -81,7 +83,7 @@ public final class CustomFontSettings {
 
     /**
      * Copies a picked font into the app's files directory and makes it the one in use.
-     *
+     * <p>
      * A file that is not a working font is deleted again and leaves the list
      * alone, so a bad pick never disables what was imported before it.
      */
@@ -96,11 +98,11 @@ public final class CustomFontSettings {
         try {
             copy(ctx, uri, target);
         } catch (IOException failure) {
-            target.delete();
+            deleteQuietly(target);
             return false;
         }
         if (load(target) == null) {
-            target.delete();
+            deleteQuietly(target);
             return false;
         }
 
@@ -116,11 +118,11 @@ public final class CustomFontSettings {
      * Removes an imported font, its file, and the selection when it held it;
      * the newest import left becomes the one in use.
      */
-    public static boolean deleteFont(Context ctx, String name) {
-        if (ctx == null || name == null) return false;
+    public static void deleteFont(Context ctx, String name) {
+        if (ctx == null || name == null) return;
         List<String> names = new ArrayList<>(names(ctx));
-        if (!names.remove(name)) return false;
-        new File(fontsDir(ctx), name).delete();
+        if (!names.remove(name)) return;
+        deleteQuietly(new File(fontsDir(ctx), name));
         saveNames(ctx, names);
         if (name.equals(prefs(ctx).getString(KEY_SELECTED, null))) {
             if (names.isEmpty()) {
@@ -129,17 +131,19 @@ public final class CustomFontSettings {
                 select(ctx, names.get(0));
             }
         }
-        return true;
     }
 
     /** Removes every imported font and its file, and the selection with them. */
+
     public static void clearFonts(Context ctx) {
         if (ctx == null) return;
         File[] files = fontsDir(ctx).listFiles();
         if (files != null) {
-            for (File file : files) file.delete();
+            for (File file : files) {
+                deleteQuietly(file);
+            }
         }
-        saveNames(ctx, new ArrayList<String>());
+        saveNames(ctx, new ArrayList<>());
         prefs(ctx).edit().remove(KEY_SELECTED).apply();
     }
 
@@ -196,6 +200,12 @@ public final class CustomFontSettings {
             return Typeface.createFromFile(file);
         } catch (Throwable t) {
             return null;
+        }
+    }
+
+    private static void deleteQuietly(File file) {
+        if (file != null && file.exists() && !file.delete()) {
+            Debug.print("fonts: failed to delete " + file.getName());
         }
     }
 

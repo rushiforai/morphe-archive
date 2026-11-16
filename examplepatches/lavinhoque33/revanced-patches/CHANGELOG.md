@@ -1,5 +1,90 @@
 ## Unreleased
 
+## [1.36.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.35.0...v1.36.0) (2026-11-15)
+
+### Features
+
+* **Music - Settings shortcut:** Add an optional themed settings button beside the toolbar profile icon.
+  Tap to open YouTube Music settings, or touch and hold to open RVX settings. Enable it under General;
+  it is off by default.
+
+* **YouTube / Music - Supported versions:** Add YouTube 21.45.90 and Music 9.45.51 as optional experimental
+  targets. Keep YouTube 21.39.525 and Music 9.40.51 recommended by default, with all existing targets retained.
+  Port native playback, downloads, Android Auto, crossfade PCM, captions, settings, navigation, Shorts and
+  player gesture hooks to the newer layouts while preserving existing-version behavior.
+
+* **Music - Android Auto:** Show stream-downloaded playlists and albums in Playlists, with Downloaded songs
+  for loose copies. Keep the last complete playlist library available offline and mark unavailable or partially
+  downloaded playlists. Open playlists and albums to see their songs, with Play all at the top, and start the
+  whole playlist from any available song. Choose online or local playback when selected, including cards cached
+  by the car. Downloaded playlists now contains device-file playlists only.
+
+* **Music - Glass player and navigation bar:** Add Morphe's independent glass miniplayer and navigation bar,
+  off by default, under Player and Navigation bar. Configure blur, tint, opacity, size and rim brightness
+  with live previews, plus optional spinning artwork. Keep rounded artwork on comments and lyrics sheets
+  and align controls in RTL layouts. Available on Music 8.51 and newer; older versions skip with a warning.
+
+### Bug Fixes
+
+* **Music - Glass player and navigation bar:** Align glass preference summaries with standard RVX rows,
+  including live-preview controls. Keep playlist and Liked Music Play buttons above the real miniplayer
+  and navigation bar heights, with either glass style enabled independently or together.
+
+* **YouTube - Hide player flyout menu:** Fix hiding the On-the-go entry in the player settings menu.
+
+* **Music - Track crossfade:** Stop retained playback when the miniplayer is swiped away, including a
+  dismissal that resets playback without loading another song. Keep normal background playback unchanged.
+
+* **YouTube - Shorts components:** Repeat the current Short while comments or another engagement panel is open
+  instead of advancing and misplacing the player controls. Resume normal autoplay after closing the panel.
+
+* **Music - Downloads:** Restore cached playlists, albums and the No Playlist group in the Library Downloads
+  chip on Music 9.45.51, including its sub-filters and offline browsing.
+* **Music - Downloads / Android Auto:** Extend native queue fallback and in-flight connectivity recovery to
+  Music 9.45.51, retaining browsable downloaded playlists and native online queue updates.
+* **Music - Android Auto:** Load playlist songs when the response includes different continuation tokens for
+  the song list and its surrounding page, instead of showing Songs unavailable.
+* **Music - Downloads:** After an uncached in-flight request exhausts offline recovery, Play restarts the previous
+  saved queue occurrence locally from 0. Keep ordinary Play, preflight exhaustion and online playback unchanged.
+* **Music - Downloads:** Resolve uncached in-flight requests immediately on connectivity loss: Next/auto-advance
+  skips to the next saved song within the native queue's remaining budget, while explicit selections report
+  unavailable and exhausted queues stop cleanly. Reconnection before the decision keeps the online request.
+* **Music - Downloads:** Answer pending cached playback immediately when the default network is lost or no
+  longer validated, without waiting for socket timeouts. Preserve native request ownership, cancellation,
+  online streaming queue updates and late-response arbitration on the phone and Android Auto.
+* **Music - Downloads:** Recover in-flight Onesie playback from saved streams on the first disconnected
+  transport failure, before native retry/backoff or an additional online fallback request. Guard independent
+  Onesie preparation and prefetch paths while preserving native cancellation and online playback.
+* **Music - Downloads:** Keep online-started queues playing saved stream copies when connectivity drops,
+  on the phone and Android Auto. Answer disconnected player and queue requests before network work and recover
+  requests already in flight. Keep native queue order, skip unavailable songs on Next/automatic advancement,
+  and report explicit unavailable selections without replacing usable playback. Online lyrics and radio
+  are unchanged.
+* **YouTube - Overlay buttons:** Pause through the native controller after yellow repeat rewinds a finished video.
+  Keep playback intent in sync so Play resumes the same video. Blue repeat and repeat-off autoplay stay unchanged.
+* **YouTube / Music - Hide handle:** Show the profile handle by default. Keep hiding available as an opt-in.
+  Restore the account-menu switch on newer Music versions so it can be turned off without importing settings.
+* **Music - Hide action bar components:** Preserve native download arguments to prevent a download-button
+  bytecode type error on Music 8.30.54.
+* **Music - Older versions:** Restore Scrobbling and playlist track tap actions on 6.20. Skip unsupported
+  playback speed slider/pitch and external podcast restriction hooks below 7.25 with warnings, while keeping
+  exclusive audio playback and the other Video playback features working.
+* **YouTube / Music - Spoof video streams:** Warn when JavaScript clients need a missing or outdated WebView,
+  with repair links and a persistent dismissal. Retry visionOS attestation-test streams with a fresh visitor ID.
+  Avoid OAuth connection-error notices before the startup network is ready; keep invalid-login warnings.
+* **YouTube - Override YouTube Music buttons:** Check the configured app on Android 10 and older, and deliver
+  encoded song links to third-party clients through their link-handling activity.
+* **Music - Third-party lyrics:** Recognize local line-timed LRC as synchronized. Remove incompatible account
+  headers from YouTube Music lyrics requests and retry transient failures instead of retaining cached misses.
+* **Music - Dark theme:** Apply the selected palette to the offline dialog, including legacy precompiled themes.
+* **YouTube - Playback in feeds:** Preserve the imported mode when the native controller initializes.
+* **YouTube - Layout:** Preserve Home filters with toolbar Subscriptions tabs and respect Hide category bar.
+  Hide newer horizontal shelves and portrait Ask buttons. Make watch-title channel subtitles open the description.
+* **YouTube - Video quality:** Keep live-stream buffers when a quality is selected to avoid catch-up stutter.
+* **YouTube - Compatibility:** Allow engagement-panel fingerprint validation after feed-layout hooks.
+  Prevent end-of-video scrolling on 21.33+ and publish background notifications without artwork on 20.51+.
+* **Bug report template:** Rename URV Manager to UP Manager in the tool dropdown.
+
 ## [1.35.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.34.1...v1.35.0) (2026-11-13)
 
 ### Features

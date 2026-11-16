@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.music.patches.lyrics;
@@ -780,7 +781,9 @@ public final class LyricsCache {
      * returning lyrics cached under a different source.
      */
     private static String key(TrackInfo track, String source) {
-        return track.cacheKey() + "|" + source;
+        // Retry misses cached before WEB_REMIX stopped sending Android account headers.
+        String revision = "YTMusic".equals(source) ? "|2" : "";
+        return track.cacheKey() + "|" + source + revision;
     }
 
     private static String trackKey(TrackInfo track) {

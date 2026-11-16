@@ -16,12 +16,14 @@ ChMateに設定・閲覧・検索・NG・バックアップ機能を追加する
 
 このREADMEは現在のソースに対応します。公開済みの内容は上のリリース説明で確認してください。開発ブランチの変更が公開前の場合もあります。従来の機能紹介は[Haiagaru](https://github.com/areteruhiro/Haiagaru)も参照できます。
 
+キーワードに短い表示名を付けるには、HOMEの︙または「Haiagaru設定 → スレッド → キーワードの表示名を設定」を開きます。スレタイトル長押しからは、HOME・スレ一覧で使うスレ名も変更できます。両方の表示名はローカル／MEGAバックアップの「設定」に含まれます。
+
 ## 導入と更新
 
 [導入方法(動画)](https://www.youtube.com/watch?v=ZiFHjQon694)
 
 
-0. [Moephe](https://morphe.software/)をインストール 
+0. [Morphe](https://morphe.software/)をインストール
 1. 更新前にChMateの設定・必要なログをバックアップします。`.haiagaru`の設定共有ファイルだけでは、スレ本文や全履歴のバックアップにはなりません。
 2. Morpheへ[Haiagaruのパッチソースを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)します。
 
@@ -47,7 +49,10 @@ https://2chmate.jp.uptodown.com/android/dw/1024004246
 
 | 機能 | 指定するファイル | 補足 |
 |---|---|---|
-| 191の自動NG画像判定の修正 | `haiagaru-image-ng.zip` | 191のみ。修正オプションがONでも、ファイル未選択なら元ライブラリを維持します。226／242には不要です。 |
+| 191の自動NG画像判定の修正 | `haiagaru-image-ng.zip` | 191のみ。修正ファイルがない場合、既知のJNIクラッシュを避けるため標準Image NGの推論を保護停止します。226／242には不要です。 |
+| 成人向け・グロ画像の追加検出 | `haiagaru-image-moderation.zip` | 任意パッチ。モデル・4 ABIのONNX Runtime・191用修正をまとめたZIPです。Android 7以降。 |
+| 画像判定と画像取得専用VPN | `haiagaru-image-moderation-vpn.zip` | 「成人向け・グロ画像の自動検出」と「画像取得専用VPN」の両方のオプションで同じZIPを選択します。 |
+| モデル・実行ライブラリの個別指定 | `haiagaru-image-moderation-model.zip` ＋ `haiagaru-image-moderation-runtime.zip` | 一括ZIPの代わりに両方を選択します。191の標準Image NGには別途修正ZIPも指定します。 |
 | 画像取得専用VPN | `haiagaru-image-vpn-v2.zip` | 実験用の任意パッチです。Image NG用ZIPとは別です。 |
 | 絵文字フォント | `NotoColorEmoji.ttf`などの対応フォント | パッチオプションで指定します。未選択なら端末標準を使用します。 |
 
@@ -55,7 +60,7 @@ https://2chmate.jp.uptodown.com/android/dw/1024004246
 
 ## Haiagaru設定
 
-設定は次の9カテゴリに整理しています。検索欄から項目名・説明を探して変更でき、設定は自動保存されます。再表示や再起動が必要な項目は画面の説明に従ってください。
+設定は次の9カテゴリに整理しています。トップの検索欄では全体を、カテゴリを開いた検索欄ではそのカテゴリ内の項目・説明を検索できます。検索欄は高さを抑え、結果からその場で変更できます。設定は自動保存されます。再表示や再起動が必要な項目は画面の説明に従ってください。
 
 | カテゴリ | 主な内容 |
 |---|---|
@@ -69,7 +74,11 @@ https://2chmate.jp.uptodown.com/android/dw/1024004246
 | アプリ・通信 | テーマ、追加タブ、通信・認証 |
 | エキスパート設定 | 個別の動作や互換設定の細かな切り替え |
 
-複数画像のビューアーでは、初期設定で上スワイプが次、下スワイプが前です。Haiagaru設定 → 画像・動画 → 画像の切り替えジェスチャーで、前後それぞれの方向やChMate標準操作を選べます（191・226・242）。
+複数画像のビューアーの初期値は、191・226では上スワイプが次／下が前、242では右が次／左が前です。Haiagaru設定 → 画像・動画 → 画像の切り替えジェスチャーで、前後それぞれの方向やChMate標準操作を選べます（191・226・242）。
+
+設定の文言は長押しでテキスト選択できます。右上の「階層をコピー」は、トップでは全カテゴリ、カテゴリ内ではそのカテゴリの設定名と階層をコピーします。入力済みの値・APIキーは含みません。初めて設定を開いた際は自動定期バックアップを案内し、ローカル／MEGAの設定へ進めます。選択だけで自動バックアップが有効になることはありません。
+
+お気に入りが見えない場合は「アプリ・通信 → 基本設定・言語 → 表示崩れ・お気に入りが見えない場合の診断」で、保存件数を確認できます。「スマホ表示に戻す」は表示設定を戻す操作で、削除済みデータの救出ではありません。[診断と表示設定の復旧](docs/home-display-recovery.md)
 
 ツールバー項目の表示・並び順はChMate標準のツールバー設定で変更します。
 [設定画面の使い方](docs/settings-navigation.md) ／ [カテゴリ一覧](docs/settings-organization.md)
@@ -86,11 +95,13 @@ https://2chmate.jp.uptodown.com/android/dw/1024004246
 - 外部板を含む全板検索は、追加通信のない高速モードと、対象板の一覧を取得する最新モードから選べます。OFFのサイトは板一覧・検索候補から除外します。[検索方式](docs/global-title-search.md)
 - ﾜｯﾁｮｲ長押しから、上4桁・下4桁をそれぞれコピーできます。[長押しメニュー](docs/wacchoi-menu-order.md)
 - 画像・GIF・動画の閲覧、スレ全体のメディアへの移動、動画の相対シーク・再生速度・保存。専用動画ビューアは任意パッチです。[動画操作](docs/video-viewer-controls.md)
+- 「画像・動画 → セーフティ」にImage NG、登録画像のあぼーん、ChMate標準の「画像は常にモザイク」の設定をまとめました。追加モデルでは成人向け／グロを個別に検出でき、スレ一覧画像にも適用できます。登録画像に一致する一覧画像は、画像のみ非表示・スレを非表示・モザイク・そのままから選べます。[画像判定と一覧サムネイル](docs/image-ng-and-list-thumbnails.md)
+- ふたばの板一覧に「勢いランキング」を追加。ミラーのimg／mayも公式板へ正規化し、先頭2レスの画像URLと一覧タイトルの(img)／(may)に対応します。
 - 通常NGの登録上限の変更（0で無制限）、IDなしレスの非表示、自動NGと除外ID、JavaScriptによる高度なNG。[IDなしNG](docs/hidden-id-ng.md) ／ [高度なNG](docs/advanced-ng.md)
 - **連鎖あぼーんを常に非表示**（初期OFF）。元のNG対象レスや保存済みルールを変えず、連鎖されたレスの行を隠します。「NGWord-IDへの返信も非表示」とは独立した設定です。
-- 登録スレの新着通知、巡回時の画像保存、巡回エラーのURL表示。[巡回画像](docs/patrol-images.md) ／ [新着通知](docs/thread-notifications.md)
+- 登録スレの新着通知、巡回時の画像保存、巡回エラーのURL表示。「NGされたレスの返信通知を無効にする」は初期ONで、標準通知とHaiagaru通知の両方に適用します。[巡回画像](docs/patrol-images.md) ／ [新着通知](docs/thread-notifications.md)
 - エッヂ・オルグ板の記者ID表示・過去ログ検索、エッヂ／kenmo.org／爆サイ／ふたば／あにまんの外部板対応。更新履歴画面と各設定カテゴリからサイトや機能の使用を切り替えられます。サイト設定は初期ONです。有効なサイトは標準の掲示板設定と板一覧に表示され、オフのサイトは板一覧へ追加しません。外部板スレの作成日時もスレ情報ポップアップへ反映します。認証や登録板の編集にも対応します。[記者ID](docs/edge-reporter-id.md) ／ [認証](docs/external-board-auth.md) ／ [外部板編集](docs/external-board-editor.md) ／ [サイト別の板一覧](docs/external-board-groups.md) ／ [作成日時](docs/site-thread-dates-20261108.md)
-- 標準添付のアップロード先切り替え、アップロード履歴管理。[対応先・制限](docs/upload-hosts.md) ／ [標準履歴](docs/native-upload-history.md)
+- 標準添付のアップロード先切り替え、アップロード履歴管理。添付時に送信先を選ぶ設定もあります（初期OFF）。アップロード・Web画面・ログイン・返却URL・履歴／削除管理では固定ホスト名による拒否を行いません。[対応先・制限](docs/upload-hosts.md) ／ [標準履歴](docs/native-upload-history.md)
 - ローカルバックアップ・自動バックアップ、任意のMEGA同期、設定の`.haiagaru`共有。[自動バックアップ](docs/local-auto-backup.md) ／ [MEGA](docs/mega-backup.md) ／ [設定共有](docs/settings-sharing-history-resume.md)
 - 通常ChMateのアーカイブをフォルダ／ZIPから選択して上書き復元。任意のShizukuパッチで共有データのフォルダ別移行にも対応。[移行手順](docs/native-archive-migration.md)
 - 自作テーマ、アプリ名・パッケージ名・アイコン・versionCodeの変更、クラッシュログ保存。[テーマ](docs/custom-theme-import.md)

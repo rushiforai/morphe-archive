@@ -2,7 +2,7 @@ package app.onlynazril.extension.tiktok.feedfilter;
 
 /**
  * One reason a feed item is kept out of the page.
- *
+ * <p>
  * Whether the filter is switched on is decided before it is built, not by the filter: the page is
  * walked once, so a switch read per item would read the preferences thousands of times per fetch
  * for an answer that cannot change mid-page.

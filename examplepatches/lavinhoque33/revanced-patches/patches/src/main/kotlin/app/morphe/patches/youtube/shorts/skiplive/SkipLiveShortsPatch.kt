@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3847
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.youtube.shorts.skiplive
@@ -16,11 +16,11 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.youtube.shorts.components.ReelPlaybackFingerprint
-import app.morphe.patches.youtube.shorts.components.ReelPlaybackRepeatFingerprint
 import app.morphe.patches.youtube.shorts.components.reelPlaybackRepeatFingerprint
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.SKIP_LIVE_SHORTS
+import app.morphe.patches.youtube.utils.playservice.is_20_16_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
@@ -108,7 +108,7 @@ val skipLiveShortsPatch = bytecodePatch(
             SKIP_LIVE_SHORTS
         )
 
-        if (runCatching { ReelPlaybackFingerprint.classDef }.isSuccess) {
+        if (is_20_16_or_greater) {
             patchSeparateShortsPlayer()
         } else {
             patchLegacyShortsPlayer()
@@ -126,6 +126,14 @@ private fun BytecodePatchContext.patchSeparateShortsPlayer() {
         .getInstruction<ReferenceInstruction>().reference as MethodReference
     val reelSequenceControllerMethodReference = ReelPlaybackFingerprint.instructionMatches[2]
         .getInstruction<ReferenceInstruction>().reference as MethodReference
+
+    // 21.45 adds a boolean argument. Keep action 3 and false so skipping remains a
+    // user-initiated advance, rather than action 4, which the app treats as autoplay.
+    val userActionRegisters = if (userActionMethodReference.parameterTypes.size == 4) {
+        "v0, v1, v2, v2, v2"
+    } else {
+        "v0, v1, v2, v2"
+    }
 
     // Newer versions keep the reel sequence controller in a field of the Shorts player.
     // Older versions use the Shorts player itself as the reel sequence controller.
@@ -146,7 +154,7 @@ private fun BytecodePatchContext.patchSeparateShortsPlayer() {
             new-instance v0, ${userActionMethodReference.definingClass}
             const/4 v1, 0x3
             const/4 v2, 0x0
-            invoke-direct { v0, v1, v2, v2 }, $userActionMethodReference
+            invoke-direct { $userActionRegisters }, $userActionMethodReference
             $getReelSequenceControllerInstruction
             invoke-virtual { v1, v0 }, $reelSequenceControllerMethodReference
             return-void
@@ -154,11 +162,12 @@ private fun BytecodePatchContext.patchSeparateShortsPlayer() {
     )
 
     // Hand the Shorts player to extension code.
+    val repeatFingerprint = reelPlaybackRepeatFingerprint()
     val reelPlayerField = getInstanceFieldGetFingerprint(ReelPlaybackFingerprint.classDef.type)
-        .match(ReelPlaybackRepeatFingerprint.originalMethod)
+        .match(repeatFingerprint.originalMethod)
         .instructionMatches.first().getInstruction<ReferenceInstruction>().reference as FieldReference
 
-    ReelPlaybackRepeatFingerprint.method.injectReelSequenceControllerHook { register ->
+    repeatFingerprint.method.injectReelSequenceControllerHook { register ->
         "iget-object v$register, p0, $reelPlayerField"
     }
 }

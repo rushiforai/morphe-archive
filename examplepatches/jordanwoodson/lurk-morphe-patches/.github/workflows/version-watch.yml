@@ -1,0 +1,38 @@
+name: Watch for new app versions
+
+# Weekly: asks Morphe's API (the one Manager's download button uses) whether a version after each app's
+# target can be downloaded yet, and opens one issue per version found. See bin/manager-link --newer.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  watch:
+    name: Check Manager's download links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dev
+
+      - name: Look for newer versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bin/manager-link --newer | while read -r _ app version url; do
+            title="bump: $app $version can be downloaded in Manager"
+            if gh issue list --state all --search "in:title \"$title\"" --json title --jq '.[].title' | grep -Fxq "$title"; then
+              echo "Already reported: $title"
+              continue
+            fi
+            gh issue create --title "$title" --body "\`bin/manager-link $app $version\` passes: Manager's download button now leads to $url
+
+          Next: store that file with \`bin/apk-add\`, run \`bin/bump $app $version\`, and follow \"Version bumps\" in docs/development.md."
+          done

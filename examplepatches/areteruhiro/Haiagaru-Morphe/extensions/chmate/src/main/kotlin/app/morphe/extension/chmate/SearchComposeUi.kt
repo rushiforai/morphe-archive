@@ -47,9 +47,11 @@ import androidx.compose.ui.unit.dp
     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Hissi走査テンプレート", style = MaterialTheme.typography.titleMedium)
         var enabled by remember { mutableStateOf(prefs.getBoolean(HissiScanTemplate.ENABLED,true)) }
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-            Text("長押し検索にテンプレートを適用して自動走査",Modifier.weight(1f))
-            Switch(enabled,{enabled=it;prefs.edit().putBoolean(HissiScanTemplate.ENABLED,it).apply()})
+        SettingSwitchRow(enabled, onCheckedChange = {
+            enabled = it
+            prefs.edit().putBoolean(HissiScanTemplate.ENABLED, it).apply()
+        }) {
+            Text("長押し検索にテンプレートを適用して自動走査")
         }
         Text("オフなら検索条件を表示して、開始を押すまで走査しません。",style=MaterialTheme.typography.bodySmall)
         var provider by remember { mutableIntStateOf(prefs.getInt(HissiScanTemplate.PROVIDER,0)) }
@@ -430,11 +432,11 @@ private fun ChoiceChips(labels: List<String>, selected: Int, enabled: Boolean, c
 
 @Composable
 private fun SearchToggle(label: String, summary: String, checked: Boolean, toggle: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).toggleable(checked, role = Role.Switch, onValueChange = toggle).padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Column(Modifier.weight(1f)) { Text(label, style = MaterialTheme.typography.titleMedium)
-            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        Switch(checked, onCheckedChange = null)
+    SettingSwitchRow(checked, onCheckedChange = toggle) {
+        Column {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

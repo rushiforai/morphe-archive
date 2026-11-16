@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
 import android.os.Build;
@@ -33,6 +34,8 @@ import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 
 import java.lang.ref.WeakReference;
@@ -44,7 +47,9 @@ import java.util.List;
  * A video playing in the feed, or in a video opened from a profile, search or a sound, keeps going
  * in a small window when the reader leaves TikTok. TikTok has picture-in-picture for LIVE only. Its
  * feed activity already declares support for it (for LIVE), and the patch declares it for the
- * detail pager too, which takes size changes itself like the feed does.
+ * detail pager too, which takes size changes itself like the feed does. TikTok's LIVE window waits
+ * on a switch of its own that viewers rarely get offered, so this one turns that on as well
+ * ({@link #liveWindowSwitch()}).
  *
  * <p>The patch hands over two moments: leaving (onUserLeaveHint, in the base activity both windows
  * share) and the window opening or closing (ComponentActivity's onPictureInPictureModeChanged).
@@ -53,13 +58,35 @@ import java.util.List;
  * is left to TikTok. In the window, everything but the video is set aside and comes back as it was
  * when the window closes or grows back into TikTok. TikTok may stop its player as the activity
  * pauses, so the video is started again once the window is up, unless the reader paused it there.
- * Play and pause go through TikTok's own player controls, the session hold's bridge. Closing the
- * window stops the video, unless Keep playing in the background is on.
+ * Play and pause go through TikTok's own player controls, the session hold's bridge. The arrows
+ * beside them (#413) move TikTok's pager to the video before or after, as a swipe would. Closing
+ * the window stops the video, unless Keep playing in the background is on.
  *
  * <p>Read when the reader leaves, so the switch needs no restart. Paused, it answers off.
  */
 public final class PictureInPicture {
     static final String ACTION_TOGGLE = "app.morphe.extension.tiktok.PICTURE_IN_PICTURE_TOGGLE";
+    /** The window's arrows (#413): the video before or after this one in the same pager. */
+    static final String ACTION_PREVIOUS = "app.morphe.extension.tiktok.PICTURE_IN_PICTURE_PREVIOUS";
+    static final String ACTION_NEXT = "app.morphe.extension.tiktok.PICTURE_IN_PICTURE_NEXT";
+
+    /** TikTok's own vertical pager, the one the feed and a video's own page swipe through. */
+    static final String PAGER = "com.ss.android.ugc.aweme.common.widget.VerticalViewPager";
+
+    /** Android shows three buttons in a phone's window; with room for fewer, only play and pause. */
+    static final int ROOM_FOR_ARROWS = 3;
+
+    /**
+     * How wide a window has to be, in dp, to show three buttons whole. Android's are 48dp with a
+     * small gap between, and it cuts off whatever doesn't fit (emulator, Android 16: a tall
+     * video's 110dp window showed previous and pause, and next was gone, #413). Two fit the
+     * smallest window Android opens, 108dp.
+     */
+    static final int THREE_BUTTONS_DP = 160;
+
+    /** How often a move's slide is checked for having settled, and how many times at most. */
+    private static final long SETTLE_CHECK_MS = 300;
+    private static final int SETTLE_CHECKS = 8;
 
     /**
      * Carried by the window's own button. Before Android 13 a receiver registered at run time
@@ -109,6 +136,85 @@ public final class PictureInPicture {
         return SettingsStatus.pictureInPictureEnabled && Settings.PICTURE_IN_PICTURE.get();
     }
 
+    /** Where the note that Hushfeed turned TikTok's own LIVE window on is kept. */
+    static final String STATE = "hushfeed_picture_in_picture";
+    static final String LIVE_WINDOW_OURS = "live_window_ours";
+
+    /**
+     * What TikTok's own LIVE window switch should hold as a LIVE comes up, or null to leave it
+     * (#413). TikTok opens a small window for a LIVE only with that switch on, and it offers the
+     * switch to viewers in one place, a prompt after buying coins on the web, so a LIVE left with
+     * Keep watching in a small window on closed instead. The switch goes on with this one, and
+     * back off when this one is turned off, only if it was Hushfeed that turned it on. Never throws.
+     */
+    public static Boolean liveWindowSwitch() {
+        if (Build.VERSION.SDK_INT < 26) return null;
+        try {
+            Context context = Utils.getContext();
+            if (context == null) return null;
+            SharedPreferences state = context.getSharedPreferences(STATE, Context.MODE_PRIVATE);
+            boolean ours = state.getBoolean(LIVE_WINDOW_OURS, false);
+            Boolean wanted = liveWindowSwitch(enabled(), ours);
+            if (wanted != null && wanted != ours) state.edit().putBoolean(LIVE_WINDOW_OURS, wanted).apply();
+            return wanted;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Couldn't decide TikTok's LIVE window switch", failure);
+            return null;
+        }
+    }
+
+    /** On with this switch; off when this switch is off and Hushfeed turned it on; else as it is. */
+    static Boolean liveWindowSwitch(boolean on, boolean ours) {
+        if (on) return Boolean.TRUE;
+        return ours ? Boolean.FALSE : null;
+    }
+
+    /**
+     * TikTok's answer to "is this a tablet or foldable?" inside its LIVE window's device check, as
+     * the check should see it (#413). TikTok refuses the LIVE window on large screens, and its
+     * answer counts the largest window it has ever been shown in, so a phone once run in a big
+     * window or split screen stays refused. Non-zero means large. Never throws.
+     */
+    public static int liveWindowLargeScreen(int large) {
+        try {
+            return liveWindowLargeScreen(large != 0, enabled()) ? 1 : 0;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Couldn't decide the LIVE window's screen check", failure);
+            return large;
+        }
+    }
+
+    /** Large only while this switch is off; with it on the window opens on any screen Android allows. */
+    static boolean liveWindowLargeScreen(boolean large, boolean on) {
+        return large && !on;
+    }
+
+    /**
+     * TikTok's "is the feed's activity paused?" inside its page-select step, as the step should see
+     * it (#413). TikTok starts the next video only for a resumed activity or its own background
+     * play, so the window's next arrow moved the pager onto a black cell. Non-zero means paused.
+     * Never throws.
+     */
+    public static int pageSelectPaused(int paused) {
+        try {
+            return pageSelectPaused(paused != 0, windowUp()) ? 1 : 0;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Couldn't decide the page-select pause check", failure);
+            return paused;
+        }
+    }
+
+    /** Paused only while no Hushfeed window holds the feed; in the window the step plays on. */
+    static boolean pageSelectPaused(boolean paused, boolean windowUp) {
+        return paused && !windowUp;
+    }
+
+    private static boolean windowUp() {
+        if (Build.VERSION.SDK_INT < 26) return false;
+        Activity activity = opened.get();
+        return activity != null && activity.isInPictureInPictureMode();
+    }
+
     /** Called first in the feed windows' shared onUserLeaveHint. */
     public static void onUserLeaveHint(Activity activity) {
         if (Build.VERSION.SDK_INT < 26) return;
@@ -149,9 +255,14 @@ public final class PictureInPicture {
     private static void follow(Activity activity, boolean inWindow) {
         // Only the window this class opened: TikTok's own LIVE window is TikTok's.
         if (activity == null || opened.get() != activity) return;
+        View decor = activity.getWindow().getDecorView();
+        decor.removeOnLayoutChangeListener(RESIZED);
         if (inWindow) {
-            keepAsideWhileUp(activity.getWindow().getDecorView());
+            keepAsideWhileUp(decor);
             listen(activity);
+            // The buttons were picked before Android sized the window; these fit the window it opened.
+            decor.addOnLayoutChangeListener(RESIZED);
+            activity.setPictureInPictureParams(params(activity, videoView(decor), !readerPaused));
             WeakReference<Activity> owner = new WeakReference<>(activity);
             for (long delay : RESUME_CHECKS_MS) {
                 Utils.runOnMainThreadDelayed(() -> keepPlaying(owner.get()), delay);
@@ -163,6 +274,29 @@ public final class PictureInPicture {
             WeakReference<Activity> owner = new WeakReference<>(activity);
             Utils.runOnMainThreadDelayed(() -> stopIfClosed(owner.get()), CLOSED_CHECK_MS);
         }
+    }
+
+    /** A window the reader makes bigger or smaller gets the buttons that fit it now. */
+    private static final View.OnLayoutChangeListener RESIZED =
+            (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (right - left != oldRight - oldLeft) view.post(PictureInPicture::onResized);
+            };
+
+    private static void onResized() {
+        if (Build.VERSION.SDK_INT < 26) return;
+        try {
+            refit();
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Picture-in-picture couldn't fit its buttons", failure);
+        }
+    }
+
+    @RequiresApi(26)
+    private static void refit() {
+        Activity activity = opened.get();
+        if (activity == null || !activity.isInPictureInPictureMode()) return;
+        activity.setPictureInPictureParams(params(activity,
+                videoView(activity.getWindow().getDecorView()), !readerPaused));
     }
 
     /**
@@ -206,6 +340,86 @@ public final class PictureInPicture {
         if (!SessionPlaybackHold.setCurrentPlaying(play)) return;
         readerPaused = !play;
         activity.setPictureInPictureParams(params(activity, videoView(activity.getWindow().getDecorView()), play));
+    }
+
+    /** The window's previous or next arrow: -1 or 1. */
+    static void onMove(int direction) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        try {
+            move(direction);
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Picture-in-picture couldn't move to another video", failure);
+        }
+    }
+
+    /**
+     * Moves TikTok's pager one video up or down, the way a swipe would, so TikTok picks and plays
+     * the next video itself. What was set aside comes back first, since the video slides in from a
+     * cell beside this one, and once the pager has settled the new video is kept alone again.
+     */
+    @RequiresApi(26)
+    private static void move(int direction) {
+        Activity activity = opened.get();
+        if (activity == null || !activity.isInPictureInPictureMode()) return;
+        View pager = pagerOf(videoView(activity.getWindow().getDecorView()));
+        if (!canMove(pager, direction)) return;
+        Object position = Reflect.invoke(pager, "getCurrentItem");
+        if (!(position instanceof Integer) || (Integer) position < 0) return;
+        bringBack();
+        try {
+            // The native pager clamps to its adapter and runs its own selection callbacks.
+            pager.getClass().getMethod("setCurrentItem", int.class).invoke(pager, (Integer) position + direction);
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            Logger.printException(() -> "Picture-in-picture couldn't move the pager", failure);
+            keepAsideWhileUp(activity.getWindow().getDecorView());
+            return;
+        }
+        readerPaused = false;
+        settle(new WeakReference<>(activity), SETTLE_CHECKS);
+    }
+
+    @RequiresApi(26)
+    private static void settle(WeakReference<Activity> owner, int checksLeft) {
+        Utils.runOnMainThreadDelayed(() -> {
+            Activity activity = owner.get();
+            if (activity == null || opened.get() != activity || !activity.isInPictureInPictureMode()) return;
+            View decor = activity.getWindow().getDecorView();
+            View pager = pagerOf(videoView(decor));
+            if (pager != null && !idle(pager) && checksLeft > 1) {
+                settle(owner, checksLeft - 1);
+                return;
+            }
+            keepAsideWhileUp(decor);
+            activity.setPictureInPictureParams(params(activity, videoView(decor), true));
+            for (long delay : RESUME_CHECKS_MS) {
+                Utils.runOnMainThreadDelayed(() -> keepPlaying(owner.get()), delay);
+            }
+        }, SETTLE_CHECK_MS);
+    }
+
+    /** The pager the video sits in: its nearest parent that is TikTok's vertical pager, or null. */
+    static View pagerOf(View video) {
+        ViewParent parent = video == null ? null : video.getParent();
+        while (parent instanceof View) {
+            for (Class<?> type = parent.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                if (PAGER.equals(type.getName())) return (View) parent;
+            }
+            parent = parent.getParent();
+        }
+        return null;
+    }
+
+    /**
+     * Whether an arrow can move the pager now: it has a video that way and isn't mid-slide, and
+     * no hold is keeping the reader on this video (the session budget's lock, or a link opened alone).
+     */
+    static boolean canMove(View pager, int direction) {
+        if (pager == null || !idle(pager) || !pager.canScrollVertically(direction)) return false;
+        return !SessionBudget.isLocked() && !FeedLock.linkVideoAlone();
+    }
+
+    private static boolean idle(View pager) {
+        return Integer.valueOf(0).equals(Reflect.invoke(pager, "getScrollState"));
     }
 
     /**
@@ -354,20 +568,74 @@ public final class PictureInPicture {
         PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
         Rational shape = videoShape(video);
         if (shape != null) builder.setAspectRatio(shape);
-        builder.setActions(actions(activity, playing));
+        View pager = pagerOf(video);
+        builder.setActions(actions(activity, playing, pager != null,
+                canMove(pager, -1), canMove(pager, 1), room(activity)));
         return builder.build();
     }
 
+    /**
+     * How many buttons the window shows whole: as many as Android allows (one when it won't say),
+     * and in a window that's up, no more than its width holds.
+     */
     @RequiresApi(26)
-    static List<RemoteAction> actions(Activity activity, boolean playing) {
-        Intent intent = new Intent(ACTION_TOGGLE).setPackage(activity.getPackageName())
-                .putExtra(EXTRA_TOKEN, TOKEN);
-        PendingIntent pending = PendingIntent.getBroadcast(activity, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    private static int room(Activity activity) {
+        int most;
+        try {
+            most = activity.getMaxNumPictureInPictureActions();
+        } catch (RuntimeException unknown) {
+            return 1;
+        }
+        if (!activity.isInPictureInPictureMode()) return most;
+        float density = activity.getResources().getDisplayMetrics().density;
+        int width = activity.getWindow().getDecorView().getWidth();
+        return room(most, density > 0 ? width / density : 0);
+    }
+
+    /** {@code most} buttons, or two in a window narrower than three need; a width of 0 is unknown. */
+    static int room(int most, float widthDp) {
+        if (widthDp <= 0 || widthDp >= THREE_BUTTONS_DP) return most;
+        return Math.min(most, 2);
+    }
+
+    /**
+     * The window's buttons: play or pause, between the previous and next arrows when the video
+     * sits in a pager and the window has room for three. With room for two, play or pause and the
+     * next arrow, since moving on is what a feed is for. An arrow with no video its way, or held
+     * by a lock, shows dimmed and does nothing, so the buttons don't shift between videos.
+     */
+    @RequiresApi(26)
+    static List<RemoteAction> actions(Context context, boolean playing, boolean arrows,
+                                      boolean back, boolean forward, int room) {
         String label = playing ? L10n.t("Pause") : L10n.t("Play");
-        Icon icon = Icon.createWithResource("android",
-                playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
-        return Collections.singletonList(new RemoteAction(icon, label, label, pending));
+        RemoteAction toggle = action(context, ACTION_TOGGLE, 0,
+                playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play, label);
+        if (!arrows || room < 2) return Collections.singletonList(toggle);
+        RemoteAction next = action(context, ACTION_NEXT, 2,
+                android.R.drawable.ic_media_next, L10n.t("Next video"));
+        next.setEnabled(forward);
+        if (room < ROOM_FOR_ARROWS) {
+            List<RemoteAction> two = new ArrayList<>(2);
+            two.add(toggle);
+            two.add(next);
+            return two;
+        }
+        RemoteAction previous = action(context, ACTION_PREVIOUS, 1,
+                android.R.drawable.ic_media_previous, L10n.t("Previous video"));
+        previous.setEnabled(back);
+        List<RemoteAction> all = new ArrayList<>(ROOM_FOR_ARROWS);
+        all.add(previous);
+        all.add(toggle);
+        all.add(next);
+        return all;
+    }
+
+    @RequiresApi(26)
+    private static RemoteAction action(Context context, String name, int code, int icon, String label) {
+        Intent intent = new Intent(name).setPackage(context.getPackageName()).putExtra(EXTRA_TOKEN, TOKEN);
+        PendingIntent pending = PendingIntent.getBroadcast(context, code, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        return new RemoteAction(Icon.createWithResource("android", icon), label, label, pending);
     }
 
     private static void listen(Activity activity) {
@@ -375,11 +643,17 @@ public final class PictureInPicture {
         toggle = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (fromTheButton(intent)) onToggle();
+                if (!fromTheButton(intent)) return;
+                String action = intent.getAction();
+                if (ACTION_PREVIOUS.equals(action)) onMove(-1);
+                else if (ACTION_NEXT.equals(action)) onMove(1);
+                else onToggle();
             }
         };
         Context app = activity.getApplicationContext();
         IntentFilter filter = new IntentFilter(ACTION_TOGGLE);
+        filter.addAction(ACTION_PREVIOUS);
+        filter.addAction(ACTION_NEXT);
         if (Build.VERSION.SDK_INT >= 33) {
             app.registerReceiver(toggle, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {

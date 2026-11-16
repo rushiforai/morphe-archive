@@ -101,6 +101,11 @@ public final class VideoViewerSettings {
         LiveSettings live=new LiveSettings(prefs,()->body.invalidate());
         live.toggle(brightness,"videoSwipeBrightness");live.toggle(volume,"videoSwipeVolume");
         live.toggle(autoplay,"videoAutoplay");
+        LiveSettings.Toggle doubleBack=new LiveSettings.Toggle(activity);
+        doubleBack.setText("専用ビューアーを戻るジェスチャー2回で閉じる");
+        doubleBack.setChecked(prefs(activity).getBoolean(MediaViewerBackGesture.DOUBLE_BACK,false));
+        ((android.view.ViewGroup)nativeGif.getParent()).addView(doubleBack);
+        live.toggle(doubleBack,MediaViewerBackGesture.DOUBLE_BACK);
         live.toggle(nativeGif,GIF_NATIVE);live.toggle(nativeVideo,VIDEO_NATIVE);live.toggle(threadMedia,THREAD_MEDIA);
         live.toggle(xGifAutoplay,X_GIF_AUTOPLAY);live.toggle(inlineGif,INLINE_GIF);live.toggle(inlineWifi,INLINE_WIFI);
         live.toggle(gifAutoplay,GIF_AUTOPLAY);live.toggle(holdSpeed,HOLD_SPEED);live.toggle(tapControls,TAP_CONTROLS);

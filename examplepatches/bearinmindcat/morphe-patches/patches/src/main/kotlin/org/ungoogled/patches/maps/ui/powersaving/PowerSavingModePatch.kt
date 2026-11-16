@@ -1,5 +1,8 @@
 package org.ungoogled.patches.maps.ui.powersaving
 
+import org.ungoogled.patches.maps.ui.customization.accountSheet
+import org.ungoogled.patches.maps.ui.mapsId
+import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -29,6 +32,8 @@ import org.ungoogled.patches.maps.ui.refreshrate.frameRateHookPatch
 import org.ungoogled.patches.maps.ui.sharedExtensionPatch
 import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
 import org.w3c.dom.Element
+import org.ungoogled.patches.shared.addInstructionsAtLabel
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 
 /** org.ungoogled.ui.PowerSaving, the extension half: stands in for Pixel's SystemUI. */
@@ -38,8 +43,8 @@ private const val POWER_SAVING = "Lorg/ungoogled/ui/PowerSaving;"
 private const val OPEN_POWER = "Lorg/ungoogled/ui/CustomizationActivity\$OpenPower;"
 /** Builds the row's icon from [BATTERY_ICON]. */
 private const val POWER_ROW_ICON = "Lorg/ungoogled/ui/CustomizationActivity;->powerRowIcon(Landroid/graphics/drawable/Drawable;)Landroid/graphics/drawable/Drawable;"
-/** drawable/gs_battery_full_fill1_vd_theme_24 in this build: Maps' solid battery, the row's icon is cut from it. */
-private const val BATTERY_ICON = 0x7f08050a
+/** drawable/gs_battery_full_fill1_vd_theme_24: Maps' solid battery, the row's icon is cut from it. */
+private val BATTERY_ICON get() = mapsId(ResourceType.DRAWABLE, "gs_battery_full_fill1_vd_theme_24")
 
 /** Maps' own power saving screen. Its name is not obfuscated. */
 private const val MIN_MODE_ACTIVITY = "Lcom/google/android/apps/gmm/features/minmode/MinModeActivity;"
@@ -93,7 +98,7 @@ private object RouteProgressDumpFingerprint : Fingerprint(
 )
 
 /** string/MIN_MODE_LANDSCAPE_DISABLED_SNACKBAR_TEXT: "Can't use landscape mode when power saving". */
-private const val LANDSCAPE_DISABLED_TEXT = 0x7f14136f
+private val LANDSCAPE_DISABLED_TEXT get() = mapsId(ResourceType.STRING, "MIN_MODE_LANDSCAPE_DISABLED_SNACKBAR_TEXT")
 
 /** The power saving screen is declared portrait only; it follows the phone's rotation like navigation does. */
 private val minModeOrientationPatch = resourcePatch(
@@ -135,46 +140,56 @@ val powerSavingModePatch = bytecodePatch(
     execute {
         markPatched("powerSavingPatched")
 
-        // 1. Availability. Maps offers the feature only when a server flag is on AND
-        //    Pixel's SystemUI has min mode; exactly one method asks both, and it is the
-        //    only caller of the device check. Answering yes there shows the setting and
-        //    registers the listener that arms min mode when navigation starts. The
-        //    extension answers first, and a "no" from it runs Google's own check.
+        // 1. Availability. Maps offers the feature only when a server flag is on AND Pixel's SystemUI has
+        //    min mode. Since 26.43 the question is asked inline, in one case of a provider switch:
+        //
+        //        if (serverFlag) { ... available = deviceCheck(), cached ... } else available = false
+        //        return Boolean.valueOf(available)
+        //
+        //    The boxed answer goes through the extension, which says yes when Power saving mode is on in
+        //    Power Saving Options and leaves Google's answer otherwise. The box is the one the server
+        //    flag's test jumps to: the first Boolean.valueOf at or after its target.
         val check = MinModeDeviceCheckFingerprint.method
         val callers = mutableListOf<Pair<String, com.android.tools.smali.dexlib2.iface.Method>>()
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
             for (method in classDef.methods) {
-                if (method.returnType != "Z" || !AccessFlags.STATIC.isSet(method.accessFlags)) continue
                 val calls = method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
                     ref != null && ref.definingClass == check.definingClass && ref.name == check.name &&
                         ref.returnType == "Z" && ref.parameterTypes.isEmpty()
                 } ?: false
-                if (calls) callers += classDef.type to method
+                if (calls && classDef.type != check.definingClass) callers += classDef.type to method
             }
         }
-        val (ownerType, availability) = callers.singleOrNull()
+        val (ownerType, asker) = callers.singleOrNull()
             ?: throw PatchException("expected one caller of the min-mode device check, found ${callers.size}")
         mutableClassDefBy(ownerType).methods
-            .single { it.name == availability.name && it.parameterTypes == availability.parameterTypes }
+            .single { it.name == asker.name && it.parameterTypes == asker.parameterTypes && it.returnType == asker.returnType }
             .apply {
-                // v0 must be a local, not a parameter: the original code runs after it.
-                // Static, so the parameters are all there is (wide ones take two registers).
-                val impl = implementation!!
-                val parameterRegisters = parameterTypes.size + parameterTypes.count { it == "J" || it == "D" }
-                if (impl.registerCount - parameterRegisters < 1) {
-                    throw PatchException("min-mode availability check has no free local register")
-                }
-                addInstructionsWithLabels(
-                    0,
+                val code = implementation!!.instructions
+                // From the device check call back to the server flag's test (an iget-boolean, then if-eqz).
+                val first = code.indices.firstOrNull { i ->
+                    ((code[i] as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                        it.definingClass == check.definingClass && it.name == check.name && it.parameterTypes.isEmpty()
+                    } == true
+                } ?: throw PatchException("min-mode availability: the device check call not found")
+                val flagTest = (first - 1 downTo 1).firstOrNull { i ->
+                    code[i].opcode == Opcode.IF_EQZ && code[i - 1].opcode == Opcode.IGET_BOOLEAN
+                } ?: throw PatchException("min-mode availability: the server flag's test not found")
+                val target = (code[flagTest] as BuilderOffsetInstruction).target.location.index
+                val box = (target until minOf(code.size, target + 6)).firstOrNull { i ->
+                    ((code[i] as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                        code[i].opcode == Opcode.INVOKE_STATIC && it.definingClass == "Ljava/lang/Boolean;" && it.name == "valueOf"
+                    } == true
+                } ?: throw PatchException("min-mode availability: the answer's Boolean.valueOf not found")
+                val answer = (code[box] as Instruction35c).registerC
+                addInstructionsAtLabel(
+                    box,
                     """
-                        invoke-static {}, $POWER_SAVING->forceAvailable()Z
-                        move-result v0
-                        if-eqz v0, :google_check
-                        return v0
+                        invoke-static/range { v$answer .. v$answer }, $POWER_SAVING->available(Z)Z
+                        move-result v$answer
                     """,
-                    ExternalLabel("google_check", impl.instructions.first()),
                 )
             }
 
@@ -317,11 +332,12 @@ val powerSavingModePatch = bytecodePatch(
         //    sideways; the screen turns with the phone now (manifest, and onMinModeCreate where the manifest
         //    stays stock). The message comes from an orientation listener of its own, silenced here.
         val landscapeListeners = mutableListOf<Pair<String, String>>()
+        val landscapeText = LANDSCAPE_DISABLED_TEXT.toLong()
         classDefForEach { c ->
             if (c.superclass != "Landroid/view/OrientationEventListener;") return@classDefForEach
             c.methods.filter { m ->
                 m.name == "onOrientationChanged" && m.parameterTypes.map { it.toString() } == listOf("I") &&
-                    m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == LANDSCAPE_DISABLED_TEXT.toLong() } == true
+                    m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == landscapeText } == true
             }.forEach { landscapeListeners += c.type to it.name }
         }
         val (listenerType, listenerMethod) = landscapeListeners.singleOrNull()
@@ -382,104 +398,15 @@ val powerSavingModePatch = bytecodePatch(
 
     // A "Power Saving Options" row on the account sheet, right under Customization and so above
     // Local saved. In finalize, after every patch has run, so the sheet's other rows of ours are
-    // in place whichever order the patches ran in.
+    // in place whichever order the patches ran in. Built like the Customization row, its icon cut
+    // from Maps' solid battery.
     finalize {
-        val rowHolder = mutableClassDefBy("Lolr;")
-        val template = rowHolder.methods.single { it.name == "a" && it.returnType == "Lbrmi;" && it.parameterTypes.isEmpty() }
-        val templateRefs = template.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
-        listOf(
-            "Lolr;->a:Lnxb;", "Lmm;->s(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;",
-            "Lbrmi;->a()Lbrmg;", "Lbrmg;->c(I)V", "Lbrmg;->d(Ljava/lang/String;)V", "Lbrmg;->f(I)V",
-            "Lbrmg;->e(Landroid/view/View\$OnClickListener;)V", "Lbrmf;->d:Lbrmf;", "Lbrmg;->a()Lbrmi;",
-        ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
-        // Built like the Customization row; its action id must be unique on the sheet too.
-        rowHolder.methods.add(
-            ImmutableMethod(
-                rowHolder.type, "uaPowerRow", emptyList(), "Lbrmi;",
-                AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
-            ).toMutable().apply {
-                addInstructions(
-                    0,
-                    """
-                        iget-object v0, p0, Lolr;->a:Lnxb;
-                        const v1, $BATTERY_ICON
-                        invoke-static { v0, v1 }, Lmm;->s(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
-                        move-result-object v1
-                        invoke-static { v1 }, $POWER_ROW_ICON
-                        move-result-object v1
-                        invoke-static { }, Lbrmi;->a()Lbrmg;
-                        move-result-object v3
-                        invoke-static { }, Landroid/view/View;->generateViewId()I
-                        move-result v4
-                        invoke-virtual { v3, v4 }, Lbrmg;->c(I)V
-                        iput-object v1, v3, Lbrmg;->a:Landroid/graphics/drawable/Drawable;
-                        const-string v4, "Power Saving Options"
-                        invoke-virtual { v3, v4 }, Lbrmg;->d(Ljava/lang/String;)V
-                        const v4, 0x161a8
-                        invoke-virtual { v3, v4 }, Lbrmg;->f(I)V
-                        new-instance v2, $OPEN_POWER
-                        invoke-direct { v2, v0 }, $OPEN_POWER-><init>(Landroid/content/Context;)V
-                        invoke-virtual { v3, v2 }, Lbrmg;->e(Landroid/view/View${'$'}OnClickListener;)V
-                        sget-object v4, Lbrmf;->d:Lbrmf;
-                        iput-object v4, v3, Lbrmg;->d:Lbrmf;
-                        invoke-virtual { v3 }, Lbrmg;->a()Lbrmi;
-                        move-result-object v0
-                        return-object v0
-                    """,
-                )
-            },
-        )
-
-        // Both sheet builders: right after the Customization row's add.
-        fun addUnderCustomization(returnType: String, parameters: List<String>) {
-            fun callsCustomizationRow(insn: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
-                ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
-                    r.definingClass == "Lolr;" && r.name == "uaCustomizationRow"
-                } == true
-            val found = mutableListOf<Pair<String, String>>()
-            classDefForEach { c ->
-                for (m in c.methods) {
-                    if (m.returnType != returnType || m.parameterTypes.map { it.toString() } != parameters) continue
-                    if (m.implementation?.instructions?.any(::callsCustomizationRow) == true) found += c.type to m.name
-                }
-            }
-            val (owner, name) = found.singleOrNull()
-                ?: throw PatchException("account sheet builder $returnType(${parameters.joinToString()}) with the Customization row: found ${found.size}")
-            val method = mutableClassDefBy(owner).methods.single {
-                it.name == name && it.returnType == returnType && it.parameterTypes.map { t -> t.toString() } == parameters
-            }
-            val ins = method.implementation!!.instructions
-            val call = ins.indexOfFirst(::callsCustomizationRow)
-            val result = ins[call + 1]
-            val add = ins[call + 2]
-            if (result.opcode != Opcode.MOVE_RESULT_OBJECT || add.opcode != Opcode.INVOKE_VIRTUAL ||
-                ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != "Lbwxy;" || it.name != "i" }
-            ) throw PatchException("Customization row add changed shape")
-            // The row's result register is dead after its add, so it carries ours.
-            val scratch = (result as OneRegisterInstruction).registerA
-            val list = (add as Instruction35c).registerC
-            val holder = (ins[call] as Instruction35c).registerC
-            // Modern builder: the holder is cast from a wider register just before; do the same.
-            val cast = ins.getOrNull(call - 1)?.takeIf {
-                it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == "Lolr;"
-            }
-            val source = cast?.let { (ins[call - 2] as TwoRegisterInstruction).registerB }
-            method.addInstructions(
-                call + 3,
-                if (source != null) """
-                    move-object v$scratch, v$source
-                    check-cast v$scratch, Lolr;
-                    invoke-virtual { v$scratch }, Lolr;->uaPowerRow()Lbrmi;
-                    move-result-object v$scratch
-                    invoke-virtual { v$list, v$scratch }, Lbwxy;->i(Ljava/lang/Object;)V
-                """ else """
-                    invoke-virtual { v$holder }, Lolr;->uaPowerRow()Lbrmi;
-                    move-result-object v$scratch
-                    invoke-virtual { v$list, v$scratch }, Lbwxy;->i(Ljava/lang/Object;)V
-                """,
+        accountSheet().apply {
+            addRowBuilder(
+                "uaPowerRow", "Power Saving Options", BATTERY_ICON, OPEN_POWER, listenerTakesContext = true,
+                iconTransform = POWER_ROW_ICON,
             )
+            placeRow("uaPowerRow", after = listOf("uaCustomizationRow"))
         }
-        addUnderCustomization("Lbrhh;", listOf("Lafmm;"))
-        addUnderCustomization("Lbrfb;", listOf("Z"))
     }
 }

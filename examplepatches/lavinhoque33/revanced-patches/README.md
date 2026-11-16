@@ -43,9 +43,12 @@ https://raw.githubusercontent.com/lavinhoque33/revanced-patches/refs/heads/rvx-d
 Select the dev source instead of the stable source when patching if you want dev builds.
 Do not combine the two sources' patches for the same app.
 
-Manager's own **Pre-release patches** and **Experimental app versions** switches do not appear for this
-source. The dev feed is a separate source, not a switch on the stable source, and these bundles do not
-declare experimental app targets.
+Manager's own **Pre-release patches** switch does not appear for this source. The dev feed is a separate
+source, not a switch on the stable source.
+
+These bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app targets.
+Manager's **Experimental app versions** switch is available for this source. Suggested versions remain
+**YouTube 21.39.525** and **YouTube Music 9.40.51**.
 
 You can also download a `.mpp` from a release and import it via **Sources > + > Local**.
 Local imports do not update automatically; import the new `.mpp` for each update.
@@ -193,6 +196,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Flyout menu components` | Adds options to hide or change flyout menu components. | 9.40.51 ~ 8.12.54 |
 | `Force original audio` | Adds an option to disable audio tracks from being automatically enabled. | 9.40.51 ~ 8.12.54 |
 | `Force portrait orientation` | Adds an option to keep the app in portrait orientation when the device is rotated. | 9.40.51 ~ 8.12.54 |
+| `Glass player and navigation bar` | Adds independent glass styles for the miniplayer and navigation bar, with live previews. | 9.40.51 ~ 8.12.54 |
 | `GmsCore support` | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. | 9.40.51 ~ 8.12.54 |
 | `Hide account components` | Adds options to hide components related to the account menu. | 9.40.51 ~ 8.12.54 |
 | `Hide action bar components` | Adds options to hide action bar components and replace the offline download button with an external download button. | 9.40.51 ~ 8.12.54 |
@@ -218,6 +222,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Scrobbling` | Adds options to add played tracks to Last.fm and ListenBrainz. | 9.40.51 ~ 8.12.54 |
 | `Settings for YouTube Music` | Applies mandatory patches to implement ReVanced Extended settings into the application. | 9.40.51 ~ 8.12.54 |
 | `Settings menu filter` | Adds an option to hide items on the standard YouTube Music settings screen by their visible name. | 9.40.51 ~ 8.12.54 |
+| `Settings shortcut` | Adds an optional toolbar settings button. Tap for YouTube Music settings; hold for RVX settings. | 9.40.51 ~ 8.12.54 |
 | `Skip silence` | Adds an option to automatically skip silent pauses in audio playback. | 9.40.51 ~ 8.12.54 |
 | `SponsorBlock` | Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as non-music sections. | 9.40.51 ~ 8.12.54 |
 | `Spoof app version` | Adds options to spoof the YouTube Music client version. This can be used to restore old UI elements and features. | 9.40.51 ~ 8.12.54 |

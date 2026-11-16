@@ -10,7 +10,9 @@ internal object Constants {
         name = "YouTube Music",
         packageName = YOUTUBE_MUSIC_PACKAGE_NAME,
         targets = listOf(
-            AppTarget(version = "9.40.51", minSdk = 26), // modified by lavinhoque33, 2026-10-07
+            // Keep the recommended stable target first; newer targets are opt-in in Managers.
+            AppTarget(version = "9.40.51", minSdk = 26),
+            AppTarget(version = "9.45.51", minSdk = 28, isExperimental = true),
             AppTarget(version = "9.15.51", minSdk = 26),
             AppTarget(version = "8.30.54", minSdk = 26),
             AppTarget(version = "8.28.54", minSdk = 26), // This is the latest version that supports the 'Replace Samples button' setting.

@@ -6,11 +6,11 @@ import app.onlynazril.extension.tiktok.settings.CustomFontSettings;
 
 /**
  * The face this screen draws with.
- *
+ * <p>
  * The screen is built from the extension's own views, so it never passes through the app's font
  * resolvers the patch hooks. It asks for the same face directly instead: the imported font while
  * the switch is on, and the platform's own sans-serif otherwise.
- *
+ * <p>
  * One imported file carries one face, so a "bold" line is the file's own face too. The fallback
  * keeps the platform's bold so the screen still reads as intended while no font is imported.
  */

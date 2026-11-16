@@ -8,16 +8,16 @@
 
     var P = "TRANSPORT_CONTROLS_BUTTON_TYPE_";
     var BUTTONS = [
-        { key: "channel", title: "Ocultar botón Canal", types: ["CHANNEL_BUTTON"] },
-        { key: "description", title: "Ocultar botón Descripción", types: ["ABOUT_BUTTON"] },
-        { key: "subscribe", title: "Ocultar botón Suscribirse", types: ["SUBSCRIBE"] },
-        { key: "like", title: "Ocultar Me gusta / No me gusta", types: ["LIKE_BUTTON"] },
-        { key: "comments", title: "Ocultar botón Comentarios", types: ["COMMENTS"], icons: ["COMMENT"] },
-        { key: "ask", title: "Ocultar botón Preguntar (IA)", icons: ["SPARK"] },
-        { key: "save", title: "Ocultar botón Guardar", types: ["ADD_TO_PLAYLIST"], icons: ["BOOKMARK_BORDER", "BOOKMARK"] },
-        { key: "thanks", title: "Ocultar botón Súper gracias", types: ["SUPER_THANKS"], icons: ["MONEY_HEART"] },
-        { key: "report", title: "Ocultar Denunciar y Enviar comentarios", types: ["REPORT_VIDEO", "FEEDBACK"], icons: ["FLAG", "FEEDBACK"] },
-        { key: "stats", title: "Ocultar Estadísticas para nerds", types: ["STATS_FOR_NERDS"], icons: ["BUG_REPORT"] }
+        { key: "channel", titleKey: "player.channel.title", types: ["CHANNEL_BUTTON"] },
+        { key: "description", titleKey: "player.description.title", types: ["ABOUT_BUTTON"] },
+        { key: "subscribe", titleKey: "player.subscribe.title", types: ["SUBSCRIBE"] },
+        { key: "like", titleKey: "player.like.title", types: ["LIKE_BUTTON"] },
+        { key: "comments", titleKey: "player.comments.title", types: ["COMMENTS"], icons: ["COMMENT"] },
+        { key: "ask", titleKey: "player.ask.title", icons: ["SPARK"] },
+        { key: "save", titleKey: "player.save.title", types: ["ADD_TO_PLAYLIST"], icons: ["BOOKMARK_BORDER", "BOOKMARK"] },
+        { key: "thanks", titleKey: "player.thanks.title", types: ["SUPER_THANKS"], icons: ["MONEY_HEART"] },
+        { key: "report", titleKey: "player.report.title", types: ["REPORT_VIDEO", "FEEDBACK"], icons: ["FLAG", "FEEDBACK"] },
+        { key: "stats", titleKey: "player.stats.title", types: ["STATS_FOR_NERDS"], icons: ["BUG_REPORT"] }
     ];
     var LISTS = ["promotedActions", "engagementActions", "settingActions"];
 
@@ -71,11 +71,11 @@
 
     youtv.feature({
         id: "player",
-        name: "Personalizar el reproductor",
-        summary: "Activa las opciones de abajo para ocultar botones y la fila de videos relacionados",
+        nameKey: "feature.player.name",
+        summaryKey: "feature.player.summary",
         defaultEnabled: true,
-        settings: BUTTONS.map(function (b) { return { key: b.key, title: b.title, default: false }; }).concat([
-            { key: "related", title: "Ocultar videos relacionados", summary: "Oculta la fila de videos bajo el reproductor", default: false }
+        settings: BUTTONS.map(function (b) { return { key: b.key, titleKey: b.titleKey, default: false }; }).concat([
+            { key: "related", titleKey: "player.related.title", summaryKey: "player.related.summary", default: false }
         ]),
         onResponse: function (response, settings) {
             var controls = response.transportControls && response.transportControls.transportControlsRenderer;

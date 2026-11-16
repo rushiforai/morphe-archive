@@ -173,6 +173,7 @@ public final class AuthorRegion {
     private static void stop() {
         LAYOUT_HOOK.detach();
         restore();
+        CaptionLine.clear();
         activityReference = new WeakReference<>(null);
     }
 
@@ -208,13 +209,28 @@ public final class AuthorRegion {
 
             // Resolving the text first keeps the view tree search off the layout path for
             // every video that has nothing to show.
-            String[] wanted = decoration(CurrentVideoAuthor.getAweme());
-            if (wanted == null) {
+            Object aweme = CurrentVideoAuthor.getAweme();
+            boolean line = CaptionLine.wanted();
+            String[] wanted = decoration(aweme, line);
+            if (wanted == null && !line) {
                 restore();
+                CaptionLine.clear();
                 return;
             }
 
-            decorate(findName(activity.findViewById(android.R.id.content)), wanted[0], wanted[1]);
+            View content = activity.findViewById(android.R.id.content);
+            TextView name = findName(content);
+            if (line && !CaptionLine.show(name, content, lineCountry(aweme))) {
+                // No caption to go under (#410), so the country stays beside the name.
+                wanted = decoration(aweme, false);
+            } else if (!line) {
+                CaptionLine.clear();
+            }
+            if (wanted == null) {
+                restore();
+            } else {
+                decorate(name, wanted[0], wanted[1]);
+            }
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not show the author region", ex);
         }
@@ -491,6 +507,22 @@ public final class AuthorRegion {
         postTimeViewId = postTimeId;
     }
 
+    /** The post time's id, which CaptionLine finds the row's date by. */
+    static int postTimeId() {
+        return postTimeViewId;
+    }
+
+    /**
+     * The country for the line under the caption (#410), named in full, or null when Show where
+     * a video was posted is off or the video has none.
+     */
+    static String lineCountry(Object aweme) {
+        if (!SettingsStatus.authorRegionEnabled || !Settings.SHOW_AUTHOR_REGION.get()) {
+            return null;
+        }
+        return CaptionLine.countryLabel(region(aweme));
+    }
+
     /** The two letter country the current video was posted from, upper case. */
     private static String region(Object aweme) {
         if (aweme == null) {
@@ -672,6 +704,11 @@ public final class AuthorRegion {
      * needs its own patch, or a switch saved before it was left out would still show.
      */
     static String[] decoration(Object aweme) {
+        return decoration(aweme, CaptionLine.wanted());
+    }
+
+    /** As above, with {@code line} saying whether the country goes on the caption's line instead. */
+    static String[] decoration(Object aweme, boolean line) {
         boolean names = SettingsStatus.authorRegionEnabled;
         String handle = names && Settings.SHOW_AUTHOR_HANDLE.get() ? handle(aweme) : null;
         boolean showRegion = names && Settings.SHOW_AUTHOR_REGION.get();
@@ -679,7 +716,8 @@ public final class AuthorRegion {
         // when the commenter switch wants it even if the feed's own row does not show it.
         boolean wantSeen = names && SettingsStatus.commenterDetailsEnabled && Settings.SHOW_COMMENTER_REGION.get();
         String read = showRegion || wantSeen ? region(aweme) : null;
-        String region = showRegion ? shown(read) : null;
+        // With the line under the caption on, the country goes there instead (#410).
+        String region = showRegion && !line ? shown(read) : null;
         String rate = EngagementRate.forVideo(aweme);
         String tail = region == null ? rate : rate == null ? region : region + SEPARATOR + rate;
         return handle == null && tail == null ? null : new String[]{handle, tail};

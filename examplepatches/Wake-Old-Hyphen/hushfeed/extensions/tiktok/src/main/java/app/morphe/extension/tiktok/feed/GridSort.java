@@ -46,6 +46,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.download.GridPicker;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
@@ -78,8 +79,8 @@ import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
  * being lost. A grid now stays out of sight while the chain runs and comes back once, sorted
  * ({@link Hold}).
  *
- * <p>The Liked tab has its own order, which follows the profile grids until one is chosen for it
- * there or from its chip ({@link #orderFor}).
+ * <p>The Liked and Favorites tabs each have their own order, which follows the profile grids until
+ * one is chosen for it there or from its chip ({@link #orderFor}).
  *
  * <p>A sound's page draws its videos through TikTok's detail page adapter, which hashtag and
  * effect pages share. The patch hands over the label each one is built with, and only a sound's
@@ -122,6 +123,11 @@ public final class GridSort {
      */
     static final int TAB_SOUND = -100;
     static final int TAB_DETAIL_OTHER = -101;
+    /**
+     * The number kept for a Favorites collection folder's grid, which has its own adapter. Its list
+     * holds rows that wrap the videos, behind a header row or two that stay in front.
+     */
+    static final int TAB_COLLECTION = -102;
     /** The event label TikTok builds a sound page's grid with. */
     static final String SOUND_LABEL = "single_song";
 
@@ -226,15 +232,18 @@ public final class GridSort {
     }
 
     private static String hookName(Object adapter) {
-        return isSound(adapter) ? "sound grid sort" : "profile grid sort";
+        int tab = tabOf(adapter);
+        if (tab == TAB_SOUND) return "sound grid sort";
+        return tab == TAB_COLLECTION ? "collection grid sort" : "profile grid sort";
     }
 
     /**
-     * The order the grid this adapter draws follows. The Liked tab has its own setting, which
-     * follows the profile grids ("profile", its default) until an order is chosen for it. Posts, Favorites and the private
-     * tab follow the profile setting, and a tab TikTok numbers some other way keeps TikTok's
-     * order. A sound's page has its own setting. An adapter whose tab never came in (a build the
-     * patch couldn't hook) follows the profile setting, as every grid did before Liked got its own.
+     * The order the grid this adapter draws follows. The Liked and Favorites tabs each have their
+     * own setting, which follows the profile grids ("profile", its default) until an order is
+     * chosen for it. Posts and the private tab follow the profile setting, and a tab TikTok numbers
+     * some other way keeps TikTok's order. A sound's page has its own setting. An adapter whose
+     * tab never came in (a build the patch couldn't hook) follows the profile setting, as every
+     * grid did before Liked got its own.
      */
     static String orderFor(Object adapter) {
         Integer type;
@@ -244,18 +253,29 @@ public final class GridSort {
         if (type == null) return Settings.PROFILE_GRID_SORT.get();
         switch (type) {
             case TAB_LIKED:
-                String liked = Settings.LIKED_GRID_SORT.get();
-                return indexOf(liked) >= 0 ? liked : Settings.PROFILE_GRID_SORT.get();
-            case TAB_POSTS:
+                return ownOrProfile(Settings.LIKED_GRID_SORT);
             case TAB_FAVORITES:
-            case TAB_PRIVATE:
             case TAB_FAVORITE_VIDEOS:
+                return ownOrProfile(Settings.FAVORITES_GRID_SORT);
+            case TAB_POSTS:
+            case TAB_PRIVATE:
                 return Settings.PROFILE_GRID_SORT.get();
             case TAB_SOUND:
                 return Settings.SOUND_GRID_SORT.get();
+            case TAB_COLLECTION: {
+                // "favorites", its default, or a value no order has follows the Favorites grids.
+                String own = Settings.COLLECTION_GRID_SORT.get();
+                return indexOf(own) >= 0 ? own : ownOrProfile(Settings.FAVORITES_GRID_SORT);
+            }
             default:
                 return OFF;
         }
+    }
+
+    /** A tab's own order, or the profile grids' while it's "profile" or a value no order has. */
+    private static String ownOrProfile(StringSetting own) {
+        String order = own.get();
+        return indexOf(order) >= 0 ? order : Settings.PROFILE_GRID_SORT.get();
     }
 
     /** The setting a choice on this adapter's chip saves to. */
@@ -264,8 +284,89 @@ public final class GridSort {
         synchronized (ORIGINALS) {
             type = adapter == null ? null : TABS.get(adapter);
         }
-        if (type != null && type == TAB_LIKED) return Settings.LIKED_GRID_SORT;
-        return type != null && type == TAB_SOUND ? Settings.SOUND_GRID_SORT : Settings.PROFILE_GRID_SORT;
+        if (type == null) return Settings.PROFILE_GRID_SORT;
+        switch (type) {
+            case TAB_LIKED:
+                return Settings.LIKED_GRID_SORT;
+            case TAB_FAVORITES:
+            case TAB_FAVORITE_VIDEOS:
+                return Settings.FAVORITES_GRID_SORT;
+            case TAB_SOUND:
+                return Settings.SOUND_GRID_SORT;
+            case TAB_COLLECTION:
+                return Settings.COLLECTION_GRID_SORT;
+            default:
+                return Settings.PROFILE_GRID_SORT;
+        }
+    }
+
+    /**
+     * A collection folder adapter's addData (#180), with the folder's whole list: TikTok empties the
+     * adapter and hands every loaded row over again whenever the folder changes, a new page
+     * included. A list that kept every row so far goes on as a page, so loading stops once a page
+     * adds nothing, and a shorter one starts over like a fresh load.
+     */
+    public static List<?> collectionData(Object adapter, List<?> list) {
+        if (adapter == null) return list;
+        int before;
+        synchronized (ORIGINALS) {
+            TABS.put(adapter, TAB_COLLECTION);
+            Integer loaded = LOADED.get(adapter);
+            before = loaded == null ? 0 : loaded;
+        }
+        int size = list == null ? 0 : list.size();
+        return before > 0 && size >= before ? page(adapter, list) : data(adapter, list);
+    }
+
+    /**
+     * Called as a collection folder's cell opens its video (#180), with the list of the folder's
+     * videos TikTok just built for the video page from its own state, in its own order. This puts
+     * them in the order the folder shows. The page opens the tapped video by its id, so only the
+     * swiping after it changes. A list that doesn't hold the folder's videos is left alone.
+     */
+    public static void collectionPlay(List<?> played) {
+        try {
+            if (played == null || played.size() < 2) return;
+            Object adapter = collectionHolding(played);
+            if (adapter == null || comparator(orderFor(adapter)) == null) return;
+            Object shown = Reflect.readField(adapter, "mmItems");
+            if (!(shown instanceof List)) return;
+            List<Object> posts = new ArrayList<>();
+            for (Object row : (List<?>) shown) {
+                Object post = postOf(row);
+                if (post != null) posts.add(post);
+            }
+            if (follow(played, GridSearch.withRest(stillIn(posts, played), played))) {
+                Logger.printDebug(() -> "Grid sort: the collection's video page follows its order, " + played.size() + " videos");
+            }
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not give a collection's video page its order", ex);
+        }
+    }
+
+    /** The collection folder adapter whose last list holds one of {@code played}'s videos, or null. */
+    private static Object collectionHolding(List<?> played) {
+        Map<Object, Boolean> videos = new IdentityHashMap<>();
+        for (Object video : played) {
+            if (video != null) videos.put(video, Boolean.TRUE);
+        }
+        List<Object> folders = new ArrayList<>();
+        List<List<?>> lists = new ArrayList<>();
+        synchronized (ORIGINALS) {
+            for (Map.Entry<Object, Integer> entry : TABS.entrySet()) {
+                List<?> list = entry.getValue() == TAB_COLLECTION ? ORIGINALS.get(entry.getKey()) : null;
+                if (list == null) continue;
+                folders.add(entry.getKey());
+                lists.add(list);
+            }
+        }
+        for (int i = 0; i < folders.size(); i++) {
+            for (Object row : lists.get(i)) {
+                Object post = postOf(row);
+                if (post != null && videos.containsKey(post)) return folders.get(i);
+            }
+        }
+        return null;
     }
 
     /**
@@ -984,6 +1085,7 @@ public final class GridSort {
             public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
                 if (key != null && !Settings.PROFILE_GRID_SORT.key.equals(key)
                         && !Settings.LIKED_GRID_SORT.key.equals(key)
+                        && !Settings.FAVORITES_GRID_SORT.key.equals(key)
                         && !Settings.SOUND_GRID_SORT.key.equals(key)) return;
                 synchronized (Setting.class) {
                     if (originalWatch != this || !originalChosen) return;
@@ -1445,26 +1547,46 @@ public final class GridSort {
         };
     }
 
+    /**
+     * Whether an item keeps its place in front: a video pinned to its profile, or a collection
+     * folder's row with no video, its header, which TikTok puts ahead of the videos.
+     */
     static boolean isPinned(Object item) {
+        if (GridPicker.wrapsPost(item)) return postOf(item) == null;
         Object top = Reflect.property(item, "getIsTop", "isTop");
         return top instanceof Number && ((Number) top).intValue() == 1;
     }
 
+    /**
+     * The video a grid item stands for: the item itself, or the one a collection folder's row
+     * wraps. Null for anything else, a header row included, which on 47.7.3 wraps an empty video
+     * with no id.
+     */
+    static Aweme postOf(Object item) {
+        Object post = GridPicker.postIn(item);
+        if (!(post instanceof Aweme)) return null;
+        if (post == item) return (Aweme) post;
+        return TextUtils.isEmpty(((Aweme) post).getAid()) ? null : (Aweme) post;
+    }
+
     static long created(Object item) {
-        return item instanceof Aweme ? ((Aweme) item).getCreateTime() : 0;
+        Aweme post = postOf(item);
+        return post == null ? 0 : post.getCreateTime();
     }
 
     static long length(Object item) {
-        return GridVideoLength.lengthMs(item);
+        return GridVideoLength.lengthMs(postOf(item));
     }
 
     static long views(Object item) {
-        AwemeStatistics statistics = item instanceof Aweme ? ((Aweme) item).getStatistics() : null;
+        Aweme post = postOf(item);
+        AwemeStatistics statistics = post == null ? null : post.getStatistics();
         return statistics == null ? 0 : statistics.getPlayCount();
     }
 
     static long likes(Object item) {
-        AwemeStatistics statistics = item instanceof Aweme ? ((Aweme) item).getStatistics() : null;
+        Aweme post = postOf(item);
+        AwemeStatistics statistics = post == null ? null : post.getStatistics();
         return statistics == null ? 0 : statistics.getDiggCount();
     }
 

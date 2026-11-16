@@ -3,7 +3,9 @@ package app.morphed.patches.twitch.ad.client
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
+import app.morphed.patches.twitch.settings.patchSettingsPatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
+import app.morphed.patches.twitch.shared.markIncluded
 import app.morphed.patches.twitch.shared.addInstructionsBeforeReturn
 import app.morphed.patches.twitch.shared.indicesOf
 import com.android.tools.smali.dexlib2.Opcode
@@ -22,9 +24,12 @@ val blockClientAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 
+    dependsOn(patchSettingsPatch)
     extendWith("extensions/twitch.mpe")
 
     execute {
+        markIncluded("adBlock")
+
         val reasonsMethod = AdIneligibilityReasonsFingerprint.method
         reasonsMethod.apply {
             // The reasons enum is obfuscated, field names included. It is the enum whose own constants

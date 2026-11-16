@@ -6,15 +6,20 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.utils.navigation
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
+import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
@@ -77,13 +82,17 @@ internal val browseIdHookPatch = bytecodePatch(description = "Hooks the browse i
                 val browseDataExtensionField = getInstruction<ReferenceInstruction>(browseDataExtensionIndex)
                     .getReference<FieldReference>()!!
 
-                // Matches two 100% identical methods in the same class, either method works here.
+                // Browse id is returned unchanged, or null when the endpoint has no browse data.
+                // Other string extractors use the same extension, but normalize empty strings to null.
                 val browseIdMethod = Fingerprint(
                     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
                     returnType = "Ljava/lang/String;",
                     parameters = listOf(endpointField.type),
                     filters = listOf(
-                        fieldAccess(opcode = Opcode.SGET_OBJECT, reference = browseDataExtensionField)
+                        fieldAccess(opcode = Opcode.SGET_OBJECT, reference = browseDataExtensionField),
+                        fieldAccess(opcode = Opcode.IGET_OBJECT, type = "Ljava/lang/String;"),
+                        literal(0L, location = MatchAfterWithin(2)),
+                        opcode(Opcode.RETURN_OBJECT, location = MatchAfterImmediately())
                     )
                 ).matchAll(1..2).first().method
 

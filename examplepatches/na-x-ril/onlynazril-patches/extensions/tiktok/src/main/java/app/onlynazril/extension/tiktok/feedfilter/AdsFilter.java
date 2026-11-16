@@ -4,7 +4,7 @@ import app.onlynazril.extension.tiktok.internal.Reflect;
 
 /**
  * Ads.
- *
+ * <p>
  * Four signals, because the app does not use one: `isAd` for a plain ad, `isSoftAd` for the milder
  * unit, `isWithPromotionalMusic` for a boosted song, and a raw-ad payload that only an ad carries.
  * Any of them is enough, and each is read by name for the same reason as everywhere else in the

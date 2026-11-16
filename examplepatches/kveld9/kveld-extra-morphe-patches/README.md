@@ -101,9 +101,9 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 447.0.0.55.81 |
+| 452.1.0.53.64 |
 | :---: |
-| Download com.instagram.android v447.0.0.55.81 (APKM) arm64-v8a 120-480dpi versionCode 385311891 (BUNDLE3 S) from APKMirror |
+| Download com.instagram.android v452.1.0.53.64 (APKM) arm64-v8a 480-640dpi versionCode 385811006 from APKMirror |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -119,13 +119,13 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 12.37.2-prod.01 |
+| 12.41.0-prod.01 |
 | :---: |
-| Download com.twitter.android v12.37.2-prod.01 (APKM) arm64-v8a 120-640dpi versionCode 312372001 (BUNDLE 35 S) from APKMirror |
+| Download com.twitter.android v12.41.0-prod.01 (APKM) arm64-v8a 120-640dpi versionCode 312410001 (BUNDLE 35 S) from APKMirror |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
-| **Background Slimmer** | Disables background periodic jobs, home screen widgets, and companion services to reduce resource usage. |  |
+| **Background Slimmer** | Disables background periodic jobs, home screen widgets, and companion services to reduce resource usage. | • Disable WorkManager and Boot Receivers<br>• Disable Home Screen Widgets<br>• Disable Cast and NFC Companion Services |
 | **Block Telemetry & Trackers** | Blocks tracking services, analytics collection, and advertising identifiers, redirects Braze and Sentry endpoints to 0.0.0.0, and purges Sentry manifest metadata. | • Block Payments & Anti-Fraud Telemetry |
 
 </details>
@@ -136,9 +136,9 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 5.28.6 |
+| 5.28.8 |
 | :---: |
-| Download com.nokoprint v5.28.6 (XAPK bundle) from APKPure |
+| Download com.nokoprint v5.28.8 (XAPK bundle) from APKPure |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -158,9 +158,9 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 19.9.0 |
+| 20.1.0 |
 | :---: |
-| Download com.lemon.lvoverseas v19.9.0 (APK) arm64-v8a nodpi versionCode 19900002 from APKMirror |
+| Download com.lemon.lvoverseas v20.1.0 (APK) arm64-v8a nodpi versionCode 20101600 from APKMirror |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -186,9 +186,9 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 5.203.0.1812 |
+| 5.204.0.1813 |
 | :---: |
-| Download com.tranzmate v5.203.0.1812 (APKM) arm64-v8a 160-640dpi versionCode 1812 (BUNDLE 31 S) from APKMirror |
+| Download com.tranzmate v5.204.0.1813 (APKM) arm64-v8a 160-640dpi versionCode 1813 (BUNDLE 31 S) from APKMirror |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -227,9 +227,9 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 **Supported versions:**
 
-| 3.2.2 |
+| 3.2.5 |
 | :---: |
-| Download com.hevy v3.2.2 (APKM) arm64-v8a 120-640dpi versionCode 3308730 (BUNDLE) from APKMirror |
+| Download com.hevy v3.2.5 (APKM) arm64-v8a 120-640dpi versionCode 3431793 (BUNDLE) from APKMirror |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|

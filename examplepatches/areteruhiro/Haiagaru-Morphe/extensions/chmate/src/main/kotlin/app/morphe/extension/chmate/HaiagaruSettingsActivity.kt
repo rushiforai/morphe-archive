@@ -49,7 +49,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         gestures = HaiagaruSettingsGestures(this, window.decorView,
             { onBackPressedDispatcher.onBackPressed() }, { top() }, { bottom() }).also { it.setCloseAction { finish() } }
         if (savedInstanceState == null) window.decorView.post {
-            PersonalNgSubmissions.offerOnSettingsOpen(this) { MinimalSetup.offer(this) }
+            SettingsBackupIntroduction.offer(this) {
+                SettingsSupport.offer(this) { PersonalNgSubmissions.offerOnSettingsOpen(this) { MinimalSetup.offer(this) } }
+            }
         }
     }
 
@@ -109,27 +111,59 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
     private fun SettingsScreen() {
         var selected by rememberSaveable { mutableIntStateOf(-1) }
         var query by rememberSaveable { mutableStateOf(intent.getStringExtra("haiagaru.settings.search").orEmpty().take(160)) }
+        var categoryQuery by rememberSaveable { mutableStateOf("") }
+        val searchQuery = if (selected >= 0) categoryQuery else query
         val english = SettingsLanguage.text(getSharedPreferences(WacchoiSearchOptions.PREFS, 0)
             .getString("settingsLanguage", "ja"), java.util.Locale.getDefault(), "ja", "en") == "en"
         val groups = remember { settingsGroups() }
+        // Lazy content can be measured after Back has changed the mutable index.
+        // Capture the category object for this composition instead of indexing later.
+        val currentCategory = groups.getOrNull(selected)
         val bodies = remember { mutableMapOf<String, android.widget.LinearLayout>() }
         fun body(key: String) = bodies.getOrPut(key) { Haiagaru.settingsCategory(this, key).also(::prepareSettingsBindings) }
         var matches by remember { mutableStateOf<List<Pair<SettingsGroup, BoundSetting>>>(emptyList()) }
         var searching by remember { mutableStateOf(false) }
         var indexedQuery by remember { mutableStateOf("") }
+        var indexedScope by remember { mutableIntStateOf(-2) }
         // Home, search and category content have different item sets. Sharing a
         // state (and resetting it on navigation) discarded the home position.
         val homeList = rememberLazyListState()
         val searchList = rememberLazyListState()
         val categoryList = rememberLazyListState()
-        val list = if (selected >= 0) categoryList else if (query.isBlank()) homeList else searchList
+        val categorySearchList = rememberLazyListState()
+        val list = if (selected >= 0) { if (categoryQuery.isBlank()) categoryList else categorySearchList }
+            else if (query.isBlank()) homeList else searchList
         val scope = rememberCoroutineScope()
         val invalidation = revision
         // Snapshot native toggle values on every preference refresh, even while the
         // asynchronous search index is being rebuilt. Keep the same controls/listeners.
-        val visibleMatches = matches.map { (group, option) -> group to option.refreshed() }
+        val visibleMatches = if (indexedScope == selected) matches.map { (group, option) -> group to option.refreshed() } else emptyList()
         val update: () -> Unit = { revision++ }
-        val back = { if (selected >= 0) selected = -1 else if (query.isNotEmpty()) query = "" else finish() }
+        var copying by remember { mutableStateOf(false) }
+        val copyAction: @Composable () -> Unit = {
+            TextButton(enabled = !copying, onClick = {
+                val chosen = currentCategory?.let { listOf(it) } ?: groups
+                copying = true
+                scope.launch {
+                    try {
+                        val text = StringBuilder("Haiagaru設定")
+                        for (group in chosen) {
+                            text.append("\n").append(group.title(english))
+                            for (source in group.sources) {
+                                text.append("\n").append(SettingsCopy.hierarchy(sectionTitle(source, english), body(source)))
+                                withFrameNanos { }
+                            }
+                        }
+                        SettingsCopy.copy(this@HaiagaruSettingsActivity, text.toString())
+                    } finally { copying = false }
+                }
+            }) { Text(if (copying) "コピー中…" else "階層をコピー") }
+        }
+        val back = {
+            if (selected >= 0 && categoryQuery.isNotEmpty()) categoryQuery = ""
+            else if (selected >= 0) selected = -1
+            else if (query.isNotEmpty()) query = "" else finish()
+        }
         BackHandler { back() }
         SideEffect {
             top = { scope.launch { list.animateScrollToItem(0) }; Unit }
@@ -139,39 +173,43 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             // Rebuild editors on navigation, so a toggle changed in the expert
             // projection cannot leave its ordinary-category control stale.
             bodies.clear()
-            if (selected >= 0) categoryList.scrollToItem(0)
+            if (selected >= 0) { categoryList.scrollToItem(0); categorySearchList.scrollToItem(0) }
             revision++
         }
-        LaunchedEffect(query, invalidation) {
-            if (query.isBlank()) { matches = emptyList(); searching = false; return@LaunchedEffect }
-            if (query != indexedQuery) { searching = true; delay(200) }
+        LaunchedEffect(searchQuery, selected, invalidation) {
+            if (searchQuery.isBlank()) { matches = emptyList(); searching = false; return@LaunchedEffect }
+            if (searchQuery != indexedQuery || selected != indexedScope) { searching = true; delay(200) }
             val found = mutableListOf<Pair<SettingsGroup, BoundSetting>>()
-            for (group in groups) {
+            val searchGroups = currentCategory?.let { listOf(it) } ?: groups
+            for (group in searchGroups) {
                 group.sources.forEach { source -> flattenedSettingsRows(body(source)).forEach {
                     val control = it.control
                     val actionable = control is android.widget.CompoundButton ||
                         control is android.widget.Button || control is android.widget.EditText ||
                         control is android.widget.Spinner || control.hasOnClickListeners()
-                    if (actionable && SettingsSections.matches(it.keywords + " " + group.ja + " " + group.en, query)) found.add(group to it)
+                    if (actionable && SettingsSections.matches(it.keywords + " " + group.ja + " " + group.en, searchQuery)) found.add(group to it.copy(
+                        searchTrail = listOf(sectionTitle(source, english), it.searchTrail).filter { part -> part.isNotBlank() }.joinToString(" > ")))
                 } }
                 withFrameNanos { }
             }
-            matches = found; indexedQuery = query; searching = false
+            matches = found; indexedQuery = searchQuery; indexedScope = selected; searching = false
         }
         Scaffold(topBar = {
             if (selected < 0 && query.isBlank()) TopAppBar(expandedHeight = 48.dp, title = { Text("Haiagaru") },
+                actions = { copyAction() },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
-            else TopAppBar(expandedHeight = 48.dp, title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else groups[selected].title(english),
+            else TopAppBar(expandedHeight = 48.dp, title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else currentCategory?.title(english).orEmpty(),
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                actions = { copyAction() },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
         }) { insets ->
             LazyColumn(state = list, modifier = Modifier.fillMaxSize().padding(insets).imePadding(),
-                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (selected < 0) {
-                    item { OutlinedTextField(query, { query = it }, placeholder = { Text(if (english) "Find a setting" else "設定を検索") },
-                        leadingIcon = { Icon(Icons.Filled.Search, null) }, singleLine = true,
-                        modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)) }
-                    if (query.isBlank()) {
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = if (selected < 0) 4.dp else 12.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                item { SettingsSearchField(searchQuery, {
+                    if (selected >= 0) categoryQuery = it.take(160) else query = it.take(160)
+                }, if (selected >= 0) (if (english) "Search this category" else "このカテゴリ内を検索")
+                    else if (english) "Find a setting" else "設定を検索") }
+                if (selected < 0 && query.isBlank()) {
                         item {
                             SettingsFrame {
                                 SettingsHomeAction(if (english) "Haiagaru update history" else "Haiagaru更新履歴") {
@@ -186,7 +224,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                                     SettingsHomeAction(if (english) "Load settings" else "設定を読み込む", Modifier.weight(1f)) { SettingsProfiles.open(this@HaiagaruSettingsActivity) }
                                 }
                                 Spacer(Modifier.height(6.dp))
-                                SettingsHomeAction(if (english) "Choose minimal setup again" else "最低限構成を選び直す") { MinimalSetup.show(this@HaiagaruSettingsActivity) }
+                                SettingsHomeAction(if (english) "Choose minimal setup again" else "最低限構成を選び直す") { MinimalSetup.choose(this@HaiagaruSettingsActivity) }
 
                             }
                         }
@@ -199,6 +237,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) }
                         items(groups, key = { it.id }) { group ->
                             SettingsFrame(onClick = {
+                                categoryQuery = ""
                                 selected = groups.indexOf(group)
                             }, padded = false) {
                                 ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
@@ -216,11 +255,11 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             else "ツールバーの表示はChMateのツールバー設定で。検索のオン／オフや履歴保存は検索画面で変更できます。",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(8.dp)) }
-                    } else {
-                        item { Text(if (searching) (if (english) "Searching…" else "検索中…") else if (matches.isEmpty())
+                } else if (searchQuery.isNotBlank()) {
+                        item { Text(if (searching || indexedScope != selected) (if (english) "Searching…" else "検索中…") else if (visibleMatches.isEmpty())
                             (if (english) "No settings found. Try a shorter word." else "見つかりませんでした。短い言葉で探してみてください。")
-                            else if (english) "${matches.size} settings" else "${matches.size}件の設定") }
-                        if (matches.isNotEmpty()) item {
+                            else if (english) "${visibleMatches.size} settings" else "${visibleMatches.size}件の設定") }
+                        if (visibleMatches.isNotEmpty()) item {
                             Text(if (english) "Change settings here. Changes are saved automatically."
                                 else "検索結果のスイッチでオン／オフできます。変更は自動で保存されます。",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -229,20 +268,27 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             (group, option) -> SettingsFrame(padded = false) {
                                 Text(group.title(english), style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 12.dp, top = 10.dp))
-                                BoundSettingRow(option, update)
+                                SettingCopyScope(listOf("Haiagaru設定", group.title(english))) {
+                                    BoundSettingRow(option, update)
+                                }
                             }
                         }
-                    }
-                } else {
-                    val group = groups[selected]
-                    group.sources.forEach { source ->
+                } else if (currentCategory != null) {
+                    val group = currentCategory
+                    group.sources.forEachIndexed { index, source ->
                         val rows = settingsRows(body(source))
                         if (group.sources.size > 1) item("heading:$source") {
                             Text(sectionTitle(source, english), style = MaterialTheme.typography.titleSmall, fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 12.dp, top = 8.dp))
+                                color = if (source == "DISPLAY" || source == "SOCIAL")
+                                    HaiagaruUi.settingsCategoryColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 12.dp, top = if (index == 0) 0.dp else 8.dp))
                         }
                         items(rows, key = { "${source}:${System.identityHashCode(it.control)}" }) { option ->
-                            SettingsFrame(padded = false) { BoundSettingRow(option, update) }
+                            SettingsFrame(padded = false) {
+                                SettingCopyScope(listOf("Haiagaru設定", group.title(english), sectionTitle(source, english))) {
+                                    BoundSettingRow(option, update)
+                                }
+                            }
                         }
                     }
                 }
@@ -252,7 +298,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
     }
 }
 
-private fun sectionTitle(source: String, english: Boolean) = (when (source) {
+internal fun sectionTitle(source: String, english: Boolean) = (when (source) {
     "DISPLAY" -> "画面と操作" to "Display and controls"
     "SOCIAL" -> "リンクカード・Xのプレビュー" to "Link cards and X previews"
     "POSTING" -> "入力と送信" to "Editor and sending"

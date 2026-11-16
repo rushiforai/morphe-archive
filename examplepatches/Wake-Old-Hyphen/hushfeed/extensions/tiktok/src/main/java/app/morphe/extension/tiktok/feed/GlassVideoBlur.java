@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.download.PlayerLayers;
 import app.morphe.extension.tiktok.playback.PictureInPicture;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -113,6 +114,10 @@ final class GlassVideoBlur {
 
     private final float density;
     private final WeakReference<android.graphics.drawable.Drawable> ownerDrawable;
+    /** The switch this blur runs under: the bar's, or the Stories pill's (#409). */
+    private final BooleanSetting toggle;
+    /** True for the bar's pill, which follows Blur strength and Bend the video at the edges. */
+    private final boolean forBar;
     private final Rect pillInWindow = new Rect();
     private final int[] spot = new int[2];
     private final Runnable tick = this::tick;
@@ -141,8 +146,23 @@ final class GlassVideoBlur {
 
     /** {@code owner} is the background drawing this; the blur stops once the bar holds another. */
     GlassVideoBlur(float density, android.graphics.drawable.Drawable owner) {
+        this(density, owner, Settings.GLASS_VIDEO_BLUR, true);
+    }
+
+    /**
+     * A blur that runs while {@code toggle} is on. One that isn't {@code forBar} draws at the
+     * standard strength and never bends: the Stories pill (#409) has no rows of its own for those.
+     */
+    GlassVideoBlur(float density, android.graphics.drawable.Drawable owner, BooleanSetting toggle, boolean forBar) {
         this.density = density;
         this.ownerDrawable = new WeakReference<>(owner);
+        this.toggle = toggle;
+        this.forBar = forBar;
+    }
+
+    /** True while this blur's switch is on, Hushfeed isn't paused and the phone can draw it. */
+    boolean on() {
+        return supported() && toggle.get();
     }
 
     /** True where this build can draw the blur: RenderEffect starts with Android 12. */
@@ -245,21 +265,21 @@ final class GlassVideoBlur {
      */
     void drawBehind(Canvas canvas, View view, Rect pill, float radius) {
         drawn = null;
-        if (!wanted() || pill.isEmpty()) return;
+        if (!on() || pill.isEmpty()) return;
         bar = new WeakReference<>(view);
         watch(view);
         start(view);
         if (!hasFrame || sample == null || !canvas.isHardwareAccelerated()
                 || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
         if (painter == null) painter = new Painter();
-        painter.draw(canvas, sample, pill, radius, blurDp(Settings.GLASS_BLUR_STRENGTH.get()) * density,
-                GlassRefraction.wanted(), density);
+        float blur = forBar ? blurDp(Settings.GLASS_BLUR_STRENGTH.get()) : BLUR_DP;
+        painter.draw(canvas, sample, pill, radius, blur * density, forBar && GlassRefraction.wanted(), density);
         drawn = painter.node;
     }
 
     /** Starts the loop when it isn't already going. */
     void start(View view) {
-        if (running || !wanted()) return;
+        if (running || !on()) return;
         bar = new WeakReference<>(view);
         running = true;
         view.postOnAnimation(tick);
@@ -284,7 +304,7 @@ final class GlassVideoBlur {
             step(SystemClock.uptimeMillis());
         } catch (RuntimeException failure) {
             running = false;
-            hasFrame = false;
+            letGo(bar.get());
             Logger.printException(() -> "Could not blur the video behind the bar", failure);
         }
     }
@@ -302,7 +322,7 @@ final class GlassVideoBlur {
     }
 
     private boolean goOn(View view) {
-        return view != null && wanted() && view.isShown() && view.hasWindowFocus()
+        return view != null && on() && view.isShown() && view.hasWindowFocus()
                 && view.getBackground() != null && view.getBackground() == ownerDrawable.get();
     }
 
@@ -311,7 +331,7 @@ final class GlassVideoBlur {
         if (source != null && !source.current()) {
             // Another video now: its picture, not the last one's, or none until it's read.
             source = null;
-            hasFrame = false;
+            letGo(view);
             still = 0;
         }
         if (source == null || now - lastFind >= FIND_MS) {
@@ -325,7 +345,7 @@ final class GlassVideoBlur {
                 : background.getBounds();
         if (video == null || pill.isEmpty()) {
             note("none", "no video found behind the bar");
-            hasFrame = false;
+            letGo(view);
             return;
         }
         view.getLocationInWindow(spot);
@@ -333,7 +353,7 @@ final class GlassVideoBlur {
         Rect from = sourceRect(pillInWindow, video.bounds(), video.bufferWidth(), video.bufferHeight());
         if (from == null) {
             note("off", "the pill " + pillInWindow + " isn't over the video " + video.bounds());
-            hasFrame = false;
+            letGo(view);
             return;
         }
         int[] size = sampleSize(pill.width(), pill.height());
@@ -351,14 +371,14 @@ final class GlassVideoBlur {
         } catch (RuntimeException refused) {
             // PixelCopy turns down a surface that's already gone, a swipe at the same moment.
             copying = false;
-            failed(now);
+            failed(view, now);
         }
     }
 
     private void finished(View view, boolean copied) {
         copying = false;
         if (!copied) {
-            failed(lastRead);
+            failed(view, lastRead);
             return;
         }
         failures = 0;
@@ -370,15 +390,27 @@ final class GlassVideoBlur {
         view.invalidate();
     }
 
-    private void failed(long now) {
+    private void failed(View view, long now) {
         source = null;
         if (++failures >= MAX_FAILURES) {
             // Nothing readable behind the pill: the plain glass shows until the next try.
             note("failed", "the video behind the bar can't be read, plain glass for now");
             failures = 0;
-            hasFrame = false;
+            letGo(view);
             retryAt = now + RETRY_MS;
         }
+    }
+
+    /**
+     * Drops the picture and redraws the bar, so the pill shows the plain glass now. The bar is
+     * only redrawn when a read lands, and it sits still while the feed scrolls under it, so a
+     * pill dragged off the video kept the last blurred frame in it until the next video played
+     * (#408).
+     */
+    private void letGo(View view) {
+        if (!hasFrame) return;
+        hasFrame = false;
+        if (view != null) view.invalidate();
     }
 
     private void note(String now, String line) {

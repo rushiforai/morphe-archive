@@ -75,7 +75,10 @@ ANDROID = {
         public String getPackageName(){return "app.test";}
         public android.content.pm.PackageManager getPackageManager(){return new android.content.pm.PackageManager();}
         public android.content.pm.ApplicationInfo getApplicationInfo(){return new android.content.pm.ApplicationInfo();}
-        public void startActivity(Intent intent){} }''',
+        public static int started; public static boolean refuses;
+        public void startActivity(Intent intent){if(refuses)throw new ActivityNotFoundException();started++;} }''',
+    'android/content/ActivityNotFoundException.java': '''package android.content;
+        public class ActivityNotFoundException extends RuntimeException {}''',
     'android/content/SharedPreferences.java': '''package android.content; public interface SharedPreferences {
         interface OnSharedPreferenceChangeListener {void onSharedPreferenceChanged(SharedPreferences p,String key);}
         interface Editor {Editor putString(String k,String v);Editor putInt(String k,int v);Editor putLong(String k,long v);
@@ -94,6 +97,8 @@ ANDROID = {
     'android/content/pm/PackageManager.java': '''package android.content.pm; public class PackageManager {
         public static String versionName="31.7.0";
         public static class NameNotFoundException extends Exception {}
+        public static boolean declared=true;
+        public Object resolveActivity(android.content.Intent i,int flags){return declared?new Object():null;}
         public android.content.Intent getLaunchIntentForPackage(String p){return null;}
         public PackageInfo getPackageInfo(String p,int flags)throws NameNotFoundException{
           PackageInfo info=new PackageInfo();info.versionName=versionName;return info;} }''',
@@ -137,6 +142,8 @@ ANDROID = {
     # The screen itself is UI; Settings only names its class.
     SETTINGS + 'SettingsActivity.java': '''package io.github.jordanwoodson.extension.shared.settings;
         public class SettingsActivity extends android.app.Activity {}''',
+    SETTINGS + 'SettingsDialog.java': '''package io.github.jordanwoodson.extension.shared.settings;
+        public class SettingsDialog {public static int shown; static void show(android.app.Activity a){shown++;}}''',
     # Production classes replace the doubles other host tests use.
     SETTINGS + 'Settings.java': None,
     PACKAGE + 'Logger.java': None,
@@ -173,6 +180,9 @@ ANDROID = {
           public static void putAll(java.util.Map<String,String> values){Settings.putAll(values);}
           public static void reset(){Settings.reset();}
           public static boolean pausedNow(){return Settings.pausedNow();}
+          public static void open(android.content.Context from){Settings.open(from);}
+          public static void resumed(android.app.Activity a){new ResumedActivityTracker().onActivityResumed(a);}
+          public static void paused(android.app.Activity a){new ResumedActivityTracker().onActivityPaused(a);}
           public static boolean pauseRequested(){return Settings.pauseRequested();}
           public static boolean autoPaused(){return Settings.autoPaused();}
           public static void setPaused(boolean paused){Settings.setPaused(paused);}
@@ -265,6 +275,7 @@ public class SettingsProbe {
       case "backup":Access.context(new Context());backup(read(a[1]));break;
       case "report":Access.context(new Context());report(read(a[1]));break;
       case "shortcut":shortcut();break;
+      case "open":open();break;
       default:throw new AssertionError(args[0]);
     }
     System.out.println("PASS settings "+a[0]+(a.length>1?" "+Paths.get(a[1]).getFileName():"")+": "+checks+" checks");
@@ -633,6 +644,30 @@ public class SettingsProbe {
    * The launcher shortcut. Android 11+: pushed to the top on every start, over the app's own conversation shortcuts.
    * Older: added once, updated when its label or the app/Lurk version changed.
    */
+  // Where the screen opens: its own activity, or a dialog over the app's when the installed manifest lacks it.
+  static void open()throws Exception{
+    Class<?> dialog=Class.forName("io.github.jordanwoodson.extension.shared.settings.SettingsDialog");
+    java.lang.reflect.Field shown=dialog.getField("shown");
+    android.app.Activity activity=new android.app.Activity();
+    Access.open(activity);
+    check(Context.started==1&&shown.getInt(null)==0,"declared: the settings activity starts");
+    android.content.pm.PackageManager.declared=false;
+    Access.open(activity);
+    check(Context.started==1&&shown.getInt(null)==1,"not declared (mount install): a dialog over the activity");
+    Access.open(new Context());
+    check(Context.started==1&&shown.getInt(null)==1,"not declared and no activity open: nothing, and no crash");
+    Access.resumed(activity);
+    Access.open(new Context());
+    check(Context.started==1&&shown.getInt(null)==2,"not declared, from the application: over the resumed activity");
+    Access.paused(activity);
+    android.content.pm.PackageManager.declared=true;
+    Context.refuses=true;
+    Access.open(activity);
+    check(shown.getInt(null)==3,"declared but Android refuses to start it: the dialog");
+    Context.refuses=false;
+    Access.open(null);
+    System.out.println("ok  the screen opens as a dialog when the manifest has no settings activity");
+  }
   static void shortcut()throws Exception{
     android.content.pm.ShortcutManager pushing=new android.content.pm.ShortcutManager();
     Context.services=type->type==android.content.pm.ShortcutManager.class?pushing:null;
@@ -789,7 +824,7 @@ def main(argv):
             scenarios += [f'registry|{fixture}|{Path(scratch) / (app + ".dump")}', f'defaults|{fixture}',
                           f'stored|{fixture}', f'nocontext|{fixture}', f'empty|{fixture}', f'pause|{fixture}',
                           f'restart|{fixture}', f'backup|{fixture}', f'report|{fixture}']
-        scenarios += ['empty', 'chatfilter', 'logger', 'crash', 'shortcut']
+        scenarios += ['empty', 'chatfilter', 'logger', 'crash', 'shortcut', 'open']
         run('SettingsProbe', ['settings/Settings.java', 'settings/Registry.java', 'settings/ResumedActivityTracker.java',
                               'settings/Backup.java', 'settings/Report.java', 'Logger.java', 'ChatFilter.java'],
             PROBE, scenarios, extra=JSON_DOUBLE | ANDROID)

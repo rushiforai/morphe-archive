@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Copies AML and the mods built in the mod loader repo into the patches file's resources.
-# usage: ./sync-mods.sh <path to the mod loader repo>   (run loader/build_aml_arm64.sh and mods/build.sh there first)
+# Copies AML and the mods built in the mod loader repo (and SA:COOP DE's libcoop.so) into the patches file's resources.
+# usage: ./sync-mods.sh <mod loader repo> <sa-coop-de repo>
+#   (run loader/build_aml_arm64.sh and mods/build.sh in the first, android/build.sh in the second)
 set -euo pipefail
-REPO=${1:?usage: $0 <mod loader repo>}
+REPO=${1:?usage: $0 <mod loader repo> <sa-coop-de repo>}
+COOP=${2:?usage: $0 <mod loader repo> <sa-coop-de repo>}
 DST=$(cd "$(dirname "$0")" && pwd)/patches/src/main/resources/gtade
 rm -rf "$DST" && mkdir -p "$DST"
 M=$REPO/mods
@@ -20,3 +22,6 @@ ls "$DST"
 mkdir -p "$DST/cleo" && cp "$M"/cleo/scripts/* "$DST/cleo/" && ls "$M/cleo/scripts" > "$DST/cleo.list"
 # Rubbish-DE's model slots: Boot builds its pak from the game's own pakchunk0 on the device (no game files shipped)
 mkdir -p "$DST/rubbish" && cp "$M/rubbish/pak/slots.json" "$DST/rubbish/"
+# SA:COOP DE: the client library and its animation packs (Android/data/<game>/coop/packs/, read by the Anims window)
+cp "$COOP/android/libs/arm64-v8a/libcoop.so" "$DST/"
+mkdir -p "$DST/coop" && cp "$COOP"/package/coop/packs/*.ifp "$DST/coop/" && (cd "$COOP/package/coop/packs" && ls *.ifp) > "$DST/coop.list"

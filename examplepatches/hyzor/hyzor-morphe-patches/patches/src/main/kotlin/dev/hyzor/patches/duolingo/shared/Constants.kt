@@ -9,13 +9,13 @@ object Constants {
         name = "Duolingo",
         packageName = "com.duolingo",
 
-        // The tested artifact is the 6.104.3 APKM (base.apk + arm64-v8a + dpi splits).
+        // The tested artifact is the 6.104.5 APKM (base.apk + arm64-v8a + dpi splits).
         // All patched code lives in the base APK.
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x58CC02,
 
         targets = listOf(
-            AppTarget(version = "6.104.3", versionCode = 2492),
+            AppTarget(version = "6.104.5", versionCode = 2494),
         ),
     )
 }

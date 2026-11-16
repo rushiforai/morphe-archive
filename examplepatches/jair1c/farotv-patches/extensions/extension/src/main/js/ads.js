@@ -56,12 +56,13 @@
 
     youtv.feature({
         id: "ads",
-        name: "Bloquear anuncios",
-        summary: "Quita los anuncios de video y los videos patrocinados de Inicio",
+        nameKey: "feature.ads.name",
+        summaryKey: "feature.ads.summary",
         defaultEnabled: true,
-        onResponse: function (response) {
+        onResponse: function (response, settings, text) {
             if (stripAds(response)) youtv.report("ads: removed ad schedule");
-            if (response.contents || response.onResponseReceivedActions || response.continuationContents) {
+            if ((response.contents || response.onResponseReceivedActions || response.continuationContents) &&
+                youtv.mentions(text, AD_ITEM_KEYS)) {
                 var removed = removeAdItems(response, 0);
                 if (removed) youtv.report("ads: removed " + removed + " sponsored item(s)");
             }

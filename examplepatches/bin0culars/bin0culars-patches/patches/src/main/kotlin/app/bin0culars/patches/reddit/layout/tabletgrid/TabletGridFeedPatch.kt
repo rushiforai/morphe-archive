@@ -116,6 +116,17 @@ val tabletGridFeedPatch =
                 )
             }
 
+            val masonryMethod = MasonryFeedFingerprint.method
+            val masonryParams = masonryMethod.parameterTypes.map { it.toString() }
+
+            val listParams = ListFeedFingerprint.method.parameterTypes.map { it.toString() }
+            val composerIndex = listParams.indexOfLast { it != "I" }
+            if (composerIndex == -1 || listParams[composerIndex] != masonryParams[11]) {
+                throw PatchException(
+                    "Composer type mismatch: list feed has ${listParams.getOrNull(composerIndex)}, masonry feed has ${masonryParams[11]}",
+                )
+            }
+
             val originalFirstInstruction = ListFeedFingerprint.method.instructions.first()
             ListFeedFingerprint.method.addInstructionsWithLabels(
                 0,
@@ -127,7 +138,7 @@ val tabletGridFeedPatch =
                     move-object/from16 v4, p5
                     move-object/from16 v5, p7
                     move-object/from16 v6, p9
-                    move-object/from16 v7, p28
+                    move-object/from16 v7, p$composerIndex
                     move/from16 v8, p6
                     invoke-static/range {v0 .. v8}, $EXTENSION_CLASS->masonryFeed(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;F)Z
                     move-result v0
@@ -136,9 +147,6 @@ val tabletGridFeedPatch =
                 """,
                 ExternalLabel("continue", originalFirstInstruction),
             )
-
-            val masonryMethod = MasonryFeedFingerprint.method
-            val masonryParams = masonryMethod.parameterTypes.map { it.toString() }
 
             fillBridge(
                 "callMasonry",

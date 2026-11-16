@@ -1,3 +1,13 @@
+## [1.22.4](https://github.com/amfakh/fakh-patches/compare/v1.22.3...v1.22.4) (2026-11-16)
+
+### Bug Fixes
+
+* **IDN:** add `Fix server error after idle` for the first open after a long break ([c743086](https://github.com/amfakh/fakh-patches/commit/c743086e581bdbcaf48f294c86d96ae58460db78))
+
+### Updated App Support
+
+* **LinkedIn:** add support for `4.1.1272`, next to `4.1.1270` ([7c7796e](https://github.com/amfakh/fakh-patches/commit/7c7796ea97784849e9b2f1fd61a80fb9642d8974))
+
 ## [1.22.3](https://github.com/amfakh/fakh-patches/compare/v1.22.2...v1.22.3) (2026-11-14)
 
 ### Bug Fixes

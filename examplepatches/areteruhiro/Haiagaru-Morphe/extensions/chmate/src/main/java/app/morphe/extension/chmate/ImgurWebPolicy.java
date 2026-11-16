@@ -18,7 +18,7 @@ public final class ImgurWebPolicy {
             CookieSink sink) {
         try {
             URI uri = new URI(url);
-            if (!"https".equals(uri.getScheme()) || !"api.imgur.com".equals(uri.getHost())
+            if (!"https".equals(uri.getScheme()) || uri.getHost() == null
                     || uri.getRawUserInfo() != null || (uri.getPort() != -1 && uri.getPort() != 443)) return;
         } catch (Exception ignored) { return; }
         if (headers == null) return;
@@ -40,8 +40,7 @@ public final class ImgurWebPolicy {
             URI uri = new URI(url);
             return "https".equals(uri.getScheme()) && uri.getRawUserInfo() == null
                     && (uri.getPort() == -1 || uri.getPort() == 443)
-                    && ("imgur.com".equals(uri.getHost()) || "www.imgur.com".equals(uri.getHost())
-                        || googleAccountHost(uri.getHost()));
+                    && uri.getHost() != null;
         } catch (Exception ignored) { return false; }
     }
 
@@ -51,8 +50,7 @@ public final class ImgurWebPolicy {
     }
 
     private static boolean googleAccountHost(String host) {
-        // Observed Google account-session redirects in the emulator. Keep exact hosts;
-        // do not allow every google/youtube subdomain or relax HTTPS/certificate checks.
+        // Chooses the Google-specific flow; loginUrl accepts any valid HTTPS host.
         return "accounts.google.com".equals(host) || "accounts.google.co.jp".equals(host)
                 || "accounts.youtube.com".equals(host);
     }
@@ -70,8 +68,9 @@ public final class ImgurWebPolicy {
     }
 
     public static String scriptUrl(String html) {
-        Matcher matcher = Pattern.compile("https://s\\.imgur\\.com/desktop-assets/js/main\\.[a-zA-Z0-9]+\\.js").matcher(html);
-        return matcher.find() ? matcher.group() : null;
+        Matcher matcher = Pattern.compile("https://[^\\s\"'<>/]+/desktop-assets/js/main\\.[a-zA-Z0-9]+\\.js").matcher(html);
+        while (matcher.find()) if (loginUrl(matcher.group())) return matcher.group();
+        return null;
     }
 
     public static String webClientId(String script) {
@@ -94,7 +93,7 @@ public final class ImgurWebPolicy {
     public static boolean mediaUrl(String url) {
         try {
             URI uri = new URI(url);
-            return "https".equals(uri.getScheme()) && "i.imgur.com".equals(uri.getHost())
+            return "https".equals(uri.getScheme()) && uri.getHost() != null
                     && uri.getRawUserInfo() == null && uri.getPort() == -1
                     && uri.getPath().matches("/[a-zA-Z0-9]+\\.(?:jpe?g|png|gif|webp|mp4|webm)");
         } catch (Exception ignored) { return false; }
@@ -118,7 +117,7 @@ public final class ImgurWebPolicy {
         if (pending || !imageId(id) || !mediaUrl(link)) return null;
         try {
             if (!new URI(link).getPath().startsWith("/" + id + ".")) return null;
-            return "https://i.imgur.com/" + id + "m.jpg";
+            return new URI(link).resolve(id + "m.jpg").toString();
         } catch (Exception ignored) { return null; }
     }
 }

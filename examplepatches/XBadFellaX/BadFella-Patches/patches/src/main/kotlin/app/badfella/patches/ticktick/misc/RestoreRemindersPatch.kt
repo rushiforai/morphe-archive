@@ -9,10 +9,11 @@ import app.badfella.patches.ticktick.shared.Constants.COMPATIBILITY_TICKTICK
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // SettingsPreferencesHelper.checkPrivacyPolicyConfirmed moved into the obfuscated
-// preferences class in 8.3.0.1. Its callers are unchanged: process start, the
-// broadcast receivers, push and both alert receivers still gate on this method.
+// preferences class in 8.3.0.1 (Ltv8) and R8 renamed that class to Lov8 in 8.3.0.2.
+// Its callers are unchanged: process start, the broadcast receivers, push and both
+// alert receivers still gate on this method.
 object CheckPrivacyPolicyConfirmedFingerprint : Fingerprint(
-    definingClass = "Ltv8;",
+    definingClass = "Lov8;",
     name = "d",
     returnType = "Z",
     parameters = emptyList(),

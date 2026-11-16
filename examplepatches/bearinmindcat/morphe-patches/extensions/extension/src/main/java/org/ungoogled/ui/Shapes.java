@@ -143,18 +143,18 @@ public final class Shapes {
 
     /** The OneGoogle account-menu shower -- stashed every time the menu is shown -- and the
      *  "reopen the menu when this page closes" flag set by the account sheet's Settings row.
-     *  Every fragment destroy is reported to fragmentDestroyed(); when the Settings page itself
-     *  goes away, the menu comes back. */
+     *  The Settings pages' onDestroy reports to fragmentDestroyed(); when the page goes away, the
+     *  menu comes back. */
     public static volatile Object MENU;
     public static volatile boolean REOPEN_MENU;
-    private static final String[] SETTINGS_FRAGMENTS = {"avrz", "avrw"};   // Maps 26.36.04: new / legacy Settings page
+
+    /** The shower's show method; set at patch time by Keep account sheet open. */
+    static String menuShowMethod() { return ""; }
 
     public static void fragmentDestroyed(Object fragment) {
         if (!REOPEN_MENU || fragment == null) return;
-        String n = fragment.getClass().getName();
-        for (String f : SETTINGS_FRAGMENTS) {
-            if (n.equals(f)) { REOPEN_MENU = false; reopenAccountMenu(); return; }
-        }
+        REOPEN_MENU = false;
+        reopenAccountMenu();
     }
 
     public static void reopenAccountMenu() {
@@ -167,7 +167,7 @@ public final class Shapes {
         private final Object menu;
         ReopenMenu(Object menu) { this.menu = menu; }
         @Override public void run() {
-            try { menu.getClass().getMethod("b").invoke(menu); } catch (Throwable ignored) {}
+            try { menu.getClass().getMethod(menuShowMethod()).invoke(menu); } catch (Throwable ignored) {}
         }
     }
 
@@ -398,6 +398,11 @@ public final class Shapes {
     /** Called from the fused-provider availability check, possibly before any Activity exists. */
     public static boolean playLocation() {
         return !SOURCE_ANDROID.equals(sourceInUse());
+    }
+
+    /** Called where Maps' location controller picks its fused strategy: none unless the source is a fused one. */
+    public static Object fusedStrategy(Object strategy) {
+        return playLocation() ? strategy : null;
     }
 
     /**
@@ -1551,16 +1556,12 @@ public final class Shapes {
      *  Using the resources also makes the SHAPE follow Rectangle Shapes for
      *  free: the Rectangle shapes patch emits -mnc9999 variants of these same two ids,
      *  and the Activity's override Configuration selects them. */
-    // The pinned ids of the two masks for this Maps build. Needed because the
-    // MERGED universal APK (APKEditor) keeps the entries and the PNG files but
-    // STRIPS their names from the resource table, and renames the table's
-    // package back to com.google.android.apps.maps -- so getIdentifier() returns
-    // 0 on a phone running the merged APK while the same build resolves the name
-    // fine on the emulator from split APKs. Maps' own code never notices because
-    // it compiles to numeric ids; doing the same is the fix. (aapt shows these
-    // as "INVALID RESOURCE 0x7f0807c2" in the merged APK: entry present, name
-    // gone.) 0x7f0807c2 == 2131232706, the id recorded in CLAUDE.md.
-    static final int ID_FAB_FACE = 0x7f0807c2, ID_FAB_SHADOW = 0x7f0807c3;
+    // The ids of the two masks for this Maps build, by number rather than
+    // getIdentifier(): the MERGED universal APK (APKEditor) keeps the entries and
+    // the PNG files but STRIPS their names from the resource table, so
+    // getIdentifier() returns 0 on a phone running it. The patches look the names
+    // up at patch time instead (Res), as Maps' own code compiles to numbers.
+    static final int ID_FAB_FACE = Res.drawable_ic_qu_fab_circle, ID_FAB_SHADOW = Res.drawable_ic_qu_fab_shadow;
 
     /** The face plus its halo, drawn.
      *

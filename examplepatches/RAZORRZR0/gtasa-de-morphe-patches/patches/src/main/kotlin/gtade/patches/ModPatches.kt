@@ -114,3 +114,21 @@ val rubbishPatch = rawResourcePatch(
         get("assets/gtade/rubbish/slots.json", false).apply { parentFile.mkdirs() }.writeBytes(bundled("rubbish/slots.json"))
     }
 }
+
+@Suppress("unused")
+val coopPatch = rawResourcePatch(
+    name = "Add online co-op",
+    description = "Adds SA:COOP DE, which lets two to four players play the story together over the network. A phone " +
+        "joins a PC or phone host and hosts other phones; the SA:COOP button at the top of the screen opens it. " +
+        "Installs its animation packs in Android/data/com.rockstargames.gtasa.de/coop/packs/.",
+    default = true,
+) {
+    compatibleWith(GTASA_DE)
+    dependsOn(modLoaderPatch)
+    execute {
+        addMod("libcoop.so")
+        // Boot copies these to Android/data/<game>/coop/packs/ (the Anims window's packs); a player's own coop/anims stay.
+        for (name in String(bundled("coop.list"), Charsets.UTF_8).lines().filter { it.isNotBlank() })
+            get("assets/gtade/coop/packs/$name", false).apply { parentFile.mkdirs() }.writeBytes(bundled("coop/$name"))
+    }
+}

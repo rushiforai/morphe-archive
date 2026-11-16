@@ -1,5 +1,4 @@
-
-package app.morphe.patches.all.splash
+package app.morphe.patches.all.looks
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
@@ -10,10 +9,14 @@ import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.findMutableMethodOf
 import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -25,7 +28,13 @@ private val ANIM_RE = Regex(
 private val SPLASH_CLASS_RE = Regex("(splash|launch|welcome|intro|brand|boot)", RegexOption.IGNORE_CASE)
 
 private fun argRegisters(ins: Instruction): List<Int>? = when (ins) {
-    is FiveRegisterInstruction -> listOf(ins.registerC, ins.registerD, ins.registerE, ins.registerF, ins.registerG).take(ins.registerCount)
+    is FiveRegisterInstruction -> listOf(
+        ins.registerC,
+        ins.registerD,
+        ins.registerE,
+        ins.registerF,
+        ins.registerG,
+    ).take(ins.registerCount)
     is RegisterRangeInstruction -> (ins.startRegister until ins.startRegister + ins.registerCount).toList()
     else -> null
 }
@@ -36,9 +45,52 @@ private fun Instruction.isDelayedPost(): Boolean {
     return (n == "postDelayed" || n == "postAtTime") &&
         m.definingClass.let { it == "Landroid/os/Handler;" || it == "Landroid/view/View;" }
 }
+
 private fun Instruction.isSleep(): Boolean {
     val m = getReference<MethodReference>() ?: return false
     return m.definingClass == "Ljava/lang/Thread;" && m.name == "sleep"
+}
+
+private fun stripSplashAnimations(classDef: ClassDef) {
+    val targets = classDef.methods.filter { it.returnType == "V" && ANIM_RE.matches(it.name) }
+    if (targets.isEmpty()) return
+    val mc = mutableClassDefBy(classDef)
+    targets.forEach { mc.findMutableMethodOf(it).returnEarly() }
+}
+
+private fun processSplashClass(classDef: ClassDef) {
+    val sc = classDef.superclass ?: return
+    if (!SPLASH_CLASS_RE.containsMatchIn(classDef.type)) return
+    if (!(sc.contains("Activity") || sc.contains("Fragment"))) return
+
+    val mc = mutableClassDefBy(classDef)
+    classDef.methods.forEach { method -> processSplashMethod(mc, method) }
+}
+
+private fun processSplashMethod(mc: MutableClass, method: Method) {
+    val impl = method.implementation ?: return
+    if (impl.instructions.none { it.isDelayedPost() || it.isSleep() }) return
+
+    val mm = mc.findMutableMethodOf(method)
+    val idxs = mm.instructions.withIndex()
+        .filter { it.value.isDelayedPost() || it.value.isSleep() }
+        .map { it.index }
+    for (i in idxs) {
+        val ins = mm.getInstruction(i)
+        if (ins.isSleep()) {
+            mm.replaceInstruction(i, "nop")
+        } else {
+            val regs = argRegisters(ins) ?: continue
+            if (regs.isEmpty()) continue
+            val rReg = regs[1]
+            mm.replaceInstruction(i, "invoke-interface {v$rReg}, Ljava/lang/Runnable;->run()V")
+            val ri = i + 1
+            if (ri < mm.instructions.size && mm.getInstruction(ri).opcode == Opcode.MOVE_RESULT) {
+                val mr = (mm.getInstruction(ri) as OneRegisterInstruction).registerA
+                mm.replaceInstruction(ri, "const/4 v$mr, 0x1")
+            }
+        }
+    }
 }
 
 @Suppress("unused")
@@ -57,47 +109,9 @@ val skipSplashPatch = bytecodePatch(
     )
 
     execute {
-        // Safe tier: no-op splash-named animation helpers anywhere.
-        classDefForEach { classDef ->
-            val targets = classDef.methods.filter { it.returnType == "V" && ANIM_RE.matches(it.name) }
-            if (targets.isEmpty()) return@forEach
-            val mc = mutableClassDefBy(classDef)
-            targets.forEach { mc.findMutableMethodOf(it).returnEarly() }
-        }
-
-        if (convertDelays != true) return@execute
-
-        // Scoped tier: within splash Activity/Fragment classes, run delayed nav now / drop sleeps.
-        classDefForEach { classDef ->
-            val sc = classDef.superclass ?: return@forEach
-            if (!SPLASH_CLASS_RE.containsMatchIn(classDef.type)) return@forEach
-            if (!(sc.contains("Activity") || sc.contains("Fragment"))) return@forEach
-
-            val mc = mutableClassDefBy(classDef)
-            classDef.methods.forEach { method ->
-                val impl = method.implementation ?: return@forEach
-                if (impl.instructions.none { it.isDelayedPost() || it.isSleep() }) return@forEach
-                val mm = mc.findMutableMethodOf(method)
-                val idxs = mm.instructions.withIndex()
-                    .filter { it.value.isDelayedPost() || it.value.isSleep() }
-                    .map { it.index }
-                for (i in idxs) {
-                    val ins = mm.getInstruction(i)
-                    if (ins.isSleep()) {
-                        mm.replaceInstruction(i, "nop")
-                    } else {
-                        val regs = argRegisters(ins) ?: continue
-                        if (regs.isEmpty()) continue
-                        val rReg = regs[1] // Runnable arg
-                        mm.replaceInstruction(i, "invoke-interface {v$rReg}, Ljava/lang/Runnable;->run()V")
-                        val ri = i + 1
-                        if (ri < mm.instructions.size && mm.getInstruction(ri).opcode == Opcode.MOVE_RESULT) {
-                            val mr = (mm.getInstruction(ri) as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
-                            mm.replaceInstruction(ri, "const/4 v$mr, 0x1")
-                        }
-                    }
-                }
-            }
+        classDefForEach(::stripSplashAnimations)
+        if (convertDelays == true) {
+            classDefForEach(::processSplashClass)
         }
     }
 }

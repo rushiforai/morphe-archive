@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3446
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * modified by lavinhoque33, 2026-10-17: ported from Morphe dev into the RVX fork (unchanged fingerprints).
  */
@@ -75,6 +76,40 @@ internal object WatchEndpointCommandBuilderFingerprint : Fingerprint(
         fieldAccess(opcode = Opcode.SGET_OBJECT),
         // Sets the watch endpoint extension of the command builder.
         methodCall(opcode = Opcode.INVOKE_VIRTUAL, returnType = "V", parameters = listOf("L", "Ljava/lang/Object;"))
+    )
+)
+
+// Music 6.20 has the same watch endpoint fields, without the later music-video boolean argument.
+internal object LegacyWatchEndpointCommandBuilderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "L",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "I",
+        "F",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;"
+    ),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_OBJECT),
+        methodCall(name = "createBuilder", opcode = Opcode.INVOKE_VIRTUAL),
+        fieldAccess(opcode = Opcode.IPUT_OBJECT, type = "Ljava/lang/String;"),
+        fieldAccess(opcode = Opcode.IPUT_OBJECT, type = "Ljava/lang/String;"),
+        fieldAccess(opcode = Opcode.IPUT, type = "I"),
+        fieldAccess(opcode = Opcode.IPUT, type = "I"),
+        fieldAccess(opcode = Opcode.SGET_OBJECT),
+        fieldAccess(opcode = Opcode.SGET_OBJECT),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, returnType = "V", parameters = listOf("L", "Ljava/lang/Object;"))
+    )
+)
+
+// This proto extension field retains its name on Music 6.20; the newer cast-warning string is absent.
+internal object LegacyQueueAddEndpointCommandFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L", "Ljava/util/Map;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_OBJECT, name = "queueAddEndpoint")
     )
 )
 

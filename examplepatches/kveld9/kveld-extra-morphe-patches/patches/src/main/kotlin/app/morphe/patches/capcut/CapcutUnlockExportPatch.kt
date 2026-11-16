@@ -1,10 +1,10 @@
 package app.morphe.patches.capcut
 
 import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import com.android.tools.smali.dexlib2.AccessFlags
 
 private object TemplateExportUltraHdUtilsCFingerprint : Fingerprint(
     definingClass = "Lcom/vega/edit/base/utils/TemplateExportUltraHdUtils;",
@@ -57,22 +57,16 @@ val capcutUnlockExportPatch = bytecodePatch(
     execute {
         var patched = 0
 
-        fun forceTrue(fp: Fingerprint) {
-            fp.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """,
-            )
-            patched++
-        }
-
-        forceTrue(TemplateExportUltraHdUtilsCFingerprint)
-        forceTrue(TemplateExportUltraHdUtilsDFingerprint)
-        forceTrue(TemplateExportUltraHdUtilsEFingerprint)
-        forceTrue(TemplateExportUltraHdUtilsJFingerprint)
-        forceTrue(TemplateExportUltraHdUtilsQFingerprint)
+        TemplateExportUltraHdUtilsCFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        TemplateExportUltraHdUtilsDFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        TemplateExportUltraHdUtilsEFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        TemplateExportUltraHdUtilsJFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        TemplateExportUltraHdUtilsQFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
 
         println("[Unlock Ultra HD Export] Applied $patched hooks -> ultra HD export gates forced to unlocked.")
     }

@@ -57,6 +57,102 @@ final class Morphe {
             "executeCommand", byte[].class, Map.class);
     private static final Lookup PANELS_OPEN = new Lookup("shared.EngagementPanel", "checkIdsInQueue", List.class);
     private static final Lookup LAST_OPENED_PANEL = new Lookup("shared.EngagementPanel", "getLastOpenedPanelId");
+    private static final Lookup GET_VIDEO_TIME = new Lookup("patches.VideoInformation", "getVideoTime");
+    private static final Lookup GET_PLAYBACK_SPEED = new Lookup("patches.VideoInformation", "getPlaybackSpeed");
+    private static final Lookup CHANGE_PLAYBACK_SPEED = new Lookup("patches.VideoInformation",
+            "changePlaybackSpeed", float.class);
+
+    /**
+     * @return The playback speed, or NaN if not available.
+     */
+    static float getPlaybackSpeed() {
+        try {
+            Method method = GET_PLAYBACK_SPEED.get();
+            return method == null ? Float.NaN : (float) method.invoke(null);
+        } catch (Exception ex) {
+            Log.e(TAG, "getPlaybackSpeed failure", ex);
+            return Float.NaN;
+        }
+    }
+
+    /**
+     * @return If the playback speed was changed.
+     */
+    static boolean changePlaybackSpeed(float speed) {
+        try {
+            Method method = CHANGE_PLAYBACK_SPEED.get();
+            if (method == null) {
+                return false;
+            }
+            method.invoke(null, speed);
+            return true;
+        } catch (Exception ex) {
+            Log.e(TAG, "changePlaybackSpeed failure", ex);
+            return false;
+        }
+    }
+    private static final Lookup SEEK_TO = new Lookup("patches.VideoInformation", "seekTo", long.class);
+    private static final Lookup GET_VIDEO_STATE = new Lookup("shared.VideoState", "getCurrent");
+    private static final Lookup GET_CURRENT_QUALITY = new Lookup("patches.VideoInformation", "getCurrentQuality");
+    private static final Lookup GET_QUALITY_NAME = new Lookup("patches.VideoInformation$VideoQualityInterface",
+            "patch_getQualityName");
+
+    /**
+     * @return The playback time of the video in milliseconds, or -1 if not available.
+     */
+    static long getVideoTime() {
+        try {
+            Method method = GET_VIDEO_TIME.get();
+            return method == null ? -1 : (long) method.invoke(null);
+        } catch (Exception ex) {
+            Log.e(TAG, "getVideoTime failure", ex);
+            return -1;
+        }
+    }
+
+    /**
+     * Seeks the video. Must be called on the main thread.
+     *
+     * @return If the seek was done.
+     */
+    static boolean seekTo(long videoTime) {
+        try {
+            Method method = SEEK_TO.get();
+            return method != null && Boolean.TRUE.equals(method.invoke(null, videoTime));
+        } catch (Exception ex) {
+            Log.e(TAG, "seekTo failure", ex);
+            return false;
+        }
+    }
+
+    /**
+     * @return The name of the playback state, such as PLAYING or PAUSED, or null if not known.
+     */
+    static String getVideoState() {
+        try {
+            Method method = GET_VIDEO_STATE.get();
+            Object state = method == null ? null : method.invoke(null);
+            return state instanceof Enum<?> e ? e.name() : null;
+        } catch (Exception ex) {
+            Log.e(TAG, "getVideoState failure", ex);
+            return null;
+        }
+    }
+
+    /**
+     * @return The name of the current video quality, such as "1080p60", or null if not known.
+     */
+    static String getQualityName() {
+        try {
+            Method current = GET_CURRENT_QUALITY.get();
+            Method name = GET_QUALITY_NAME.get();
+            Object quality = current == null ? null : current.invoke(null);
+            return quality == null || name == null ? null : (String) name.invoke(quality);
+        } catch (Exception ex) {
+            Log.e(TAG, "getQualityName failure", ex);
+            return null;
+        }
+    }
 
     /**
      * @return The name of the current player type, such as WATCH_WHILE_MAXIMIZED, or null if not known.

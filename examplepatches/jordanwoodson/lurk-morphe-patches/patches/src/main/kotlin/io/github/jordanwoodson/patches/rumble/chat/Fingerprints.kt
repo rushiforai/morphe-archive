@@ -58,3 +58,18 @@ internal val LiveChatMessageViewFingerprint =
 // A Rant row, which paints its background with Modifier.background. Another composable has the same label.
 internal val RantMessageViewFingerprint =
     composableFingerprint("com.rumble.battles.livechat.presentation.rant.RantMessageView")
+
+// The coroutine that opens the chat's event stream: an HttpURLConnection with Accept: text/event-stream and
+// the session's cookies.
+internal object ChatStreamRequestFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf("Accept", "text/event-stream", "Cookie"),
+)
+
+// The chat data source's send, for messages and Rants: suspend (url, body, chat API provider).
+internal object ChatSendFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/String;", "$LIVE_CHAT/LiveChatMessageBody;", "L", "L"),
+    custom = { method, _ -> method.implementation != null },
+)

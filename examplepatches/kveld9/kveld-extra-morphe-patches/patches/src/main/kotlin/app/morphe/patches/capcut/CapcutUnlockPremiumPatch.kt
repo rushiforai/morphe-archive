@@ -1,10 +1,11 @@
 package app.morphe.patches.capcut
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private object SubscribeImplIsVipFingerprint : Fingerprint(
     definingClass = "Lcom/vega/subscribe/SubscribeImpl;",
@@ -76,6 +77,11 @@ private object BusinessManagerBFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.toString().contains("isAnyVIP")
+        } == true
+    },
 )
 
 private object BusinessManagerYFingerprint : Fingerprint(
@@ -84,6 +90,11 @@ private object BusinessManagerYFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        instructions.any { (it as? ReferenceInstruction)?.reference.toString().contains("UserViewModel") } &&
+            instructions.none { (it as? ReferenceInstruction)?.reference.toString().contains("isAnyVIP") }
+    },
 )
 
 private object BusinessManagerXFingerprint : Fingerprint(
@@ -92,6 +103,11 @@ private object BusinessManagerXFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Z"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.toString().contains("UserViewModel")
+        } == true
+    },
 )
 
 private object BusinessManagerVFingerprint : Fingerprint(
@@ -100,6 +116,11 @@ private object BusinessManagerVFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Lcom/lemon/lv/clipmonetize/wrapper/BenefitResource;"),
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        instructions.any { (it as? ReferenceInstruction)?.reference.toString().contains("getQuotaLeft") } &&
+            instructions.none { (it as? ReferenceInstruction)?.reference.toString().contains("isLimitCount") }
+    },
 )
 
 private object BusinessManagerAFingerprint : Fingerprint(
@@ -108,6 +129,11 @@ private object BusinessManagerAFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Lcom/lemon/lv/clipmonetize/wrapper/BenefitResource;"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.toString().contains("isLimitCount")
+        } == true
+    },
 )
 
 private object BusinessManagerTFingerprint : Fingerprint(
@@ -116,6 +142,11 @@ private object BusinessManagerTFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Lcom/lemon/lv/clipmonetize/wrapper/BenefitResource;", "Z"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.toString().contains("supportTourist")
+        } == true
+    },
 )
 
 @Suppress("unused")
@@ -129,31 +160,34 @@ val capcutUnlockPremiumPatch = bytecodePatch(
     execute {
         var patched = 0
 
-        fun forceTrue(fp: Fingerprint) {
-            fp.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """,
-            )
-            patched++
-        }
-
-        forceTrue(SubscribeImplIsVipFingerprint)
-        forceTrue(PayVipImplIsVipFingerprint)
-        forceTrue(UserVipInfoIsVipUserFingerprint)
-        forceTrue(UserVipInfoGetFlagFingerprint)
-        forceTrue(UserDetailInfoIsVipUserFingerprint)
-        forceTrue(UserDetailInfoGetFlagFingerprint)
-        forceTrue(VipUserServiceImplIsVipFingerprint)
-        forceTrue(SubscribeCloudImplIsVipFingerprint)
-        forceTrue(BusinessManagerBFingerprint)
-        forceTrue(BusinessManagerYFingerprint)
-        forceTrue(BusinessManagerXFingerprint)
-        forceTrue(BusinessManagerVFingerprint)
-        forceTrue(BusinessManagerAFingerprint)
-        forceTrue(BusinessManagerTFingerprint)
+        SubscribeImplIsVipFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        PayVipImplIsVipFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        UserVipInfoIsVipUserFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        UserVipInfoGetFlagFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        UserDetailInfoIsVipUserFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        UserDetailInfoGetFlagFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        VipUserServiceImplIsVipFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        SubscribeCloudImplIsVipFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerBFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerYFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerXFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerVFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerAFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
+        BusinessManagerTFingerprint.method.replaceWithReturnBoolean(true)
+        patched++
 
         println("[Unlock Premium] Applied $patched hooks -> VIP gates forced to true.")
     }

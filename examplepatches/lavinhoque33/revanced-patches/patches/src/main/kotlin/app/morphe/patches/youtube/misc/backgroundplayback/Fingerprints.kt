@@ -8,22 +8,25 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.misc.backgroundplayback
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal const val AUTOMATIC_FOREGROUND_PLAYBACK_RESUME_FLAG = 45770945L
 
@@ -93,6 +96,30 @@ internal object BackgroundPlaybackSettingsFingerprint : Fingerprint(
     )
 )
 
+// The synchronous title getter is removed in 21.45. Its reactive replacement still reads
+// the same background-playback gate before combining it with download availability.
+internal object BackgroundPlaybackSettingsModernFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = emptyList(),
+            returnType = "Z"
+        ),
+        methodCall(
+            smali = "Ljava/lang/Boolean;->booleanValue()Z",
+            location = MatchAfterWithin(2)
+        ),
+        resourceLiteral(
+            ResourceType.STRING,
+            "pref_background_and_offline_category",
+            location = MatchAfterWithin(10)
+        ),
+        resourceLiteral(ResourceType.STRING, "pref_background_category"),
+    )
+)
+
 internal object BackgroundPlaybackManagerShortsFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
@@ -108,6 +135,15 @@ internal object BackgroundPlaybackManagerCairoFragmentParentFingerprint : Finger
     returnType = "V",
     parameters = emptyList(),
     strings = listOf("yt_android_settings"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT),
+        opcode(Opcode.CONST_4, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            type = "Ljava/lang/Object;",
+            location = MatchAfterImmediately()
+        ),
+    ),
     custom = { method, _ ->
         method.definingClass != "Lcom/google/android/apps/youtube/app/settings/AboutPrefsFragment;"
     }
@@ -168,6 +204,32 @@ internal object BackgroundPlaybackManagerCairoFragmentInlinedFlagFingerprint : F
     )
 )
 
+/**
+ * Since 21.41, registering and clearing the active Cairo fragment is unconditional.
+ * Resolve both lifecycle methods using the manager and active-fragment fields from the close callback.
+ */
+internal class BackgroundPlaybackManagerCairoFragmentLifecycleFingerprint(
+    managerField: FieldReference,
+    activeFragmentField: FieldReference,
+) : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        opcode(Opcode.INVOKE_SUPER),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            reference = managerField,
+            location = MatchAfterImmediately()
+        ),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            reference = activeFragmentField,
+            location = MatchAfterWithin(2)
+        ),
+    )
+)
+
 internal const val PIP_INPUT_CONSUMER_FEATURE_FLAG = 45638483L
 
 /**
@@ -189,4 +251,36 @@ internal object ShortsBackgroundPlaybackFeatureFlagFingerprint : Fingerprint(
     filters = listOf(
         literal(SHORTS_BACKGROUND_PLAYBACK_FEATURE_FLAG),
     )
+)
+
+/** Returns the artwork change mask, or zero when both the old and new artwork are absent. */
+internal object MediaSessionArtworkStateFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "I",
+    parameters = listOf("Landroid/graphics/Bitmap;", "Landroid/graphics/Bitmap;"),
+    filters = listOf(
+        opcode(Opcode.IF_NEZ),
+        opcode(Opcode.IF_NEZ, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = "Landroid/graphics/Bitmap;",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.IF_NEZ, location = MatchAfterImmediately()),
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            type = "Landroid/graphics/Bitmap;",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.IF_NEZ, location = MatchAfterImmediately()),
+        opcode(Opcode.CONST_4, location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IPUT_OBJECT, type = "Landroid/graphics/Bitmap;"),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            type = "Landroid/graphics/Bitmap;",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.CONST_16, location = MatchAfterImmediately())
+    ),
+    custom = { _, classDef -> classDef.interfaces.isNotEmpty() }
 )

@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-27
+ * Modified by lavinhoque33, 2026-11-14
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -50,7 +50,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.getFreeRegisterProvider
-import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.music.layout.hide.settingsmenu.SettingsHeadersOnCreatePreferencesFingerprint
@@ -81,6 +81,7 @@ import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.settings.baseSettingsPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.Utils.printInfo
+import app.morphe.util.addFreeRegisters
 import app.morphe.util.copyResources
 import app.morphe.util.copyXmlNode
 import app.morphe.util.findMethodOrThrow
@@ -94,10 +95,10 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.w3c.dom.Element
+import kotlin.properties.Delegates
 
 private const val EXTENSION_ACTIVITY_CLASS_DESCRIPTOR =
     "$EXTENSION_PATH/settings/ActivityHook;"
@@ -107,6 +108,11 @@ private const val EXTENSION_INITIALIZATION_CLASS_DESCRIPTOR =
     "$UTILS_PATH/InitializationPatch;"
 private const val SETTINGS_HEADERS_FRAGMENT_CLASS =
     "Lcom/google/android/apps/youtube/music/settings/fragment/SettingsHeadersFragment;"
+
+internal lateinit var settingsHeadersOnCreatePreferencesMethod: MutableMethod
+    private set
+internal var settingsHeadersFragmentRegister by Delegates.notNull<Int>()
+    private set
 
 private val settingsBytecodePatch = bytecodePatch(
     description = "settingsBytecodePatch"
@@ -233,13 +239,26 @@ private val settingsBytecodePatch = bytecodePatch(
             )
 
         SettingsHeadersOnCreatePreferencesFingerprint.let {
-            val matchInstruction = it.instructionMatches.first().instruction
-            val fragmentField = matchInstruction.getReference<FieldReference>()!!
-            val peerRegister = (matchInstruction as TwoRegisterInstruction).registerB
+            val fragmentMatch = it.instructionMatches.first()
+            val fragmentSource = (fragmentMatch.instruction as TwoRegisterInstruction).registerA
+            val fragmentRegister = it.method.implementation!!.registerCount
+            val (method, parameterCopyCount) = it.method.addFreeRegisters(1)
 
-            it.method.apply {
+            settingsHeadersOnCreatePreferencesMethod = method
+            settingsHeadersFragmentRegister = fragmentRegister
+
+            val getPreferenceScreen = "$SETTINGS_HEADERS_FRAGMENT_CLASS->getPreferenceScreen()" +
+                    "Landroidx/preference/PreferenceScreen;"
+
+            method.apply {
+                // Keep the native fragment before onCreatePreferences reuses its peer and parameter registers.
+                addInstruction(
+                    fragmentMatch.index + parameterCopyCount + 1,
+                    "move-object/from16 v$fragmentRegister, v$fragmentSource"
+                )
+
                 val insertIndex = implementation!!.instructions.size - 1
-                val registerProvider = getFreeRegisterProvider(insertIndex, 3, peerRegister)
+                val registerProvider = getFreeRegisterProvider(insertIndex, 3, fragmentRegister)
                 val screenRegister = registerProvider.getFreeRegister()
                 val preferenceRegister = registerProvider.getFreeRegister()
                 val nameRegister = registerProvider.getFreeRegister()
@@ -249,8 +268,7 @@ private val settingsBytecodePatch = bytecodePatch(
                     customSettingsNameInstructions(
                         preferenceKey = MUSIC_SETTINGS_ENTRY_KEY,
                         getPreferenceScreen = """
-                            iget-object v$screenRegister, v$peerRegister, $fragmentField
-                            invoke-virtual { v$screenRegister }, $SETTINGS_HEADERS_FRAGMENT_CLASS->getPreferenceScreen()Landroidx/preference/PreferenceScreen;
+                            invoke-virtual/range { v$fragmentRegister .. v$fragmentRegister }, $getPreferenceScreen
                             move-result-object v$screenRegister
                         """,
                         screenRegister = screenRegister,

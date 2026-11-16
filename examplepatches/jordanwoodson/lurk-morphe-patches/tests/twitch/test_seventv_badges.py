@@ -10,7 +10,7 @@ from json_double import JSON_DOUBLE
 from test_providers import PLATFORM
 
 if __name__ == '__main__':
-    run('TwitchSevenTvBadgesProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java',
+    run('TwitchSevenTvBadgesProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java', 'twitch/TwitchImageCache.java', 'twitch/TwitchContext.java', 'twitch/TwitchEmoteFavorites.java',
         'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
         Path(__file__).with_name('TwitchSevenTvBadgesProbe.java').read_text(),
         sys.argv[1:] or ['events', 'socket', 'off'], extra=PLATFORM | JSON_DOUBLE)

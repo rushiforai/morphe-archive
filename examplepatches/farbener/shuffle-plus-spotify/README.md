@@ -14,7 +14,12 @@ Everything else (themes, Marketplace, ads, home pins, local files, settings) is 
 |---|---|
 | Long-press the shuffle button | Shuffle+ the playing playlist, album or Liked Songs |
 | Tap (option `tapShuffles`) | Same, so Spotify's own shuffle never turns on from this button |
+| Any shuffle-on command (option `commandShuffles`, off by default) | Same, from the phone, a car screen (Android Auto tested) or another control. Smart shuffle can't be reached while it's on |
 | Songs played in the last N hours (option `recentHours`, default 24, 0 = off) | Moved to the end of the shuffle |
+
+`commandShuffles` hooks Spotify's sender for the player's SetOptions request, so shuffle from a car screen or another control
+runs Shuffle+ too (log lines say `Shuffle option intercepted, from ...` with the calling frames). Android Auto
+needs the patched app allowed there: Android Auto > Developer settings > Unknown sources.
 
 Free accounts get a "Spotify refused" toast: Spotify only lets Premium choose the play order.
 

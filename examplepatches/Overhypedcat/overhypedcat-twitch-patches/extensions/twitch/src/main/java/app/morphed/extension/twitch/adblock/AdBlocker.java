@@ -160,7 +160,7 @@ public final class AdBlocker {
             "autoplay", "preview_theatre_mode", "creator_mode_preview", "clips", "creator_stories");
 
     /** Stream previews (the home feed thumbnails that play) request their token as a feed or preview player. */
-    static boolean isPreview(String usherUrl) {
+    public static boolean isPreview(String usherUrl) {
         String playerType = tokenPlayerType(usherUrl);
         return playerType != null && (playerType.contains("feed") || PREVIEW_PLAYER_TYPES.contains(playerType));
     }

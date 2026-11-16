@@ -1,3 +1,27 @@
+## [1.3.4](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.3...v1.3.4) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **SmartLauncher:** keep Pro license from being revoked by Play Billing ([#15](https://github.com/MrCool-888/mrcool-patches/issues/15)) ([590cfa2](https://github.com/MrCool-888/mrcool-patches/commit/590cfa228adbc9e433165c47485845d75391f136))
+
+## [1.3.4-dev.1](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.3...v1.3.4-dev.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **SmartLauncher:** keep Pro license from being revoked by Play Billing ([#15](https://github.com/MrCool-888/mrcool-patches/issues/15)) ([590cfa2](https://github.com/MrCool-888/mrcool-patches/commit/590cfa228adbc9e433165c47485845d75391f136))
+
+## [1.3.3](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.2...v1.3.3) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* **SmartLauncher:** support 6.6 build 026 ([#13](https://github.com/MrCool-888/mrcool-patches/issues/13)) ([5774319](https://github.com/MrCool-888/mrcool-patches/commit/5774319f3b1b1a395225c5b50a2db2bbd8da5a38))
+
+## [1.3.3-dev.1](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.2...v1.3.3-dev.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* **SmartLauncher:** support 6.6 build 026 ([#13](https://github.com/MrCool-888/mrcool-patches/issues/13)) ([5774319](https://github.com/MrCool-888/mrcool-patches/commit/5774319f3b1b1a395225c5b50a2db2bbd8da5a38))
+
 ## [1.3.2](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.1...v1.3.2) (2026-11-08)
 
 ### 🐛 Bug Fixes

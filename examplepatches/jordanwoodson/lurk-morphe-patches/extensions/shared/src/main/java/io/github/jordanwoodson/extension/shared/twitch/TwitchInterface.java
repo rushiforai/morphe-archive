@@ -49,6 +49,44 @@ public final class TwitchInterface {
         return "following";
     }
 
+    private static volatile boolean homeBuilt;
+
+    /**
+     * Injection point: the native Home feed's navigation destination is created with the page it opens on.
+     * Tablets get that Home instead of the React Native one, and it starts on Live as well (issue 66). For the
+     * first one a plain launch creates, the Following start screen replaces the Live page with the Following
+     * page. Deep links, notifications, later navigations and any other page are kept.
+     */
+    public static Object homePage(Object page, boolean fromDeepLink, boolean fromPush) {
+        if (homeBuilt) return page;
+        homeBuilt = true;
+        try {
+            if (page == null || fromDeepLink || fromPush || Settings.getInt("default_tab") != 2) return page;
+            Class<?> type = page.getClass();
+            if (!type.getName().endsWith("DiscoveryFeedPage$FeedLocationPage")) return page;
+            Object location = type.getMethod("getFeedLocation").invoke(page);
+            if (location == null || !location.getClass().getName().endsWith("FeedLocation$Live")) return page;
+            String following = type.getName().replace("$FeedLocationPage", "$FollowingPage");
+            Object chosen = Class.forName(following, false, type.getClassLoader()).getField("INSTANCE").get(null);
+            return chosen == null ? page : chosen;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return page;
+        }
+    }
+
+    private static java.text.NumberFormat countFormat;
+    private static java.util.Locale countLocale;
+
+    /** Injection point (Show exact counts): a count in full, grouped the device locale's way (12,345). */
+    public static synchronized String exactCount(long count) {
+        java.util.Locale locale = java.util.Locale.getDefault();
+        if (countFormat == null || !locale.equals(countLocale)) {
+            countFormat = java.text.NumberFormat.getIntegerInstance(locale);
+            countLocale = locale;
+        }
+        return countFormat.format(count);
+    }
+
     public static boolean bitsVisible(boolean stock) {
         return stock && !Settings.isEnabled("hide_tipping");
     }

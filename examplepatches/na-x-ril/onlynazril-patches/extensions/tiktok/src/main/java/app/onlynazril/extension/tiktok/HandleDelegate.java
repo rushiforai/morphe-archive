@@ -7,14 +7,14 @@ import app.onlynazril.extension.tiktok.settings.HandleSettings;
 /**
  * Called at entry of User.getNickname(). Returns "@handle", or null to let the original method run
  * (no flip, no mutation of the model).
- *
+ * <p>
  * This class is the handle element and nothing else. The region and the post time are written by
  * the view bridges (`AuthorInfoBridge`, `CommentDateBridge`), which ask this class nothing; whether
  * the stamp may appear here is one question with one answer, `HandleSettings.handleOn(surface)`.
- *
+ * <p>
  * The surface is read from the class on the stack — exact, per-thread, and independent of which
  * obfuscated method calls the getter. Detection never consults a switch: a surface that is switched
- * off is still recognised and says so, so a quiet log means "the stamp is not rendered here" rather
+ * off is still recognized and says so, so a quiet log means "the stamp is not rendered here" rather
  * than "turned off".
  */
 public final class HandleDelegate {
@@ -55,18 +55,24 @@ public final class HandleDelegate {
             }
 
             // A reply line draws two names through this getter: the commenter, whose user payload
-            // carries a uid, and the person being replied to, for which the app builds a stand-in
-            // user. The stand-in has no uid and its uniqueId reads back as the nickname, so it is
-            // resolved through UserIndex rather than stamped from its own fields.
+            // carries an uid, and the person being replied to, for which the app builds a stand-in
+            // user. The stand-in has no uid and its uniqueId reads back as the nickname, so the
+            // render says nothing about the account. The uid comes from the comment this thread is
+            // binding (`replyToUserId`), and both the name and the parent comment are checks
+            // against it.
             String uid = Reflect.string(user, "getUid", "uid");
             String raw = rawNickname(user);
             if (uid == null || uid.isEmpty()) {
-                // The stand-in has no handle of its own, so it is resolved through what the comments
-                // and the real users have already taught the index. No answer means no stamp: the
-                // name stays as TikTok drew it instead of becoming an @ in front of a nickname.
+                // The stand-in has no handle of its own, so it is resolved through the uid the
+                // comment carries. No answer means no stamp: the name stays as TikTok drew it
+                // instead of becoming an @ in front of a nickname.
                 String reply = UserIndex.handleOfReply(raw);
                 if (reply == null) {
-                    reportSkip(surface, "a reply reference with no handle learned");
+                    reportSkip(
+                            surface,
+                            UserIndex.replyNameDisagrees(raw)
+                                    ? "a reply name that disagrees with its uid"
+                                    : "a reply with no handle seen for its uid");
                     return null;
                 }
                 String replyTarget = StampText.handle(reply);
@@ -162,7 +168,7 @@ public final class HandleDelegate {
 
     /**
      * The payload behind a rendered name: uid, handle and the raw nickname field.
-     *
+     * <p>
      * A reply line draws two names of two different people through this one getter, and the expected
      * stamp differs between them: the commenter becomes "@handle" while the person being replied to
      * is a reference to someone else and has to stay as TikTok drew it. Which render is which cannot

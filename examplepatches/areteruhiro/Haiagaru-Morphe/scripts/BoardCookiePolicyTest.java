@@ -27,6 +27,13 @@ public final class BoardCookiePolicyTest {
   eq(BoardCookiePolicy.matches("a=1; Path=/test","https://egg.5ch.io/test"),true);
   eq(BoardCookiePolicy.matches("a=1; Domain=.5ch.io; Path=/","https://egg.5ch.io/test"),true);
   eq(BoardCookiePolicy.matches("a=1; Domain=evil5ch.io; Path=/","https://egg.5ch.io/test"),false);
+  eq(BoardCookiePolicy.board("https://be.5ch.io/log",null),null);
+  eq(BoardCookiePolicy.board("https://be.5ch.io/status",null),null);
+  eq(BoardCookiePolicy.board("https://be.5ch.io/logout.php",null),null);
+  eq(BoardCookiePolicy.board("https://be.5ch.net/log","synthetic"),null);
+  eq(BoardCookiePolicy.board("http://be.2ch.sc/test/login.php","synthetic"),null);
+  eq(BoardCookiePolicy.board("https://egg.5ch.io/be/",null),"https://egg.5ch.io/be/");
+  eq(BoardCookiePolicy.board("https://be.5ch.io.example.test/log",null),"https://be.5ch.io.example.test/log/");
   System.out.println("BoardCookiePolicy: "+n+" passed");
  }
 }

@@ -1,5 +1,8 @@
+import com.android.tools.r8.CompilationMode
+import com.android.tools.r8.D8
+import com.android.tools.r8.D8Command
+import com.android.tools.r8.OutputMode
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.Exec
 
 group = "app.danielthemaniel"
 
@@ -24,17 +27,107 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 
-val androidSdkRoot = System.getenv("ANDROID_HOME")
-    ?: "${System.getProperty("user.home")}/Library/Android/sdk"
+// ---------------------------------------------------------------------------------------------
+// Extensions
+//
+// Every folder  src/extension/java/app/danielthemaniel/patches/<app>/extension/
+// is compiled and dexed into  extensions/<app>.dex  inside the .mpp.
+// A patch loads it with  extendWith("extensions/<app>.dex").
+//
+// To add an extension, drop a .java file into the app's extension folder. No build changes needed.
+// ---------------------------------------------------------------------------------------------
+
+// android.jar is only used as compile/dex library stubs. Resolved from (in order):
+// -PandroidJar=..., ANDROID_HOME, ANDROID_SDK_ROOT, the default macOS SDK location.
+val androidJar: File = run {
+    val explicit = providers.gradleProperty("androidJar").orNull
+    if (explicit != null) return@run file(explicit)
+    val sdkRoot = System.getenv("ANDROID_HOME")
+        ?: System.getenv("ANDROID_SDK_ROOT")
+        ?: "${System.getProperty("user.home")}/Library/Android/sdk"
+    file("$sdkRoot/platforms/android-36/android.jar")
+}
+
+val extensionPackageDir = "app/danielthemaniel/patches"
+val extensionSourceRoot = file("src/extension/java")
+val extensionDexOutput = layout.buildDirectory.dir("generated/extension-dex")
 
 sourceSets {
     create("extension") {
-        java.srcDir("src/extension/java")
+        java.srcDir(extensionSourceRoot)
+    }
+    // The dex files live in their own generated resource root, so processResources copies them
+    // into the jar instead of wiping them (which is what happened when they were written straight
+    // into build/resources/main).
+    named("main") {
+        resources.srcDir(extensionDexOutput)
     }
 }
 
 tasks.named<JavaCompile>("compileExtensionJava") {
-    classpath += files("$androidSdkRoot/platforms/android-36/android.jar")
+    classpath += files(androidJar)
+    doFirst {
+        if (!androidJar.exists()) {
+            throw GradleException(
+                "android.jar not found at $androidJar. Set ANDROID_HOME or pass -PandroidJar=/path/to/android.jar",
+            )
+        }
+    }
+}
+
+val dexExtensions = tasks.register("dexExtensions") {
+    description = "Dexes each <app>/extension folder into extensions/<app>.dex."
+    group = "build"
+
+    val compileTask = tasks.named<JavaCompile>("compileExtensionJava")
+    dependsOn(compileTask)
+
+    val classesDir = compileTask.flatMap { it.destinationDirectory }
+    inputs.dir(classesDir).optional()
+    inputs.file(androidJar).optional()
+    outputs.dir(extensionDexOutput)
+
+    doLast {
+        val outRoot = extensionDexOutput.get().asFile
+        val extensionsDir = outRoot.resolve("extensions")
+        outRoot.deleteRecursively()
+        extensionsDir.mkdirs()
+
+        val appsRoot = classesDir.get().asFile.resolve(extensionPackageDir)
+        val appDirs = appsRoot.listFiles()
+            ?.filter { it.resolve("extension").isDirectory }
+            ?.sortedBy { it.name }
+            .orEmpty()
+
+        appDirs.forEach { appDir ->
+            val classFiles = appDir.resolve("extension")
+                .walkTopDown()
+                .filter { it.isFile && it.extension == "class" }
+                .map { it.toPath() }
+                .toList()
+            if (classFiles.isEmpty()) return@forEach
+
+            val workDir = temporaryDir.resolve(appDir.name).apply {
+                deleteRecursively()
+                mkdirs()
+            }
+
+            D8.run(
+                D8Command.builder()
+                    .addProgramFiles(classFiles)
+                    .addLibraryFiles(androidJar.toPath())
+                    .setMinApiLevel(28)
+                    .setMode(CompilationMode.RELEASE)
+                    .setOutput(workDir.toPath(), OutputMode.DexIndexed)
+                    .build(),
+            )
+
+            val dex = workDir.resolve("classes.dex")
+            check(dex.exists()) { "D8 produced no classes.dex for extension '${appDir.name}'" }
+            dex.copyTo(extensionsDir.resolve("${appDir.name}.dex"), overwrite = true)
+            logger.lifecycle("Extension: extensions/${appDir.name}.dex (${classFiles.size} classes)")
+        }
+    }
 }
 
 tasks {
@@ -42,54 +135,13 @@ tasks {
         options.release.set(11)
     }
 
-    // Android API stubs for compiling the extension. Only the Java compile gets
-    // them, so they can't leak into Kotlin compilation of the patches.
-    val sdkRoot = System.getenv("ANDROID_HOME")
-        ?: "${System.getProperty("user.home")}/Library/Android/sdk"
-
-
-    val currentFrameExtensionDex = register<Exec>("currentFrameExtensionDex") {
-        dependsOn("compileExtensionJava")
-
-        val sdkDirectory = System.getenv("ANDROID_HOME")
-            ?: "${System.getProperty("user.home")}/Library/Android/sdk"
-        val buildToolsDirectory = file("$sdkDirectory/build-tools/36.1.0")
-        val outputDirectory = layout.buildDirectory.dir("current-frame-extension").get().asFile
-        val resourceDirectory = layout.buildDirectory.dir("resources/main/extensions").get().asFile
-        val androidJar = file("$sdkDirectory/platforms/android-36/android.jar")
-
-        doFirst {
-            outputDirectory.deleteRecursively()
-            outputDirectory.mkdirs()
-            resourceDirectory.mkdirs()
-        }
-
-        doFirst {
-            val extensionClasses = fileTree(
-                "$buildDir/classes/java/extension/app/danielthemaniel/patches/youtube/extension"
-            ).matching {
-                include("CurrentFrameMediaArtwork*.class")
-            }.files
-            commandLine(
-                file("$buildToolsDirectory/d8"),
-                "--min-api", "28",
-                "--lib", androidJar,
-                "--output", outputDirectory,
-                *extensionClasses.toTypedArray(),
-            )
-        }
-
-        doLast {
-            copy {
-                from(outputDirectory.resolve("classes.dex"))
-                into(resourceDirectory)
-                rename { "current_frame_media_artwork.dex" }
-            }
-        }
+    processResources {
+        dependsOn(dexExtensions)
     }
 
-    processResources {
-        dependsOn(currentFrameExtensionDex)
+    // The sources jar also reads the main resource dirs, so it must wait for the dex files too.
+    named("sourcesJar") {
+        dependsOn(dexExtensions)
     }
 
     register<JavaExec>("generatePatchesList") {

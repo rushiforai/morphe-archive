@@ -19,6 +19,9 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 
+import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.PhotoModeImageInfo;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -132,6 +135,7 @@ public class PhotoPostSavedRecordTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull("no already-saved choice came up", dialog);
         assertTrue(dialog.isShowing());
+        assertEquals("This photo post is already saved", Shadows.shadowOf(dialog).getTitle().toString());
         // #356: "Saving" said before the choice reads as a second copy on its way.
         assertFalse("photos never fetched said they were saving",
                 ShadowToast.showedToast("Saving 2 original photos"));
@@ -161,9 +165,91 @@ public class PhotoPostSavedRecordTest {
         assertTrue(SlideshowVideo.start(post, null));
         finish();
         assertEquals("a second video was made with no word", 1, made[0]);
-        assertNotNull("no already-saved choice came up", ShadowAlertDialog.getLatestAlertDialog());
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("no already-saved choice came up", dialog);
+        // The post is a photo post, whatever form it was saved in (#197).
+        assertEquals("This photo post is already saved", Shadows.shadowOf(dialog).getTitle().toString());
         assertFalse("a video never made said it was being made",
                 ShadowToast.showedToast("Making a video of the photos"));
+    }
+
+    @Test public void aPhotoStorySavedAsAVideoAgainIsCalledAStory() throws Exception {
+        var story = post("story-video", 2);
+        SlideshowVideo.makerForTests = (name, seconds) -> file(name);
+        assertTrue(SlideshowVideo.saveStory(story));
+        finish();
+        assertNotNull("the story's video never reached the record", SavedVideoArchive.find(context, "story-video"));
+
+        assertTrue(SlideshowVideo.saveStory(story));
+        finish();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("no already-saved choice came up", dialog);
+        assertEquals("This story is already saved", Shadows.shadowOf(dialog).getTitle().toString());
+    }
+
+    @Test public void aPhotoStorysPhotosSavedAgainFromTheQuestionAreCalledAStory() throws Exception {
+        boolean previousAsVideo = Settings.DOWNLOAD_PHOTOS_AS_VIDEO.savedValue();
+        SettingsStatus.advancedDownloadsEnabled = true;
+        Settings.DOWNLOAD_PHOTOS_AS_VIDEO.save(true);
+        try {
+            var story = post("story-photos", 2);
+            for (int round = 0; round < 2; round++) {
+                assertTrue(SlideshowVideo.saveStory(story));
+                finish();
+                AlertDialog question = ShadowAlertDialog.getLatestAlertDialog();
+                assertNotNull("the story never asked between photos and a video", question);
+                assertEquals("Save photos or a video?", Shadows.shadowOf(question).getTitle().toString());
+                question.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+                finish();
+            }
+            assertEquals("the second save fetched the photos again", List.of(0, 1), tried);
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            assertEquals("This story is already saved", Shadows.shadowOf(dialog).getTitle().toString());
+        } finally {
+            Settings.DOWNLOAD_PHOTOS_AS_VIDEO.save(previousAsVideo);
+        }
+    }
+
+    @Test public void aPhotoStorySavedAgainFromTikToksSheetOrTheSaveButtonIsCalledAStory() throws Exception {
+        ownIds.add("story-sheet");
+        List<AdvancedDownloadsTest.Photo> images = new ArrayList<>();
+        for (int i = 0; i < 2; i++) images.add(new AdvancedDownloadsTest.Photo("https://example.com/story-sheet/" + i));
+        PhotoStory story = new PhotoStory("story-sheet", images);
+        assertTrue(OriginalPhotos.startPhotos(story, null, false));
+        finish();
+        assertNotNull("the story never reached the record", SavedVideoArchive.find(context, "story-sheet"));
+
+        assertTrue(OriginalPhotos.startPhotos(story, null, false));
+        finish();
+        AlertDialog sheet = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("no already-saved choice came up", sheet);
+        assertEquals("This story is already saved", Shadows.shadowOf(sheet).getTitle().toString());
+        sheet.dismiss();
+        finish();
+
+        OriginalPhotos.startFromButton(story, owner.get());
+        finish();
+        AlertDialog button = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("the save button never asked", button);
+        assertTrue("the save button's choice is a new one", button != sheet);
+        assertEquals("This story is already saved", Shadows.shadowOf(button).getTitle().toString());
+    }
+
+    /** A photo story as TikTok's own post, its photos on the field a photo post keeps them on. */
+    public static final class PhotoStory extends Aweme {
+        public final AdvancedDownloadsTest.Info photoModeImageInfo;
+        private final String aid;
+
+        PhotoStory(String aid, List<AdvancedDownloadsTest.Photo> photos) {
+            this.aid = aid;
+            photoModeImageInfo = new AdvancedDownloadsTest.Info(photos);
+        }
+
+        @Override public String getAid() { return aid; }
+        @Override public boolean getIsTikTokStory() { return true; }
+        @Override public int getAwemeType() { return 0; }
+        @Override public PhotoModeImageInfo getPhotoModeImageInfo() { return null; }
+        @Override public long getCreateTime() { return 0L; }
     }
 
     @Test public void withTheCheckOffNothingIsRecorded() throws Exception {

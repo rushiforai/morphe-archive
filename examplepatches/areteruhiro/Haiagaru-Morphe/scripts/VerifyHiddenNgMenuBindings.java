@@ -11,7 +11,7 @@ public final class VerifyHiddenNgMenuBindings {
         int[] strings = {0x7f120470, 0x7f10046e, 0x7f100498};
         int[] items = {2131362442, 2131296944, 2131296922};
         for (int a = 0; a < args.length; a++) try (var zip = new ZipFile(args[a])) {
-            int profile = a == 3 ? 0 : a;
+            int profile = a % 3;
             int matches = 0, hooks = 0;
             for (var entry : Collections.list(zip.entries())) {
                 if (!entry.getName().matches("classes[0-9]*\\.dex")) continue;
@@ -35,7 +35,15 @@ public final class VerifyHiddenNgMenuBindings {
                                     || !(r.getReference() instanceof MethodReference ref)
                                     || !ref.getDefiningClass().equals("Lapp/morphe/extension/chmate/HiddenNgMenu;")
                                     || !ref.getName().equals("apply")) continue;
-                            if (body.get(n + 1).getOpcode() != Opcode.RETURN_VOID) throw new AssertionError("Hook before native updates");
+                            if (a >= 3) {
+                                if (!(body.get(n + 1) instanceof ReferenceInstruction multi)
+                                        || !multi.getReference().toString().contains("MultiResponseNg;->menu(")
+                                        || body.get(n + 2).getOpcode() != Opcode.RETURN_VOID)
+                                    throw new AssertionError("Both menu hooks must run at the native return");
+                                var argsRange = (RegisterRangeInstruction) body.get(n + 1);
+                                if (argsRange.getRegisterCount() != 2 || argsRange.getStartRegister() != method.getImplementation().getRegisterCount() - 2)
+                                    throw new AssertionError("Wrong fragment and Menu argument registers");
+                            } else if (body.get(n + 1).getOpcode() != Opcode.RETURN_VOID) throw new AssertionError("Hook before native updates");
                             var invoke = (RegisterRangeInstruction) body.get(n);
                             if (invoke.getRegisterCount() != 1 || invoke.getStartRegister() != method.getImplementation().getRegisterCount() - 1)
                                 throw new AssertionError("Wrong Menu argument register");
@@ -44,8 +52,8 @@ public final class VerifyHiddenNgMenuBindings {
                     }
                 }
             }
-            if (matches != 1 || (a == 3 && hooks != 1)) throw new AssertionError("Native binding " + a + " matches=" + matches + " hooks=" + hooks);
-            System.out.println("PASS " + (a == 3 ? "patched 191 exit hook" : "native menu profile " + a));
+            if (matches != 1 || (a >= 3 && hooks != 1)) throw new AssertionError("Native binding " + a + " matches=" + matches + " hooks=" + hooks);
+            System.out.println("PASS " + (a >= 3 ? "patched menu exit hooks " + profile : "native menu profile " + a));
         }
     }
 }

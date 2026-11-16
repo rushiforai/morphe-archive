@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2029
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.hide.settingsmenu
@@ -19,6 +20,7 @@ import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.SETTINGS_MENU_FILTER
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.patches.youtube.utils.settings.settingsFragmentReloadInstructions
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -52,11 +54,9 @@ val hideSettingsMenuFilterPatch = bytecodePatch(
         // Reuse the method's own getPreferenceScreen call; fragmentRegister is dead after it.
         PreferenceScreenSyntheticFingerprint.let {
             it.method.apply {
-                val getPreferenceScreenIndex = it.instructionMatches[1].index
-                val fragmentRegister =
-                    getInstruction<FiveRegisterInstruction>(getPreferenceScreenIndex).registerC
-                val getPreferenceScreenReference =
-                    getInstruction<ReferenceInstruction>(getPreferenceScreenIndex).reference
+                val getScreenMatch = it.instructionMatches[1]
+                val fragmentRegister = (getScreenMatch.instruction as FiveRegisterInstruction).registerC
+                val getPreferenceScreenReference = getScreenMatch.methodReference
 
                 // Insert after the settings-name block added by settingsPatch. The
                 // fragment register is reused for the needles array below, so no
@@ -68,6 +68,7 @@ val hideSettingsMenuFilterPatch = bytecodePatch(
                 addInstructionsAtControlFlowLabel(
                     insertIndex,
                     """
+                        ${settingsFragmentReloadInstructions(fragmentRegister)}
                         invoke-virtual { v$fragmentRegister }, $getPreferenceScreenReference
                         move-result-object v$screenRegister
                         if-eqz v$screenRegister, :ignore

@@ -66,11 +66,12 @@ assert "static final int[] MAX = {200, 240, 100, 220, 220, 220, 140, 100, 24, 48
 assert "PREVIOUS_PRESETS" in light and "i % 4" in light
 assert light.count("{130, 165, 68, 155, 118, 165, 57, 58, 16, 32}") == 1
 assert 'tr("強烈", "Intense", "強烈")' in settings
-# Keep the archived v2.0.2 contracts valid when a newer dev artifact is selected.
-assert re.search(r"nicoid-re-v\d+\.\d+\.\d+-dev\.\d+-mpp", workflow), "Versioned development artifact routing missing"
-assert re.search(r"version=\d+\.\d+\.\d+-dev\.\d+", workflow), "Versioned development artifact routing missing"
+# Validate dynamic artifact names for both stable and development versions.
+assert "format('nicoid-re-v{0}-mpp', steps.candidate.outputs.version)" in workflow, "Versioned MPP artifact routing missing"
+assert 'version=$(sed -nE' in workflow and 'echo "version=$version" >> "$GITHUB_OUTPUT"' in workflow
 assert 'unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"' in workflow
-assert re.search(r"nicoid-re-v\d+\.\d+\.\d+-dev\.\d+-source", workflow), "Versioned development artifact routing missing"
+assert "format('nicoid-re-v{0}-source', steps.source.outputs.version)" in workflow, "Versioned source artifact routing missing"
+assert "format('nicoid-re-v{0}-source-targz', steps.source.outputs.version)" in workflow, "Versioned tar.gz artifact routing missing"
 assert "porting/revisions/v2.0.2-dev.1/build_mpp.py" not in workflow or True
 with tempfile.TemporaryDirectory() as tmp:
     target=Path(tmp)

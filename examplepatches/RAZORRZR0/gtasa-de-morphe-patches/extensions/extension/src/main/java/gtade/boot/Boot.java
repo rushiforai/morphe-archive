@@ -18,11 +18,11 @@ import java.util.List;
 
 /**
  * GameActivity's static init calls start() right after loadLibrary("UE4") (Mod loader patch).
- * The mod patches put their files in assets/gtade/{mods,configs,cleo}/. After each (re)patch this copies them to
- * Android/data/<game>/{mods,configs,cleo}, where AML and CLEO load them, then loads AML. An existing .ini is rebuilt from
- * the new one with the user's values kept (mergeIni), so renamed or removed settings never leave stale keys or labels. With the Rubbish-DE patch it also builds
- * that mod's model pak into paks/ from the game's own data (RubbishPak). Mod libraries and paks from an earlier patch
- * that are no longer included are deleted.
+ * The mod patches put their files in assets/gtade/{mods,configs,cleo,coop/packs}/. After each (re)patch this copies them
+ * to the same folders of Android/data/<game>, where AML, CLEO and SA:COOP load them, then loads AML. An existing .ini is
+ * rebuilt from the new one with the user's values kept (mergeIni), so renamed or removed settings never leave stale keys
+ * or labels. With the Rubbish-DE patch it also builds that mod's model pak into paks/ from the game's own data
+ * (RubbishPak). Mod libraries, SA:COOP's packs and paks from an earlier patch that are no longer included are deleted.
  */
 public final class Boot {
     private static final String TAG = "GTADEBoot";
@@ -54,13 +54,13 @@ public final class Boot {
 
         AssetManager assets = app.getAssets();
         List<String> now = new ArrayList<>();
-        for (String dir : new String[]{"mods", "configs", "cleo"}) {
+        for (String dir : new String[]{"mods", "configs", "cleo", "coop/packs"}) {
             String[] names = assets.list("gtade/" + dir);
             if (names == null) continue;
             for (String n : names) {
                 String path = dir + "/" + n;
                 File dst = new File(root, path);
-                if (dir.equals("mods")) now.add(path);
+                if (dir.equals("mods") || dir.equals("coop/packs")) now.add(path);  // removed again with their patch
                 if (n.endsWith(".ini") && dst.exists()) {
                     String user = readFile(dst), merged = mergeIni(user, readAsset(assets, "gtade/" + path));
                     if (!merged.equals(user)) {

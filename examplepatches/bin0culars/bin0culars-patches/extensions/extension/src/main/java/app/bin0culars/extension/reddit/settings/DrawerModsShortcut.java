@@ -37,9 +37,11 @@ public final class DrawerModsShortcut {
                         break;
                     }
                 }
-                if (index > 0) {
+                if (index != 0) {
                     List<Object> copy = new ArrayList<>(list);
-                    copy.remove(index);
+                    if (index > 0) {
+                        copy.remove(index);
+                    }
                     copy.add(0, mods);
                     setDrawerItems(presenter, copy);
                 }

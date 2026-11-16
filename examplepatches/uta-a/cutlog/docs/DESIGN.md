@@ -90,7 +90,7 @@ cutlog/
 
 Sign-In service の action を fingerprint で特定し、client の生成時に MicroG-RE の公式署名を検証して boolean field に接続先を固定する。MicroG-RE へ向ける client だけ action の接頭辞を変え、dynamic lookup を無効にする。この APK の R8 は GMS package getter を connection config の constructor に畳み込んでいるため、その config で MicroG-RE Sign-In action のときだけ package を変更する。action は constructor の引数 register ではなく、保存済みの field から読む。R8 が引数 register を上書きするため。
 
-manifest には package visibility と元 APK 署名の SHA-1 を申告する metadata を追加する。runtime は難読化名ではなく Google の credential type で要求を限定し、信頼できる MicroG-RE が無ければ元の経路を維持する。パスワード・パスキーや FCM・Maps 等の service は対象外。nonce、ID token の解析、setlog の `auth/loginWithGoogle`、onboarding、暗号鍵の生成と保存、キャンセル・タイムアウトは変更しない。
+manifest には package visibility と元 APK 署名の SHA-1 を申告する metadata を追加する。runtime は難読化名ではなく Google の credential type で要求を限定し、信頼できる MicroG-RE が無ければ元の経路を維持する。パスワード・パスキーの要求では provider の選び方を変えず、FCM・Maps 等の service も向け替えない。ただし Sign-In client の接続先は要求の種類を見ずに client 単位で決まる。そのため Identity Sign-In API を使う要求（GMS 25.24 未満の端末での認証情報のクリアの旧経路など）は、Google ID token 以外でも MicroG-RE に届く。接続先は署名を検証した MicroG-RE に限る。nonce、ID token の解析、setlog の `auth/loginWithGoogle`、onboarding、暗号鍵の生成と保存、キャンセル・タイムアウトは変更しない。
 
 ## 編集エンジン
 

@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Handler;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -53,10 +54,66 @@ public final class StoryFontResolver {
     private StoryFontResolver() {}
 
     /**
-     * Preserves device's native system fonts on home carousel memory cards.
+     * Applies authentic Google Sans font to home carousel memory card titles and subtitles.
      */
     public static void applyMemoryCardFonts(View container) {
-        // No-op: Home carousel cards use the device's native system font (e.g. Roboto on POCO F1)
+        applyMemoryCardFonts((Object) container);
+    }
+
+    public static void applyMemoryCardFonts(Object containerOrHolder) {
+        if (containerOrHolder == null) return;
+        try {
+            if (containerOrHolder instanceof View) {
+                applyFontsRecursively((View) containerOrHolder);
+                return;
+            }
+            Class<?> c = containerOrHolder.getClass();
+            while (c != null && c != Object.class) {
+                for (Field f : c.getDeclaredFields()) {
+                    try {
+                        if (View.class.isAssignableFrom(f.getType())) {
+                            f.setAccessible(true);
+                            Object val = f.get(containerOrHolder);
+                            if (val instanceof View) {
+                                applyFontsRecursively((View) val);
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
+                c = c.getSuperclass();
+            }
+        } catch (Throwable t) {
+            Logger.printDebug(() -> TAG + ": applyMemoryCardFonts error: " + t.getMessage());
+        }
+    }
+
+    private static void applyFontsRecursively(View v) {
+        if (v instanceof TextView) {
+            TextView tv = (TextView) v;
+            Context ctx = tv.getContext();
+            File fontsDir = getFontsDir(ctx);
+            ensureGoogleSans(ctx, fontsDir);
+            Typeface current = tv.getTypeface();
+            boolean isBold = (current != null && current.isBold()) || tv.getTextSize() >= 36.0f;
+            String fontName = isBold ? "Google_Sans_Text-Bold.ttf" : "Google_Sans_Text-Medium.ttf";
+            Typeface tf = TYPEFACE_CACHE.computeIfAbsent(fontName, k -> {
+                File fontFile = new File(fontsDir, k);
+                if (fontFile.exists() && fontFile.length() > 1000) {
+                    try {
+                        return Typeface.createFromFile(fontFile);
+                    } catch (Throwable ignored) {}
+                }
+                return null;
+            });
+            if (tf != null) {
+                tv.setTypeface(tf);
+            }
+        } else if (v instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) v;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                applyFontsRecursively(vg.getChildAt(i));
+            }
+        }
     }
 
     /**

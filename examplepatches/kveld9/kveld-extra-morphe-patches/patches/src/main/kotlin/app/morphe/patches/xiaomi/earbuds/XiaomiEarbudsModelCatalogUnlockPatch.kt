@@ -1,9 +1,9 @@
 package app.morphe.patches.xiaomi.earbuds
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
 
 @Suppress("unused")
 val xiaomiEarbudsModelCatalogUnlockPatch = bytecodePatch(
@@ -20,13 +20,7 @@ val xiaomiEarbudsModelCatalogUnlockPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 1
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(true)
         }
 
         println("[Show All Models] Unlocked full device model catalog (isShowProduct -> true).")

@@ -6,7 +6,7 @@ import android.view.KeyEvent;
 import android.widget.EditText;
 
 /**
- * Hardware keyboard shortcuts of the video player: playback speed, comments, fullscreen and minimize.
+ * Hardware keyboard shortcuts of the video player: playback speed, comments, fullscreen, minimize and frame step.
  * <p>
  * Each shortcut is enabled by its own patch, which changes the matching method below at patch time.
  */
@@ -35,6 +35,10 @@ public final class KeyboardShortcutsPatch {
         return false;
     }
 
+    private static boolean isFrameStepEnabled() {
+        return false;
+    }
+
     // endregion
 
     /**
@@ -53,7 +57,8 @@ public final class KeyboardShortcutsPatch {
             return (isSpeedEnabled() && KeyboardSpeedPatch.handleKey(activity, event))
                     || (isCommentsEnabled() && KeyboardCommentsPatch.handleKey(activity, event))
                     || (isFullscreenEnabled() && KeyboardFullscreenPatch.handleKey(activity, event))
-                    || (isMinimizeEnabled() && KeyboardMinimizePatch.handleKey(activity, event));
+                    || (isMinimizeEnabled() && KeyboardMinimizePatch.handleKey(activity, event))
+                    || (isFrameStepEnabled() && KeyboardFrameStepPatch.handleKey(activity, event));
         } catch (Exception ex) {
             Log.e(TAG, "dispatchKeyEvent failure", ex);
             return false;

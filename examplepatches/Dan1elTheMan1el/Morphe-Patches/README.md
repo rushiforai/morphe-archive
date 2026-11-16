@@ -57,7 +57,22 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.6.1](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.7.0](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;27 patches total
+<details>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 452.1.0.53.64 | 447.0.0.55.81 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Apple emojis everywhere](#apple-emojis-everywhere) | Replaces Instagram's emoji with Apple-style emoji. The emoji font is downloaded once, after asking, the first time the app is opened. |  |
+
+</details>
+
 <details>
 <summary>📦 PokeRaid - for Pokémon GO Raid&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -128,6 +143,42 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 | [Remove Bottom Banner Ad](#remove-bottom-banner-ad) | Removes DeFit's bottom banner-ad container from the main layout. |  |
 | [Session Distance Notification](#session-distance-notification) | Shows the total distance added during the current sync session in the persistent notification. |  |
 | [Unlimited Time Bypass](#unlimited-time-bypass) | Removes the ad requirement and grants the target DeFit version's maximum active time when the button is pressed. |  |
+
+</details>
+
+<details>
+<summary>📦 Campfire&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2026.42.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Live chat reconnect](#live-chat-reconnect) | Keeps chats updating live: reconnects the real-time message connection when it drops (e.g. after the app was in the background) and restores the chat's subscriptions. |  |
+| [Map post age filter](#map-post-age-filter) | Adds a filter button on the map to only show posts from the past 24 hours, 12 hours, hour or 10 minutes. |  |
+| [Material You Theme](#material-you-theme) | Uses Android 12+ wallpaper-derived Material You colors throughout Campfire, with a dark theme that follows the system. Keeps success/warning/danger and game-brand colors. |  |
+| [Open game links directly](#open-game-links-directly) | Opens Pokémon GO (and other game) links straight in the game instead of going through the AppsFlyer OneLink redirect page. |  |
+| [microG-RE support (Google sign-in)](#microg-re-support-google-sign-in) | Routes Google Play Services to MicroG-RE (app.revanced.android.gms) so Google sign-in and push notifications work on the re-signed app. Install MicroG-RE, add your account there and enable Cloud Messaging. |  |
+
+</details>
+
+<details>
+<summary>📦 Poke Genie -Remote Raid IV PvP&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.19.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Strip PairIP](#strip-pairip) | Neutralizes PairIP's startup program (integrity check + Play-Store paywall) and restores its obfuscation tables, while leaving the native VM intact so virtualized methods still run. Also nukes the Java license/signature checks. Required by every other Poke Genie patch -- keep it enabled. |  |
+| [Unlock All IAPs](#unlock-all-iaps) | Forces premium flags and server getters to true/max by short-circuiting their methods. |  |
+| [microG-RE support (Google sign-in)](#microg-re-support-google-sign-in) | Routes Google Play Services to MicroG-RE (app.revanced.android.gms) and pins Poke Genie's legacy sign-in path so Google sign-in works on the re-signed app. Install MicroG-RE, add your account there. Minimal: no push/FCM. |  |
 
 </details>
 

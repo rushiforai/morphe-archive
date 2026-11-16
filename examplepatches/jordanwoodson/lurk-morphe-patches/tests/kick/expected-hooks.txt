@@ -64,6 +64,9 @@ KickPlayer.resizeMode
 # Show video stats
 KickStats.onStatistics
 
+# Player gestures: MainActivity's dispatchTouchEvent
+KickTouch.dispatch
+
 # Mute stitched live ads
 KickAds.onCue
 KickAds.onAdBreakStarted

@@ -9,7 +9,13 @@ Parches no oficiales para **YouTube en Android TV** (`com.google.android.youtube
 
 FaroTV no es un producto de Google, YouTube ni del proyecto Morphe.
 
+**YouTube TV 8.02.300 (armeabi-v7a)** tiene compatibilidad estable, junto con **7.32.300**.
+Se comprobaron navegación, reproducción, SponsorBlock, el contador de «No me gusta», nueve filtros individuales del reproductor y el diálogo de reinicio en el LX352.
+Consulta la [matriz de compatibilidad](docs/COMPATIBILIDAD.md) para conocer los dispositivos probados y los límites de las pruebas.
+
 ## ✨ Qué hace
+
+- **Idiomas:** los textos propios siguen el idioma de YouTube TV, con español e inglés incluidos y respaldo en inglés para otros idiomas. [Cómo añadir traducciones](docs/TRADUCCIONES.md).
 
 - **MicroG-RE**: la app funciona sin Google Play Services y se instala junto al YouTube original (otro nombre de
   paquete). Inicio de sesión con código de activación (yt.be/activate).
@@ -52,7 +58,7 @@ Este repositorio **no** distribuye el APK de YouTube, ni original ni parcheado.
 ## 🩹 Lista de parches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/jair1c/farotv-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.6.0](https://github.com/jair1c/farotv-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 YouTube for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -61,8 +67,8 @@ Este repositorio **no** distribuye el APK de YouTube, ni original ni parcheado.
 
 **🎯 Supported versions:**
 
-| 7.32.300 |
-| :---: |
+| 7.32.300 | 8.02.300 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

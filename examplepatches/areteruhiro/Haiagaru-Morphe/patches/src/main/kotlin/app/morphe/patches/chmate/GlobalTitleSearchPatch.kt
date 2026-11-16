@@ -2,6 +2,9 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -28,5 +31,22 @@ internal fun BytecodePatchContext.patchGlobalTitleSearch(version:String){
         invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/GlobalTitleSearch;->extend(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
         move-result-object p1
     """.trimIndent())
+    val native=MutableMethod(ImmutableMethod(owner.type,"haiagaruNativeTitleUrl",builder.parameters,builder.returnType,
+        builder.accessFlags,builder.annotations,builder.hiddenApiRestrictions,builder.implementation))
+    owner.methods.remove(builder);owner.methods.add(native)
+    val invocation=if(builder.accessFlags and 2!=0)"invoke-direct" else "invoke-virtual"
+    owner.methods.add(MutableMethod(ImmutableMethod(owner.type,builder.name,builder.parameters,builder.returnType,
+        builder.accessFlags,builder.annotations,builder.hiddenApiRestrictions,
+        ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList()))).apply{
+        addInstructions(0,"""
+            $invocation {p0, p1}, $native
+            move-result-object v0
+            invoke-static {p0, p1, v0}, Lapp/morphe/extension/chmate/GlobalSearchHome;->url(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v0
+            return-object v0
+        """.trimIndent())
+    })
+    patchBackgroundGlobalSearch(version)
+    patchFf5chBrowserAds(version)
     println("Native HOME global title search: $version -> $type, original query/parser retained")
 }

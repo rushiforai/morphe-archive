@@ -1,3 +1,19 @@
+## [1.14.2](https://github.com/RashKash103/sync-up/compare/v1.14.1...v1.14.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Draw the subreddit banner in the window the reader is looking at ([6c977c2](https://github.com/RashKash103/sync-up/commit/6c977c2328be1a453e49f065da77f43c358073ac))
+* Keep the posts below the subreddit banner in the Slides view ([3a04734](https://github.com/RashKash103/sync-up/commit/3a047348d9cd5b77aac785bf4966ec72b6bac3f8))
+* Take the subreddit banner away when the feed is not the screen ([71681e0](https://github.com/RashKash103/sync-up/commit/71681e04c47671f5ba2ccabe6f228350319a02af))
+
+## [1.14.2-dev.1](https://github.com/RashKash103/sync-up/compare/v1.14.1...v1.14.2-dev.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Draw the subreddit banner in the window the reader is looking at ([6c977c2](https://github.com/RashKash103/sync-up/commit/6c977c2328be1a453e49f065da77f43c358073ac))
+* Keep the posts below the subreddit banner in the Slides view ([3a04734](https://github.com/RashKash103/sync-up/commit/3a047348d9cd5b77aac785bf4966ec72b6bac3f8))
+* Take the subreddit banner away when the feed is not the screen ([71681e0](https://github.com/RashKash103/sync-up/commit/71681e04c47671f5ba2ccabe6f228350319a02af))
+
 ## [1.14.1](https://github.com/RashKash103/sync-up/compare/v1.14.0...v1.14.1) (2026-11-15)
 
 ### 🐛 Bug Fixes

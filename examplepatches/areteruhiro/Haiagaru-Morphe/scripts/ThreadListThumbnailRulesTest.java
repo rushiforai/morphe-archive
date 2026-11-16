@@ -9,6 +9,19 @@ public final class ThreadListThumbnailRulesTest {
     }
 
     public static void main(String[] args) {
+        check(ThreadListThumbnailRules.firstFiveChImages(
+                "<div class=post><div class=message>http://cdn.example.org/first.png</div></div>"
+                        + "<div class=post><div class=message>https://cdn.example.org/second.png</div></div>",
+                "https://example.org/test/read.cgi/test/1790000000/", 2)
+                .equals(java.util.List.of("https://cdn.example.org/first.png")));
+        check(ThreadListThumbnailRules.openingTextMedia(
+                "<a href='http://cdn.example.org/first.jpg'>画像</a>",
+                "https://may.2chan.net/b/res/1447986527.htm", 1)
+                .equals(java.util.List.of("https://cdn.example.org/first.jpg")));
+        var mirror=ThreadListThumbnailRules.board("die-or.work/img%2Fb");
+        check(mirror!=null&&mirror.openingDatUrl("1790000000").equals("https://die-or.work/img/b/dat/1790000000.dat"));
+        check(ThreadListThumbnailRules.board("http://die-or.work/may/b/")!=null);
+        check(ThreadListThumbnailRules.board("https://die-or.work/other/b/")==null);
         var board = ThreadListThumbnailRules.board("https://egg.5ch.io/android/");
         check(board != null && board.name.equals("android") && board.host.equals("egg.5ch.io"));
         check(board.settingsKey().equals("5ch:egg.5ch.io/android"));

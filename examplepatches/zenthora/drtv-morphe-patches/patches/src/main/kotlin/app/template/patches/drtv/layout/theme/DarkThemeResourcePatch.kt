@@ -239,9 +239,11 @@ val darkThemeResourcePatch = resourcePatch {
                             style.appendChild(winBgItem)
                         }
                     }
+
                     "AppTheme.AlertDialog.NoTitle" -> {
                         style.setAttribute("parent", "@style/Theme.AppCompat.Dialog.Alert")
                     }
+
                     "AppTheme.PopupOverlay" -> {
                         style.setAttribute("parent", "@style/ThemeOverlay.AppCompat.Dark")
                     }

@@ -64,7 +64,7 @@ private object SendViaTfeFingerprint : Fingerprint(
 @Suppress("unused")
 val anonymousProfileViewingPatch = bytecodePatch(
     name = "Anonymous profile viewing",
-    description = "Adds an option (off by default, experimental) to visit profiles without being listed in " +
+    description = "Adds an option (on by default, experimental) to visit profiles without being listed in " +
         "\"Who viewed your profile\": the analytics events of profile pages are not sent.",
     default = true
 ) {

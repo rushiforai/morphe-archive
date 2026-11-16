@@ -7,6 +7,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -20,6 +22,7 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.getReference
 import app.morphe.patches.shared.mapping.ResourceType.STRING
 import app.morphe.patches.shared.mapping.resourceLiteral
@@ -30,6 +33,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.util.MethodUtil
 
 internal object DeviceDimensionsModelToStringFingerprint : Fingerprint(
     returnType = "L",
@@ -234,61 +238,28 @@ internal object AudioOffloadVariableRateSupportedFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
     filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = emptyList(),
+            returnType = "Z"
+        ),
         string("offloadVariableRateSupported")
     )
 )
 
 /**
- * Checks if the audio offload is enabled.
+ * Resolve the audio-offload gate called by the variable-rate capability check.
  */
-internal object AudioOffloadEnabledFingerprint : Fingerprint(
+context(_: BytecodePatchContext)
+internal fun audioOffloadEnabledFingerprint() = Fingerprint(
     classFingerprint = AudioOffloadVariableRateSupportedFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.CONST_4,
-        Opcode.IF_NEZ,
-        Opcode.IGET_BOOLEAN,
-        Opcode.CONST_4,
-        Opcode.IF_NEZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.IF_NEZ,
-        Opcode.RETURN,
-        Opcode.RETURN,
-        Opcode.RETURN
-    )
-)
-
-/**
- * Older audio offload checks merge the false result before returning instead of using three returns.
- */
-internal object LegacyAudioOffloadEnabledFingerprint : Fingerprint(
-    classFingerprint = AudioOffloadVariableRateSupportedFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf(),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.CONST_4,
-        Opcode.IF_NEZ,
-        Opcode.IGET_BOOLEAN,
-        Opcode.CONST_4,
-        Opcode.IF_NEZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.IF_NEZ,
-        Opcode.GOTO,
-        Opcode.RETURN,
-        Opcode.MOVE,
-        Opcode.RETURN
-    )
+    custom = { method, _ ->
+        MethodUtil.methodSignaturesMatch(
+            method,
+            AudioOffloadVariableRateSupportedFingerprint.instructionMatches.first().methodReference
+        )
+    }
 )

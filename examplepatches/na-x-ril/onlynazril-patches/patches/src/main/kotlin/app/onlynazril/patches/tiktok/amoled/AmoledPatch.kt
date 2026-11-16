@@ -9,7 +9,12 @@ import org.w3c.dom.Node
 import java.util.Locale
 
 /**
- * The brightest channel a colour may have and still be turned black.
+ * The black every dark surface becomes. Alpha is preserved separately.
+ */
+internal const val AMOLED_BLACK = 0xFF000000L
+
+/**
+ * The brightest channel a color may have and still be turned black.
  *
  * 0x60 catches the dark navy canvas (0x161823), the surface grays (0x1b1b1b through 0x333333),
  * the borders (0x3a3a3a) and the light-gray controls (0x545454), so the result is the same black
@@ -20,18 +25,19 @@ private const val DARK_MAX = 0x60
 private val HEX = Regex("#([0-9a-fA-F]{8}|[0-9a-fA-F]{6})")
 
 /**
- * Turns every dark colour in the APK's resources black, keeping the alpha.
+ * Turns every dark color in the APK black, keeping the alpha.
  *
  * This is the total variant: it does not keep a surface tier or border tier, so cards, sheets,
  * buttons and dividers all end up on the same black. Text and icons above [DARK_MAX] are the only
- * things left to separate them. The patch is a build-time resource edit, not a runtime switch.
+ * things left to separate them. The patch is a build-time edit, not a runtime switch, and covers
+ * both resource colors and constants held in code.
  */
 @Suppress("unused")
 val amoledPatch = resourcePatch(
     name = "AMOLED theme",
-    description = "Total AMOLED: every colour whose brightest channel is 0x60 or lower becomes " +
+    description = "Full AMOLED: every dark resource colour and code-held constant becomes " +
         "black, alpha kept. Borders and controls lose their separation too; repatch to undo.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
     dependsOn(amoledCodePatch)
@@ -58,7 +64,7 @@ val amoledPatch = resourcePatch(
 }
 
 /**
- * Replaces colours only on the elements that paint a fill, never on a stroke.
+ * Replaces colors only on the elements that paint a fill, never on a stroke.
  *
  * `shape`/`selector` files carry both: `solid`, `item` and `gradient` are fills, `stroke` is the
  * border. A gradient's `startColor`/`endColor`/`centerColor` are fills too. Vector `fillColor`
@@ -95,7 +101,7 @@ private fun replaceFillColors(document: Document): Int {
     return changes
 }
 
-/** Replaces every matching colour in the document's attributes and text, and returns the count. */
+/** Replaces every matching color in the document's attributes and text, and returns the count. */
 private fun replaceDarkColors(document: Document): Int {
     var changes = 0
 

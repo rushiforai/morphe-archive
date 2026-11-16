@@ -1,10 +1,14 @@
 package io.github.jordanwoodson.extension.shared.rumble;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.format.DateFormat;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,6 +34,7 @@ public final class RumbleChat {
     static final String HIDE_GIFTS = "chat_hide_gift_notices";
     static final String SHOW_DELETED = "show_deleted_messages";
     static final String TIMESTAMPS = "chat_timestamps";
+    static final String ANONYMOUS = "chat_anonymous";
 
     /** Rumble green at 30%, as a Compose color: readable over both chat backgrounds. */
     private static final int HIGHLIGHT_ARGB = 0x4D85C742;
@@ -172,6 +177,38 @@ public final class RumbleChat {
             }
         }
         return names;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Anonymous chat
+
+    /**
+     * Injection point: instead of the chat stream's setRequestProperty("Cookie", the session's cookies). While
+     * Anonymous chat is on the header is left out, so the chat server opens the stream for a guest: it doesn't
+     * list the account among the chat's users and reports that it can't write. Read when a chat is opened.
+     */
+    public static void streamCookie(URLConnection connection, String name, String value) {
+        if (connection == null) return;
+        if (on(ANONYMOUS)) {
+            Logger.d("anonymous chat: chat stream opened without the session cookie");
+            return;
+        }
+        connection.setRequestProperty(name, value);
+    }
+
+    /**
+     * Injection point: the start of the chat data source's send (messages and Rants). True while Anonymous chat
+     * is on: the send then fails without a request, and a toast says why.
+     */
+    public static boolean sendBlocked() {
+        if (!on(ANONYMOUS)) return false;
+        Logger.d("anonymous chat: send refused");
+        Context context = Settings.appContext();
+        if (context != null) {
+            new Handler(Looper.getMainLooper()).post(() ->
+                    Toast.makeText(context, "Anonymous chat is on: sending is disabled", Toast.LENGTH_SHORT).show());
+        }
+        return true;
     }
 
     // ---------------------------------------------------------------------------------------------

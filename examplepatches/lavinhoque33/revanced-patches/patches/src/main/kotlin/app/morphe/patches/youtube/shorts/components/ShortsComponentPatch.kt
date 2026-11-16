@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -527,10 +527,7 @@ private val shortsCustomActionsPatch = bytecodePatch(
                 if (is_21_07_or_greater) {
                     val clickActionIndex = bottomSheetMenuItemBuilderMethod.indexOfFirstInstructionOrThrow {
                         opcode == Opcode.IPUT_OBJECT &&
-                                getReference<FieldReference>()?.let { fieldReference ->
-                                    fieldReference.name == "j" &&
-                                            fieldReference.type == "Ljava/lang/Runnable;"
-                                } == true
+                                getReference<FieldReference>()?.type == "Ljava/lang/Runnable;"
                     }
                     val runnableField =
                         bottomSheetMenuItemBuilderMethod.getInstruction<ReferenceInstruction>(clickActionIndex).reference as FieldReference
@@ -751,6 +748,7 @@ val shortsAutoplayPatch = bytecodePatch(
     description = "shortsAutoplayPatch",
 ) {
     dependsOn(
+        engagementPanelHookPatch,
         settingsPatch,
         versionCheckPatch,
     )
@@ -783,7 +781,8 @@ val shortsAutoplayPatch = bytecodePatch(
             )
         }
 
-        ReelPlaybackRepeatFingerprint.method.apply {
+        val repeatFingerprint = reelPlaybackRepeatFingerprint()
+        repeatFingerprint.method.apply {
             // The behavior enums are looked up from an ordinal value to an enum type.
             findInstructionIndicesReversedOrThrow(
                 if (is_21_25_or_greater) {
@@ -826,7 +825,7 @@ val shortsAutoplayPatch = bytecodePatch(
         val reelSequenceControllerMethodReference = ReelPlaybackFingerprint.instructionMatches[2]
             .methodReference
 
-        ReelPlaybackRepeatFingerprint.method.apply {
+        repeatFingerprint.method.apply {
             // Find the first call modified by extension code above.
             val extensionReturnResultIndex = indexOfFirstInstructionOrThrow {
                 opcode == Opcode.INVOKE_STATIC &&
@@ -877,7 +876,7 @@ val shortsAutoplayPatch = bytecodePatch(
                     """
                 )
             }
-            ReelPlaybackRepeatFingerprint.classDef.methods.add(helperMethod)
+            repeatFingerprint.classDef.methods.add(helperMethod)
 
             addInstructionsWithLabels(
                 extensionReturnResultIndex + 1,

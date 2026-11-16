@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/1856
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * modified by lavinhoque33, 2026-10-17: ported to the RVX fork. Morphe's SCROBBLING preference screen
  * is rebuilt with the fork's RVX settings XML (own top level screen), seek bars use the fork's inline
@@ -18,6 +19,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.sharedExtensionPatch
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.utils.settings.CategoryType
 import app.morphe.patches.music.utils.settings.ResourceUtils
 import app.morphe.patches.music.utils.settings.ResourceUtils.addPreferenceCategory
@@ -27,6 +30,7 @@ import app.morphe.patches.shared.misc.media.MediaSessionSetMetadataFingerprint
 import app.morphe.patches.shared.misc.media.MediaSessionSetPlaybackStateFingerprint
 import app.morphe.patches.shared.misc.media.hookMediaSessionArgument
 import app.morphe.patches.shared.misc.settings.preference.InputType
+import app.morphe.util.addFreeRegisters
 import app.morphe.util.adoptChild
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
@@ -35,6 +39,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/music/patches/scrobbling/ScrobblePatch;"
+private const val ON_LIKE_CLICKED =
+    "$EXTENSION_CLASS->onLikeClicked(Ljava/lang/String;Ljava/lang/String;)V"
 
 private const val SLIDER_PREFERENCE =
     "app.morphe.extension.shared.settings.preference.SliderPreference"
@@ -209,6 +215,7 @@ val scrobblingPatch = bytecodePatch(
         scrobblingResourcePatch,
         sharedExtensionPatch,
         settingsPatch,
+        versionCheckPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
@@ -223,31 +230,47 @@ val scrobblingPatch = bytecodePatch(
         )
 
         // Hook like/dislike/remove like button clicks.
-        val endPointServiceNameField = EndpointServiceNameFingerprint
-            .instructionMatches.last().instruction.getReference<FieldReference>()!!
+        val endPointServiceNameMatch = if (is_7_25_or_greater) {
+            EndpointServiceNameFingerprint.instructionMatches.last()
+        } else {
+            LegacyEndpointServiceNameFingerprint.instructionMatches.first()
+        }
+        val endPointServiceNameField = endPointServiceNameMatch.instruction.getReference<FieldReference>()!!
         val likeEndpointParserClass = DislikeFingerprint.classDef.superclass!!
         val videoIdField = requestParameterCheckFingerprint(likeEndpointParserClass)
             .instructionMatches.last().instruction.getReference<FieldReference>()!!
 
         likeEndpointParserFingerprint(likeEndpointParserClass).let {
-            it.method.apply {
-                val matchIndex = it.instructionMatches[1].index
-                val insertIndex = matchIndex + 1
-                val likeEndpointTargetClassRegister =
-                    getInstruction<TwoRegisterInstruction>(matchIndex).registerA
-                val registerProvider = getFreeRegisterProvider(
-                    insertIndex, 2,
-                    likeEndpointTargetClassRegister
-                )
-                val endPointServiceNameRegister = registerProvider.getFreeRegister()
-                val videoIdRegister = registerProvider.getFreeRegister()
+            val originalMethod = it.method
+            val matchIndex = it.instructionMatches[1].index
+            val likeEndpointTargetClassRegister =
+                originalMethod.getInstruction<TwoRegisterInstruction>(matchIndex).registerA
+            val originalRegisterCount = originalMethod.implementation!!.registerCount
+            val (method, parameterMoves) = if (is_7_25_or_greater) {
+                originalMethod to 0
+            } else {
+                // The old parser keeps its existing locals live through this insertion.
+                originalMethod.addFreeRegisters(2)
+            }
+
+            method.apply {
+                val insertIndex = matchIndex + 1 + parameterMoves
+                val (endPointServiceNameRegister, videoIdRegister) = if (is_7_25_or_greater) {
+                    val registerProvider = getFreeRegisterProvider(
+                        insertIndex, 2,
+                        likeEndpointTargetClassRegister
+                    )
+                    registerProvider.getFreeRegister() to registerProvider.getFreeRegister()
+                } else {
+                    originalRegisterCount to originalRegisterCount + 1
+                }
 
                 addInstructions(
                     insertIndex,
                     """
                         iget-object v$endPointServiceNameRegister, p0, $endPointServiceNameField
                         iget-object v$videoIdRegister, v$likeEndpointTargetClassRegister, $videoIdField
-                        invoke-static { v$endPointServiceNameRegister, v$videoIdRegister }, $EXTENSION_CLASS->onLikeClicked(Ljava/lang/String;Ljava/lang/String;)V
+                        invoke-static { v$endPointServiceNameRegister, v$videoIdRegister }, $ON_LIKE_CLICKED
                     """
                 )
             }

@@ -4,10 +4,15 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patches.shared.Constants.COMPATIBILITY_MOOVIT
+import app.morphe.patches.shared.replaceWithReturnVoid
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private val moovitPlusOnboardingActivityFingerprint = Fingerprint(
@@ -90,7 +95,7 @@ val moovitSuppressPaywallsPatch = bytecodePatch(
         patched++
 
         // 3. Help center menu item -> suppress view setup
-        moovitPlusHelpCenterMenuItemFingerprint.method.addInstructions(0, "return-void")
+        moovitPlusHelpCenterMenuItemFingerprint.method.replaceWithReturnVoid()
         patched++
 
         // 4. Plus menu item -> set GONE
@@ -149,9 +154,21 @@ val moovitSuppressPaywallsPatch = bytecodePatch(
 
         // Replace invoke-virtual {v0, v2}, View;->setVisibility(I)V (where v2 is 0) with invoke-virtual {v0, v1}, View;->setVisibility(I)V (where v1 is 8)
         val targetIndex = goPremiumStringIndex + buttonIndex + setVisibilityOffset
+        val targetInstruction = goPremiumInstructions.elementAt(targetIndex) as? FiveRegisterInstruction
+            ?: throw PatchException("setVisibility invocation at index $targetIndex is not a FiveRegisterInstruction.")
+        val viewReg = targetInstruction.registerC
+
+        val goneReg = goPremiumInstructions
+            .take(targetIndex)
+            .findLast { ins ->
+                (ins as? NarrowLiteralInstruction)?.narrowLiteral == 8 && ins is OneRegisterInstruction
+            }
+            ?.let { (it as OneRegisterInstruction).registerA }
+            ?: throw PatchException("Could not locate register holding View.GONE (8) before setVisibility.")
+
         myMoovitPlusGoPremiumCardFingerprint.method.replaceInstruction(
             targetIndex,
-            "invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V",
+            "invoke-virtual {v$viewReg, v$goneReg}, Landroid/view/View;->setVisibility(I)V",
         )
         patched++
 

@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Choreographer;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -192,8 +193,13 @@ public final class EditorDialog extends Dialog implements EditorHost {
 
     @Override
     public void dismiss() {
-        // 編集画面のキーボードが本体の画面に残らないよう、閉じる前に隠す。入力欄からフォーカスが
-        // 外れていてもキーボードは出たままのことがあるため、画面全体の token で閉じる。
+        // 編集画面のキーボードが本体の画面に残らないよう、閉じる前に隠す。
+        hideKeyboard();
+        super.dismiss();
+    }
+
+    /** 入力欄からフォーカスが外れていてもキーボードは出たままのことがあるため、画面全体の token で閉じる。 */
+    private void hideKeyboard() {
         Window window = getWindow();
         if (window != null) {
             View decor = window.getDecorView();
@@ -204,7 +210,18 @@ public final class EditorDialog extends Dialog implements EditorHost {
             InputMethodManager imm = getContext().getSystemService(InputMethodManager.class);
             imm.hideSoftInputFromWindow(decor.getWindowToken(), 0);
         }
-        super.dismiss();
+    }
+
+    /**
+     * 書き出し中は画面の操作を受け付けない。書き出しは編集中の文字・スタンプをそのまま読むため、
+     * 途中で動かしたり速さや逆再生を変えたりすると、後半のフレームだけ変わった動画になる。
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (renderer != null) {
+            return true;
+        }
+        return super.dispatchTouchEvent(event);
     }
 
     /**
@@ -512,7 +529,7 @@ public final class EditorDialog extends Dialog implements EditorHost {
     @Override
     public void setSpeed(float speed) {
         float previous = spec.speed;
-        if (speed == previous) {
+        if (speed == previous || renderer != null) {
             return;
         }
         // 文字・スタンプが同じ場面に出続けるよう、表示区間も同じ比率で伸び縮みさせる。
@@ -573,7 +590,8 @@ public final class EditorDialog extends Dialog implements EditorHost {
 
     @Override
     public void setReverse(boolean reverse) {
-        if (reverse == spec.reverse || reverser != null) {
+        // 書き出し中に切り替えると、書き出しが読んでいる中間ファイルを消してしまう。
+        if (reverse == spec.reverse || reverser != null || renderer != null) {
             return;
         }
         if (!reverse) {
@@ -785,6 +803,10 @@ public final class EditorDialog extends Dialog implements EditorHost {
     }
 
     private void setBusy(boolean busy) {
+        if (busy) {
+            // キーボードからの入力はタッチを止めても入力欄に届くため、入力欄から外す。
+            hideKeyboard();
+        }
         sendButton.setVisibility(busy ? View.INVISIBLE : View.VISIBLE);
         sendProgress.setVisibility(busy ? View.VISIBLE : View.GONE);
         for (View view : new View[] {closeButton, originalButton}) {

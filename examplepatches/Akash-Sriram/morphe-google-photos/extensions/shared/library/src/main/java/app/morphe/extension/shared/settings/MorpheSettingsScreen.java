@@ -22,11 +22,13 @@ import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,11 +38,13 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticsDialog;
 import app.morphe.extension.shared.patches.DeviceSpoofHelper;
+import app.morphe.extension.shared.patches.FloatingTabBarHelper;
 import app.morphe.extension.shared.patches.LocalCreationDownloader;
 import app.morphe.extension.shared.patches.PhenotypeFlagManager;
 import app.morphe.extension.shared.patches.PhenotypeFlagManager.MaterialVectorDrawable;
 import app.morphe.extension.shared.patches.PhenotypeFlagManager.Theme;
 import app.morphe.extension.shared.patches.PhotosModelSeeder;
+import app.morphe.extension.shared.patches.PhotosOnlyBackupFilter;
 import app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry;
 import app.morphe.extension.shared.patches.toolkit.NativeToolkitDialog;
 
@@ -287,6 +291,8 @@ public final class MorpheSettingsScreen {
 
         chipsRow.addView(createMiniChip(activity, density, theme, 
                 "Backup: " + DeviceSpoofHelper.getProfileChipName()));
+        chipsRow.addView(createMiniChip(activity, density, theme,
+                "Bar: " + FloatingTabBarHelper.getModeChipName(activity)));
         chipsRow.addView(createMiniChip(activity, density, theme, "Flags: " + activeOverrides + " active"));
         chipsRow.addView(createMiniChip(activity, density, theme, "Toolkit: Ready"));
         chipsRow.addView(createMiniChip(activity, density, theme, "On-Device AI: OK"));
@@ -308,7 +314,38 @@ public final class MorpheSettingsScreen {
                 DeviceSpoofHelper.getProfileDisplayName(),
                 () -> showBackupProfileDialog(activity, onBack, theme)));
 
+        backupGroup.addView(createItemDivider(activity, density, theme));
+
+        backupGroup.addView(createSwitchPreferenceItem(activity, density, theme,
+                "quantum_gm_ic_image_vd_theme_24",
+                MaterialVectorDrawable.TYPE_PHOTO,
+                "Upload photos only",
+                "Automatic backup uploads photos but skips videos",
+                PhotosOnlyBackupFilter.isEnabled(),
+                (buttonView, isChecked) -> {
+                    PhotosOnlyBackupFilter.setEnabled(activity, isChecked);
+                    Toast.makeText(activity, isChecked
+                            ? "Upload photos only: ON — videos will not be backed up automatically"
+                            : "Upload photos only: OFF — videos will back up again",
+                            Toast.LENGTH_SHORT).show();
+                }));
+
         content.addView(backupGroup);
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 1.8. Interface & Navigation
+        // ─────────────────────────────────────────────────────────────────────
+        content.addView(createSectionHeader(activity, density, theme, "Interface & Navigation"));
+        LinearLayout navGroup = createCardContainer(activity, density, theme);
+
+        navGroup.addView(createPreferenceItem(activity, density, theme,
+                "quantum_gm_ic_dock_to_bottom_vd_theme_24",
+                MaterialVectorDrawable.TYPE_PRESETS,
+                "Floating Menu Bar Style",
+                FloatingTabBarHelper.getModeDisplayName(activity),
+                () -> showFloatingBarModeDialog(activity, onBack, theme)));
+
+        content.addView(navGroup);
 
         // ─────────────────────────────────────────────────────────────────────
         // 2. Feature Flags & Experiments
@@ -631,6 +668,86 @@ public final class MorpheSettingsScreen {
         return row;
     }
 
+    private static LinearLayout createSwitchPreferenceItem(Activity activity, float density, Theme theme,
+                                                           String stockIcon, int fallbackType,
+                                                           String title, String subtitle,
+                                                           boolean checked,
+                                                           CompoundButton.OnCheckedChangeListener onCheckedChange) {
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        int padH = (int) (16 * density);
+        int padV = (int) (12 * density);
+        row.setPadding(padH, padV, padH, padV);
+        row.setMinimumHeight((int) (58 * density));
+        row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setBackground(createItemRippleDrawable(Color.TRANSPARENT, theme.cardActive));
+
+        // Icon Container (same style as createPreferenceItem)
+        FrameLayout iconBox = new FrameLayout(activity);
+        int boxSize = (int) (38 * density);
+        LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(boxSize, boxSize);
+        boxLp.setMargins(0, 0, (int) (14 * density), 0);
+        iconBox.setLayoutParams(boxLp);
+        iconBox.setBackground(createRoundedDrawable(theme.card, 11 * density));
+
+        ImageView iv = new ImageView(activity);
+        Drawable iconDrawable = PhenotypeFlagManager.getStockDrawable(activity, stockIcon, theme.primary);
+        if (iconDrawable == null) {
+            iconDrawable = new MaterialVectorDrawable(fallbackType, theme.primary);
+        }
+        iv.setImageDrawable(iconDrawable);
+        int icSize = (int) (20 * density);
+        FrameLayout.LayoutParams icLp = new FrameLayout.LayoutParams(icSize, icSize);
+        icLp.gravity = Gravity.CENTER;
+        iv.setLayoutParams(icLp);
+        iconBox.addView(iv);
+        row.addView(iconBox);
+
+        // Text Column
+        LinearLayout textCol = new LinearLayout(activity);
+        textCol.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        textCol.setLayoutParams(textLp);
+
+        TextView tvTitle = new TextView(activity);
+        tvTitle.setText(title);
+        tvTitle.setTextSize(15.5f);
+        tvTitle.setTextColor(theme.textPrimary);
+        tvTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        textCol.addView(tvTitle);
+
+        if (subtitle != null && !subtitle.isEmpty()) {
+            TextView tvSub = new TextView(activity);
+            tvSub.setText(subtitle);
+            tvSub.setTextSize(12.5f);
+            tvSub.setTextColor(theme.textSecondary);
+            tvSub.setLineSpacing(0, 1.15f);
+            LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            subLp.setMargins(0, (int) (2 * density), 0, 0);
+            tvSub.setLayoutParams(subLp);
+            textCol.addView(tvSub);
+        }
+        row.addView(textCol);
+
+        // Trailing Switch
+        Switch toggle = new Switch(activity);
+        toggle.setChecked(checked);
+        toggle.setOnCheckedChangeListener(onCheckedChange);
+        LinearLayout.LayoutParams switchLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        switchLp.setMargins((int) (8 * density), 0, 0, 0);
+        toggle.setLayoutParams(switchLp);
+        row.addView(toggle);
+
+        // Tapping the row (outside the switch itself) toggles the switch.
+        row.setOnClickListener(v -> toggle.setChecked(!toggle.isChecked()));
+
+        return row;
+    }
+
     private static TextView createMiniChip(Activity activity, float density, Theme theme, String text) {
         TextView chip = new TextView(activity);
         chip.setText(text);
@@ -844,6 +961,97 @@ public final class MorpheSettingsScreen {
                         Toast.makeText(activity, "Profile updated! Restarting Photos...", Toast.LENGTH_SHORT).show();
                         DeviceSpoofHelper.restartApp(activity);
                     }
+                }
+        ).show();
+    }
+
+    private static void showFloatingBarModeDialog(Activity activity, Runnable onBack, Theme theme) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        String current = FloatingTabBarHelper.getCurrentMode(activity);
+        final String[] selected = new String[] { current };
+
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padH = (int) (20 * density);
+        layout.setPadding(padH, (int) (4 * density), padH, (int) (12 * density));
+
+        TextView tvDesc = new TextView(activity);
+        tvDesc.setText("Choose how navigation tabs are displayed in the bottom floating menu bar:");
+        tvDesc.setTextSize(13f);
+        tvDesc.setTextColor(theme.textSecondary);
+        tvDesc.setLineSpacing(0, 1.2f);
+        layout.addView(tvDesc);
+
+        LinearLayout optionsContainer = new LinearLayout(activity);
+        optionsContainer.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams ocLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ocLp.setMargins(0, (int) (14 * density), 0, (int) (8 * density));
+        optionsContainer.setLayoutParams(ocLp);
+
+        View cardStock = createProfileOptionCard(
+                activity, density, theme,
+                "Stock (Expanded)",
+                "Classic Google Photos layout with text labels on all navigation tabs",
+                FloatingTabBarHelper.MODE_STOCK.equalsIgnoreCase(selected[0])
+        );
+
+        View cardCompact = createProfileOptionCard(
+                activity, density, theme,
+                "Compact (Modern UI) [Recommended]",
+                "Active tab shows icon and label, unselected tabs collapse into compact icons",
+                FloatingTabBarHelper.MODE_COMPACT.equalsIgnoreCase(selected[0])
+        );
+
+        View cardIconOnly = createProfileOptionCard(
+                activity, density, theme,
+                "Minimal (Icon Only)",
+                "Streamlined layout where all navigation tabs show icons only without labels",
+                FloatingTabBarHelper.MODE_ICON_ONLY.equalsIgnoreCase(selected[0])
+        );
+
+        Runnable refreshSelection = () -> {
+            updateOptionCardSelection(cardStock, FloatingTabBarHelper.MODE_STOCK.equalsIgnoreCase(selected[0]), theme);
+            updateOptionCardSelection(cardCompact, FloatingTabBarHelper.MODE_COMPACT.equalsIgnoreCase(selected[0]), theme);
+            updateOptionCardSelection(cardIconOnly, FloatingTabBarHelper.MODE_ICON_ONLY.equalsIgnoreCase(selected[0]), theme);
+        };
+
+        cardStock.setOnClickListener(v -> {
+            selected[0] = FloatingTabBarHelper.MODE_STOCK;
+            refreshSelection.run();
+        });
+
+        cardCompact.setOnClickListener(v -> {
+            selected[0] = FloatingTabBarHelper.MODE_COMPACT;
+            refreshSelection.run();
+        });
+
+        cardIconOnly.setOnClickListener(v -> {
+            selected[0] = FloatingTabBarHelper.MODE_ICON_ONLY;
+            refreshSelection.run();
+        });
+
+        optionsContainer.addView(cardStock);
+        optionsContainer.addView(cardCompact);
+        optionsContainer.addView(cardIconOnly);
+        layout.addView(optionsContainer);
+
+        TextView tvNotice = new TextView(activity);
+        tvNotice.setText("Note: The compact bar is also automatically triggered by Google Photos whenever system font or display size increases.");
+        tvNotice.setTextSize(11.5f);
+        tvNotice.setTextColor(theme.primary);
+        tvNotice.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        layout.addView(tvNotice);
+
+        PhenotypeFlagManager.createM3ActionDialog(
+                activity,
+                "Floating Menu Bar Style",
+                layout,
+                "Apply",
+                () -> {
+                    FloatingTabBarHelper.setBarMode(activity, selected[0]);
+                    Toast.makeText(activity, "Menu bar style updated: " + FloatingTabBarHelper.getModeChipName(activity), Toast.LENGTH_SHORT).show();
+                    if (onBack != null) onBack.run();
                 }
         ).show();
     }

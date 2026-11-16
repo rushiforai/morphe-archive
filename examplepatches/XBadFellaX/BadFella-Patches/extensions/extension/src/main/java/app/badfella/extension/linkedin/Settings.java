@@ -291,9 +291,9 @@ public final class Settings {
         return false;
     }
 
-    /** Off by default. */
+    /** On by default. */
     static boolean blockTracking() {
-        return isBlockTrackingIncluded() && get(BLOCK_TRACKING, false);
+        return isBlockTrackingIncluded() && get(BLOCK_TRACKING, true);
     }
 
     public static boolean isMessagingIncluded() {
@@ -504,8 +504,9 @@ public final class Settings {
         return false;
     }
 
+    /** On by default. */
     static boolean anonymousProfileViewing() {
-        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, false);
+        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, true);
     }
 
     static boolean hideAds() {

@@ -2,9 +2,7 @@ package app.onlynazril.patches.tiktok.commentcopy
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
-import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
@@ -28,12 +26,6 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 internal const val COMMENT = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 internal const val CLIP_DATA = "Landroid/content/ClipData;"
 
-internal fun MethodReference.isClipDataNewPlainText(): Boolean =
-    definingClass == CLIP_DATA &&
-        name == "newPlainText" &&
-        parameterTypes.toList() == listOf("Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;") &&
-        returnType == CLIP_DATA
-
 internal fun MethodReference.isCommentGetText(): Boolean =
     definingClass == COMMENT &&
         name == "getText" &&
@@ -43,12 +35,6 @@ internal fun MethodReference.isCommentGetText(): Boolean =
 internal fun MethodReference.isCommentGetUser(): Boolean =
     definingClass == COMMENT && name == "getUser" && parameterTypes.isEmpty()
 
-/** Whether this method builds its answer with `ClipData.newPlainText`. */
-internal fun Method.buildsPlainTextClipData(): Boolean =
-    implementation?.instructions?.any { instruction ->
-        instruction.getReference<MethodReference>()?.isClipDataNewPlainText() == true
-    } == true
-
 /**
  * The one builder the comment sheet's Copy flows through: static, `(String, String, List) ->
  * ClipData`, carrying `"copy_label"`, and building with `ClipData.newPlainText`.
@@ -57,10 +43,15 @@ internal object CommentClipDataBuilderFingerprint : Fingerprint(
     returnType = CLIP_DATA,
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;"),
     strings = listOf("copy_label"),
-    filters = listOf(methodCall(definingClass = CLIP_DATA, name = "newPlainText")),
-    custom = { method, _ ->
-        AccessFlags.STATIC.isSet(method.accessFlags) && method.buildsPlainTextClipData()
-    },
+    filters = listOf(
+        methodCall(
+            definingClass = CLIP_DATA,
+            name = "newPlainText",
+            parameters = listOf("Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;"),
+            returnType = CLIP_DATA,
+        ),
+    ),
+    custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
 )
 
 /**
@@ -75,6 +66,12 @@ internal object ClipboardTextHelperFingerprint : Fingerprint(
         "Landroid/content/Context;",
         "Lcom/bytedance/bpea/basics/Cert;",
     ),
-    filters = listOf(methodCall(definingClass = CLIP_DATA, name = "newPlainText")),
-    custom = { method, _ -> method.buildsPlainTextClipData() },
+    filters = listOf(
+        methodCall(
+            definingClass = CLIP_DATA,
+            name = "newPlainText",
+            parameters = listOf("Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;"),
+            returnType = CLIP_DATA,
+        ),
+    ),
 )

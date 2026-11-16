@@ -18,13 +18,13 @@ final class MediaUploadWebClient {
     MediaUploadWebClient(MediaUploadClient.Transport transport, Cookies cookies) {
         this.transport = transport; this.cookies = cookies;
     }
-    HttpURLConnection site(String url, String method, String host) throws Exception {
+    HttpURLConnection site(String url, String method) throws Exception {
         URI u = new URI(url);
-        if (!"https".equals(u.getScheme()) || !host.equals(u.getHost()) || u.getPort() != -1
+        if (!"https".equals(u.getScheme()) || u.getHost() == null || u.getPort() != -1
                 || u.getRawUserInfo() != null || u.getRawFragment() != null) throw new IOException("送信先を確認できません");
         HttpURLConnection c = connection(url, method);
-        c.setRequestProperty("Origin", "https://" + host);
-        c.setRequestProperty("Referer", "https://" + host + "/");
+        c.setRequestProperty("Origin", "https://" + u.getHost());
+        c.setRequestProperty("Referer", "https://" + u.getHost() + "/");
         String cookie = cookies.get(url);
         if (cookie != null && !cookie.isEmpty() && cookie.length() <= 32768 && cookie.indexOf('\r') < 0 && cookie.indexOf('\n') < 0)
             c.setRequestProperty("Cookie", cookie);
@@ -39,8 +39,7 @@ final class MediaUploadWebClient {
     }
     String response(HttpURLConnection c, boolean sent) throws Exception {
         int code = c.getResponseCode();
-        String host = c.getURL().getHost();
-        if (host.equals("imgpile.com") || host.equals("imgbox.com") || host.equals("sendvid.com")) {
+        {
             for (Map.Entry<String, List<String>> h : c.getHeaderFields().entrySet()) {
                 if (!"Set-Cookie".equalsIgnoreCase(h.getKey()) || h.getValue() == null) continue;
                 for (String cookie : h.getValue()) if (cookie != null && cookie.length() <= 16384
@@ -60,7 +59,7 @@ final class MediaUploadWebClient {
         }
     }
     JSONObject json(String url, JSONObject body, boolean sent) throws Exception {
-        HttpURLConnection c = site(url, "POST", "imgpile.com");
+        HttpURLConnection c = site(url, "POST");
         c.setRequestProperty("Content-Type", "application/json");
         byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8); c.setFixedLengthStreamingMode(bytes.length);
         try {
@@ -103,14 +102,11 @@ final class MediaUploadWebClient {
             URI u = new URI(address); String host = u.getHost();
             if (!"https".equals(u.getScheme()) || u.getRawUserInfo() != null || u.getRawFragment() != null
                     || u.getPort() != -1 || host == null || u.getRawPath() == null || u.getRawPath().equals("/")) return false;
-            // Reject unrecognised storage services instead of sending a selected private file there.
-            return host.equals("upload.imgpile.com") || host.equals("storage.imgpile.com")
-                    || host.matches("[a-z0-9-]+\\.r2\\.cloudflarestorage\\.com")
-                    || host.matches("[a-z0-9.-]+\\.s3[.-][a-z0-9-]+\\.amazonaws\\.com");
+            return !u.getRawPath().isEmpty();
         } catch (Exception ignored) { return false; }
     }
     private JSONObject sendvid(File file, String mime) throws Exception {
-        HttpURLConnection home = site("https://sendvid.com/", "GET", "sendvid.com");
+        HttpURLConnection home = site("https://sendvid.com/", "GET");
         String csrf;
         try { csrf = MediaUploadClient.csrf(response(home, false)); } finally { home.disconnect(); }
         String boundary = "Haiagaru" + UUID.randomUUID().toString().replace("-", "");
@@ -118,7 +114,7 @@ final class MediaUploadWebClient {
                 + MediaUploadPolicy.extension(mime) + "\"\r\nContent-Type: " + mime + "\r\n\r\n";
         byte[] start = prefix.getBytes(StandardCharsets.US_ASCII);
         byte[] end = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.US_ASCII);
-        HttpURLConnection post = site("https://sendvid.com/api/v1/videos", "POST", "sendvid.com");
+        HttpURLConnection post = site("https://sendvid.com/api/v1/videos", "POST");
         post.setRequestProperty("X-CSRF-Token", csrf); post.setRequestProperty("X-Requested-With", "XMLHttpRequest");
         post.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
         post.setFixedLengthStreamingMode(start.length + file.length() + end.length);

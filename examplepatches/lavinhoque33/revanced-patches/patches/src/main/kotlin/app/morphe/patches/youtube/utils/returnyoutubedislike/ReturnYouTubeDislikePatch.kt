@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -48,7 +48,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -117,16 +116,23 @@ private val returnYouTubeDislikeRollingNumberPatch = bytecodePatch(
                     getInstruction<OneRegisterInstruction>(rollingNumberClassIndex).registerA
 
                 val conversionContextRegister = implementation!!.registerCount - parameters.size + 1
-                val freeRegister = findFreeRegister(
+                val freeRegisters = getFreeRegisterProvider(
                     insertIndex,
-                    charSequenceInstanceRegister,
-                    conversionContextRegister
+                    if (conversionContextRegister < 16) 1 else 2,
+                    (16 until implementation!!.registerCount).toList() +
+                            listOf(charSequenceInstanceRegister, conversionContextRegister)
                 )
+                val freeRegister = freeRegisters.getFreeRegister()
+                val contextRegister = if (conversionContextRegister < 16) conversionContextRegister
+                    else freeRegisters.getFreeRegister()
+                val contextLoad = if (contextRegister == conversionContextRegister) "" else
+                    "move-object/from16 v$contextRegister, v$conversionContextRegister"
 
                 addInstructions(
                     insertIndex, """
                         iget-object v$freeRegister, v$charSequenceInstanceRegister, $charSequenceFieldReference
-                        invoke-static {v$conversionContextRegister, v$freeRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->onRollingNumberLoaded(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+                        $contextLoad
+                        invoke-static {v$contextRegister, v$freeRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->onRollingNumberLoaded(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
                         move-result-object v$freeRegister
                         iput-object v$freeRegister, v$charSequenceInstanceRegister, $charSequenceFieldReference
                         """

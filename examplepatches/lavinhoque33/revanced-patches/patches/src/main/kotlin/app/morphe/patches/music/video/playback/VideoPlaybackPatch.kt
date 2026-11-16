@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-13.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -55,6 +55,7 @@ import app.morphe.patches.music.utils.playbackSpeedBottomSheetFingerprint
 import app.morphe.patches.music.utils.playbackSpeedFingerprint
 import app.morphe.patches.music.utils.playbackSpeedParentFingerprint
 import app.morphe.patches.music.utils.playservice.is_7_13_or_greater
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
 import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.utils.resourceid.qualityAuto
 import app.morphe.patches.music.utils.resourceid.sharedResourceIdPatch
@@ -117,7 +118,6 @@ val videoPlaybackPatch = bytecodePatch(
         drcAudioPatch { is_7_13_or_greater },
         sharedResourceIdPatch,
         videoInformationPatch,
-        // modified by lavinhoque33, 2026-10-24: playback speed override and change pitch with speed
         playbackSpeedPatch,
     )
 
@@ -319,17 +319,18 @@ val videoPlaybackPatch = bytecodePatch(
             "revanced_remember_playback_speed_last_selected",
             "true"
         )
-        // modified by lavinhoque33, 2026-10-24: playback speed override and change pitch with speed
-        addCustomPreference(
-            CategoryType.VIDEO,
-            "morphe_music_playback_speed",
-            "app.morphe.extension.shared.settings.preference.SliderPreference"
-        )
-        addSwitchPreference(
-            CategoryType.VIDEO,
-            "morphe_music_playback_speed_change_pitch",
-            "false"
-        )
+        if (is_7_25_or_greater) {
+            addCustomPreference(
+                CategoryType.VIDEO,
+                "morphe_music_playback_speed",
+                "app.morphe.extension.shared.settings.preference.SliderPreference"
+            )
+            addSwitchPreference(
+                CategoryType.VIDEO,
+                "morphe_music_playback_speed_change_pitch",
+                "false"
+            )
+        }
         addTextPreference(
             CategoryType.VIDEO,
             "revanced_custom_playback_speeds",

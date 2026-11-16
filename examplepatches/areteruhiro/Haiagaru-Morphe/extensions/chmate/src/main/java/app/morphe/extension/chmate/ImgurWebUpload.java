@@ -395,8 +395,10 @@ public final class ImgurWebUpload {
     }
     private static HttpURLConnection open(String url, Session session) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        // Cookie-bearing requests never follow redirects or leave api.imgur.com.
-        if (!"api.imgur.com".equals(connection.getURL().getHost())) throw new IOException("Invalid Imgur host");
+        java.net.URI target = new java.net.URI(url);
+        if (!"https".equals(target.getScheme()) || target.getHost() == null || target.getRawUserInfo() != null
+                || target.getRawFragment() != null || (target.getPort() != -1 && target.getPort() != 443))
+            throw new IOException("Imgur通信先のURLを確認できません");
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(30_000); connection.setReadTimeout(120_000);
         // Account checks/polling may rotate cookies. Never reuse the initial snapshot,

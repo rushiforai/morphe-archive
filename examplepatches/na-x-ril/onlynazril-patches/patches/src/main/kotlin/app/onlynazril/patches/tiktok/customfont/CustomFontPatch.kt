@@ -1,7 +1,7 @@
 package app.onlynazril.patches.tiktok.customfont
 
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -17,7 +17,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val BRIDGE = "Lapp/onlynazril/extension/tiktok/CustomFontBridge;"
@@ -52,11 +51,6 @@ private const val BRIDGE = "Lapp/onlynazril/extension/tiktok/CustomFontBridge;"
  * What it cannot do is keep the weights: the resolvers ask for faces by
  * weight (bold, medium) and the file carries one face, so a style that
  * needs a heavier face draws in the file's own.
- *
- * The picker's answer rides on the foundation activity's
- * onActivityResult, which the activities the Tweaks screen lives
- * in inherit: every activity result in the app passes through it,
- * and the bridge keeps only the font picker's own request.
  */
 @Suppress("unused")
 val tiktokCustomFontPatch = bytecodePatch(
@@ -77,34 +71,40 @@ val tiktokCustomFontPatch = bytecodePatch(
         // name (both rename with every build). Two of them read the
         // bundled faces in a method of their own; the asset loader and
         // the WebView interceptor take a path or a request instead.
+        //
+        // The string index hands back the handful of classes that read a
+        // bundled path, so the shape checks run over eight classes rather
+        // than every class in the bundle. The asset loader reads no path
+        // itself (its callers pass one), so it is matched separately on
+        // the `Typeface.createFromAsset` call its body makes.
         val nativeFactories = mutableListOf<FontResolver>()
         val composeLoaders = mutableListOf<FontResolver>()
-        val assetLoaders = mutableListOf<FontResolver>()
         val webFontMethods = mutableListOf<FontResolver>()
-        classDefForEach { classDef ->
+        for (classDef in classDefByStrings(FONT_PREFIX, StringComparisonType.STARTS_WITH)) {
             if (classDef.readsBundledFaces()) {
                 classDef.methods.firstOrNull { it.isNativeFontFactory() }
                     ?.let { nativeFactories += FontResolver(classDef, it) }
                 classDef.methods.firstOrNull { it.isComposeFontLoader() }
                     ?.let { composeLoaders += FontResolver(classDef, it) }
             }
-            classDef.methods.firstOrNull { it.isAssetFontLoader() }
-                ?.let { assetLoaders += FontResolver(classDef, it) }
             if (classDef.readsTikTokFontAssets()) {
                 classDef.methods.filter { it.isWebFontInterceptor() }
                     .forEach { webFontMethods += FontResolver(classDef, it) }
             }
         }
+        val assetLoaders = AssetFontLoaderFingerprint.matchAllOrNull()
+            ?.map { FontResolver(it.originalClassDef, it.originalMethod) }
+            ?: emptyList()
 
         val nativeFactory = nativeFactories.singleOrNull()
             ?: throw PatchException(
-                "Custom font: expected one factory reading ${FONT_KEYS} " +
+                "Custom font: expected one factory reading $FONT_KEYS " +
                     "with the nine-parameter resolver, found ${nativeFactories.size}: " +
                     "${nativeFactories.joinToString { it.holder.type }}.",
             )
         val composeLoader = composeLoaders.singleOrNull()
             ?: throw PatchException(
-                "Custom font: expected one Compose loader reading ${FONT_KEYS} " +
+                "Custom font: expected one Compose loader reading $FONT_KEYS " +
                     "with a (Context, request) resolver, found ${composeLoaders.size}: " +
                     "${composeLoaders.joinToString { it.holder.type }}.",
             )
@@ -158,20 +158,6 @@ val tiktokCustomFontPatch = bytecodePatch(
             0,
             "invoke-static {p1, p2}, $BRIDGE->onPageFinished(Landroid/webkit/WebView;Ljava/lang/String;)V",
         )
-
-        // The picker's answer: the foundation activity delivers every
-        // activity result through this method, so the picker's file
-        // arrives here whatever activity asked for it. The bridge
-        // keeps only its own request code; everything else falls
-        // through to the app's own handling.
-        BaseActivityOnActivityResultFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p0 .. p3}, $BRIDGE->onActivityResult(Landroid/app/Activity;IILandroid/content/Intent;)V
-                """.trimIndent(),
-            )
-        }
     }
 }
 
@@ -192,7 +178,7 @@ private fun ClassDef.readsTikTokFontAssets(): Boolean = methods.any { method ->
     method.implementation?.instructions?.any { instruction ->
         instruction is ReferenceInstruction
                 && instruction.opcode == Opcode.CONST_STRING
-                && (instruction.reference as? StringReference)?.string?.startsWith("font/TikTok") == true
+                && (instruction.reference as? StringReference)?.string?.startsWith(FONT_PREFIX) == true
     } == true
 }
 
@@ -214,18 +200,6 @@ private fun Method.isComposeFontLoader(): Boolean =
             && !AccessFlags.STATIC.isSet(accessFlags)
             && parameterTypes.size == 2
             && parameterTypes.first() == COMPOSE_LOADER_CONTEXT
-
-/**
- * The asset loader's shape: static, the AssetManager and the path, and
- * the body creates the face from the asset. What separates it from any
- * other two-parameter `Typeface` method is that body, not its name.
- */
-private fun Method.isAssetFontLoader(): Boolean =
-    returnType == FACTORY_RETURN
-            && implementation != null
-            && AccessFlags.STATIC.isSet(accessFlags)
-            && parameterTypes == listOf(ASSET_LOADER_ASSET_MANAGER, ASSET_LOADER_PATH)
-            && createsFaceFromAsset()
 
 /**
  * The `onPageFinished` the WebView client behind [start] inherits.
@@ -250,17 +224,6 @@ private fun BytecodePatchContext.findPageFinished(start: ClassDef): MutableMetho
         type = classDef.superclass
     }
     return null
-}
-
-/** Whether the body calls `Typeface.createFromAsset`. */
-private fun Method.createsFaceFromAsset(): Boolean {
-    val instructions = implementation?.instructions ?: return false
-    return instructions.any { instruction ->
-        instruction is ReferenceInstruction
-                && (instruction.reference as? MethodReference)?.let {
-                    it.definingClass == FACTORY_RETURN && it.name == "createFromAsset"
-                } == true
-    }
 }
 
 /** The WebView interceptor's shape: a response for a WebView, either overload. */

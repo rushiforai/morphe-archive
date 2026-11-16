@@ -17,8 +17,7 @@ public final class MediaUploadWebPolicy {
     public static boolean page(String provider, String value) {
         try {
             URI u = new URI(value);
-            String host = "sendvid".equals(provider) ? "sendvid.com" : "imgpile.com";
-            return "https".equals(u.getScheme()) && host.equals(u.getHost())
+            return "https".equals(u.getScheme()) && u.getHost() != null
                     && u.getRawUserInfo() == null && (u.getPort() == -1 || u.getPort() == 443);
         } catch (Exception ignored) { return false; }
     }

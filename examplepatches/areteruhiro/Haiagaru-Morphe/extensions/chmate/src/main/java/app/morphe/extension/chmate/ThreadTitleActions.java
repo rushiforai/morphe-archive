@@ -113,6 +113,10 @@ public final class ThreadTitleActions {
             if(target!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(target.url)){
                 labels.add("エッヂの閲覧認証");actions.add(()->ReadingAuth.open(a,target.url));
             }
+            if(FeatureSwitches.enabled(DisplayNames.SHOW_RENAME,true)){
+                labels.add("スレの名前を変更");
+                actions.add(()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment)));
+            }
             if(labels.isEmpty())return middle?twoNativeColumns(original):original;
             ClassLoader loader=fragment.getClass().getClassLoader();
             Class<?> row=loader.loadClass(middle?"o.getTtAdContainer$IconCompatParcelizer":"o.zzbbs$RemoteActionCompatParcelizer");
@@ -237,6 +241,8 @@ public final class ThreadTitleActions {
             entries.add(legacyItem(template,"このスレの新着通知",()->ThreadWatch.show(a,t)));
         if(t!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(t.url))
             entries.add(legacyItem(template,"エッヂの閲覧認証",()->ReadingAuth.open(a,t.url)));
+        if(FeatureSwitches.enabled(DisplayNames.SHOW_RENAME,true))
+            entries.add(legacyItem(template,"スレの名前を変更",()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment))));
         int leftCount=visibleItems(left),rightCount=visibleItems(right);
         for(Button entry:entries){
             LinearLayout column=leftCount<=rightCount?left:right;

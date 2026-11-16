@@ -28,10 +28,17 @@ tasks {
         }
     }
 
+    // buildAndroid は jar の出力した .mpp に classes.dex を後から書き足す。jar が作り直されるたびに
+    // 書き足さないと、build などを後から実行したときに dex の無い .mpp で上書きされる。
+    named("jar") {
+        finalizedBy("buildAndroid")
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch bundle metadata"
 
-        dependsOn(build)
+        // Morphe Manager (Android) 向けに classes.dex を .mpp へ同梱する。
+        dependsOn(build, "buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

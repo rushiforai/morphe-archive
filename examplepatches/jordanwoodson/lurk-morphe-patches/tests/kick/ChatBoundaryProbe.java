@@ -134,6 +134,13 @@ public final class ChatBoundaryProbe {
         System.out.println("CAPTURE " + name + " " + Base64.encodeToString(capture.source.getBytes(StandardCharsets.UTF_8),Base64.NO_WRAP));
         return new JSONObject(capture.source.substring(capture.source.lastIndexOf("\n(")+2,capture.source.length()-2));
     }
+    /** The options KickChat would give the page, without a capture for the page test. */
+    static JSONObject quiet(String url)throws Exception {
+        Capture capture=(Capture)ProbeSupport.allocate(Capture.class);
+        call(c(CHAT),"onPage",new Class<?>[]{WebView.class,String.class},capture,url);
+        if(capture.source==null)return null;
+        return new JSONObject(capture.source.substring(capture.source.lastIndexOf("\n(")+2,capture.source.length()-2));
+    }
     static Object builder()throws Exception{return c("okhttp3.OkHttpClient$Builder").getConstructor().newInstance();}
     static void response(String url,String json,int status,boolean intercept)throws Exception {
         Object b=builder();
@@ -228,6 +235,15 @@ public final class ChatBoundaryProbe {
         response("https://api.kick.com/api/v1/channels/xqc/info","{\"id\":\"669\",\"slug\":\"xqc\",\"user_id\":\"676\"}",200,true);
         options=emit("info",page("{\"channelId\":\"669\"}"));
         ProbeSupport.check(options.getString("sevenTvUser").equals("676"),"string IDs from info response");
+        // Kick's real info response has no user_id; the owner's ID is in their profile picture's address.
+        response("https://kick.com/api/v2/channels/gmhikaru/info","{\"id\":1770127,\"slug\":\"gmhikaru\",\"user\":{\"username\":\"GMHikaru\","
+            +"\"profile_pic\":\"https://files.kick.com/images/user/1820952/profile_image/conversion/f02d-fullsize.webp\"}}",200,true);
+        options=quiet(page("{\"channelId\":1770127}"));
+        ProbeSupport.check(options.getString("sevenTvUser").equals("1820952"),"owner from the info response's profile picture");
+        response("https://kick.com/api/v2/channels/other/info","{\"id\":1770128,\"slug\":\"other\",\"user\":{"
+            +"\"profile_pic\":\"https://evil.example/images/user/5/profile_image/x.webp\"}}",200,true);
+        options=quiet(page("{\"channelId\":1770128}"));
+        ProbeSupport.check(options.getString("sevenTvChannel").equals("other") && options.isNull("sevenTvUser"),"a picture elsewhere names no owner");
         for(String url:new String[]{"https://evilkick.com/api/v2/channels/xqc","https://kick.com/api/v2/channels/xqc/nope"})
             response(url,"{\"id\":777,\"slug\":\"wrong\",\"user_id\":999}",200,true);
         response("https://kick.com/api/v2/channels/xqc","{\"id\":777,\"slug\":\"wrong\"}",500,true);
@@ -263,6 +279,13 @@ public final class ChatBoundaryProbe {
         setting("chat_show_deleted",true);options=emit("moderator-only",page("{}"));
         ProbeSupport.check(options.getBoolean("moderatorView") && options.length()==1,"Show deleted messages alone only asks for its report");
         setting("chat_show_deleted",false);
+        // Third-party badges alone: the owner for the badge socket, no emotes.
+        setting("badges_7tv",true);
+        response("https://kick.com/api/v2/channels/xqc","{\"id\":668,\"slug\":\"xqc\",\"user_id\":676}",200,true);
+        options=quiet(page("{\"channelId\":668}"));
+        ProbeSupport.check(options.getBoolean("sevenTvBadges") && options.getString("sevenTvUser").equals("676") && !options.has("sevenTv")
+            && !options.has("sevenTvChannel"),"7TV badges alone: the owner and no emotes");
+        setting("badges_7tv",false);
         lifecycle();
         keywords();
         look();

@@ -28,12 +28,26 @@ public final class NativeImagePaging {
         int next,previous;
         boolean claimed,cancelling,multiTouch;
         MediaViewerBackGesture back;
+        boolean horizontalPriority;
     }
     private NativeImagePaging(){}
 
     static boolean enabled(Context context){return VideoViewerSettings.prefs(context).getBoolean(ENABLED,true);}
+    static boolean legacy191(Context context){
+        try{return "0.8.10.191 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName);}
+        catch(android.content.pm.PackageManager.NameNotFoundException ignored){return false;}
+    }
+    static boolean assignedHorizontal(float dx,float dy,float threshold,int next,int previous){
+        int direction=axis(dx,dy,threshold);
+        return (direction==LEFT||direction==RIGHT)&&step(direction,next,previous)!=0;
+    }
+    static int defaultDirection(Context context,String key){
+        boolean horizontal=false;
+        if(context!=null)try{horizontal="0.8.10.242 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName);}catch(android.content.pm.PackageManager.NameNotFoundException ignored){}
+        return NEXT.equals(key)?(horizontal?RIGHT:UP):(horizontal?LEFT:DOWN);
+    }
     static int direction(SharedPreferences prefs,String key){
-        int fallback=NEXT.equals(key)?UP:DOWN;
+        int fallback=defaultDirection(Haiagaru.applicationContextForExtension(),key);
         int value=prefs.getInt(key,fallback);
         return value>=0&&value<=RIGHT?value:fallback;
     }
@@ -67,7 +81,7 @@ public final class NativeImagePaging {
     private static void showSettings(Activity activity){
         SharedPreferences prefs=VideoViewerSettings.prefs(activity);
         String[] names={"次の画像："+DIRECTIONS[direction(prefs,NEXT)],"前の画像："+DIRECTIONS[direction(prefs,PREVIOUS)],
-                enabled(activity)?"ChMate標準の操作に戻す":"方向指定を使う","初期設定（↑ 次へ／↓ 前へ）に戻す"};
+                enabled(activity)?"ChMate標準の操作に戻す":"方向指定を使う","初期設定（"+DIRECTIONS[defaultDirection(activity,NEXT)]+" 次へ／"+DIRECTIONS[defaultDirection(activity,PREVIOUS)]+" 前へ）に戻す"};
         new HaiagaruDialog.Builder(activity).setTitle("画像の切り替えジェスチャー")
                 .setItems(names,(dialog,which)->{
                     if(which<2)choose(activity,which==0?NEXT:PREVIOUS);
@@ -112,8 +126,16 @@ public final class NativeImagePaging {
             return touch(container,activity,container,event,container::dispatchTouchEvent,step->{
                 Object binding=NativeFields.find(fragment.getClass(),"d").get(fragment);
                 Object pager=NativeFields.find(binding.getClass(),"m").get(binding);
-                int next=NativeFields.find(pager.getClass(),"b").getInt(pager)+step;
-                if(next>=0&&next<pageCount(fragment))invokePage(fragment,"e",next,true);
+                int index=NativeFields.find(pager.getClass(),"b").getInt(pager);
+                int count=pageCount(fragment);
+                if(index<0||index>=count)return;
+                int next=index+step;
+                if(next<0||next>=count){
+                    // Same native callback as the viewer's Back action; it closes only the overlay.
+                    Method close=fragment.getClass().getDeclaredMethod("e",fragment.getClass());
+                    close.setAccessible(true);
+                    close.invoke(null,fragment);
+                }else invokePage(fragment,"e",next,true);
             });
         }catch(ReflectiveOperationException|RuntimeException ignored){return false;}
     }
@@ -142,7 +164,9 @@ public final class NativeImagePaging {
                 int index=NativeFields.find(activity.getClass(),old?"f":"o").getInt(activity);
                 int next=index+step;
                 ArrayList<String> links=activity.getIntent().getStringArrayListExtra("links");
-                if(index>=0&&links!=null&&next>=0&&next<links.size())invokePage(activity,old?"d":"a",next,false);
+                if(links==null||index<0||index>=links.size())return;
+                if(next<0||next>=links.size())activity.finish();
+                else invokePage(activity,old?"d":"a",next,false);
             });
         }catch(ReflectiveOperationException|RuntimeException ignored){return false;}
     }
@@ -164,6 +188,7 @@ public final class NativeImagePaging {
             if(MediaViewerNavigation.zoomed(surface)||MediaViewerNavigation.controlAt(activity.getWindow().getDecorView(),x,y))return false;
             SharedPreferences prefs=VideoViewerSettings.prefs(activity);
             swipe=new Swipe();swipe.x=x;swipe.y=y;swipe.next=direction(prefs,NEXT);swipe.previous=direction(prefs,PREVIOUS);
+            swipe.horizontalPriority=legacy191(activity)&&(swipe.next>=LEFT||swipe.previous>=LEFT);
             swipe.threshold=48*surface.getResources().getDisplayMetrics().density;
             swipe.claim=ViewConfiguration.get(activity).getScaledTouchSlop();
             // In 242 an embedded viewer must close its overlay, not the thread Activity.
@@ -176,8 +201,9 @@ public final class NativeImagePaging {
         if(action==MotionEvent.ACTION_CANCEL){SWIPES.remove(key);return swipe.claimed;}
         if(event.getPointerCount()>1||action==MotionEvent.ACTION_POINTER_DOWN){swipe.multiTouch=true;return swipe.claimed;}
         if(swipe.multiTouch){if(action==MotionEvent.ACTION_UP)SWIPES.remove(key);return swipe.claimed;}
-        if(swipe.back.dispatch(event)){SWIPES.remove(key);return true;}
         float dx=event.getRawX()-swipe.x,dy=event.getRawY()-swipe.y;
+        boolean pageFlick=swipe.horizontalPriority&&assignedHorizontal(dx,dy,swipe.threshold,swipe.next,swipe.previous);
+        if(!pageFlick&&swipe.back.dispatch(event)){SWIPES.remove(key);return true;}
         // Claim before the old horizontal pager crosses its own drag threshold.
         // This also prevents an unassigned direction from silently changing pages.
         if(action==MotionEvent.ACTION_MOVE&&!swipe.claimed&&axis(dx,dy,swipe.claim)!=0){
@@ -190,7 +216,7 @@ public final class NativeImagePaging {
         if(!swipe.claimed)return false;
         int step=step(axis(dx,dy,swipe.threshold),swipe.next,swipe.previous);
         if(step!=0){
-            if(swipe.back.active()){
+            if(!pageFlick&&swipe.back.active()){
                 MediaViewerBackGesture back=swipe.back;
                 surface.post(()->{if(!back.returned()&&surface.isShown()&&!activity.isFinishing())
                     try{page.move(step);}catch(ReflectiveOperationException|RuntimeException ignoredError){}});

@@ -100,13 +100,13 @@
 ### Fixed
 
 - **Das ausgelieferte `.mpp` enthielt keinen DEX-Code.** Es wurde mit
-  `:patches:jar` gebaut; Morphe benÃ¶tigt aber ein Bundle mit `classes.dex`
+  `:patches:jar` gebaut; Morphe benötigt aber ein Bundle mit `classes.dex`
   (Aufgabe `:patches:buildAndroid`). Dadurch zeigte die Quelle in Morphe
-  â€ž0 mÃ¶gliche Patchesâ€œ. Die Releases werden jetzt mit `buildAndroid` gebaut.
+  „0 mögliche Patches“. Die Releases werden jetzt mit `buildAndroid` gebaut.
 
 ### Changed
 
-- Die Quelle heiÃŸt jetzt **Jo's Patches** und ist fÃ¼r weitere Apps gedacht;
+- Die Quelle heißt jetzt **Jo's Patches** und ist für weitere Apps gedacht;
   Memorize Pi Digits ist der erste Eintrag.
 - Repository-Pfad: `JoPatches/jo-patches` (GitLab leitet den alten Pfad um).
 - Eigenes Quell-Icon `patches-bundle.png` im Repository-Stamm.
@@ -115,33 +115,33 @@
 
 ### Added
 
-- **Szenen-Patch direkt im Morphe-Bundle.** Das `.mpp` enthÃ¤lt jetzt den
+- **Szenen-Patch direkt im Morphe-Bundle.** Das `.mpp` enthält jetzt den
   Patch **Remove cross-promotion (Prime Button and game icons)**. Er ersetzt
   `assets/bin/Data/data.unity3d` als `rawResourcePatch` und deaktiviert den
-  â€žPrime Buttonâ€œ ( `level0`) sowie den kompletten `PromoteIcon`-Teilbaum
-  (`level0`â€“`level2`) inklusive Skalierung 0. Damit sind die
-  Cross-Promo-Elemente auch Ã¼ber Morphe Manager/Desktop entfernbar, nicht
-  nur Ã¼ber die direkt installierbare APK.
+  „Prime Button“ ( `level0`) sowie den kompletten `PromoteIcon`-Teilbaum
+  (`level0`–`level2`) inklusive Skalierung 0. Damit sind die
+  Cross-Promo-Elemente auch über Morphe Manager/Desktop entfernbar, nicht
+  nur über die direkt installierbare APK.
 - Eigener LZ4-Block-Codec (`Lz4Block.kt`) und UnityFS/SerializedFile-Parser
   (`UnityBundlePatcher.kt`), damit das Bundle ohne externe Bibliothek
-  auskommt. ObjektgrÃ¶ÃŸen bleiben unverÃ¤ndert; nur betroffene BlÃ¶cke werden
+  auskommt. Objektgrößen bleiben unverändert; nur betroffene Blöcke werden
   neu komprimiert.
-- Ã–ffentliche Release-Struktur: GPLv3 + `NOTICE`, `release.yml`,
+- Öffentliche Release-Struktur: GPLv3 + `NOTICE`, `release.yml`,
   `.releaserc`, semantische Releases, `patches-bundle.json`,
   README mit Add-Source-Link.
 
 ### Changed
 
-- Das Bundle heiÃŸt jetzt **Memorize Pi Patches** und wird als
-  `JoPatches/memorize-pi-patches` verÃ¶ffentlicht (Projektname ohne
-  â€žMorpheâ€œ, wie es die NOTICE verlangt). Die Ã¶ffentliche Quelle liegt auf
+- Das Bundle heißt jetzt **Memorize Pi Patches** und wird als
+  `JoPatches/memorize-pi-patches` veröffentlicht (Projektname ohne
+  „Morphe“, wie es die NOTICE verlangt). Die öffentliche Quelle liegt auf
   GitLab; das fertige `.mpp` wird direkt aus dem Repository geladen.
-  `release.yml` und `.releaserc` bleiben fÃ¼r einen spÃ¤teren GitHub-Spiegel
+  `release.yml` und `.releaserc` bleiben für einen späteren GitHub-Spiegel
   im Projekt.
-- Die PairIP-Beschreibung ist nicht mehr auf â€žprivate use onlyâ€œ beschrÃ¤nkt,
-  sondern erklÃ¤rt die Notwendigkeit fÃ¼r Sideload-Installationen.
-- `PatchListGenerator` wÃ¤hlt das zuletzt gebaute `.mpp`, damit lokal
-  liegengebliebene alte Versionen die Liste nicht mehr verfÃ¤lschen.
+- Die PairIP-Beschreibung ist nicht mehr auf „private use only“ beschränkt,
+  sondern erklärt die Notwendigkeit für Sideload-Installationen.
+- `PatchListGenerator` wählt das zuletzt gebaute `.mpp`, damit lokal
+  liegengebliebene alte Versionen die Liste nicht mehr verfälschen.
 - Test-Runner und Patch-List-Generator werden nicht mehr ins `.mpp`
   gepackt.
 
@@ -149,25 +149,25 @@
 
 - `runBundleTest`: 5 DEX-Methoden mit `return-void`, 50 Szenen-Zielobjekte
   inaktiv/Skalierung 0, `data.unity3d` im Ausgabe-APK **STORED**, 172
-  geÃ¤nderte Bytes ausschlieÃŸlich innerhalb der Zielobjekte.
+  geänderte Bytes ausschließlich innerhalb der Zielobjekte.
 - Byte-Vergleich der 50 Zielobjekte mit der UnityPy-Referenz: identisch.
 
 ### Not verified
 
-- GerÃ¤tetest 1.4.0 steht aus.
+- Gerätetest 1.4.0 steht aus.
 
 ## 1.3.0
 
 ### Fixed
 
-- **Seitliche Cross-Promo-Icons im HauptmenÃ¼ entfernt.** Rechts und links
-  standen je drei Werbe-Icons fÃ¼r andere Spiele. Sie liegen in der Unity-Szene
-  unter `UI Root/MainMenu/PromoteIcon/Icons/Icon (0..5)` (x = Â±250,
-  y = 0/âˆ’120/âˆ’240). Der Container ist in der Szene inaktiv, wird zur Laufzeit
+- **Seitliche Cross-Promo-Icons im Hauptmenü entfernt.** Rechts und links
+  standen je drei Werbe-Icons für andere Spiele. Sie liegen in der Unity-Szene
+  unter `UI Root/MainMenu/PromoteIcon/Icons/Icon (0..5)` (x = ±250,
+  y = 0/−120/−240). Der Container ist in der Szene inaktiv, wird zur Laufzeit
   aber vom `PromoteIcon`-Manager aktiviert. Die direkt installierbare APK
-  deaktiviert deshalb den kompletten Teilbaum und setzt alle zugehÃ¶rigen
+  deaktiviert deshalb den kompletten Teilbaum und setzt alle zugehörigen
   Transforms auf Skalierung `(0,0,0)`. Dadurch verschwinden auch die
-  `BoxCollider` (100Ã—100) â€“ die FlÃ¤chen sind nicht mehr sichtbar und nicht
+  `BoxCollider` (100×100) – die Flächen sind nicht mehr sichtbar und nicht
   mehr anklickbar.
 - Angewendet auf `level0` (MainScene), `level1` (ReadScene) und `level2`
   (GameScene), nicht auf `level3` (NetworkGameScene, dort gibt es keinen
@@ -180,28 +180,28 @@
 
 ### Verified
 
-- Unity-Bundle: 2336 Objekte; gegenÃ¼ber dem 1.2.0-Bundle Ã¤ndern sich genau
-  45 Objekte (21 Ã— `GameObject.m_IsActive`, 24 Ã— `Transform.m_LocalScale`),
-  alle innerhalb der `PromoteIcon`-TeilbÃ¤ume. Die Ã¼brigen 2291 Objekte sind
+- Unity-Bundle: 2336 Objekte; gegenüber dem 1.2.0-Bundle ändern sich genau
+  45 Objekte (21 × `GameObject.m_IsActive`, 24 × `Transform.m_LocalScale`),
+  alle innerhalb der `PromoteIcon`-Teilbäume. Die übrigen 2291 Objekte sind
   byte-identisch. Der Prime Button bleibt inaktiv und auf Skalierung 0.
-- APK gegenÃ¼ber 1.2.0: nur `assets/bin/Data/data.unity3d` und die drei
-  `META-INF`-Signaturdateien unterscheiden sich; die Ã¼brigen 181 EintrÃ¤ge
+- APK gegenüber 1.2.0: nur `assets/bin/Data/data.unity3d` und die drei
+  `META-INF`-Signaturdateien unterscheiden sich; die übrigen 181 Einträge
   sind byte-identisch. Bundle weiterhin STORED (Methode 0),
   `zipalign` und v3-Signatur verifiziert, gleiches Debug-Zertifikat
-  (SHA256 `1e08a903â€¦b5953`).
-- GerÃ¤tetest 1.2.0: Prime Button entfernt, restliches MenÃ¼ funktionsfÃ¤hig
-  (RÃ¼ckmeldung des Auftraggebers).
+  (SHA256 `1e08a903…b5953`).
+- Gerätetest 1.2.0: Prime Button entfernt, restliches Menü funktionsfähig
+  (Rückmeldung des Auftraggebers).
 
 ### Not verified
 
-- GerÃ¤tetest 1.3.0 (seitliche Icons) steht aus.
+- Gerätetest 1.3.0 (seitliche Icons) steht aus.
 
 ## 1.2.0
 
 ### Fixed
 
 - **Banner blieb trotz Patch sichtbar.** Die C#-Seite fordert den Banner nicht
-  zwangslÃ¤ufig Ã¼ber `DeviceManager.ShowBannerAd` an â€“ die Klasse
+  zwangsläufig über `DeviceManager.ShowBannerAd` an – die Klasse
   `com.homelib.android.ad.AdManager` ist auch direkt in
   `global-metadata.dat` referenziert und per JNI erreichbar. Der Patch
   blockiert jetzt alle Ebenen:
@@ -212,11 +212,11 @@
 
 ### Added
 
-- **â€žPrime Buttonâ€œ entfernt (direkt installierbare APK).** Der Button ist
+- **„Prime Button“ entfernt (direkt installierbare APK).** Der Button ist
   kein AdMob-View, sondern ein Unity-/NGUI-GameObject
   `UI Root/MainMenu/Shift/Prime Button` in `MainScene` (level0). Er wird in
-  `assets/bin/Data/data.unity3d` deaktiviert und zusÃ¤tzlich auf Skalierung
-  `(0,0,0)` gesetzt. Es handelt sich um Cross-Promotion fÃ¼r
+  `assets/bin/Data/data.unity3d` deaktiviert und zusätzlich auf Skalierung
+  `(0,0,0)` gesetzt. Es handelt sich um Cross-Promotion für
   `com.unknownprojectx.prime.number`.
 - Reproduzierbares Skript `tools/unity/patch_prime_button.py` (Python +
   UnityPy).
@@ -227,13 +227,13 @@
 - DEX: alle 5 Methoden beginnen im gepatchten `classes2.dex` mit `return-void`.
 - Unity-Bundle: von 2336 Objekten unterscheiden sich genau 2
   (`GameObject.m_IsActive` und `Transform.m_LocalScale` des Buttons), alle
-  Ã¼brigen Objekte sind byte-identisch.
-- Signierte APK: Bundle- und DEX-Hashes stimmen mit den Patch-Artefakten Ã¼berein.
+  übrigen Objekte sind byte-identisch.
+- Signierte APK: Bundle- und DEX-Hashes stimmen mit den Patch-Artefakten überein.
 
 ### Device test (Nutzermeldung)
 
 - Prime Button ist entfernt; sichtbar bleiben Challenge, Training, Pi Digits,
-  Competition, Option und Review. Das MenÃ¼ ist funktionsfÃ¤hig.
+  Competition, Option und Review. Das Menü ist funktionsfähig.
 - Die seitlichen Cross-Promo-Icons waren weiterhin sichtbar (behoben in 1.3.0).
 - Bannerstatus wurde nicht separat gemeldet.
 
@@ -241,47 +241,47 @@
 
 ### Added
 
-- Patch **â€žBypass PairIP license checkâ€œ** (Standard an), erforderlich damit der
+- Patch **„Bypass PairIP license check“** (Standard an), erforderlich damit der
   neu signierte Build startet:
-  - `LicenseClient.checkLicense(Context)` â†’ No-Op (zentraler Einstieg)
-  - `LicenseClient.initializeLicenseCheck()` â†’ No-Op
-  - `LicenseClient.stopTrial(Context)` â†’ No-Op
-  - `LicenseClient.performLocalInstallerCheck()` â†’ `true`
-- Integrationstest prÃ¼ft jetzt zusÃ¤tzlich, dass `LicenseClient#checkLicense`
+  - `LicenseClient.checkLicense(Context)` → No-Op (zentraler Einstieg)
+  - `LicenseClient.initializeLicenseCheck()` → No-Op
+  - `LicenseClient.stopTrial(Context)` → No-Op
+  - `LicenseClient.performLocalInstallerCheck()` → `true`
+- Integrationstest prüft jetzt zusätzlich, dass `LicenseClient#checkLicense`
   im gepatchten DEX mit `return-void` beginnt.
 
 ### Changed
 
-- Dokumentation: PairIP ist â€žlicense-check-onlyâ€œ (kein `libpairipcore.so`,
-  kein `VMRunner`); Bypass als bewusste, vom Auftraggeber fÃ¼r den privaten
-  Gebrauch freigegebene Abweichung von Â§10 dokumentiert.
+- Dokumentation: PairIP ist „license-check-only“ (kein `libpairipcore.so`,
+  kein `VMRunner`); Bypass als bewusste, vom Auftraggeber für den privaten
+  Gebrauch freigegebene Abweichung von §10 dokumentiert.
 
 ## 1.0.0
 
 ### Added
 
-- Patch â€žRemove home screen adsâ€œ fÃ¼r Memorize Pi Digits 11.01 (versionCode 11010, arm64-v8a):
+- Patch „Remove home screen ads“ für Memorize Pi Digits 11.01 (versionCode 11010, arm64-v8a):
   - Fingerprint `HomeBannerAdFingerprint` identifiziert stabil
     `com.homelib.android.device.DeviceManager#ShowBannerAd(I)V`.
   - `returnEarly()` verhindert Erzeugung des AdMob-Banner-Views
-    sowie den zugehÃ¶rigen Werbe-Request.
-  - Annahme damals: Das Kreativ â€žPrime Numberâ€œ sei Teil des Banners.
-    TatsÃ¤chlich ist es ein separates Unity-GameObject (siehe 1.2.0).
-- KompatibilitÃ¤tsdeklaration `COMPATIBILITY_PI` (XAPK, arm64-v8a, Ziel 11.01/11010).
+    sowie den zugehörigen Werbe-Request.
+  - Annahme damals: Das Kreativ „Prime Number“ sei Teil des Banners.
+    Tatsächlich ist es ein separates Unity-GameObject (siehe 1.2.0).
+- Kompatibilitätsdeklaration `COMPATIBILITY_PI` (XAPK, arm64-v8a, Ziel 11.01/11010).
 - Projekt aus dem offiziellen Morphe-Patches-Template aufgebaut
   (`app.morphe.patches` Gradle-Plugin 2.1.0, morhe-patcher 2.3.0, Gradle 9.8.2).
 
 ### Not verified
 
-- Funktionstest auf GerÃ¤t/Emulator (nicht verfÃ¼gbar in der Build-Umgebung).
+- Funktionstest auf Gerät/Emulator (nicht verfügbar in der Build-Umgebung).
 
-### Findings (GerÃ¤tetest durch Nutzer)
+### Findings (Gerätetest durch Nutzer)
 
 - Der gepatchte, neu signierte Build wird beim Start von Googles pairip-Schutz
-  (`com.pairip.application.Application` â†’ `LicenseClient`) blockiert: Der
+  (`com.pairip.application.Application` → `LicenseClient`) blockiert: Der
   Installer ist nicht `com.android.vending` und die Play-Lizenzantwort fehlt.
-  `LicenseActivity` Ã¶ffnet die Play-Store-Seite und beendet die App.
-- Keine Umgehung dieses Schutzes (Projektvorgabe). FÃ¼r die Praxis bleibt der
+  `LicenseActivity` öffnet die Play-Store-Seite und beendet die App.
+- Keine Umgehung dieses Schutzes (Projektvorgabe). Für die Praxis bleibt der
   netzwerkseitige Weg: Werbe-Domains blocken (Private DNS/App-Firewall); der
-  Banner-View bleibt dann auf `GONE`, da `show()` erst bei `onAdLoaded` lÃ¤uft.
+  Banner-View bleibt dann auf `GONE`, da `show()` erst bei `onAdLoaded` läuft.
 

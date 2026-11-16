@@ -12,6 +12,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import org.w3c.dom.Element
 
@@ -33,6 +34,9 @@ private const val MEDIA_PLAYER = "Lcom/samsung/android/gallery/support/library/v
 private const val MEDIA_MIRROR = "Lorg/ungoogled/samsunggallery/MediaMirror;"
 private const val MEDIA_MOVES = "Lorg/ungoogled/samsunggallery/MediaMoves;"
 private const val HIDDEN_ALBUMS = "Lorg/ungoogled/samsunggallery/HiddenAlbums;"
+/** Gallery's content uris for items, and its file helpers, unobfuscated. */
+private const val CONTENT_URI = "Lcom/samsung/android/gallery/module/data/ContentUri;"
+private const val FILE_UTILS = "Lcom/samsung/android/gallery/support/utils/FileUtils;"
 /** Gallery's album writes to Samsung's media provider (hide state), unobfuscated. */
 private const val ALBUM_API = "Lcom/samsung/android/gallery/database/dal/mp/helper/AlbumApi;"
 private const val FILE_OPERATION_SERVICE = "Lcom/samsung/android/gallery/app/service/FileOperationService;"
@@ -40,21 +44,28 @@ private const val PROGRESS_SERVICE = "Lcom/samsung/android/gallery/app/service/a
 private const val FILE_EDITOR = "Lcom/samsung/android/gallery/module/fileio/redact/FileEditor;"
 private const val LOCAL_DB_OPERATION = "Lcom/samsung/android/gallery/module/fileio/database/mpq/MpQLocalDbOperation;"
 private const val FILE_INFO = "Lcom/samsung/android/gallery/module/fileio/type/FileInfo;"
+private const val LOCAL_CLOUD_FILE_OPERATION = "Lcom/samsung/android/gallery/module/fileio/abstraction/LocalCloudFileOperation;"
+private const val EDIT_DETAILS_UPDATER = "Lcom/samsung/android/gallery/module/details/EditDetailsUpdater;"
+private const val EDIT_DETAILS_UPDATER_2 = "Lcom/samsung/android/gallery/module/details/EditDetailsUpdater2;"
 
 /**
  * MANAGE_MEDIA lets the user allow Gallery to make the changes below without Android's dialog each time ("Media
- * management apps"); the activity shows Android's dialog over Gallery.
+ * management apps"); the activity shows Android's dialog over Gallery. MANAGE_EXTERNAL_STORAGE ("All files access")
+ * is asked for only to put pictures in folders at the top of a storage, which MediaStore refuses otherwise.
  */
 private val mediaChangesManifestPatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             val application = manifest.getElementsByTagName("application").item(0) as Element
-            manifest.documentElement.insertBefore(
-                manifest.createElement("uses-permission").apply {
-                    setAttribute("android:name", "android.permission.MANAGE_MEDIA")
-                },
-                application,
-            )
+            val permissions = manifest.getElementsByTagName("uses-permission")
+            val declared = (0 until permissions.length).map { (permissions.item(it) as Element).getAttribute("android:name") }
+            for (permission in listOf("android.permission.MANAGE_MEDIA", "android.permission.MANAGE_EXTERNAL_STORAGE")) {
+                if (permission in declared) continue
+                manifest.documentElement.insertBefore(
+                    manifest.createElement("uses-permission").apply { setAttribute("android:name", permission) },
+                    application,
+                )
+            }
             application.appendChild(
                 manifest.createElement("activity").apply {
                     setAttribute("android:name", REQUEST_ACTIVITY)
@@ -243,6 +254,27 @@ internal val mediaChangesPatch = bytecodePatch(
             )
         }
 
+        // Moves, album renames and the details screen's rename set the item's folder and name in MediaStore. On Android
+        // 15 and older MediaStore puts an "external" uri's new path on internal storage, so on a memory card that
+        // failed ("Changing volume ... not allowed"): the extension updates such an item on its own volume there.
+        val resolverUpdate =
+            "Landroid/content/ContentResolver;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I"
+        for (type in listOf(LOCAL_CLOUD_FILE_OPERATION, EDIT_DETAILS_UPDATER, EDIT_DETAILS_UPDATER_2)) {
+            method(type, "renameByUri", listOf("Landroid/content/Context;", "Landroid/net/Uri;", "Ljava/lang/String;")).apply {
+                val updates = implementation!!.instructions.withIndex().filter { (_, insn) ->
+                    insn.opcode == Opcode.INVOKE_VIRTUAL && (insn as ReferenceInstruction).reference.toString() == resolverUpdate
+                }
+                val update = updates.singleOrNull() ?: throw PatchException("${updates.size} MediaStore updates in $type.renameByUri, expected 1")
+                val call = update.value as FiveRegisterInstruction
+                replaceInstruction(
+                    update.index,
+                    "invoke-static { v${call.registerC}, v${call.registerD}, v${call.registerE}, v${call.registerF}, v${call.registerG} }, " +
+                        "$MEDIA_MOVES->update(Landroid/content/ContentResolver;Landroid/net/Uri;Landroid/content/ContentValues;" +
+                        "Ljava/lang/String;[Ljava/lang/String;)I",
+                )
+            }
+        }
+
         // A move to another storage (or one replacing an item) copies, then removes the original by a files uri, which
         // the write access does not cover.
         method(LOCAL_DB_OPERATION, "updateDatabaseByCopyInsteadOfMove", listOf("Landroid/content/Context;", FILE_INFO))
@@ -282,6 +314,24 @@ internal val mediaChangesPatch = bytecodePatch(
                     "$HIDDEN_ALBUMS->update(Landroid/content/ContentResolver;Landroid/net/Uri;Landroid/content/ContentValues;" +
                     "Ljava/lang/String;[Ljava/lang/String;)I",
             )
+        }
+
+        // Moves (and renames, date and location edits) of photos and videos on a memory card failed ("operation failed
+        // [move][OP_LOCAL_FAIL]"): for an item on removable storage Gallery writes through MediaStore's files uri of that
+        // volume (content://media/<volume>/file/<id>), which the user's write access (given for the item's image or video
+        // uri) does not cover. Android's MediaStore takes the image or video uri for memory card items too, as Gallery
+        // already uses for everything else.
+        method(CONTENT_URI, "build", listOf(FILE_ITEM, "Z")).apply {
+            val instructions = implementation!!.instructions
+            val removable = instructions.indexOfFirst {
+                it.opcode == Opcode.INVOKE_STATIC &&
+                    (it as ReferenceInstruction).reference.toString() == "$FILE_UTILS->isInRemovableStorage(Ljava/lang/String;)Z"
+            }
+            val result = instructions.getOrNull(removable + 1)
+            if (removable < 0 || result?.opcode != Opcode.MOVE_RESULT) {
+                throw PatchException("Gallery's writable uri no longer checks for removable storage")
+            }
+            addInstructions(removable + 2, "const/16 v${(result as OneRegisterInstruction).registerA}, 0x0")
         }
 
         // Delete permanently from the bin's viewer ends with dump(), not done().

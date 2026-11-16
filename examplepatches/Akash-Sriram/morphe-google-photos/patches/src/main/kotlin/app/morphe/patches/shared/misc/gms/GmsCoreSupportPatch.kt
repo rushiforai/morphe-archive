@@ -100,7 +100,7 @@ fun gmsCoreSupportPatch(
     name = "GmsCore support",
     description = "Enables GmsCore / MicroG support and renames package for non-root installs. " +
         "Leave enabled for standard non-root installs; disable only for rooted system installs using genuine Google Play Services.",
-    default = true,
+    default = false,
 ) {
 
     availability { installer, _ ->
@@ -160,13 +160,7 @@ fun gmsCoreSupportPatch(
             in PERMISSIONS,
             in ACTIONS,
             in AUTHORITIES,
-            -> {
-                if (fromPackageName == "com.google.android.apps.photos" && referencedString.contains("phenotype")) {
-                    null
-                } else {
-                    referencedString.replace("com.google", GMS_CORE_VENDOR_GROUP_ID)
-                }
-            }
+            -> referencedString.replace("com.google", GMS_CORE_VENDOR_GROUP_ID)
 
             // No vendor prefix for whatever reason...
             "subscribedfeeds" -> "$GMS_CORE_VENDOR_GROUP_ID.subscribedfeeds"
@@ -179,9 +173,6 @@ fun gmsCoreSupportPatch(
         if (str.startsWith("content://")) {
             // check if matches any authority
             for (authority in AUTHORITIES) {
-                if (fromPackageName == "com.google.android.apps.photos" && authority.contains("phenotype")) {
-                    continue
-                }
                 val uriPrefix = "content://$authority"
                 if (str.startsWith(uriPrefix)) {
                     return str.replace(

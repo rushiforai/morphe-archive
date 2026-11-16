@@ -76,9 +76,6 @@ val hidePremiumPatch = bytecodePatch(
     execute {
         markFeaturePatched("hidePremiumPatched")
 
-        val offerType = SaleOfferToStringFingerprint.originalClassDef.superclass
-            ?: throw PatchException("The premium offer type was not found")
-
         // Settings: the Upgrade row leaves the lists the row-building constructor writes.
         val rowType = SettingsRowToStringFingerprint.originalClassDef.type
         // The settings rows are built in a constructor and kept in List fields.
@@ -217,9 +214,11 @@ val hidePremiumPatch = bytecodePatch(
         }
         mutableClassDefBy(HomeContentToStringFingerprint.originalClassDef).methods
             .filter { it.name == "<init>" }.maxByOrNull { it.parameterTypes.size }!!.apply {
-                val offer = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }
-                if (offer < 0) throw PatchException("The Home sale banner was not found")
-                nullOffer(0, "p${offer + 1}", "Lcom/chess/features/paywall/Offer;")
+                // 4.10.27 replaced the paywall Offer parameter with the banner state model.
+                val bannerType = "Lcom/chess/internal/paywall/a\$b;"
+                val banner = parameterTypes.indexOfFirst { it.toString() == bannerType }
+                if (banner < 0) throw PatchException("The Home sale banner was not found")
+                nullOffer(0, "p${banner + 1}", bannerType)
             }
 
         // More: no Membership row.

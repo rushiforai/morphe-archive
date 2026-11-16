@@ -92,18 +92,21 @@ val shortTimeControlsPatch = bytecodePatch(
         }
 
         // The custom time row: the shared stepper (i) and the minutes row (b) in gamesetup.
-        val gamesetup = mutableClassDefBy("Lcom/chess/features/gamesetup/compose/g;")
+        // The composable file was renamed g -> i in 4.10.27 (same methods, same shapes).
+        val gamesetup = mutableClassDefBy("Lcom/chess/features/gamesetup/compose/i;")
         // 1) The slider range: 0..max -> sliderMin()..max for the minutes stepper (max 120).
         val stepper = gamesetup.methods.single {
             it.name == "i" && it.returnType == "V" && it.parameterTypes.size == 7
         }
         stepper.apply {
             val code = instructions.toList()
+            // The floating-point range type is obfuscated and moved in 4.10.27 (vk0 -> cl0);
+            // its <init>(float, float) is the stable shape, and this method has exactly one.
             val rangeIndex = code.indexOfFirst { instruction ->
                 instruction.opcode == Opcode.INVOKE_DIRECT &&
                     (instruction as? ReferenceInstruction)?.reference.let { reference ->
-                        reference is MethodReference && reference.definingClass == "Lcom/google/android/vk0;" &&
-                            reference.name == "<init>" && reference.parameterTypes.size == 2
+                        reference is MethodReference && reference.name == "<init>" &&
+                            reference.parameterTypes.map(CharSequence::toString) == listOf("F", "F")
                     }
             }
             if (rangeIndex < 0) throw PatchException("The time slider range was not found")

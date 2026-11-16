@@ -5,6 +5,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnInt
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val xiaomiEarbudsOfflineManifestResourcePatch = resourcePatch(
@@ -67,13 +71,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetworkExtKt.isNetworkAvailable")
         }
 
@@ -84,13 +82,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetworkExtKt.isMobileAvailable")
         }
 
@@ -101,13 +93,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetworkExtKt.isWifiConnected")
         }
 
@@ -118,13 +104,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("NetworkExtKt.getNetworkType")
         }
 
@@ -135,13 +115,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("NetworkExtKt.getNetWorkState")
         }
 
@@ -171,13 +145,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetUtil.getNetWorkAvailable")
         }
 
@@ -187,13 +155,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetUtil.isMobileAva")
         }
 
@@ -203,13 +165,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetUtil.isWifiCon")
         }
 
@@ -219,13 +175,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("NetUtil.getNetworkType")
         }
 
@@ -235,13 +185,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("NetUtil.getNetWorkState")
         }
 
@@ -268,7 +212,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Z"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("NetworkStateUtil.updateNetworkState")
         }
 
@@ -279,13 +223,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("NetworkUtils.isNetworkConnected")
         }
 
@@ -296,6 +234,7 @@ val xiaomiEarbudsOfflineOnlyPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;"),
             returnType = "Ljava/util/List;",
         ).method.apply {
+            ensureRegisterCount(2)
             addInstructions(
                 0,
                 """

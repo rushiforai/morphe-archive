@@ -303,7 +303,7 @@ final class BarPreview {
         card.setPadding(0, pad, 0, pad);
         card.setMinimumWidth(Math.round(200 * density));
         GradientDrawable background = new GradientDrawable();
-        background.setColor(ModernUi.isModernUiEnabled(activity)
+        background.setColor(ModernUi.modernLook(activity)
                 ? ModernUi.getPalette(activity).containerHigh : 0xFF2C261F);
         background.setCornerRadius(8 * density);
         card.setBackground(background);
@@ -333,7 +333,7 @@ final class BarPreview {
     }
 
     static int canvas(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity)
+        return ModernUi.modernLook(activity)
                 ? ModernUi.getPalette(activity).canvas : 0xFF102022;
     }
 }

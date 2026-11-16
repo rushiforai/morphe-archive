@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-07.
- * Modified by lavinhoque33, 2026-11-09.
  */
 package app.morphe.patches.music.interaction.downloads
 
@@ -237,7 +237,7 @@ private fun BytecodePatchContext.installQueueItemRetarget() {
         // reach the video from, or a queue that cannot start at the tapped row, is worse than none. Everything is
         // resolved before anything is changed.
         val installPill = preparePillClick(item, pill.method.name, pill.classDef.type)
-        val installStart = prepareQueueStart()
+        val installStart = prepareQueueStart(itemType)
         val installPosition = preparePillStartPosition()
         val installAvailability = preparePillAvailability(pill.classDef.type)
         val installToggleGate = preparePillToggleGate()
@@ -618,14 +618,21 @@ private fun BytecodePatchContext.preparePillClick(
     }
 }
 
-/** The method that builds a queue from a server response: it ends in the constructor of (items, selected, index). */
-private val queueStartFingerprint = Fingerprint(
+/** R8 erases the queue result's List/Optional constructor arguments to Object in Music 9.45. */
+private fun MethodReference.isQueueResultConstructor(): Boolean =
+    name == "<init>" && parameterTypes.map(CharSequence::toString) in listOf(
+        listOf("Ljava/util/List;", "Lj\$/util/Optional;", "I"),
+        listOf(OBJECT, OBJECT, "I"),
+    )
+
+private fun queueStartFingerprint(itemType: String) = Fingerprint(
     custom = { method, _ ->
-        method.implementation?.instructions?.any {
-            val call = it.getReference<MethodReference>()
-            call != null && call.name == "<init>" && call.parameterTypes.map(CharSequence::toString) ==
+        val calls = method.implementation?.instructions?.mapNotNull { it.getReference<MethodReference>() }.orEmpty()
+        calls.any {
+            it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) ==
                 listOf("Ljava/util/List;", "Lj\$/util/Optional;", "I")
-        } == true
+        } || (calls.any { it.isQueueResultConstructor() } && calls.any { it.returnType == itemType } &&
+            calls.any { it.definingClass == "Lj\$/util/Optional;" && it.name == "empty" })
     },
 )
 
@@ -635,17 +642,17 @@ private val queueStartFingerprint = Fingerprint(
  * first. The method that builds the queue ends in the constructor of its result, which takes the list of items and the
  * position the queue starts at: the extension may choose another position, the row the user chose.
  *
- * Resolved by shape: `Liar.J` (9.40.51) / `Lnyb` (9.15.51) / `Lnko` (8.30.54), the one method that calls a constructor
- * of a list, an `Optional` and an int. Resolved with the queue items and the pill: all or none.
+ * Resolved by shape: `Lhzx.J` (9.45.51, erased result) / `Liar.J` (9.40.51) / `Lnyb` (9.15.51) /
+ * `Lnko` (8.30.54). The erased result also requires the native single-renderer item factory and an Optional.
+ * Resolved with the queue items and the pill: all or none.
  */
-private fun BytecodePatchContext.prepareQueueStart(): () -> String {
-    val match = queueStartFingerprint.matchSingle()
+private fun BytecodePatchContext.prepareQueueStart(itemType: String): () -> String {
+    val match = queueStartFingerprint(itemType).matchSingle()
     val method = mutableClassDefBy(match.classDef.type).findMutableMethodOf(match.method)
     val instructions = method.implementation!!.instructions.toList()
     val index = instructions.indexOfFirst {
         val call = it.getReference<MethodReference>()
-        call != null && call.name == "<init>" && call.parameterTypes.size == 3 &&
-            call.parameterTypes[2] == "I" && call.parameterTypes[0] == "Ljava/util/List;"
+        call?.isQueueResultConstructor() == true
     }
     check(index >= 0) { "no queue constructor" }
 

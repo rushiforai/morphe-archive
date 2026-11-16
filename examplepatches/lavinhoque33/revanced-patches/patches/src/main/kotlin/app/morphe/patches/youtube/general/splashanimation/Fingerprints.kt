@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.general.splashanimation
@@ -34,13 +35,21 @@ internal object SplashScreenStyleFingerprint : Fingerprint(
 )
 
 /**
- * Matches the splash screen visibility checks in the same method as [SplashScreenStyleFingerprint].
+ * 21.44+ moves splash setup from onCreate into the main activity delegate.
+ */
+internal object SplashScreenStyleDelegateFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(),
+    filters = listOf(
+        literal(1074339245)
+    )
+)
+
+/**
+ * Matches visibility checks in the resolved main activity or delegate splash setup method.
  */
 internal object ShowSplashScreenFingerprint : Fingerprint(
-    definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,
-    name = "onCreate",
     returnType = "V",
-    parameters = listOf("Landroid/os/Bundle;"),
     filters = listOf(
         methodCall(
             opcode = Opcode.INVOKE_STATIC,
@@ -51,18 +60,15 @@ internal object ShowSplashScreenFingerprint : Fingerprint(
             opcode = Opcode.MOVE_RESULT,
             location = MatchAfterImmediately()
         ),
-        opcode(
-            opcode = Opcode.IF_EQZ,
+        anyInstruction(
+            opcode(Opcode.IF_EQZ),
+            opcode(Opcode.IF_NEZ),
             location = MatchAfterImmediately()
-        ),
-        opcode(
-            opcode = Opcode.GOTO,
-            location = MatchAfterWithin(2)
         ),
         anyInstruction(
             opcode(Opcode.CONST_4),
             opcode(Opcode.CONST_16),
-            location = MatchAfterImmediately()
+            location = MatchAfterWithin(3)
         ),
         opcode(
             opcode = Opcode.IF_NE,

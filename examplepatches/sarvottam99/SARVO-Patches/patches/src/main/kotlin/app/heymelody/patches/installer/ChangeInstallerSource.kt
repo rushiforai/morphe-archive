@@ -10,15 +10,15 @@ package app.heymelody.patches.installer
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
-import app.morphe.patcher.patch.PatchAvailability
+import app.heymelody.patches.shared.Constants.COMPATIBILITY_HEY_MELODY
 
 @Suppress("unused")
 val changeInstallerSource = resourcePatch(
     name = "Change installer source",
     description = "Spoofs the installer source so the app appears to be installed from an app store.",
-    default = false
+    default = true
 ) {
-    availability { _, _ -> PatchAvailability.ENABLED }
+    compatibleWith(COMPATIBILITY_HEY_MELODY)
     val packageInstallerName = stringOption(
         key = "packageInstallerName",
         default = "com.android.vending",

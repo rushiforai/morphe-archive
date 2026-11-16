@@ -1,17 +1,15 @@
 package app.morphe.patches.moovit
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.ANDROID_XML_NAMESPACE
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.childrenNamed
-import app.morphe.patches.shared.clearTryBlocks
 import app.morphe.patches.shared.disableComponentsByName
-import app.morphe.patches.shared.ensureRegisterCount
 import app.morphe.patches.shared.removeChildren
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 import app.morphe.patches.shared.setApplicationMetaData
 import app.morphe.patches.shared.stripPermissionsWhere
 import org.w3c.dom.Element
@@ -172,10 +170,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AFa1tSDK.start(1)")
         }
 
@@ -185,10 +180,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AFa1tSDK.start(2)")
         }
 
@@ -198,10 +190,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lcom/appsflyer/attribution/AppsFlyerRequestListener;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AFa1tSDK.start(3)")
         }
 
@@ -211,10 +200,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/util/Map;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AFa1tSDK.logEvent(1)")
         }
 
@@ -224,10 +210,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/util/Map;", "Lcom/appsflyer/attribution/AppsFlyerRequestListener;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AFa1tSDK.logEvent(2)")
         }
 
@@ -237,10 +220,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = emptyList(),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("Braze.requestImmediateDataFlush")
         }
 
@@ -250,10 +230,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/app/Activity;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("Braze.openSession")
         }
 
@@ -263,10 +240,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Lcom/braze/models/outgoing/BrazeProperties;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("Braze.logCustomEvent")
         }
 
@@ -276,10 +250,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
             returnType = "V",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("InneractiveAdManager.initialize")
         }
 
@@ -289,10 +260,7 @@ val moovitBlockTelemetryPatch = bytecodePatch(
             parameters = emptyList(),
             returnType = "Z",
         ).method.apply {
-            clearTryBlocks()
-            ensureRegisterCount(1)
-            implementation?.let { removeInstructions(0, it.instructions.count()) }
-            addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+            replaceWithReturnBoolean(false)
             hookedMethods.add("InneractiveAdManager.wasInitialized")
         }
 

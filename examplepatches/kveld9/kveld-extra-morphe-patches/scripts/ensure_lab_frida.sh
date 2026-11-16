@@ -74,9 +74,7 @@ else
     echo "$TAG frida-server not running. Preparing deployment..."
 
     CLEANUP_TEMP_DIR=false
-    if [[ -d "/tmp/opencode" ]]; then
-        WORK_DIR="/tmp/opencode"
-    elif [[ -n "${TMPDIR:-}" && -d "$TMPDIR" ]]; then
+    if [[ -n "${TMPDIR:-}" && -d "$TMPDIR" ]]; then
         WORK_DIR="$TMPDIR"
     else
         WORK_DIR="$(mktemp -d)"

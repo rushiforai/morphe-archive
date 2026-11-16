@@ -109,6 +109,11 @@ public final class PowerSaving {
         return app != null && allPhones(app);
     }
 
+    /** Maps' answer to "is power saving mode available" (server flag AND nativeMinMode), forced to yes when switched on. */
+    public static boolean available(boolean google) {
+        return forceAvailable() || google;
+    }
+
     /** This class does SystemUI's part: switched on, and SystemUI cannot do it itself. */
     static boolean standIn(Context c) {
         return allPhones(c) && !nativeMinMode(c);
@@ -486,8 +491,8 @@ public final class PowerSaving {
     private static volatile long wokeAt;
     private static volatile boolean minModeResumed;
     private static WeakReference<Activity> minModeShown = new WeakReference<>(null);
-    /** id/gesture_detector_view: the power saving screen's tap catcher (pinned: names do not survive a merged APK). */
-    private static final int TAP_CATCHER = 0x7f0b0476;
+    /** id/gesture_detector_view: the power saving screen's tap catcher (set by the patches, see Res). */
+    private static final int TAP_CATCHER = Res.id_gesture_detector_view;
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     /**

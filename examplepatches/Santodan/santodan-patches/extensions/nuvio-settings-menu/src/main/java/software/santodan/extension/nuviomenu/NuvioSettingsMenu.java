@@ -77,6 +77,12 @@ public final class NuvioSettingsMenu {
                 // Show appearance controls only when at least one date-label patch is installed.
             } catch (Throwable error) { Log.e(TAG, "Date label settings failed", error); break; }
         }
+        try {
+            Class.forName("software.santodan.extension.nuviometadata.NuvioMetadataSettings", false, loader)
+                .getMethod("renderSettings", Object.class).invoke(null, composer);
+        } catch (ClassNotFoundException absent) {
+            // Independently selectable metadata patch.
+        } catch (Throwable error) { Log.e(TAG, "Metadata settings failed", error); }
         renderGroup(composer, loader, "Streams", 5, 10);
         renderGroup(composer, loader, "Android TV launcher", 10, 11);
         renderGroup(composer, loader, "Playback", 11, BRIDGES.length);

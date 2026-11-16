@@ -115,6 +115,51 @@ public final class MorpheSettingsActivity extends Activity {
             applyCommentRows(activity);
             column.addView(sheet);
         }
+        if (MorpheSettings.undeleteControls()) {
+            LinearLayout removed = new LinearLayout(activity);
+            removed.setOrientation(LinearLayout.VERTICAL);
+            applyCardContainer(removed, activity, density);
+            removed.setLayoutParams(cardLayoutParams(activity, density));
+            removed.addView(sectionTitle(activity, "Removed content"));
+            removed.addView(toggleRow(activity, "Restore via Arctic Shift",
+                    "Removed and deleted comments and posts get an Arctic Shift Restore button. Nothing is fetched until you tap it.",
+                    MorpheSettings.undelete(activity),
+                    (button, checked) -> MorpheSettings.saveUndelete(activity, checked)));
+            column.addView(removed);
+        }
+        if (MorpheSettings.mediaEnhancementControls()) {
+            // Shared by Modern UI and Media enhancements, and live in both looks.
+            LinearLayout media = new LinearLayout(activity);
+            media.setOrientation(LinearLayout.VERTICAL);
+            applyCardContainer(media, activity, density);
+            media.setLayoutParams(cardLayoutParams(activity, density));
+            media.addView(sectionTitle(activity, "Media"));
+            media.addView(actionRow(activity, "Downloads",
+                    "A picture, GIF, or video saves straight away. Set the file name and the folder.",
+                    () -> MediaDownload.show(activity)));
+            View controlsOnOpen = toggleRow(activity, "Hide controls on open",
+                    "Pictures, GIFs and videos open without icons or the seekbar. Tap to show them.",
+                    ModernUi.hideControlsOnOpen(activity),
+                    (btn, checked) -> ModernUi.setHideControlsOnOpen(activity, checked));
+            controlsOnOpen.setVisibility(ModernUi.fullscreenMedia(activity) ? View.VISIBLE : View.GONE);
+            media.addView(toggleRow(activity, "Full screen media",
+                    "Media fills the whole screen, including the camera area.",
+                    ModernUi.fullscreenMedia(activity),
+                    (btn, checked) -> {
+                        ModernUi.setFullscreenMedia(activity, checked);
+                        controlsOnOpen.setVisibility(checked ? View.VISIBLE : View.GONE);
+                    }));
+            media.addView(controlsOnOpen);
+            media.addView(toggleRow(activity, "Album viewer",
+                    "Albums show a counter, captions, a strip of thumbnails and a full screen grid, and remember your place. Off uses Joey's album screen.",
+                    ModernUi.albumViewer(activity),
+                    (btn, checked) -> ModernUi.setAlbumViewer(activity, checked)));
+            media.addView(toggleRow(activity, "Swipe albums closed",
+                    "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
+                    ModernUi.albumSwipe(activity),
+                    (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked)));
+            column.addView(media);
+        }
         if (MorpheSettings.modernUiControls()) {
             LinearLayout themeCard = new LinearLayout(activity);
             themeCard.setOrientation(LinearLayout.VERTICAL);
@@ -135,25 +180,6 @@ public final class MorpheSettingsActivity extends Activity {
                     value -> PostLayout.showImage(activity, value));
             View details = postDetailsRow(activity);
             View chips = subredditChipsRow(activity);
-            View downloads = actionRow(activity, "Downloads",
-                    "A picture, GIF, or video saves straight away. Set the file name and the folder.",
-                    () -> MediaDownload.show(activity));
-            View controlsOnOpen = toggleRow(activity, "Hide controls on open",
-                    "Pictures, GIFs and videos open without icons or the seekbar. Tap to show them.",
-                    ModernUi.hideControlsOnOpen(activity),
-                    (btn, checked) -> ModernUi.setHideControlsOnOpen(activity, checked));
-            controlsOnOpen.setVisibility(ModernUi.fullscreenMedia(activity) ? View.VISIBLE : View.GONE);
-            View fullscreen = toggleRow(activity, "Full screen media",
-                    "Media fills the whole screen, including the camera area.",
-                    ModernUi.fullscreenMedia(activity),
-                    (btn, checked) -> {
-                        ModernUi.setFullscreenMedia(activity, checked);
-                        controlsOnOpen.setVisibility(checked ? View.VISIBLE : View.GONE);
-                    });
-            View albums = toggleRow(activity, "Swipe albums closed",
-                    "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
-                    ModernUi.albumSwipe(activity),
-                    (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked));
             View bird = confirmToggle(activity, "Sidebar bird",
                     "Joey's bird in the account header.",
                     ModernUi.sidebarBird(activity),
@@ -166,10 +192,6 @@ public final class MorpheSettingsActivity extends Activity {
             greyRow(image, !classic);
             greyRow(details, !classic);
             greyRow(chips, !classic);
-            greyRow(downloads, !classic);
-            greyRow(fullscreen, !classic);
-            greyRow(controlsOnOpen, !classic);
-            greyRow(albums, !classic);
             themeCard.addView(theme);
             themeCard.addView(fonts);
             themeCard.addView(posts);
@@ -178,10 +200,6 @@ public final class MorpheSettingsActivity extends Activity {
                 themeCard.addView(details);
                 themeCard.addView(chips);
             }
-            themeCard.addView(downloads);
-            themeCard.addView(fullscreen);
-            themeCard.addView(controlsOnOpen);
-            themeCard.addView(albums);
             if (SeasonalBanner.isEnabled()) themeCard.addView(seasonalRow(activity));
             else if (!classic) themeCard.addView(bird);
             if (MorpheSplash.isEnabled()) themeCard.addView(splashRow(activity));
@@ -219,7 +237,7 @@ public final class MorpheSettingsActivity extends Activity {
                 showHide.addView(chipOrder);
                 showHide.addView(detailOrder);
             }
-            View postBar = actionRow(activity, "Post actions", "What is on the post bar, what is in its \u22ee menu, and how the menu opens.",
+            View postBar = actionRow(activity, "Post buttons & menu", "The buttons under each post, what goes in its \u22ee menu, and how the menu opens.",
                     () -> PostLayout.showActions(activity));
             if (MorpheSettings.modernUiControls()) greyRow(postBar, ModernUi.isModernUiEnabled(activity));
             showHide.addView(postBar);
@@ -692,8 +710,8 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private View postDetailsRow(Activity activity) {
-        return actionRow(activity, "Post details",
-                "What shows under the title, and the order. Joey's own line until you change it.",
+        return actionRow(activity, "Post info line",
+                "The line under the title: subreddit, points, author, time and more, and their order.",
                 () -> PostLayout.showDetails(activity));
     }
 

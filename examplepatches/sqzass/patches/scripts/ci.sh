@@ -1,6 +1,22 @@
-./gradlew :patches:test --no-daemon
-./gradlew :patches:ktlintCheck --no-daemon
-./gradlew :patches:generatePatchesList --no-daemon
-python3 -c "import json;d=json.load(open('patches-list.json',encoding='utf-8'));print('patches:',len(d['patches']));print('apps:',sorted({c['name'] for p in d['patches'] for c in (p.get('compatiblePackages') or [])}))"
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+fix=false
+[[ "${1:-}" == "--fix" ]] && fix=true
+
+if $fix; then
+  ./gradlew :patches:ktlintFormat
+fi
+
+./gradlew :patches:ktlintCheck
+./gradlew :patches:generatePatchesList :patches:buildAndroid
+
+python3 - <<'PY'
+import json
+d = json.load(open("patches-list.json", encoding="utf-8"))
+print("patches:", len(d["patches"]))
+print("apps:", sorted({c["name"] for p in d["patches"] for c in (p.get("compatiblePackages") or [])}))
+PY
+
 python3 .github/scripts/generate_patches_readme.py sqzass/lustx-patches dev patches-list.json README.md
-./gradlew :patches:buildAndroid --no-daemon

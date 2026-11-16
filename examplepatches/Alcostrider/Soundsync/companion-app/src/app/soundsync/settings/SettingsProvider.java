@@ -21,7 +21,7 @@ public class SettingsProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
         MatrixCursor c = new MatrixCursor(new String[]{"delay_ms", "mode"}, 1);
-        c.addRow(new Object[]{Settings.delay(getContext()), Settings.mode(getContext())});
+        c.addRow(new Object[]{Settings.delay(getContext()), Settings.effectiveMode(getContext())});
         c.setNotificationUri(getContext().getContentResolver(), Settings.CONFIG);
         return c;
     }

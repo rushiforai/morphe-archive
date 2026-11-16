@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.playlistautoplay
@@ -45,13 +45,20 @@ internal fun navigationIntentHook(extensionClass: String, extensionMethod: Strin
 
         // 21.39 adds a match that only delegates to another matched handler (p0 and p1 both live, no free register).
         // The delegate target is patched itself, so skip this one.
-        val freeRegister = runCatching { method.findFreeRegister(0) }.getOrNull()
-            ?: return@forEach
+        val freeRegister = runCatching {
+            method.findFreeRegister(0, (16 until method.implementation!!.registerCount).toList())
+        }.getOrNull() ?: return@forEach
+
+        // iget-object can only address 4-bit registers, including its receiver.
+        val wrapperRegister = method.implementation!!.registerCount - 1
+        val wrapperLoad = if (wrapperRegister < 16) "" else "move-object/from16 v$freeRegister, p1"
+        val wrapperReceiver = if (wrapperRegister < 16) "p1" else "v$freeRegister"
 
         method.addInstructionsWithLabels(
             0,
             """
-                iget-object v$freeRegister, p1, $enumField
+                $wrapperLoad
+                iget-object v$freeRegister, $wrapperReceiver, $enumField
                 invoke-static { v$freeRegister }, $extensionClass->$extensionMethod(Ljava/lang/Enum;)Z
                 move-result v$freeRegister
                 if-eqz v$freeRegister, :continue

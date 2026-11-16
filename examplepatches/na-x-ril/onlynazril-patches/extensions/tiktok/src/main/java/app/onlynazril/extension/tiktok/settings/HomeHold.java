@@ -8,7 +8,8 @@ import android.os.Bundle;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,13 +22,13 @@ import app.onlynazril.extension.tiktok.internal.Debug;
 
 /**
  * Opens Tweaks by holding the Home tab in TikTok's bottom bar.
- *
+ * <p>
  * The system Home key never reaches an app, so the shortcut is on the app's own Home tab. The bar
  * is found by resource id ({@code bottom_tab_container}, with {@code bottom_tab_layout} as the
  * fallback), and the first clickable child in it is the Home tab: the bar order is Home, Friends,
- * create, Inbox, Profile on every build checked. The id names are readable in 47.7.1 and 47.7.2,
+ * create, Inbox, Profile on every build checked. The id names are readable in 47.7.1 through 47.7.3,
  * which is why this is a runtime lookup rather than a bytecode anchor.
- *
+ * <p>
  * One listener per resumed activity, installed from the layout pass so it lands on a bar that has
  * been measured, and removed again when the switch is turned off.
  */
@@ -63,12 +64,7 @@ public final class HomeHold {
         }
         try {
             activity.getWindow().getDecorView().getViewTreeObserver()
-                    .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                        @Override
-                        public void onGlobalLayout() {
-                            attach(activity);
-                        }
-                    });
+                    .addOnGlobalLayoutListener(() -> attach(activity));
         } catch (Throwable t) {
             Debug.print("home hold: cannot watch layout (" + t + ")");
         }
@@ -150,7 +146,7 @@ public final class HomeHold {
 
     /**
      * The first tab-sized clickable view under the bar.
-     *
+     * <p>
      * The container is a bottom-gravity placeholder that TikTok fills at runtime, and some builds
      * put one clickable wrapper around the whole bar. Taking the first clickable view outright
      * would then put the long press on the bar itself, so a tab has to be roughly a fifth of the
@@ -171,8 +167,7 @@ public final class HomeHold {
     }
 
     private static void collect(View view, List<View> out, int depth) {
-        if (!(view instanceof ViewGroup) || depth > MAX_DEPTH) return;
-        ViewGroup group = (ViewGroup) view;
+        if (!(view instanceof ViewGroup group) || depth > MAX_DEPTH) return;
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
             if (child.getVisibility() != View.VISIBLE) continue;
@@ -185,27 +180,27 @@ public final class HomeHold {
 
     private static final class Lifecycle implements Application.ActivityLifecycleCallbacks {
         @Override
-        public void onActivityCreated(Activity activity, Bundle state) {}
+        public void onActivityCreated(@NonNull Activity activity, Bundle state) {}
 
         @Override
-        public void onActivityStarted(Activity activity) {}
+        public void onActivityStarted(@NonNull Activity activity) {}
 
         @Override
-        public void onActivityResumed(Activity activity) {
+        public void onActivityResumed(@NonNull Activity activity) {
             HomeHold.resumed(activity);
         }
 
         @Override
-        public void onActivityPaused(Activity activity) {}
+        public void onActivityPaused(@NonNull Activity activity) {}
 
         @Override
-        public void onActivityStopped(Activity activity) {}
+        public void onActivityStopped(@NonNull Activity activity) {}
 
         @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle state) {}
+        public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle state) {}
 
         @Override
-        public void onActivityDestroyed(Activity activity) {
+        public void onActivityDestroyed(@NonNull Activity activity) {
             WATCHED.remove(activity);
         }
     }

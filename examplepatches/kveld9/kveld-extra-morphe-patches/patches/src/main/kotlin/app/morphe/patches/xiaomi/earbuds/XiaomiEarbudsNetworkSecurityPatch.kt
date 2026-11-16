@@ -1,10 +1,10 @@
 package app.morphe.patches.xiaomi.earbuds
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Element
 
 private val xiaomiEarbudsNetworkSecurityConfigResourcePatch = resourcePatch(
@@ -81,7 +81,7 @@ val xiaomiEarbudsNetworkSecurityPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Ljava/util/List;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CertificatePinner.check(String, List)")
         }
 
@@ -91,7 +91,7 @@ val xiaomiEarbudsNetworkSecurityPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "[Ljava/security/cert/Certificate;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CertificatePinner.check(String, Certificate[])")
         }
 
@@ -101,7 +101,7 @@ val xiaomiEarbudsNetworkSecurityPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("CertificatePinner.check\$okhttp(String, Function0)")
         }
 

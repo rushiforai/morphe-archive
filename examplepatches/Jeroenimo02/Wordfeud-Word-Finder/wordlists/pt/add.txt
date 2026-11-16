@@ -2,3 +2,7 @@
 # Applied by tools/wordlists/build.py.
 PIXE
 PIXES
+PIXESABETE
+BEL
+EDRA
+MUNHO

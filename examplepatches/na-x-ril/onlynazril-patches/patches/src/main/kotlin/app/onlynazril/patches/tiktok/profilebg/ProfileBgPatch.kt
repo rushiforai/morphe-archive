@@ -51,28 +51,35 @@ val tiktokProfileBgPatch = bytecodePatch(
         // The AB-defaults registry reads the same keys but answers nothing
         // in boolean, and the class that only lists the keys in its static
         // init has no boolean method at all, so the shape is unique.
+        //
+        // The string index names the few classes that read either key, so
+        // the shape check runs over those instead of every class.
         val candidates = mutableListOf<ClassDef>()
-        classDefForEach { classDef ->
-            var readsKeys = false
-            var hasGate = false
-            var hasSetter = false
-            for (method in classDef.methods) {
-                if (method.returnType == "Z" && method.parameterTypes == listOf("Z")) {
-                    hasGate = true
-                }
-                if (method.returnType == "V" && method.parameterTypes == listOf("Z")) {
-                    hasSetter = true
-                }
-                val implementation = method.implementation
-                if (!readsKeys && implementation != null) {
-                    readsKeys = implementation.instructions.any { instruction ->
-                        instruction is ReferenceInstruction
-                                && instruction.opcode == Opcode.CONST_STRING
-                                && (instruction.reference as? StringReference)?.string in GATE_KEYS
+        val checked = mutableSetOf<String>()
+        for (key in GATE_KEYS) {
+            for (classDef in classDefByStrings(key)) {
+                if (!checked.add(classDef.type)) continue
+                var readsKeys = false
+                var hasGate = false
+                var hasSetter = false
+                for (method in classDef.methods) {
+                    if (method.returnType == "Z" && method.parameterTypes == listOf("Z")) {
+                        hasGate = true
+                    }
+                    if (method.returnType == "V" && method.parameterTypes == listOf("Z")) {
+                        hasSetter = true
+                    }
+                    val implementation = method.implementation
+                    if (!readsKeys && implementation != null) {
+                        readsKeys = implementation.instructions.any { instruction ->
+                            instruction is ReferenceInstruction
+                                    && instruction.opcode == Opcode.CONST_STRING
+                                    && (instruction.reference as? StringReference)?.string in GATE_KEYS
+                        }
                     }
                 }
+                if (readsKeys && hasGate && hasSetter) candidates += classDef
             }
-            if (readsKeys && hasGate && hasSetter) candidates += classDef
         }
         val gate = candidates.singleOrNull()
             ?: throw PatchException(

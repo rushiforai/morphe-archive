@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-12
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -25,6 +25,7 @@ import static app.morphe.extension.shared.utils.Utils.submitOnBackgroundThread;
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
 import app.morphe.extension.music.patches.CrossfadeTrace;
 
+import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -99,7 +100,6 @@ public class StreamOrDetailsDataRequest {
         Logger.printDebug(() -> "Available spoof clients: " + orderToUse);
     }
 
-    // modified by lavinhoque33, 2026-10-14: public, the Music downloader tries the clients one by one.
     public static List<ClientType> buildClientOrder(List<ClientType> availableClients,
                                                     ClientType preferredClient) {
         Objects.requireNonNull(preferredClient);
@@ -160,6 +160,10 @@ public class StreamOrDetailsDataRequest {
      * A fetch runs on a single thread, and other fetches running at the same time must not see this.
      */
     private static final ThreadLocal<Boolean> fallbackWithTVDashOnThread = ThreadLocal.withInitial(() -> false);
+
+    // Fetches run concurrently; only the thread that received an attested response retries.
+    private static final ThreadLocal<Boolean> newVisitorIdOnThread = ThreadLocal.withInitial(() -> false);
+    private static final int VISITOR_ID_ATTEMPTS = 3;
     private static volatile boolean authHeadersOverrides;
     private static volatile Map<String, String> lastPlayerHeaders = Collections.emptyMap();
 
@@ -489,7 +493,7 @@ public class StreamOrDetailsDataRequest {
                 // If oauth2 login is supported and the user is logged in via oauth2 flow, the header is set:
                 // ANDROID_VR (ANDROID_XR).
                 else if (clientType.supportsOAuth2 && clientType.requireLogin) {
-                    String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded();
+                    String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded(true);
                     if (Utils.isNotEmpty(oauth2Authorization)) {
                         if (!forDownload) authHeadersOverrides = true;
                         connection.setRequestProperty(AUTHORIZATION_HEADER, oauth2Authorization);
@@ -647,6 +651,19 @@ public class StreamOrDetailsDataRequest {
                     return null;
                 }
 
+                // visionOS cannot answer attestation challenges. These signed URLs require a fresh visitor ID.
+                if (clientType.clientName.equals(ClientType.VISIONOS_1_02.clientName)) {
+                    for (Format format : streamingData.getAdaptiveFormatsList()) {
+                        if ("yes".equals(Uri.parse(format.getUrl()).getQueryParameter("pcm2"))) {
+                            Logger.printDebug(() -> "Visitor id is in the attestation A/B test: " + clientType
+                                    + ", videoId: " + videoId);
+                            VisitorIdRequester.discardVisitorId(clientType);
+                            newVisitorIdOnThread.set(true);
+                            return null;
+                        }
+                    }
+                }
+
                 if (clientType.requireJS) {
                     String poToken = clientType.requirePoToken
                             ? PoTokenManager.getStreamingPoToken(clientType, videoId)
@@ -767,7 +784,17 @@ public class StreamOrDetailsDataRequest {
 
                 HttpURLConnection connection = send(clientTypeStream, videoId, playerHeaders, showErrorToast, isDownload);
                 fallbackWithTVDashOnThread.set(false);
-                Object playerResponseBuffer = buildPlayerStreamOrDetailsResponse(clientTypeStream, connection, videoId, isInline, isDownload);
+                newVisitorIdOnThread.set(false);
+                Object playerResponseBuffer = buildPlayerStreamOrDetailsResponse(
+                        clientTypeStream, connection, videoId, isInline, isDownload);
+                for (int attempt = 1; attempt < VISITOR_ID_ATTEMPTS
+                        && Boolean.TRUE.equals(newVisitorIdOnThread.get()); attempt++) {
+                    newVisitorIdOnThread.set(false);
+                    playerResponseBuffer = buildPlayerStreamOrDetailsResponse(clientTypeStream,
+                            send(clientTypeStream, videoId, playerHeaders, showErrorToast, isDownload),
+                            videoId, isInline, isDownload);
+                }
+                newVisitorIdOnThread.set(false);
 
                 // Include TV_SABR_WII_U (Morphe 5c6b8418).
                 if ((clientTypeStream == ClientType.TV_SABR || clientTypeStream == ClientType.TV_SABR_WII_U)

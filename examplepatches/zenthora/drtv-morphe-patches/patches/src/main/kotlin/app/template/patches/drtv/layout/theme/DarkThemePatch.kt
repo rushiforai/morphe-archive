@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
@@ -17,6 +18,8 @@ import app.template.patches.shared.Constants.COMPATIBILITY_DRTV
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val DARK_CARD_BG_COLOR = -0xdbdbdc // #FF242424
 private const val WHITE_TEXT_COLOR = -0x1 // #FFFFFFFF
@@ -51,10 +54,30 @@ val darkThemePatch = bytecodePatch(
     dependsOn(darkThemeResourcePatch)
 
     execute {
-        fun Fingerprint.replaceMatchedLiteralWithColor(colorResId: Int) {
+        fun Fingerprint.replaceMatchedColor(
+            colorName: String,
+            colorResId: Int,
+            replaceAllOldColorId: Int? = null,
+        ) {
             val index = instructionMatches.first().index
-            val register = method.getInstruction<OneRegisterInstruction>(index).registerA
-            method.replaceInstruction(index, "const v$register, $colorResId")
+            val instruction = method.getInstruction(index)
+            if (instruction.opcode == Opcode.SGET) {
+                val fieldRef = (instruction as ReferenceInstruction).reference as FieldReference
+                if (replaceAllOldColorId != null) {
+                    method.replaceSgetColorField(fieldRef.definingClass, fieldRef.name, colorName)
+                } else {
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.replaceInstruction(index, "sget v$register, ${fieldRef.definingClass}->$colorName:I")
+                }
+            } else if (replaceAllOldColorId != null) {
+                method.findInstructionIndicesReversed(literal(replaceAllOldColorId.toLong())).forEach { matchIndex ->
+                    val register = method.getInstruction<OneRegisterInstruction>(matchIndex).registerA
+                    method.replaceInstruction(matchIndex, "const v$register, $colorResId")
+                }
+            } else {
+                val register = (instruction as OneRegisterInstruction).registerA
+                method.replaceInstruction(index, "const v$register, $colorResId")
+            }
         }
 
         fun Fingerprint.overrideParseColorMoveResult(colorInt: Int) {
@@ -93,12 +116,12 @@ val darkThemePatch = bytecodePatch(
             )
         }
 
-        // 2. Replace hardcoded resource literals in ViewHolders and Fragments
-        ItemSummarySetupDefaultAssetTitleFingerprint.replaceMatchedLiteralWithColor(whiteOneId)
-        TvStandardSetupAssetTitleBelowFingerprint.replaceMatchedLiteralWithColor(whiteOneId)
-        SearchFragmentSetupAutoCompleteViewFingerprint.replaceMatchedLiteralWithColor(whiteOneId)
-        SplashFragmentHideCoverViewFingerprint.replaceMatchedLiteralWithColor(colorPrimaryId)
-        EpisodesVhSetupLayoutFingerprint.replaceMatchedLiteralWithColor(whiteOneId)
+        // 2. Replace hardcoded resource literals or R$color field reads in ViewHolders and Fragments
+        ItemSummarySetupDefaultAssetTitleFingerprint.replaceMatchedColor("white_one", whiteOneId)
+        TvStandardSetupAssetTitleBelowFingerprint.replaceMatchedColor("white_one", whiteOneId)
+        SearchFragmentSetupAutoCompleteViewFingerprint.replaceMatchedColor("white_one", whiteOneId)
+        SplashFragmentHideCoverViewFingerprint.replaceMatchedColor("colorPrimary", colorPrimaryId)
+        EpisodesVhSetupLayoutFingerprint.replaceMatchedColor("white_one", whiteOneId, replaceAllOldColorId = colorPrimaryId)
 
         // 3. Replace R$color.black_six with R$color.white_one in ListItemViewHolderConfiguration.setupAssetTitleBelow
         ListItemSetupAssetTitleBelowFingerprint.method.replaceSgetColorField(

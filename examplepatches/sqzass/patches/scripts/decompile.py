@@ -93,9 +93,10 @@ def ensure_tools():
             zf.extractall(TOOLS_DIR / "jadx")
         if zip_path.exists():
             zip_path.unlink()
-        if os.name != "nt":
-            JADX_BAT.chmod(0o755)
-        print(f"[+] JADX installed successfully to {JADX_BAT}")
+
+    if os.name != "nt" and JADX_BAT.exists():
+        JADX_BAT.chmod(0o755)
+    print(f"[+] JADX ready at {JADX_BAT}")
 
 
 def find_java():

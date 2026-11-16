@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import app.morphed.extension.twitch.adblock.Problem;
+import app.morphed.extension.twitch.ui.Windows;
 
 /**
  * A small label in the top left corner of the stream's video while an ad is being blocked, in the
@@ -46,10 +47,6 @@ final class AdBreakIndicator {
     private static final long FLASH_MS = 3_000;
     /** Twitch's player view; its video surface is the one to label. Not obfuscated. */
     private static final String TWITCH_PLAYER_VIEW = "TwitchPlayerView";
-
-    /** WindowManagerGlobal and its list of window roots, looked up once (main thread only). */
-    private static Object windowManager;
-    private static Field windowViews;
 
     private final Problem.Reporter problems;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -267,7 +264,7 @@ final class AdBreakIndicator {
     private View findWatchedVideo(Player watched, List<View> previews) {
         Surface surface = PlayerRefresher.surfaceOf(watched);
         List<View> all = new ArrayList<>();
-        for (View root : rootViews(resumedActivity.get())) collectVideoViews(root, all);
+        for (View root : Windows.roots(resumedActivity.get())) collectVideoViews(root, all);
         // Videos in a scrolling list are feed previews (Live, Following, vertical feed), never the
         // stream being watched: Twitch's TextureViews cannot be matched to their player, so without
         // this the most visible preview would get the label of a stream playing elsewhere.
@@ -392,30 +389,6 @@ final class AdBreakIndicator {
         view.getGlobalVisibleRect(visible);
         return view.getWidth() + "x" + view.getHeight() + ", visible " + visible.toShortString()
                 + (insideTwitchPlayer(view) ? ", in TwitchPlayerView" : "");
-    }
-
-    /**
-     * Root views of all the app's windows, the activity first. Read from WindowManagerGlobal; if
-     * Android blocks that, only the activity's window is searched.
-     */
-    private static List<View> rootViews(Activity activity) {
-        List<View> roots = new ArrayList<>();
-        if (activity != null) roots.add(activity.getWindow().getDecorView());
-        try {
-            if (windowViews == null) {
-                Class<?> global = Class.forName("android.view.WindowManagerGlobal");
-                windowManager = global.getMethod("getInstance").invoke(null);
-                Field views = global.getDeclaredField("mViews");
-                views.setAccessible(true);
-                windowViews = views;
-            }
-            for (Object view : new ArrayList<>((List<?>) windowViews.get(windowManager))) {
-                if (view instanceof View && !roots.contains(view)) roots.add((View) view);
-            }
-        } catch (Throwable t) {
-            DebugLog.log("Label: other windows not readable (" + t + "), searching the activity only");
-        }
-        return roots;
     }
 
     private static TextView createLabel(Context context) {

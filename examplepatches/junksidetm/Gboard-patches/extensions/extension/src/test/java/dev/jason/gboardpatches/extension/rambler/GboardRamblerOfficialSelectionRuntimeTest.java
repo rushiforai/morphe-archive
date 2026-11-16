@@ -2,12 +2,32 @@ package dev.jason.gboardpatches.extension.rambler;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import dev.jason.gboardpatches.extension.advancedvoice.GboardAdvancedVoiceRuntimeSettings;
+import dev.jason.gboardpatches.extension.advancedvoice.GboardAdvancedVoiceSettings;
+
 public final class GboardRamblerOfficialSelectionRuntimeTest {
+    @Before
+    public void setUp() {
+        GboardAdvancedVoiceRuntimeSettings.setEnabledOverrideForTest(false);
+    }
+
     @After
     public void tearDown() {
         GboardRamblerOfficialSelectionRuntime.resetForTests();
+        GboardAdvancedVoiceRuntimeSettings.clearEnabledOverrideForTest();
+    }
+
+    @Test
+    public void ramblerEnabledPermanentlyOverridesOfficialSelector() {
+        GboardAdvancedVoiceRuntimeSettings.setEnabledOverrideForTest(true);
+        GboardAdvancedVoiceRuntimeSettings.setBackendOverrideForTest(
+                GboardAdvancedVoiceSettings.BACKEND_RAMBLER);
+        GboardRamblerOfficialSelectionRuntime.updateOfficialSelection(false);
+        Assert.assertTrue(
+                GboardRamblerOfficialSelectionRuntime.shouldEnableAgenticDictation());
     }
 
     @Test

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-13.
  */
 
@@ -511,6 +512,11 @@ internal class NativeCrossfadeBoundary(private val context: BytecodePatchContext
             method.name == "handleDismissWatchEvent" && method.parameterTypes.size == 1 && method.references().any {
                 it.definingClass == "Lcom/google/android/apps/youtube/music/watchpage/ui/WatchWhileLayout;"
             }
+        })
+    }
+    val watchWhileDismissed = boundary("watchWhileDismissed") {
+        executable(classes.flatMap { it.methods }.single { method ->
+            method.signature(emptyList(), "V") && "onWatchWhileDismissed" in method.strings()
         })
     }
     val loopState = boundary("loopState") {

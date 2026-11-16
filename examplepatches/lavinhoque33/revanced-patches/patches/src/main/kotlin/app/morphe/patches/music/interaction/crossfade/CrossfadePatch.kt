@@ -4,7 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3635
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.music.interaction.crossfade
@@ -87,6 +87,17 @@ internal fun MutableMethod.installModeSwitchHooks() {
         addInstruction(index + 1, "return-void")
     }
     addInstruction(0, "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->onVideoToggle(Ljava/lang/Object;)V")
+}
+
+/** Run after the native reset, which can otherwise reserve a fade without loading another song. */
+internal fun MutableMethod.installMiniplayerDismissalHook() {
+    val returns = instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
+    check(returns.isNotEmpty()) { "Miniplayer dismissal has no successful completion" }
+
+    returns.reversed().forEach { index ->
+        replaceInstruction(index, "invoke-static {}, $EXTENSION_CLASS->onQueueDismissed()V")
+        addInstruction(index + 1, "return-void")
+    }
 }
 
 /** Capture native capability before notification-only filtering, regardless of patch execution order. */
@@ -425,6 +436,7 @@ val crossfadePatch = bytecodePatch(
             )
 
             dismiss.addInstruction(0, "invoke-static {}, $EXTENSION_CLASS->onQueueDismissed()V")
+            watchWhileDismissed.installMiniplayerDismissalHook()
 
             playNext.addInstructions(
                 0,

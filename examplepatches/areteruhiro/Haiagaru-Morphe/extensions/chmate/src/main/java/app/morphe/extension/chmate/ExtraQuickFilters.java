@@ -379,7 +379,7 @@ public final class ExtraQuickFilters {
         }
         return null;
     }
-    private static Object adapter(Object fragment) throws Exception {
+    static Object adapter(Object fragment) throws Exception {
         View root=(View)call(fragment,"getView",new Class<?>[0]);
         View list=FilterPosition.findList(root);
         if(list==null)throw new IllegalStateException("Response list missing");
@@ -441,7 +441,7 @@ public final class ExtraQuickFilters {
         }
         refresh(a);
     }
-    private static void rebuild(Object a) throws Exception {
+    static void rebuild(Object a) throws Exception {
         if(legacy(a)||middle(a))call(a,legacy(a)?"c":"b",new Class<?>[]{boolean.class},false);
         else {
             Object snapshot=state(a).rawSnapshot; if(snapshot==null)return;
@@ -473,7 +473,7 @@ public final class ExtraQuickFilters {
         if(key!=null){Object r=field(row,key);return response(r)?r:null;}
         return null;
     }
-    private static Object index(Object a) throws Exception {
+    static Object index(Object a) throws Exception {
         if(legacy(a))return call(field(a,"M"),"b",new Class<?>[0]);
         if(!middle(a))return call(a,"a",new Class<?>[0]);
         Object m=model(a);

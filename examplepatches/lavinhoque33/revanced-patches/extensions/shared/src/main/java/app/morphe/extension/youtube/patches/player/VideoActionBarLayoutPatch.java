@@ -3,7 +3,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  * Licensed under the GNU General Public License v3.0.
- * Written by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * Ported from Morphe. See NOTICE for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -44,10 +44,12 @@ import app.morphe.extension.youtube.innertube.NextResponseOuterClass.SecondaryCo
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.SlimVideoMetadataSectionRenderer;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.TertiaryContents;
 import app.morphe.extension.youtube.patches.feed.FeedCardLayoutPatch;
+import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.Base64;
+import java.util.List;
 
 public final class VideoActionBarLayoutPatch {
     private static final String VIDEO_ACTION_BAR_TEMPLATE = "compactify_video_action_bar.eml";
@@ -76,6 +78,10 @@ public final class VideoActionBarLayoutPatch {
 
     private static final ByteTrieSearch actionBarSearch = new ByteTrieSearch(
             ByteTrieSearch.convertStringsToBytes(VIDEO_ACTION_BAR_TEMPLATE));
+    private static final ByteTrieSearch videoMetadataSearch = new ByteTrieSearch(
+            ByteTrieSearch.convertStringsToBytes("video_metadata.eml"));
+    private static final int[] SUBTITLE_CHANNEL_NAME_PATH = {1, 168777401, 5, 377581260, 6, 1019, 17, 1017, 1};
+    private static final int TEXT_COMMAND_RUNS_FIELD = 5;
 
     private static final class RuntimeLayout {
         static final VideoActionBarLayout LAYOUT = Settings.VIDEO_ACTION_BAR_LAYOUT.get().effective(
@@ -86,6 +92,32 @@ public final class VideoActionBarLayoutPatch {
 
     public static VideoActionBarLayout getLayout() {
         return RuntimeLayout.LAYOUT;
+    }
+
+    /** Injection point. The entire subtitle below the watch title should open the description. */
+    public static byte[] removeSubtitleChannelCommand(byte[] bytes) {
+        if (bytes == null || !videoMetadataSearch.matches(bytes)) {
+            return bytes;
+        }
+
+        try {
+            List<ProtoNode> element = ProtoNode.parse(bytes);
+            if (element == null) return bytes;
+
+            List<ProtoNode> channelName = ProtoNode.message(element, SUBTITLE_CHANNEL_NAME_PATH);
+            ProtoNode commandRuns = ProtoNode.field(channelName, TEXT_COMMAND_RUNS_FIELD);
+            if (commandRuns == null) return bytes;
+
+            do {
+                commandRuns.remove();
+                commandRuns = ProtoNode.field(channelName, TEXT_COMMAND_RUNS_FIELD);
+            } while (commandRuns != null);
+
+            return ProtoNode.write(element);
+        } catch (Exception ex) {
+            Logger.printException(() -> "removeSubtitleChannelCommand failure", ex);
+            return bytes;
+        }
     }
 
     /** Injection point. Unrelated elements and server-default layouts keep their original bytes. */

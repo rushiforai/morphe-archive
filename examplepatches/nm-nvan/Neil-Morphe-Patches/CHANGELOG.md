@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/nm-nvan/Neil-Morphe-Patches/compare/v1.0.0...v1.1.0) (2026-11-16)
+
+### ✨ New Features
+
+* support theScore 26.16.1 ([d242611](https://github.com/nm-nvan/Neil-Morphe-Patches/commit/d2426111fe75e3e87e16eeef2ae35821d2169d96))
+
+## [1.1.0-dev.1](https://github.com/nm-nvan/Neil-Morphe-Patches/compare/v1.0.0...v1.1.0-dev.1) (2026-11-16)
+
+### ✨ New Features
+
+* support theScore 26.16.1 ([d242611](https://github.com/nm-nvan/Neil-Morphe-Patches/commit/d2426111fe75e3e87e16eeef2ae35821d2169d96))
+
 ## 1.0.0 (2026-10-23)
 
 ### ✨ New Features

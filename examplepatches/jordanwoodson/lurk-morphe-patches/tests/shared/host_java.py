@@ -38,7 +38,7 @@ STUBS = {
     'android/content/Context.java': '''package android.content; public class Context {
         public static final int MODE_PRIVATE=0; public static final String ACCESSIBILITY_SERVICE="accessibility",AUDIO_SERVICE="audio";
         public Object getSystemService(String s){return null;} public <T>T getSystemService(Class<T> c){return null;}
-        public Object getContentResolver(){return null;}
+        public Object getContentResolver(){return null;} public java.io.File getCacheDir(){return null;} public Context getApplicationContext(){return this;}
         public android.content.res.Resources getResources(){return new android.content.res.Resources();}
         public SharedPreferences getSharedPreferences(String s,int m){throw new AssertionError("unexpected Context");} }''',
     'android/content/SharedPreferences.java': '''package android.content; public interface SharedPreferences {

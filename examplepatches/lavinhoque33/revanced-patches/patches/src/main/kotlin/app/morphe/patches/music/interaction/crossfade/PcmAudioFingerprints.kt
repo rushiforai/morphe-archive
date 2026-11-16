@@ -2,7 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
  * Written by lavinhoque33, 2026-11-12.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.music.interaction.crossfade
@@ -304,13 +304,38 @@ internal fun BytecodePatchContext.discoverPcmCrossfade(): PcmDiscovery {
     }
     check(allocation.registerA <= 15) { "PCM chain array register cannot be passed to adapter" }
 
+    // 9.45 reads the array through a getter. Follow its constructor store instead of requiring
+    // an inlined field read in the sink, preserving the same array on older merged chain classes.
+    val arrayStore = chainCode[allocationIndex + 1] as TwoRegisterInstruction
+    check(arrayStore.opcode == Opcode.IPUT_OBJECT &&
+        arrayStore.registerA == allocation.registerA && arrayStore.registerB == parameterStart - 1
+    ) { "PCM chain does not store its processor array on the receiver" }
+    val chainArray = arrayStore.getReference<FieldReference>()!!
+    check(chainArray.definingClass == chain.definingClass &&
+        (chainArray.type == nativeArray || chainArray.type == "Ljava/lang/Object;")
+    ) { "PCM chain processor array field has an unexpected owner or type" }
+
+    // 9.45 extracts three renderer branches into a static chain factory. Its ordinary and subclass
+    // paths still reach the same hooked constructor; count those call sites as well as direct ones.
+    val chainFactories = mutableSetOf<String>()
+    classDefForEach { owner ->
+        owner.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == chain.definingClass
+        }.forEach { method ->
+            if (method.code().any { it.getReference<MethodReference>()?.toString() == chain.toString() }) {
+                chainFactories.add(method.toString())
+            }
+        }
+    }
+
     val rendererMethods = mutableListOf<Pair<Method, Int>>()
     classDefForEach { owner ->
         owner.methods.filter {
             it.parameterTypes.firstOrNull()?.toString() == "Landroid/os/Handler;" && it.returnType.startsWith("[")
         }.forEach { method ->
             val count = method.code().count {
-                it.getReference<MethodReference>()?.toString() == chain.toString()
+                val reference = it.getReference<MethodReference>()?.toString()
+                reference == chain.toString() || reference in chainFactories
             }
             if (count > 0) rendererMethods.add(method to count)
         }
@@ -366,12 +391,6 @@ internal fun BytecodePatchContext.discoverPcmCrossfade(): PcmDiscovery {
                 it.type == chain.definingClass
         }
     }
-    val chainArray = sinkCode.firstNotNullOf { instruction ->
-        instruction.getReference<FieldReference>()?.takeIf {
-            instruction.opcode == Opcode.IGET_OBJECT && it.definingClass == chain.definingClass &&
-                (it.type == nativeArray || it.type == "Ljava/lang/Object;")
-        }
-    }
 
     val sinkClass = classDefBy(sink.definingClass)
     val position = sinkClass.methods.single {
@@ -389,8 +408,10 @@ internal fun BytecodePatchContext.discoverPcmCrossfade(): PcmDiscovery {
         }.map { holder to it }
     }
     val (outputHolder, nativeTrack) = holderTracks.single()
+    // 9.45 shares the flush body with reset and passes a Boolean to reset the trimming state.
     val flush = sinkClass.methods.single { method ->
-        method.returnType == "V" && method.parameterTypes.isEmpty() &&
+        method.returnType == "V" &&
+            (method.parameterTypes.isEmpty() || method.parameterTypes.map { it.toString() } == listOf("Z")) &&
             method.code().count {
                 it.opcode == Opcode.IPUT_WIDE &&
                     it.getReference<FieldReference>()?.definingClass == sink.definingClass

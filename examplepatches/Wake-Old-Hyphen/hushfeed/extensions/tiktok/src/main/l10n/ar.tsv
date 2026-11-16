@@ -1230,7 +1230,7 @@ Still here. Nothing is waiting.	ما زلت هنا. لا شيء في الانت�
 Still reading the record. Tap again in a moment.	لا يزال يقرأ السجل. انقر مرة أخرى بعد لحظة.
 Still saving the last one	لا يزال يتم حفظ الأخير
 The last one is still waiting to start	الأخير ما زال ينتظر البدء
-Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	يمنع TikTok من إرسال تقارير الاستخدام وتتبع الإعلانات وتقارير الأعطال. أدوات التشخيص الخاصة بـ TikTok تصمت أيضا.
+Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.	يمنع TikTok من إرسال تقارير الاستخدام وتتبع الإعلانات وتقارير الأعطال. أدوات التشخيص الخاصة بـ TikTok تصمت أيضا. أما الإعدادات التي يحمّلها TikTok للتحقق من طلباته فتستمر في الوصول.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	يمنع TikTok من إبطاء شاشتك لمطابقة معدل إطارات كل فيديو. على هاتف بتردد 90 أو 120 هرتز، يجعل هذا الطلب التطبيق كله، بما في ذلك التمرير، يعمل بشكل أبطأ.
 Keep the screen's brightness in the camera	احتفظ بسطوع الشاشة في الكاميرا
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	يمنع TikTok من رفع سطوع شاشتك أثناء تصوير فيديو أو تعديله أو نشره. لا يزال الفلاش الأمامي يجعل الشاشة بيضاء، ولكن بدرجة سطوعك أنت.
@@ -1947,7 +1947,7 @@ Video of photos	فيديو من الصور
 # context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
 debug debugging logs logging	تصحيح أخطاء تنقيح سجل سجلات تسجيل
 Export comments	تصدير التعليقات
-Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.	يضيف زرّي Export CSV و Export JSON أسفل مربع البحث، لذا يجب أن يكون البحث داخل التعليقات مفعلاً. يحفظان التعليقات والردود المحملة حتى الآن في ملف تختاره. افتح سلاسل الردود التي تريدها أولاً.
+Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.	يضيف زرّي Export CSV و Export JSON أسفل مربع البحث، لذا يجب أن يكون البحث داخل التعليقات مفعلاً. يحفظان التعليقات المحملة حتى الآن في ملف تختاره، بعد تحميل كل الردود عليها أولاً.
 Export CSV	تصدير CSV
 Export JSON	تصدير JSON
 1 comment or reply loaded	تم تحميل تعليق أو رد واحد
@@ -1958,6 +1958,9 @@ Export JSON	تصدير JSON
 %1$d comments and replies loaded|many	%1$d تعليق ورد محمل
 No comments are loaded to export yet.	لم يتم تحميل أي تعليقات للتصدير بعد.
 Exported %1$d comments and %2$d replies	تم تصدير %1$d تعليق و%2$d رد
+# context: Shown beside the Export buttons while the replies load. The first number is the replies loaded so far, the second how many TikTok says there are
+Loading replies, %1$d of %2$d	جارٍ تحميل الردود، %1$d من %2$d
+Some replies weren't loaded, so they aren't in the file.	لم يتم تحميل بعض الردود، لذا ليست في الملف.
 Comment export failed	فشل تصدير التعليقات
 Some of these notes are in English.	بعض هذه الملاحظات باللغة الإنجليزية.
 More than %1$d comments were loaded, so the rest aren't in the file.	تم تحميل أكثر من %1$d تعليق، لذا البقية ليست في الملف.
@@ -2024,7 +2027,7 @@ A LIVE you swipe to comes back with its chat, gifts and buttons showing. This ke
 Dark LIVE panels in dark mode	لوحات LIVE داكنة في الوضع الداكن
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	عندما يكون TikTok في الوضع الداكن، لا تزال غرفة LIVE تفتح قائمة المشاركة ونادي المعجبين ولوحات أخرى بألوان فاتحة. هذا يفتحها داكنة.
 Keep watching in a small window	مواصلة المشاهدة في نافذة صغيرة
-When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.	عندما تترك TikTok أثناء تشغيل فيديو، يستمر في التشغيل في نافذة صغيرة فوق تطبيقاتك الأخرى، مع زر لإيقافه مؤقتًا. يعمل في الخلاصة وفي الفيديوهات التي تفتحها من ملف شخصي أو بحث أو صوت. يتطلب Android 8 أو أحدث.
+When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.	عندما تترك TikTok أثناء تشغيل فيديو، يستمر في التشغيل في نافذة صغيرة فوق تطبيقاتك الأخرى، مع أزرار لإيقافه مؤقتًا وللانتقال إلى الفيديو السابق أو التالي. يعمل في الخلاصة وفي LIVE وفي الفيديوهات التي تفتحها من ملف شخصي أو بحث أو صوت. يتطلب Android 8 أو أحدث.
 Play	تشغيل
 Pause	إيقاف مؤقت
 Posting	النشر
@@ -2430,7 +2433,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	ترجمة تلقائية لدردشة LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	زر «ترجمة التعليقات» في غرفة LIVE يحتاج أيضًا إلى شريحة SIM يابانية. فعّل تجاوز تفاصيل SIM في إعدادات Hushfeed > المنطقة، واضبط إعداد الدولة لبطاقة SIM على Japan، NTT DOCOMO (44010)، ثم أعد تشغيل TikTok.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	لا تظهر التعليقات المتحركة إلا على مقاطع الفيديو التي قام TikTok بتفعيلها، لذا تبقى معظم المقاطع كما هي.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	تحصل الفيديوهات العريضة التي يسمح بها TikTok على زر لإضافة تعليق من سطر واحد أسفل الفيديو، وعلى شريط لهذه التعليقات في وضع ملء الشاشة. تبقى الفيديوهات الأخرى كما هي.
 
 Pick videos to save from profile grids	اختر الفيديوهات لحفظها من شبكات الملف الشخصي
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	يضع دائرة على كل فيديو في شبكة ملف شخصي أو أعجبني أو المفضلات. اختر حتى %1$s، ثم انقر على حفظ لحفظها واحدا تلو الآخر، مع عداد وزر إلغاء.
@@ -2511,7 +2514,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	إخفاء «الرصيد» في قائمة الملف الشخصي
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	أخف الرصيد من القائمة التي يفتحها الزر أعلى يمين ملفك الشخصي. عملاتك وهداياك تبقى كما هي.
 See-through status bar	شريط حالة شفاف
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	يتيح للفيديو أن يصل إلى أعلى الشاشة في الخلاصة الرئيسية، مع ظهور الساعة وأيقونات الحالة فوقه. تبقى علامات التبويب في الأعلى مكانها.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	يتيح للفيديو أن يصل إلى أعلى الشاشة، مع ظهور الساعة وأيقونات الحالة فوقه. يعمل في الخلاصة الرئيسية وفي الفيديوهات التي تفتحها من البحث أو من ملف شخصي أو من الإعجابات والمفضلة. تبقى علامات التبويب في الأعلى مكانها.
 Floating bottom bar	شريط سفلي عائم
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	اعرض تبويبات الخلاصة الرئيسية على كبسولة مستديرة شفافة داكنة تطفو فوق الفيديو. يتطلب شريط سفلي شفاف.
 Liquid glass look	مظهر الزجاج السائل
@@ -2530,9 +2533,9 @@ Most see-through	الأكثر شفافية
 More see-through	أكثر شفافية
 Frosted	مصنفر
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	كم يظهر من الفيديو عبر الحبة الزجاجية في الخلاصة الرئيسية. الأكثر شفافية يُظهر الأكثر، والمصنفر يُظهر الأقل.
-On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	في الخلاصة الرئيسية، توجد فقاعة زجاجية بارزة خلف التبويب الذي أنت فيه وتنزلق إلى التبويب التالي الذي تختاره. يتطلب مظهر الزجاج السائل.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	في الخلاصة الرئيسية، توجد فقاعة زجاجية بارزة خلف التبويب الذي أنت فيه وتنزلق إلى التبويب التالي الذي تختاره. يعمل مع أي شريط سفلي، مع مظهر الزجاج السائل أو بدونه.
 Slide across the tabs	التمرير عبر التبويبات
-On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، مرر إصبعك على الكبسولة الزجاجية وستتبعها العدسة. اترك إصبعك وسيفتح هذا التبويب. النقرات والضغط المطول يعملان كما في السابق. يتطلب عدسة زجاجية على التبويب الحالي.
+On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، مرر إصبعك على التبويبات وستتبعه العدسة. اترك إصبعك وسيفتح هذا التبويب. النقرات والضغط المطول يعملان كما في السابق. يتطلب عدسة زجاجية على التبويب الحالي.
 Haptics on the tabs	الاهتزاز على التبويبات
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، صوت نقرة خفيفة في كل مرة تمر فيها العدسة الزجاجية فوق تبويب، أثناء انزلاقها بعد النقر أو تحت إصبعك. يتطلب «عدسة زجاجية على التبويب الحالي».
 Haptic style	نمط الاهتزاز
@@ -2629,6 +2632,54 @@ Collapsed	مطوي
 This setting isn't available. Search for another setting.	هذا الإعداد غير متاح. ابحث عن إعداد آخر.
 Hide the Hushfeed row	إخفاء صف Hushfeed
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	أخرج Hushfeed من الإعدادات والخصوصية في TikTok. لفتح هذه الإعدادات، اضغط باستمرار على «لك» أعلى الخلاصة، أو «الرئيسية» إذا كان خيار اضغط باستمرار على «الرئيسية» لفتح إعدادات Hushfeed قيد التشغيل. إذا لم يتمكن أي منهما من فتحها، يبقى الصف.
+# context: Title of the checklist that hides rows from TikTok's own Settings and privacy page
+Hide Settings and privacy rows	إخفاء صفوف الإعدادات والخصوصية
+# context: Note under that title. A section's title is the small heading over a group of rows on that page
+Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.	اختر الصفوف التي تريد إزالتها من صفحة الإعدادات والخصوصية في TikTok. يُطبَّق هذا في المرة التالية التي تُفتح فيها الصفحة، والقسم الذي لا يبقى فيه أي صف يفقد عنوانه أيضًا.
+# context: Checklist rows, each one a row of TikTok's Settings and privacy page. Use the label TikTok itself shows for that row in this language
+Activity center	مركز النشاط
+Manage posts	إدارة المنشورات
+Content preferences	تفضيلات المحتوى
+Notifications	الإشعارات
+Time and well-being	الوقت والرفاهية
+Family Pairing	الاقتران العائلي
+Sign up	التسجيل
+Account	الحساب
+Security & permissions	الأمان والأذونات
+Analytics	التحليلات
+Orders	الطلبات
+Balance	الرصيد
+QR code	رمز QR
+Share profile	مشاركة الملف الشخصي
+TikTok Plus	TikTok Plus
+Invite friends	دعوة الأصدقاء
+Inbox mode	وضع البريد الوارد
+Audience controls	عناصر التحكم في الجمهور
+Background audio	الصوت في الخلفية
+Display	العرض
+Commercial content library	مكتبة المحتوى التجاري
+Accessibility	إمكانية الوصول
+Home screen shortcuts	اختصارات الشاشة الرئيسية
+Join Amplify	الانضمام إلى Amplify
+Contacts and location	جهات الاتصال والموقع
+Shake to report	هزّ للإبلاغ
+Free up space	تحرير مساحة
+Data Saver	توفير البيانات
+Free data	بيانات مجانية
+Live wallpaper	خلفية حية
+Check for updates	التحقق من التحديثات
+Lite mode	وضع Lite
+TikTok Beta	TikTok Beta
+Safety Center	مركز الأمان
+Privacy Center	مركز الخصوصية
+Privacy checkup	فحص الخصوصية
+Support	الدعم
+Deactivate or delete account	إلغاء تنشيط الحساب أو حذفه
+Terms and Policies	الشروط والسياسات
+Policy updates	تحديثات السياسة
+What's new on TikTok	الجديد على TikTok
+Switch account	تبديل الحساب
+Log out	تسجيل الخروج
 Open the search page	فتح صفحة البحث
 Search didn't open. Restart TikTok and try again.	لم يتم فتح البحث. أعد تشغيل TikTok وحاول مرة أخرى.
 Fold the search into a button	طي البحث في زر
@@ -3013,3 +3064,47 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	لم تظهر أي تبويبات بحث حتى الآن
 Search for something once, then return here to choose its tabs.	ابحث عن شيء مرة واحدة، ثم عد إلى هنا لاختيار تبويباته.
+Video download codec	ترميز تنزيل الفيديو
+HEVC first	HEVC أولاً
+H.264 only	H.264 فقط
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	عند الجودة نفسها، يحفظ الوضع التلقائي بصيغة H.264 التي تفتحها معظم المشغلات. غالباً ما يكون HEVC أوضح، لكن بعض المشغلات وأجهزة التلفاز القديمة لا تستطيع تشغيله.
+Pick which stories to save	اختيار القصص التي تريد حفظها
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	عندما يكون لدى شخص أكثر من قصة، يسألك الحفظ عن القصص التي تريد الاحتفاظ بها. القصة التي تشاهدها محددة مسبقًا.
+Pick stories to save	اختر القصص المراد حفظها
+%1$s of %2$s stories are loaded. Watch further to load the rest.	تم تحميل %1$s من %2$s قصة. تابع المشاهدة لتحميل الباقي.
+Story %1$s	القصة %1$s
+On screen	على الشاشة
+Pick at least one story	اختر قصة واحدة على الأقل
+Shade behind the status bar	تظليل خلف شريط الحالة
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	تدرج داكن خفيف خلف الساعة وأيقونات الحالة، لتبقى سهلة القراءة فوق فيديو ساطع. يتطلب «شريط حالة شفاف».
+Glass Stories button on Following	زر القصص الزجاجي في أتابعه
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	يتحول زر القصص أعلى خلاصة أتابعه إلى زجاج بأطراف دائرية. على Android 12 والأحدث، يصبح الفيديو خلفه ضبابيًا أيضًا.
+# context: Row title of the Inbox switch that shows the send time under each message in a chat
+Show message times	إظهار أوقات الرسائل
+# context: Summary under that switch; TikTok itself only shows a time over a message after a gap
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.	يعرض تحت كل رسالة في الدردشة وقت إرسالها. تبقى الأوقات التي يعرضها TikTok في مكانها.
+This photo post is already saved	منشور الصور هذا محفوظ بالفعل
+This story is already saved	هذه القصة محفوظة بالفعل
+Stretch the video to the screen	مدّ الفيديو ليملأ الشاشة
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.	يغطي النافذة بأكملها دون قص أي شيء. يصبح الفيديو أطول أو أعرض قليلًا لذلك. الفيديو الذي يختلف شكله كثيرًا عن شكل الشاشة يحتفظ بحجم TikTok.
+Sort loaded videos on Favorites grids	رتب الفيديوهات المحملة في شبكات المفضلات
+Show the country and date under the caption	اعرض البلد والتاريخ تحت الوصف
+Moves the country and the post date off the creator's row onto a line of their own below the caption.	ينقل البلد وتاريخ النشر من صف صانع المحتوى إلى سطر خاص بهما أسفل الوصف.
+# context: picture-in-picture window button that moves TikTok's feed
+Previous video	الفيديو السابق
+# context: picture-in-picture window button that moves TikTok's feed
+Next video	الفيديو التالي
+Sort loaded videos in collections	رتب الفيديوهات المحملة في المجموعات
+Same as Favorites grids	مثل شبكات المفضلات
+Hide the summary on LIVE previews	إخفاء الملخص في معاينات LIVE
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.	يمكن أن يعرض LIVE في الخلاصة بطاقة ملخص تلخص البث. هذا يبقيها مخفية.
+Look up a commenter's country	البحث عن بلد المعلق
+Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.	اضغط مطولاً على تعليق لتجد إظهار بلد الحساب في قائمته. يسأل TikTok عن مكان هذا الحساب، أو من أين نُشرت أحدث فيديوهاته.
+Show account country	إظهار بلد الحساب
+Account based in %1$s	الحساب موجود في %1$s
+TikTok gives no country for this account	لا يعطي TikTok بلدًا لهذا الحساب
+Couldn't get the country. Try again.	تعذر الحصول على البلد. حاول مرة أخرى.
+Account country on profiles	بلد الحساب في الملفات الشخصية
+A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	تحصل ورقة المشاركة في الملف الشخصي على زر بلد الحساب. يسأل TikTok عن مكان هذا الحساب، أو من أين نُشرت أحدث فيديوهاته.
+Account country	بلد الحساب
+Videos posted from %1$s	الفيديوهات منشورة من %1$s

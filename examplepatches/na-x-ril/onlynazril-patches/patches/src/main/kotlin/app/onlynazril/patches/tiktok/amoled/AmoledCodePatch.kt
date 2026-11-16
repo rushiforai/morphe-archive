@@ -1,6 +1,9 @@
 package app.onlynazril.patches.tiktok.amoled
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.literal
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.findMutableMethodOf
@@ -11,10 +14,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 
 /**
- * Opaque dark surface colours that appear as constants in code rather than as resources.
+ * Opaque dark surface colors that appear as constants in code rather than as resources.
  *
- * Compose colour schemes and a few hand-built views carry their surface as a literal. The values
- * are the same ones [AMOLED] maps in resources, restricted to opaque colours so a random integer
+ * Compose color schemes and a few hand-built views carry their surface as a literal. The values
+ * are the same ones [AMOLED] maps in resources, restricted to opaque colors so a random integer
  * that happens to be small is not mistaken for one.
  */
 private val DARK_LITERALS = setOf(
@@ -53,52 +56,76 @@ private fun isDarkNarrow(instruction: Instruction): Boolean {
  */
 private fun isDarkWide(instruction: Instruction): Boolean {
     val literal = (instruction as? WideLiteralInstruction)?.wideLiteral ?: return false
-    if (literal ushr 32 != 0L) return false
-    return (literal and 0xFFFFFFFFL) in DARK_LITERALS
+    return literal ushr 32 == 0L && (literal and 0xFFFFFFFFL) in DARK_LITERALS
 }
+
+/**
+ * The methods that hold one of the dark colours above.
+ *
+ * A 32-bit colour reaches dex in one of two encodings: a narrow `const` sign-extends it to 64
+ * bits, while a Compose `Color` uses a wide `const-wide` with the 32-bit value itself. Both
+ * encodings of every colour are declared, so the patcher's literal index names the handful of
+ * methods to inspect instead of the pass walking every class and every method in the bundle.
+ */
+private val DarkLiteralFingerprint = Fingerprint(
+    filters = listOf(
+        anyInstruction(
+            *DARK_LITERALS.flatMap { colour ->
+                listOf(literal(colour), literal(colour.toInt().toLong()))
+            }.toTypedArray(),
+        ),
+    ),
+)
 
 /**
  * Replaces those constants with black in every method that carries one.
  *
- * The resource patch reaches colours the app looks up by name. A Compose `Color(0xFF1E1E1E)`,
+ * The resource pass reaches colours the app looks up by name. A Compose `Color(0xFF1E1E1E)`,
  * or a view that builds its background from a literal, never passes through the resource table,
  * which is why the Notes composer kept a gray bar after the resource pass. The register and the
  * instruction are reused; only the literal changes.
+ *
+ * The patch has no name, so the patcher's loader does not list it: `AMOLED theme` is the one patch
+ * a user sees, and this pass runs as its dependency.
  */
 @Suppress("unused")
 val amoledCodePatch = bytecodePatch(
-    name = "AMOLED code colours",
-    description = "Replaces opaque dark surface colours held as constants in code with black. " +
-        "Pulled in by AMOLED theme; does nothing for resources.",
+    name = null,
+    description = "The code-constant pass behind AMOLED theme: replaces opaque dark surface " +
+        "colours held as constants in code with black.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
 
     execute {
         var changed = 0
-        classDefForEach { classDef ->
-            // Only a class that actually carries one of the literals is made mutable. Converting
-            // every class and method first was what made the pass crawl.
-            val hits = classDef.methods.mapNotNull { method ->
-                val instructions = method.implementation?.instructions ?: return@mapNotNull null
+
+        // Only methods that carry one of the indexed literals are visited, and only those
+        // classes are made mutable. Converting every class and method first was what made the
+        // pass crawl; the fingerprint narrows the work before anything is touched.
+        val matches = DarkLiteralFingerprint.matchAllOrNull().orEmpty()
+        for ((type, methods) in matches.groupBy { it.originalClassDef.type }) {
+            val mutableClass = mutableClassDefBy(type)
+            for (match in methods) {
+                val method = match.originalMethod
+                val instructions = method.implementation?.instructions ?: continue
                 val indices = instructions.withIndex().mapNotNull { (index, instruction) ->
                     if (isDarkNarrow(instruction) || isDarkWide(instruction)) index else null
                 }
-                if (indices.isEmpty()) null else method to indices
-            }
-            if (hits.isEmpty()) return@classDefForEach
+                if (indices.isEmpty()) continue
 
-            val mutableClass = mutableClassDefBy(classDef.type)
-            hits.forEach { (method, indices) ->
                 val mutable = mutableClass.findMutableMethodOf(method)
                 indices.asReversed().forEach { index ->
-                    val instruction = method.implementation!!.instructions.elementAt(index)
+                    val instruction = instructions.elementAt(index)
                     val register = (instruction as OneRegisterInstruction).registerA
                     val replacement = if (isDarkWide(instruction)) {
-                        // Compose Color is a long: the colour is the low 32 bits.
-                        "const-wide v$register, 0x0"
+                        // Compose Color is a long: the colour is the low 32 bits. The `L`
+                        // suffix makes the assembler parse a 64-bit literal; without it the
+                        // 32-bit value is sign-extended through the high half.
+                        val literal = AMOLED_BLACK.toString(16).padStart(16, '0')
+                        "const-wide v$register, 0x${literal}L"
                     } else {
-                        "const v$register, ${0xFF000000L.toInt()}"
+                        "const v$register, ${AMOLED_BLACK.toInt()}"
                     }
                     mutable.replaceInstruction(index, replacement)
                     changed++

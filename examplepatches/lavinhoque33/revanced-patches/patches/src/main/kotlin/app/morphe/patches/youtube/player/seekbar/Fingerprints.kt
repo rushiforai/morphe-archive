@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.player.seekbar
@@ -124,6 +124,21 @@ internal object LottieAnimationViewSetAnimationIntFingerprint : Fingerprint(
     )
 )
 
+/**
+ * Splash initialization is in MainActivity.onCreate on older versions and its delegate on 21.44+.
+ */
+internal object LottieSplashAnimationInitializerFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.RAW, "startup_animation_dark"),
+        methodCall(
+            definingClass = LOTTIE_ANIMATION_VIEW_CLASS_TYPE,
+            parameters = listOf("I"),
+            returnType = "V",
+        ),
+    ),
+)
+
 private object LottieCompositionFactoryZipFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     parameters = listOf("Landroid/content/Context;", "Ljava/util/zip/ZipInputStream;", "Ljava/lang/String;"),
@@ -183,25 +198,57 @@ internal object SeekbarTappingFingerprint : Fingerprint(
 
 internal object ModernOnTouchEventHandlerFingerprint : Fingerprint(
     name = "onTouchEvent",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.PUBLIC),
+    accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Z",
-    parameters = listOf("L"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.RETURN,
-        Opcode.IGET_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.RETURN,
-        Opcode.INT_TO_FLOAT,
-        Opcode.INT_TO_FLOAT,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT,
-        Opcode.IF_EQZ,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.INVOKE_VIRTUAL,
-    )
+    parameters = listOf("Landroid/view/MotionEvent;"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = "this",
+            parameters = listOf("I"),
+            returnType = "V",
+        ),
+        // The move branch returns through a shared label on 21.42+, rather than returning here.
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            location = MatchAfterWithin(1),
+        ),
+        fieldAccess(opcode = Opcode.IGET_BOOLEAN, type = "Z", location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = "this",
+            parameters = emptyList(),
+            returnType = "V",
+            location = MatchAfterImmediately(),
+        ),
+        opcode(Opcode.INT_TO_FLOAT, location = MatchAfterWithin(1)),
+        opcode(Opcode.INT_TO_FLOAT, location = MatchAfterImmediately()),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = "this",
+            parameters = listOf("F", "F"),
+            returnType = "Z",
+            location = MatchAfterImmediately(),
+        ),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = "this",
+            parameters = emptyList(),
+            returnType = "V",
+            location = MatchAfterImmediately(),
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = "this",
+            parameters = listOf("I"),
+            returnType = "V",
+            location = MatchAfterImmediately(),
+        ),
+    ),
 )
 
 internal object ModernTapToSeekFingerprint : Fingerprint(
@@ -421,8 +468,12 @@ internal object SeekbarBigBoardsUpdateFingerprint : Fingerprint (
     parameters = listOf(),
     filters = listOf(
         literal(1),
-        opcode(opcode = Opcode.IF_NEZ, location = MatchAfterImmediately()),
-        opcode(opcode = Opcode.RETURN, location = MatchAfterImmediately())
+        // Match the three excluded player states, not the older null-check return layout.
+        opcode(Opcode.SGET_OBJECT),
+        opcode(Opcode.IF_EQ, location = MatchAfterImmediately()),
+        opcode(Opcode.SGET_OBJECT, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQ, location = MatchAfterImmediately()),
+        opcode(Opcode.SGET_OBJECT, location = MatchAfterImmediately()),
     )
 )
 

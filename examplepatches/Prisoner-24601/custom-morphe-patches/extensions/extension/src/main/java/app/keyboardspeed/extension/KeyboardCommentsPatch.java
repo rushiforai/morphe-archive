@@ -1,10 +1,14 @@
 package app.keyboardspeed.extension;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -62,9 +66,12 @@ public final class KeyboardCommentsPatch {
     }
 
     private static void toggleComments(Activity activity) {
-        if (Boolean.TRUE.equals(Morphe.isPanelOpen(COMMENTS_PANEL_IDS))) {
-            // Back closes the panel, the same as the back button.
-            activity.onBackPressed();
+        // A panel shown on screen, such as the comments, is closed with the close button of its header,
+        // the same as tapping it. Back is not used, as it minimizes the video if no panel is open.
+        // Morphe's list of open panels is not used either, as it misses some closings of panels.
+        View closeButton = findShownPanelCloseButton(activity);
+        if (closeButton != null) {
+            closeButton.performClick();
             return;
         }
 
@@ -82,6 +89,52 @@ public final class KeyboardCommentsPatch {
                 showPanel(COMMENTS_PANEL_IDS.get(1));
             }
         }, PANEL_OPEN_CHECK_DELAY_MS);
+    }
+
+    /**
+     * The header of an engagement panel (id panel_header) is next to the close button of the panel (id close_button).
+     * Panels that are closed can stay in the views, hidden or slid off screen, so only a header shown on screen counts.
+     *
+     * @return The close button of the panel shown on screen, or null if no panel is shown.
+     */
+    @SuppressLint("DiscouragedApi")
+    private static View findShownPanelCloseButton(Activity activity) {
+        final int headerId = activity.getResources().getIdentifier("panel_header", "id", activity.getPackageName());
+        final int closeId = activity.getResources().getIdentifier("close_button", "id", activity.getPackageName());
+        if (headerId == 0 || closeId == 0) {
+            return null;
+        }
+        return findShownCloseButton(activity.getWindow().getDecorView(), headerId, closeId, new Rect());
+    }
+
+    private static View findShownCloseButton(View view, int headerId, int closeId, Rect visible) {
+        if (!view.isShown()) {
+            return null;
+        }
+        if (view.getId() == headerId) {
+            if (!view.getGlobalVisibleRect(visible) || visible.isEmpty()) {
+                return null;
+            }
+            // The close button is next to the header in the header wrapper (panel_header_wrapper), not inside it.
+            View container = view;
+            for (int level = 0; level < 3 && container != null; level++) {
+                View closeButton = container.findViewById(closeId);
+                if (closeButton != null && closeButton.isShown()) {
+                    return closeButton;
+                }
+                container = container.getParent() instanceof View parent ? parent : null;
+            }
+            return null;
+        }
+        if (view instanceof ViewGroup group) {
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findShownCloseButton(group.getChildAt(i), headerId, closeId, visible);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     private static boolean showPanel(String panelId) {

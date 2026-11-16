@@ -1,6 +1,7 @@
 package com.kveld9.morphe.extra.extension;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -15,23 +16,30 @@ import java.security.MessageDigest;
 import java.util.Map;
 
 public class MoovitHelper {
+    private static volatile boolean initialized = false;
     private static volatile String pkg;
     private static final String EXPECTED_SHA1 = "c56abf7c6890113ed6654e381e2a1797da3e7f6a";
     private static final String ORIGINAL_CERT_HEX = "308202e3308201cba00302010202044466415d300d06092a864886f70d01010b05003021310b300906035504061302494c31123010060355040a13095472616e7a6d6174653020170d3132303332363137343031315a180f32303632303331343137343031315a3021310b300906035504061302494c31123010060355040a13095472616e7a6d61746530820122300d06092a864886f70d01010105000382010f003082010a028201010087bedc6b170764c5bca1ea3e9d1ebb00a2398731e03f83e6c90f75379f9b178e4a27616211955991b7a18279f4b6f6c06e81fbfc440bcefafb63039dcff929bcc461ccaa7dfc04d6489785dae1abca340b404b83a0763950747b48a3239ba5b12968e4713b15272043c127d3df7b2eb692fc39ce7aac1411a82981815e2d2587952b05bcaf8b3b4d7f63e9dd7e4ca39c40b63a65e79a2c9b22b6699d6d1ee8c4bc890cf5c6bc4edc1bc18df450af3ea93be11d9cab8e7c240a29a987a6f1f9bf95ae59bd3d2d4387750788b0611678f3e8374bb8547c1ca3a68918a856d17f934e05c60c233447d2da5fe9dc50e2b0d0c481ea2e066d8531d26c77c5d65873ad0203010001a321301f301d0603551d0e04160414200a489821eac3b85b8905bf305210890a0b5229300d06092a864886f70d01010b050003820101002195db14b98be526c79eb10f2628da6c5f25a9123cdbe3fc1279d485758e6acc0a64bc36370801b6472bc212618481a29462e8890110ffac423195b9978500e0b7cbc3264d83288686659847c8fd701860ea4d23ee77a74b4cf9e18d2a2b1f0b540106c519c0c1a45622f756b8b2925d39fc93ea090858410cf2ceeb14f70571c5c16a3d0ab4b904bbf4efe8abc2322000513fe25863ec1e0f026c24d2986e67053726093b36c966a446768fa988d17a6d87dfe9820aa7b6267ba81f0ef446d93f7079ecbdb0ff0fdf5bca90cf0e3161a5aff941949e666f9b385ae723614f03b7c361c4f56a96ea453e24df932e67249714b1a762f511cde08f7135adcda580";
 
-    public static void init(Application app) {
+    public static synchronized void init(Context context) {
+        if (initialized) return;
+        initialized = true;
         try {
-            if (app != null) {
-                pkg = app.getPackageName();
+            if (context != null) {
+                pkg = context.getPackageName();
             }
             bypassHiddenApi();
             Object proxy = installPackageManagerProxy();
             installServiceManagerHook(proxy);
-            verifySpoof(app);
+            verifySpoof(context);
         } catch (Throwable t) {
             String msg = t.getMessage();
             System.out.println("[Fix Google Maps] Spoof inactive: " + (msg != null ? msg : t.getClass().getSimpleName()) + ".");
         }
+    }
+
+    public static void init(Application app) {
+        init((Context) app);
     }
 
     private static void bypassHiddenApi() {
@@ -98,9 +106,28 @@ public class MoovitHelper {
     }
 
     private static boolean isPackageInfoCall(Method method, Object[] args) {
-        if (pkg == null || args == null || args.length == 0 || !pkg.equals(args[0])) return false;
+        if (pkg == null || args == null || args.length == 0 || args[0] == null) return false;
         if (!PackageInfo.class.isAssignableFrom(method.getReturnType())) return false;
-        return method.getName().contains("PackageInfo");
+        if (!method.getName().contains("PackageInfo")) return false;
+        String requestedPkg = extractPackageName(args[0]);
+        return pkg.equals(requestedPkg);
+    }
+
+    private static String extractPackageName(Object obj) {
+        if (obj instanceof String) {
+            return (String) obj;
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (obj instanceof android.content.pm.VersionedPackage) {
+                return ((android.content.pm.VersionedPackage) obj).getPackageName();
+            }
+        }
+        try {
+            Method m = obj.getClass().getMethod("getPackageName");
+            Object res = m.invoke(obj);
+            if (res instanceof String) return (String) res;
+        } catch (Throwable ignored) {}
+        return null;
     }
 
     private static Object invokeTarget(Object target, Method method, Object[] args) throws Throwable {
@@ -146,8 +173,8 @@ public class MoovitHelper {
         );
     }
 
-    private static void verifySpoof(Application app) {
-        if (app == null) {
+    private static void verifySpoof(Context context) {
+        if (context == null) {
             System.out.println("[Fix Google Maps] Spoof inactive: application context is null.");
             return;
         }
@@ -169,18 +196,18 @@ public class MoovitHelper {
             String msg = t.getMessage();
             System.out.println("[Fix Google Maps] Spoof inactive: " + (msg != null ? msg : t.getClass().getSimpleName()) + ".");
         }
-        probePlayServices(app);
+        probePlayServices(context);
     }
 
-    private static void probePlayServices(Application app) {
-        if (app == null) return;
+    private static void probePlayServices(Context context) {
+        if (context == null) return;
         try {
             Class<?> gmsClass = Class.forName("com.google.android.gms.common.GoogleApiAvailability");
             Object instance = gmsClass.getField("f").get(null);
             Class<?> aClass = Class.forName("com.google.android.gms.common.a");
             int minVersion = aClass.getField("a").getInt(null);
             Method checkMethod = aClass.getMethod("c", android.content.Context.class, int.class);
-            int code = (Integer) checkMethod.invoke(instance, app, minVersion);
+            int code = (Integer) checkMethod.invoke(instance, context, minVersion);
             System.out.println("[Fix Google Maps] Play Services availability: " + code + ".");
             if (code == 1 || code == 3 || code == 9) {
                 System.out.println("[Fix Google Maps] Setup note: Play Services unavailable (" + code + "); Google engine will fall back to Nutiteq.");

@@ -42,7 +42,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import org.w3c.dom.Element
 import java.util.logging.Logger
-import app.morphe.patcher.patch.PatchAvailability
+import app.heymelody.patches.shared.Constants.COMPATIBILITY_HEY_MELODY
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/all/versioncode/DisablePlayStoreUpdatesPatch;"
 
@@ -74,9 +74,9 @@ internal val disablePlayStoreUpdatesPatch = bytecodePatch(
     description = "Disables Play Store updates by setting the version code to the maximum allowed. " +
             "This patch may cause unexpected issues with some apps and does not work if the " +
             "app is installed by root mounting",
-    default = false
+    default = true
 ) {
-    availability { _, _ -> PatchAvailability.ENABLED }
+    compatibleWith(COMPATIBILITY_HEY_MELODY)
     dependsOn(disablePlayStoreUpdatesResourcePatch)
 
     extendWith("extensions/all/versioncode/change-version-code.mpe")

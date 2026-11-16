@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -61,7 +61,7 @@ jobs:
             adb shell chmod 444 /data/local/tmp/manager.apk /data/local/tmp/probe.jar /data/local/tmp/patches-1.0.1.mpp
             adb shell dalvikvm -cp /data/local/tmp/manager.apk:/data/local/tmp/probe.jar AndroidBundleSmoke /data/local/tmp/patches-1.0.1.mpp | tee build/android-loader.log
             grep -q ANDROID_LOADER_PASS build/android-loader.log
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: manager-compatible-bundle
           path: |
@@ -75,7 +75,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: manager-compatible-bundle
       - name: Publish verified bundle

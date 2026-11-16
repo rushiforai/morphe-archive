@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -49,7 +50,17 @@ internal val streamSwapCallerFingerprint = Fingerprint(
 internal fun streamSwapWrapperFingerprint(responseType: String) = Fingerprint(
     name = "<init>",
     interfaces = listOf(responseType),
-    parameters = listOf("L", "Lj$/time/Instant;", "J", "L", "L", "Z"),
+    custom = { method, _ ->
+        val shape = method.parameterTypes.map {
+            when {
+                it.toString() == "Lj$/time/Instant;" -> it.toString()
+                it.startsWith("L") -> "L"
+                else -> it.toString()
+            }
+        }
+        shape == listOf("L", "Lj$/time/Instant;", "J", "L", "L", "Z") ||
+            shape == listOf("L", "J", "L", "L", "Z")
+    },
 )
 
 private val consumerOpcodes = listOf(

@@ -28,6 +28,14 @@ public final class FilterPosition {
         fragments.add(new WeakReference<>(fragment));
     }
 
+    static Object currentThread(android.app.Activity activity,String url){
+        for(int i=fragments.size()-1;i>=0;i--){Object fragment=fragments.get(i).get();if(fragment==null)continue;
+            try{if(Haiagaru.toolbarActivity(fragment)!=activity)continue;
+                String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+                if(url.equals(NativeThreadContext.url(NativeThreadContext.board(fragment,version),version,1)))return fragment;
+            }catch(Exception ignored){}
+        }return null;
+    }
     public static void beforeModel(Object model) {
         if (!Haiagaru.keepQuickFilterPosition()) return;
         for (WeakReference<Object> ref : new ArrayList<>(fragments)) {

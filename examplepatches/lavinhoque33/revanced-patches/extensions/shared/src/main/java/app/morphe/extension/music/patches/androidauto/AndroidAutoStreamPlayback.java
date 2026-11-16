@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14
  * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-11-10.
  */
@@ -30,12 +31,14 @@ final class AndroidAutoStreamPlayback {
         return generation.incrementAndGet();
     }
 
-    void resolve(long request, Callable<byte[]> resolve, Consumer<byte[]> dispatch) {
+    <T> void resolve(long request, Callable<T> resolve, Consumer<T> dispatch) {
         worker.execute(() -> {
             if (request != generation.get()) return;
             try {
-                byte[] command = resolve.call();
-                if (command == null || command.length == 0) throw new IOException("Downloaded track is unavailable");
+                T command = resolve.call();
+                if (command == null || (command instanceof byte[] bytes && bytes.length == 0)) {
+                    throw new IOException("Downloaded track is unavailable");
+                }
                 session.execute(() -> {
                     if (request == generation.get()) dispatch.accept(command);
                 });

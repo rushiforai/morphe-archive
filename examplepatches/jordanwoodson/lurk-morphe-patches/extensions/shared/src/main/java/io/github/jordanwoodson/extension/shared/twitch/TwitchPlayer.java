@@ -65,13 +65,15 @@ public final class TwitchPlayer {
 
     /**
      * Injection point: the start of IVS CorePlayerImpl.play(), which every native, portal and React
-     * Native start or resume reaches. (Re)arms the timer from now. May run on any thread.
+     * Native start or resume reaches, and of start() on Twitch's ExoPlayer player (Force ExoPlayer).
+     * (Re)arms the timer from now. May run on any thread.
      */
     public static void onPlay(Object player) {
+        if (player != null) Logger.d("sleep timer: play on " + player.getClass().getName());
         SleepTimer.onPlay(player);
     }
 
-    /** Injection point: the start of IVS CorePlayerImpl.pause() and release(). */
+    /** Injection point: the start of IVS CorePlayerImpl.pause() and release(), and of the ExoPlayer player's pause() and stop(). */
     public static void onStop(Object player) {
         SleepTimer.onStop(player);
     }

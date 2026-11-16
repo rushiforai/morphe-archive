@@ -24,8 +24,9 @@ import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
 
 /**
- * Chat keywords: highlights native chat lines that mention you or contain a highlight word, and hides lines with
- * a blocked word or from a blocked user. The line builder marks each line's sender span with its verdict; the row
+ * Chat keywords: highlights native chat lines that mention you, contain a highlight word or come from a highlighted
+ * user or role (with that entry's own color, if it has one), and hides lines with a blocked word or from a blocked
+ * user. The line builder marks each line's sender span with its verdict; the row
  * binders read the mark and tint or collapse the row. Live messages are also checked as they arrive, so blocked
  * ones never reach the chat list and highlighted ones can vibrate.
  */
@@ -42,25 +43,38 @@ public final class TwitchChatKeywords {
     /** Twitch purple at 30%: readable over both the dark and the light chat background. */
     static final int HIGHLIGHT_COLOR = 0x4D9147FF;
 
-    /** The verdict of a line, set on its sender span. Spans of any class survive Twitch's copies of the line. */
+    /**
+     * The verdict of a line, set on its sender span, with the row color of a highlighted user or role (0 for the
+     * default). Spans of any class survive Twitch's copies of the line.
+     */
     private static final class Mark {
         final int verdict;
+        final int color;
 
-        Mark(int verdict) {
+        Mark(int verdict, int color) {
             this.verdict = verdict;
+            this.color = color;
         }
     }
 
-    private static final Mark HIGHLIGHTED = new Mark(HIGHLIGHT);
-    private static final Mark HIDDEN = new Mark(HIDE);
+    private static final Mark HIGHLIGHTED = new Mark(HIGHLIGHT, 0);
+    private static final Mark HIDDEN = new Mark(HIDE, 0);
 
     /** The sender's login while a line is being built; null when the line isn't checked. */
     private static final ThreadLocal<String> LINE = new ThreadLocal<>();
+    /** The sender's badge names (Twitch's badge set IDs) while a line is being built. */
+    private static final ThreadLocal<List<String>> LINE_BADGES = new ThreadLocal<>();
+    /** Badge set IDs and the role names that also stand for them in the highlighted users. */
+    private static final String[][] ROLE_ALIASES = {
+            {"moderator", "mod"}, {"subscriber", "sub"}, {"founder", "sub"}, {"broadcaster", "streamer"},
+            {"partner", "verified"},
+    };
     /** The height each collapsed row had. */
     private static final Map<View, Integer> COLLAPSED = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Class<?>, Field> TEXT_FIELDS = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Field> LOGIN_FIELDS = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Field> SOURCE_FIELDS = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Field> NAME_FIELDS = new ConcurrentHashMap<>();
     private static final Field NO_FIELD;
     private static volatile SharedPreferences userPreferences;
     private static boolean loggedFailure;
@@ -86,13 +100,26 @@ public final class TwitchChatKeywords {
      * {@code username=}) and its click configuration, whose source tells channel chat from whispers.
      */
     public static void beginLine(Object sender, Object config) {
+        beginLine(sender, config, null);
+    }
+
+    /**
+     * Injection point: as {@link #beginLine(Object, Object)}, with the line's badges (Twitch's badge view models,
+     * each with a {@code name=}, the badge set ID).
+     */
+    public static void beginLine(Object sender, Object config, List<?> badges) {
         String login = null;
+        List<String> names = null;
         try {
-            if (enabled() && !isWhisper(config)) login = login(sender);
+            if (enabled() && !isWhisper(config)) {
+                login = login(sender);
+                if (!lists().highlightRoles.isEmpty()) names = badgeNames(badges);
+            }
         } catch (RuntimeException e) {
             fail(e);
         }
         LINE.set(login);
+        LINE_BADGES.set(names);
     }
 
     /**
@@ -104,10 +131,13 @@ public final class TwitchChatKeywords {
         String login = LINE.get();
         if (login == null || sender == null || sender.length() == 0) return sender;
         try {
-            int verdict = classify(login, message == null ? "" : message.toString());
+            List<String> badges = LINE_BADGES.get();
+            int verdict = classify(login, badges, message == null ? "" : message.toString());
             if (verdict == NONE) return sender;
+            int color = verdict == HIGHLIGHT ? userColor(login, badges, lists()) : 0;
+            Mark mark = verdict == HIDE ? HIDDEN : color == 0 ? HIGHLIGHTED : new Mark(HIGHLIGHT, color);
             Spannable marked = sender instanceof Spannable ? (Spannable) sender : new SpannableString(sender);
-            marked.setSpan(verdict == HIDE ? HIDDEN : HIGHLIGHTED, 0, marked.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            marked.setSpan(mark, 0, marked.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return marked;
         } catch (RuntimeException e) {
             fail(e);
@@ -120,10 +150,16 @@ public final class TwitchChatKeywords {
      * it (blocked); a highlighted message vibrates when that is switched on.
      */
     public static boolean onLiveMessage(String id, Object sender, List<?> tokens) {
+        return onLiveMessage(id, sender, tokens, null);
+    }
+
+    /** Injection point: as {@link #onLiveMessage(String, Object, List)}, with the sender's badges. */
+    public static boolean onLiveMessage(String id, Object sender, List<?> tokens, List<?> badges) {
         try {
             if (!enabled()) return false;
             String login = login(sender);
-            int verdict = classify(login, text(tokens));
+            List<String> names = lists().highlightRoles.isEmpty() ? null : badgeNames(badges);
+            int verdict = classify(login, names, text(tokens));
             if (verdict == HIDE) return true;
             if (verdict == HIGHLIGHT && Settings.isEnabled(VIBRATE)
                     && !login.toLowerCase(Locale.ROOT).equals(lists().self)) {
@@ -142,9 +178,13 @@ public final class TwitchChatKeywords {
     public static void bindRow(View row, TextView text) {
         try {
             if (row == null || text == null) return;
-            int verdict = enabled() ? verdict(text.getText()) : NONE;
+            CharSequence line = text.getText();
+            int verdict = enabled() ? verdict(line) : NONE;
             collapse(row, verdict == HIDE);
-            if (verdict == HIGHLIGHT && TwitchChatStyle.isStockBackground(row)) row.setBackgroundColor(HIGHLIGHT_COLOR);
+            if (verdict == HIGHLIGHT && TwitchChatStyle.isStockBackground(row)) {
+                int color = color(line);
+                row.setBackgroundColor(color != 0 ? color : HIGHLIGHT_COLOR);
+            }
         } catch (RuntimeException e) {
             fail(e);
         }
@@ -189,9 +229,75 @@ public final class TwitchChatKeywords {
         return verdict;
     }
 
-    /** Hidden for a blocked user or word, highlighted for a mention of you or a highlight word. */
+    /** The row color a highlighted line's mark asks for, 0 for the default one. */
+    static int color(CharSequence line) {
+        if (!(line instanceof Spanned)) return 0;
+        for (Mark mark : ((Spanned) line).getSpans(0, line.length(), Mark.class)) {
+            if (mark.verdict == HIGHLIGHT && mark.color != 0) return mark.color;
+        }
+        return 0;
+    }
+
+    /**
+     * Hidden for a blocked user or word, highlighted for a mention of you, a highlight word or a highlighted user.
+     * Used where the sender's badges aren't known (React Native chat): roles don't match there.
+     */
     static int classify(String login, String text) {
         return ChatFilter.classify(login, text, lists());
+    }
+
+    /** As {@link #classify(String, String)}, with the sender's badge set IDs for the highlighted roles. */
+    static int classify(String login, List<String> badges, String text) {
+        ChatFilter.Lists lists = lists();
+        int verdict = ChatFilter.classify(login, text, lists);
+        if (verdict == NONE && role(badges, lists) != null) return HIGHLIGHT;
+        return verdict;
+    }
+
+    /**
+     * The row color for a highlighted line: the sender's own entry's, else the first of its roles' with a color in
+     * the order of the setting, else 0 (the default highlight).
+     */
+    static int userColor(String login, List<String> badges, ChatFilter.Lists lists) {
+        Integer own = login == null ? null : lists.highlightUsers.get(login.toLowerCase(Locale.ROOT));
+        if (own != null && own != 0) return own;
+        if (badges == null || badges.isEmpty()) return 0;
+        for (Map.Entry<String, Integer> role : lists.highlightRoles.entrySet()) {
+            if (role.getValue() != 0 && hasRole(badges, role.getKey())) return role.getValue();
+        }
+        return 0;
+    }
+
+    /** The first highlighted role (in the order of the setting) among a sender's badges, or null. */
+    static String role(List<String> badges, ChatFilter.Lists lists) {
+        if (badges == null || badges.isEmpty()) return null;
+        for (String role : lists.highlightRoles.keySet()) {
+            if (hasRole(badges, role)) return role;
+        }
+        return null;
+    }
+
+    /** Whether one of the badge set IDs is {@code role}, or a set the role's name stands for ("mod", "sub"...). */
+    static boolean hasRole(List<String> badges, String role) {
+        for (String badge : badges) {
+            if (badge.equals(role)) return true;
+            for (String[] alias : ROLE_ALIASES) {
+                if (alias[0].equals(badge) && alias[1].equals(role)) return true;
+            }
+        }
+        return false;
+    }
+
+    /** The badge set IDs ("moderator", "subscriber"...) of a line's badge models, lowercase. */
+    static List<String> badgeNames(List<?> badges) {
+        if (badges == null || badges.isEmpty()) return Collections.emptyList();
+        List<String> names = new ArrayList<>(badges.size());
+        for (Object badge : badges) {
+            if (badge == null) continue;
+            String name = name(badge);
+            if (!name.isEmpty()) names.add(name.toLowerCase(Locale.ROOT));
+        }
+        return names;
     }
 
     /** The lists for Twitch's signed-in account: its login, and its display name while mentions are on. */
@@ -261,6 +367,23 @@ public final class TwitchChatKeywords {
             }
             Object login = field.get(sender);
             return login instanceof String ? (String) login : "";
+        } catch (ReflectiveOperationException e) {
+            return "";
+        }
+    }
+
+    /** A badge model's set ID ("name=" in its toString), or "". */
+    static String name(Object badge) {
+        try {
+            Field field = NAME_FIELDS.get(badge.getClass());
+            if (field == null) {
+                Field[] found = labelled(badge, "name=");
+                field = found == null ? NO_FIELD : found[0];
+                NAME_FIELDS.put(badge.getClass(), field);
+            }
+            if (field == NO_FIELD) return "";
+            Object name = field.get(badge);
+            return name instanceof String ? (String) name : "";
         } catch (ReflectiveOperationException e) {
             return "";
         }

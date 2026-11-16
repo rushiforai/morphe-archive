@@ -1,3 +1,20 @@
+## [1.19.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.18.0...v1.19.0) (2026-11-16)
+
+### ✨ New Features
+
+* **juggernautai:** add Unlock Premium patch for 3.1.0 ([ae8f720](https://github.com/callMeBeyonder/morphe-patches/commit/ae8f720ab585e4354e586cce452441d0b5b30dae))
+
+## [1.18.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.17.0...v1.18.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **build:** migrate patches to morphe-patcher 2.1.0 ([537fd3a](https://github.com/callMeBeyonder/morphe-patches/commit/537fd3a7158f3293d726bd0c513a060dbe7e3c71))
+
+### ✨ New Features
+
+* **alphaprogression:** add Unlock Pro patch with PairIP depairip bypass ([adcd136](https://github.com/callMeBeyonder/morphe-patches/commit/adcd136672d0b060bcf38b652083348254004b11))
+* **movieboxtv:** restore adaptive quality and add seek step setting ([2009b53](https://github.com/callMeBeyonder/morphe-patches/commit/2009b532a11cf93bf897c381178767fae4e40bf4))
+
 ## [1.17.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.16.0...v1.17.0) (2026-11-13)
 
 ### ✨ New Features

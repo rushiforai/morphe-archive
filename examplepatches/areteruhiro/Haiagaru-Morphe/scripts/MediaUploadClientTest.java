@@ -72,7 +72,7 @@ public final class MediaUploadClientTest {
             fails(()->MediaUploadPolicy.validate("unknown","image/png",12,"key"),"unknown provider");
             check(MediaUploadPolicy.mediaUrl("imgbox","https://images2.imgbox.com/ab/cd/ABC_o.png"),"imgbox CDN");
             check(MediaUploadPolicy.mediaUrl("imgpile","https://cdn.imgpile.com/f/ABC_lg.mp4"),"imgpile video CDN");
-            for(String url:new String[]{"http://cdn.imgpile.com/f/a.png","https://cdn.imgpile.com.evil.test/f/a.png",
+            for(String url:new String[]{"http://cdn.imgpile.com/f/a.png",
                     "https://user@cdn.imgpile.com/f/a.png","https://cdn.imgpile.com:444/f/a.png",
                     "https://cdn.imgpile.com/f/a.png?token=secret","https://imgpile.com/m/ABC","https://cdn.imgpile.com/f/a.svg"})
                 check(!MediaUploadPolicy.mediaUrl("imgpile",url),"reject unexpected link: "+url);
@@ -80,6 +80,9 @@ public final class MediaUploadClientTest {
             Fake p=new Fake(response);
             JSONObject result=new MediaUploadClient(p).upload("imgpile",png,"image/png","fixture-key",false);
             check(result.getString("link").endsWith("Fixture.webp"),"actual stored extension, no polling");
+            check(MediaUploadPolicy.mediaUrl("imgpile","https://media.example.org/f/Test.png"),"imgpile return host unrestricted");
+            check(MediaUploadPolicy.mediaUrl("imgbox","https://media.example.org/a/Test.png"),"imgbox return host unrestricted");
+            check(MediaUploadPolicy.mediaUrl("sendvid","https://media.example.org/abcd1234"),"sendvid return host unrestricted");
             check(result.getString("deletehash").isEmpty(),"foreign deletion token not sent to Imgur");
             check(result.getString("haiagaruManagementUrl").equals("https://imgpile.com/m/Fixture"),"imgpile management page from own slug");
             check(p.replies.size()==1,"one POST only");
@@ -158,7 +161,16 @@ public final class MediaUploadClientTest {
             MediaUploadPolicy.validate("uguu","video/mp4",MediaUploadPolicy.UGUU_LIMIT,"");
             fails(()->MediaUploadPolicy.validate("uguu","video/mp4",MediaUploadPolicy.UGUU_LIMIT+1,""),"uguu size preflight");
             fails(()->MediaUploadClient.parseUguu(new JSONObject("{\"success\":false}"),"image/png"),"uguu rejection");
-            check(!MediaUploadPolicy.mediaUrl("uguu","https://evil.uguu.se/Test.png"),"uguu unknown CDN rejected");
+            check(MediaUploadPolicy.mediaUrl("uguu","https://media.example.org/Test.png"),"uguu CDN hostname is not restricted");
+            Fake currentUguu=new Fake("{\"success\":true,\"files\":[{\"hash\":\"synthetic\",\"filename\":\"NativeCurrent.png\",\"url\":\"https://n.uguu.se/NativeCurrent.png\",\"size\":69,\"dupe\":false}]}");
+            JSONObject latestUguu=new MediaUploadClient(currentUguu).upload("uguu",png,"image/png","",false);
+            check(latestUguu.getString("link").equals("https://n.uguu.se/NativeCurrent.png"),"current live CDN accepted");
+            check(latestUguu.getString("id").equals("NativeCurrent.png"),"current filename field retained");
+            check(currentUguu.replies.size()==1,"current response never retried");
+            check(MediaUploadPolicy.mediaUrl("uguu","https://new-cdn.example.org/Test.png"),"new CDN accepted without fixed host list");
+            check(!MediaUploadPolicy.mediaUrl("uguu","https://n.uguu.se@evil.example/Test.png"),"CDN userinfo rejected");
+            check(!MediaUploadPolicy.mediaUrl("uguu","https://n.uguu.se/Test.png?redirect=other"),"unexpected CDN query rejected");
+
             System.out.println("PASS: "+checks+" upload protocol / privacy / failure tests (no live upload)");
         } finally { Files.deleteIfExists(png.toPath());Files.deleteIfExists(video.toPath()); }
     }

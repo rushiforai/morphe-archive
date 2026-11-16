@@ -50,6 +50,7 @@ public final class BrowsingHistory {
         return copy;
     }
     private static List<?> transformValues(List<?> input,int mode){
+        input=GlobalSearchHome.rows(input);
         input=HiddenDroppedThreads.filter(input,mode);
         // Native HOME IDs: 101 = unread, 103 = browsing history, 104 = posted.
         // Never override unread sorting (including its native board-sort option).
@@ -120,6 +121,7 @@ public final class BrowsingHistory {
                 List<?> ordered = group ? transformValues(source, mode)
                         : HiddenDroppedThreads.active(mode) && HiddenDroppedThreads.target(mode)
                                 ? HiddenDroppedThreads.filter((List<?>)original, mode) : source;
+                ordered=GlobalSearchHome.rows(ordered);
                 ordered=HomeThreadOrder.apply(ordered,mode);
                 if(ordered==original){replacements[i]=original;continue;}
                 replacements[i] = original.getClass().getConstructor(List.class).newInstance(ordered);

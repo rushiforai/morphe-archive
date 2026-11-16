@@ -114,6 +114,12 @@ private val GUARDED_CALLS = mapOf(
     "Landroid/content/ContentResolver;->registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;)V" to
         "$EXT/Calls;->registerContentObserver(Landroid/content/ContentResolver;Landroid/net/Uri;ZLandroid/database/ContentObserver;)V",
     "Landroid/app/ActivityManager;->getCurrentUser()I" to "$EXT/Calls;->getCurrentUser()I",
+    // A blur of radius 0 (the long-pressed icon's resize frame starts at 0): Android 12 and 13 throw "nativePtr is null"
+    // while drawing, and the icon menu and the dragged icon were not drawn at all.
+    "Landroid/graphics/RenderEffect;->createBlurEffect(FFLandroid/graphics/Shader\$TileMode;)Landroid/graphics/RenderEffect;" to
+        "$EXT/Blurs;->createBlurEffect(FFLandroid/graphics/Shader\$TileMode;)Landroid/graphics/RenderEffect;",
+    "Landroid/graphics/RenderEffect;->createBlurEffect(FFLandroid/graphics/RenderEffect;Landroid/graphics/Shader\$TileMode;)Landroid/graphics/RenderEffect;" to
+        "$EXT/Blurs;->createBlurEffect(FFLandroid/graphics/RenderEffect;Landroid/graphics/Shader\$TileMode;)Landroid/graphics/RenderEffect;",
 ) + listOf(
     "getBoolean(Ljava/lang/String;Ljava/lang/String;Z)Z",
     "getFloat(Ljava/lang/String;Ljava/lang/String;F)F",
@@ -171,6 +177,179 @@ private val REFUSED_USER_CALLS = setOf(
     "Landroid/content/pm/PackageManager;->getApplicationInfoAsUser(Ljava/lang/String;II)Landroid/content/pm/ApplicationInfo;",
     "Landroid/content/pm/PackageManager;->getApplicationInfoAsUser(Ljava/lang/String;ILandroid/os/UserHandle;)Landroid/content/pm/ApplicationInfo;",
 )
+
+/**
+ * The night page backgrounds. ColorOS's own controls (COUI) are designed for ColorOS's force-dark: at night the window
+ * and list backgrounds stay white (coui_color_background_with_card's night value is white, coui_color_background has
+ * none) and the system darkens them while drawing. Android's force dark does the same on Pixels, but One UI does not,
+ * so on a Galaxy in dark mode the launcher's settings were white text on white. They get COUI's own dark values.
+ */
+private val NIGHT_BACKGROUNDS = mapOf(
+    "coui_color_background" to "#ff000000",
+    "coui_color_background_with_card" to "#ff000000",
+)
+
+private val nightBackgroundsPatch = resourcePatch {
+    execute {
+        val path = "res/values-night/colors.xml"
+        decode(path)
+        if (!get(path).isFile) throw PatchException("no $path")
+        val set = mutableSetOf<String>()
+        document(path).use { xml ->
+            val root = xml.documentElement
+            val colors = xml.getElementsByTagName("color")
+            for (i in 0 until colors.length) {
+                val color = colors.item(i) as org.w3c.dom.Element
+                val value = NIGHT_BACKGROUNDS[color.getAttribute("name")] ?: continue
+                color.textContent = value
+                set += color.getAttribute("name")
+            }
+            for ((name, value) in NIGHT_BACKGROUNDS) {
+                if (name in set) continue
+                root.appendChild(xml.createElement("color").apply { setAttribute("name", name); textContent = value })
+                set += name
+            }
+        }
+        log.info("night backgrounds: $set")
+    }
+}
+
+/**
+ * Large app icons (resizing an icon on the home screen) are drawn by ColorOS's icon library with the phone's icon style,
+ * which only ColorOS sets (an OPPO configuration value): elsewhere the style is missing, every large icon failed ("Failed
+ * to load the icon resource. Try again later.") and the icon went back to its size. The large-icon code now gets the
+ * library's default style (see Icons). Normal icons do not read it and keep their look.
+ */
+private val morphIconStylePatch = bytecodePatch {
+    execute {
+        // 15.6.24 has no resizable icons.
+        if (packageMetadata.versionName == "15.6.24") return@execute
+        val getConfig = "Lcom/android/launcher/theme/LauncherIconConfig;->getIconConfig()Lcom/oplus/uxicon/helper/IconConfig;"
+        val utils = mutableClassDefBy("Lcom/android/common/util/IconUtils;")
+        var hooked = 0
+        for (method in utils.methods) {
+            val instructions = method.implementation?.instructions ?: continue
+            val sites = instructions.withIndex().filter { (_, insn) ->
+                insn.opcode == Opcode.INVOKE_VIRTUAL && ((insn as ReferenceInstruction).reference as? MethodReference)?.let {
+                    "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == getConfig
+                } == true
+            }.map { it.index }
+            for (index in sites.reversed()) {
+                val move = instructions[index + 1]
+                if (move.opcode != Opcode.MOVE_RESULT_OBJECT) throw PatchException("IconUtils.${method.name}: getIconConfig result not moved")
+                val r = (move as OneRegisterInstruction).registerA
+                method.addInstructions(
+                    index + 2,
+                    """
+                        invoke-static/range { v$r .. v$r }, $EXT/Icons;->style(Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object v$r
+                        check-cast v$r, Lcom/oplus/uxicon/helper/IconConfig;
+                    """,
+                )
+                hooked++
+            }
+        }
+        log.info("large icon style reads: $hooked")
+        // Measured against 16.4.30: 3 (morph icon, its fallback, app clusters).
+        if (hooked == 0) throw PatchException("no icon style reads in IconUtils")
+    }
+}
+
+/**
+ * "Double-tap to lock": the launcher turns the screen off with PowerManager.goToSleep, which needs a system permission,
+ * so off ColorOS the double tap did nothing. It locks through an accessibility service the patch adds (extension
+ * LockService, Android's GLOBAL_ACTION_LOCK_SCREEN); turning the option on asks for it (see Lock).
+ */
+private val lockServiceResourcesPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { manifest ->
+            val application = manifest.getElementsByTagName("application").item(0) as org.w3c.dom.Element
+            application.appendChild(manifest.createElement("service").apply {
+                setAttribute("android:name", "org.ungoogled.coloroslauncher.LockService")
+                setAttribute("android:exported", "true")
+                setAttribute("android:label", "@string/ungoogled_lock_service_label")
+                setAttribute("android:permission", "android.permission.BIND_ACCESSIBILITY_SERVICE")
+                appendChild(manifest.createElement("intent-filter").apply {
+                    appendChild(manifest.createElement("action").apply {
+                        setAttribute("android:name", "android.accessibilityservice.AccessibilityService")
+                    })
+                })
+                appendChild(manifest.createElement("meta-data").apply {
+                    setAttribute("android:name", "android.accessibilityservice")
+                    setAttribute("android:resource", "@xml/ungoogled_lock_service")
+                })
+            })
+        }
+        document("res/values/strings.xml").use { strings ->
+            strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "ungoogled_lock_service_label")
+                textContent = "System Launcher: double-tap to lock"
+            })
+            strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "ungoogled_lock_service_description")
+                textContent = "Locks the screen when you double-tap an empty space on the home screen. It reads no screen content."
+            })
+        }
+        get("res/xml/ungoogled_lock_service.xml").apply {
+            parentFile.mkdirs()
+            writeText(
+                """
+                <?xml version="1.0" encoding="utf-8"?>
+                <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:description="@string/ungoogled_lock_service_description"
+                    android:accessibilityFeedbackType="feedbackGeneric"
+                    android:accessibilityFlags="flagDefault"
+                    android:canRetrieveWindowContent="false"
+                    android:notificationTimeout="0" />
+                """.trimIndent(),
+            )
+        }
+    }
+}
+
+private val lockScreenPatch = bytecodePatch {
+    dependsOn(lockServiceResourcesPatch)
+    execute {
+        val sleeps = redirectCalls(
+            mapOf(
+                "Landroid/os/PowerManager;->goToSleep(J)V" to "$EXT/Lock;->goToSleep(Landroid/os/PowerManager;J)V",
+            ),
+        )
+        log.info("screen lock calls: $sleeps")
+        // Measured against 16.4.30 and 15.6.24: 2 (empty home screen, widget area).
+        if (sleeps == 0) throw PatchException("no PowerManager.goToSleep calls found")
+        val change = mutableClassDefBy("Lcom/android/launcher/settings/LauncherSettingsFragment;").methods.firstOrNull {
+            it.name == "onPreferenceChange" && it.returnType == "Z" && it.parameterTypes.size == 2
+        } ?: throw PatchException("LauncherSettingsFragment.onPreferenceChange not found")
+        change.addInstructions(
+            0,
+            "invoke-static/range { p1 .. p2 }, $EXT/Lock;->preferenceChanged(Ljava/lang/Object;Ljava/lang/Object;)V",
+        )
+    }
+}
+
+/**
+ * Selecting apps in edit mode: every app after the first kept its grey check until the page redrew (the selection itself
+ * worked). The check's animation marks the icon for redrawing, but that did not reach the page; the icon's parents are
+ * now asked to redraw too (see Views.invalidateUp).
+ */
+private val selectCheckPatch = bytecodePatch {
+    execute {
+        // 15.6.24 redraws the check through its render manager (no such method; not seen there).
+        if (packageMetadata.versionName == "15.6.24") return@execute
+        val renderer = mutableClassDefBy("Lcom/android/launcher3/iconrender/impl/SelectStateIconRenderer;")
+        val request = renderer.methods.firstOrNull { it.name == "requestInvalidate" && it.returnType == "V" && it.parameterTypes.isEmpty() }
+            ?: throw PatchException("SelectStateIconRenderer.requestInvalidate not found")
+        val instructions = request.implementation!!.instructions
+        val call = instructions.indexOfFirst {
+            it.opcode == Opcode.INVOKE_VIRTUAL &&
+                ((it as ReferenceInstruction).reference as? MethodReference)?.let { r -> r.name == "invalidate" && r.parameterTypes.isEmpty() } == true
+        }
+        if (call < 0) throw PatchException("SelectStateIconRenderer.requestInvalidate: no invalidate() call")
+        val view = (instructions[call] as FiveRegisterInstruction).registerC
+        request.replaceInstruction(call, "invoke-static { v$view }, $EXT/Views;->invalidateUp(Ljava/lang/Object;)V")
+    }
+}
 
 /** One version's generated lists (.github/scripts/coloros-launcher/hidden.py). */
 private class HiddenLists(
@@ -584,6 +763,7 @@ val enableNonColorOsPatch = bytecodePatch(
     dependsOn(
         versionCheckPatch, privateClassesPatch, manifestPatch, olderAndroidResourcesPatch, hiddenApisPatch,
         systemPrivilegesPatch, workProfilePatch, wallpaperBrightnessPatch, personalizationPatch, settingsLinksPatch,
+        nightBackgroundsPatch, morphIconStylePatch, lockScreenPatch, selectCheckPatch,
     )
     extendWith(COLOROS_LAUNCHER_EXTENSION)
     // OPPO's badge provider (other apps set icon counts through it) and authorities OPPO's SDKs build from the package name.

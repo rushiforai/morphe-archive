@@ -1,3 +1,21 @@
+## [1.5.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Comments key closes the comments, smoother held frame steps ([68d7baf](https://github.com/Prisoner-24601/custom-morphe-patches/commit/68d7bafd018b5a469358b48605129a8ce54c31f2))
+
+## [1.5.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.4.1...v1.5.0) (2026-11-15)
+
+### ✨ New Features
+
+* Add keyboard frame step shortcuts, fix closing the comments ([a0ed2a0](https://github.com/Prisoner-24601/custom-morphe-patches/commit/a0ed2a03d86577b342346ba452fdd1f93958b846))
+
+## [1.4.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* Comments shortcut no longer minimizes the video ([0ede849](https://github.com/Prisoner-24601/custom-morphe-patches/commit/0ede849df72469b89471d550b82d67d601b85862))
+
 ## [1.4.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-12)
 
 ### ✨ New Features

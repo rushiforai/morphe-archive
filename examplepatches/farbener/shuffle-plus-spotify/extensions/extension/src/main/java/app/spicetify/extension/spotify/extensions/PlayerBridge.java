@@ -98,7 +98,7 @@ public final class PlayerBridge {
 
     /** Spotify's {@code Application}, from {@code ActivityThread}, or null. */
     @SuppressLint("PrivateApi") // greylisted, and only used to remember played songs
-    private static Context applicationContext() {
+    static Context applicationContext() {
         try {
             Class<?> activityThread = Class.forName("android.app.ActivityThread");
             return (Context) activityThread.getMethod("currentApplication").invoke(null);

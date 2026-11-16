@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -30,14 +31,14 @@ private const val REGISTRY = "Lcom/google/protobuf/ExtensionRegistryLite;"
 private const val REQUEST = "$SWAP->swap(Ljava/lang/Object;)Ljava/lang/Object;"
 
 /**
- * Structurally resolved ABI, in 9.40.51 / 9.15.51 / 8.30.54 order:
- * request Lablf.d / Lazpg.d / Lawjm.c; wrapper Lwem / Lapde / Lamwf;
- * streaming Lwed / Lapck / Lamvm; offline factories Lwee.b / Lapcl.b / Lamvn.b.
- * Producer transform coverage is 4 / 4 / 5 sites, including legacy Labli.f on 9.40.
+ * Structurally resolved ABI, in 9.45.51 / 9.40.51 / 9.15.51 / 8.30.54 order:
+ * request Labrf.d / Lablf.d / Lazpg.d / Lawjm.c; wrapper Lwjw / Lwem / Lapde / Lamwf;
+ * streaming Lwjo / Lwed / Lapck / Lamvm; builders Lwjm / Lweb / Lapci / Lamvk.
+ * Producer transform coverage is 4 / 4 / 4 / 5 sites, including legacy Labri.f on 9.45.
  * Resolve every dependency before mutation; an unfamiliar ABI only warns and leaves playback online.
  */
 internal fun BytecodePatchContext.installStreamSwap() {
-    if (packageMetadata.versionName !in setOf("9.40.51", "9.15.51", "8.30.54")) {
+    if (packageMetadata.versionName !in setOf("9.45.51", "9.40.51", "9.15.51", "8.30.54", "8.28.54", "8.12.54")) {
         printWarn("Play downloads locally is unavailable on this Music version; online playback unchanged.")
         return
     }
@@ -66,20 +67,20 @@ internal fun BytecodePatchContext.installStreamSwap() {
         val constructor = wrapperMatch.method
         val types = constructor.parameterTypes.map(CharSequence::toString)
         val proto = types[0]
-        val streaming = mutableClassDefBy(types[3])
-        fun field(type: String) = wrapper.fields.single {
-            it.type == type && !AccessFlags.STATIC.isSet(it.accessFlags)
-        }
-        val instant = field(types[1])
-        val timestamp = field("J")
-        val streams = field(streaming.type)
-        val metadata = field(types[4])
-        // 9.40 has another lazy boolean; the constructor-assigned request flag is the one to retain.
-        val flag = constructor.implementation!!.instructions.mapNotNull {
-            if (it.opcode == Opcode.IPUT_BOOLEAN) it.getReference<FieldReference>() else null
-        }.distinct().single()
+        val streamIndex = if (types.size == 6) 3 else 2
+        val streaming = mutableClassDefBy(types[streamIndex])
+        // Follow constructor assignments on both the five- and six-parameter wrapper ABIs.
+        val responseProto = constructor.streamSwapParameterField(0)
+        val instant = if (types.size == 6) constructor.streamSwapParameterField(1) else null
+        val timestamp = constructor.streamSwapParameterField(streamIndex - 1)
+        val streams = constructor.streamSwapParameterField(streamIndex)
+        val metadata = constructor.streamSwapParameterField(streamIndex + 1)
+        val flag = constructor.streamSwapParameterField(streamIndex + 2)
         val serialize = wrapper.methods.single { method ->
             method.parameterTypes.isEmpty() && method.returnType == "[B" &&
+                method.implementation?.instructions?.any {
+                    it.opcode == Opcode.IGET_OBJECT && it.getReference<FieldReference>() == responseProto
+                } == true &&
                 method.implementation?.instructions?.any {
                     it.getReference<MethodReference>()?.name == "toByteArray"
                 } == true
@@ -139,6 +140,23 @@ internal fun BytecodePatchContext.installStreamSwap() {
         val network = streaming.fields.single { it.type == networkHolder.type }
         val networkValue = networkHolder.fields.single { !AccessFlags.STATIC.isSet(it.accessFlags) }
         val networkType = setNetwork.parameterTypes.single()
+        val allocation = if (instant != null) """
+            new-instance v2, ${wrapper.type}
+            iget-object v4, p0, $instant
+            iget-wide v5, p0, $timestamp
+            iget-object v8, p0, $metadata
+            iget-boolean v9, p0, $flag
+            invoke-direct/range {v2 .. v9}, $constructor
+            return-object v2
+        """ else """
+            move-object v6, v7
+            new-instance v2, ${wrapper.type}
+            iget-wide v4, p0, $timestamp
+            iget-object v7, p0, $metadata
+            iget-boolean v8, p0, $flag
+            invoke-direct/range {v2 .. v8}, $constructor
+            return-object v2
+        """
 
         wrapper.addDownloadsBridge("rvxVideoId", emptyList(), "Ljava/lang/String;", 2, """
             invoke-interface {p0}, $videoId
@@ -174,13 +192,7 @@ internal fun BytecodePatchContext.installStreamSwap() {
             :no_network_metadata
             invoke-virtual {v2}, $build
             move-result-object v7
-            new-instance v2, ${wrapper.type}
-            iget-object v4, p0, $instant
-            iget-wide v5, p0, $timestamp
-            iget-object v8, p0, $metadata
-            iget-boolean v9, p0, $flag
-            invoke-direct/range {v2 .. v9}, $constructor
-            return-object v2
+            $allocation
             :unchanged
             return-object p0
         """)
@@ -204,6 +216,30 @@ internal fun BytecodePatchContext.installStreamSwap() {
     } catch (ex: Exception) {
         printWarn("StreamSwap: hook unavailable; online playback unchanged: ${ex.message}")
     }
+}
+
+/** Bind each retained value to the field that actually receives that constructor argument. */
+private fun Method.streamSwapParameterField(parameterIndex: Int): FieldReference {
+    val parameters = parameterTypes.map(CharSequence::toString)
+    val widths = parameters.map { if (it == "J" || it == "D") 2 else 1 }
+    val thisRegister = implementation!!.registerCount - widths.sum() - 1
+    val parameterRegister = thisRegister + 1 + widths.take(parameterIndex).sum()
+    val expectedOpcode = when (parameters[parameterIndex]) {
+        "J", "D" -> Opcode.IPUT_WIDE
+        "Z" -> Opcode.IPUT_BOOLEAN
+        else -> Opcode.IPUT_OBJECT
+    }
+
+    return implementation!!.instructions.mapNotNull { instruction ->
+        if (instruction.opcode != expectedOpcode) return@mapNotNull null
+        val assignment = instruction as TwoRegisterInstruction
+        val field = instruction.getReference<FieldReference>() ?: return@mapNotNull null
+
+        field.takeIf {
+            assignment.registerA == parameterRegister && assignment.registerB == thisRegister &&
+                it.definingClass == definingClass && it.type == parameters[parameterIndex]
+        }
+    }.distinct().single()
 }
 
 private data class StreamSwapProducerSite(

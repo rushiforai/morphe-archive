@@ -37,6 +37,7 @@ public final class BoardColors {
 
     private static final String DARK = "board_dark";
     private static final String LIGHT = "board_light";
+    private static final String APP_THEME = "board_app_theme";
 
     private static Object background;
     private static int backgroundDark, backgroundLight;
@@ -45,6 +46,22 @@ public final class BoardColors {
 
     public static boolean enabled() {
         return Features.boardColorsPatched() && Features.isEnabled(Features.BOARD_COLORS);
+    }
+
+    /** True when the board from More -> Theme -> Board is used instead of our colours. */
+    public static boolean appTheme() {
+        SharedPreferences preferences = Features.preferences();
+        return preferences != null && preferences.getBoolean(APP_THEME, false);
+    }
+
+    public static void setAppTheme(boolean useAppTheme) {
+        SharedPreferences preferences = Features.preferences();
+        if (preferences != null) preferences.edit().putBoolean(APP_THEME, useAppTheme).apply();
+    }
+
+    /** The feature is on and follows our colours, so the app's theme is replaced. */
+    private static boolean overriding() {
+        return enabled() && !appTheme();
     }
 
     public static int dark() {
@@ -69,7 +86,7 @@ public final class BoardColors {
 
     /** The theme's board background: the chosen colours instead. */
     public static Object background(Object original) {
-        if (!enabled()) return original;
+        if (!overriding()) return original;
         int dark = dark(), light = light();
         if (background == null || dark != backgroundDark || light != backgroundLight) {
             try {
@@ -89,11 +106,11 @@ public final class BoardColors {
      * writes on the light squares. It takes the dark square colour...
      */
     public static int darkSquareCoordinates(int original) {
-        return enabled() ? dark() : original;
+        return overriding() ? dark() : original;
     }
 
     /** ...and lightSquareCoordinateColor is the light shade, written on the dark squares. */
     public static int lightSquareCoordinates(int original) {
-        return enabled() ? light() : original;
+        return overriding() ? light() : original;
     }
 }

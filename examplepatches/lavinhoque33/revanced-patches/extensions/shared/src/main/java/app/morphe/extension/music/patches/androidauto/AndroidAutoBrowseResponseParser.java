@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3852
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14: read playlist/album tracks and shelf-owned native continuations.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (fork extension, version check and utility
  * packages; skipped with a warning before YouTube Music 9.15, where the Android Auto classes differ).
@@ -302,6 +303,77 @@ final class AndroidAutoBrowseResponseParser {
         }
     }
 
+    /** Playlist/album rows use the same native two-column items, but unavailable tracks retain their position. */
+    static AndroidAutoPlaylistChildren.Page playlistPage(byte[] response) {
+        ProtoMessage root = new ProtoMessage(response);
+        ProtoMessage continued = root.messageField(BROWSE_CONTINUATION);
+        ProtoMessage playlist = continued.messageField(PLAYLIST_SHELF);
+        ProtoMessage music = continued.messageField(MUSIC_SHELF);
+        if (!playlist.isEmpty()) return trackShelfPage(playlist, true, "");
+        if (!music.isEmpty()) return trackShelfPage(music, false, "");
+
+        ProtoMessage sections = sectionList(response);
+        String continuation = nextToken(sections, SECTION_LIST_CONTINUATIONS);
+        ProtoMessage firstMusic = ProtoMessage.EMPTY;
+        for (ProtoMessage wrapper : sections.repeatedMessageField(SECTION_LIST_CONTENTS)) {
+            ProtoMessage shelf = wrapper.messageField(PLAYLIST_SHELF);
+            if (!shelf.isEmpty()) return trackShelfPage(shelf, true, continuation);
+            if (firstMusic.isEmpty()) firstMusic = wrapper.messageField(MUSIC_SHELF);
+            for (ProtoMessage child : wrapper.messageField(ITEM_SECTION)
+                    .repeatedMessageField(ITEM_SECTION_CONTENTS)) {
+                shelf = child.messageField(PLAYLIST_SHELF);
+                if (!shelf.isEmpty()) return trackShelfPage(shelf, true, continuation);
+                if (firstMusic.isEmpty()) firstMusic = child.messageField(MUSIC_SHELF);
+            }
+        }
+        if (!firstMusic.isEmpty()) return trackShelfPage(firstMusic, false, continuation);
+        throw new IllegalArgumentException("Unrecognized playlist track contents");
+    }
+
+    private static AndroidAutoPlaylistChildren.Page trackShelfPage(ProtoMessage shelf, boolean playlist,
+                                                                  String enclosingContinuation) {
+        List<AndroidAutoPlaylistChildren.Track> tracks = new ArrayList<>();
+        String playlistId = "";
+        for (ProtoMessage wrapper : shelf.repeatedMessageField(playlist
+                ? PLAYLIST_SHELF_CONTENTS : MUSIC_SHELF_CONTENTS)) {
+            ProtoMessage row = wrapper.messageField(SHELF_ITEM);
+            if (row.isEmpty()) continue;
+            String title = textRuns(row.messageField(SHELF_ITEM_TITLE));
+            ProtoMessage command = row.messageField(SHELF_ITEM_TAP);
+            // The owner's Add a song row is a search action, not a missing song.
+            if (row.messageField(12).isEmpty() && !command.messageField(48_687_709).isEmpty()) continue;
+            ProtoMessage watch = command.messageField(WATCH);
+            String videoId = watch.stringField(WATCH_VIDEO_ID);
+            if (title.isEmpty() && videoId.isEmpty() && row.messageField(12).isEmpty()) continue;
+            String rowPlaylist = watch.stringField(WATCH_PLAYLIST_ID);
+            if (!rowPlaylist.isEmpty()) {
+                if (!playlistId.isEmpty() && !playlistId.equals(rowPlaylist)) {
+                    throw new IllegalArgumentException("Conflicting playlist track commands");
+                }
+                playlistId = rowPlaylist;
+            }
+            tracks.add(new AndroidAutoPlaylistChildren.Track(videoId, title,
+                    textRuns(row.messageField(SHELF_ITEM_SUBTITLE)),
+                    artwork(row.messagePath(SHELF_ITEM_IMAGE, THUMBNAIL, THUMBNAIL_CONTENTS)),
+                    command.serializedBytes()));
+        }
+        String continuation = nextToken(shelf, playlist ? 10 : 13);
+        // The track shelf owns song pagination; enclosing sections may continue unrelated page sections.
+        if (continuation.isEmpty()) continuation = enclosingContinuation;
+        return new AndroidAutoPlaylistChildren.Page(playlistId, List.copyOf(tracks), continuation);
+    }
+
+    private static String nextToken(ProtoMessage container, int field) {
+        // Native shelf loaders retain NEXT entries in order and replace the active entry of the same type.
+        String token = "";
+        for (ProtoMessage wrapper : container.repeatedMessageField(field)) {
+            String candidate = wrapper.messageField(NEXT_CONTINUATION).stringField(CONTINUATION_TOKEN);
+            if (candidate.isEmpty()) continue;
+            token = candidate;
+        }
+        return token;
+    }
+
     private static void addGridCard(List<BrowseItem> items, ProtoMessage renderer) {
         addRenderer(items, renderer, CARD_TITLE, CARD_SUBTITLE, CARD_IMAGE, RESULT_TAP, RESULT_MENU, false);
     }
@@ -358,6 +430,7 @@ final class AndroidAutoBrowseResponseParser {
     static String textRuns(ProtoMessage text) {
         StringBuilder value = new StringBuilder();
         for (ProtoMessage run : text.repeatedMessageField(TEXT_RUNS)) value.append(run.stringField(TEXT_RUN_TEXT));
+        if (value.length() == 0) return text.stringField(4);
         return value.toString();
     }
 

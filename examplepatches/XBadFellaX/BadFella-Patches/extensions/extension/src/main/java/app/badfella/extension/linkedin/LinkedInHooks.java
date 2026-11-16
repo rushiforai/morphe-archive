@@ -47,16 +47,7 @@ public final class LinkedInHooks {
      * request that records a profile visit.
      */
     public static void onSduiRequest(Object namespace, Object name, Object request, Object route) {
-        try {
-            if (!Settings.debug()) return;
-            String body = String.valueOf(request);
-            if (body.length() > 240) body = body.substring(0, 240) + "...";
-            Settings.debugLog("sdui request on " + SduiMediaDownload.resumedScreen().replaceAll(".*\\.", "")
-                    + ": " + namespace + " / " + name + " / " + route + " / "
-                    + (request == null ? "null" : request.getClass().getSimpleName()) + " " + body.replace('\n', ' '));
-        } catch (Throwable t) {
-            Diagnostics.error("onSduiRequest failed", t);
-        }
+        Settings.debugLog("sdui request");
     }
 
     /** Injection point, at the start of Tracker.sendViaLiTracker(eventName, event, ...). */

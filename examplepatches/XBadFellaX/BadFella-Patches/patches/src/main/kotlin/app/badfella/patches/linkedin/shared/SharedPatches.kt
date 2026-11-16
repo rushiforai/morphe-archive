@@ -1,6 +1,9 @@
 package app.badfella.patches.linkedin.shared
 
 import app.badfella.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -71,6 +74,22 @@ private object NavPanelTransformFingerprint : Fingerprint(
     parameters = listOf("Lcom/linkedin/android/home/navpanel/HomeNavPanelAggregateResponse;"),
 )
 
+/**
+ * The HomeNavPanelFeature lambda that builds the list at the bottom of the Me panel: a divider put first, then
+ * "Settings & Privacy" and the Premium row.
+ */
+private object NavPanelFooterFingerprint : Fingerprint(
+    name = "invoke",
+    filters = listOf(
+        fieldAccess(
+            definingClass = "Lcom/linkedin/android/home/navpanel/HomeNavPanelAggregateResponse;",
+            name = "upsellSlotContent",
+        ),
+        methodCall(definingClass = "Lcom/linkedin/android/home/navpanel/HomeNavPanelDividerViewData;", name = "<init>"),
+        methodCall(name = "addItem"),
+    )
+)
+
 /** HomeNavPanelSectionV2Presenter.onBind(ViewDataBinding): sets the section's click listener. */
 private object NavPanelSectionBindFingerprint : Fingerprint(
     definingClass = "Lcom/linkedin/android/home/navpanel/presenter/HomeNavPanelSectionV2Presenter;",
@@ -121,13 +140,13 @@ val settingsPatch = bytecodePatch {
         // Each return is replaced in place (rather than code inserted before it) because branches
         // may jump straight to the return instruction and would skip inserted code.
 
-        // Add the "BadFella Patches" item at every return of the Me panel transformer.
+        // Apply the native Games section filter at every transformer return.
         NavPanelTransformFingerprint.method.apply {
             returnIndices(Opcode.RETURN_OBJECT).forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
                 replaceInstruction(
                     index,
-                    "invoke-static/range { v$register .. v$register }, $NAV_PANEL_CLASS->addSettingsItem(Ljava/lang/Object;)Ljava/util/AbstractList;"
+                    "invoke-static/range { v$register .. v$register }, $NAV_PANEL_CLASS->filterPanel(Ljava/lang/Object;)Ljava/util/AbstractList;"
                 )
                 addInstructions(
                     index + 1,
@@ -139,12 +158,22 @@ val settingsPatch = bytecodePatch {
             }
         }
 
+        // The footer owns the inset cards, including settings when the More tab patch is omitted.
+        NavPanelFooterFingerprint.let {
+            val index = it.instructionMatches.last().index
+            val list = it.method.getInstruction<FiveRegisterInstruction>(index).registerC
+            it.method.addInstruction(
+                index + 1,
+                "invoke-static { v$list }, $EXTENSION_PACKAGE/MoreMenu;->addToFooter(Ljava/lang/Object;)V"
+            )
+        }
+
         // Point the item's click at the settings screen, after the presenter sets its own listener.
         NavPanelSectionBindFingerprint.method.apply {
             returnIndices(Opcode.RETURN_VOID).forEach { index ->
                 replaceInstruction(
                     index,
-                    "invoke-static/range { p0 .. p0 }, $NAV_PANEL_CLASS->onSectionBind(Ljava/lang/Object;)V"
+                    "invoke-static/range { p0 .. p1 }, $EXTENSION_PACKAGE/MoreMenu;->onSectionBind(Ljava/lang/Object;Ljava/lang/Object;)V"
                 )
                 addInstruction(index + 1, "return-void")
             }

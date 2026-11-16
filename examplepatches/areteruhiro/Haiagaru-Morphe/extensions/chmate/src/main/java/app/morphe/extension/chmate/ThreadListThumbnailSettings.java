@@ -110,10 +110,13 @@ final class ThreadListThumbnailSettings {
         enabled.setChecked(enabled(activity));
         layout.addView(enabled,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
         enabled.setOnCheckedChangeListener((v,checked)->{prefs(activity).edit().putBoolean(ENABLE,checked).apply();ThreadListThumbnail.refresh();});
+        LinearLayout targets=SettingsSection.add(layout,"画像取得・表示の対象","サイトごとのレート制限と、画像を表示しない板を設定します。",true);
         Button pacing=new Button(activity);
         pacing.setText("画像取得のレート制限対象サイト");
         pacing.setOnClickListener(v->editPacedHosts(activity));
-        layout.addView(pacing);
+        targets.addView(pacing);
+        Button boards=new Button(activity);boards.setText("画像を表示しない板を選択（検索可）");targets.addView(boards);
+        boards.setOnClickListener(v->showTargets(activity));
         TextView sizeLabel=new TextView(activity);
         sizeLabel.setText("画像の大きさ："+sizeDp(activity)+"dp");
         layout.addView(sizeLabel);
@@ -153,8 +156,6 @@ final class ThreadListThumbnailSettings {
                 ThreadListThumbnail.refresh();
             }
         });
-        Button boards=new Button(activity);boards.setText("画像を表示しない板を選択（検索可）");layout.addView(boards);
-        boards.setOnClickListener(v->showTargets(activity));
         TextView help=new TextView(activity);
         help.setText("機能は初期OFF。有効にすると使用中の板のスレ冒頭の画像・動画サムネイルを表示します。直接動画リンクは動画サムネイル生成設定に従い、YouTubeは公開画像を利用します。1スレあたり最大1〜4枚、大きさは24〜96dpのバーで変更できます。複数枚でもスレタイの文字領域を確保します。板は初期状態ですべて表示対象です。表示しない板だけチェックして除外できます。ふたば・あにまんは通常の掲示板設定で登録した板が対象です。5ch・エッヂは閲覧すると自動で対象・除外候補に追加されます。取得には通信が発生します。取得に失敗したスレは通常表示です。");
         layout.addView(help);

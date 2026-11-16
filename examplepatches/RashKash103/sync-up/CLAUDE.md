@@ -489,6 +489,36 @@ a dialog posted from there is gone before it can be read, while having already c
 `OnboardingActivity` is the first run's, and it stays. Read `dumpsys activity activities` for
 `topResumedActivity` rather than assuming the first activity named is the one in front.
 
+**Every tab lives in the same container, and the app hides the feed rather than taking it
+away.** `activity_casual.xml` holds one `PostsFragmentFrameLayout`, and `MainActivity.d()` — the
+inbox, reached from `Lhc/a;->b` — hides the posts fragment and shows `MessagingFragment` in that
+same frame. So anything of ours added *beside* the feed rather than inside it stays on the screen
+when the reader leaves the feed, and hangs over whatever arrives next. That is exactly what
+happened to the subreddit banner, reported as issue #53: the strip cannot go inside the feed's own
+view, because `fragment_posts_vertical.xml` is a `SwipeRefreshLayout`, which lays out its list and
+the refresh circle and nothing else, so an extra child is measured and never drawn. It goes in the
+container instead and is told to go — `View.isShown()` on the feed, read from the strip's own
+pre-draw listener, since that listener belongs to the window and goes on being called when the
+view it was added through is not being drawn. Which feed to ask is kept on the strip rather than
+captured in the listener: the posts are given a new view whenever the app rebuilds them, and a
+listener holding the old one leaves the strip hidden for good.
+
+**The posts list's top padding belongs to Sync, and it takes it back.** The banner is drawn in
+a strip over the feed and the posts are started below it by padding the list, which is fine
+until the app writes that padding itself — *Slides* does, setting 21px on a 420dpi screen, and
+it does so after a view type change and on paths a feed is rebuilt on. The first post is then
+drawn under the banner, which is what issue #53's reporter and this repository's own user both
+saw, in Slides and nowhere else. Measured: `banner: the posts had come back up to 21`. Asking
+for the room once is therefore not enough; it is asked for again on every pre-draw, and only
+ever increased, so a layout that wants the posts further down than the strip needs keeps its
+own.
+
+**Changing the view type takes the strip off the screen until something draws it again.** No
+`onViewCreated` runs, so nothing of ours is called, and the strip's own pre-draw listener stops
+being reached — the container it was added to is not the one on the screen any more. Changing
+subreddit puts it back, since that draws from the feed's current parent, and so does a restart.
+Worth knowing before chasing a banner that is missing right after the view was changed.
+
 **The feed keeps its place as a row number, and the cache is swept from under it.**
 `RedditProvider.delete` runs `DELETE FROM tbl_posts WHERE age <= '<now - 48h>'` and the same for
 `tbl_lists`, plus `tbl_viewed_new` at 168h, and the only thing that calls it is `bulkInsert` —

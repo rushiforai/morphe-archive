@@ -4,13 +4,19 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patches.shared.Constants.COMPATIBILITY_MOOVIT
+import app.morphe.patches.shared.replaceWithReturnBoolean
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private val subscriptionStateFingerprint = Fingerprint(
     classFingerprint = Fingerprint(
@@ -58,13 +64,7 @@ val moovitUnlockPlusPatch = bytecodePatch(
         var patched = 0
 
         // 1. Subscription state gate -> always subscribed
-        subscriptionStateFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 p0, 0x1
-                return p0
-            """.trimIndent(),
-        )
+        subscriptionStateFingerprint.method.replaceWithReturnBoolean(true)
         patched++
 
         // 2. Package state -> always ACTIVE on initialization
@@ -98,16 +98,43 @@ val moovitUnlockPlusPatch = bytecodePatch(
         val callbackInitIndex = instructions.indexOfFirst {
             (it as? ReferenceInstruction)?.reference.toString().contains("Lcom/moovit/app/search/AppSearchLocationCallback;-><init>")
         }
-        check(callbackInitIndex > 0) { "AppSearchLocationCallback constructor invocation not found." }
+        if (callbackInitIndex < 0) {
+            throw PatchException("AppSearchLocationCallback constructor invocation not found.")
+        }
+
+        val callbackInitInstruction = instructions.elementAt(callbackInitIndex)
+        val callbackRef = (callbackInitInstruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: throw PatchException("AppSearchLocationCallback constructor reference not found.")
+        val booleanParamIndices = callbackRef.parameterTypes.mapIndexedNotNull { index, type ->
+            if (type == "Z") index else null
+        }
+        val targetParamIndex = if (booleanParamIndices.size >= 3) booleanParamIndices[2] else 4
+        val argOffset = targetParamIndex + 1
+
+        val flagReg = when (callbackInitInstruction) {
+            is FiveRegisterInstruction -> when (argOffset) {
+                1 -> callbackInitInstruction.registerD
+                2 -> callbackInitInstruction.registerE
+                3 -> callbackInitInstruction.registerF
+                4 -> callbackInitInstruction.registerG
+                else -> throw PatchException("Unsupported constructor argument index for FiveRegisterInstruction: $argOffset")
+            }
+            is RegisterRangeInstruction -> callbackInitInstruction.startRegister + argOffset
+            else -> throw PatchException("Unsupported instruction type for callback constructor: ${callbackInitInstruction::class.java.name}")
+        }
 
         val constZeroIndex = instructions.subList(0, callbackInitIndex).indexOfLast {
-            it.opcode == Opcode.CONST_4 && (it as? OneRegisterInstruction)?.registerA == 5
+            it.opcode == Opcode.CONST_4 &&
+                (it as? OneRegisterInstruction)?.registerA == flagReg &&
+                (it as? NarrowLiteralInstruction)?.narrowLiteral == 0
         }
-        check(constZeroIndex >= 0) { "const/4 v5, 0x0 instruction not found before callback constructor." }
+        if (constZeroIndex < 0) {
+            throw PatchException("const/4 v$flagReg, 0x0 instruction not found before callback constructor.")
+        }
 
         favoriteLocationAddressSearchFingerprint.method.replaceInstruction(
             constZeroIndex,
-            "const/4 v5, 0x1",
+            "const/4 v$flagReg, 0x1",
         )
         patched++
 

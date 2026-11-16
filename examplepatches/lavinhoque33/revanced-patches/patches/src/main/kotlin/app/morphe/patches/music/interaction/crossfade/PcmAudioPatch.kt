@@ -2,7 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
  * Written by lavinhoque33, 2026-11-12.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.music.interaction.crossfade
@@ -16,13 +16,17 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.music.utils.playservice.is_9_00_or_greater
 import app.morphe.util.Utils.printWarn
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import java.util.logging.Logger
@@ -185,6 +189,25 @@ private fun createAdapterMethods(abi: PcmNativeAbi): List<MutableMethod> {
     return methods
 }
 
+private fun Instruction.sinkConfigurationReceiver(sinkType: String): Int = when (opcode) {
+    Opcode.IPUT_OBJECT -> {
+        check(getReference<FieldReference>()?.definingClass == sinkType) {
+            "PCM sink exit store has an unexpected owner"
+        }
+        (this as TwoRegisterInstruction).registerB
+    }
+    Opcode.INVOKE_DIRECT -> {
+        // 9.45 finishes by updating its trimming processor after committing the configuration.
+        // A native call cannot change the receiver reference in the caller's register.
+        val reference = getReference<MethodReference>()!!
+        check(reference.definingClass == sinkType && reference.parameterTypes.isEmpty() &&
+            reference.returnType == "V"
+        ) { "PCM sink exit call has an unexpected receiver or signature" }
+        (this as FiveRegisterInstruction).registerC
+    }
+    else -> error("PCM sink exit has no proven receiver reference")
+}
+
 private fun BytecodePatchContext.preparePcmInstallation(discovery: PcmDiscovery): PcmInstallation {
     fun validatedEdit(original: Method, edit: MutableMethod.() -> Unit): PcmMethodEdit {
         val owner = mutableClassDefBy(original.definingClass)
@@ -248,17 +271,14 @@ private fun BytecodePatchContext.preparePcmInstallation(discovery: PcmDiscovery)
         val instructions = implementation!!.instructions.toList()
         instructions.indices.reversed().forEach { index ->
             if (instructions[index].opcode == Opcode.RETURN_VOID) {
-                // A native parameter slot need not retain its original type at a return. The
-                // preceding store proves its receiver; discovery proves the source format's lifetime.
-                val store = instructions.getOrNull(index - 1)
-                check(store?.opcode == Opcode.IPUT_OBJECT &&
-                    store.getReference<FieldReference>()?.definingClass == sinkType
-                ) { "PCM sink exit has no proven receiver reference" }
-                val receiver = (store as TwoRegisterInstruction).registerB
+                // Native code may reuse parameter slots; derive the receiver from its last use,
+                // while discovery proves the source format survives every successful path.
+                val receiver = instructions[index - 1].sinkConfigurationReceiver(sinkType)
                 check(receiver <= 15 && discovery.sinkFormatRegister <= 15) {
                     "PCM sink exit references exceed invoke-direct register encoding"
                 }
-                addInstructions(
+                // The queued and immediate configurations share this return on 9.45.
+                addInstructionsAtControlFlowLabel(
                     index,
                     "invoke-direct {v$receiver, v${discovery.sinkFormatRegister}}, " +
                         "$sinkType->$configurationName($formatType)V",

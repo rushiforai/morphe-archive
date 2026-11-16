@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.music.interaction.jam
@@ -189,8 +190,16 @@ internal fun seekForwarderFingerprint() = Fingerprint(
     }
 )
 
+/** Finds the player palette source by the entity written by its local apply method. */
+internal object PaletteEntityFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L"),
+    strings = listOf("YTM_PLAYER_COLOR_SAMPLE_PALETTE_ENTITY_KEY"),
+)
+
 /** Finds the palette source's publish-then-apply entry point. */
 internal object PalettePublicationFingerprint : Fingerprint(
+    classFingerprint = PaletteEntityFingerprint,
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
@@ -596,11 +605,10 @@ internal fun protoParserFingerprint(messageHierarchy: Set<String>) = Fingerprint
     }
 )
 
-/** A palette source owns an extractor producing the same type its local apply method consumes. */
-internal fun paletteExtractorFingerprint(paletteType: String, ownedTypes: Set<String>) = Fingerprint(
+/** The extractor produces the same palette type consumed by the source's local apply method. */
+internal fun paletteExtractorFingerprint(paletteType: String) = Fingerprint(
     parameters = listOf("Landroid/graphics/Bitmap;"),
     returnType = paletteType,
-    custom = { _, owner -> owner.type in ownedTypes },
 )
 
 internal fun queueItemEndpointFingerprint(ownerType: String, commandType: String) = Fingerprint(

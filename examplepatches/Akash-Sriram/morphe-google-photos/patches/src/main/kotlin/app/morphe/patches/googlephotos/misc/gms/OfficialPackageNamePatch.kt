@@ -51,7 +51,7 @@ val officialPackageNamePatch = bytecodePatch(
     name = "Official package name",
     description = "Retains the official package name (com.google.android.apps.photos) instead of renaming to " +
         "$MORPHE_PHOTOS_PACKAGE_NAME and disables Play Store updates by setting the version code to maximum to prevent automatic overwriting. " +
-        "This is strictly for non-root users whose devices do not have Google Photos preinstalled by the OEM.",
+        "Required for root mount installs, and selectable for non-root users whose devices do not have Google Photos preinstalled by the OEM.",
     default = false,
 ) {
     category("Official package name")
@@ -59,7 +59,7 @@ val officialPackageNamePatch = bytecodePatch(
 
     availability { installer, _ ->
         when (installer) {
-            InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+            InstallerType.MOUNT -> PatchAvailability.REQUIRED
             InstallerType.STANDARD, InstallerType.SHIZUKU -> PatchAvailability.DISABLED
         }
     }

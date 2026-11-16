@@ -1,0 +1,49 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+default_install_hook_types = ["pre-commit", "commit-msg"]
+default_stages = ["pre-commit"]
+
+[[repos]]
+repo = "builtin"
+hooks = [
+    { id = "trailing-whitespace" },
+    { id = "end-of-file-fixer" },
+    { id = "check-added-large-files" },
+    { id = "check-merge-conflict" },
+    { id = "detect-private-key" },
+    { id = "check-json" },
+    { id = "check-toml" },
+    { id = "check-yaml" },
+    { id = "check-xml" },
+    { id = "check-executables-have-shebangs" },
+    { id = "check-shebang-scripts-are-executable" },
+]
+
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "ktlint"
+name = "ktlint"
+language = "system"
+entry = "ktlint --format"
+types = ["kotlin"]
+
+[[repos.hooks]]
+id = "conventional-commit"
+name = "conventional commit"
+language = "system"
+stages = ["commit-msg"]
+pass_filenames = true
+entry = "sh -c 'head -n1 \"$1\" | grep -qE \"^(feat|fix|bump|docs|style|refactor|perf|test|build|ci|chore|revert)(\\([a-zA-Z0-9_./-]+\\))?!?: .+\" || head -n1 \"$1\" | grep -qE \"^(Merge|Revert|fixup!|squash!) \" || { echo \"Invalid commit message. Use Conventional Commits: <type>[optional scope]: <description>\"; exit 1; }' _"
+
+[[repos.hooks]]
+id = "git-cliff"
+name = "generate changelog with git-cliff"
+language = "system"
+stages = ["manual"]
+pass_filenames = false
+always_run = true
+entry = "git-cliff -o CHANGELOG.md"

@@ -12,11 +12,19 @@ import org.jsoup.nodes.*;
 
 /** Public Futapo ranking; no scripts, login or eager thread-body downloads. */
 final class FutabaRanking {
-    static final String SOURCE="https://futapo.futakuro.com/ranking/index.html";
+    static final String SOURCE=SiteBoardProtocol.FUTABA_RANKING;
+    static final String LABEL="勢いランキング";
+    static String resultId(String url){
+        try{
+            byte[] hash=java.security.MessageDigest.getInstance("SHA-256").digest(url.getBytes("UTF-8"));
+            long value=0;for(int i=0;i<8;i++)value=(value*256+(hash[i]&255))%9_000_000_000L;
+            return Long.toString(value+1);
+        }catch(Exception impossible){throw new IllegalStateException(impossible);}
+    }
     static final class Row {
         final String url,title;final int speed,replies;
         Row(String url,String title,int speed,int replies){this.url=url;this.title=title;this.speed=speed;this.replies=replies;}
-        public String toString(){return "勢い "+speed+" / "+replies+"レス\n"+title+"\n"+url;}
+        public String toString(){return "勢い "+speed+" / "+replies+"レス\n"+title;}
     }
     static List<Row> parse(String html)throws IOException{
         LinkedHashMap<String,Row> rows=new LinkedHashMap<>();
@@ -27,7 +35,7 @@ final class FutabaRanking {
             try{SiteBoardProtocol.Board board=SiteBoardProtocol.address(url);if(!board.kind.equals("futaba")||board.thread==null)continue;
                 String title=a.text().trim();if(title.isEmpty())continue;
                 int speed=Integer.parseInt(s.text().replace(",","").trim()),replies=Integer.parseInt(r.text().replace(",","").trim());
-                if(speed<0||replies<0)continue;rows.putIfAbsent(url,new Row(url,title,speed,replies));if(rows.size()>=200)break;
+                if(speed<0||replies<0||replies>999999)continue;rows.putIfAbsent(url,new Row(url,SiteBoardProtocol.futabaTitle(board,title),speed,replies));if(rows.size()>=200)break;
             }catch(IOException|IllegalArgumentException invalid){/* Ignore advertisements and malformed rows. */}
         }
         if(rows.isEmpty())throw new IOException("勢いランキングの形式を確認できません");

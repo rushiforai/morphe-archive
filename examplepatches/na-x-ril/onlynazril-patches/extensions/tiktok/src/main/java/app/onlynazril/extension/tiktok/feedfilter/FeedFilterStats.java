@@ -2,11 +2,11 @@ package app.onlynazril.extension.tiktok.feedfilter;
 
 /**
  * What the filter has seen this process, in one line the Tweaks screen can show.
- *
+ * <p>
  * A log is the right place for detail and the wrong place for the only answer: the app's own log can
  * be dropped by the platform, `adb` is not always at hand, and "the filter never ran" and "it ran and
  * matched nothing" produce the same empty screen. Read off the settings screen instead, they do not.
- *
+ * <p>
  * Only the running process writes here, on the feed's thread, and only the screen reads it.
  */
 public final class FeedFilterStats {

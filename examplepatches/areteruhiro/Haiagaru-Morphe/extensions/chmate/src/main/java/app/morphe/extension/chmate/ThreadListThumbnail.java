@@ -14,6 +14,8 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.view.View;
+import android.view.ViewGroup;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +53,38 @@ public final class ThreadListThumbnail {
     });
     private static final Set<String> PENDING=ConcurrentHashMap.newKeySet();
     private static final Set<String> ANIMANCH_PENDING=ConcurrentHashMap.newKeySet();
+    static final String REGISTERED_ACTION="threadListRegisteredImageAction";
+    private static final Map<String,Boolean> HIDDEN=Collections.synchronizedMap(new LinkedHashMap<String,Boolean>(64,.75f,true){
+        @Override protected boolean removeEldestEntry(Map.Entry<String,Boolean> entry){return size()>128;}
+    });
+    private static final Map<View,RowState> COLLAPSED=new WeakHashMap<>();
+    private static final class RowState{
+        final int height,visibility,accessibility;
+        RowState(View row){height=row.getLayoutParams().height;visibility=row.getVisibility();accessibility=row.getImportantForAccessibility();}
+    }
+    static void restoreRow(Object object){
+        View row=rowView(object);
+        if(row==null)return;
+        RowState saved=COLLAPSED.remove(row);
+        if(saved==null)return;
+        ViewGroup.LayoutParams params=row.getLayoutParams();
+        if(params!=null){params.height=saved.height;row.setLayoutParams(params);}
+        row.setVisibility(saved.visibility);row.setImportantForAccessibility(saved.accessibility);
+    }
+    private static View rowView(Object object){
+        if(object instanceof View)return (View)object;
+        if(object==null)return null;
+        try{return (View)object.getClass().getField("itemView").get(object);}
+        catch(ReflectiveOperationException|RuntimeException ignored){return null;}
+    }
+    private static void collapseRow(Object object){
+        View row=rowView(object);
+        if(row==null||COLLAPSED.containsKey(row)||row.getLayoutParams()==null)return;
+        COLLAPSED.put(row,new RowState(row));
+        ViewGroup.LayoutParams params=row.getLayoutParams();
+        params.height=0;row.setLayoutParams(params);
+        row.setVisibility(View.GONE);row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+    }
     private static final Map<Object,Boolean> ADAPTERS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final ThreadLocal<Selection> CURRENT=new ThreadLocal<>();
     private static final AtomicBoolean REFRESH=new AtomicBoolean();
@@ -122,11 +156,21 @@ public final class ThreadListThumbnail {
     }
 
     /** Called before each native row return, after both subject and title are known. */
-    public static void end(){
+    public static void end(Object row){
+        restoreRow(row);
         Selection state=CURRENT.get();CURRENT.remove();
         if(state==null||state.id==null||state.title==null||!ThreadListThumbnailSettings.enabled(state.context))return;
         int maxImages=ThreadListThumbnailSettings.imageCount(state.context);
-        String key=state.cacheKey(maxImages);List<Bitmap> bitmaps=IMAGES.get(key);
+        android.content.SharedPreferences preferences=FeatureSwitches.prefs(state.context);
+        int selected=preferences.getBoolean(ImageModeration.LIST,false)&&ImageModeration.available(state.context)?ImageModeration.selected():0;
+        int action=preferences.getInt(REGISTERED_ACTION,0);
+        boolean gray=preferences.getBoolean(ThumbnailAppearance.GRAY,false);
+        boolean nativeNg=preferences.getBoolean(NativeImageNgList.ENABLE,false);
+        long registeredRevision=action==0?0:RegisteredImageNg.listRevision(state.context);
+        String sourceKey=state.cacheKey(maxImages);
+        String key=sourceKey+":"+action+":"+registeredRevision+":"+selected+":"+gray+":"+preferences.getInt(ThumbnailAppearance.STRENGTH,3)+":"+nativeNg+":"+preferences.getInt(ThumbnailAppearance.SENSITIVITY,1);
+        if(HIDDEN.containsKey(key)){collapseRow(row);return;}
+        List<Bitmap> bitmaps=IMAGES.get(key);
         if(bitmaps!=null){decorate(state.title,bitmaps);return;}
         long now=SystemClock.elapsedRealtime();Long retry=FAILED.get(key);
         SiteBoardProtocol.Board board=state.site==null?null:state.gateway.boards.get(state.site);
@@ -136,19 +180,19 @@ public final class ThreadListThumbnail {
         ExecutorService executor=animanch?ANIMANCH_IO:IO;
         executor.execute(()->{
             try{
-                List<String> sources=SOURCES.get(key);
+                List<String> sources=SOURCES.get(sourceKey);
                 if(sources==null){
                     // Collect spare candidates so an unavailable video does not hide later images.
                     int candidateLimit=Math.min(16,Math.max(4,maxImages*4));
                     sources=state.site==null?fiveChOpeningImages(state.context,state.five,state.id,candidateLimit):state.gateway.openingImages(state.site,state.id,candidateLimit,state.context);
                     sources=Collections.unmodifiableList(new ArrayList<>(sources));
-                    SOURCES.put(key,sources);
+                    SOURCES.put(sourceKey,sources);
                 }
                 if(sources.isEmpty()){FAILED.put(key,SystemClock.elapsedRealtime()+30*60_000L);return;}
                 List<Bitmap> decoded=new ArrayList<>();
                 boolean awaitingVideo=false;
                 for(String source:sources){
-                    if(decoded.size()>=maxImages)break;
+                    if(decoded.size()>=maxImages&&action!=2)break;
                     try{
                         byte[] bytes;
                         if(ThreadListThumbnailRules.videoUrl(source)){
@@ -166,13 +210,29 @@ public final class ThreadListThumbnail {
                         }else{
                             bytes=openingImageBytes(state,source);
                         }
+                        if(bytes==null)continue;
+                        boolean registered=action!=0&&!ThreadListThumbnailRules.videoUrl(source)
+                                &&RegisteredImageNg.listMatch(state.context,bytes);
+                        if(registered&&action==2){
+                            HIDDEN.put(key,true);FAILED.remove(key);refresh();return;
+                        }
+                        if(registered&&action==1||decoded.size()>=maxImages)continue;
                         Bitmap bitmap=decode(bytes);
-                        if(bitmap!=null)decoded.add(bitmap);
+                        if(bitmap!=null){
+                            int flags=selected==0?0:ImageModeration.classify(state.context,bitmap);
+                            if(flags==ImageModeration.UNKNOWN){bitmap.recycle();continue;}
+                            if(registered&&action==3||(flags&selected)!=0||(nativeNg&&NativeImageNgList.flagged(state.context,bitmap,source))){
+                                Bitmap obscured=ThumbnailAppearance.mosaic(state.context,bitmap,gray);
+                                bitmap.recycle();bitmap=obscured;
+                            }
+                            decoded.add(bitmap);
+                        }
                     }catch(ThumbnailRequestPacing.Deferred limited){throw limited;}
                     catch(IOException unavailable){/* Keep the other valid opening images. */}
                 }
                 if(decoded.isEmpty()){
-                    FAILED.put(key,SystemClock.elapsedRealtime()+(awaitingVideo?30:15)*60_000L);
+                    if(!awaitingVideo&&action==1){IMAGES.put(key,Collections.emptyList());refresh();}
+                    else FAILED.put(key,SystemClock.elapsedRealtime()+(awaitingVideo?30:15)*60_000L);
                     return;
                 }
                 IMAGES.put(key,Collections.unmodifiableList(decoded));FAILED.remove(key);refresh();
@@ -195,7 +255,10 @@ public final class ThreadListThumbnail {
         boolean changed=false;
         synchronized(SOURCES){
             for(Map.Entry<String,List<String>> entry:SOURCES.entrySet())if(entry.getValue().contains(videoUrl)){
-                IMAGES.remove(entry.getKey());FAILED.remove(entry.getKey());changed=true;
+                String prefix=entry.getKey()+":";
+                synchronized(IMAGES){IMAGES.keySet().removeIf(key->key.startsWith(prefix));}
+                synchronized(FAILED){FAILED.keySet().removeIf(key->key.startsWith(prefix));}
+                changed=true;
             }
         }
         if(changed)refresh();
@@ -265,7 +328,7 @@ public final class ThreadListThumbnail {
         String dat=board.openingDatUrl(id);
         if(dat!=null){
             String opening=EdgeOpeningDat.body((first,last)->ThumbnailRequestPacing.fetch(context,dat,
-                    gate->fetchOpeningDat(dat,first,last,gate)));
+                    gate->fetchOpeningDat(dat,first,last,gate)),board.host.equals("die-or.work")?2:1);
             return ThreadListThumbnailRules.openingTextMedia(opening,address,limit);
         }
         byte[] html=ThumbnailRequestPacing.fetch(context,address+"1",gate->fetchOpeningHtml(address+"1",id,gate));
@@ -302,7 +365,7 @@ public final class ThreadListThumbnail {
             int cap=status==200?EdgeOpeningDat.MAX_BYTES+1:last-first+2;
             try(InputStream input=connection.getInputStream()){
                 EdgeOpeningDat.Part part=new EdgeOpeningDat.Part(status,connection.getHeaderField("Content-Range"),
-                        connection.getContentType(),EdgeOpeningDat.read(input,cap));
+                        connection.getContentType(),EdgeOpeningDat.read(input,cap,address.startsWith("https://die-or.work/")?2:1));
                 connection.disconnect();return part;
             }
         }finally{connection.disconnect();}

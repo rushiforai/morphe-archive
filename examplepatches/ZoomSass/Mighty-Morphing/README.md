@@ -9,6 +9,7 @@ Click the following to add to morphe sources
 https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing
 
 <!-- PATCHES_START EXPANDED -->
+- <span style="color:#d85a45">**Arctic Shift restore:**</span> [v1.4.5: Link preview fix.] Removed and deleted comments, and removed posts on the comments screen, get an Arctic Shift Restore button that brings back the archived text. Nothing is fetched until you tap it. Works with Modern UI or Classic. Turn it on in Joey Settings - Morphe Settings. Initial release, please report any issues or suggestions for improvements.
 - <span style="color:#d85a45">**Backup and restore:**</span> Save Joey and Morphe settings to a file and restore them later, including splash, theme, fonts, comments, and show and hide. Log in to the same Reddit account before restoring subscriptions. Access via Joey Settings - Morphe Settings.
 - <span style="color:#d85a45">**Disable tooltips:**</span> Turns off the first-run tips Joey shows.
 - <span style="color:#d85a45">**Dismiss without tearing:**</span> Swiping a photo away to close it looks smooth instead of tearing.
@@ -17,7 +18,8 @@ https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing
 - <span style="color:#d85a45">**Fix login page:**</span> Makes Reddit's login page load and work properly inside Joey, and clears the cookie banner out of the way.
 - <span style="color:#d85a45">**Inline comment media:**</span> Shows GIFs, pictures, subreddit emojis and Reddit videos in comments instead of links. Tap to open, drag left or right to resize, and scroll past them as normal. YouTube links use a 16:9 preview with the title. Extra settings in Joey Settings - Morphe Settings.
 - <span style="color:#d85a45">**Log in with your own client ID:**</span> Lets Joey log in with another app's client ID, for when Joey's own login stops working. Normal option here is to sign in to RedReader once, then paste the App ID from Reddit's "you authorized an app" email into this patch's settings in expert mode.
-- <span style="color:#d85a45">**Modern UI:**</span> [v1.4.0: Post actions editor for the post bar and ⋮ menu. Full screen media, optionally opening without controls. New album viewer with thumbnails, grid and captions. Separate Modern fonts. Sidebar subreddit search keyboard fixed. Performance improvements, comparably smooth to Joey or better.] A cleaner layout for Joey, on by default, with a choice of themes. Joey's own themes and colours are off while it's on, and Classic Joey can be switched back on any time. Posts use one compact list with adjustable post style, details and images. Settings in Joey Settings - Morphe Settings.
+- <span style="color:#d85a45">**Media enhancements:**</span> [v1.5.0: New. The Modern UI media features, now as their own patch so Classic Joey can have them too. Nothing changes for existing users; Modern UI already includes all of this.] Downloads with your own file names and folder, full screen media, optionally opening without controls, an album viewer with thumbnails, grid and captions, and swiping albums closed. All on by default; each can be turned off in Joey Settings - Morphe Settings.
+- <span style="color:#d85a45">**Modern UI:**</span> [v1.5.0: The media features (downloads, full screen media, album viewer and more) are now shared with the new Media enhancements patch, so Classic Joey users can have them too. Nothing changes for existing users. Media options now have their own section in Morphe Settings.] [v1.4.0: Post buttons & menu editor for the post bar and ⋮ menu. Full screen media, optionally opening without controls. New album viewer with thumbnails, grid and captions. Separate Modern fonts. Sidebar subreddit search keyboard fixed. Performance improvements, comparably smooth to Joey or better.] A cleaner layout for Joey, on by default, with a choice of themes. Joey's own themes and colours are off while it's on, and Classic Joey can be switched back on any time. Posts use one compact list with adjustable post buttons, info line and image style, including whether opened posts show the full picture. Settings in Joey Settings - Morphe Settings.
 - <span style="color:#d85a45">**Open Reddit share links:**</span> Opens modern Reddit share links directly to the right post or comment in Joey instead of loading the web page. To open Reddit links from other apps, make sure all links are ticked in Android Settings -> Apps -> Joey -> Open by default.
 - <span style="color:#d85a45">**RedGifs with sound:**</span> RedGifs clips play with their sound, in HD when it's available.
 - <span style="color:#d85a45">**Search auto open keyboard:**</span> Opens the keyboard automatically for homepage search and comment search. The Enter and Search keys start the search.
@@ -35,11 +37,18 @@ https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing
 - **Internal browser domains:** Specific domains list to always open inside Joey's internal WebView browser.
 - **Account stats:** Reactivate account age and karma indicators on posts and comments.
 - **Pinned sidebar:** A sidebar that can stay open beside the feed.
-- **Post details overflow menu:** Choose which post details stay on the line and which go in an overflow menu.
+- **Post info line overflow menu:** Choose which post details stay on the line and which go in an overflow menu.
 - **Feed UI tweaks:** Further adjustments to the feed layout.
-- **Modern UI:** Further theme enhancements. Full post style settings integration.
-- **Show and hide previews:** Live previews for the show and hide options that do not have one yet.
-- **Arctic Shift undelete:** Look up removed posts and comments through https://arctic-shift.photon-reddit.com.
+- **Modern UI:** Further theme enhancements.
+- **Show and hide previews:** Live previews for the remaining Show/Hide options.
+- **More link previews:** Show more than 4 link previews.
+- **Image host choice:** Upload images to a different host, for subreddits that block Reddit-hosted images.
+
+## Credits
+- **Morphe:** The patcher these patches are built for.
+- **Patcheddit:** The collapsed replies fix and the login page fix are based on its patches.
+- **Infinity for Reddit:** Inline comment media reads Reddit's gallery and emoji data the same way it does.
+- **Arctic Shift** by Arthur Heitmann: Added restore functionality using Arctic Shift. https://github.com/ArthurHeitmann/arctic_shift
 
 ## License
 

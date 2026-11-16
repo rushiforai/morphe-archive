@@ -51,8 +51,8 @@
 
 ## LINE 側: sources/line/
 
-- 本家 [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) のソースツリー全体のコピーを保持します（ベースは v3.10.0、コミットは `sources/line/UPSTREAM_BASE.md` に記録）。本家には LINE 向けパッチ（32件）と Facebook 向けパッチ（20件）が同居していますが、**収録するのは LINE 向けだけ**です。Facebook 向けパッチはコピーには残し、ビルドへの注入時に除外します（注入範囲は `sources/line/UPSTREAM_BASE.md` に明記）。
-- 本家にも文字列リソースの仕組みが無いため、Twitch 側と同じくコピー側で表示文字列を直接翻訳します。翻訳範囲は、パッチ宣言の `description`（LINE 全32件）と、拡張機能内の LINE 設定画面「Andrew's Patch Setting」の表示文字列（`extensions/extension/` の `LineSettingsScreen.java`）です。`name` は本家の英語名のまま（絶対ルール）。設定キーや機能IDなどの内部識別子は翻訳しません。詳細は `docs/LOCALIZATION.md`。
+- 本家 [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) のソースツリー全体のコピーを保持します（ベースは v3.10.0、コミットは `sources/line/UPSTREAM_BASE.md` に記録）。本家には LINE 向けパッチ（39件）と Facebook 向けパッチ（20件）が同居していますが、**収録するのは LINE 向けだけ**です。Facebook 向けパッチはコピーには残し、ビルドへの注入時に除外します（注入範囲は `sources/line/UPSTREAM_BASE.md` に明記）。
+- 本家にも文字列リソースの仕組みが無いため、Twitch 側と同じくコピー側で表示文字列を直接翻訳します。翻訳範囲は、パッチ宣言の `description`（LINE 全39件）と、拡張機能内の LINE 設定画面「Andrew's Patch Setting」の表示文字列（`extensions/extension/` の `LineSettingsScreen.java`）です。`name` は本家の英語名のまま（絶対ルール）。設定キーや機能IDなどの内部識別子は翻訳しません。詳細は `docs/LOCALIZATION.md`。
 - 取り込み手順（本家のリリースタグ／`main` のみが対象）:
   1. 本家を読み取り専用で取得する（浅いクローン、または push URL を無効化したリモートからの fetch）。本家のバージョンタグはこのリポジトリには取り込みません。
   2. 本家の変更を `sources/line/` へ反映する（差分適用／手作業マージ）。コピーは本家のツリー全体を保持するので、Facebook 側の変更もコピーへは反映します（バンドルには入りません）。

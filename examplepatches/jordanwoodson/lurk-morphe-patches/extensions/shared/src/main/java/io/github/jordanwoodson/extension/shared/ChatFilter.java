@@ -31,6 +31,8 @@ public final class ChatFilter {
     public static final String VIBRATE = "chat_highlight_vibrate";
     public static final String BLOCKED_WORDS = "chat_blocked_words";
     public static final String BLOCKED_USERS = "chat_blocked_users";
+    /** Users (and, where the app knows them, roles) whose every message is highlighted. Registered by Twitch only. */
+    public static final String HIGHLIGHT_USERS = "chat_highlight_users";
 
     public static final int NONE = 0;
     public static final int HIGHLIGHT = 1;
@@ -55,6 +57,7 @@ public final class ChatFilter {
         final String rawBlockedWords;
         final String rawBlockedUsers;
         final String rawHighlightWords;
+        final String rawHighlightUsers;
         final boolean mentions;
         /** The signed-in login, lowercase; "" when signed out. Its own messages are never mentions. */
         public final String self;
@@ -63,16 +66,35 @@ public final class ChatFilter {
         final Pattern highlightWords;
         final Pattern mention;
         final Set<String> blockedUsers;
+        /**
+         * Highlighted users: login (lowercase, without "@") to its own background color, 0 for the default one.
+         * In the order of the setting.
+         */
+        public final Map<String, Integer> highlightUsers;
+        /** The entries written with "@" (role names such as {@code mod} or {@code vip}), the same way. */
+        public final Map<String, Integer> highlightRoles;
         /** {@link Settings#changes()} when the settings were read; -1 when changes can't be watched. */
         final long changes;
 
-        Lists(String blockedWords, String blockedUsers, String highlightWords, boolean mentions, String self,
-              String selfName, long changes) {
+        Lists(String blockedWords, String blockedUsers, String highlightWords, String highlightUsers, boolean mentions,
+              String self, String selfName, long changes) {
             this.changes = changes;
             this.blockedUsers = new HashSet<>();
             rawBlockedWords = blockedWords;
             rawBlockedUsers = blockedUsers;
             rawHighlightWords = highlightWords;
+            rawHighlightUsers = highlightUsers;
+            Map<String, Integer> users = new LinkedHashMap<>();
+            Map<String, Integer> roles = new LinkedHashMap<>();
+            for (String entry : entries(highlightUsers)) {
+                int[] color = new int[1];
+                String name = highlightName(entry, color);
+                if (name == null) continue;
+                if (entry.startsWith("@") && !roles.containsKey(name)) roles.put(name, color[0]);
+                if (!users.containsKey(name)) users.put(name, color[0]);
+            }
+            this.highlightUsers = Collections.unmodifiableMap(users);
+            this.highlightRoles = Collections.unmodifiableMap(roles);
             this.mentions = mentions;
             this.self = self;
             this.selfName = selfName;
@@ -95,6 +117,9 @@ public final class ChatFilter {
             rawBlockedWords = same.rawBlockedWords;
             rawBlockedUsers = same.rawBlockedUsers;
             rawHighlightWords = same.rawHighlightWords;
+            rawHighlightUsers = same.rawHighlightUsers;
+            highlightUsers = same.highlightUsers;
+            highlightRoles = same.highlightRoles;
             mentions = same.mentions;
             self = same.self;
             selfName = same.selfName;
@@ -105,10 +130,11 @@ public final class ChatFilter {
             this.changes = changes;
         }
 
-        boolean matches(String blockedWords, String blockedUsers, String highlightWords, boolean mentions,
-                        String self, String selfName) {
+        boolean matches(String blockedWords, String blockedUsers, String highlightWords, String highlightUsers,
+                        boolean mentions, String self, String selfName) {
             return rawBlockedWords.equals(blockedWords) && rawBlockedUsers.equals(blockedUsers)
-                    && rawHighlightWords.equals(highlightWords) && this.mentions == mentions
+                    && rawHighlightWords.equals(highlightWords) && rawHighlightUsers.equals(highlightUsers)
+                    && this.mentions == mentions
                     && this.self.equals(self) && this.selfName.equals(selfName);
         }
     }
@@ -133,9 +159,12 @@ public final class ChatFilter {
         String blockedWords = Settings.getText(BLOCKED_WORDS);
         String blockedUsers = Settings.getText(BLOCKED_USERS);
         String highlightWords = Settings.getText(HIGHLIGHT_WORDS);
+        String highlightUsers = Settings.getText(HIGHLIGHT_USERS);
         boolean mentions = Settings.isEnabled(MENTIONS);
-        if (current == null || !current.matches(blockedWords, blockedUsers, highlightWords, mentions, self, selfName)) {
-            current = new Lists(blockedWords, blockedUsers, highlightWords, mentions, self, selfName, changes);
+        if (current == null || !current.matches(blockedWords, blockedUsers, highlightWords, highlightUsers, mentions,
+                self, selfName)) {
+            current = new Lists(blockedWords, blockedUsers, highlightWords, highlightUsers, mentions, self, selfName,
+                    changes);
         } else if (current.changes != changes) {
             current = new Lists(current, changes);
         }
@@ -153,7 +182,38 @@ public final class ChatFilter {
             return HIGHLIGHT;
         }
         if (current.highlightWords != null && current.highlightWords.matcher(text).find()) return HIGHLIGHT;
+        if (!sender.isEmpty() && current.highlightUsers.containsKey(sender)) return HIGHLIGHT;
         return NONE;
+    }
+
+    /**
+     * One entry of the highlighted users: {@code name}, {@code @role}, either followed by {@code =#RRGGBB} (or
+     * {@code =#AARRGGBB}, or without the "#"). Returns the name, lowercase and without "@", and puts the color in
+     * {@code color[0]}: 0 for none, a six-digit color at the default highlight's 30% opacity so text stays
+     * readable. Null for an entry that isn't a name.
+     */
+    static String highlightName(String entry, int[] color) {
+        String name = entry;
+        String value = null;
+        int at = entry.indexOf('=');
+        if (at >= 0) {
+            name = entry.substring(0, at);
+            value = entry.substring(at + 1).trim();
+        }
+        name = name.trim();
+        while (name.startsWith("@")) name = name.substring(1);
+        name = name.trim().toLowerCase(Locale.ROOT);
+        if (name.isEmpty() || name.length() > 64) return null;
+        color[0] = 0;
+        if (value != null) {
+            if (value.startsWith("#")) value = value.substring(1);
+            if (value.matches("[0-9a-fA-F]{6}")) {
+                color[0] = 0x4D000000 | Integer.parseInt(value, 16);
+            } else if (value.matches("[0-9a-fA-F]{8}")) {
+                color[0] = (int) Long.parseLong(value, 16);
+            }
+        }
+        return name;
     }
 
     /** The entries of a comma- (or line-) separated list, trimmed, without empty ones. */

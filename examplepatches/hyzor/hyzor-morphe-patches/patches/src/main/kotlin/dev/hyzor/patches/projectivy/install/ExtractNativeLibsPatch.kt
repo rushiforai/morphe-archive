@@ -3,6 +3,7 @@ package dev.hyzor.patches.projectivy.install
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import dev.hyzor.patches.projectivy.shared.Constants.PROJECTIVY
+import dev.hyzor.patches.projectivy.shared.Constants.PROJECTIVY_APK
 import org.w3c.dom.Element
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
@@ -26,7 +27,7 @@ internal val extractNativeLibsPatch = resourcePatch(
     description = "Sets android:extractNativeLibs=true so the patched APK installs on " +
         "16 KB page-size devices.",
 ) {
-    compatibleWith(PROJECTIVY)
+    compatibleWith(PROJECTIVY, PROJECTIVY_APK)
 
     execute {
         document("AndroidManifest.xml").use { document ->

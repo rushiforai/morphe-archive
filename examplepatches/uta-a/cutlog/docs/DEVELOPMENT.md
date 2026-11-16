@@ -50,8 +50,9 @@ java -jar <morphe-desktop-all.jar> patch \
 
 - [MorpheApp/MicroG-RE](https://github.com/MorpheApp/MicroG-RE)（`app.revanced.android.gms`）を導入し、MicroG-RE 側に Google アカウントを登録してから、setlog の通常の Google ログインボタンを押す。別のログインボタンや設定は追加しない
 - 公式リリースの署名証明書（SHA-256 `0b6c9515afb195fac59601696ba0a7907a0b217ccf720b43148427ccf64343e7`）を検証する。未導入・署名不一致・確認失敗時は元の Google Play services 経路を使う
-- Google ID token だけの要求では Android 本体の Credential Manager ではなく同梱の Play services provider を使い、その中でも nonce 対応の Identity Sign-In `getSignInIntent` を選ぶ。パスワード・パスキー・認証情報のクリア要求は変更しない
+- Google ID token だけの要求では Android 本体の Credential Manager ではなく同梱の Play services provider を使い、その中でも nonce 対応の Identity Sign-In `getSignInIntent` を選ぶ。パスワード・パスキー・認証情報のクリア要求では provider の選び方を変えない
 - Sign-In client の生成時に接続先を固定し、action・package・dynamic lookup を揃える。時間制限付きのグローバルフラグは使わない。FCM・Maps・その他の GMS service は向け替えない
+- 接続先は要求の種類を見ず、client を作った時点で信頼できる MicroG-RE があるかだけで決まる。そのため Identity Sign-In API を使う要求は、Google ID token 以外でも MicroG-RE に届く。たとえば GMS が 25.24 未満の端末では、認証情報のクリア要求が旧経路（`CredentialProviderPlayServicesImpl.runFallbackClearCredFlow`）で Sign-In API を使うため、MicroG-RE へ送られる。v76 の逆コンパイル結果で確認した。実行時の挙動は未確認
 - manifest に MicroG-RE の package visibility と、元 APK の署名 SHA-1 を伝える `app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE` を追加する。APK 自体は開発鍵で署名されるため、公式版へのデータを保持した上書きはできない
 - 既存のログイン状態や暗号鍵は消去しない。本体のキャンセル・タイムアウト・エラー処理も残す
 
@@ -159,7 +160,14 @@ adb shell rm /sdcard/Android/data/com.newchat.setlog/files/cutlog/replacement.mp
 
 ## リリース
 
-`gradle.properties` の `version`、`patches-bundle.json`（説明・`download_url`・`version`）、`./gradlew :patches:generatePatchesList` で作り直した `patches-list.json` を 1 コミット（`chore: リリース vX.Y.Z`）で更新する。`patches-list.json` は手で編集しない。GitHub のリリース `vX.Y.Z` に `patches/build/libs/patches-X.Y.Z.mpp` を添付する。Morphe Manager は `patches-bundle.json` を見て新しいリリースを見つける。
+`gradle.properties` の `version`、`patches-bundle.json`（説明・`download_url`・`version`）、`./gradlew :patches:generatePatchesList` で作り直した `patches-list.json` を 1 コミット（`chore: リリース vX.Y.Z`）で更新する。`patches-list.json` は手で編集しない。GitHub のリリース `vX.Y.Z` に `patches/build/libs/patches-X.Y.Z.mpp` を添付する。Morphe Manager（Android）は `.mpp` の中の `classes.dex` を読む。`buildAndroid` は `jar` の出力に dex を後から書き足すタスクで、`jar` のあとに必ず実行するよう `patches/build.gradle.kts` で `finalizedBy` を付けている。添付する前に次を確かめる。
+
+```sh
+unzip -l patches/build/libs/patches-X.Y.Z.mpp | grep classes.dex   # 1 行出ること
+grep -h '^  "version"\|download_url' patches-bundle.json patches-list.json; grep '^version=' gradle.properties   # X.Y.Z で揃っていること
+```
+
+Morphe Manager は `patches-bundle.json` を見て新しいリリースを見つける。
 
 ## 注意
 

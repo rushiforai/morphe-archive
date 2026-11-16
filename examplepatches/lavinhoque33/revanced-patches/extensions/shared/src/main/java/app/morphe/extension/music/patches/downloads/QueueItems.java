@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-12.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -477,6 +477,7 @@ public final class QueueItems {
      */
     public static int startIndex(@Nullable List<?> items, int index) {
         try {
+            PlayerFallback.captureQueue(items);
             if (items == null || !AudioFirst.supported()) return index;
             if (!tracksItems()) {
                 releaseTrackedItems();

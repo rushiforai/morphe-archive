@@ -4,6 +4,7 @@
       "DOWNLOAD_BUTTON",
       "DOWNLOAD_BUTTON_POSITION",
       "DOWNLOAD_VIDEO_QUALITY",
+      "DOWNLOAD_VIDEO_CODEC",
       "DOWNLOAD_ASK_QUALITY",
       "DOWNLOAD_ORIGINAL_PHOTOS",
       "KEEP_PHOTOS_AS_SENT",
@@ -30,6 +31,7 @@
       "SAVE_PROFILE_PICTURE",
       "SAVE_STORY",
       "SAVE_STORY_FROM_SHARE",
+      "SAVE_STORY_PICK",
       "PICK_GRID_VIDEOS",
       "DOWNLOAD_VIDEO_PATH",
       "DOWNLOAD_PHOTO_PATH",
@@ -52,6 +54,8 @@
       "VIDEO_LENGTH_ON_GRID",
       "PROFILE_GRID_SORT",
       "LIKED_GRID_SORT",
+      "FAVORITES_GRID_SORT",
+      "COLLECTION_GRID_SORT",
       "SOUND_GRID_SORT",
       "LIKED_JUMP_TO_DATE",
       "GRID_SEARCH",
@@ -128,6 +132,7 @@
       "COMMENT_BLOCKED_USERS",
       "BLOCK_FROM_COMMENT",
       "BLOCK_FROM_COMMENT_MENU",
+      "COUNTRY_FROM_COMMENT_MENU",
       "HIDE_COMMENT_LIKE_COUNT",
       "HIDE_COMMENT_DISLIKE",
       "HIDE_COMMENT_AVATARS",
@@ -163,6 +168,7 @@
     "Copy bio and IDs": [
       "COPY_IDS",
       "ACCOUNT_FACTS",
+      "COUNTRY_ON_PROFILES",
       "BIO_MENTION_LINKS"
     ],
     "Copy comments without username": [
@@ -329,7 +335,8 @@
     ],
     "Fit the video to the screen": [
       "FIT_VIDEO_TO_SCREEN",
-      "FILL_VIDEO_TO_SCREEN"
+      "FILL_VIDEO_TO_SCREEN",
+      "STRETCH_VIDEO_TO_SCREEN"
     ],
     "Foldable split comment view": [
       "FOLDABLE_SPLIT_VIEW",
@@ -404,7 +411,8 @@
       "TURN_OFF_CHAT_SWIPE_REPLY",
       "HIDE_INBOX_CUSTOM_TITLES",
       "SHOW_INBOX_FILTERS",
-      "PIN_MORE_CHATS"
+      "PIN_MORE_CHATS",
+      "SHOW_MESSAGE_TIMES"
     ],
     "Hide inbox stories": [
       "HIDE_INBOX_STORIES"
@@ -440,6 +448,7 @@
       "HIDE_FEED_SURVEYS",
       "HIDE_FOOTNOTES",
       "HIDE_FOLLOWING_LIVE_ROW",
+      "GLASS_STORIES_PILL",
       "HIDE_FOLLOWING_ALL_BUTTON",
       "HIDE_STORY_CREATE",
       "HIDE_REPOST_CHIP",
@@ -466,6 +475,7 @@
       "GLASS_HAPTICS",
       "GLASS_HAPTIC_STYLE",
       "SEE_THROUGH_STATUS_BAR",
+      "STATUS_BAR_SHADE",
       "BURN_IN_GUARD",
       "HIDE_SHARE_GUIDE",
       "HIDE_RAIL_FOLLOW",
@@ -537,6 +547,7 @@
     "LIVE controls": [
       "STOP_LIVE_AUTO_ENTER",
       "HIDE_LIVE_SERVICE_PLUS",
+      "HIDE_LIVE_AI_SUMMARY",
       "SHOW_EXACT_LIVE_VIEWERS",
       "OFFER_LIVE_QUALITY",
       "REMEMBER_LIVE_QUALITY",
@@ -681,6 +692,7 @@
       "MORPHE_LANGUAGE",
       "SHOW_MENU_ICONS",
       "HIDE_SETTINGS_ROW",
+      "SETTINGS_ROW_PICKS",
       "SETTINGS_AS_LIST",
       "STARTUP_MESSAGE",
       "STARTUP_MESSAGE_TITLE",
@@ -703,6 +715,7 @@
     "Show author region": [
       "SHOW_AUTHOR_REGION",
       "REGION_AS_FLAG",
+      "COUNTRY_DATE_UNDER_CAPTION",
       "SHOW_AUTHOR_HANDLE"
     ],
     "Show commenter handle and region": [
@@ -847,6 +860,7 @@
     "PROFILE_SHORTCUT_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "POPUP_LABEL_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "SEARCH_TAB_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
+    "SETTINGS_ROW_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "DIAGNOSTIC_REPORT_SALT": "Runtime state or legacy migration data; not a configurable feature default.",
     "DEBUG_CAPTURE": "Runtime state or legacy migration data; not a configurable feature default.",
     "CHECK_ENVIRONMENT_WARNINGS_ISSUED": "Runtime state or legacy migration data; not a configurable feature default.",

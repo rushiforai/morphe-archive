@@ -6,7 +6,7 @@ Morpheus is a [Morphe](https://github.com/MorpheApp/morphe-patches) patch set fo
 It patches two apps:
 
 - The Ather app (`com.athermobileapp`), verified against 13.5.1 and 13.6.0.
-- The Nothing X app (`com.nothing.smartcenter`), verified against 3.8.0 and 3.10.2.
+- The Nothing X app (`com.nothing.smartcenter`), verified against 3.8.0 and 3.10.3.
 
 The repository ships patches only.
 It never ships patched APKs or vendor binaries.
@@ -176,7 +176,7 @@ The Ather patches:
 | Morphe screens                     | Registers the Morphe screens, the optional background ride service and its boot receiver in the app manifest. The service keeps the app's process alive so rides are recorded with real start and end times even while the app is closed.                            |
 
 The `Show K1 token(s)` patch targets Nothing X.
-It hooks the `flutter_secure_storage` plugin inside the app process, because the token is encrypted at rest on 3.8.0 and 3.10.2.
+It hooks the `flutter_secure_storage` plugin inside the app process, because the token is encrypted at rest on 3.8.0 and 3.10.3.
 
 More detail:
 

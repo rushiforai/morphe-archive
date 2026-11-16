@@ -24,9 +24,9 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 
 dependencies {
     compileOnly(libs.gson)
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    compileOnly(libs.kotlinx.coroutines.core)
     patchListGeneratorClasspath(libs.gson)
-    patchListGeneratorClasspath("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    patchListGeneratorClasspath(libs.kotlinx.coroutines.core)
 }
 
 tasks {

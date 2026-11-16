@@ -43,8 +43,8 @@ enum class TargetApp(
         appName = "Instagram",
         packageName = Constants.INSTAGRAM_PACKAGE_NAME,
         candidateFilenames = listOf(
-            "com.instagram.android_447.0.0.55.81-385311895_1dpi_af3be75e29a3de479232e9e7978c0003_apkmirror.com.apkm",
-            "instagram_${Constants.INSTAGRAM_TARGET_VERSION}.apkm"
+            "com.instagram.android_${Constants.INSTAGRAM_TARGET_VERSION}.apkm",
+            "instagram_${Constants.INSTAGRAM_TARGET_VERSION}.apkm",
         ),
         filePattern = Regex("(?i).*instagram.*\\.(?:apk|apkm|xapk)$"),
         patchDirectoryPart = "instagram",
@@ -77,8 +77,8 @@ enum class TargetApp(
         appName = "CapCut",
         packageName = Constants.CAPCUT_PACKAGE_NAME,
         candidateFilenames = listOf(
-            "com.lemon.lvoverseas_19.9.0-19900002_minAPI23(arm64-v8a,armeabi-v7a)(nodpi)_apkmirror.com.apk",
-            "capcut_${Constants.CAPCUT_TARGET_VERSION}.apk"
+            "com.lemon.lvoverseas_${Constants.CAPCUT_TARGET_VERSION}.apk",
+            "capcut_${Constants.CAPCUT_TARGET_VERSION}.apk",
         ),
         filePattern = Regex("(?i).*(?:capcut|lemon\\.lvoverseas).*\\.(?:apk|apkm|xapk)$"),
         patchDirectoryPart = "capcut",
@@ -151,7 +151,7 @@ enum class TargetApp(
         appName = "SD Maid SE",
         packageName = Constants.SDMSE_PACKAGE_NAME,
         candidateFilenames = listOf(
-            "eu.darken.sdmse_2.2.2.apk",
+            "eu.darken.sdmse_${Constants.SDMSE_TARGET_VERSION}.apk",
             "sdmse_${Constants.SDMSE_TARGET_VERSION}.apk",
         ),
         filePattern = Regex("(?i).*(?:sdmse|sdmaid).*\\.(?:apk|apkm|xapk)$"),
@@ -445,7 +445,7 @@ private fun ensurePkcs12KeyStore(keystoreFile: File) {
 
 private fun verifyInputVersion(
     patcher: Patcher,
-    targetPatches: Set<Patch<*>>,
+    targetPatches: Set<Patch>,
     targetApp: TargetApp,
     inputFile: File,
 ) {
@@ -736,46 +736,6 @@ fun main(args: Array<String>) {
                     }
                 }
                 println("[APKM] Merged ${splitDexes.size} DEX file(s) from split APK(s) into base.apk (total DEX files: $maxDexIndex)")
-            }
-
-            val targetAbiPrefixes = listOf("lib/arm64-v8a/", "lib/armeabi-v7a/")
-            val existingEntries = mutableSetOf<String>()
-            java.util.zip.ZipFile(extractedBase).use { baseZip ->
-                baseZip.entries().asSequence().forEach { existingEntries.add(it.name) }
-            }
-
-            val splitNativeLibs = mutableListOf<Pair<String, ByteArray>>()
-            for (splitEntry in splitApkEntries) {
-                apkmZip.getInputStream(splitEntry).use { splitStream ->
-                    java.util.zip.ZipInputStream(splitStream).use { splitZip ->
-                        var entry = splitZip.nextEntry
-                        while (entry != null) {
-                            val safeName = if (!entry.isDirectory) safeZipEntryName(entry.name, targetAbiPrefixes) else null
-                            if (safeName != null && existingEntries.add(safeName)) {
-                                splitNativeLibs.add(safeName to splitZip.readBytes())
-                            }
-                            entry = splitZip.nextEntry
-                        }
-                    }
-                }
-            }
-
-            if (splitNativeLibs.isNotEmpty()) {
-                val uri = java.net.URI.create("jar:" + extractedBase.toURI())
-                val env = mapOf("create" to "false")
-                java.nio.file.FileSystems.newFileSystem(uri, env).use { fs ->
-                    for ((libName, libBytes) in splitNativeLibs) {
-                        val entryPath = fs.getPath(libName).normalize()
-                        val normalizedStr = entryPath.toString().replace('\\', '/')
-                        if (!targetAbiPrefixes.any { normalizedStr.startsWith(it) }) {
-                            error("Path traversal detected in native library entry: $libName")
-                        }
-                        entryPath.parent?.let { java.nio.file.Files.createDirectories(it) }
-                        java.nio.file.Files.write(entryPath, libBytes)
-                    }
-                }
-                val libWord = if (splitNativeLibs.size == 1) "library" else "libraries"
-                println("[APKM] Merged ${splitNativeLibs.size} native $libWord from split APK(s) into base.apk")
             }
         }
         extractedBase

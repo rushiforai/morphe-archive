@@ -7,9 +7,13 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.youtube.utils.navigation.YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal object ReelEnumConstructorFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
@@ -30,16 +34,24 @@ private object ReelPlaybackRepeatParentFingerprint : Fingerprint(
     )
 )
 
-internal object ReelPlaybackRepeatFingerprint : Fingerprint(
+context(_: BytecodePatchContext)
+internal fun reelPlaybackRepeatFingerprint() = Fingerprint(
     classFingerprint = ReelPlaybackRepeatParentFingerprint,
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(
         anyInstruction(
             methodCall(smali = "Lcom/google/common/util/concurrent/ListenableFuture;->isDone()Z"),
-            methodCall(smali = "Lj$/util/Optional;->ofNullable(Ljava/lang/Object;)Lj$/util/Optional;") // 21.17+
+            methodCall(smali = "Lj$/util/Optional;->ofNullable(Ljava/lang/Object;)Lj$/util/Optional;")
         )
-    )
+    ),
+    custom = { method, _ ->
+        // Newer stock uses Optional.ofNullable in another event handler in this class.
+        val repeatEnumType = ReelEnumConstructorFingerprint.originalClassDef.type
+        method.indexOfFirstInstruction {
+            getReference<MethodReference>()?.returnType == repeatEnumType
+        } >= 0
+    }
 )
 
 internal object ReelPlaybackFingerprint : Fingerprint(
@@ -51,9 +63,15 @@ internal object ReelPlaybackFingerprint : Fingerprint(
             definingClass = "Ljava/util/concurrent/TimeUnit;",
             name = "MILLISECONDS"
         ),
-        methodCall(
-            name = "<init>",
-            parameters = listOf("I", "L", "L"),
+        anyInstruction(
+            methodCall(
+                name = "<init>",
+                parameters = listOf("I", "L", "L"),
+            ),
+            methodCall(
+                name = "<init>",
+                parameters = listOf("I", "L", "L", "Z"), // 21.45+
+            ),
             location = MatchAfterWithin(15)
         ),
         methodCall(

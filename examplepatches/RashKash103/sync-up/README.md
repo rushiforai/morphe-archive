@@ -35,7 +35,7 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.1](https://github.com/RashKash103/sync-up/releases/tag/v1.14.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
+> **[v1.14.2](https://github.com/RashKash103/sync-up/releases/tag/v1.14.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
 <details open>
 <summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;41 patches</summary>
 <br>
@@ -434,7 +434,8 @@ service being asked.
   whatever width the column turns out to have, so a rotation or a fold settles it again.
 - <a name="show-a-subreddit-s-banner-on-its-feed"></a>**Show a subreddit's banner on its feed** — Sync shows a subreddit's banner only on its
   About page. This draws it in a strip above the posts, which scrolls away with them and opens
-  as a picture when tapped. What a subreddit's banner is comes from Reddit's own answer about it
+  as a picture when tapped. It is drawn only while the posts are what the screen is showing, so
+  moving to the inbox or anywhere else takes it with them. What a subreddit's banner is comes from Reddit's own answer about it
   as that goes past on the wire, so nothing extra is asked for where Sync has already asked; a
   feed opened without that having happened is asked about directly, once, borrowing the
   credentials off a request of Sync's own. A subreddit with no banner gets no strip, and neither

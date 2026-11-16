@@ -163,7 +163,7 @@ final class MorpheDialog {
     }
 
     private static int ink(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).canvas : 0xFF1A140C;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).canvas : 0xFF1A140C;
     }
 
     static LinearLayout actions(Activity activity, TextView... buttons) {
@@ -275,18 +275,18 @@ final class MorpheDialog {
     }
 
     static int accent(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).accent : GOLD;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).accent : GOLD;
     }
 
     static int text(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).onSurface : TEXT;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).onSurface : TEXT;
     }
 
     static int sub(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).onSurfaceVariant : SUB;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).onSurfaceVariant : SUB;
     }
 
     private static int card(Activity activity) {
-        return ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).container : CARD;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).container : CARD;
     }
 }

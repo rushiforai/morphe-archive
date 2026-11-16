@@ -4,183 +4,113 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.os.Build;
-import android.util.Log;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
 
-/**
- * BadFella Patches log, kept in a file in the app's private storage so that users can copy it into a bug report
- * from the settings, without a computer. Errors are always kept; details only while "Diagnostic logging" is on.
- * The report removes links, IDs, and e-mail addresses.
- */
+/** Only fixed event categories, extension stack locations and numeric measurements leave this class. */
 final class Diagnostics {
-    private static final String FILE_NAME = "michii_log.txt";
-    /** The file is cut to the newest half when it grows past this size. */
-    private static final int MAX_BYTES = 300 * 1024;
-    private static final int REPORT_LINES = 200;
+    private static final String[] CATEGORIES = {"feed/filter", "media", "navigation", "tracking", "other"};
+    private static final long[] EVENTS = new long[CATEGORIES.length];
+    private static final ArrayDeque<String> ERRORS = new ArrayDeque<>();
 
-    private static final long REPEAT_WINDOW_MS = 5000;
-    private static final Map<String, Long> LAST_WRITTEN = new HashMap<>();
-    private static final Map<String, Integer> REPEATS = new HashMap<>();
+    private Diagnostics() {}
 
-    private static final SimpleDateFormat TIME = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.ROOT);
-
-    private static final Pattern URL = Pattern.compile("https?://\\S+");
-    private static final Pattern URN = Pattern.compile("urn:li:[A-Za-z_]+:[^\\s,)\\]]+");
-    private static final Pattern EMAIL = Pattern.compile("[\\w.+-]+@[\\w-]+\\.[\\w.]+");
-    /** LinkedIn member and media IDs, such as ACoAAB1x2y... or D4E22AQH.... */
-    private static final Pattern TOKEN = Pattern.compile("\\b(?=[A-Za-z0-9_-]*\\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{16,}\\b");
-    private static final Pattern NUMBER = Pattern.compile("\\b\\d{6,}\\b");
-
-    private Diagnostics() {
-    }
-
-    /** Details, only kept while "Diagnostic logging" is on. */
-    static void debug(String message) {
+    /** Never retain the supplied text: callers can pass requests, links, names or post content. */
+    static synchronized void debug(String message) {
         if (!Settings.debug()) return;
-        Log.d(Settings.TAG, message);
-        String line = message;
-        // Patches can log the same detail for every feed item. Keep one line per message every few seconds so
-        // repeats don't push the rest of the log out of the report.
-        synchronized (REPEATS) {
-            long now = System.currentTimeMillis();
-            Long last = LAST_WRITTEN.get(message);
-            if (last != null && now - last < REPEAT_WINDOW_MS) {
-                Integer count = REPEATS.get(message);
-                REPEATS.put(message, count == null ? 1 : count + 1);
-                return;
-            }
-            Integer skipped = REPEATS.remove(message);
-            if (skipped != null) line = message + " (+" + skipped + " more)";
-            LAST_WRITTEN.put(message, now);
-            if (LAST_WRITTEN.size() > 200) LAST_WRITTEN.clear();
+        int category = 4;
+        if (message != null) {
+            if (message.startsWith("hide ") || message.startsWith("view ") || message.startsWith("outline ")) category = 0;
+            else if (message.startsWith("media") || message.startsWith("document")) category = 1;
+            else if (message.startsWith("swipe") || message.startsWith("SduiFragment") || message.startsWith("premium")) category = 2;
+            else if (message.startsWith("tracking") || message.startsWith("profile view") || message.startsWith("sdui request")) category = 3;
         }
-        append("D", line);
+        EVENTS[category]++;
     }
 
-    /** Errors are always kept, so that a report can show what failed even if logging was off. */
-    static void error(String message, Throwable t) {
-        Log.e(Settings.TAG, message, t);
-        append("E", t == null ? message : message + "\n" + stackTrace(t));
-    }
-
-    private static synchronized void append(String level, String message) {
-        try {
-            File file = file();
-            if (file == null) return;
-            String line = TIME.format(new Date()) + " " + level + " " + message + "\n";
-            try (FileOutputStream out = new FileOutputStream(file, true)) {
-                out.write(line.getBytes(StandardCharsets.UTF_8));
+    /** Exception messages, causes and arbitrary caller text are deliberately excluded. */
+    static synchronized void error(String ignoredMessage, Throwable failure) {
+        StringBuilder line = new StringBuilder("extension error");
+        if (failure != null) {
+            int kept = 0;
+            for (StackTraceElement frame : failure.getStackTrace()) {
+                String type = frame.getClassName(), method = frame.getMethodName();
+                if (!type.startsWith("app.badfella.extension.linkedin.")
+                        || !type.matches("[A-Za-z0-9_.$]+") || !method.matches("[A-Za-z0-9_$<>]+")) continue;
+                line.append("\n  ").append(type.substring(type.lastIndexOf('.') + 1))
+                        .append('.').append(method).append(':').append(frame.getLineNumber());
+                if (++kept == 4) break;
             }
-            if (file.length() > MAX_BYTES) {
-                byte[] all = Files.readAllBytes(file.toPath());
-                int from = all.length / 2;
-                while (from < all.length && all[from] != '\n') from++;
-                byte[] kept = new byte[all.length - from - 1];
-                System.arraycopy(all, from + 1, kept, 0, kept.length);
-                Files.write(file.toPath(), kept);
-            }
-        } catch (Throwable ignored) {
-            // Logging must never break the app.
         }
+        if (ERRORS.size() == 40) ERRORS.removeFirst();
+        ERRORS.addLast(line.toString());
     }
 
     static synchronized void clear() {
-        File file = file();
-        if (file != null) file.delete();
+        Arrays.fill(EVENTS, 0);
+        ERRORS.clear();
+        PerformanceCapture.clear();
     }
 
-    /** The report to paste into a bug report: app, device, patches, settings, and the newest log lines. */
-    static String report(Context context) {
-        StringBuilder out = new StringBuilder();
-        out.append("### BadFella Patches diagnostic report\n");
-        out.append("Links, IDs, and e-mail addresses were removed. Please check it before posting.\n\n");
-        out.append("```\n");
-        out.append("BadFella Patches ").append(Settings.patchesVersion())
-                .append(" • LinkedIn ").append(appVersion(context)).append('\n');
-        out.append("Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT)
-                .append(") • ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append('\n');
-        out.append("Language: ").append(I18n.language()).append(" (device ")
-                .append(Locale.getDefault().toLanguageTag()).append(")\n");
-        out.append("Diagnostic logging: ").append(Settings.debug() ? "on" : "off").append("\n\n");
+    /** Never import an older version's free-text diagnostic log into a new report. */
+    static void discardLegacyLog(Context context) {
+        Context app = context.getApplicationContext();
+        new Thread(() -> {
+            try { new java.io.File(app.getFilesDir(), "michii_log.txt").delete(); }
+            catch (RuntimeException ignored) { /* Never read a legacy log, even if removal fails. */ }
+        }, "badfella-legacy-log-cleanup").start();
+    }
 
-        out.append("Patches:\n");
+    static String report(Context context) {
+        StringBuilder out = new StringBuilder("BadFella Patches diagnostic report (schema 2)\n");
+        out.append("No account identity, post/message text, links, cookies, tokens or custom setting text is collected.\n");
+        out.append("Events and performance results cover this app process only.\n\n");
+        out.append("BadFella Patches ").append(Settings.patchesVersion()).append("; LinkedIn ").append(appVersion(context)).append('\n');
+        out.append("Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT)
+                .append("); ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append('\n');
+        out.append("Device ABIs: ").append(Arrays.toString(Build.SUPPORTED_ABIS)).append('\n');
+        out.append("Diagnostic event counting: ").append(Settings.debug()).append('\n');
+        out.append("\nIncluded patches:\n");
         for (Object[] patch : SettingsActivity.patches()) {
             out.append("  ").append((Boolean) patch[1] ? "[x] " : "[ ] ").append(patch[0]).append('\n');
         }
-
-        out.append("\nSettings:\n");
+        out.append("\nSaved boolean choices (unsaved choices use patch defaults):\n");
         SharedPreferences prefs = Settings.prefs();
-        if (prefs != null) {
-            for (Map.Entry<String, ?> entry : new TreeMap<>(prefs.getAll()).entrySet()) {
-                out.append("  ").append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
+        if (prefs != null) out.append(booleanSettings(prefs.getAll()));
+        synchronized (Diagnostics.class) {
+            out.append("\nEvent counts:\n");
+            for (int i = 0; i < EVENTS.length; i++) out.append("  ").append(CATEGORIES[i]).append(": ").append(EVENTS[i]).append('\n');
+            out.append("\nRecent extension errors (messages and external stack frames omitted):\n");
+            for (String error : ERRORS) out.append(error).append('\n');
+        }
+        return out.append('\n').append(PerformanceCapture.report()).toString();
+    }
+
+    /** Only compile-time preference keys, and only Boolean values. Never copy user-defined keys or strings. */
+    static String booleanSettings(Map<String, ?> values) {
+        StringBuilder out = new StringBuilder();
+        Field[] fields = Settings.class.getDeclaredFields();
+        Arrays.sort(fields, (a, b) -> a.getName().compareTo(b.getName()));
+        for (Field field : fields) {
+            if (field.getType() != String.class || !Modifier.isStatic(field.getModifiers())
+                    || !Modifier.isFinal(field.getModifiers())) continue;
+            try {
+                Object value = values.get(field.get(null));
+                if (value instanceof Boolean) out.append("  ").append(field.getName()).append(" = ").append(value).append('\n');
+            } catch (IllegalAccessException ignored) {
+                // A private implementation field is not a reportable preference.
             }
         }
-
-        out.append("\nLog (newest ").append(REPORT_LINES).append(" lines):\n");
-        List<String> lines = lastLines(REPORT_LINES);
-        if (lines.isEmpty()) out.append("  (empty)\n");
-        for (String line : lines) out.append(line).append('\n');
-        out.append("```\n");
-        return redact(out.toString());
-    }
-
-    /** Removes links, LinkedIn IDs, e-mail addresses, and long numbers. */
-    static String redact(String text) {
-        text = URL.matcher(text).replaceAll("[link]");
-        text = URN.matcher(text).replaceAll("urn:li:[id]");
-        text = EMAIL.matcher(text).replaceAll("[email]");
-        text = TOKEN.matcher(text).replaceAll("[id]");
-        return NUMBER.matcher(text).replaceAll("[number]");
-    }
-
-    private static List<String> lastLines(int count) {
-        List<String> lines = new ArrayList<>();
-        try {
-            File file = file();
-            if (file == null || !file.exists()) return lines;
-            List<String> all = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-            lines.addAll(all.subList(Math.max(0, all.size() - count), all.size()));
-        } catch (Throwable ignored) {
-        }
-        return lines;
-    }
-
-    private static File file() {
-        Context context = Settings.app();
-        return context == null ? null : new File(context.getFilesDir(), FILE_NAME);
-    }
-
-    private static String stackTrace(Throwable t) {
-        StringWriter writer = new StringWriter();
-        t.printStackTrace(new PrintWriter(writer));
-        // The top of the trace is enough to find the failing patch.
-        String[] lines = writer.toString().split("\n");
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < Math.min(lines.length, 12); i++) out.append("    ").append(lines[i].trim()).append('\n');
-        return out.toString().trim();
+        return out.toString();
     }
 
     private static String appVersion(Context context) {
         try {
             PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return info.versionName;
-        } catch (Exception e) {
-            return "?";
-        }
+            return info.versionName + " (" + info.getLongVersionCode() + ")";
+        } catch (Exception ignored) { return "unknown"; }
     }
 }

@@ -4,7 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.player.components
@@ -89,6 +89,7 @@ import app.morphe.util.findMutableMethodOf
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
 import app.morphe.util.fingerprint.injectLiteralInstructionViewCall
 import app.morphe.util.fingerprint.matchOrThrow
+import app.morphe.util.fingerprint.methodOrNull
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
 import app.morphe.util.getWalkerMethod
@@ -236,28 +237,45 @@ private val speedOverlayPatch = bytecodePatch(
 
             // region patch for Disable speed overlay (Enable slide to seek)
 
-            nextGenWatchLayoutFingerprint.methodOrThrow().apply {
-                val booleanValueIndex = indexOfFirstInstructionOrThrow {
-                    getReference<MethodReference>()?.name == "booleanValue"
-                }
-                val insertIndex = indexOfFirstInstructionOrThrow(booleanValueIndex - 10) {
-                    opcode == Opcode.IGET_OBJECT &&
-                            getReference<FieldReference>()?.definingClass == definingClass
-                }
-                val insertInstruction = getInstruction<TwoRegisterInstruction>(insertIndex)
-                val insertReference = getInstruction<ReferenceInstruction>(insertIndex).reference
+            val nextGenWatchLayoutMethod = nextGenWatchLayoutFingerprint.methodOrNull()
 
-                addInstruction(
-                    insertIndex + 1,
-                    "iget-object v${insertInstruction.registerA}, v${insertInstruction.registerB}, $insertReference"
-                )
+            if (nextGenWatchLayoutMethod != null) {
+                nextGenWatchLayoutMethod.apply {
+                    val booleanValueIndex = indexOfFirstInstructionOrThrow {
+                        getReference<MethodReference>()?.name == "booleanValue"
+                    }
+                    val insertIndex = indexOfFirstInstructionOrThrow(booleanValueIndex - 10) {
+                        opcode == Opcode.IGET_OBJECT &&
+                                getReference<FieldReference>()?.definingClass == definingClass
+                    }
+                    val insertInstruction = getInstruction<TwoRegisterInstruction>(insertIndex)
+                    val insertReference = getInstruction<ReferenceInstruction>(insertIndex).reference
 
-                val jumpIndex = indexOfFirstInstructionOrThrow(booleanValueIndex) {
-                    opcode == Opcode.IGET_OBJECT &&
-                            getReference<FieldReference>()?.definingClass == definingClass
+                    addInstruction(
+                        insertIndex + 1,
+                        "iget-object v${insertInstruction.registerA}, v${insertInstruction.registerB}, $insertReference"
+                    )
+
+                    val jumpIndex = indexOfFirstInstructionOrThrow(booleanValueIndex) {
+                        opcode == Opcode.IGET_OBJECT &&
+                                getReference<FieldReference>()?.definingClass == definingClass
+                    }
+
+                    hookSpeedOverlay(insertIndex + 1, insertInstruction.registerA, jumpIndex)
                 }
+            } else {
+                nextGenWatchLayoutSpeedStateFingerprint.matchOrThrow().let {
+                    it.method.apply {
+                        val speedStateIndex = it.instructionMatches.first().index
+                        val nextGestureStateIndex = it.instructionMatches[4].index
+                        val speedStateRegister =
+                            getInstruction<TwoRegisterInstruction>(speedStateIndex).registerA
 
-                hookSpeedOverlay(insertIndex + 1, insertInstruction.registerA, jumpIndex)
+                        // Skip only the active-speed-overlay check. The following gesture-state
+                        // check and the player/layout eligibility checks must still run.
+                        hookSpeedOverlay(speedStateIndex, speedStateRegister, nextGestureStateIndex)
+                    }
+                }
             }
 
             val (slideToSeekBooleanMethod, slideToSeekSyntheticMethod) =

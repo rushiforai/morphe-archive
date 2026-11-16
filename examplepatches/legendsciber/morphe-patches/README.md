@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.54.2](https://github.com/legendsciber/morphe-patches/releases/tag/v1.54.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v1.55.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.55.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
 <summary>📦 Age Of War 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -164,6 +164,21 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Premium](#premium) | Unlocks the floating buttons and assistant trigger features by granting both purchase entitlements, keeping them available even offline where the purchase state cannot be fetched. |  |
+
+</details>
+
+<details open>
+<summary>📦 LMR - Copyleft Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.8.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Premium](#premium) | Unlocks premium permanently: ad-free playback, no premium prompts and no active subscription requirement. The re-sign tamper check is also neutralised so the app does not fall back into limited mode after patching. |  |
 
 </details>
 

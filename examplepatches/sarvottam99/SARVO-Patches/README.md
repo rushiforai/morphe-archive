@@ -26,14 +26,35 @@ Use a stable release for normal use. Enable pre-releases in the source settings 
 
 **Patches**
 
-<details>
-<summary>View 3 MirAIe patches</summary>
-
-- **Dark mode** — Applies a dark appearance across the app, including its legal WebView, while keeping chart labels readable.
-- **Hide Lifestyle tab** — Hides the Lifestyle tab from the bottom navigation.
-- **Remove dashboard promotional banner** — Removes the promotional carousel from the dashboard.
+| Patch | Purpose |
+|---|---|
+| **Change installer source** | Spoofs the installer identity reported to the app. The identity is configurable in patch options. |
+| **Dark mode** | Forces the app into night mode, enables Android Force Dark, darkens its legal WebView, and preserves readable energy-chart labels. |
+| **Disable Play Store updates** | Raises the reported version code to discourage Play Store updates. May cause unexpected behavior and does not work with root-mounted installations. |
+| **Hide Lifestyle tab** | Hides the Lifestyle item from the bottom navigation without reordering the other tabs. |
+| **Remove dashboard promotional banner** | Removes the dashboard promotional carousel before it initializes. |
+| **Spoof signature** | Spoofs the package signature expected by the original app. |
 
 </details>
+
+<details>
+<summary><strong>HeyMelody</strong></summary>
+
+| App detail | Value |
+|---|---|
+| Package | `com.heytap.headset` |
+| Supported version | `117.6.6` |
+| Original package format | `APKM` |
+
+**Patches**
+
+| Patch | Purpose |
+|---|---|
+| **Change installer source** | Spoofs the installer identity reported to the app. The identity is configurable in patch options. |
+| **Dark mode** | Enables HeyMelody's native night mode. |
+| **Disable Play Store updates** | Disables Play Store updates by changing the reported version code. |
+| **Spoof signature** | Spoofs the package signature of the original APK. |
+
 </details>
 
 <details>
@@ -91,7 +112,27 @@ Choose an APK compatible with your device's Android version and CPU architecture
 The full patch index is generated from the compiled bundle during a release. Morphe Manager remains the source of truth for the versions and options available for a particular APK.
 
 <!-- PATCHES_START -->
-> **[v1.3.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.4.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+<details open>
+<summary>📦 HeyMelody&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**Package name:** `com.heytap.headset`
+
+**🎯 Supported versions:**
+
+| 117.6.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
+| [Dark mode](#dark-mode) | Enables HeyMelody's native night mode. |  |
+| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
+| [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
+
+</details>
+
 <details open>
 <summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -115,23 +156,6 @@ The full patch index is generated from the compiled bundle during a release. Mor
 </details>
 
 <details open>
-<summary>📦 HeyMelody&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Package name:** `com.heytap.headset`
-
-**🎯 Supported versions:**
-
-| 117.6.6 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Dark mode](#dark-mode) | Enables HeyMelody's native night mode. |  |
-
-</details>
-
-<details open>
 <summary>📦 Samsung Good Lock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -145,18 +169,6 @@ The full patch index is generated from the compiled bundle during a release. Mor
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock all Samsung Good Lock modules](#unlock-all-samsung-good-lock-modules) | Show all Good Lock modules irrespective of Samsung official device compatibility. They may or may not work depending on your device Android and/or UI version or other factors. You need to install unsupported modules separately from apk files from the internet. |  |
-
-</details>
-
-<details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
-| [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
 
 </details>
 

@@ -25,6 +25,14 @@ data class FingerprintMatch(
     val firstInstructionIndex: Int?,
     // Only set if more than one instruction filter matched.
     val lastInstructionIndex: Int?,
+    // Matched instructions, in ascending index order.
+    val matchedInstructions: List<MatchedInstruction>,
+)
+
+data class MatchedInstruction(
+    val index: Int,
+    // Opcode name, such as INVOKE_VIRTUAL.
+    val opcodeName: String,
 )
 
 object MorpheResolver {
@@ -55,11 +63,16 @@ object MorpheResolver {
                 matches = fingerprint.matchAllOrNull().orEmpty().map { match ->
                     val method = match.originalMethod
                     val instructionMatches = match.instructionMatchesOrNull
+                    val matchedInstructions = instructionMatches.orEmpty()
+                        .map { MatchedInstruction(it.index, it.instruction.opcode.name) }
+                        .distinct()
+                        .sortedBy { it.index }
                     FingerprintMatch(
                         method.definingClass,
                         method.getShortId(),
                         instructionMatches?.firstOrNull()?.index,
                         instructionMatches?.takeIf { it.size > 1 }?.last()?.index,
+                        matchedInstructions,
                     )
                 }
                 if (matches.isNotEmpty()) Log.info { "Fingerprint matched ${matches.size} methods:${matches.joinToString { "\n\t${it.definingClass}->${it.methodShortId}" }}" }

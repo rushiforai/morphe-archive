@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.general.splashanimation
@@ -31,14 +32,17 @@ internal val splashScreenAnimationBytecodePatch = bytecodePatch(
         if (!is_20_05_or_greater) return@execute
 
         // Lottie splash screen exists in earlier versions, but it may not be always on.
-        SplashScreenStyleFingerprint.let {
+        val splashStyleMatch = SplashScreenStyleFingerprint.matchOrNull()
+            ?: SplashScreenStyleDelegateFingerprint.match()
+
+        splashStyleMatch.let {
             it.method.insertLiteralOverride(
                 it.instructionMatches.first().index,
                 "$THEME_CLASS_DESCRIPTOR->getLoadingScreenType(I)I"
             )
         }
 
-        ShowSplashScreenFingerprint.let {
+        ShowSplashScreenFingerprint.match(splashStyleMatch.method).let {
             it.method.apply {
                 val lastIndex = it.instructionMatches.last().index
                 val lastInstruction = getInstruction<TwoRegisterInstruction>(lastIndex)

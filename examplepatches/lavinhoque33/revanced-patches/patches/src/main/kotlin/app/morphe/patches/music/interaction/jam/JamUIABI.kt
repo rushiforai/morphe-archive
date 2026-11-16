@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 @file:Suppress("unused")
@@ -72,8 +73,9 @@ internal data class ClockAbi(
 internal data class PaletteAbi(
     val type: String,
     val entry: MethodReference,
-    val extractor: FieldReference,
+    val extractor: FieldReference?,
     val extract: MethodReference,
+    val extractorConstructors: List<MethodReference>,
     val publisher: FieldReference,
     val publish: MethodReference,
     val localPublish: MethodReference,
@@ -246,37 +248,37 @@ private fun BytecodePatchContext.resolveSeek(timeBar: ClassDef): MethodReference
 }
 
 private fun BytecodePatchContext.resolvePalette(): PaletteAbi {
-    val candidates =
-        PalettePublicationFingerprint.matchAll().mapNotNull { match ->
-            val source = match.originalClassDef
-            val publish = match.instructionMatches[0].instruction.getReference<MethodReference>()!!
-            val local = match.instructionMatches[1].instruction.getReference<MethodReference>()!!
-            val extractors =
-                paletteExtractorFingerprint(
-                        local.parameterTypes[0].toString(),
-                        source.fields.map { it.type }.toSet(),
-                    )
-                    .matchAll(0..1)
-            if (extractors.isEmpty()) return@mapNotNull null
-            val extract = extractors.single().originalMethod
-            val extractor =
-                source.fields.singleOrNull { it.type == extract.definingClass }
-                    ?: error("Missing or ambiguous Jam palette extractor field")
-            val publisher =
-                source.fields.singleOrNull { it.type == publish.definingClass }
-                    ?: error("Missing or ambiguous Jam palette publisher field")
-            PaletteAbi(
-                source.type,
-                match.originalMethod,
-                extractor,
-                extract,
-                publisher,
-                publish,
-                local,
-            )
+    val match = PalettePublicationFingerprint.match()
+    val source = match.originalClassDef
+    val publish = match.instructionMatches[0].instruction.getReference<MethodReference>()!!
+    val local = match.instructionMatches[1].instruction.getReference<MethodReference>()!!
+    val extract = paletteExtractorFingerprint(local.parameterTypes[0].toString()).originalMethod
+    val extractorFields = source.fields.filter { it.type == extract.definingClass }
+    require(extractorFields.size <= 1) { "Ambiguous Jam palette extractor field" }
+
+    val extractor = extractorFields.singleOrNull()
+    val constructors =
+        if (extractor == null) {
+            classDefBy(extract.definingClass).methods.filter { it.name == "<init>" }.toList().also {
+                require(it.isNotEmpty()) { "Missing Jam palette extractor constructor" }
+            }
+        } else {
+            emptyList()
         }
-    return candidates.singleOrNull()
-        ?: error("Missing or ambiguous Jam player palette pipeline")
+    val publisher =
+        source.fields.singleOrNull { it.type == publish.definingClass }
+            ?: error("Missing or ambiguous Jam palette publisher field")
+
+    return PaletteAbi(
+        source.type,
+        match.originalMethod,
+        extractor,
+        extract,
+        constructors,
+        publisher,
+        publish,
+        local,
+    )
 }
 
 private fun BytecodePatchContext.resolvePlayback(): PlaybackAbi {

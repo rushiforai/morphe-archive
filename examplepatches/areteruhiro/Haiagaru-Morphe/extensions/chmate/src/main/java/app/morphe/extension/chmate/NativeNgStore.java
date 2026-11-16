@@ -77,9 +77,12 @@ final class NativeNgStore {
             throw new IllegalStateException("NG一覧が変更されました。開き直してください");
         if (after.size() > Haiagaru.getNgRegistrationLimit()) throw new IllegalStateException("NG登録上限を超えます");
         save.invoke(store, new ArrayList<>(after));
-        for (Entry entry : before) if (!after.contains(entry.nativeItem))
+        Set<Object> retained = new HashSet<>(after);
+        Set<Object> previous = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Entry entry : before) previous.add(entry.nativeItem);
+        for (Entry entry : before) if (!retained.contains(entry.nativeItem))
             WacchoiSuffixNg.notifyLegacyNameChange(store.getClass().getClassLoader(), category, itemType, entry.nativeItem, null);
-        for (Object item : after) if (before.stream().noneMatch(entry -> entry.nativeItem == item))
+        for (Object item : after) if (!previous.contains(item))
             WacchoiSuffixNg.notifyLegacyNameChange(store.getClass().getClassLoader(), category, itemType, null, item);
     }
 

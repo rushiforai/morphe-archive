@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -681,8 +681,7 @@ val videoPlaybackPatch = bytecodePatch(
 
         // With audio offload, the device hardware decodes the audio
         // and usually does not support changing the pitch, so the selected pitch is ignored.
-        (AudioOffloadEnabledFingerprint.matchOrNull(AudioOffloadVariableRateSupportedFingerprint.originalClassDef)
-            ?: LegacyAudioOffloadEnabledFingerprint.match()).method.apply {
+        audioOffloadEnabledFingerprint().method.apply {
             findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
 

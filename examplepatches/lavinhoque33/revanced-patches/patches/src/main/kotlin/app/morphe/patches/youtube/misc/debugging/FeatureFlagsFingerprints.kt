@@ -1,7 +1,7 @@
 /*
  * Copyright 2026 Morphe.
  * Copyright (C) 2026 lavinhoque33
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-14.
  * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
@@ -35,6 +35,9 @@ internal object ExperimentFlagUtilFingerprint : Fingerprint(
                 ) || parametersMatch( // 21.35+
                     method.parameters,
                     listOf("J", "[B")
+                ) || parametersMatch( // 21.41+ indexed store.
+                    method.parameters,
+                    listOf("I", "J", "[B")
                 ))
     }
 )
@@ -54,6 +57,13 @@ internal object ExperimentalBooleanFeatureFlagFingerprint : Fingerprint(
     }
 )
 
+internal object ExperimentalIndexedBooleanFeatureFlagFingerprint : Fingerprint(
+    classFingerprint = ExperimentFlagUtilFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("I", "J", "Z")
+)
+
 internal object ExperimentalDoubleFeatureFlagFingerprint : Fingerprint(
     classFingerprint = ExperimentFlagUtilFingerprint,
     returnType = "D",
@@ -66,7 +76,7 @@ internal object ExperimentalDoubleFeatureFlagFingerprint : Fingerprint(
                 ) || (is_21_35_or_greater && parametersMatch(
                     method.parameters,
                     listOf("J", "D")
-                )))
+                )) || parametersMatch(method.parameters, listOf("I", "J", "D")))
     }
 )
 
@@ -81,7 +91,7 @@ internal object ExperimentalLongFeatureFlagFingerprint : Fingerprint(
                 ) || parametersMatch( // 21.35+
                     method.parameters,
                     listOf("J", "J"),
-                ))
+                ) || parametersMatch(method.parameters, listOf("I", "J", "J")))
     }
 )
 
@@ -97,16 +107,14 @@ internal object ExperimentalStringFeatureFlagFingerprint : Fingerprint(
                 ) || (is_21_35_or_greater && parametersMatch(
                     method.parameters,
                     listOf("J", "Ljava/lang/String;")
-                )))
+                )) || parametersMatch(method.parameters, listOf("I", "J", "Ljava/lang/String;")))
     }
 )
 
 private fun isHotFeatureFlagAccessor(method: Method) =
     AccessFlags.PUBLIC.isSet(method.accessFlags) &&
-            (parametersMatch(
-                method.parameters,
-                listOf("J")
-            ))
+            (parametersMatch(method.parameters, listOf("J")) ||
+                    parametersMatch(method.parameters, listOf("I", "J")))
 
 /**
  * Hot config accessors without a default value parameter. YouTube 21.35+ and YT Music 9.37+.

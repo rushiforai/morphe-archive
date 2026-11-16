@@ -75,9 +75,24 @@ public final class AudioSync {
     private static String lastCarState = "";
     private static Handler handler;
 
-    /** Per AudioTrack: whether its play position has already passed the delay once. */
-    private static final Map<AudioTrack, boolean[]> PASSED =
-            Collections.synchronizedMap(new WeakHashMap<AudioTrack, boolean[]>());
+    /**
+     * What each AudioTrack has been told so far. The delay is applied per track and the play
+     * position it reports never goes back, so the delay can change while something plays (see
+     * {@link #trackDelayUs}).
+     */
+    private static final Map<AudioTrack, TrackState> TRACKS =
+            Collections.synchronizedMap(new WeakHashMap<AudioTrack, TrackState>());
+
+    private static final class TrackState {
+        /** The track's own play position last time, or -1 before the first call. */
+        long lastRaw = -1;
+        /** The play position reported last time. */
+        long lastOut;
+        /** The delay applied to this track now, or -1 before the first call. */
+        long appliedUs = -1;
+        /** When {@link #appliedUs} was last updated. */
+        long appliedAtMs;
+    }
 
     private AudioSync() {
     }
@@ -88,7 +103,11 @@ public final class AudioSync {
     public static boolean getTimestamp(AudioTrack track, AudioTimestamp timestamp) {
         boolean ok = track.getTimestamp(timestamp);
         if (ok && (timestamp != null)) {
-            long d = activeDelayUs();
+            TrackState s = state(track);
+            long d;
+            synchronized (s) {
+                d = trackDelayUs(s);
+            }
             // The frame at framePosition is heard d later than Android thinks.
             if (d > 0) timestamp.nanoTime += d * 1000L;
         }
@@ -98,20 +117,55 @@ public final class AudioSync {
     /** Replaces {@code audioTrack.getPlaybackHeadPosition()}. */
     public static int getPlaybackHeadPosition(AudioTrack track) {
         int raw = track.getPlaybackHeadPosition();
-        long d = activeDelayUs();
-        if (d <= 0) return raw;
-        long frames = d * track.getSampleRate() / 1_000_000L;
-        if (frames <= 0) return raw;
-
         long played = raw & 0xFFFFFFFFL; // the value is an unsigned 32-bit counter that wraps
-        boolean[] passed = PASSED.get(track);
-        if (passed == null) {
-            passed = new boolean[1];
-            PASSED.put(track, passed);
+        TrackState s = state(track);
+        synchronized (s) {
+            // The track went back: it was flushed (a seek, a new item) or its counter wrapped.
+            // Either way the player starts counting again, and so does this.
+            if ((s.lastRaw >= 0) && (played < s.lastRaw)) s.lastOut = 0;
+            s.lastRaw = played;
+            long d = trackDelayUs(s);
+            long frames = d * track.getSampleRate() / 1_000_000L;
+            // Before the first sound reaches the car's speakers, nothing has played.
+            long out = Math.max(0, played - frames);
+            // Never report less than last time: the player would take a smaller number for the
+            // counter wrapping around, decide about a day of sound had played, and stay broken
+            // until the app restarts. With a longer delay the position holds still instead,
+            // until the sound catches up.
+            if (out < s.lastOut) out = s.lastOut;
+            s.lastOut = out;
+            return (int) (out & 0xFFFFFFFFL);
         }
-        if (played >= frames) passed[0] = true;
-        if (!passed[0]) return 0; // nothing has reached the car's speakers yet
-        return (int) ((played - frames) & 0xFFFFFFFFL);
+    }
+
+    private static TrackState state(AudioTrack track) {
+        synchronized (TRACKS) {
+            TrackState s = TRACKS.get(track);
+            if (s == null) {
+                s = new TrackState();
+                TRACKS.put(track, s);
+            }
+            return s;
+        }
+    }
+
+    /**
+     * The delay for one track now. It follows the setting (and whether a car is connected), but
+     * a longer delay is reached no faster than time passes: the picture pauses for the
+     * difference rather than the player's clock jumping back. A shorter one applies at once
+     * (the picture skips ahead). Call with {@code s} locked.
+     */
+    private static long trackDelayUs(TrackState s) {
+        long target = activeDelayUs();
+        long now = SystemClock.elapsedRealtime();
+        if ((s.appliedUs < 0) || (target <= s.appliedUs)) {
+            s.appliedUs = target;
+        } else {
+            long step = Math.max(0, now - s.appliedAtMs) * 1000L;
+            s.appliedUs = Math.min(target, s.appliedUs + step);
+        }
+        s.appliedAtMs = now;
+        return s.appliedUs;
     }
 
     // ------------------------------------------------------------------ state

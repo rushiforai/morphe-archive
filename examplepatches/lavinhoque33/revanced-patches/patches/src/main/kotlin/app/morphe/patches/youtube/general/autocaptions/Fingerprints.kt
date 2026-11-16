@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Morphe.
+ * Modified by lavinhoque33, 2026-11-14.
  * https://github.com/MorpheApp/morphe-patches/pull/3566
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
@@ -311,11 +312,12 @@ internal object CaptionTracksManagerTranslationSourceFingerprint : Fingerprint(
         // Current audio track.
         fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this"),
         opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
-        // Source of the translation language.
+        // Conversion of the translation language's own source track.
         methodCall(opcode = Opcode.INVOKE_DIRECT, definingClass = "this", parameters = listOf("L")),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
-        // Indices of the general translation sources.
-        fieldAccess(opcode = Opcode.IGET_OBJECT, location = MatchAfterWithin(1)),
+        // Indices of the general translation sources. 21.45 has two branch instructions
+        // between the per-language conversion result and this fallback.
+        fieldAccess(opcode = Opcode.IGET_OBJECT, location = MatchAfterWithin(2)),
         methodCall(smali = "Ljava/util/List;->iterator()Ljava/util/Iterator;", location = MatchAfterImmediately()),
         methodCall(smali = "Ljava/lang/Integer;->intValue()I", location = MatchAfterWithin(7)),
         // Caption track indices of the current audio track.

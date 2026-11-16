@@ -6,13 +6,13 @@
 
 package app.morphe.patches.pawxy.premium
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.matchSingle
+import app.morphe.patcher.util.returnEarly
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -32,9 +32,7 @@ val unlockPremiumPatch = bytecodePatch(
     )
 
     execute {
-        // 1. Patch Subscribe$State.getState() to always return SUBSCRIBED.
-        //    This is the central dispatch for premium state — every premium gate
-        //    (VPN servers, upsell badges, paywall) reads this value.
+        PremiumEntitlementFingerprint.matchSingle().method.returnEarly(true)
         SubscribeStateGetStateFingerprint.matchSingle().method.addInstructions(
             0,
             """
@@ -42,14 +40,5 @@ val unlockPremiumPatch = bytecodePatch(
             return-object p0
             """.trimIndent(),
         )
-
-        // 2. Make the SheetUpgrade subscribe button click a no-op so the billing
-        //    flow is never opened when the user taps "Subscribe" on the paywall.
-        SubscribeButtonClickFingerprint.matchSingle().method.addInstruction(0, "return-void")
-
-        // 3. VPN upsell badge ("wad_tag") visibility is already forced to GONE by
-        //    patch #1 (SheetVPN checks g1 == Subscribe$State.SUBSCRIBED, which is
-        //    now always true). VpnPremiumUpsellFingerprint is kept defined for
-        //    reference / future use.
     }
 }

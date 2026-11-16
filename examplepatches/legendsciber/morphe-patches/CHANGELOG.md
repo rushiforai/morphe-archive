@@ -1,3 +1,9 @@
+## [1.55.0](https://github.com/legendsciber/morphe-patches/compare/v1.54.2...v1.55.0) (2026-11-15)
+
+### ✨ New Features
+
+* **lmrcopyleftmusic:** add premium patch ([95e57a5](https://github.com/legendsciber/morphe-patches/commit/95e57a5b22fa5595c84f3531794b923ae118a75e))
+
 ## [1.54.2](https://github.com/legendsciber/morphe-patches/compare/v1.54.1...v1.54.2) (2026-11-15)
 
 ### 🚀 Updated App Support

@@ -10,6 +10,7 @@ import org.jsoup.safety.Safelist;
 
 /** Independent public-page adapters. Native state and network I/O belong to the gateway. */
 final class SiteBoardProtocol {
+    static final String FUTABA_RANKING="https://futapo.futakuro.com/ranking/index.html";
     static final class Board {
         final String kind,url,host,path,thread;
         Board(String kind,String url,String host,String path,String thread){this.kind=kind;this.url=url;this.host=host;this.path=path;this.thread=thread;}
@@ -24,8 +25,15 @@ final class SiteBoardProtocol {
     static Board address(String raw)throws IOException{
         try{
             URI u=URI.create(raw.trim());String host=u.getHost(),path=u.getRawPath();
+            if("die-or.work".equalsIgnoreCase(host)&&u.getUserInfo()==null&&u.getPort()==-1
+                    &&("http".equalsIgnoreCase(u.getScheme())||"https".equalsIgnoreCase(u.getScheme()))){
+                Matcher mirror=Pattern.compile("/(img|may)(/b/(?:futaba\\.(?:htm|php)|res/[1-9][0-9]{0,11}\\.htm)?)").matcher(path);
+                if(mirror.matches())return address("https://"+mirror.group(1)+".2chan.net"+mirror.group(2)+(u.getRawQuery()==null?"":"?"+u.getRawQuery()));
+            }
             if(!"https".equalsIgnoreCase(u.getScheme())||host==null||u.getUserInfo()!=null||u.getPort()!=-1)throw new IllegalArgumentException();
             host=host.toLowerCase(Locale.ROOT);
+            if(FUTABA_RANKING.equals(u.toASCIIString()))
+                return new Board("futaba",FUTABA_RANKING,host,"ranking",null);
             if(host.equals("bbs.animanch.com")&&u.getRawQuery()==null){
                 String thread=AnimanchProtocol.threadId(raw.trim());if(!(path.equals("/")||path.matches("/category[1-9][0-9]{0,3}/")||thread!=null))throw new IllegalArgumentException();
                 String category=thread==null?path:"/";
@@ -45,6 +53,14 @@ final class SiteBoardProtocol {
             }
         }catch(RuntimeException invalid){/* Reject arbitrary URLs and encoded traversal. */}
         throw new IOException("爆サイ・ふたばの板URL、またはあにまんのURLを指定してください");
+    }
+    static String futabaTag(Board board){
+        return board.kind.equals("futaba")&&board.path.equals("b")?
+                board.host.equals("img.2chan.net")?"(img)":board.host.equals("may.2chan.net")?"(may)":"":"";
+    }
+    static String futabaTitle(Board board,String text){
+        String tag=futabaTag(board);
+        return tag.isEmpty()||text.endsWith(tag)?text:text+" "+tag;
     }
     static final class Topic {
         final String id,title;final int count;
@@ -193,9 +209,43 @@ final class SiteBoardProtocol {
         Element number=row.selectFirst(".cno"),body=row.selectFirst("blockquote");
         if(number==null||body==null)throw new IOException("ふたばのレス本文・番号が欠落しています");
         Matcher m=Pattern.compile("No\\.([1-9][0-9]{0,11})").matcher(number.text());if(!m.find())throw new IOException("レス番号が不正です");
-        Entry text=entry(board,m.group(1),text(row,".cnm"),text(row,".cnw"),body);ArrayList<String> media=new ArrayList<>();
-        for(Element a:row.select("a[href]")){String url=a.absUrl("href");if(media(board,url)&&!media.contains(url))media.add(url);}
-        return new Entry(text.original,text.name,text.date,text.body,media);
+        Entry text=entry(board,m.group(1),text(row,".cnm"),text(row,".cnw"),body);LinkedHashSet<String> images=new LinkedHashSet<>(text.media);
+        for(Element a:row.select("a[href],img:not(a img)[src],img:not(a img)[data-src]")){
+            String url=futabaMedia(board,a.tagName().equals("a")?a.attr("href"):a.hasAttr("data-src")?a.attr("data-src"):a.attr("src"));
+            if(url!=null)images.add(url);
+        }
+        Matcher plain=Pattern.compile("https?://[^\\s<>\"']{1,512}").matcher(body.text());
+        for(int n=0;n<16&&plain.find();n++){String url=futabaMedia(board,plain.group());if(url!=null)images.add(url);}
+        return new Entry(text.original,text.name,text.date,text.body,new ArrayList<>(images));
+    }
+    private static String futabaMedia(Board board,String value){
+        try{
+            URI uri=URI.create(board.url).resolve(value);
+            String path=uri.getRawPath(),host=uri.getHost();
+            if(uri.getPort()!=-1||uri.getRawUserInfo()!=null||path==null||host==null)return null;
+            if(host.equalsIgnoreCase("die-or.work")&&!futabaTag(board).isEmpty()){
+                String prefix="/"+board.host.substring(0,3);
+                if(!path.startsWith(prefix+"/"))return null;
+                path=path.substring(prefix.length());host=board.host;
+            }
+            if(!host.equalsIgnoreCase(board.host)||!("http".equalsIgnoreCase(uri.getScheme())||"https".equalsIgnoreCase(uri.getScheme())))return null;
+            if(!path.matches("/"+Pattern.quote(board.path)+"/(?:src|thumb)/[A-Za-z0-9_-]{1,100}\\.(?i:jpg|jpeg|png|gif|webp|webm|mp4)"))return null;
+            return "https://"+board.host+path;
+        }catch(RuntimeException invalid){return null;}
+    }
+    static List<String> futabaPreviews(Board board,String html,List<String> sources){
+        Map<String,String> previews=new HashMap<>();
+        for(Element link:Jsoup.parse(html,board.url).select("a[href]")){
+            String original=futabaMedia(board,link.attr("href"));
+            Element image=link.selectFirst("img[src],img[data-src]");
+            if(original==null||image==null)continue;
+            String preview=futabaMedia(board,image.hasAttr("data-src")?image.attr("data-src"):image.attr("src"));
+            if(preview!=null&&URI.create(preview).getPath().startsWith("/"+board.path+"/thumb/"))
+                previews.putIfAbsent(original,preview);
+        }
+        List<String> result=new ArrayList<>();
+        for(String source:sources)result.add(previews.getOrDefault(source,source));
+        return result;
     }
     private static Entry entry(Board board,String number,String name,String date,Element body){
         Element safe=body.clone();LinkedHashSet<String> media=new LinkedHashSet<>();

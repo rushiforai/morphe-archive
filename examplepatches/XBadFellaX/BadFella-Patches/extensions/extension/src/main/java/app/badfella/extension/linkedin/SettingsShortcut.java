@@ -28,6 +28,7 @@ public final class SettingsShortcut {
      */
     public static void onMainActivityCreated(Activity activity) {
         registered = true;
+        Diagnostics.discardLegacyLog(activity);
         publish();
         try {
             View decor = activity.getWindow().getDecorView();

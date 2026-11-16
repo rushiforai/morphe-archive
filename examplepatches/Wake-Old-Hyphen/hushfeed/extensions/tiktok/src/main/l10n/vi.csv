@@ -190,7 +190,7 @@ Added 1 seen video.,Đã thêm 1 video đã xem.
 Added one older seen video to this account,Đã thêm 1 video đã xem cũ hơn vào tài khoản này
 Added to this account.,Đã thêm vào tài khoản này.
 "Adds (unsent) after the text of a message that was kept, so you can tell it apart from the rest.",Thêm nhãn (đã thu hồi) vào sau văn bản của tin nhắn được giữ lại để bạn dễ dàng phân biệt với các tin nhắn khác.
-"Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.",Thêm các nút Xuất CSV và Xuất JSON dưới ô tìm kiếm (yêu cầu tính năng Tìm kiếm trong bình luận phải được bật). Các nút này lưu các bình luận và phản hồi đã tải vào tệp bạn chọn. Hãy mở chuỗi phản hồi bạn muốn trước.
+"Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.","Thêm các nút Xuất CSV và Xuất JSON dưới ô tìm kiếm (yêu cầu tính năng Tìm kiếm trong bình luận phải được bật). Các nút này tải hết phản hồi của các bình luận đã tải, rồi lưu chúng vào tệp bạn chọn."
 "Adds Save cover next to Download when you share a video, so you save the cover only when you want it. While this is on, Download saves just the video, even with Save the cover as well on.","Thêm nút Lưu ảnh bìa cạnh nút Tải xuống khi bạn chia sẻ video, giúp bạn chỉ lưu ảnh bìa khi muốn. Khi bật tính năng này, nút Tải xuống sẽ chỉ lưu video, ngay cả khi Cũng lưu ảnh bìa đang bật."
 "Adds TikTok's translate button next to the comment count. One tap translates every comment, and another shows the originals again.",Thêm nút dịch của TikTok cạnh số lượng bình luận. Chạm một lần để dịch mọi bình luận và chạm lần nữa để hiển thị lại bản gốc.
 "Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.",Thêm hộp tìm kiếm giúp tìm các bình luận đã được tải trên video này theo từ khóa hoặc tên người dùng. Tính năng này không tìm kiếm trên toàn bộ TikTok.
@@ -392,7 +392,7 @@ Comment sort and dislike styles,Kiểu sắp xếp bình luận và không thíc
 Comments,Bình luận
 Comments aren't available for this video,Bình luận không khả dụng cho video này
 Comments beside the video,Bình luận bên cạnh video
-"Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.","Bình luận chỉ cuộn trên các video mà TikTok đã kích hoạt tính năng này, do đó hầu hết các video giữ nguyên."
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.,Video ngang mà TikTok cho phép sẽ có nút thêm bình luận một dòng bên dưới video và một thanh dành cho chúng khi xem toàn màn hình. Các video khác giữ nguyên.
 Comments range,Phạm vi bình luận
 Compact,Nhỏ gọn
 Compact comment header,Tiêu đề bình luận nhỏ gọn
@@ -600,6 +600,8 @@ Export loaded values,Xuất các giá trị đã tải
 Export may be incomplete. The recordings are kept.,Có thể xuất chưa đủ. Bản ghi hình vẫn được giữ.
 Export recording files,Xuất tệp ghi hình
 Exported %1$d comments and %2$d replies,Đã xuất %1$d bình luận và %2$d phản hồi
+"Loading replies, %1$d of %2$d","Đang tải phản hồi, %1$d/%2$d"
+"Some replies weren't loaded, so they aren't in the file.",Một số phản hồi không tải được nên không có trong tệp.
 Exported %1$d loaded values,Đã xuất %1$d giá trị đã tải
 Exported 1 loaded value,Đã xuất 1 giá trị đã tải
 Extra bold,Rất đậm
@@ -825,6 +827,51 @@ Hide the Footnotes banner TikTok shows on a video that has a note attached. The 
 Hide the Full screen button,Ẩn nút Toàn màn hình
 Hide the Full screen button over videos. Playback and automatic rotation keep working as before.,Ẩn nút toàn màn hình trên video. Quá trình phát và tự động xoay màn hình vẫn hoạt động bình thường như trước.
 Hide the Hushfeed row,Ẩn mục Hushfeed
+Hide Settings and privacy rows,Ẩn mục trong Cài đặt và quyền riêng tư
+"Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.","Chọn các mục cần bỏ khỏi trang Cài đặt và quyền riêng tư của TikTok. Thay đổi có hiệu lực ở lần mở trang tiếp theo, và phần nào không còn mục nào cũng mất luôn tiêu đề."
+Activity center,Trung tâm hoạt động
+Manage posts,Quản lý bài đăng
+Content preferences,Tùy chọn nội dung
+Notifications,Thông báo
+Time and well-being,Thời gian và sức khỏe
+Family Pairing,Gia đình thông minh
+Sign up,Đăng ký
+Account,Tài khoản
+Security & permissions,Bảo mật và quyền
+Analytics,Phân tích
+Orders,Đơn hàng
+Balance,Số dư
+QR code,Mã QR
+Share profile,Chia sẻ hồ sơ
+TikTok Plus,TikTok Plus
+Invite friends,Mời bạn bè
+Inbox mode,Chế độ hộp thư
+Audience controls,Kiểm soát người xem
+Background audio,Âm thanh nền
+Display,Hiển thị
+Commercial content library,Thư viện nội dung thương mại
+Accessibility,Trợ năng
+Home screen shortcuts,Lối tắt trên màn hình chính
+Join Amplify,Tham gia Amplify
+Contacts and location,Danh bạ và vị trí
+Shake to report,Lắc để báo cáo
+Free up space,Giải phóng dung lượng
+Data Saver,Tiết kiệm dữ liệu
+Free data,Dữ liệu miễn phí
+Live wallpaper,Hình nền động
+Check for updates,Kiểm tra bản cập nhật
+Lite mode,Chế độ Lite
+TikTok Beta,TikTok Beta
+Safety Center,Trung tâm an toàn
+Privacy Center,Trung tâm quyền riêng tư
+Privacy checkup,Kiểm tra quyền riêng tư
+Support,Hỗ trợ
+Deactivate or delete account,Vô hiệu hóa hoặc xóa tài khoản
+Terms and Policies,Điều khoản và chính sách
+Policy updates,Cập nhật chính sách
+What's new on TikTok,Có gì mới trên TikTok
+Switch account,Chuyển tài khoản
+Log out,Đăng xuất
 Hide the Inbox search button,Ẩn nút tìm kiếm trong Hộp thư đến
 Hide the LIVE bubble,Ẩn bong bóng LIVE
 Hide the LIVE button,Ẩn nút LIVE
@@ -1058,7 +1105,7 @@ Let other apps play until a video starts,Cho phép ứng dụng khác phát nh�
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,Cho phép menu Video ngoại tuyến sử dụng giới hạn riêng của bạn thay vì giới hạn cố định của TikTok. Khởi động lại TikTok để áp dụng.
 Let the last video finish,Cho phép video cuối cùng phát xong
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,Cho phép video tràn xuống đáy màn hình trên bảng tin chính và hiển thị các thẻ đè lên trên mà không có thanh nền phía sau.
-"Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.",Cho phép video tràn lên đỉnh màn hình trên bảng tin chính với đồng hồ và biểu tượng trạng thái đè lên. Các thẻ ở đầu màn hình giữ nguyên vị trí.
+"Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.","Cho phép video tràn lên đỉnh màn hình với đồng hồ và biểu tượng trạng thái đè lên. Áp dụng cho bảng tin chính và các video bạn mở từ tìm kiếm, trang cá nhân hoặc mục Đã thích và Yêu thích của bạn. Các thẻ ở đầu màn hình giữ nguyên vị trí."
 Licenses,Giấy phép
 Lift text length limits,Gỡ bỏ giới hạn độ dài văn bản
 "Lifts spoken captions above TikTok's spot while the phone is sideways. Use 0 for TikTok's spot, or up to %1$d.","Nâng vị trí phụ đề lời nói lên trên vị trí mặc định của TikTok khi xoay ngang điện thoại. Nhập 0 để dùng vị trí mặc định của TikTok, hoặc tối đa %1$d."
@@ -1269,8 +1316,8 @@ On mobile data,Khi dùng dữ liệu di động
 On or off,Bật hoặc tắt
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","Trên thẻ Bạn bè, ẩn bài đăng, bài đăng lại và các buổi LIVE từ các tài khoản không theo dõi lẫn nhau (bao gồm cả tài khoản đề xuất). Bài đăng của chính bạn vẫn được giữ lại."
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","Trên bảng tin chính, máy sẽ rung nhẹ mỗi khi kính lúp trượt qua một thẻ (khi chạm hoặc trượt ngón tay). Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
-"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.","Trên bảng tin chính, một bong bóng kính nổi sẽ nằm phía sau thẻ bạn đang chọn và trượt sang thẻ tiếp theo bạn bấm. Yêu cầu bật Giao diện kính lỏng (Liquid glass)."
-"On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Trên bảng tin chính, vuốt ngón tay dọc theo thanh viên thuốc bằng kính và kính lúp sẽ trượt theo. Thả tay ra để mở thẻ đó. Thao tác chạm và nhấn giữ vẫn hoạt động như trước. Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
+"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.","Trên bảng tin chính, một bong bóng kính nổi sẽ nằm phía sau thẻ bạn đang chọn và trượt sang thẻ tiếp theo bạn bấm. Hoạt động với mọi thanh dưới cùng, dù có bật Giao diện kính lỏng (Liquid glass) hay không."
+"On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Trên bảng tin chính, vuốt ngón tay dọc theo các thẻ và kính lúp sẽ trượt theo. Thả tay ra để mở thẻ đó. Thao tác chạm và nhấn giữ vẫn hoạt động như trước. Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
 On. Hushfeed hasn't seen TikTok send any reports since it started.,Bật. Hushfeed chưa thấy TikTok gửi bất kỳ báo cáo nào kể từ khi khởi động.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.","Một khi ngân sách hôm nay dùng hết, trạng thái tạm giữ sẽ tiếp tục duy trì và không thể bỏ qua. Cài đặt ngân sách sẽ bị khóa cho đến khi bắt đầu ngày mới. Hãy tắt tính năng này bất kỳ lúc nào trước khi hết ngân sách."
 One area was checked and everything it needs is here.,Đã kiểm tra một khu vực và mọi thứ cần thiết đều có ở đây.
@@ -1915,7 +1962,7 @@ Stopped waiting for the file app. Nothing was imported.,Đã dừng chờ ứng 
 Stopping after this file,Đang dừng sau tệp này
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.,Ngăn TikTok đọc cảm biến chuyển động và la bàn của điện thoại. Các ứng dụng có thể dùng chúng để định danh thiết bị của bạn.
 "Stops TikTok from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and For You learns less. Likes, follows and searches are still seen.","Ngăn TikTok báo cáo các video bạn xem, nhờ đó chúng không bị ghi vào Lịch sử xem trong Trung tâm hoạt động. Lượt xem của bạn sẽ không được tính và mục Dành cho bạn sẽ học ít dữ liệu hơn. Lượt thích, theo dõi và tìm kiếm vẫn hoạt động."
-"Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.","Ngăn TikTok gửi báo cáo sử dụng, theo dõi quảng cáo và báo cáo sự cố. Các công cụ chẩn đoán riêng của TikTok cũng sẽ bị tắt."
+"Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.","Ngăn TikTok gửi báo cáo sử dụng, theo dõi quảng cáo và báo cáo sự cố. Các công cụ chẩn đoán riêng của TikTok cũng sẽ bị tắt. Các cài đặt mà TikTok tải về để kiểm tra yêu cầu của chính nó vẫn được tải."
 "Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.","Ngăn TikTok giảm tốc độ làm mới màn hình theo tốc độ khung hình của từng video. Trên điện thoại 90Hz hoặc 120Hz, yêu cầu đó làm cho toàn bộ ứng dụng (kể cả cuộn) bị chậm đi."
 "Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.","Ngăn TikTok tự động tăng độ sáng màn hình khi bạn quay, chỉnh sửa hoặc đăng video. Đèn flash trước vẫn làm trắng màn hình nhưng giữ theo độ sáng bạn cài đặt."
 "Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.","Tắt màn hình thư giãn trước khi ngủ, bài tập hít thở và giới hạn hàng ngày mà TikTok hiển thị trên bảng tin. Chỉ hoạt động trên các tài khoản TikTok xác định là của người lớn. Tài khoản thanh thiếu niên và tài khoản liên kết Gia đình vẫn giữ nguyên. Nếu bật Thoát ra khi TikTok thông báo hết giờ, màn hình giới hạn vẫn hiển thị để công tắc hoạt động."
@@ -2343,7 +2390,7 @@ What's new,Có gì mới
 "When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.","Khi hết ngân sách, video trên màn hình sẽ phát đến hết trước khi thời gian tạm dừng bắt đầu và bạn không thể vuốt sang video khác trong lúc đó. Nếu bảng tin đã mờ dần từ trước, thời gian tạm dừng sẽ bắt đầu ngay lập tức. Yêu cầu bật tính năng giữ. Thời gian chờ tối đa là %1$d phút."
 "When the video without the watermark can't be fetched, save TikTok's own watermarked copy instead and say so. It's the size TikTok's own save uses, so it may be smaller than the quality you picked.","Khi không thể tải về video không có watermark, ứng dụng sẽ lưu bản có watermark mặc định của TikTok và thông báo cho bạn. Đây là kích thước lưu mặc định của TikTok nên có thể sẽ nhỏ hơn chất lượng bạn đã chọn."
 When to send,Thời điểm gửi
-"When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.","Khi bạn rời khỏi TikTok trong lúc video đang phát, video sẽ tiếp tục phát trong một cửa sổ nhỏ nổi trên các ứng dụng khác kèm theo nút tạm dừng. Hoạt động trên bảng tin và các video mở từ trang cá nhân, tìm kiếm hoặc âm thanh. Yêu cầu Android 8 trở lên."
+"When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.","Khi bạn rời khỏi TikTok trong lúc video đang phát, video sẽ tiếp tục phát trong một cửa sổ nhỏ nổi trên các ứng dụng khác, kèm theo các nút tạm dừng và chuyển sang video trước hoặc video tiếp theo. Hoạt động trên bảng tin, trong các buổi LIVE và các video mở từ trang cá nhân, tìm kiếm hoặc âm thanh. Yêu cầu Android 8 trở lên."
 "When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.","Khi bạn mở TikTok từ biểu tượng ứng dụng, video đầu tiên trên bảng tin sẽ chờ một lần chạm trước khi bắt đầu phát. Các liên kết, thông báo hoặc lối tắt mở ứng dụng hoạt động bình thường như cũ."
 Where the time goes,Vị trí hiển thị thời gian
 "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.","Khi chế độ Hiển thị rõ ràng đang bật, ẩn thêm thanh tiến trình, nút đóng, nút tạm dừng và nút tốc độ ở phía dưới. Bạn vẫn có thể kéo dọc theo mép dưới để tua video. Để thoát chế độ này, hãy nhấn giữ video rồi chạm vào Khôi phục hiển thị hoặc dùng cử chỉ chụm hai ngón tay trên màn hình."
@@ -2635,3 +2682,43 @@ Hide search result tabs,Ẩn các tab kết quả tìm kiếm
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Chọn các tab cần bỏ khỏi phía trên kết quả tìm kiếm, như Cửa hàng, LIVE hoặc Địa điểm. Danh sách gồm các tab TikTok đã hiển thị cho bạn, và Top luôn được giữ lại."
 No search tabs have been seen yet,Chưa xuất hiện tab tìm kiếm nào
 "Search for something once, then return here to choose its tabs.","Hãy tìm kiếm một lần, rồi quay lại đây để chọn tab."
+Video download codec,Codec tải video xuống
+HEVC first,Ưu tiên HEVC
+H.264 only,Chỉ H.264
+"At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.","Ở cùng chất lượng, Tự động lưu bằng H.264, định dạng mà hầu hết trình phát đều mở được. HEVC thường nét hơn, nhưng một số trình phát và TV cũ không phát được."
+Pick which stories to save,Chọn tin để lưu
+"When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.","Khi ai đó có nhiều hơn một tin, lúc lưu sẽ hỏi bạn muốn giữ những tin nào. Tin bạn đang xem đã được chọn sẵn."
+Pick stories to save,Chọn tin để lưu
+%1$s of %2$s stories are loaded. Watch further to load the rest.,Đã tải %1$s trên %2$s tin. Xem tiếp để tải phần còn lại.
+Story %1$s,Tin %1$s
+On screen,Trên màn hình
+Pick at least one story,Hãy chọn ít nhất một tin
+Shade behind the status bar,Bóng mờ sau thanh trạng thái
+"A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.",Một dải tối mờ dần phía sau đồng hồ và biểu tượng trạng thái để chúng vẫn dễ đọc trên video sáng. Yêu cầu bật Thanh trạng thái trong suốt.
+Glass Stories button on Following,Nút Tin dạng kính trên Đang theo dõi
+"The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.","Nút Tin ở đầu bảng tin Đang theo dõi chuyển thành kính với hai đầu bo tròn. Trên Android 12 trở lên, video phía sau nút cũng được làm mờ."
+Show message times,Hiện giờ gửi tin nhắn
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.,Hiện giờ gửi dưới mỗi tin nhắn trong cuộc trò chuyện. Các mốc thời gian sẵn có của TikTok vẫn giữ nguyên chỗ.
+This photo post is already saved,Bài đăng ảnh này đã được lưu trước đó
+This story is already saved,Tin (story) này đã được lưu trước đó
+Stretch the video to the screen,Kéo giãn video theo màn hình
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.,Phủ kín cả cửa sổ mà không cắt bớt gì. Để làm vậy video sẽ cao hơn hoặc rộng hơn một chút. Video có hình dạng khác xa màn hình sẽ giữ kích thước của TikTok.
+Sort loaded videos on Favorites grids,Sắp xếp video đã tải trên lưới Yêu thích
+Show the country and date under the caption,Hiện quốc gia và ngày dưới chú thích
+Moves the country and the post date off the creator's row onto a line of their own below the caption.,"Chuyển quốc gia và ngày đăng ra khỏi hàng của nhà sáng tạo, sang một dòng riêng bên dưới chú thích."
+Previous video,Video trước
+Next video,Video tiếp theo
+Sort loaded videos in collections,Sắp xếp video đã tải trong bộ sưu tập
+Same as Favorites grids,Giống như lưới Yêu thích
+Hide the summary on LIVE previews,Ẩn bản tóm tắt trên bản xem trước LIVE
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.,LIVE trong bảng tin có thể hiện thẻ Tóm tắt về buổi phát. Tùy chọn này giữ nó ẩn đi.
+Look up a commenter's country,Tra quốc gia của người bình luận
+"Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.","Nhấn giữ một bình luận để tìm tùy chọn ""Hiện quốc gia của tài khoản"" trong menu. Tùy chọn này hỏi TikTok tài khoản đó ở đâu, hoặc các video mới nhất của tài khoản đó được đăng từ đâu."
+Show account country,Hiện quốc gia của tài khoản
+Account based in %1$s,Quốc gia của tài khoản: %1$s
+TikTok gives no country for this account,TikTok không cho biết quốc gia của tài khoản này
+Couldn't get the country. Try again.,Không lấy được quốc gia. Hãy thử lại.
+Account country on profiles,Quốc gia của tài khoản trên trang cá nhân
+"A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.","Bảng chia sẻ của trang cá nhân có thêm nút ""Quốc gia của tài khoản"". Nút này hỏi TikTok tài khoản đó ở đâu, hoặc các video mới nhất của tài khoản đó được đăng từ đâu."
+Account country,Quốc gia của tài khoản
+Videos posted from %1$s,Video được đăng từ %1$s

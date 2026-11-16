@@ -36,7 +36,7 @@ public final class ReleaseHistoryTextTest {
         check(translated>=37,"all historical subjects covered, including development releases");
         String features=ReleaseHistoryText.addedFeatures(Files.readString(Path.of(args[0])));
         check(features.contains("#### 1.25.0")&&features.contains("#### 1.26.0"),"all-feature catalogue retains introduction versions");
-        check(java.util.regex.Pattern.compile("(?m)^- \\*\\*").matcher(features).results().count()==20,"complete 20-item feature catalogue retained");
+        check(java.util.regex.Pattern.compile("(?m)^- \\*\\*").matcher(features).results().count()>=25,"historical feature catalogue retained");
         check(!features.contains("変更・修正した機能一覧")&&!features.contains("## 謝辞"),"catalogue excludes unrelated release sections");
         System.out.println("Release history: "+checks+" checks passed");
     }

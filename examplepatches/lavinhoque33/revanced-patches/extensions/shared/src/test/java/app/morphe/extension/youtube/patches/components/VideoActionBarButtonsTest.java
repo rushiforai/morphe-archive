@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Written by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-13
  */
 package app.morphe.extension.youtube.patches.components;
 
@@ -24,6 +24,14 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.*;
 import app.morphe.extension.youtube.patches.components.VideoActionBarButtons.ActionButton;
 
 public class VideoActionBarButtonsTest {
+    @Test
+    public void hidesNonPlainAskButtonByItsPanelCommand() throws Exception {
+        VideoActionBarItemContent ask = VideoActionBarItemContent.newBuilder()
+                .setAccountLinkButton(ByteString.copyFromUtf8("PAyouchat")).build();
+        assertTrue(VideoActionBarButtons.isHidden(ask, EnumSet.of(ASK)));
+        assertFalse(VideoActionBarButtons.isHidden(ask, EnumSet.of(SHARE)));
+    }
+
     private static VideoActionBarItemContent icon(String name) {
         return VideoActionBarItemContent.newBuilder().setButton(ButtonViewModel.newBuilder().setIconName(name)).build();
     }

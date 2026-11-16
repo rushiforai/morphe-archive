@@ -42,7 +42,7 @@ private data class InstructionReplacement(
 
 // Active functional host redirects.
 // Note on pruned hosts (editor-api.capcut.com, i18n-api.faceueditor.com):
-// APK string pool analysis of CapCut 19.9.0 shows both 'editor-api.capcut.com' (2 occurrences)
+// APK string pool analysis of the supported build shows both 'editor-api.capcut.com' (2 occurrences)
 // and 'i18n-api.faceueditor.com' (2 occurrences) restricted to classes20.dex as non-executable
 // pool entries (e.g. static field initializers, annotations, or unused descriptor remnants)
 // rather than rewritable const-string instructions in method bodies.

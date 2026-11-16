@@ -1,7 +1,8 @@
 # AMOLED theme
 
-Optional patch, off by default. It is a **build-time resource patch**: it rewrites colour values
-while the APK is patched and has no runtime switch. Undoing it means patching again without it.
+On by default. This is the full variant and the only AMOLED patch in the list: it is a
+**build-time patch** with no runtime switch. It rewrites resource colours and code-held constants
+while the APK is patched. Undoing it means patching again without it.
 
 ## What it changes
 
@@ -15,13 +16,14 @@ A translucent sheet or scrim such as `#80161823` becomes `#80000000` and keeps i
 `res/color*/*.xml` are rewritten. In drawables only `solid`, `item` and gradient fills are changed;
 a `stroke` keeps its border colour, and vector `fillColor` (an icon) is left alone.
 
-The threshold is `DARK_MAX` in `AmoledPatch.kt`. It is a single constant because this is the total
-variant: there is no separate surface or border tier any more.
+The threshold is `DARK_MAX` in `AmoledPatch.kt`, and the target colour is `AMOLED_BLACK`. Both are
+single constants because this is the total variant: there is no separate surface or border tier any
+more.
 
-A second, dependent patch (`AMOLED code colours`) replaces the same opaque surface values when they
-are held as constants in the dex instead of as resources. That is what reaches Compose colour
-schemes and views that build their background from a literal, such as the Notes composer. It only
-runs while it is pulled in by `AMOLED theme`.
+The same patch also replaces those surface values when they are held as constants in the dex instead
+of as resources. That is what reaches Compose colour schemes and views that build their background
+from a literal, such as the Notes composer. The bytecode pass is an unnamed dependency, so it does
+not appear as a second patch in the list.
 
 ## What it does not do
 
@@ -33,7 +35,7 @@ runs while it is pulled in by `AMOLED theme`.
   of the total variant.
 - **It does not cover every screen.** Colours baked into images (PNG, 9-patch), drawn by a WebView
   page, or held in a secondary resource package are outside this patch, so a screen can stay gray.
-  Code and Compose constants are handled by the dependent `AMOLED code colours` pass.
+  Code and Compose constants are covered by the same patch's bytecode pass.
 - **There is one values set.** TikTok 47.7.x does not ship `values-night`, so a colour shared by
   both themes can change in the light theme too.
 - **It cannot be switched off in Tweaks.** The choice is made when the APK is patched.

@@ -1,9 +1,9 @@
 package app.morphe.patches.sube
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants.COMPATIBILITY_SUBE
+import app.morphe.patches.shared.replaceWithReturnVoid
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -240,7 +240,7 @@ val subeTelemetryPatch = bytecodePatch(
                         it.parameters.map { p -> p.type } == targetMethod.parameters.map { p -> p.type }
                 } ?: continue
 
-                mutableMethod.addInstruction(0, "return-void")
+                mutableMethod.replaceWithReturnVoid()
                 hookCounts[matchingRule.label] = (hookCounts[matchingRule.label] ?: 0) + 1
                 classHooked++
                 totalHooked++

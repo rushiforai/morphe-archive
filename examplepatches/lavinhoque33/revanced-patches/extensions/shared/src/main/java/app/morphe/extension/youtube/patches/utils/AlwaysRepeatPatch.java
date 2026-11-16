@@ -1,7 +1,5 @@
 package app.morphe.extension.youtube.patches.utils;
 
-import static app.morphe.extension.youtube.utils.VideoUtils.pauseMedia;
-
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.VideoInformation;
@@ -24,15 +22,19 @@ public class AlwaysRepeatPatch extends Utils {
      * @return video is repeated.
      */
     public static boolean alwaysRepeat() {
-        return alwaysRepeatEnabled() && VideoInformation.overrideVideoTime(0);
+        if (!alwaysRepeatEnabled() || !VideoInformation.overrideVideoTime(0)) return false;
+
+        pauseAfterRepeat();
+        return true;
     }
 
     public static boolean alwaysRepeatEnabled() {
-        final boolean alwaysRepeat = Settings.ALWAYS_REPEAT.get();
-        final boolean alwaysRepeatPause = Settings.ALWAYS_REPEAT_PAUSE.get();
+        return Settings.ALWAYS_REPEAT.get()
+                && (!Settings.ALWAYS_REPEAT_PAUSE.get() || VideoInformation.isPauseVideoSupported());
+    }
 
-        if (alwaysRepeat && alwaysRepeatPause) pauseMedia();
-        return alwaysRepeat;
+    public static void pauseAfterRepeat() {
+        if (alwaysRepeatEnabled() && Settings.ALWAYS_REPEAT_PAUSE.get()) VideoInformation.pauseVideo();
     }
 
 }

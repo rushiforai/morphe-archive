@@ -7,6 +7,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.widesearchbar
@@ -39,17 +40,9 @@ internal object ActionbarRingoViewFingerprint : Fingerprint(
             opcode = Opcode.INVOKE_VIRTUAL,
             smali = "Landroid/widget/ImageView;->setContentDescription(Ljava/lang/CharSequence;)V",
         ),
-        opcode(
-            opcode = Opcode.RETURN_OBJECT,
-            location = MatchAfterImmediately()
-        ),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
             smali = $$"Landroid/widget/ImageView;->setOnClickListener(Landroid/view/View$OnClickListener;)V",
-        ),
-        opcode(
-            opcode = Opcode.RETURN_OBJECT,
-            location = MatchAfterImmediately()
         ),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,

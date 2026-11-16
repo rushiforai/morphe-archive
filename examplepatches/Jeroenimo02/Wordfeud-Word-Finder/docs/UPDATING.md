@@ -99,3 +99,4 @@ no longer has are skipped; new ad SDK start-up components are not removed until 
 |---|---|---|---|
 | 5.7.1 | – | 2026-11-02 | First version |
 | 5.8.0 | All OK (2026-11-06) | 2026-11-06 | No changes needed |
+| 5.8.2 | All OK (2026-11-15) | Not yet | No changes needed; the manifest components of "Remove ads" are unchanged too |

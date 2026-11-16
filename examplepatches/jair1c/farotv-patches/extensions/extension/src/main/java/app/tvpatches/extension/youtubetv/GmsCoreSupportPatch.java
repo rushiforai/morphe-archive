@@ -145,11 +145,10 @@ public final class GmsCoreSupportPatch {
         activity.runOnUiThread(() -> {
             try {
                 TvDialog.show(activity,
-                        "MicroG-RE no está instalado",
-                        "Esta app necesita MicroG-RE para iniciar sesión y reproducir videos.\n\n"
-                                + "Puedes descargarlo e instalarlo ahora desde GitHub (MorpheApp/MicroG-RE).",
+                        I18n.text("microg.missing.title"),
+                        I18n.text("microg.missing.message"),
                         null,
-                        new String[]{"Descargar e instalar", "Ahora no"},
+                        new String[]{I18n.text("microg.install"), I18n.text("microg.later")},
                         true,
                         index -> {
                             if (index == 0) startDownload(activity);
@@ -198,8 +197,8 @@ public final class GmsCoreSupportPatch {
                 activity.getResources().getDisplayMetrics().heightPixels) / 1280f;
         Bar bar = new Bar(activity, Math.max(4, Math.round(6 * u)));
         TvDialog progress = TvDialog.show(activity,
-                "Descargando MicroG-RE",
-                "Buscando la última versión…",
+                I18n.text("microg.download.title"),
+                I18n.text("microg.download.message"),
                 bar.view,
                 new String[0],
                 false,
@@ -231,10 +230,10 @@ public final class GmsCoreSupportPatch {
         activity.runOnUiThread(() -> {
             try {
                 TvDialog.show(activity,
-                        "No se pudo instalar MicroG-RE",
-                        "Revisa la conexión a internet e inténtalo de nuevo.\n\n" + ex.getMessage(),
+                        I18n.text("microg.error.title"),
+                        I18n.text("microg.error.message") + ex.getMessage(),
                         null,
-                        new String[]{"Reintentar", "Cerrar"},
+                        new String[]{I18n.text("microg.retry"), I18n.text("common.close")},
                         true,
                         index -> {
                             if (index == 0) startDownload(activity);
@@ -269,7 +268,7 @@ public final class GmsCoreSupportPatch {
                 return new String[]{name, a.getString("browser_download_url")};
             }
         }
-        throw new IllegalStateException("No hay un APK de MicroG-RE para " + Build.SUPPORTED_ABIS[0]);
+        throw new IllegalStateException(I18n.text("microg.noApk", "abi", Build.SUPPORTED_ABIS[0]));
     }
 
     private static SSLSocketFactory platformSocketFactory;
@@ -293,7 +292,7 @@ public final class GmsCoreSupportPatch {
                 }
             }
         }
-        if (chosen == null) throw new IllegalStateException("No hay proveedor TLS de Android");
+        if (chosen == null) throw new IllegalStateException(I18n.text("microg.noTls"));
         SSLContext context = SSLContext.getInstance("TLS", chosen);
         context.init(null, null, null);
         platformSocketFactory = context.getSocketFactory();
@@ -394,7 +393,7 @@ public final class GmsCoreSupportPatch {
                 } else {
                     String message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
                     showError(activity, new IllegalStateException(
-                            "El instalador respondió: " + (message != null ? message : "estado " + status)));
+                            I18n.text("microg.installer", "message", message != null ? message : I18n.text("microg.status", "status", String.valueOf(status)))));
                 }
             }
         };
@@ -410,10 +409,10 @@ public final class GmsCoreSupportPatch {
         activity.runOnUiThread(() -> {
             try {
                 TvDialog.show(activity,
-                        "MicroG-RE instalado",
-                        "Listo. Reinicia la app para empezar a usarla.",
+                        I18n.text("microg.done.title"),
+                        I18n.text("microg.done.message"),
                         null,
-                        new String[]{"Reiniciar la app"},
+                        new String[]{I18n.text("microg.restart")},
                         false,
                         index -> restartApp(activity));
             } catch (Exception ignored) {

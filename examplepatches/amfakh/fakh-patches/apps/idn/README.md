@@ -17,6 +17,7 @@ Every patch is on by default. Morphe Manager groups them by category.
 | Feature | Stop autoplay | Adds an Autoplay setting that can stop the video previews and the automatic sliding of the home banners. |
 | Feature | Redirect Gold purchase | Opens `connect.idn.media/my-account/gold` in the browser instead of the in-app Gold top up. |
 | Feature | Allow Developer options | Lets short movies play while Developer options are turned on, instead of asking to turn them off. |
+| Fix | Fix server error after idle | Retries a request with a fresh login when the saved one has expired. Without it the first open after a long break shows "Maaf, kesalahan server kami" until Muat Ulang is pressed. |
 
 ## Fakh Patches page
 
@@ -34,6 +35,11 @@ drops them before they are shown. Push notifications use another path and still 
 The short movie player reads Developer options together with a root check and shows a "developer
 mode" sheet when the setting is on. **Allow Developer options** makes the app read the setting as
 off; the root check stays.
+
+The app's login token lasts about an hour. On a 401 the app refreshes it, but builds the retry request in the
+background and gives up before it is ready, so the screen shows the error. **Fix server error after idle** makes
+the request wait for that refresh, up to 20 seconds, and then retry once with the new token. A refresh that fails
+still ends in the error, as before.
 
 The installed Play Store app must be uninstalled first: it is signed with another key.
 

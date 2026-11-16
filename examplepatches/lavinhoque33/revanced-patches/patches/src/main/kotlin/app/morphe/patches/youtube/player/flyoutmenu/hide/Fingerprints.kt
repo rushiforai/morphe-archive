@@ -1,6 +1,7 @@
 /*
  * Portions of this file are ported from Morphe:
  * Copyright 2026 Morphe.
+ * Modified by lavinhoque33, 2026-11-14.
  * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
@@ -36,12 +37,8 @@ internal object CaptionsOldBottomSheetLayoutInflaterFingerprint : Fingerprint(
         "Landroid/os/Bundle;",
     ),
     filters = listOf(
-        resourceLiteral(ResourceType.ID, "bottom_sheet_title"),
-        methodCall(
-            opcode = Opcode.INVOKE_VIRTUAL,
-            name = "findViewById",
-            location = MatchAfterWithin(3),
-        ),
+        // 21.45 delegates title styling to a shared helper. The caption-specific footer
+        // resource and its native insertion remain in both caption sheet variants.
         resourceLiteral(ResourceType.STRING, "subtitle_menu_settings_footer_info"),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,

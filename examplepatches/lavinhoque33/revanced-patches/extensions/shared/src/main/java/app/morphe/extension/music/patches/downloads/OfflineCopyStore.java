@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.morphe.extension.music.patches.androidauto.AndroidAutoPatch;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.PlayerResponse;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.VideoDetails;
@@ -186,6 +188,7 @@ final class OfflineCopyStore {
         if (!header.hasTitle()) throw new IOException("the page has no title");
 
         Storage.sources.updateHeader(sourceId, header, System.currentTimeMillis());
+        AndroidAutoPatch.onPlaylistsChanged();
         return header.title();
     }
 
@@ -310,6 +313,7 @@ final class OfflineCopyStore {
         Logger.printDebug(() -> "OfflineCopyStore: stored v=" + metadata.videoId() + " response="
                 + written.responseBytes() + "B thumb=" + written.thumbnailBytes() + "B source="
                 + metadata.responseSource());
+        AndroidAutoPatch.onPlaylistsChanged();
         return written;
     }
 
@@ -322,6 +326,7 @@ final class OfflineCopyStore {
         try {
             Utils.verifyOffMainThread();
             Storage.sources.remember(sourceId, header, videoIds, System.currentTimeMillis());
+            AndroidAutoPatch.onPlaylistsChanged();
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineCopyStore: could not remember the source " + sourceId, ex);
         }

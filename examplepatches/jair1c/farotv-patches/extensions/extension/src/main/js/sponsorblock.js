@@ -6,23 +6,23 @@
     if (!window.youtv || !youtv.request) return;
 
     var CATEGORIES = [
-        { key: "sponsor", title: "Saltar patrocinios", label: "patrocinio", default: true },
-        { key: "selfpromo", title: "Saltar autopromoción", label: "autopromoción", default: true },
-        { key: "interaction", title: "Saltar recordatorios de suscripción", label: "recordatorio", default: true },
-        { key: "intro", title: "Saltar intros", label: "intro", default: false },
-        { key: "outro", title: "Saltar créditos finales", label: "créditos", default: false },
-        { key: "preview", title: "Saltar avances y resúmenes", label: "avance", default: false },
-        { key: "music_offtopic", title: "Saltar partes sin música en videos musicales", label: "parte sin música", default: false },
-        { key: "filler", title: "Saltar relleno", label: "relleno", default: false }
+        { key: "sponsor", titleKey: "sponsor.sponsor.title", labelKey: "sponsor.sponsor.label", default: true },
+        { key: "selfpromo", titleKey: "sponsor.selfpromo.title", labelKey: "sponsor.selfpromo.label", default: true },
+        { key: "interaction", titleKey: "sponsor.interaction.title", labelKey: "sponsor.interaction.label", default: true },
+        { key: "intro", titleKey: "sponsor.intro.title", labelKey: "sponsor.intro.label", default: false },
+        { key: "outro", titleKey: "sponsor.outro.title", labelKey: "sponsor.outro.label", default: false },
+        { key: "preview", titleKey: "sponsor.preview.title", labelKey: "sponsor.preview.label", default: false },
+        { key: "music_offtopic", titleKey: "sponsor.music_offtopic.title", labelKey: "sponsor.music_offtopic.label", default: false },
+        { key: "filler", titleKey: "sponsor.filler.title", labelKey: "sponsor.filler.label", default: false }
     ];
 
     var feature = youtv.feature({
         id: "sponsorblock",
-        name: "SponsorBlock",
-        summary: "Salta automáticamente los patrocinios y otras partes marcadas por la comunidad de SponsorBlock",
+        nameKey: "feature.sponsorblock.name",
+        summaryKey: "feature.sponsorblock.summary",
         defaultEnabled: true,
         settings: CATEGORIES.map(function (c) {
-            return { key: c.key, title: c.title, default: c.default };
+            return { key: c.key, titleKey: c.titleKey, default: c.default };
         })
     });
     if (!feature) return;
@@ -55,7 +55,7 @@
             try { list = youtv.rawParse(body); } catch (e) { return; }
             if (!Array.isArray(list)) return;
             var labels = {};
-            CATEGORIES.forEach(function (c) { labels[c.key] = c.label; });
+            CATEGORIES.forEach(function (c) { labels[c.key] = c.labelKey; });
             segments = list.filter(function (s) {
                 return s && Array.isArray(s.segment) && (s.actionType || "skip") === "skip" && s.segment[1] > s.segment[0];
             }).map(function (s) {
@@ -88,9 +88,9 @@
         }
         if (!notice.parentNode) document.body.appendChild(notice);
         notice.textContent = "";
-        notice.appendChild(document.createTextNode("Se omitió: "));
+        notice.appendChild(document.createTextNode(youtv.t("sponsor.skipped")));
         var b = document.createElement("b");
-        b.textContent = label;
+        b.textContent = youtv.t(label);
         notice.appendChild(b);
         notice.className = "farotv-skip-notice show";
         clearTimeout(noticeTimer);

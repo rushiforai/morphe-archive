@@ -1,3 +1,93 @@
+## [1.17.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.1...v1.17.0) (2026-11-15)
+
+### Kick
+
+#### ✨ New Features
+
+* add **Player gestures** ([90a5836](https://github.com/jordanwoodson/lurk-morphe-patches/commit/90a583655b548b1c483a91b6dd2bc475001a8c20))
+* add **Refresh stream** ([b796b0a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b796b0ac68bad616dcfbce7941f3a3881bac0cc2))
+* add **Third-party badges** with 7TV badges ([b65bbbe](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b65bbbe20ddad05c204cf023324161c704d3f683))
+
+#### 🐛 Bug Fixes
+
+* **Third-party emotes:** load the channel's emotes, not only global ones ([17fe3ee](https://github.com/jordanwoodson/lurk-morphe-patches/commit/17fe3ee86fd0e520b70bc63d6cc4ef1b4f66ea9f))
+
+### Rumble
+
+#### ✨ New Features
+
+* add **Anonymous chat** ([cc9791d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cc9791d38b532e710644633200b845cda52daf47))
+* add **Show video stats** ([d9cb53b](https://github.com/jordanwoodson/lurk-morphe-patches/commit/d9cb53bd00ae6827b633f2685a11b9646b13ac79))
+
+### Twitch
+
+#### ✨ New Features
+
+* add **Block update prompts** ([889d008](https://github.com/jordanwoodson/lurk-morphe-patches/commit/889d0084e3e7aeef797fbc8e4cbaa7058a1d877c))
+* add **Don't save searches** ([4c6884d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/4c6884d402a11d3fd8d5c5dea9bee5397e0e245d))
+* add Favorite emotes to the emote picker ([c997c49](https://github.com/jordanwoodson/lurk-morphe-patches/commit/c997c4967e22fe132ee43e8eb4bf32fd083db5e5))
+* add **Show exact counts** ([46fa390](https://github.com/jordanwoodson/lurk-morphe-patches/commit/46fa3903a82565d625b5e50ec43fa0546e230649))
+* hide offline channels and recent streams on the React Native Home ([7603000](https://github.com/jordanwoodson/lurk-morphe-patches/commit/7603000ee4e808ee9321ebc323a8f1dc18347898))
+* highlight chosen users and roles in **Chat keywords** ([d26ff83](https://github.com/jordanwoodson/lurk-morphe-patches/commit/d26ff8315a889b78b8cbf99ad127c4175472c58f))
+* suggest emotes while typing, without ':' first ([696ca6d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/696ca6dbc505f4500ca4aea86775f5f8af4ece01))
+
+#### 🐛 Bug Fixes
+
+* keep **third-party emotes** loaded instead of downloading them again ([386e6c9](https://github.com/jordanwoodson/lurk-morphe-patches/commit/386e6c98e85c1fdfb0367276b7afa73362df3831))
+* open on Following in the **tablet layout** too ([3d8ef51](https://github.com/jordanwoodson/lurk-morphe-patches/commit/3d8ef511efc0b6afc016b8356b0784f0a3e22a7e))
+* Sleep timer now pauses streams played with **Force ExoPlayer** ([33c7e33](https://github.com/jordanwoodson/lurk-morphe-patches/commit/33c7e33ce08c1c3e0a329de7ab45b7e30c831a82))
+
+### Shared
+
+#### 🐛 Bug Fixes
+
+* open Lurk settings in installs whose manifest lacks its activity ([65e8571](https://github.com/jordanwoodson/lurk-morphe-patches/commit/65e857116366d02f480213da381b0663e9af8a4d))
+
+## [1.17.0-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.1...v1.17.0-dev.1) (2026-11-15)
+
+### Kick
+
+#### ✨ New Features
+
+* add **Player gestures** ([90a5836](https://github.com/jordanwoodson/lurk-morphe-patches/commit/90a583655b548b1c483a91b6dd2bc475001a8c20))
+* add **Refresh stream** ([b796b0a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b796b0ac68bad616dcfbce7941f3a3881bac0cc2))
+* add **Third-party badges** with 7TV badges ([b65bbbe](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b65bbbe20ddad05c204cf023324161c704d3f683))
+
+#### 🐛 Bug Fixes
+
+* **Third-party emotes:** load the channel's emotes, not only global ones ([17fe3ee](https://github.com/jordanwoodson/lurk-morphe-patches/commit/17fe3ee86fd0e520b70bc63d6cc4ef1b4f66ea9f))
+
+### Rumble
+
+#### ✨ New Features
+
+* add **Anonymous chat** ([cc9791d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cc9791d38b532e710644633200b845cda52daf47))
+* add **Show video stats** ([d9cb53b](https://github.com/jordanwoodson/lurk-morphe-patches/commit/d9cb53bd00ae6827b633f2685a11b9646b13ac79))
+
+### Twitch
+
+#### ✨ New Features
+
+* add **Block update prompts** ([889d008](https://github.com/jordanwoodson/lurk-morphe-patches/commit/889d0084e3e7aeef797fbc8e4cbaa7058a1d877c))
+* add **Don't save searches** ([4c6884d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/4c6884d402a11d3fd8d5c5dea9bee5397e0e245d))
+* add Favorite emotes to the emote picker ([c997c49](https://github.com/jordanwoodson/lurk-morphe-patches/commit/c997c4967e22fe132ee43e8eb4bf32fd083db5e5))
+* add **Show exact counts** ([46fa390](https://github.com/jordanwoodson/lurk-morphe-patches/commit/46fa3903a82565d625b5e50ec43fa0546e230649))
+* hide offline channels and recent streams on the React Native Home ([7603000](https://github.com/jordanwoodson/lurk-morphe-patches/commit/7603000ee4e808ee9321ebc323a8f1dc18347898))
+* highlight chosen users and roles in **Chat keywords** ([d26ff83](https://github.com/jordanwoodson/lurk-morphe-patches/commit/d26ff8315a889b78b8cbf99ad127c4175472c58f))
+* suggest emotes while typing, without ':' first ([696ca6d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/696ca6dbc505f4500ca4aea86775f5f8af4ece01))
+
+#### 🐛 Bug Fixes
+
+* keep **third-party emotes** loaded instead of downloading them again ([386e6c9](https://github.com/jordanwoodson/lurk-morphe-patches/commit/386e6c98e85c1fdfb0367276b7afa73362df3831))
+* open on Following in the **tablet layout** too ([3d8ef51](https://github.com/jordanwoodson/lurk-morphe-patches/commit/3d8ef511efc0b6afc016b8356b0784f0a3e22a7e))
+* Sleep timer now pauses streams played with **Force ExoPlayer** ([33c7e33](https://github.com/jordanwoodson/lurk-morphe-patches/commit/33c7e33ce08c1c3e0a329de7ab45b7e30c831a82))
+
+### Shared
+
+#### 🐛 Bug Fixes
+
+* open Lurk settings in installs whose manifest lacks its activity ([65e8571](https://github.com/jordanwoodson/lurk-morphe-patches/commit/65e857116366d02f480213da381b0663e9af8a4d))
+
 ## [1.16.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.0...v1.16.1) (2026-11-05)
 
 ### Rumble

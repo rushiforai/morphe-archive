@@ -171,7 +171,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
 
     private static Snapshot defaultSnapshot(String source) {
         return new Snapshot(
-                false,
+                GboardAdvancedVoiceSettings.DEFAULT_ENABLED,
                 GboardAdvancedVoiceSettings.DEFAULT_BACKEND,
                 GboardAdvancedVoiceSettings.DEFAULT_ZH_TW_PUNCTUATION_ENABLED,
                 source);

@@ -6,8 +6,8 @@ import app.morphe.patcher.patch.Compatibility
 internal object Constants {
     const val CHESSCOM_PACKAGE = "com.chess"
 
-    // The supported target (versionCode 280100).
-    const val CHESSCOM_VERSION = "4.10.23-googleplay"
+    // The supported target (versionCode 280120).
+    const val CHESSCOM_VERSION = "4.10.27-googleplay"
 
     val COMPATIBILITY = Compatibility(
         packageName = CHESSCOM_PACKAGE,

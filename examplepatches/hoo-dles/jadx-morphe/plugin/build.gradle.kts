@@ -70,7 +70,7 @@ tasks {
         from(sourceSets.main.get().output)
     }
 
-    register<Copy>("copyUnbundledDeps") {
+    val copyUnbundledDeps = register<Copy>("copyUnbundledDeps") {
         from(provider {
             val toRelocate = configurations["toRelocate"]
                 .resolvedConfiguration.resolvedArtifacts
@@ -79,16 +79,14 @@ tasks {
 
             configurations.runtimeClasspath.get().filter { it !in toRelocate }
         })
-        into(shadowJar.get().destinationDirectory)
+        into(layout.buildDirectory.dir("unbundledDeps"))
     }
 
     register<Zip>("dist") {
-        dependsOn(shadowJar, "copyUnbundledDeps")
-
         archiveBaseName.set(rootProject.name)
 
-        from(shadowJar.get().destinationDirectory)
-        include("*.jar")
+        from(shadowJar)
+        from(copyUnbundledDeps)
 
         destinationDirectory.set(layout.buildDirectory.dir("dist"))
     }

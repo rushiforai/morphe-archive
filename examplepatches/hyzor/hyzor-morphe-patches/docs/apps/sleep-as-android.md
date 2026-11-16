@@ -8,6 +8,9 @@ Source: [`patches/src/main/kotlin/dev/hyzor/patches/sleep/`](../../patches/src/m
 | Enable Premium | on | Unlocks the in-app premium features. |
 | Enable Cloud Premium | off | Reports the Sleep Cloud subscription as active (client-side only). |
 
+This is a port of [Entree3k/Morning-Entree-Patches](https://github.com/Entree3k/Morning-Entree-Patches)
+(GPLv3); the 20261016 target, the two extra fingerprint hooks and the cloud patch are new here.
+
 `20261016` is the build the fingerprints and register counts were verified against.
 
 ## How the app decides you are premium

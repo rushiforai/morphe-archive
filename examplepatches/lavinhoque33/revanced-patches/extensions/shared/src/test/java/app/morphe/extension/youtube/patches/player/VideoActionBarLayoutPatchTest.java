@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Written by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-13
  */
 package app.morphe.extension.youtube.patches.player;
 
@@ -11,9 +11,52 @@ import static app.morphe.extension.youtube.patches.player.VideoActionBarLayout.*
 import com.google.protobuf.ByteString;
 import org.junit.Test;
 import java.util.Base64;
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import com.google.protobuf.CodedOutputStream;
+import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.*;
 
 public class VideoActionBarLayoutPatchTest {
+    private static byte[] field(int number, byte[] value) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        CodedOutputStream output = CodedOutputStream.newInstance(bytes);
+        output.writeByteArray(number, value);
+        output.flush();
+        return bytes.toByteArray();
+    }
+
+    @Test
+    public void subtitleCommandRemovalPreservesTextAndUnrelatedFields() throws Exception {
+        ByteArrayOutputStream channel = new ByteArrayOutputStream();
+        CodedOutputStream output = CodedOutputStream.newInstance(channel);
+        output.writeString(1, "channel name");
+        output.writeString(5, "first command");
+        output.writeString(5, "second command");
+        output.flush();
+        int[] path = {1, 168777401, 5, 377581260, 6, 1019, 17, 1017, 1};
+        byte[] payload = channel.toByteArray();
+        for (int index = path.length - 1; index >= 0; index--) {
+            payload = field(path[index], payload);
+        }
+        ByteArrayOutputStream element = new ByteArrayOutputStream();
+        element.write(payload);
+        output = CodedOutputStream.newInstance(element);
+        output.writeString(123, "video_metadata.eml");
+        output.writeInt32(124, 42);
+        output.flush();
+        byte[] original = element.toByteArray();
+        byte[] rewritten = VideoActionBarLayoutPatch.removeSubtitleChannelCommand(original);
+        List<ProtoNode> parsed = ProtoNode.parse(rewritten);
+        List<ProtoNode> name = ProtoNode.message(parsed, path);
+        assertNull(ProtoNode.field(name, 5));
+        assertEquals("channel name", ProtoNode.field(name, 1).getText());
+        assertEquals(42L, ProtoNode.field(parsed, 124).getVarint().longValue());
+        assertSame(rewritten, VideoActionBarLayoutPatch.removeSubtitleChannelCommand(rewritten));
+        byte[] unrelated = field(123, "lockup.eml".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertSame(unrelated, VideoActionBarLayoutPatch.removeSubtitleChannelCommand(unrelated));
+    }
+
     private static ButtonViewModel button(String id, String title) {
         return ButtonViewModel.newBuilder().setTargetId(id).setTitle(title)
                 .setAccessibilityText(title).setType(5).setButtonSize(2).build();

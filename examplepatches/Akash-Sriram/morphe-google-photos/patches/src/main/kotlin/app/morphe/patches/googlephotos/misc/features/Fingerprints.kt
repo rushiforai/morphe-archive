@@ -28,7 +28,7 @@ internal object ByteSizeFeatureFactoryFingerprint : Fingerprint(
     parameters = listOf("I", "Ljava/lang/Object;"),
     strings = listOf("byte_size"),
     custom = { method, _ ->
-        method.name == "a" && (method.returnType == "Lbypk;" || method.returnType == "Lbzdh;")
+        method.name == "a" && method.returnType.startsWith("L")
     },
 )
 

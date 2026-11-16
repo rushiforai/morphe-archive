@@ -959,6 +959,44 @@ chosen. At "15 seconds (Rumble's)" the buttons and icons are Rumble's own.
 `PlayerProbe` runs the real speed store with the switch on and off, and the focus and keep-screen-on
 decisions. `RefreshProbe` checks the clickable panel modifier and the silent callback.
 
+### Show video stats
+
+A panel in the top left corner of the video with what the player on the phone reports, refreshed every second:
+latency (live streams with wall-clock times), the rendition's bitrate and the network estimate, buffer, dropped
+frames, resolution and frame rate, codecs and audio. It is a `Drawable` in the video frame's overlay, so it takes
+no touches and needs no layout. Nothing is sent anywhere.
+
+Rumble plays everything through Media3's ExoPlayer, which keeps the numbers to itself, so the patch takes them
+where Media3 reports them, in its analytics collector. That class is found without its R8 name as the one
+class with a reporter method for each of four public `AnalyticsListener` event IDs: bandwidth estimate (1006,
+`(int, long, long)`), audio and video input format changed (1009, 1017, `(Format, …)`) and video enabled (1015).
+`Format` is the class of Media3's `Format.toLogString(format)`, found by its whole `", mimeType="`, `", res="`…
+strings. The start of each reporter passes the collector and the value to `RumbleStats` (`onVideoFormat`,
+`onAudioFormat`, `onVideoEnabled` with the decoder counters, `onBandwidth`), which keeps them per player: the
+collector's one field of Media3's `Player` type names the player. The video frame (`AspectRatioFrameLayout`,
+kept by name; the same `onMeasure` Fill screen hooks) reports itself when measured; its parent is Media3's
+`PlayerView`, whose one `Player` field gives the player whose numbers the panel shows. Buffer and latency are
+read from that player each second: `getTotalBufferedDuration()` is the `()J` of the `ExoPlayer` implementation
+that reads one long of its playback info and converts it, `getCurrentLiveOffset()` the one `()J` of
+`BasePlayer` that subtracts twice; the patch checks both are `Player` interface methods. The extension reads
+formats through `toLogString` and the counters through `DecoderCounters.toString()` (whose
+`" droppedBuffers=%s"` text the patch requires), so it needs no field names; the two private fields it reads are
+made public, and bridged stubs call the renamed methods. With the switch off the hooks only keep the references
+Media3 passes, and no panel is drawn.
+
+The panel is on every Media3 player view, so it also shows on Shorts. A progressive MP4 VOD has no bitrate in its
+format, so its line shows only the network estimate (`Bitrate  -, network 1.09 Mbps`). Latency needs a live stream
+whose playlist carries program date-times; the one checked did.
+
+`tests/rumble/test_video_stats.py` (host) runs the panel's text on log strings shaped like 3.21.0's Media3 output,
+including keys it doesn't show (`decRes`, `rotation`, `channel_mask`), which must not run into the values it does.
+
+Checked on 2026-11-15 on the emulator (signed in): on a live stream the panel showed `Latency 3.2 s`, `Bitrate 1.46
+Mbps, network 21.72 Mbps`, `Dropped 0 of 300 frames`, `Video 640x360`, `Codecs avc1.4D401F, mp4a.40.2`, `Audio 48
+kHz, 2 ch`, and a few seconds later 14.3 s latency, a 16.8 s buffer and 542 frames; on a VOD `Video 854x480`,
+`Buffer 15.2 s`, `Bitrate -, network 1.09 Mbps`; on a Short `720x1280, 30 fps` with 4 of 377 frames dropped. With
+the switch off the same live stream shows no panel. Picture-in-picture and landscape weren't looked at.
+
 ## Live chat
 
 Rumble's live chat arrives as JSON events on a chat endpoint (`web7.rumble.com` in testing). Gson parses
@@ -1038,6 +1076,51 @@ word highlights and the real Compose background modifier with each setting.
 
 `ChatProbe` runs the real DTO getters (live messages, history, badges, `liveChatDisabled`) and the bridged
 entity getters with each switch on and off, including the hook with the keys unregistered.
+
+### Anonymous chat
+
+The chat is one long-lived GET of `<chat endpoint>/chat/<video ID>/stream` (server-sent events) through
+`HttpURLConnection`, opened by the chat data source's coroutine, which sets `Accept: text/event-stream` and then
+`Cookie` to the session's cookies (the DataStore's `cookiesKey`); the only other header is Basic auth for Rumble's
+`dev-rbx` hosts. The coroutine is found by its three whole strings (`Accept`, `text/event-stream`, `Cookie`) and
+its `(Object)Object` signature. The patch replaces the `setRequestProperty` call right after the `Cookie` constant
+(it checks the call and its registers) with `RumbleChat.streamCookie(connection, name, value)`, which sets the
+header unless `chat_anonymous` is on. The value is read when a chat is opened, so the switch applies to the next
+chat without a restart.
+
+What the server does without the cookie was checked against `web7.rumble.com` with the test account's session on
+two live streams: the `init` event has the same keys, the same 50 history messages and the same config, but the
+`users` list no longer contains the account and `subscribers_only_chat.can_write` is false (true with the cookie).
+So the chat reads as a guest's.
+
+Sending goes through another request (`LiveChatApi`, with the session), made by the data source's
+`(String, LiveChatMessageBody, provider, continuation)` method; a Rant is the same message with a `rant` body, whose
+answer carries the pending message ID the Google Play purchase then uses, so a blocked Rant fails before any
+purchase (read from the code; no Rant was tried). While the switch is on, `RumbleChat.sendBlocked` makes that method return null, which is what
+it returns without a chat API: the repository turns it into a failed send, and the extension shows a toast. Deleting
+messages, muting and pinning (moderator actions) aren't blocked; the guest connection reports `can_moderate` false,
+so the chat doesn't offer them. The account's name for Chat keywords mentions is learned from the init `users`,
+so mentions by name aren't highlighted while the switch is on. Everything else on the video page (the video's
+details, the emote list from `EmoteApi`) goes through Rumble's OkHttp client, whose interceptor adds the session
+cookie to every request, so Rumble still knows the account is watching.
+
+Not traced: the chat init can carry a `liveGate` (the countdown of a stream whose full length is for Premium
+members), and Rumble may send a guest's gate on a Premium member's anonymous connection. Not tried with a Premium
+account.
+
+`tests/rumble/test_state_transitions.py` (host) runs `streamCookie` on a real `URLConnection` and `sendBlocked`
+with the key unregistered, off and on. Checked on 2026-11-15 on the emulator, signed in as the test account: with
+the switch on, a busy live stream's chat (2.7K watching) loaded its messages, the log showed `anonymous chat: chat
+stream opened without the session cookie`, and sending "hi" logged `send refused` and nothing appeared in the chat
+(the toast wasn't caught on the screenshot). With it off, the same chat loaded without that line. The missing
+header on the device's own request was not captured with a proxy; it follows from the replaced call, and the
+server side from the comparison above.
+
+### Third-party emotes
+
+Not added. 7TV, BetterTTV and FrankerFaceZ key their emote sets to Twitch, Kick or YouTube accounts and have no
+Rumble channels, and Rumble's app has no third-party emote code; Rumble has its own channel emotes instead. Without
+a source that Rumble chatters actually use, there is nothing honest to map.
 
 ## Validation on 2026-10-16
 

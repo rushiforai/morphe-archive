@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.googlephotos.misc.extension.sharedExtensionPatch
 import app.morphe.patches.googlephotos.misc.features.ByteSizeFeatureFactoryFingerprint
+import app.morphe.patches.googlephotos.misc.flags.MemoryViewBinderClinitFingerprint
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontLoaderDispatcherFingerprint
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontUriResolverFingerprint
 import app.morphe.patches.googlephotos.misc.gms.HomeActivityOnCreateFingerprint
@@ -183,6 +184,121 @@ val mediaEngineAndAIFixesPatch = bytecodePatch(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // =========================================================================
+        // 5. Memory Carousel Organic Wavy Scrapbook & Google Sans Typography
+        // =========================================================================
+        val memoryViewBinderClinit = MemoryViewBinderClinitFingerprint.methodOrNull
+        if (memoryViewBinderClinit != null) {
+            val classDef = mutableClassDefBy(memoryViewBinderClinit.definingClass)
+            val bindMethod = classDef.methods.firstOrNull {
+                it.returnType == "V" &&
+                    it.parameterTypes.size == 1 &&
+                    (it.implementation?.instructions?.count() ?: 0) > 100
+            }
+            if (bindMethod != null) {
+                val mutableBind = classDef.findMutableMethodOf(bindMethod)
+                val instructions = bindMethod.implementation?.instructions?.toList()
+
+                // Dynamically resolve helper classes
+                var laqdzClass: String? = null
+                var lapbhClass: String? = null
+
+                instructions?.forEachIndexed { index, instruction ->
+                    if (instruction is Instruction35c && instruction.opcode == Opcode.INVOKE_STATIC) {
+                        val ref = instruction.reference as? MethodReference
+                        if (ref != null && ref.returnType == "Z" && ref.parameterTypes.size == 2 &&
+                            ref.parameterTypes[0].endsWith("cmpi;") && ref.parameterTypes[1].endsWith("apct;")
+                        ) {
+                            laqdzClass = ref.definingClass
+                            val next = instructions.getOrNull(index + 1)
+                            if (next is OneRegisterInstruction && next.opcode == Opcode.MOVE_RESULT) {
+                                val reg = next.registerA
+                                if (ref.name == "d") {
+                                    // Laqdz.d is the flat fallback gatekeeper: if true, it jumps to Laova.p (flat squircle).
+                                    // We must force false (0x0) so it always bypasses the flat fallback!
+                                    mutableBind.replaceInstruction(index, "nop")
+                                    mutableBind.replaceInstruction(index + 1, "const/4 v$reg, 0x0")
+                                } else if (ref.name == "k") {
+                                    // Laqdz.k is the graphic gatekeeper: if true, it prepares the graphic view and renders effect.
+                                    // We must force true (0x1)!
+                                    mutableBind.replaceInstruction(index, "nop")
+                                    mutableBind.replaceInstruction(index + 1, "const/4 v$reg, 0x1")
+                                }
+                            }
+                        }
+                    }
+
+                    if (instruction is Instruction35c && instruction.opcode == Opcode.INVOKE_VIRTUAL) {
+                        val ref = instruction.reference as? MethodReference
+                        if (ref != null && ref.name == "a" && ref.parameterTypes.size == 8 &&
+                            ref.parameterTypes[0].endsWith("cmpi;") && ref.parameterTypes[1].endsWith("apct;")
+                        ) {
+                            lapbhClass = ref.definingClass
+                        }
+                    }
+                }
+
+                // Patch gatekeeper methods on Laqdz directly
+                if (laqdzClass != null) {
+                    try {
+                        val gatekeeperClass = mutableClassDefBy(laqdzClass)
+                        for (m in gatekeeperClass.methods) {
+                            if (m.returnType == "Z") {
+                                if (m.name == "d") {
+                                    gatekeeperClass.findMutableMethodOf(m).returnEarly(false)
+                                } else if (m.name == "k") {
+                                    gatekeeperClass.findMutableMethodOf(m).returnEarly(true)
+                                }
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+
+                // Force enable Gerwig and memory shape flags on Lapou
+                val lapouType = classDef.methods.firstOrNull { it.name == "t" && it.parameterTypes.isEmpty() }?.returnType
+                if (lapouType != null) {
+                    try {
+                        val lapouClassDef = mutableClassDefBy(lapouType)
+                        for (m in lapouClassDef.methods) {
+                            if (m.returnType == "Z" && m.parameterTypes.isEmpty() && m.name in listOf("n", "m", "A", "G", "v")) {
+                                lapouClassDef.findMutableMethodOf(m).returnEarly(true)
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+
+                // Patch Lapbh.a to never bail out with null on missing dimensions or disabled features
+                if (lapbhClass != null) {
+                    try {
+                        val lapbhClassDef = mutableClassDefBy(lapbhClass)
+                        val aMethod = lapbhClassDef.methods.firstOrNull { it.name == "a" && it.parameterTypes.size == 8 }
+                        if (aMethod != null) {
+                            val mutableAMethod = lapbhClassDef.findMutableMethodOf(aMethod)
+                            val aInstructions = aMethod.implementation?.instructions?.toList()
+                            if (aInstructions != null) {
+                                listOf(5, 6, 11).forEach { idx ->
+                                    if (idx < aInstructions.size && aInstructions[idx].opcode.name.startsWith("if-")) {
+                                        mutableAMethod.replaceInstruction(idx, "nop")
+                                    }
+                                }
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+
+                // 3. Inject Google Sans typography on memory card view
+                val returnIndex = instructions?.indexOfLast { it.opcode == Opcode.RETURN_VOID } ?: -1
+                if (returnIndex != -1) {
+                    mutableBind.addInstructions(
+                        returnIndex,
+                        """
+                        invoke-static/range { p1 .. p1 }, Lapp/morphe/extension/shared/patches/StoryFontResolver;->applyMemoryCardFonts(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
                 }
             }
         }

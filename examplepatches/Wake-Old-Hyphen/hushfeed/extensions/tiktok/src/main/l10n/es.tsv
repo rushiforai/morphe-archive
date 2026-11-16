@@ -1127,7 +1127,7 @@ Still here. Nothing is waiting.	Sigues aquí. No hay nada esperando.
 Still reading the record. Tap again in a moment.	Todavía se está leyendo el registro. Toca otra vez dentro de un momento.
 Still saving the last one	Todavía se está guardando el anterior
 The last one is still waiting to start	El anterior todavía está esperando para empezar
-Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	Evita que TikTok envíe informes de uso, seguimiento publicitario e informes de fallos. Las herramientas de diagnóstico de TikTok también se quedan en silencio.
+Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.	Evita que TikTok envíe informes de uso, seguimiento publicitario e informes de fallos. Las herramientas de diagnóstico de TikTok también se quedan en silencio. La configuración que TikTok descarga para comprobar sus propias solicitudes sigue llegando.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	Evita que TikTok ralentice tu pantalla para igualar la tasa de fotogramas de cada video. En un teléfono de 90 o 120 Hz, esa petición hace que toda la app, el desplazamiento incluido, vaya más lenta.
 Keep the screen's brightness in the camera	Mantener el brillo de la pantalla en la cámara
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Evita que TikTok suba el brillo de tu pantalla mientras grabas, editas o publicas un video. El flash frontal sigue poniendo la pantalla en blanco, pero con tu propio brillo.
@@ -1760,13 +1760,16 @@ Video of photos	Vídeo de fotos
 # context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
 debug debugging logs logging	depurar depuración registros logs
 Export comments	Exportar comentarios
-Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.	Añade los botones Export CSV y Export JSON bajo el cuadro de búsqueda, así que Buscar en los comentarios debe estar activado. Guardan en un archivo que elijas los comentarios y respuestas cargados hasta ahora. Abre antes los hilos de respuestas que quieras.
+Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.	Añade los botones Export CSV y Export JSON bajo el cuadro de búsqueda, así que Buscar en los comentarios debe estar activado. Guardan en un archivo que elijas los comentarios cargados hasta ahora, y antes cargan todas sus respuestas.
 Export CSV	Exportar CSV
 Export JSON	Exportar JSON
 1 comment or reply loaded	1 comentario o respuesta cargado
 %1$d comments and replies loaded	%1$d comentarios y respuestas cargados
 No comments are loaded to export yet.	Aún no hay comentarios cargados para exportar.
 Exported %1$d comments and %2$d replies	Se exportaron %1$d comentarios y %2$d respuestas
+# context: Shown beside the Export buttons while the replies load. The first number is the replies loaded so far, the second how many TikTok says there are
+Loading replies, %1$d of %2$d	Cargando respuestas, %1$d de %2$d
+Some replies weren't loaded, so they aren't in the file.	Algunas respuestas no se cargaron, así que no están en el archivo.
 Comment export failed	No se pudo exportar los comentarios
 Some of these notes are in English.	Algunas de estas notas están en inglés.
 More than %1$d comments were loaded, so the rest aren't in the file.	Había más de %1$d comentarios cargados, así que el resto no está en el archivo.
@@ -1833,7 +1836,7 @@ A LIVE you swipe to comes back with its chat, gifts and buttons showing. This ke
 Dark LIVE panels in dark mode	Paneles de LIVE oscuros en modo oscuro
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Con TikTok en modo oscuro, una sala LIVE sigue abriendo su menú de compartir, el club de fans y otros paneles en colores claros. Esto los abre en oscuro.
 Keep watching in a small window	Seguir viendo en una ventana pequeña
-When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Cuando sales de TikTok mientras se reproduce un video, sigue reproduciéndose en una ventana pequeña sobre tus otras apps, con un botón para pausarlo. Funciona en el feed y en los videos que abres desde un perfil, la búsqueda o un sonido. Requiere Android 8 o posterior.
+When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Cuando sales de TikTok mientras se reproduce un video, sigue reproduciéndose en una ventana pequeña sobre tus otras apps, con botones para pausarlo y para ir al video anterior o al siguiente. Funciona en el feed, en los LIVE y en los videos que abres desde un perfil, la búsqueda o un sonido. Requiere Android 8 o posterior.
 Play	Reproducir
 Pause	Pausar
 Posting	Publicar
@@ -2199,7 +2202,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	Traducción automática del chat de LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	El botón Traducir comentarios de una sala LIVE también necesita una SIM japonesa. Activa Sustituir los datos de la SIM en los ajustes de Hushfeed > Región, pon País preestablecido de la SIM en Japan, NTT DOCOMO (44010) y reinicia TikTok.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Los comentarios solo se deslizan sobre los videos en los que TikTok los activó, así que la mayoría de los videos no cambia.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	Los vídeos horizontales en los que TikTok lo permite muestran un botón para añadir comentarios de una línea debajo del vídeo y una barra para ellos en pantalla completa. Los demás vídeos no cambian.
 
 Pick videos to save from profile grids	Elegir videos para guardar en las cuadrículas de perfil
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Pone un círculo en cada video de una cuadrícula de perfil, Me gusta o Favoritos. Elige hasta %1$s y toca Guardar para guardarlos uno tras otro, con un contador y Cancelar.
@@ -2268,7 +2271,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	Ocultar Saldo en el menú del perfil
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	Oculta Saldo del menú que abre el botón de arriba a la derecha de tu perfil. Tus monedas y regalos se quedan como están.
 See-through status bar	Barra de estado transparente
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	Deja que el vídeo llegue en el feed principal hasta el borde superior de la pantalla, con el reloj y los iconos de estado encima. Las pestañas de arriba se quedan donde están.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	Deja que el vídeo llegue hasta el borde superior de la pantalla, con el reloj y los iconos de estado encima. Funciona en el feed principal y en los vídeos que abres desde la búsqueda, un perfil o tus Me gusta y Favoritos. Las pestañas de arriba se quedan donde están.
 Floating bottom bar	Barra inferior flotante
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	Muestra las pestañas del feed principal sobre una píldora oscura, redondeada y transparente que flota sobre el vídeo. Necesita Barra inferior transparente.
 Liquid glass look	Aspecto de cristal líquido
@@ -2287,9 +2290,9 @@ Most see-through	Lo más transparente
 More see-through	Más transparente
 Frosted	Esmerilado
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Cuánto vídeo se ve a través de la píldora de cristal en el feed principal. Lo más transparente deja ver más y Esmerilado menos.
-On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	En el feed principal, una burbuja de cristal en relieve queda detrás de la pestaña en la que estás y se desliza a la siguiente pestaña que elijas. Necesita Aspecto de cristal líquido.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	En el feed principal, una burbuja de cristal en relieve queda detrás de la pestaña en la que estás y se desliza a la siguiente pestaña que elijas. Funciona con cualquier barra inferior, con o sin Aspecto de cristal líquido.
 Slide across the tabs	Deslizar por las pestañas
-On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	En el feed principal, desliza un dedo por la píldora de cristal y la lente lo sigue. Suelta y se abre esa pestaña. Los toques y las pulsaciones largas funcionan como antes. Necesita Lente de cristal en la pestaña actual.
+On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	En el feed principal, desliza un dedo por las pestañas y la lente lo sigue. Suelta y se abre esa pestaña. Los toques y las pulsaciones largas funcionan como antes. Necesita Lente de cristal en la pestaña actual.
 Haptics on the tabs	Vibración en las pestañas
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	En el feed principal, un toque suave cada vez que la lente de cristal pasa por una pestaña, al deslizarse tras un toque o bajo tu dedo. Necesita Lente de cristal en la pestaña actual.
 Haptic style	Estilo de vibración
@@ -2386,6 +2389,54 @@ Collapsed	Contraído
 This setting isn't available. Search for another setting.	Este ajuste no está disponible. Busca otro ajuste.
 Hide the Hushfeed row	Ocultar la fila de Hushfeed
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Quita Hushfeed de Ajustes y privacidad de TikTok. Para abrir estos ajustes, mantén pulsado Para ti arriba del feed, o Inicio si Mantener pulsado Inicio para abrir los ajustes de Hushfeed está activado. Si ninguno de los dos puede abrirlos, la fila se queda.
+# context: Title of the checklist that hides rows from TikTok's own Settings and privacy page
+Hide Settings and privacy rows	Ocultar filas de Ajustes y privacidad
+# context: Note under that title. A section's title is the small heading over a group of rows on that page
+Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.	Elige las filas que quieres quitar de la página Ajustes y privacidad de TikTok. Se aplica la próxima vez que se abra la página, y una sección que se quede sin filas también pierde su título.
+# context: Checklist rows, each one a row of TikTok's Settings and privacy page. Use the label TikTok itself shows for that row in this language
+Activity center	Centro de actividad
+Manage posts	Administrar publicaciones
+Content preferences	Preferencias de contenido
+Notifications	Notificaciones
+Time and well-being	Tiempo y bienestar
+Family Pairing	Sincronización familiar
+Sign up	Registrarse
+Account	Cuenta
+Security & permissions	Seguridad y permisos
+Analytics	Estadísticas
+Orders	Pedidos
+Balance	Saldo
+QR code	Código QR
+Share profile	Compartir perfil
+TikTok Plus	TikTok Plus
+Invite friends	Invitar a amigos
+Inbox mode	Modo de bandeja de entrada
+Audience controls	Controles de audiencia
+Background audio	Audio en segundo plano
+Display	Pantalla
+Commercial content library	Biblioteca de contenido comercial
+Accessibility	Accesibilidad
+Home screen shortcuts	Accesos directos de la pantalla de inicio
+Join Amplify	Unirse a Amplify
+Contacts and location	Contactos y ubicación
+Shake to report	Agitar para informar
+Free up space	Liberar espacio
+Data Saver	Ahorro de datos
+Free data	Datos gratis
+Live wallpaper	Fondo de pantalla animado
+Check for updates	Buscar actualizaciones
+Lite mode	Modo Lite
+TikTok Beta	TikTok Beta
+Safety Center	Centro de seguridad
+Privacy Center	Centro de privacidad
+Privacy checkup	Revisión de privacidad
+Support	Soporte
+Deactivate or delete account	Desactivar o eliminar cuenta
+Terms and Policies	Términos y políticas
+Policy updates	Actualizaciones de políticas
+What's new on TikTok	Novedades de TikTok
+Switch account	Cambiar de cuenta
+Log out	Cerrar sesión
 Open the search page	Abrir la página de búsqueda
 Search didn't open. Restart TikTok and try again.	No abrió la búsqueda. Reinicia TikTok y reintenta.
 Fold the search into a button	Plegar la búsqueda en un botón
@@ -2766,3 +2817,47 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	Todavía no se ha visto ninguna pestaña de búsqueda
 Search for something once, then return here to choose its tabs.	Busca algo una vez y vuelve aquí para elegir sus pestañas.
+Video download codec	Códec de descarga del vídeo
+HEVC first	HEVC primero
+H.264 only	Solo H.264
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	Con la misma calidad, Automático guarda en H.264, que abre casi cualquier reproductor. HEVC suele verse más nítido, pero algunos reproductores y televisores antiguos no pueden reproducirlo.
+Pick which stories to save	Elegir qué historias guardar
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	Cuando alguien tiene más de una historia, al guardar se pregunta cuáles conservar. La historia que estás viendo ya está marcada.
+Pick stories to save	Elige las historias que guardar
+%1$s of %2$s stories are loaded. Watch further to load the rest.	Se cargaron %1$s de %2$s historias. Sigue viendo para cargar el resto.
+Story %1$s	Historia %1$s
+On screen	En pantalla
+Pick at least one story	Elige al menos una historia
+Shade behind the status bar	Sombra detrás de la barra de estado
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	Un degradado oscuro suave detrás del reloj y los iconos de estado, para que se lean bien sobre un vídeo claro. Necesita Barra de estado transparente.
+Glass Stories button on Following	Botón de Historias de cristal en Siguiendo
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	El botón de Historias de arriba del feed Siguiendo se vuelve de cristal con los extremos redondos. En Android 12 y posteriores, el vídeo de detrás también se difumina.
+# context: Row title of the Inbox switch that shows the send time under each message in a chat
+Show message times	Mostrar la hora de los mensajes
+# context: Summary under that switch; TikTok itself only shows a time over a message after a gap
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.	Muestra debajo de cada mensaje de un chat la hora en que se envió. Las horas que ya pone TikTok siguen donde están.
+This photo post is already saved	Esta publicación de fotos ya está guardada
+This story is already saved	Esta historia ya está guardada
+Stretch the video to the screen	Estirar el video a la pantalla
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.	Cubre toda la ventana sin recortar nada. Para eso el video queda un poco más alto o más ancho. Un video con una forma muy distinta a la de la pantalla mantiene el tamaño de TikTok.
+Sort loaded videos on Favorites grids	Ordenar los vídeos cargados en las cuadrículas de Favoritos
+Show the country and date under the caption	Mostrar el país y la fecha debajo de la descripción
+Moves the country and the post date off the creator's row onto a line of their own below the caption.	Mueve el país y la fecha de publicación de la fila del creador a una línea propia debajo de la descripción.
+# context: picture-in-picture window button that moves TikTok's feed
+Previous video	Video anterior
+# context: picture-in-picture window button that moves TikTok's feed
+Next video	Video siguiente
+Sort loaded videos in collections	Ordenar los vídeos cargados en las colecciones
+Same as Favorites grids	Igual que las cuadrículas de Favoritos
+Hide the summary on LIVE previews	Ocultar el resumen en las vistas previas de LIVE
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.	Un LIVE en el feed puede mostrar una tarjeta de resumen de la transmisión. Esto la mantiene oculta.
+Look up a commenter's country	Consultar el país de quien comenta
+Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.	Mantén pulsado un comentario para encontrar Mostrar país de la cuenta en su menú. Le pregunta a TikTok dónde está esa cuenta, o desde dónde se publicaron sus últimos videos.
+Show account country	Mostrar país de la cuenta
+Account based in %1$s	Cuenta ubicada en %1$s
+TikTok gives no country for this account	TikTok no da ningún país para esta cuenta
+Couldn't get the country. Try again.	No se pudo obtener el país. Inténtalo de nuevo.
+Account country on profiles	País de la cuenta en los perfiles
+A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	El menú para compartir de un perfil tiene un botón País de la cuenta. Le pregunta a TikTok dónde está esa cuenta, o desde dónde se publicaron sus últimos videos.
+Account country	País de la cuenta
+Videos posted from %1$s	Videos publicados desde %1$s

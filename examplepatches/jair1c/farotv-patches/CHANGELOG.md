@@ -1,3 +1,51 @@
+## [1.6.0](https://github.com/jair1c/farotv-patches/compare/v1.5.1...v1.6.0) (2026-11-15)
+
+### ✨ New Features
+
+* traducir FaroTV al idioma de YouTube con catálogos español e inglés ([860ce74](https://github.com/jair1c/farotv-patches/commit/860ce74bdc9d3e079f334feec01f72f14aa84fff))
+
+## [1.6.0-dev.1](https://github.com/jair1c/farotv-patches/compare/v1.5.1...v1.6.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* traducir FaroTV al idioma de YouTube con catálogos español e inglés ([860ce74](https://github.com/jair1c/farotv-patches/commit/860ce74bdc9d3e079f334feec01f72f14aa84fff))
+
+## [1.5.1](https://github.com/jair1c/farotv-patches/compare/v1.5.0...v1.5.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* declarar estable la compatibilidad con YouTube TV 8.02.300 ([7c0070b](https://github.com/jair1c/farotv-patches/commit/7c0070b69495aa78b7b6d7e74d3f47bdda5dde65))
+
+## [1.5.1-dev.1](https://github.com/jair1c/farotv-patches/compare/v1.5.0...v1.5.1-dev.1) (2026-11-15)
+
+### 🚀 Updated App Support
+
+* declarar estable la compatibilidad con YouTube TV 8.02.300 ([7c0070b](https://github.com/jair1c/farotv-patches/commit/7c0070b69495aa78b7b6d7e74d3f47bdda5dde65))
+
+## [1.5.0](https://github.com/jair1c/farotv-patches/compare/v1.4.2...v1.5.0) (2026-11-15)
+
+### ✨ New Features
+
+* preparar compatibilidad experimental con YouTube TV 8.02.300 ([868ad2d](https://github.com/jair1c/farotv-patches/commit/868ad2df6e06dba877c6a3d824433268bab0510a))
+
+## [1.5.0-dev.1](https://github.com/jair1c/farotv-patches/compare/v1.4.2...v1.5.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* preparar compatibilidad experimental con YouTube TV 8.02.300 ([868ad2d](https://github.com/jair1c/farotv-patches/commit/868ad2df6e06dba877c6a3d824433268bab0510a))
+
+## [1.4.2](https://github.com/jair1c/farotv-patches/compare/v1.4.1...v1.4.2) (2026-11-15)
+
+### 🔧 Improvements
+
+* Skip YouTube responses that cannot contain what a feature removes ([78ec470](https://github.com/jair1c/farotv-patches/commit/78ec470022daccd5cf9280aa2bfb2f508d073a18))
+
+## [1.4.2-dev.1](https://github.com/jair1c/farotv-patches/compare/v1.4.1...v1.4.2-dev.1) (2026-11-10)
+
+### 🔧 Improvements
+
+* Skip YouTube responses that cannot contain what a feature removes ([78ec470](https://github.com/jair1c/farotv-patches/commit/78ec470022daccd5cf9280aa2bfb2f508d073a18))
+
 ## [1.4.1](https://github.com/jair1c/farotv-patches/compare/v1.4.0...v1.4.1) (2026-11-10)
 
 ### 🐛 Bug Fixes

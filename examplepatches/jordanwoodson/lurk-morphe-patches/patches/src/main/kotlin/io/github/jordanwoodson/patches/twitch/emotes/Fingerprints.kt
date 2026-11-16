@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val TUID = "Ltv/twitch/android/models/Tuid;"
@@ -129,4 +130,30 @@ internal object EmoteAutocompleteFingerprint : Fingerprint(
         checkCast("Ljava/util/LinkedHashMap;"),
         fieldAccess(definingClass = "Ljava/util/Locale;", name = "ROOT"),
     ),
+)
+
+// Glide's OkHttp fetcher (OkHttpStreamFetcher), which loads every network image of the app: its response
+// callback fails the load with Glide's own HttpException, a class R8 keeps by name.
+internal object ImageFetcherResponseFingerprint : Fingerprint(
+    name = "onResponse",
+    returnType = "V",
+    parameters = listOf("L", "L"),
+    filters = listOf(newInstance("Lcom/bumptech/glide/load/HttpException;")),
+    custom = { _, classDef -> classDef.methods.any { it.name == "onFailure" } },
+)
+
+// An emote item of the emote picker (EmoteUiModel): its ID and the clicked-emote model taps hand over.
+internal object EmoteUiModelFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("EmoteUiModel(id=", ", clickedEmote="),
+)
+
+// An unlocked emote of the picker: the emote, what a tap inserts and its modifier variants (Twitch's long press).
+internal object UnlockedEmoteFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("Unlocked(emote=", ", modifiedEmotes="),
 )

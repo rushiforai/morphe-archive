@@ -168,6 +168,10 @@ internal enum class PatchList(
         "Settings menu filter",
         "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
     ),
+    SETTINGS_SHORTCUT(
+        "Settings shortcut",
+        "Adds an optional toolbar settings button. Tap for YouTube Music settings; hold for RVX settings."
+    ),
     SKIP_SILENCE(
         "Skip silence",
         "Adds an option to automatically skip silent pauses in audio playback."

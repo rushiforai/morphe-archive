@@ -18,3 +18,4 @@
 # Go mobile binds JNI symbols to these exact class/method names.
 -keep class go.** { *; }
 -keep class app.morphe.extension.chmate.vpn.nativecore.** { *; }
+-keep class ai.onnxruntime.** { *; }

@@ -59,14 +59,14 @@ adb install-multiple -r candidate_apks/<app>_<version>_patched*.apk
 
 Candidate packages are placed in `candidate_apks/` (gitignored). When inspecting `.apkm` or `.xapk` bundles, extract `base.apk` into `scratch/` (also gitignored) before performing `aapt2`, `unzip`, or `strings` analysis.
 
-`aapt2` is not on `PATH`; invoke the Android SDK build-tools binary using its absolute path:
+If `aapt2` is not on `PATH`, invoke the Android SDK build-tools binary via `$ANDROID_HOME`:
 
 ```bash
 # Extract base APK from bundle
 unzip -p candidate_apks/<bundle>.apkm base.apk > scratch/base.apk
 
 # Inspect manifest and package metadata
-~/Android/Sdk/build-tools/37.0.0/aapt2 dump badging scratch/base.apk
+"$ANDROID_HOME/build-tools/<version>/aapt2" dump badging scratch/base.apk
 ```
 
 Run any subsequent `unzip` or `strings` inspection against `scratch/base.apk`.
@@ -82,4 +82,4 @@ Run any subsequent `unzip` or `strings` inspection against `scratch/base.apk`.
 
 ## Release
 
-Releases run manually through the `Release` workflow (`workflow_dispatch`). semantic-release derives the version from Conventional Commits since the last tag and publishes the `.mpp` to GitHub Releases.
+Releases trigger automatically on push to `main`, or manually through the `Release` workflow (`workflow_dispatch`). semantic-release derives the version from Conventional Commits since the last tag and publishes the `.mpp` to GitHub Releases.

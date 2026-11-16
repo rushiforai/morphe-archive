@@ -1,11 +1,11 @@
 package app.morphe.patches.hevy
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.removeComponentDiscoveryRegistrarsWhere
+import app.morphe.patches.shared.replaceWithReturnVoid
 import app.morphe.patches.shared.setAndroidAttribute
 import org.w3c.dom.Element
 
@@ -19,8 +19,7 @@ private val hevyBatteryResourcePatch = resourcePatch(
     execute {
         val manifestFile = get("AndroidManifest.xml")
         if (!manifestFile.exists()) {
-            println("[Stop Background Sync] AndroidManifest.xml not found - skipping component neutralization.")
-            return@execute
+            error("[Stop Background Sync] AndroidManifest.xml not found.")
         }
 
         val disabledComponents = setOf(
@@ -138,7 +137,7 @@ val hevyBatteryOptimizationPatch = bytecodePatch(
             strings = listOf("Starting in-app billing setup."),
             returnType = "V",
         )
-        billingFp.method.addInstructions(0, "return-void")
+        billingFp.method.replaceWithReturnVoid()
         println("[Stop Background Sync] Stubbed BillingClientImpl.startConnection to eliminate Play Store background IPC.")
     }
 }

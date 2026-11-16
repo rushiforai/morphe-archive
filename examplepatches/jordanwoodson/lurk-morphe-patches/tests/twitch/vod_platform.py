@@ -8,7 +8,7 @@ VOD = EXTRA | {
   public static void drain(){for(Runnable r;(r=tasks.poll())!=null;)r.run();} }''',
  'android/os/SystemClock.java': '''package android.os;public class SystemClock {public static volatile long offset;
   public static long elapsedRealtime(){return java.lang.System.nanoTime()/1000000+offset;}}''',
- 'android/content/Context.java': STUBS['android/content/Context.java'].replace('public Object getSystemService','public Context getApplicationContext(){return this;} public String getPackageName(){return "app";} public Object getSystemService'),
+ 'android/content/Context.java': STUBS['android/content/Context.java'].replace('public Object getSystemService','public String getPackageName(){return "app";} public Object getSystemService'),
  'android/app/Activity.java': STUBS['android/app/Activity.java'].replace('public boolean isInPictureInPictureMode','public boolean isFinishing(){return false;} public boolean isDestroyed(){return false;} public boolean isInPictureInPictureMode'),
  'android/app/AlertDialog.java': '''package android.app;public class AlertDialog {public static Click click;public static final java.util.List<Activity> shown=new java.util.ArrayList<>();
   public interface Click{void click(Object dialog,int which);}public static class Builder {Activity a;

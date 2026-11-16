@@ -13,7 +13,7 @@
  * (inlined Cairo fragment flag).
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -46,6 +46,8 @@
 
 package app.morphe.patches.youtube.utils.settings
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.literal
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -53,6 +55,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.cloneParameters
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -83,8 +86,10 @@ import app.morphe.patches.youtube.utils.patch.PatchList.SETTINGS_FOR_YOUTUBE
 import app.morphe.patches.youtube.utils.playservice.is_19_28_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_12_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.resourceid.settingsFragment
+import app.morphe.patches.youtube.utils.resourceid.settingsFragmentCairo
 import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.settingsFragmentSyntheticFingerprint
 import app.morphe.util.FilesCompat
@@ -128,8 +133,20 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 
 private lateinit var bytecodeContext: BytecodePatchContext
 
+context(_: BytecodePatchContext)
+internal fun settingsFragmentReloadInstructions(register: Int): String {
+    if (!is_21_41_or_greater) return ""
+
+    val fragmentField = (PreferenceScreenSyntheticFingerprint.originalMethod.implementation!!
+        .instructions.first { it.opcode == Opcode.IGET_OBJECT } as ReferenceInstruction).reference
+    return """
+        move-object/from16 v$register, p0
+        iget-object v$register, v$register, $fragmentField
+    """
+}
+
 @Suppress("DEPRECATION")
-private val settingsBytecodePatch = bytecodePatch(
+internal val settingsBytecodePatch = bytecodePatch(
     description = "settingsBytecodePatch"
 ) {
     dependsOn(
@@ -145,7 +162,24 @@ private val settingsBytecodePatch = bytecodePatch(
 
         // region fix cairo fragment
 
-        if (is_19_28_or_greater) {
+        if (is_21_41_or_greater) {
+            // Cairo is unconditional now. Keep the XML selector at its actual inflation site.
+            val legacySelector = "$GENERAL_CLASS_DESCRIPTOR->useLegacySettingsFragment(I)I"
+            Fingerprint(
+                returnType = "V",
+                filters = listOf(literal(settingsFragmentCairo)),
+            ).matchAll().forEach { match ->
+                val instruction = match.instructionMatches.single()
+                val register = instruction.getInstruction<OneRegisterInstruction>().registerA
+                match.method.addInstructions(
+                    instruction.index + 1,
+                    """
+                        invoke-static/range { v$register .. v$register }, $legacySelector
+                        move-result v$register
+                    """
+                )
+            }
+        } else if (is_19_28_or_greater) {
             // YouTube 21.x+ inlines the Cairo flag check (const-wide + flag getter call)
             // into its callers instead of calling a dedicated boolean getter.
             fun MutableMethod.overrideInlinedCairoFragmentConfig(): Boolean {
@@ -333,17 +367,15 @@ private val settingsBytecodePatch = bytecodePatch(
         }
 
         PreferenceScreenSyntheticFingerprint.let {
-            it.method.apply {
-                // Reuse the method's own getPreferenceScreen call.
-                val getPreferenceScreenIndex = it.instructionMatches[1].index
-                val fragmentRegister =
-                    getInstruction<FiveRegisterInstruction>(getPreferenceScreenIndex).registerC
-                val getPreferenceScreenReference =
-                    getInstruction<ReferenceInstruction>(getPreferenceScreenIndex).reference
+            val getScreenMatch = it.instructionMatches[1]
+            val fragmentRegister = (getScreenMatch.instruction as FiveRegisterInstruction).registerC
+            val getPreferenceScreenReference = getScreenMatch.methodReference
+            val method = if (is_21_41_or_greater) it.method.cloneParameters() else it.method
+            method.apply {
 
                 // fragmentRegister must survive, because the settings menu filter patch
                 // adds its own call on it after these instructions.
-                val insertIndex = it.instructionMatches.last().index
+                val insertIndex = implementation!!.instructions.lastIndex
                 val registerProvider = getFreeRegisterProvider(insertIndex, 3, fragmentRegister)
                 val screenRegister = registerProvider.getFreeRegister()
                 val preferenceRegister = registerProvider.getFreeRegister()
@@ -354,6 +386,7 @@ private val settingsBytecodePatch = bytecodePatch(
                     customSettingsNameInstructions(
                         preferenceKey = YOUTUBE_SETTINGS_ENTRY_KEY,
                         getPreferenceScreen = """
+                            ${settingsFragmentReloadInstructions(fragmentRegister)}
                             invoke-virtual { v$fragmentRegister }, $getPreferenceScreenReference
                             move-result-object v$screenRegister
                         """,

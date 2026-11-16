@@ -1,8 +1,6 @@
 package app.badfella.extension.linkedin;
 
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Hook for the server driven UI (SDUI) screens, which render through
@@ -21,129 +19,6 @@ public final class SduiComponentFilter {
     private static final String VIEWER_CONTAINER = "feed-update-screen-container";
     /** Prefix of the feed's ⋯ menu page and its rows; Post menu edits only these components. */
     private static final String CONTROL_MENU = "feed-control-menu";
-    private static final int MAX_LOGGED_VIEW_NAMES = 500;
-    private static final Set<String> loggedViewNames = ConcurrentHashMap.newKeySet();
-
-    /**
-     * With diagnostic logging on, logs each view name once, so a diagnostic report shows the names of the
-     * components a user saw (for new filters). Names with digits are skipped: those can carry profile names.
-     */
-    private static void logViewName(String viewName) {
-        if (viewName.isEmpty() || !Settings.debug() || loggedViewNames.size() >= MAX_LOGGED_VIEW_NAMES) return;
-        for (int i = 0; i < viewName.length(); i++) {
-            if (Character.isDigit(viewName.charAt(i))) return;
-        }
-        if (loggedViewNames.add(viewName)) Settings.debugLog("view " + viewName);
-    }
-
-    /** Size of the biggest component outlined per viewer screen, so each screen's root goes into the report. */
-    private static final java.util.Map<String, Integer> outlined = new ConcurrentHashMap<>();
-    private static final int COMPACT_DATA_FIELD = 35;
-    private static final int VIEW_TRACKING_FIELD = 26;
-    private static final int TRIGGERS_FIELD = 25;
-    private static final int DISPLAYED_FIELD = 40;
-
-    /**
-     * With diagnostic logging, writes the component tree of the video and document viewer into the report: view
-     * names, type ids, show/hide expressions (d=) and taps (t), to build the viewers' tap to hide on.
-     */
-    private static void outlineViewer(String screenName, Object component) {
-        if (!Settings.debug()) return;
-        // Components carry the name of the data that built them (documentViewerScreenDataAware,
-        // setupDataAndViewer, mediaCommentaryBottomSheetDataAware), not the screen's, so the resumed screen decides.
-        String resumed = SduiMediaDownload.resumedScreen();
-        if (!(resumed.endsWith(".VideoViewer") || resumed.endsWith(".DocumentViewer"))) return;
-        byte[] bytes = payload(component);
-        if (bytes == null) return;
-        String source = screenName.substring(screenName.lastIndexOf('.') + 1);
-        String key = resumed.substring(resumed.lastIndexOf('.') + 1) + "/" + source;
-        Integer biggest = outlined.get(key);
-        if (biggest != null && biggest >= bytes.length) return;
-        outlined.put(key, bytes.length);
-        StringBuilder out = new StringBuilder();
-        outlineComponent(bytes, out, 0);
-        Settings.debugLog("outline " + key + " (" + bytes.length + " bytes): " + out);
-    }
-
-    private static void outlineComponent(byte[] bytes, StringBuilder out, int depth) {
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return;
-        String name = "";
-        long type = -1;
-        StringBuilder flags = new StringBuilder();
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2) continue;
-            if (field.number == VIEW_TRACKING_FIELD) {
-                for (ProtoEdit.Field f : orEmpty(ProtoEdit.parse(field.data))) {
-                    if (f.number == 1 && f.wireType == 2) name = new String(f.data, java.nio.charset.StandardCharsets.UTF_8);
-                }
-            } else if (field.number == COMPACT_DATA_FIELD) {
-                type = typeId(field.data);
-            } else if (field.number == DISPLAYED_FIELD) {
-                flags.append(" d=").append(describe(field.data));
-            } else if (field.number == TRIGGERS_FIELD) {
-                flags.append(" t");
-            }
-        }
-        out.append('{').append(name.isEmpty() ? "-" : name).append('#').append(type).append(flags);
-        if (depth < 40) {
-            for (ProtoEdit.Field field : fields) {
-                if (field.wireType == 2 && field.number != VIEW_TRACKING_FIELD && field.number != DISPLAYED_FIELD
-                        && field.number != TRIGGERS_FIELD) {
-                    findComponents(field.data, out, depth + 1, 0);
-                }
-            }
-        }
-        out.append('}');
-    }
-
-    /** Looks for nested components in a message, through the messages that hold them. */
-    private static void findComponents(byte[] bytes, StringBuilder out, int depth, int hops) {
-        if (hops > 8) return;
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return;
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2 || field.data.length < 2) continue;
-            if (isComponent(field.data)) outlineComponent(field.data, out, depth);
-            else findComponents(field.data, out, depth, hops + 1);
-        }
-    }
-
-    private static boolean isComponent(byte[] bytes) {
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return false;
-        for (ProtoEdit.Field field : fields) {
-            if (field.number == COMPACT_DATA_FIELD && field.wireType == 2 && typeId(field.data) > 0) return true;
-        }
-        return false;
-    }
-
-    /** The type id of a CompactAny (field 1), or -1. */
-    private static long typeId(byte[] compactAny) {
-        for (ProtoEdit.Field f : orEmpty(ProtoEdit.parse(compactAny))) {
-            if (f.number == 1 && f.wireType == 0) {
-                long value = 0;
-                for (int i = 0, shift = 0; i < f.data.length; i++, shift += 7) value |= (long) (f.data[i] & 0x7F) << shift;
-                return value;
-            }
-        }
-        return -1;
-    }
-
-    /** Hex of a small message, with spaces: the diagnostic report removes anything that looks like an id. */
-    private static String describe(byte[] bytes) {
-        StringBuilder hex = new StringBuilder("[");
-        for (int i = 0; i < Math.min(bytes.length, 120); i++) {
-            if (i > 0) hex.append(' ');
-            hex.append(String.format("%02x", bytes[i] & 0xFF));
-        }
-        return hex.append(']').toString();
-    }
-
-    private static java.util.List<ProtoEdit.Field> orEmpty(java.util.List<ProtoEdit.Field> fields) {
-        return fields == null ? java.util.Collections.emptyList() : fields;
-    }
-
     private static final java.util.Set<String> AI_WORDS = new java.util.HashSet<>(java.util.Arrays.asList(
             "ai", "genai", "gai", "llm", "copilot", "assistant", "aigc"));
 
@@ -218,45 +93,51 @@ public final class SduiComponentFilter {
      * component of every post is what made the feed stutter.
      */
     public static Object rewrite(Object component) {
-        if (component == null) return null;
-        boolean expandPosts = Settings.expandPosts();
-        boolean viewer = Settings.viewerTapToHide();
-        boolean postMenu = Settings.postMenu();
-        boolean copyPostText = Settings.copyPostText();
-        if (!expandPosts && !viewer && !postMenu && !copyPostText) return component;
-        String viewName = viewName(component);
-        // Before the transform builds this component's ClickActions, which the copy hook then replaces.
-        if (copyPostText) CopyPostText.onComponent(component, viewName);
-        if (expandPosts && COMMENTARY.equals(viewName)) {
-            try {
-                byte[] bytes = payload(component);
-                byte[] edited = bytes == null ? null : expandCommentary(bytes);
-                if (edited != null && edited != bytes) {
-                    Object copy = component.getClass().getMethod("parseFrom", byte[].class)
-                            .invoke(null, (Object) edited);
-                    if (copy != null) component = copy;
+        long captureStart = PerformanceCapture.beginHook();
+        try {
+            if (component == null) return null;
+            boolean expandPosts = Settings.expandPosts();
+            boolean viewer = Settings.viewerTapToHide();
+            boolean postMenu = Settings.postMenu();
+            boolean copyPostText = Settings.copyPostText();
+            if (!expandPosts && !viewer && !postMenu && !copyPostText) return component;
+            String viewName = viewName(component);
+            // Before the transform builds this component's ClickActions, which the copy hook then replaces.
+            if (copyPostText) CopyPostText.onComponent(component, viewName);
+            if (expandPosts && COMMENTARY.equals(viewName)) {
+                try {
+                    byte[] bytes = payload(component);
+                    byte[] edited = bytes == null ? null : expandCommentary(bytes);
+                    if (edited != null && edited != bytes) {
+                        Object copy = component.getClass().getMethod("parseFrom", byte[].class)
+                                .invoke(null, (Object) edited);
+                        if (copy != null) component = copy;
+                    }
+                } catch (Throwable t) {
+                    Diagnostics.error("expand posts failed", t);
                 }
-            } catch (Throwable t) {
-                Diagnostics.error("expand posts failed", t);
             }
-        }
-        if (viewer && VIEWER_CONTAINER.equals(viewName)) {
-            try {
-                component = ViewerChrome.rewrite(component, viewName,
-                        screenName(component), payload(component));
-            } catch (Throwable t) {
-                Diagnostics.error("viewer rewrite failed", t);
+            if (viewer && VIEWER_CONTAINER.equals(viewName)) {
+                try {
+                    component = ViewerChrome.rewrite(component, viewName,
+                            screenName(component), payload(component));
+                } catch (Throwable t) {
+                    Diagnostics.error("viewer rewrite failed", t);
+                }
             }
-        }
-        // Only the feed's control (⋯) menu page and its rows carry the template this edits.
-        if (postMenu && viewName.startsWith(CONTROL_MENU)) {
-            try {
-                component = PostMenu.inject(component, payload(component));
-            } catch (Throwable t) {
-                Diagnostics.error("post menu failed", t);
+            // Only the feed's control (⋯) menu page and its rows carry the template this edits.
+            if (postMenu && viewName.startsWith(CONTROL_MENU)) {
+                try {
+                    component = PostMenu.inject(component, payload(component));
+                } catch (Throwable t) {
+                    Diagnostics.error("post menu failed", t);
+                }
             }
+            return component;
+
+        } finally {
+            PerformanceCapture.endHook(0, captureStart);
         }
-        return component;
     }
 
     /**
@@ -275,14 +156,14 @@ public final class SduiComponentFilter {
     }
 
     public static boolean shouldHide(Object component) {
+        long captureStart = PerformanceCapture.beginHook();
         try {
             Object viewTracking = viewTracking(component);
             String viewName = viewName(component);
             String screen = screenName(component);
             boolean debug = Settings.debug();
             if (debug) {
-                logViewName(viewName);
-                outlineViewer(screen, component);
+                Settings.debugLog("view component");
             }
             if (MoreMenu.MORE_SCREEN.equals(screen)) MoreMenu.capture(payload(component));
             if (MoreMenu.hideItem(viewName)) return hide(true, "more item: " + viewName);
@@ -345,6 +226,8 @@ public final class SduiComponentFilter {
         } catch (Throwable t) {
             Diagnostics.error("shouldHide failed", t);
             return false;
+        } finally {
+            PerformanceCapture.endHook(1, captureStart);
         }
     }
 
@@ -560,9 +443,16 @@ public final class SduiComponentFilter {
 
     private static Object[] memo(Object component) {
         Object[] memo = MEMO.get();
-        if (memo == null || memo[0] != component) {
-            memo = new Object[]{component, NOT_COMPUTED, null, NOT_COMPUTED, null};
+        if (memo == null) {
+            memo = new Object[5];
             MEMO.set(memo);
+        }
+        if (memo[0] != component) {
+            memo[0] = component;
+            memo[1] = NOT_COMPUTED;
+            memo[2] = null;
+            memo[3] = NOT_COMPUTED;
+            memo[4] = null;
         }
         return memo;
     }

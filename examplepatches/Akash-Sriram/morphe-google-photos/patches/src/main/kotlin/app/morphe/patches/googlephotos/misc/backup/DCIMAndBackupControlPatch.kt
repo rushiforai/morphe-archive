@@ -31,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 val dcimAndBackupControlPatch = bytecodePatch(
     name = "DCIM & backup control",
     description = "Disables always on backup for the Camera and other DCIM folders, allowing individual folder control, " +
+        "adds an 'Upload photos only' toggle to Morphe Settings to skip videos in automatic backup, " +
         "and exports memory collages and creations to DCIM/Google Photos for quota-free backup.",
     default = true,
 ) {
@@ -188,6 +189,42 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 stringIndex,
                 "const-string v$folderCondRegister, \"\""
             )
+
+            // Hook for "Upload photos only" (controlled by Morphe Settings -> Backup & Storage)
+            val implementation = mutableQueryMethod.implementation
+            if (implementation != null) {
+                // Exit hook: wrap finished WHERE clause through PhotosOnlyBackupFilter
+                val instructions = implementation.instructions.toList()
+                val returnIndex = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
+                if (returnIndex != -1) {
+                    val returnRegister = (instructions[returnIndex] as OneRegisterInstruction).registerA
+                    mutableQueryMethod.addInstructions(
+                        returnIndex,
+                        """
+                        invoke-static { v$returnRegister }, Lapp/morphe/extension/shared/patches/PhotosOnlyBackupFilter;->applyPhotosOnlyFilter(Ljava/lang/String;)Ljava/lang/String;
+                        move-result-object v$returnRegister
+                        """.trimIndent(),
+                    )
+                }
+
+                // Entry hook: pass table mapping (first parameter) to PhotosOnlyBackupFilter.
+                // The method allocates 36 registers so parameters live at v30-v35 (out of range for invoke-* 35c).
+                // We move the parameter into v0 (which is immediately overwritten by instruction 0 in stock code).
+                val isStatic = AccessFlags.STATIC.isSet(mutableQueryMethod.accessFlags)
+                var parameterRegisterCount = if (isStatic) 0 else 1
+                for (type in mutableQueryMethod.parameterTypes) {
+                    parameterRegisterCount += if (type == "J" || type == "D") 2 else 1
+                }
+                val firstParameterRegister = implementation.registerCount - parameterRegisterCount +
+                    if (isStatic) 0 else 1
+                mutableQueryMethod.addInstructions(
+                    0,
+                    """
+                    move-object/from16 v0, v$firstParameterRegister
+                    invoke-static { v0 }, Lapp/morphe/extension/shared/patches/PhotosOnlyBackupFilter;->onBackupQueryStart(Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+            }
         }
 
         // 5. Fix overlay badge so un-backed camera photos display the cloud-off (not uploaded) badge
@@ -200,18 +237,24 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val mutableBadgeMethod = uploadStatusClassDef.findMutableMethodOf(badgeMethod)
                 val instructions = badgeMethod.implementation?.instructions?.toList() ?: emptyList()
 
-                // Find status enum reference with field "g" (photos_quantum_gm_ic_cloud_off_vd_theme_18)
-                var statusGRef: FieldReference? = null
-                for (idx in instructions.indices) {
-                    val instr = instructions[idx]
-                    if (instr.opcode == Opcode.SGET_OBJECT) {
-                        val ref = (instr as? ReferenceInstruction)?.reference as? FieldReference
-                        if (ref != null && ref.name == "g" && ref.type == ref.definingClass) {
-                            statusGRef = ref
-                            break
-                        }
+                // Resolve status enum type from return type constructor: <init>(StatusEnum, D)
+                val statusEnumType = instructions.filterIsInstance<ReferenceInstruction>()
+                    .mapNotNull { it.reference as? MethodReference }
+                    .firstOrNull {
+                        it.name == "<init>" &&
+                        it.definingClass == badgeMethod.returnType &&
+                        it.parameterTypes.size == 2 &&
+                        it.parameterTypes[1] == "D"
+                    }?.parameterTypes?.firstOrNull()
+
+                // Find status enum reference with field "g" (NOT_UPLOADED / cloud-off badge)
+                val statusGRef = instructions.filterIsInstance<ReferenceInstruction>()
+                    .mapNotNull { it.reference as? FieldReference }
+                    .firstOrNull {
+                        it.name == "g" &&
+                        (statusEnumType == null || it.type == statusEnumType) &&
+                        it.type == it.definingClass
                     }
-                }
 
                 if (statusGRef != null) {
                     val statusSgetIndices = mutableListOf<Int>()
@@ -225,7 +268,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                         }
                     }
 
-                    // The second-to-last SGET of the status enum is index 124 (stock loads NONE when account backup is enabled and status is NONE)
+                    // The second-to-last SGET of the status enum is index 124/149 (stock loads QUEUED when account backup is enabled and status is NONE)
                     if (statusSgetIndices.size >= 2) {
                         val targetIdx = statusSgetIndices[statusSgetIndices.size - 2]
                         val targetInstr = instructions[targetIdx] as OneRegisterInstruction
@@ -423,7 +466,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val next = instructions[idx + 1]
                 if (curr.opcode == Opcode.CHECK_CAST && next.opcode == Opcode.INSTANCE_OF) {
                     val nextTypeRef = (next as? ReferenceInstruction)?.reference as? TypeReference
-                    if (nextTypeRef?.type == "Lsll;" || nextTypeRef?.type == "Lsob;") {
+                    if (nextTypeRef?.type == "Lsll;" || nextTypeRef?.type == "Lsob;" || nextTypeRef?.type == "Lssf;" || nextTypeRef?.type == "Lsse;") {
                         mutableMethod.replaceInstruction(idx, "nop")
                         break
                     }
@@ -437,7 +480,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val next = updatedInstructions[idx + 1]
                 if (curr.opcode == Opcode.CHECK_CAST && next.opcode == Opcode.IGET_OBJECT) {
                     val fieldRef = (next as? ReferenceInstruction)?.reference as? FieldReference
-                    if (fieldRef != null && fieldRef.name == "f" && (fieldRef.type.endsWith("slm;") || fieldRef.type.endsWith("soc;"))) {
+                    if (fieldRef != null && fieldRef.name == "f" && (fieldRef.type.endsWith("slm;") || fieldRef.type.endsWith("soc;") || fieldRef.type.endsWith("ssf;") || fieldRef.type.endsWith("ssg;"))) {
                         val castInstr = curr as OneRegisterInstruction
                         val targetReg = castInstr.registerA
                         val nextInstr = next as TwoRegisterInstruction
@@ -470,7 +513,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val ins = instructions[idx]
                 if (ins is ReferenceInstruction) {
                     val mr = ins.reference as? MethodReference
-                    if (mr != null && mr.name == "k" && mr.parameterTypes.size == 1 && mr.parameterTypes[0] == "Z") {
+                    if (mr != null && mr.parameterTypes.size == 1 && mr.parameterTypes[0] == "Z") {
                         mutableAmtyMethod.replaceInstruction(idx, "nop")
                         break
                     }
@@ -548,7 +591,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val ins = instructions[idx]
                 if (ins.opcode == Opcode.NEW_INSTANCE) {
                     val typeRef = (ins as? ReferenceInstruction)?.reference as? TypeReference
-                    if (typeRef?.type?.endsWith("cthu;") == true || typeRef?.type?.endsWith("cttj;") == true) {
+                    if (typeRef?.type?.endsWith("cthu;") == true || typeRef?.type?.endsWith("cttj;") == true || typeRef?.type?.endsWith("cvfa;") == true) {
                         mutableMethod.replaceInstruction(idx, "nop")
                         if (idx + 1 < instructions.size) mutableMethod.replaceInstruction(idx + 1, "nop")
                         if (idx + 2 < instructions.size) mutableMethod.replaceInstruction(idx + 2, "nop")

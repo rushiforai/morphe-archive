@@ -9,6 +9,7 @@ import app.morphe.util.indexOfFirstInstructionReversed
 import app.morphe.util.or
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal val endButtonsContainerFingerprint = legacyFingerprint(
@@ -22,12 +23,40 @@ internal val menuItemFingerprint = legacyFingerprint(
     returnType = "V",
     accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
     parameters = emptyList(),
+    strings = listOf("toggleMenuItemMutations"),
+    customFingerprint = { method, _ ->
+        method.indexOfFirstInstructionReversed {
+            opcode == Opcode.IGET_OBJECT &&
+                    getReference<FieldReference>()?.type == "Landroid/widget/FrameLayout;"
+        } >= 0
+    }
+)
+
+// From 9.44, the text and icon binding is a separate method of the same presenter.
+internal val menuItemIconFingerprint = legacyFingerprint(
+    name = "menuItemIconFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = emptyList(),
     opcodes = listOf(
-        Opcode.CHECK_CAST,
-        Opcode.INVOKE_DIRECT,
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_STATIC,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.IGET,
+        Opcode.INVOKE_STATIC,
         Opcode.MOVE_RESULT_OBJECT
     ),
-    strings = listOf("toggleMenuItemMutations")
+    customFingerprint = { method, _ ->
+        method.indexOfFirstInstructionReversed {
+            getReference<MethodReference>()?.let {
+                it.definingClass == "Landroid/widget/TextView;" && it.name == "setText"
+            } == true
+        } >= 0 && method.indexOfFirstInstructionReversed {
+            getReference<MethodReference>()?.let {
+                it.definingClass == "Landroid/widget/ImageView;" && it.name == "setImageResource"
+            } == true
+        } >= 0
+    }
 )
 
 internal val screenWidthFingerprint = legacyFingerprint(

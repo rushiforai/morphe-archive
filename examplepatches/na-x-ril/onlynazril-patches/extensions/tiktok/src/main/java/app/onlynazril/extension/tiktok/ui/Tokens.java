@@ -6,8 +6,8 @@ import android.util.TypedValue;
 /**
  * One source of truth for the screen's look. Monochrome AMOLED: a pure black canvas, structure
  * only from hairlines and spacing, a single light accent, no cards or gradients.
- *
- * Nothing here is borrowed from the app's theme, so the screen never inherits a colour, a shape
+ * <p>
+ * Nothing here is borrowed from the app's theme, so the screen never inherits a color, a shape
  * or a type scale from TikTok.
  */
 public final class Tokens {
@@ -17,11 +17,26 @@ public final class Tokens {
     public static final int HAIRLINE = 0xFF1C1C1C;
 
     /** The prompt's own panel, one step lighter than the rows it sits above. */
-    public static final int PANEL = 0xFF101010;
+    public static final int PANEL = BACKGROUND;
+
+    /**
+     * The selected choice's fill and outline. Translucent on purpose: the AMOLED pass rewrites
+     * opaque dark constants, and a selected row must stay visible under it.
+     */
+    public static final int CHOICE_SELECTED = 0x1FFFFFFF;
+    public static final int CHOICE_SELECTED_BORDER = 0x66FFFFFF;
+
+    public static final int BG_WHITE = 0xFFFFFFFF;
+    public static final int TEXT_ON_LIGHT = 0xFF121212;
+    public static final int RIPPLE_DARK  = 0x26000000;
 
     public static final int TEXT_PRIMARY = 0xFFF5F5F5;
     public static final int TEXT_SECONDARY = 0xFF9A9A9A;
     public static final int TEXT_DISABLED = 0xFF5A5A5A;
+    public static final int TEXT_DANGER = 0xFFFF5252;
+
+    public static final int BORDER_DANGER = 0x55FF5252;
+    public static final int RIPPLE_ERROR  = 0x4DFF5252;
 
     public static final int ACCENT = 0xFFFFFFFF;
     public static final int TRACK_ON = 0xFFFFFFFF;
@@ -42,7 +57,6 @@ public final class Tokens {
     public static final int SPACE_8 = 32;
     public static final int SPACE_12 = 48;
 
-    public static final float TITLE_SP = 28f;
     public static final float SUBTITLE_SP = 14f;
     public static final float SECTION_SP = 13f;
     public static final float ROW_TITLE_SP = 18f;
@@ -51,6 +65,7 @@ public final class Tokens {
     public static final float ACTION_SP = 15f;
     /** The prompt's title: one step above a row title, below the screen's own title. */
     public static final float PANEL_TITLE_SP = 20f;
+    public static final float PAGE_TITLE_SP = 22f;
 
     private Tokens() {}
 

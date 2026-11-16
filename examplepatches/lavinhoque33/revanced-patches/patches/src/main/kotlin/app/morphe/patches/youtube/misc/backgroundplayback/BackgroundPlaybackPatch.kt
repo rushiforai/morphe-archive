@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.misc.backgroundplayback
@@ -17,6 +17,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.matchSingle
@@ -28,8 +31,10 @@ import app.morphe.patches.youtube.utils.patch.PatchList.REMOVE_BACKGROUND_PLAYBA
 import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.utils.playservice.is_19_34_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_49_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_20_51_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_15_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
@@ -41,13 +46,35 @@ import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.insertLiteralOverride
+import app.morphe.util.Utils.printWarn
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.util.MethodUtil
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$MISC_PATH/BackgroundPlaybackPatch;"
+
+private fun BytecodePatchContext.disableCairoFragmentRegistration() {
+    val closeCallback = BackgroundPlaybackManagerCairoFragmentParentFingerprint.match()
+    val managerField = closeCallback.instructionMatches.first {
+        it.instruction.opcode == Opcode.IGET_OBJECT
+    }.instruction.getReference<FieldReference>()!!
+    val activeFragmentField = closeCallback.instructionMatches.first {
+        it.instruction.opcode == Opcode.IPUT_OBJECT
+    }.instruction.getReference<FieldReference>()!!
+
+    BackgroundPlaybackManagerCairoFragmentLifecycleFingerprint(managerField, activeFragmentField)
+        .matchAll(closeCallback.originalClassDef, 2..2)
+        .forEach { lifecycle ->
+            // Keep super calls and subscription cleanup. Only undo the now-unconditional manager wiring,
+            // which is the same block that the disabled Cairo flag skipped on older versions.
+            lifecycle.method.removeInstruction(lifecycle.instructionMatches.last().index)
+            lifecycle.method.removeInstruction(lifecycle.instructionMatches[1].index)
+        }
+}
 
 @Suppress("unused", "DEPRECATION")
 val backgroundPlaybackPatch = bytecodePatch(
@@ -86,16 +113,17 @@ val backgroundPlaybackPatch = bytecodePatch(
         }
 
         // Enable background playback option in YouTube settings
-        BackgroundPlaybackSettingsFingerprint.originalMethod.apply {
-            val booleanCalls = instructions.withIndex().filter {
+        val settingsBooleanMethod = BackgroundPlaybackSettingsFingerprint.matchOrNull()?.let { match ->
+            val booleanCalls = match.originalMethod.instructions.withIndex().filter {
                 it.value.getReference<MethodReference>()?.returnType == "Z"
             }
 
-            val settingsBooleanIndex = booleanCalls.elementAt(1).index
-            val settingsBooleanMethod = BackgroundPlaybackSettingsFingerprint.method.getWalkerMethod(settingsBooleanIndex)
-
-            settingsBooleanMethod.returnEarly(true)
+            match.method.getWalkerMethod(booleanCalls.elementAt(1).index)
+        } ?: BackgroundPlaybackSettingsModernFingerprint.let {
+            it.method.getWalkerMethod(it.instructionMatches.first().index)
         }
+
+        settingsBooleanMethod.returnEarly(true)
 
         // Force allowing background play for Shorts.
         ShortsBackgroundPlaybackFeatureFlagFingerprint.matchSingle().method.insertLiteralOverride(
@@ -105,15 +133,14 @@ val backgroundPlaybackPatch = bytecodePatch(
 
         // Fix PiP mode issue.
         if (is_19_34_or_greater) {
-            // 21.39 inlines the flag getter into the two fragment lifecycle methods.
-            // Force the flag to false in each of them; otherwise use the legacy fingerprints.
-            val inlinedFlagMatches = runCatching {
-                BackgroundPlaybackManagerCairoFragmentInlinedFlagFingerprint.matchAll(
-                    BackgroundPlaybackManagerCairoFragmentParentFingerprint.originalClassDef
-                )
-            }.getOrNull().orEmpty()
+            // 21.39 inlines the flag getter; 21.41 removes its lifecycle checks altogether.
+            val inlinedFlagMatches = BackgroundPlaybackManagerCairoFragmentInlinedFlagFingerprint
+                .matchAllOrNull(BackgroundPlaybackManagerCairoFragmentParentFingerprint.originalClassDef)
+                .orEmpty()
 
-            if (inlinedFlagMatches.isNotEmpty()) {
+            if (is_21_41_or_greater) {
+                disableCairoFragmentRegistration()
+            } else if (inlinedFlagMatches.isNotEmpty()) {
                 inlinedFlagMatches.forEach {
                     it.method.insertLiteralOverride(
                         it.instructionMatches.last().index,
@@ -202,6 +229,24 @@ val backgroundPlaybackPatch = bytecodePatch(
                     "$EXTENSION_CLASS_DESCRIPTOR->isAutomaticPlaybackPauseInFlyout(Z)Z"
                 )
             }
+        }
+
+        // Publish media-session state even if the notification artwork could not be loaded.
+        if (is_20_51_or_greater) {
+            MediaSessionArtworkStateFingerprint.let {
+                it.method.apply {
+                    val noChangeIndex = it.instructionMatches.first { match ->
+                        match.instruction.opcode == Opcode.CONST_4
+                    }.index
+                    val register = getInstruction<OneRegisterInstruction>(noChangeIndex).registerA
+                    val change = getInstruction<NarrowLiteralInstruction>(
+                        it.instructionMatches.last().index
+                    ).narrowLiteral
+                    replaceInstruction(noChangeIndex, "const v$register, $change")
+                }
+            }
+        } else {
+            printWarn("Background notification artwork fix requires YouTube 20.51 or newer; skipped.")
         }
 
         // Force allowing background play for videos labeled for kids.

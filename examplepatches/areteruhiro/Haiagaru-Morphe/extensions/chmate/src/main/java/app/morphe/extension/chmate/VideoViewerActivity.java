@@ -98,7 +98,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         playerRoot = root;
         root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.BLACK);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            boolean landscape = FeatureSwitches.enabled("videoLandscapeImmersive", true) && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+            boolean landscape = FeatureSwitches.enabled("videoLandscapeImmersive", false) && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
             view.setPadding(insets.getSystemWindowInsetLeft(), landscape ? 0 : insets.getSystemWindowInsetTop(),
                     insets.getSystemWindowInsetRight(), landscape ? 0 : insets.getSystemWindowInsetBottom());
             return insets;
@@ -491,7 +491,8 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             if("gestureFullScreen".equals(key)){toggleControls();return;}
         }
         switch (key) {
-            case "gestureBack": case "gestureCloseTab": finish(); break;
+            case "gestureBack": MediaViewerBackGesture.finishDedicated(this,this::finish); break;
+            case "gestureCloseTab": finish(); break;
             case "gestureTop": if (prepared) seekAbsolute(0); break;
             case "gestureBottom": if (prepared) seekAbsolute(Math.max(0, video.getDuration() - 1)); break;
             case "gestureRefresh":
@@ -576,10 +577,13 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             video.pause();
         }
     }
+    private boolean immersiveWindowActive;
+
     private void updateImmersiveMode() {
         View decor = getWindow().getDecorView();
         int flags = decor.getSystemUiVisibility();
-        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        boolean landscape = immersiveWindowActive && FeatureSwitches.enabled("videoLandscapeImmersive", false)
+                && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         int next = landscape ? flags | LANDSCAPE_IMMERSIVE_FLAGS : flags & ~LANDSCAPE_IMMERSIVE_FLAGS;
         if (next != flags) decor.setSystemUiVisibility(next);
         if (playerRoot != null) playerRoot.requestApplyInsets();
@@ -593,13 +597,16 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         if (hasFocus) updateImmersiveMode();
     }
     @Override protected void onResume() {
-        super.onResume(); foreground = true;
+        super.onResume();
+        immersiveWindowActive = true; foreground = true;
         updateImmersiveMode();
         if (video != null) gestures = new VideoViewerGestures(this);
         if (prepared && playWhenReady) video.start();
         if (gifFallback != null && playWhenReady) gifFallback.play();
     }
     @Override protected void onPause() {
+        immersiveWindowActive = false;
+        updateImmersiveMode();
         if (touchControls != null) touchControls.cancel();
         foreground = false; pausePlayback();
         // Returning from another app should resume only on the user's play action.

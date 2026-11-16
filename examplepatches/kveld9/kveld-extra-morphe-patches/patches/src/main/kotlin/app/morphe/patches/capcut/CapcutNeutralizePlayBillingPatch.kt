@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.disableComponentsByName
+import app.morphe.patches.shared.replaceWithReturnBoolean
 import app.morphe.patches.shared.stripPermissionsWhere
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -128,13 +129,7 @@ val capcutNeutralizePlayBillingPatch = bytecodePatch(
         patched++
 
         // 3. isReady returns false
-        BillingClientImplIsReadyFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        BillingClientImplIsReadyFingerprint.method.replaceWithReturnBoolean(false)
         patched++
 
         // 4. isFeatureSupported returns BILLING_UNAVAILABLE
@@ -163,23 +158,11 @@ val capcutNeutralizePlayBillingPatch = bytecodePatch(
         patched++
 
         // 6. GoogleBillingService.isSupportGooglePay returns false
-        GoogleBillingServiceIsSupportGooglePayFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        GoogleBillingServiceIsSupportGooglePayFingerprint.method.replaceWithReturnBoolean(false)
         patched++
 
         // 7. GoogleIapExternalServiceProvider.isSupportGooglePay returns false
-        GoogleIapExternalServiceProviderIsSupportGooglePayFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
+        GoogleIapExternalServiceProviderIsSupportGooglePayFingerprint.method.replaceWithReturnBoolean(false)
         patched++
 
         println("[Neutralize Play Billing] Applied $patched hooks -> Play Billing client calls stubbed to fail closed.")

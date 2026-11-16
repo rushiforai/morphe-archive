@@ -53,6 +53,7 @@ public final class SeasonalBanner {
     private static final int KIND = 0x4d4f000d;
     private static final int STILL = 0x4d4f000e;
     private static final int FACE = 0x4d4f000f;
+    private static final int ATTACHED = 0x4d4f0010;
     /** Painted bottom of every seasonal square. The rest of the file below this is empty. */
     private static final float ART_BOTTOM = 0.79f;
     private static final float MODERN_SCALE = 1.36f;
@@ -641,7 +642,8 @@ public final class SeasonalBanner {
                     banner.getPaddingRight(), banner.getPaddingBottom());
             overlay.setScaleX(banner.getScaleX());
             overlay.setScaleY(banner.getScaleY());
-            overlay.setTranslationY(banner.getTranslationY());
+            // Not lifted with the picture: the bubbles keep running behind the see-through name row.
+            overlay.setTranslationY(0f);
         }
         play(overlay, anim);
     }
@@ -839,6 +841,7 @@ public final class SeasonalBanner {
             return;
         }
         boolean freeze = still(context);
+        watchAttach(view);
         if (frame.joey) {
             place(view, false);
             view.setTag(KIND, "joey");
@@ -946,6 +949,29 @@ public final class SeasonalBanner {
             return;
         }
         view.setTranslationY(modernShift(view, scale));
+    }
+
+    /**
+     * Joey detaches and re-attaches the header when the drawer list is scrolled or the app comes
+     * back. The bubble layer is checked again then, so it is never left missing.
+     */
+    private static void watchAttach(ImageView view) {
+        if (view.getTag(ATTACHED) != null) return;
+        view.setTag(ATTACHED, Boolean.TRUE);
+        view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View attached) {
+                attached.post(() -> {
+                    if (attached.isAttachedToWindow() && attached instanceof ImageView) {
+                        syncOverlay((ImageView) attached);
+                    }
+                });
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View detached) {
+            }
+        });
     }
 
     /** Header height changes after the first bind, and again when the drawer is resized. */

@@ -114,7 +114,7 @@ tasks.register<JavaExec>("reportNuvioUpdate") {
 tasks.register("verifyNuvioLatest") {
     group = "verification"
     description = "Verify the currently reviewed Nuvio contract, runtime features and packaged patch combinations."
-    dependsOn("verifyNuvioSettingsRestart", "verifyNuvioSettingsBackup", "verifyNuvioSettingsTransferRuntime", "verifyNuvioMaintenance", "verifyNuvio110", "verifyNuvio110Launcher", "verifyNuvio110Player",
+    dependsOn("verifyNuvioMetadataAddon", "verifyNuvioMetadataRuntime", "verifyNuvioMetadataSettingsRuntime", "verifyNuvioSettingsRestart", "verifyNuvioSettingsBackup", "verifyNuvioSettingsTransferRuntime", "verifyNuvioMaintenance", "verifyNuvio110", "verifyNuvio110Launcher", "verifyNuvio110Player",
         "verifyNuvioCurrentStream", "verifyNuvioPreferredAddon", "verifyNuvioPlaybackButtons", "verifyNuvioIntroDb", "verifyNuvioApkUpdates", "verifyNuvioUpdateInstaller",
         "verifyNuvioUpdateFlow", "verifyNuvioUpdateProgressRuntime", "verifyNuvioUpdateUiRuntime",
         "verifyNuvio110DateStyleRuntime", "verifyNuvio110SettingsMenuRuntime", "verifyNuvio110TrackingDialogs",
@@ -1565,4 +1565,36 @@ tasks.register<JavaExec>("verifyFyloApk") {
     maxHeapSize = "3g"
     args("--apk", file("../../OriginalApps/Fylo/2.6/base.apk").absolutePath,
         file(providers.gradleProperty("fyloApk").getOrElse("../../Apps/Fylo/Fylo-2.6-pro-unsigned.apk")).absolutePath)
+}
+
+
+tasks.register<JavaExec>("verifyNuvioMetadataAddon") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioMetadataAddon")
+    args(file("../../OriginalApps/NuvioTV-1.1.0.apk").absolutePath,
+        layout.buildDirectory.file("verification/nuvio-metadata/hooks.dex").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioMetadataRuntime") {
+    dependsOn("testClasses", ":extensions:nuvio-metadata-addon:compileReleaseKotlin")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioMetadataRuntimeKt")
+    args(layout.buildDirectory.dir("verification").get().asFile.absolutePath,
+        project(":extensions:nuvio-metadata-addon").layout.buildDirectory.dir("intermediates/built_in_kotlinc/release/compileReleaseKotlin/classes").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioMetadataSettingsRuntime") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioMetadataSettingsRuntime")
+    args(file("../extensions/nuvio-metadata-addon/src/main/java/software/santodan/extension/nuviometadata/NuvioMetadataSettings.java").absolutePath,
+        layout.buildDirectory.dir("verification").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioMetadataApk") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioMetadataApk")
+    args(file(providers.gradleProperty("nuvioMetadataApk").getOrElse("../../Apps/NuvioTV/NuvioTV-1.1.0-metadata-library-all-unsigned.apk")).absolutePath)
 }

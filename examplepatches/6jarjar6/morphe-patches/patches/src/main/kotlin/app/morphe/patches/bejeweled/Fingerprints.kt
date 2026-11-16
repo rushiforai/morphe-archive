@@ -861,103 +861,11 @@ object AuthenticationTokenTrackerStartTrackingFingerprint : Fingerprint(
 /* ========================================================================================
  * Cross-promo redirect — the GET STARS! button.
  *
- * The native cross-promo (GluMarketing, libBejeweed3.so) resolves its target
- * (app-scheme / Play-Store / dynamic-link) through a small set of Java bridge
- * seams that are called exclusively from native (no Java callers in any dex):
- *
- *   - AndroidPlatform.openURL(String)          — ACTION_VIEW intent (the
- *                                               browser / Play-Store / app-scheme
- *                                               launch). THE definitive Get-Stars
- *                                               chokepoint.
- *   - AndroidPlatform.showWebView(J, Activity,  — in-app webview (url + config
- *        String, String)                       JSON), the dynamic-link variant.
- *
- * We inject a rewrite at the top of each seam: the URL is passed through the
- * CrossPromoSilo.rewrite helper (an extension class). If it is a cross-promo
- * target (Bejeweled family / Play-Store / GLU deep links) it is swapped for the
- * GitHub repo; otherwise it passes through unchanged.
- */
-
-/**
- * AndroidPlatform.openURL(String) -> void
- *
- * The single ACTION_VIEW intent builder for the whole GLU-central-services
- * layer. The native cross-promo hands it the target URL (app-scheme when the
- * promoted app is installed, Play-Store web/market URL when not). The `url`
- * parameter is the LAST register (p1) — register layout is 3 regs / 2 params.
- *
- * The method body delegates to the `$11` Runnable (whose `run()` is where
- * the ACTION_VIEW intent is actually built), so we anchor on the final
- * return-void, the unique (name, signature) pair.
- */
-object OpenUrlFingerprint : Fingerprint(
-    definingClass = "Lcsdk/glucentralservices/util/" + "AndroidPlatform;",
-    name = "openURL",
-    isStatic = false,
-    returnType = "V",
-    parameters = listOf("Ljava/lang/String;"),
-    filters = listOf(
-        anyInstruction(opcode(Opcode.RETURN_VOID))
-    )
-)
-
-/**
- * AndroidPlatform.showWebView(J, Activity, String url, String config) -> void
- *
- * JNI entry for the in-app webview (the dynamic-link variant). The `url`
- * parameter is the 4th (p4) — register layout is 13 regs / 6 params. The config
- * argument (p5) carries the JSON; the URL argument (p4) is what the native
- * cross-promo supplies as the dynamic link.
- */
-object ShowWebViewFingerprint : Fingerprint(
-    definingClass = "Lcsdk/glucentralservices/util/" + "AndroidPlatform;",
-    name = "showWebView",
-    isStatic = false,
-    returnType = "V",
-    parameters = listOf("J", "Landroid/app/Activity;", "Ljava/lang/String;", "Ljava/lang/String;"),
-    filters = listOf(string("activity can't be null"))
-)
-
-/**
- * com.ea.rs.xpromo.Item.launch:()Z — the nimble-Java cross-promo panel
- * (the "GET STARS!" banner). Called via `invoke-virtual` (instance method,
- * `this` = the Item carrying m_appLinks). Unlike the native GluMarketing
- * button, it builds its OWN `ACTION_VIEW` intent and calls `startActivity`
- * directly, so it never reaches openURL/showWebView.
- *
- * Two branches (both draw URLs from m_appLinks):
- *   launch: m_appLinks.get("appLaunch") -> getInstalledAppPackageName(pkg)
- *   store:  m_appLinks.get("store")     -> Uri.parse(url) -> startActivity
- *
- * Signature: instance, no params, returns Z. Filters anchor on the
- * characteristic "appLaunch"/"store" string keys and the VIEW action.
- */
-object XpromoItemLaunchFingerprint : Fingerprint(
-    definingClass = "Lcom/ea/rs/xpromo/" + "Item;",
-    name = "launch",
-    isStatic = false,
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(
-        string("appLaunch"),
-        string("android.intent.action.VIEW"),
-        string("store")
-    )
-)
-
-/**
- * com.ea.blast.SystemAndroidDelegate.IntentView(String) -> Z
- *
- * The Blast engine's native->Java bridge: the game's native code passes ANY
- * url (store links, deep links, ...) and this builds
- * `Intent(ACTION_VIEW, Uri.parse(url))` + startActivity, bypassing
- * openURL/showWebView/Item.launch entirely. This is the "Get Stars" path:
- * native -> IntentView("market://details?id=com.ea.gp.bejeweldedskies").
- *
- * Layout: registers=4, ins=2 (p0=this, p1=url, v0=scratch Intent). No free
- * register for the probe id — the patch uses getFreeRegisterProvider(0,1).
- * The method is the only IntentView in the class; it anchors on the
- * characteristic ACTION_VIEW string (unique to this method).
+ * The native game engine hands the Get-Stars target URL to the Blast bridge
+ * com.ea.blast.SystemAndroidDelegate.IntentView(String), which builds
+ * Intent(ACTION_VIEW, Uri.parse(url)) + startActivity. This is the ONLY seam
+ * the button actually travels through (confirmed on-device: the canary fired
+ * at IntentView and never at openURL/showWebView/Item.launch).
  */
 object SystemAndroidDelegateIntentViewFingerprint : Fingerprint(
     definingClass = "Lcom/ea/blast/" + "SystemAndroidDelegate;",
@@ -967,5 +875,28 @@ object SystemAndroidDelegateIntentViewFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;"),
     filters = listOf(
         string("android.intent.action.VIEW")
+    )
+)
+
+/**
+ * com.ea.rs.xpromo.Item.getTitle() -> String
+ *
+ * Returns the server-pushed m_title — the label shown on the cross-promo
+ * buttons ("GET STARS!"). The button reads it via XPromoRefreshableButton$2 /
+ * RefreshableButton$2 (the only callers in the dex); Item is cross-promo
+ * exclusive, so the patch is unconditional: returnEarly(a constant).
+ *
+ * Body: iget-object v0, p0, m_title; return-object v0 — no const-strings,
+ * so the filter anchors on the RETURN_OBJECT opcode (the method's only
+ * return instruction).
+ */
+object XpromoItemTitleFingerprint : Fingerprint(
+    definingClass = "Lcom/ea/rs/xpromo/" + "Item;",
+    name = "getTitle",
+    isStatic = false,
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    filters = listOf(
+        anyInstruction(opcode(Opcode.RETURN_OBJECT))
     )
 )

@@ -4,7 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
+import app.morphed.patches.twitch.settings.patchSettingsPatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
+import app.morphed.patches.twitch.shared.markIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -22,9 +24,12 @@ val adServerBlockingPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 
+    dependsOn(patchSettingsPatch)
     extendWith("extensions/twitch.mpe")
 
     execute {
+        markIncluded("adBlock")
+
         OkHttpRouteLookupFingerprint.method.apply {
             val lookups = implementation!!.instructions.withIndex().filter { (_, instruction) ->
                 val reference = instruction.getReference<MethodReference>()

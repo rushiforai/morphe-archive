@@ -1152,7 +1152,7 @@ Still here. Nothing is waiting.	Hâlâ burada. Bekleyen bir şey yok.
 Still reading the record. Tap again in a moment.	Kayıt hâlâ okunuyor. Birazdan yeniden dokun.
 Still saving the last one	Bir önceki hâlâ kaydediliyor
 The last one is still waiting to start	Bir önceki hâlâ başlamayı bekliyor
-Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too.	TikTok'un kullanım raporları, reklam takibi ve çökme raporları göndermesini engeller. TikTok'un kendi tanılama araçları da sessizleşir.
+Stops TikTok from sending usage reports, ad tracking and crash reports. TikTok's own diagnostic tools go quiet too. The settings TikTok downloads to check its own requests still come through.	TikTok'un kullanım raporları, reklam takibi ve çökme raporları göndermesini engeller. TikTok'un kendi tanılama araçları da sessizleşir. TikTok'un kendi isteklerini denetlemek için indirdiği ayarlar yine gelir.
 Stops TikTok from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	TikTok'un ekranını her videonun kare hızına göre yavaşlatmasını engeller. 90 veya 120 Hz'lik bir telefonda bu istek tüm uygulamayı, kaydırma dahil, yavaşlatır.
 Keep the screen's brightness in the camera	Kamerada ekran parlaklığını koru
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	TikTok'un video çekerken, düzenlerken veya paylaşırken ekranını parlatmasını engeller. Ön flaş ekranı yine beyaz yapar, ama senin kendi parlaklığında.
@@ -1760,13 +1760,16 @@ Video of photos	Fotoğraflardan video
 # context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
 debug debugging logs logging	hata ayıklama günlükler loglar
 Export comments	Yorumları dışa aktar
-Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments and replies loaded so far to a file you pick. Open the reply threads you want first.	Arama kutusunun altına Export CSV ve Export JSON düğmelerini ekler, bu yüzden “Yorumların içinde ara” açık olmalı. Şimdiye kadar yüklenen yorumları ve yanıtları seçtiğin bir dosyaya kaydederler. Önce istediğin yanıt dizilerini aç.
+Adds Export CSV and Export JSON buttons under the search box, so Search within comments must be on. They save the comments loaded so far to a file you pick, and load every reply under them first.	Arama kutusunun altına Export CSV ve Export JSON düğmelerini ekler, bu yüzden “Yorumların içinde ara” açık olmalı. Şimdiye kadar yüklenen yorumları seçtiğin bir dosyaya kaydederler ve önce altlarındaki tüm yanıtları yüklerler.
 Export CSV	CSV dışa aktar
 Export JSON	JSON dışa aktar
 1 comment or reply loaded	1 yorum veya yanıt yüklendi
 %1$d comments and replies loaded	%1$d yorum ve yanıt yüklendi
 No comments are loaded to export yet.	Dışa aktarılacak yüklenmiş yorum henüz yok.
 Exported %1$d comments and %2$d replies	%1$d yorum ve %2$d yanıt dışa aktarıldı
+# context: Shown beside the Export buttons while the replies load. The first number is the replies loaded so far, the second how many TikTok says there are
+Loading replies, %1$d of %2$d	Yanıtlar yükleniyor, %1$d / %2$d
+Some replies weren't loaded, so they aren't in the file.	Bazı yanıtlar yüklenemedi, bu yüzden dosyada yoklar.
 Comment export failed	Yorumlar dışa aktarılamadı
 Some of these notes are in English.	Bu notların bir kısmı İngilizcedir.
 More than %1$d comments were loaded, so the rest aren't in the file.	%1$d yorumdan fazlası yüklenmişti, kalanlar dosyada yok.
@@ -1833,7 +1836,7 @@ A LIVE you swipe to comes back with its chat, gifts and buttons showing. This ke
 Dark LIVE panels in dark mode	Karanlık modda koyu LIVE panelleri
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	TikTok karanlık moddayken bile bir LIVE odası paylaşım menüsünü, hayran kulübünü ve diğer panelleri açık renklerle açar. Bu ayar onları koyu açar.
 Keep watching in a small window	Küçük bir pencerede izlemeye devam et
-When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Bir video oynarken TikTok'tan çıktığınızda, video diğer uygulamalarınızın üzerinde küçük bir pencerede oynamaya devam eder ve duraklatmak için bir düğme bulunur. Akışta ve bir profilden, aramadan veya bir sesten açtığınız videolarda çalışır. Android 8 veya üstü gerekir.
+When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Bir video oynarken TikTok'tan çıktığınızda, video diğer uygulamalarınızın üzerinde küçük bir pencerede oynamaya devam eder ve duraklatmak, önceki veya sonraki videoya geçmek için düğmeler bulunur. Akışta, LIVE'larda ve bir profilden, aramadan veya bir sesten açtığınız videolarda çalışır. Android 8 veya üstü gerekir.
 Play	Oynat
 Pause	Duraklat
 Posting	Paylaşım
@@ -2199,7 +2202,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	LIVE sohbetini otomatik çevir
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	Bir LIVE odasındaki Yorumları çevir düğmesi için ayrıca Japon SIM gerekir. Hushfeed ayarları > Bölge içinde SIM bilgilerini geçersiz kıl seçeneğini aç, SIM ülke hazır ayarı olarak Japan, NTT DOCOMO (44010) seç, sonra TikTok'u yeniden başlat.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Yorumlar yalnızca TikTok'un bunu açtığı videoların üzerinde kayar, bu yüzden çoğu video aynı kalır.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	TikTok'un izin verdiği geniş videolarda videonun altında tek satırlık yorum ekleme düğmesi, tam ekranda da bunlar için bir çubuk görünür. Diğer videolar aynı kalır.
 
 Pick videos to save from profile grids	Profil ızgaralarından kaydedilecek videoları seç
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Profil, Beğenilenler veya Favoriler ızgarasındaki her videoya bir daire koyar. En fazla %1$s tane seç, sonra Kaydet'e dokun. Hepsi sayaç ve İptal ile sırayla kaydedilir.
@@ -2268,7 +2271,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	Profil menüsünde Bakiye'yi gizle
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	Profilinin sağ üstündeki düğmenin açtığı menüden Bakiye'yi gizle. Jetonların ve hediyelerin olduğu gibi kalır.
 See-through status bar	Şeffaf durum çubuğu
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	Ana akışta videonun ekranın üstüne kadar uzanmasını sağlar, saat ve durum simgeleri videonun üzerinde görünür. Üstteki sekmeler yerinde kalır.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	Videonun ekranın üstüne kadar uzanmasını sağlar, saat ve durum simgeleri videonun üzerinde görünür. Ana akışta ve aramadan, bir profilden ya da Beğenilenler ve Favoriler'inden açtığın videolarda çalışır. Üstteki sekmeler yerinde kalır.
 Floating bottom bar	Yüzen alt çubuk
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	Ana akıştaki sekmeleri videonun üzerinde yüzen yuvarlak, şeffaf koyu bir kapsülde gösterir. Şeffaf alt çubuk açık olmalıdır.
 Liquid glass look	Sıvı cam görünümü
@@ -2287,9 +2290,9 @@ Most see-through	En şeffaf
 More see-through	Daha şeffaf
 Frosted	Buzlu
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Ana akışta cam kapsülün arkasından videonun ne kadarının göründüğü. En şeffaf en çoğunu, Buzlu en azını gösterir.
-On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	Ana akışta, bulunduğun sekmenin arkasında kabarık bir cam kabarcığı durur ve seçtiğin sonraki sekmeye kayar. Sıvı cam görünümü açık olmalıdır.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	Ana akışta, bulunduğun sekmenin arkasında kabarık bir cam kabarcığı durur ve seçtiğin sonraki sekmeye kayar. Sıvı cam görünümü açık olsun ya da olmasın, her alt çubukta çalışır.
 Slide across the tabs	Sekmeler boyunca kaydır
-On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Ana akışta parmağını cam kapsül boyunca kaydır, mercek onu takip eder. Bırakınca o sekme açılır. Dokunmalar ve uzun basmalar eskisi gibi çalışır. Geçerli sekmede cam mercek açık olmalıdır.
+On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Ana akışta parmağını sekmeler boyunca kaydır, mercek onu takip eder. Bırakınca o sekme açılır. Dokunmalar ve uzun basmalar eskisi gibi çalışır. Geçerli sekmede cam mercek açık olmalıdır.
 Haptics on the tabs	Sekmelerde titreşim
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	Ana akışta cam mercek her sekmenin üzerinden geçtiğinde, bir dokunuştan sonra ya da parmağının altında kayarken hafif bir tık. Geçerli sekmede cam mercek açık olmalıdır.
 Haptic style	Titreşim stili
@@ -2386,6 +2389,54 @@ Collapsed	Daraltılmış
 This setting isn't available. Search for another setting.	Bu ayar kullanılamıyor. Başka bir ayar arayın.
 Hide the Hushfeed row	Hushfeed satırını gizle
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Hushfeed'i TikTok'un Ayarlar ve gizlilik listesinden çıkarır. Bu ayarları açmak için akışın üstündeki Senin İçin'e basılı tut, ya da Hushfeed ayarları için Ana Sayfa'ya basılı tut açıksa Ana Sayfa'ya. İkisi de açamıyorsa satır kalır.
+# context: Title of the checklist that hides rows from TikTok's own Settings and privacy page
+Hide Settings and privacy rows	Ayarlar ve gizlilik satırlarını gizle
+# context: Note under that title. A section's title is the small heading over a group of rows on that page
+Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.	TikTok'un Ayarlar ve gizlilik sayfasından çıkarılacak satırları seç. Bu, sayfa bir sonraki açılışında geçerli olur ve satırı kalmayan bir bölüm başlığını da kaybeder.
+# context: Checklist rows, each one a row of TikTok's Settings and privacy page. Use the label TikTok itself shows for that row in this language
+Activity center	Etkinlik merkezi
+Manage posts	Gönderileri yönet
+Content preferences	İçerik tercihleri
+Notifications	Bildirimler
+Time and well-being	Zaman ve sağlık
+Family Pairing	Aile Eşleştirme
+Sign up	Kaydol
+Account	Hesap
+Security & permissions	Güvenlik ve izinler
+Analytics	Analizler
+Orders	Siparişler
+Balance	Bakiye
+QR code	QR kodu
+Share profile	Profili paylaş
+TikTok Plus	TikTok Plus
+Invite friends	Arkadaşlarını davet et
+Inbox mode	Gelen kutusu modu
+Audience controls	Kitle kontrolleri
+Background audio	Arka planda ses
+Display	Ekran
+Commercial content library	Ticari içerik kütüphanesi
+Accessibility	Erişilebilirlik
+Home screen shortcuts	Ana ekran kısayolları
+Join Amplify	Amplify'a katıl
+Contacts and location	Kişiler ve konum
+Shake to report	Bildirmek için salla
+Free up space	Yer aç
+Data Saver	Veri Tasarrufu
+Free data	Ücretsiz veri
+Live wallpaper	Canlı duvar kağıdı
+Check for updates	Güncellemeleri kontrol et
+Lite mode	Lite modu
+TikTok Beta	TikTok Beta
+Safety Center	Güvenlik Merkezi
+Privacy Center	Gizlilik Merkezi
+Privacy checkup	Gizlilik kontrolü
+Support	Destek
+Deactivate or delete account	Hesabı devre dışı bırak veya sil
+Terms and Policies	Koşullar ve Politikalar
+Policy updates	Politika güncellemeleri
+What's new on TikTok	TikTok'taki yenilikler
+Switch account	Hesap değiştir
+Log out	Çıkış yap
 Open the search page	Arama sayfasını aç
 Search didn't open. Restart TikTok and try again.	Arama açılmadı. TikTok'u yeniden başlatıp dene.
 Fold the search into a button	Aramayı bir düğmeye katla
@@ -2766,3 +2817,47 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	Henüz hiç arama sekmesi görülmedi
 Search for something once, then return here to choose its tabs.	Bir kez bir şey ara, sonra sekmelerini seçmek için buraya dön.
+Video download codec	Video indirme kodeki
+HEVC first	Önce HEVC
+H.264 only	Yalnızca H.264
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	Aynı kalitede Otomatik, neredeyse her oynatıcının açtığı H.264 ile kaydeder. HEVC çoğu zaman daha nettir ama bazı eski oynatıcılar ve televizyonlar onu oynatamaz.
+Pick which stories to save	Hangi hikayelerin kaydedileceğini seç
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	Birinin birden fazla hikayesi olduğunda kaydetme hangilerinin tutulacağını sorar. İzlediğin hikaye zaten işaretli.
+Pick stories to save	Kaydedilecek hikayeleri seç
+%1$s of %2$s stories are loaded. Watch further to load the rest.	%2$s hikayeden %1$s tanesi yüklendi. Kalanını yüklemek için izlemeye devam et.
+Story %1$s	Hikaye %1$s
+On screen	Ekranda
+Pick at least one story	En az bir hikaye seç
+Shade behind the status bar	Durum çubuğunun arkasında gölge
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	Saatin ve durum simgelerinin arkasında yumuşak koyu bir geçiş, parlak bir videonun üzerinde kolay okunsunlar diye. Şeffaf durum çubuğu gerekir.
+Glass Stories button on Following	Takip Edilenler'de cam Hikayeler düğmesi
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	Takip Edilenler akışının üstündeki Hikayeler düğmesi yuvarlak uçlu bir cama dönüşür. Android 12 ve sonrasında arkasındaki video da bulanıklaşır.
+# context: Row title of the Inbox switch that shows the send time under each message in a chat
+Show message times	Mesaj saatlerini göster
+# context: Summary under that switch; TikTok itself only shows a time over a message after a gap
+Puts the time each message was sent under it in a chat. TikTok's own timestamps stay where they are.	Bir sohbetteki her mesajın altında gönderildiği saati gösterir. TikTok'un kendi zaman damgaları olduğu yerde kalır.
+This photo post is already saved	Bu fotoğraf gönderisi zaten kayıtlı
+This story is already saved	Bu hikaye zaten kayıtlı
+Stretch the video to the screen	Videoyu ekrana uzat
+Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.	Hiçbir şeyi kırpmadan tüm pencereyi kaplar. Bunun için video biraz daha uzun veya geniş olur. Şekli ekrandan çok farklı olan bir video TikTok'un boyutunu korur.
+Sort loaded videos on Favorites grids	Favoriler ızgaralarında yüklenen videoları sırala
+Show the country and date under the caption	Ülkeyi ve tarihi açıklamanın altında göster
+Moves the country and the post date off the creator's row onto a line of their own below the caption.	Ülkeyi ve paylaşım tarihini içerik üreticisinin satırından alıp açıklamanın altındaki ayrı bir satıra taşır.
+# context: picture-in-picture window button that moves TikTok's feed
+Previous video	Önceki video
+# context: picture-in-picture window button that moves TikTok's feed
+Next video	Sonraki video
+Sort loaded videos in collections	Koleksiyonlarda yüklenen videoları sırala
+Same as Favorites grids	Favoriler ızgaralarıyla aynı
+Hide the summary on LIVE previews	LIVE önizlemelerinde özeti gizle
+A LIVE in the feed can show a Summary card that sums up the stream. This keeps it hidden.	Akıştaki bir LIVE, yayını özetleyen bir Özet kartı gösterebilir. Bu onu gizli tutar.
+Look up a commenter's country	Yorum yazanın ülkesini öğren
+Press and hold a comment to find Show account country in its menu. It asks TikTok where that account is based, or where its latest videos were posted from.	Bir yoruma basılı tutun ve menüsünde Hesabın ülkesini göster seçeneğini bulun. TikTok'a bu hesabın nerede olduğunu ya da son videolarının nereden paylaşıldığını sorar.
+Show account country	Hesabın ülkesini göster
+Account based in %1$s	Hesabın ülkesi: %1$s
+TikTok gives no country for this account	TikTok bu hesap için ülke vermiyor
+Couldn't get the country. Try again.	Ülke alınamadı. Tekrar deneyin.
+Account country on profiles	Profillerde hesabın ülkesi
+A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	Bir profilin paylaşım sayfasına Hesabın ülkesi düğmesi eklenir. TikTok'a bu hesabın nerede olduğunu ya da son videolarının nereden paylaşıldığını sorar.
+Account country	Hesabın ülkesi
+Videos posted from %1$s	Videoların paylaşıldığı ülke: %1$s

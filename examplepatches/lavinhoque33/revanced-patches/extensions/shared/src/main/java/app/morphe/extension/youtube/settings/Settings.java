@@ -301,6 +301,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SECTION_HEADER_IN_FEED = new BooleanSetting("revanced_hide_section_header_in_feed", FALSE, true);
     public static final BooleanSetting DISABLE_AUTO_FEED_REFRESH = new BooleanSetting("morphe_disable_auto_feed_refresh", FALSE);
     public static final IntegerSetting PLAYBACK_IN_FEEDS = new IntegerSetting("morphe_playback_in_feeds", PlaybackInFeedsPatch.MODE_ALWAYS_ON, true);
+    public static final BooleanSetting PLAYBACK_IN_FEEDS_IMPORTED =
+            new BooleanSetting("morphe_playback_in_feeds_imported", FALSE, false, false);
     public static final EnumSetting<FeedCardLayout> FEED_CARD_LAYOUT = new EnumSetting<>("morphe_feed_card_layout", FeedCardLayout.DEFAULT, true);
     public static final IntegerSetting FEED_CARD_LAYOUT_CORNER_RADIUS = new IntegerSetting(
             "morphe_feed_card_layout_corner_radius", 12, true, new SliderConfig(0, 28, 1, "dp"));
@@ -450,7 +452,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_ACCOUNT_MENU = new BooleanSetting("revanced_hide_account_menu", FALSE);
     public static final BooleanSetting HIDE_ACCOUNT_MENU_FILTER_TYPE = new BooleanSetting("revanced_hide_account_menu_filter_type", FALSE, true, parent(HIDE_ACCOUNT_MENU));
     public static final StringSetting HIDE_ACCOUNT_MENU_FILTER_STRINGS = new StringSetting("revanced_hide_account_menu_filter_strings", "", true, parent(HIDE_ACCOUNT_MENU));
-    public static final BooleanSetting HIDE_HANDLE = new BooleanSetting("revanced_hide_handle", TRUE, true);
+    public static final BooleanSetting HIDE_HANDLE = new BooleanSetting("revanced_hide_handle", FALSE, true);
 
     // PreferenceScreen: General - Custom filter
     public static final BooleanSetting CUSTOM_FILTER = new BooleanSetting("revanced_custom_filter", FALSE);
@@ -1553,6 +1555,7 @@ public class Settings extends SharedYouTubeSettings {
         Setting.addImportExportCallback(LEGACY_SETTINGS_IMPORT_MIGRATION_CALLBACK);
         Setting.addImportExportCallback(SponsorBlockSettings.SB_IMPORT_EXPORT_CALLBACK);
         Setting.addImportExportCallback(GoogleVoiceOverTranslationPatch.VOT_IMPORT_EXPORT_CALLBACK);
+        Setting.addImportExportCallback(PlaybackInFeedsPatch.IMPORT_EXPORT_CALLBACK);
 
         // endregion
 

@@ -1,2 +1,5 @@
 # Words added to the list (one per line). A # starts a comment.
 # Applied by tools/wordlists/build.py.
+BRÅTET
+RÖTAD
+IT

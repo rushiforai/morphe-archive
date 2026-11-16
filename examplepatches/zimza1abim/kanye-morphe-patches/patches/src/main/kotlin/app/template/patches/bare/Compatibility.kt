@@ -15,6 +15,7 @@ internal val BARE_VERSIONS = listOf(
     "1.0.1",
     "2.0.2",
     "2.0.3",
+    "2.0.4",
 )
 
 internal fun bareCompatibility() = Compatibility(

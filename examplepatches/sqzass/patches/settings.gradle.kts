@@ -1,4 +1,4 @@
-rootProject.name = "inepts-patches"
+rootProject.name = "lustx-patches"
 
 pluginManagement {
     repositories {

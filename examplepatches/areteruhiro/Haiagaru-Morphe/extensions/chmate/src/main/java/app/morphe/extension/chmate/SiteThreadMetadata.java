@@ -33,9 +33,27 @@ public final class SiteThreadMetadata {
     }
     private static Field field(Object object,String name)throws Exception{String key=object.getClass().getName()+":"+name;Field found=FIELDS.get(key);if(found!=null)return found;found=object.getClass().getDeclaredField(name);found.setAccessible(true);FIELDS.put(key,found);return found;}
     public static void begin(Object adapter){
-        CURRENT.remove();if(adapter==null)return;String type=adapter.getClass().getName(),member=type.equals("o.m8a")?"r":type.equals("o.getWriteBytesTotal")?"g":type.equals("o.zzavb")?"c":null;if(member==null)return;
-        Context context=Haiagaru.applicationContextForExtension();if(context==null)return;
-        try{Object info=field(adapter,member).get(adapter);if(info==null)return;String[] members=ExternalBoardEditor.infoFields().split(",");if(members.length!=2)return;String host=(String)field(info,members[0]).get(info),key=(String)field(info,members[1]).get(info);if(host==null||!host.startsWith("127.0.0.1:")||key==null||!key.matches(SiteBoardGateway.KEY_PATTERN))return;SiteBoardGateway gateway=SiteBoardGateway.get(context);if(!gateway.registrationUrl(key).equals("http://"+host+"/"+key+"/"))return;initialize(context);CURRENT.set(new Binding(gateway,key));ADAPTERS.put(adapter,true);}catch(Exception ignored){/* Only the exact registered site namespace is eligible. */}
+        CURRENT.remove();
+        if(adapter==null)return;
+        String type=adapter.getClass().getName();
+        String member=type.equals("o.m8a")?"r":type.equals("o.getWriteBytesTotal")?"g":type.equals("o.zzavb")?"c":null;
+        if(member==null)return;
+        Context context=Haiagaru.applicationContextForExtension();
+        if(context==null)return;
+        try{
+            Object info=field(adapter,member).get(adapter);
+            if(info==null)return;
+            String[] members=ExternalBoardEditor.infoFields().split(",");
+            if(members.length!=2)return;
+            String host=(String)field(info,members[0]).get(info);
+            String path=(String)field(info,members[1]).get(info);
+            SiteBoardGateway gateway=SiteBoardGateway.get(context);
+            String key=gateway.registeredKey(host,path);
+            if(key==null)return;
+            initialize(context);
+            CURRENT.set(new Binding(gateway,key));
+            ADAPTERS.put(adapter,true);
+        }catch(Exception ignored){/* Only the exact registered site namespace is eligible. */}
     }
     public static void subject(Object row){
         Binding state=CURRENT.get();if(state==null||row==null)return;

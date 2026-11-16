@@ -1,0 +1,57 @@
+name: Gradle dependency submission
+
+# Replaces GitHub's generic automatic submission, which cannot authenticate
+# to the Morphe GitHub Packages plugin registry during Gradle configuration.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - '**/*.gradle'
+      - '**/*.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradle.properties'
+      - '.github/workflows/dependency-submission.yml'
+      - '.github/workflows/actions.lock'
+  schedule:
+    - cron: '17 20 * * 0' # Monday 05:17 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write # Required by GitHub's dependency submission API
+  packages: read  # Required to resolve the Morphe plugin from GitHub Packages
+
+concurrency:
+  group: gradle-dependency-submission-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    name: Generate and submit Gradle dependency graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Java 25
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Use validated Gradle distribution mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-provider: basic
+          dependency-graph: generate-and-submit
+          dependency-graph-continue-on-failure: false
+          additional-arguments: --no-daemon

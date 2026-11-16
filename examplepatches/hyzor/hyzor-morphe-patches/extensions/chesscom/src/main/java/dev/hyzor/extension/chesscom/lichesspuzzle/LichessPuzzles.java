@@ -103,6 +103,8 @@ public final class LichessPuzzles {
     private static String scoreClass() { return ""; }
     private static String problemIdField() { return ""; }
     private static String guestRepositoryClass() { return ""; }
+    private static String ratingStatsClass() { return ""; }
+    private static String ratingPointClass() { return ""; }
 
     public static boolean enabled() {
         return Features.lichessPuzzlesPatched() && Features.isEnabled(Features.LICHESS_PUZZLES);
@@ -735,7 +737,7 @@ public final class LichessPuzzles {
     public static Object ratingStats(Object original) {
         if (original != null || !session()) return original;
         try {
-            return Class.forName("com.chess.features.puzzles.db.model.o").getConstructor().newInstance();
+            return Class.forName(ratingStatsClass()).getConstructor().newInstance();
         } catch (Throwable throwable) {
             Utils.logError("Lichess rating summary", throwable);
             return original;
@@ -771,7 +773,7 @@ public final class LichessPuzzles {
         int[] values = ratingHistoryValues();
         java.util.List<Object> points = new java.util.ArrayList<>();
         try {
-            Constructor<?> constructor = Class.forName("com.chess.features.puzzles.rated.ui.m")
+            Constructor<?> constructor = Class.forName(ratingPointClass())
                 .getConstructor(int.class, Boolean.class);
             for (int i = 1; i < values.length; i++) {
                 points.add(constructor.newInstance(values[i], null));

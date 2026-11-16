@@ -93,6 +93,7 @@ final class GlassNavigationBar {
         private final int[] given = {-1, -1, -1, -1};
         private GlassCapsule glass;
         private int selected = -1;
+        private final int[] location = new int[2];
         /** The capsule's edges in the bar, set by {@link #capsule} for {@link #pill}. */
         private float left;
         private float top;
@@ -142,10 +143,9 @@ final class GlassNavigationBar {
             int margin = Math.round(FLOATING_MARGIN_DP * density);
             // How much of the window is below the bar, which the system navigation bar overlays: 0 on a bar that
             // runs to the bottom edge of the screen. The slide that hides the bar does not move its layout.
-            int[] at = new int[2];
-            bar.getLocationInWindow(at);
+            bar.getLocationInWindow(location);
             int below = Math.round(bar.getRootView().getHeight()
-                    - (at[1] - bar.getTranslationY() + bar.getHeight()));
+                    - (location[1] - bar.getTranslationY() + bar.getHeight()));
             int under = room + Math.max(0, navigationBar() - below + margin - own[3]);
             int above = own[1] + room;
             int down = own[3] + under;

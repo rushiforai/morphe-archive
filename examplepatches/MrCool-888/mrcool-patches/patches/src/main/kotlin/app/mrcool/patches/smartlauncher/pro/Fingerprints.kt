@@ -13,9 +13,10 @@ import com.android.tools.smali.dexlib2.Opcode
 
 object PurchaseItemsCtor : Fingerprint(
     accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+    strings = listOf("unlockpro"),
     filters = listOf(
         string("lifetime"),
-        opcode(Opcode.INVOKE_DIRECT),
+        opcode(Opcode.INVOKE_DIRECT_RANGE),
         opcode(Opcode.SPUT_OBJECT),
         opcode(Opcode.NEW_INSTANCE)
     )
@@ -34,6 +35,16 @@ object PurchasableItemSetFingerprint : Fingerprint(
 object PurchasableItemGetFingerprint : Fingerprint(
     parameters = listOf(),
     returnType = "Z"
+)
+
+object LicenseRefreshFingerprint : Fingerprint(
+    parameters = listOf(
+        "Lk19;",
+        "Ljava/util/ArrayList;",
+        "Z",
+        "Lginlemon/flower/App;"
+    ),
+    returnType = "V"
 )
 
 object GetAppFingerprint : Fingerprint(

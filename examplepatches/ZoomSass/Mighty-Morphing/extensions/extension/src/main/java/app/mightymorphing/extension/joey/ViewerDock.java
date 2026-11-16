@@ -82,7 +82,7 @@ public final class ViewerDock {
     }
 
     public static void attach(Activity activity) {
-        if (activity == null || !ModernUi.isModernUiEnabled(activity)) return;
+        if (activity == null) return;
         if (ATTACHED.containsKey(activity)) return;
         ATTACHED.put(activity, Boolean.TRUE);
         try {

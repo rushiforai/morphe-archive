@@ -1,10 +1,11 @@
 package app.morphe.patches.xiaomi.earbuds
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -32,10 +33,12 @@ val xiaomiEarbudsSurgicalOEMUnlockPatch = bytecodePatch(
                 val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference
                 ref?.definingClass == "Lcom/xiaomi/fitness/common/utils/RomUtils;" && ref.name == "isXiaomi"
             }
-            check(targetIdx >= 0) { "Target invocation RomUtils.isXiaomi not found in DeviceSettingsFragment.initFunctionItem" }
+            check(targetIdx >= 0 && targetIdx + 1 < instructions.size) { "Target invocation RomUtils.isXiaomi not found in DeviceSettingsFragment.initFunctionItem" }
 
             val moveResultIns = instructions[targetIdx + 1]
-            val reg = (moveResultIns as OneRegisterInstruction).registerA
+            check(moveResultIns.opcode == Opcode.MOVE_RESULT) { "Expected move-result instruction at index ${targetIdx + 1} but found ${moveResultIns.opcode}" }
+            val reg = (moveResultIns as? OneRegisterInstruction)?.registerA
+                ?: error("Failed to extract register from move-result instruction at index ${targetIdx + 1}")
             replaceInstruction(targetIdx, "nop")
             replaceInstruction(targetIdx + 1, "const/4 v$reg, 0")
             hookedMethods.add("DeviceSettingsFragment.initFunctionItem(unlockFunction5009)")
@@ -48,13 +51,7 @@ val xiaomiEarbudsSurgicalOEMUnlockPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("SpatialAudioVM.isShowDialog")
         }
 
@@ -70,10 +67,12 @@ val xiaomiEarbudsSurgicalOEMUnlockPatch = bytecodePatch(
                 val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference
                 ref?.definingClass == "Lcom/xiaomi/fitness/account/manager/AccountManager;" && ref.name == "isLogin"
             }
-            check(targetIdx >= 0) { "Target invocation AccountManager.isLogin not found in initFunctionListener\$lambda\$24" }
+            check(targetIdx >= 0 && targetIdx + 1 < instructions.size) { "Target invocation AccountManager.isLogin not found in initFunctionListener\$lambda\$24" }
 
             val moveResultIns = instructions[targetIdx + 1]
-            val reg = (moveResultIns as OneRegisterInstruction).registerA
+            check(moveResultIns.opcode == Opcode.MOVE_RESULT) { "Expected move-result instruction at index ${targetIdx + 1} but found ${moveResultIns.opcode}" }
+            val reg = (moveResultIns as? OneRegisterInstruction)?.registerA
+                ?: error("Failed to extract register from move-result instruction at index ${targetIdx + 1}")
             replaceInstruction(targetIdx, "nop")
             replaceInstruction(targetIdx + 1, "const/4 v$reg, 1")
             hookedMethods.add("DeviceSettingsFragment.initFunctionListener\$lambda\$24(SuperAivs)")

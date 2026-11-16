@@ -50,8 +50,34 @@ public final class SiteNativeBoards {
  }
  /** Modern ChMate upgrades compatible-board URL producers to HTTPS. */
  public static String rewriteInfoUrl(Object info,String value){
-  if(info==null||value==null||!value.startsWith("https://127.0.0.1:"))return value;
+  if(info==null||value==null||!(value.startsWith("http://")||value.startsWith("https://")))return value;
+  boolean directFutaba=value.startsWith("https://img.2chan.net/")||value.startsWith("http://img.2chan.net/")
+          ||value.startsWith("https://may.2chan.net/")||value.startsWith("http://may.2chan.net/");
+  if(!directFutaba&&!value.startsWith("https://127.0.0.1:"))return value;
   Context context=Haiagaru.applicationContextForExtension();if(context==null)return value;
+  try{
+   java.net.URI source=java.net.URI.create(value);
+   if(source.getHost()!=null&&source.getHost().matches("(?:img|may)\\.2chan\\.net")&&source.getRawUserInfo()==null&&source.getPort()==-1){
+    String[] fields=ExternalBoardEditor.infoFields().split(",");
+    String host=(String)NativeFields.find(info.getClass(),fields[0]).get(info);
+    String path=(String)NativeFields.find(info.getClass(),fields[1]).get(info);
+    if(source.getHost().equals(host)&&"b".equals(path)){
+     SiteBoardGateway gateway=SiteBoardGateway.get(context);
+     String key=gateway.registeredKey(host,path);
+     if(key!=null){
+      String local=gateway.registrationUrl(key);
+      if(source.getPath().startsWith("/b/")){
+       String suffix=source.getPath().substring(3);
+       if(suffix.isEmpty()||suffix.equals("SETTING.TXT")||suffix.equals("subject.txt")||suffix.matches("dat/[0-9]{1,12}\\.dat"))
+        return local+suffix;
+      }
+      java.util.regex.Matcher thread=Pattern.compile("/test/read\\.cgi/b/([0-9]{1,12})/([0-9ln-]*)").matcher(source.getPath());
+      if(thread.matches())return gateway.nativeUrl(key,SiteThreadIds.source(thread.group(1)))+thread.group(2);
+     }
+    }
+   }
+  }catch(Exception failure){android.util.Log.w("Haiagaru","Direct Futaba board transport unavailable",failure);}
+  if(!value.startsWith("https://127.0.0.1:"))return value;
   try{
    java.net.URI uri=java.net.URI.create(value);if(!"127.0.0.1".equals(uri.getHost())||uri.getRawUserInfo()!=null)return value;
    String[] fields=ExternalBoardEditor.infoFields().split(",");if(fields.length!=2)return value;

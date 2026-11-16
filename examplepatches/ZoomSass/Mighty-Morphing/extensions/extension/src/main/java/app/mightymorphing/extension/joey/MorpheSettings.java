@@ -36,6 +36,7 @@ public final class MorpheSettings {
     private static final String KEY_YOUTUBE_INLINE = "comment_youtube_inline";
     private static final String KEY_LIMIT = "comment_media_limit_mb";
     private static final String KEY_TOOLTIPS = "tooltips_disabled";
+    private static final String KEY_UNDELETE = "undelete_arctic_shift";
     private static final int ACCENT = 0xFFF0A202;
 
     static final int SIZE_SMALL = 160;
@@ -46,6 +47,8 @@ public final class MorpheSettings {
     private static boolean backupControls;
     private static boolean showHideControls;
     private static boolean modernUiControls;
+    private static boolean undeleteControls;
+    private static boolean mediaEnhancementControls;
 
     private MorpheSettings() {
     }
@@ -56,6 +59,33 @@ public final class MorpheSettings {
 
     public static void enableBackup() {
         backupControls = true;
+    }
+
+    /** Shared media hooks are patched (Modern UI or Media enhancements). */
+    public static void enableMediaEnhancements() {
+        mediaEnhancementControls = true;
+    }
+
+    public static boolean mediaEnhancementControls() {
+        return mediaEnhancementControls;
+    }
+
+    public static void enableUndelete() {
+        undeleteControls = true;
+    }
+
+    public static boolean undeleteControls() {
+        return undeleteControls;
+    }
+
+    /** Restore via Arctic Shift. Off until turned on; it only ever fetches on a tap. */
+    public static boolean undelete(Context context) {
+        return prefs(context).getBoolean(KEY_UNDELETE, false);
+    }
+
+    public static void saveUndelete(Context context, boolean on) {
+        prefs(context).edit().putBoolean(KEY_UNDELETE, on).apply();
+        Undelete.setEnabled(on);
     }
 
     public static void enableShowHide() {
@@ -104,7 +134,7 @@ public final class MorpheSettings {
             }
         }
 
-        if (!mediaControls && !backupControls && !showHideControls && !modernUiControls) return;
+        if (!mediaControls && !backupControls && !showHideControls && !modernUiControls && !undeleteControls) return;
         try {
             int id = activity.getResources().getIdentifier(
                     "setting_item_comments_clickable", "id", activity.getPackageName());

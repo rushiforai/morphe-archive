@@ -18,7 +18,7 @@ public final class SiteThreadPopup {
         Context c=Haiagaru.applicationContextForExtension();if(c==null||info==null)return null;
         String[] fields=ExternalBoardEditor.infoFields().split(",");if(fields.length!=2)return null;
         String host=(String)NativeFields.find(info.getClass(),fields[0]).get(info);
-        if(host==null||!host.startsWith("127.0.0.1:"))return null;
+        if(host==null)return null;
         String path=(String)NativeFields.find(info.getClass(),fields[1]).get(info);
         SiteBoardGateway gateway=SiteBoardGateway.get(c);
         String key=gateway.registeredKey(host,path);if(key==null)return null;

@@ -2,6 +2,7 @@ package app.badfella.extension.linkedin;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
@@ -17,6 +18,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Lets each item of LinkedIn's "More" tab (Puzzle games, Groups, Events, Newsletters, ...) be hidden, and
@@ -57,6 +60,10 @@ public final class MoreMenu {
             new Item("newsletters", "Newsletters", "https://www.linkedin.com/mynetwork/network-manager/newsletters/"),
     };
 
+    private static final Map<View, int[]> ORIGINAL_MARGINS = new WeakHashMap<>();
+
+    static final Item PATCHES = new Item("badfella-patches", "BadFella Patches", null);
+
     private MoreMenu() {
     }
 
@@ -80,11 +87,20 @@ public final class MoreMenu {
         return items;
     }
 
-    /** Items for the Me panel: none unless the items are moved there, then the ones not hidden. */
-    private static List<Item> shownItems() {
+    /** Settings follows the visible Groups card, or the other shortcuts when Groups is absent. */
+    static List<Item> shownItems() {
         List<Item> shown = new ArrayList<>();
-        if (!Settings.moveMoreItems()) return shown;
-        for (Item item : items()) if (Settings.get(item.key(), true)) shown.add(item);
+        if (Settings.moveMoreItems()) {
+            for (Item item : items()) if (Settings.get(item.key(), true)) shown.add(item);
+        }
+        int position = shown.size();
+        for (int i = 0; i < shown.size(); i++) {
+            if ("groups".equals(shown.get(i).id)) {
+                position = i + 1;
+                break;
+            }
+        }
+        shown.add(position, PATCHES);
         return shown;
     }
 
@@ -138,7 +154,7 @@ public final class MoreMenu {
 
     /**
      * Injected after HomeNavPanelFeature puts the divider in the list at the bottom of the Me panel (the divider,
-     * then "Settings & Privacy"): adds the items as sections, like "Saved posts", above the divider.
+     * then "Settings & Privacy"): adds the shortcut cards and settings above the divider.
      */
     public static void addToFooter(Object list) {
         List<Item> shown = shownItems();
@@ -193,10 +209,13 @@ public final class MoreMenu {
             for (Item item : shownItems()) if (item.label.equals(title)) match = item;
             // Section views are recycled, so a view that showed an item's icon gets it cleared.
             if (root instanceof View) setIcon((View) root, match);
-            if (root instanceof View && match != null) setMargins((View) root);
+            if (root instanceof View) setMargins((View) root, match != null);
             if (match == null) return;
-            String url = match.url;
-            View.OnClickListener open = v -> open(v.getContext(), url);
+            Item item = match;
+            View.OnClickListener open = v -> {
+                if (item == PATCHES) SettingsActivity.open(activityOf(v.getContext()));
+                else open(v.getContext(), item.url);
+            };
             Field field = Reflect.field(presenter.getClass(), "sectionHeaderClickListener");
             if (field != null) field.set(presenter, open);
         } catch (Throwable t) {
@@ -227,9 +246,23 @@ public final class MoreMenu {
      * The footer list has no spacing of its own, unlike the list above it, so the item cards get the margins of the
      * cards there ("Saved posts"): 17dp at the sides and 16dp between cards.
      */
-    private static void setMargins(View root) {
+    private static void setMargins(View root, boolean card) {
         if (!(root.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) root.getLayoutParams();
+        int[] original = ORIGINAL_MARGINS.get(root);
+        if (!card) {
+            if (original == null) return;
+            params.setMarginStart(original[0]);
+            params.setMarginEnd(original[1]);
+            params.bottomMargin = original[2];
+            root.setLayoutParams(params);
+            ORIGINAL_MARGINS.remove(root);
+            return;
+        }
+        if (original == null) {
+            ORIGINAL_MARGINS.put(root, new int[] {
+                    params.getMarginStart(), params.getMarginEnd(), params.bottomMargin});
+        }
         float density = root.getResources().getDisplayMetrics().density;
         int side = Math.round(17 * density);
         params.setMarginStart(side);
@@ -240,6 +273,8 @@ public final class MoreMenu {
 
     private static String icon(String id) {
         switch (id) {
+            case "badfella-patches":
+                return IconDrawable.APPS;
             case "games":
                 return IconDrawable.PUZZLE;
             case "groups":
@@ -251,6 +286,15 @@ public final class MoreMenu {
             default:
                 return IconDrawable.APPS;
         }
+    }
+
+    private static Context activityOf(Context context) {
+        Context current = context;
+        while (current instanceof ContextWrapper) {
+            if (current instanceof Activity) return current;
+            current = ((ContextWrapper) current).getBaseContext();
+        }
+        return context;
     }
 
     /** Opens a linkedin.com link inside LinkedIn, the way its own deep links are handled. */

@@ -5,7 +5,7 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.extension.youtube.settings.preference;
@@ -24,6 +24,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.settings.preference.BulletPointPreference;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.WebViewCheck;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
@@ -114,6 +115,14 @@ public class SpoofVideoStreamsSideEffectsPreference extends Preference {
             case TV_SABR, TV_SABR_WII_U, TV_DASH, TV_SIMPLY ->
                     summary = str("morphe_spoof_video_streams_about_js");
             default -> Logger.printException(() -> "Unknown client: " + clientType);
+        }
+
+        if (clientType.requireJS) {
+            switch (WebViewCheck.getStatus()) {
+                case MISSING -> summary += '\n' + str("morphe_spoof_video_streams_about_webview_missing");
+                case OUTDATED -> summary += '\n' + str("morphe_spoof_video_streams_about_webview_outdated");
+                default -> { }
+            }
         }
 
         if (!clientType.supportsVRImmersiveMode) {

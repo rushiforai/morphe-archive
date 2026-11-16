@@ -36,7 +36,8 @@ final class LayerOverlay extends BitmapOverlay {
 
     LayerOverlay(FrameStyle frame, List<Layer> layers, long durationMs, int width, int height) {
         this.frame = frame;
-        // 書き出しの途中で編集画面から変えられても影響しないよう、一覧は写しを持つ。
+        // 書き出しの途中で要素を足し引きされても影響しないよう、一覧は写しを持つ。要素の中身は
+        // 編集画面と共有するため、書き出し中は編集画面が操作を止める（EditorDialog#dispatchTouchEvent）。
         this.layers = new ArrayList<>(layers);
         this.durationMs = durationMs;
         this.width = width;

@@ -102,8 +102,11 @@ private fun BytecodePatchContext.patchHiddenNgMenu(version: String) {
         .methods.single { it.name == "itemId" }
     bridge.replaceInstruction(0, "const v0, ${profile.third}")
     instructions.indices.filter { instructions[it].opcode == Opcode.RETURN_VOID }.reversed().forEach {
-        method.addInstruction(it,
-            "invoke-static/range {p1 .. p1}, Lapp/morphe/extension/chmate/HiddenNgMenu;->apply(Landroid/view/Menu;)V")
+        method.replaceInstruction(it,"invoke-static/range {p1 .. p1}, Lapp/morphe/extension/chmate/HiddenNgMenu;->apply(Landroid/view/Menu;)V")
+        method.addInstructions(it+1, """
+            invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/MultiResponseNg;->menu(Ljava/lang/Object;Landroid/view/Menu;)V
+            return-void
+        """.trimIndent())
     }
     println("Hidden NG overflow option: $version -> ${owner.type}->${method.name}")
 }
@@ -1259,6 +1262,11 @@ private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
 private fun BytecodePatchContext.patchQuickFilterPosition(version: String) {
     val extension = "Lapp/morphe/extension/chmate/FilterPosition;"
     if (version == "0.8.10.191 dev") {
+        val bind=mutableClassDefBy("Lo/pa;").methods.single{it.name=="onViewCreated"&&it.returnType=="V"}
+        bind.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_VOID}.asReversed().forEach{(index,_)->
+            bind.replaceInstruction(index,"invoke-static/range {p0 .. p0}, $extension->register(Ljava/lang/Object;)V")
+            bind.addInstruction(index+1,"return-void")
+        }
         val owner = "Lo/pa\$21;"
         val callback = mutableClassDefBy(owner).methods.single {
             it.name == "e" && it.parameterTypes.isEmpty() && it.returnType == "V"
@@ -1974,6 +1982,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchImgurWebSessionUpload(packageMetadata.versionName)
         patchEdgeReporterDisplay(packageMetadata.versionName)
         patchEdgeReporterTitleCopy(packageMetadata.versionName)
+        patchDisplayNames(packageMetadata.versionName)
         patchWacchoiLongPressMenu(packageMetadata.versionName)
         patchImageListResolvedMedia(packageMetadata.versionName)
         patchThumbnailClickAttachments(packageMetadata.versionName)
@@ -5013,6 +5022,7 @@ val haiagaruPatch = resourcePatch(
                     writeBytes(bytes)
                 }
             }
+            get("assets/haiagaru/image-ng-runtime-fixed").apply { parentFile.mkdirs(); writeText("1") }
         }
         document("res/values/strings.xml").use { strings ->
             val entry = strings.createElement("string")
@@ -5117,7 +5127,7 @@ val haiagaruPatch = resourcePatch(
             entry.textContent = "フィルタ"
             strings.documentElement.appendChild(entry)
         }
-        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加", "共有NG条件確認")
+        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加", "共有NG条件確認", "選択（レス複数選択）")
         val archiveIcons = mapOf(
             "haiagaru_response_history" to "M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 .07,.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54 .72,-1.21 -3.5,-2.08V8H12z",
             "haiagaru_response_save" to "M17,3H5c-1.11,0 -2,.9 -2,2v14c0,1.1 .89,2 2,2h14c1.1,0 2,-.9 2,-2V7l-4,-4zM12,19c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3zM15,9H5V5h10v4z",
@@ -5182,6 +5192,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_auto_ng_exclusions" to "自動NG除外ID",
             "haiagaru_thread_watch" to "このスレの新着通知",
             "haiagaru_stock_posting" to "標準アプリで書き込むを開く",
+            "haiagaru_response_select" to "選択（レス複数選択）",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
             for (values in listOf("values", "values-en")) {
@@ -5197,6 +5208,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_response_select" ->
+                    "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
                 "haiagaru_stock_posting" ->
                     "M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75zM20.71,7.04a1,1 0,0 0,0 -1.41l-2.34,-2.34a1,1 0,0 0,-1.41 0l-1.83,1.83 3.75,3.75zM13,19h8v2h-8z"
                 "haiagaru_refresh_open_tabs" ->
@@ -5397,6 +5410,12 @@ val haiagaruPatch = resourcePatch(
                 path = path, pathAttribute = "android:pathPrefix")
             document.addOpenUrlFilter(openUrlActivity, listOf("http", "https"), "*.2chan.net",
                 path = "/.*/res/.*", pathAttribute = "android:pathPattern")
+            for (board in listOf("img", "may")) {
+                document.addOpenUrlFilter(openUrlActivity, listOf("http", "https"), "$board.2chan.net",
+                    path = "/b/", pathAttribute = "android:path")
+                document.addOpenUrlFilter(openUrlActivity, listOf("http", "https"), "die-or.work",
+                    path = "/$board/b/", pathAttribute = "android:pathPrefix")
+            }
             if (!dedicatedViewerEnabled) {
                 document.addOpenUrlFilter(
                     openUrlActivity, listOf("http", "https"), "hissi.org",
@@ -5617,6 +5636,11 @@ val haiagaruPatch = resourcePatch(
             })
             application.appendChild(document.createElement("service").apply {
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.WacchoiSearchService")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:foregroundServiceType","dataSync")
+            })
+            application.appendChild(document.createElement("service").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.GlobalTitleSearchService")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:foregroundServiceType","dataSync")
             })

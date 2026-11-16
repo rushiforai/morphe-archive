@@ -1,12 +1,14 @@
 package app.morphe.patches.moovit
 
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants.COMPATIBILITY_MOOVIT
 import app.morphe.patches.shared.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val SEARCH_CALLBACK_CLASS = "Lcom/moovit/search/DefaultSearchLocationCallback;"
@@ -62,18 +64,34 @@ val moovitUsePlacesNewPatch = bytecodePatch(
             instruction.opcode == Opcode.NEW_INSTANCE &&
                 instruction.getReference<TypeReference>()?.type in newTypes
         }
-        if (newInstanceIndex < 0 || newInstanceIndex >= legacyNewInstanceIndex) {
-            error("[Use Places API (New)] New Places provider construction not found before the legacy branch.")
+        if (newInstanceIndex < 0) {
+            error("[Use Places API (New)] New Places provider construction not found.")
         }
         val newType = instructions[newInstanceIndex].getReference<TypeReference>()!!.type
 
-        // Both branches are selected by an if-* immediately before the new provider construction.
-        // Turning that branch into a nop forces execution to fall through into the new provider block.
-        val branchIndex = (newInstanceIndex - 1 downTo 0).firstOrNull { index ->
-            instructions[index].opcode.name.startsWith("if-")
-        } ?: error("[Use Places API (New)] Search provider branch not found.")
+        if (newInstanceIndex < legacyNewInstanceIndex) {
+            // Normal layout: new provider is the fallthrough block, legacy provider is the branch target.
+            val branchIndex = (newInstanceIndex - 1 downTo 0).firstOrNull { index ->
+                instructions[index].opcode.name.startsWith("if-")
+            } ?: error("[Use Places API (New)] Search provider branch not found.")
 
-        targetMethod.replaceInstruction(branchIndex, "nop")
+            targetMethod.replaceInstruction(branchIndex, "nop")
+        } else {
+            // Inverted layout: legacy provider is the fallthrough block, new provider is the branch target.
+            val branchIndex = (legacyNewInstanceIndex - 1 downTo 0).firstOrNull { index ->
+                instructions[index].opcode.name.startsWith("if-")
+            } ?: error("[Use Places API (New)] Search provider branch not found.")
+
+            val branchIns = instructions[branchIndex]
+            val branchOpcode = branchIns.opcode.name
+            if (branchOpcode.startsWith("if-nez") || branchOpcode.startsWith("if-eqz")) {
+                val reg = (branchIns as? OneRegisterInstruction)?.registerA ?: 0
+                val constVal = if (branchOpcode.startsWith("if-nez")) "0x1" else "0x0"
+                targetMethod.addInstructions(branchIndex, "const/4 v$reg, $constVal")
+            } else {
+                targetMethod.replaceInstruction(branchIndex, "nop")
+            }
+        }
         println("[Use Places API (New)] Redirected search autocomplete to $newType.")
     }
 }

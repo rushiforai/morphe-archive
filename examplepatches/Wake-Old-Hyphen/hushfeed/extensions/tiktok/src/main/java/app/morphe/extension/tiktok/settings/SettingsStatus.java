@@ -126,6 +126,7 @@ public class SettingsStatus {
     public static boolean inboxFilterTabsEnabled = false;
     public static boolean messageSearchRebuildEnabled = false;
     public static boolean pinMoreChatsEnabled = false;
+    public static boolean messageTimesEnabled = false;
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean cameraBrightnessEnabled = false;
@@ -626,6 +627,11 @@ public class SettingsStatus {
         pinMoreChatsEnabled = true;
     }
 
+    /** Both chat message row slots were found and hooked, for Show message times. */
+    public static void enableMessageTimes() {
+        messageTimesEnabled = true;
+    }
+
     public static void enableCommentTools() {
         commentToolsEnabled = true;
     }
@@ -736,6 +742,13 @@ public class SettingsStatus {
 
     public static void enableSoundGridSort() {
         soundGridSortEnabled = true;
+    }
+
+    /** A Favorites collection folder's adapter and its cell click were hooked, so a folder can be sorted (#180). */
+    public static boolean collectionGridSortEnabled = false;
+
+    public static void enableCollectionGridSort() {
+        collectionGridSortEnabled = true;
     }
 
     public static void enableFeedSidebarSwipe() {

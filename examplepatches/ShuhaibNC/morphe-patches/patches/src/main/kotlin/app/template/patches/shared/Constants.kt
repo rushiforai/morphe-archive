@@ -94,14 +94,14 @@ object Constants {
         name = "Manglish Keyboard",
         packageName = "com.clusterdev.malayalamkeyboard",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0x4CAF50,
+        appIconColor = 0x212121,
         targets = listOf(
             AppTarget(
                 version = null,
                 isExperimental = true
             ),
             AppTarget(
-                version = "10.1.0",
+                version = "17.7.1",
             )
         )
     )

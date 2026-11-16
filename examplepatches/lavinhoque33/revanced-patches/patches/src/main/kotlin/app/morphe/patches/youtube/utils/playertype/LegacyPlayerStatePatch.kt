@@ -7,7 +7,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.utils.playertype
@@ -24,6 +24,7 @@ import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.playservice.is_20_29_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_36_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.insertLiteralOverride
@@ -86,7 +87,7 @@ internal val legacyPlayerStatePatch = bytecodePatch(
 
         // If NewPlayerTypeEnumFeatureFlagFingerprint is overridden then must also
         // force off new player control flags otherwise player has no buttons visible.
-        if (is_21_04_or_greater) {
+        if (is_21_04_or_greater && !is_21_41_or_greater) {
             // Keep the real value for the autonav end screen.
             val flagMethods = NewPlayerOverlaysFeatureFlagFingerprint.matchAll().map {
                 it.method.insertLiteralOverride(

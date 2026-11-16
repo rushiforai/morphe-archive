@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 /**
  * The hide-captcha switch.
- *
+ * <p>
  * One switch, on out of the box. Off leaves every risk-control puzzle exactly as TikTok raised it.
  * Account verification is never hidden by the bridge whatever this says, so the switch only governs
  * the puzzle that interrupts browsing.

@@ -1,31 +1,38 @@
 package app.onlynazril.extension.tiktok.internal;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Diagnostic output on three channels.
- *
+ * <p>
  * An app's own log can be dropped by the platform or a vendor filter, which makes a device-side
  * check impossible to trust: an empty log then means "not running" and "running but silenced" at
  * the same time. {@code System.out} is captured by logcat under the {@code System.out} tag and
  * survives the filters that drop a tag or a level, so the message is written there as well and
  * carries a fixed prefix to grep for.
- *
+ * <p>
  * When both logcat channels come up empty the message is also appended to a file. The first
- * candidate is a plain directory on shared storage ({@code /sdcard/gg}); on Android 10+ scoped
- * storage usually refuses it, so the app-private external dir is the fallback — no permission
- * needed there, and it is pullable with {@code adb pull} from
- * {@code /sdcard/Android/data/<pkg>/files/}.
+ * candidate is the app-private external dir, no permission needed there, and it is pullable with
+ * {@code adb pull} from {@code /sdcard/Android/data/<pkg>/files/}. A plain directory on shared
+ * storage ({@code /sdcard/gg}) stays as a fallback for older Android versions or privileged setups.
  */
 public final class Debug {
     public static final String PREFIX = "TIKTOK_HANDLE";
@@ -35,7 +42,7 @@ public final class Debug {
      * a log says which build is actually installed: without it, "the change did nothing" and "the
      * APK was never replaced" look exactly the same.
      */
-    public static final String BUILD = "b41";
+    public static final String BUILD = "b56";
     private static final String TAG = "tiktokHandle";
     private static final String FILE_NAME = "tiktokhandle.log";
     /** A file past this size is moved aside as `.1` and a fresh one is started. */
@@ -68,8 +75,7 @@ public final class Debug {
             if (writer == null) {
                 writer = open();
                 if (writer == null) return;
-                System.out.println(PREFIX + " file sink: " + file);
-                Log.w(TAG, "file sink: " + file);
+                note("file sink: " + file);
             }
             try {
                 writer.write(STAMP.format(new Date()) + " " + PREFIX + " " + message + "\n");
@@ -81,11 +87,11 @@ public final class Debug {
 
     /**
      * Opens the first directory that will take the file, and says why the others would not.
-     *
+     * <p>
      * The reason is reported on the two logcat channels rather than into the file, because the file
      * is what failed: without it a silent sink and a sink that never opened look the same, which is
      * exactly how this one went unnoticed.
-     *
+     * <p>
      * A file at its cap is rotated rather than left alone: leaving it stopped the writes for good,
      * so a long session kept a full file and nothing after it.
      */
@@ -112,10 +118,26 @@ public final class Debug {
 
     /** Moves a full file aside so a fresh tail can be written. */
     private static void rotate(File target) {
-        if (target.length() <= MAX_BYTES) return;
+        if (!target.exists() || target.length() <= MAX_BYTES) {
+            return;
+        }
+
         File previous = new File(target.getParentFile(), FILE_NAME + ".1");
-        previous.delete();
-        target.renameTo(previous);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                Files.move(target.toPath(), previous.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                note("rotate failed: " + e.getMessage());
+            }
+        } else {
+            if (previous.exists() && !previous.delete()) {
+                note("failed to delete old backup: " + previous);
+            }
+            if (!target.renameTo(previous)) {
+                note("failed to rotate file to: " + previous);
+            }
+        }
     }
 
     private static void note(String message) {
@@ -124,27 +146,41 @@ public final class Debug {
     }
 
     /**
-     * The app-private external dir first, then the shared one.
-     *
+     * The app-private external dir first, then internal app files, then the shared storage.
+     * <p>
      * A plain directory on shared storage is not writable by an app from Android 10 on, so asking for
      * it first only produced a failure note before the real directory was tried. The shared path
      * stays as a fallback for a device where it is still allowed.
      */
     private static File[] candidates() {
+        List<File> dirs = new ArrayList<>();
         Context context = context();
-        return new File[] {
-            context == null ? null : context.getExternalFilesDir(null),
-            new File("/sdcard/gg"),
-        };
+
+        if (context != null) {
+            File externalFiles = context.getExternalFilesDir(null);
+            if (externalFiles != null) {
+                dirs.add(externalFiles);
+            }
+            File internalFiles = context.getFilesDir();
+            if (internalFiles != null) {
+                dirs.add(internalFiles);
+            }
+        }
+
+        dirs.add(new File(Environment.getExternalStorageDirectory(), "gg"));
+        return dirs.toArray(new File[0]);
     }
 
+    @SuppressLint("PrivateApi")
     private static Context context() {
         Context context = AppContext.get();
         if (context != null) return context;
         try {
             Class<?> activityThread = Class.forName("android.app.ActivityThread");
             Object application = activityThread.getMethod("currentApplication").invoke(null);
-            if (application instanceof Context) return (Context) application;
+            if (application instanceof Context) {
+                return ((Context) application).getApplicationContext();
+            }
         } catch (Throwable ignored) {
         }
         return null;

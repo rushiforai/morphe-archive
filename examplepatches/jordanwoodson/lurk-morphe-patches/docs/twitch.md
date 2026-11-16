@@ -117,6 +117,7 @@ ReVive, bttv-android, TwitchMod, Xtra, Twire and Frosty.
 | VOD chapters | VOD chapters |
 | VODHunter (sub-only and deleted VODs) | Declined |
 | Default startup tab | Default startup tab |
+| Don't keep search history | Don't save searches |
 | Hide Home sections | Hide Home sections (and Hide Clips now covers the native Home tabs) |
 | Hide mature-content warning | Hide mature content warning |
 | Tablet UI | Tablet layout |
@@ -243,6 +244,15 @@ Following chosen, `TwitchInterface.feedTab` turns a missing or `live` tab into `
 feeds and any other tab Twitch asked for pass through (`tests/twitch/verify_interface.py`). Verified on a
 phone, signed in: the feed opens on its Following tab.
 
+Tablets, and phones with Tablet layout on, get the native Home feed instead (`DiscoveryFeedHomeFragment`), so
+that hook never runs there and Home opened on Live
+([issue #66](https://github.com/jordanwoodson/lurk-morphe-patches/issues/66)). The native feed's navigation
+destination (the class whose `toString` starts `DiscoveryFeedHome(location=`) is created with the page to open
+on, always the Live page for a plain launch. The patch hooks its constructor: for the first one created, not
+from a deep link or a notification, with Following chosen, `TwitchInterface.homePage` swaps the Live page for
+`DiscoveryFeedPage.FollowingPage`. Verified on a phone, signed in, with Tablet layout on: Home opens on
+Following.
+
 ### Trackers in Disable analytics
 
 31.8.0, like 31.6.0 and 31.7.0, has no Bugsnag, Facebook SDK, SafetyNet or Amazon APS. Disable analytics now also:
@@ -254,6 +264,46 @@ phone, signed in: the feed opens on its Following tab.
 
 A blanket "disable Google Play services" switch is deliberately not offered. It would break push,
 Google and FIDO sign-in, Cast and billing.
+
+### Don't save searches
+
+Twitch keeps the last ten searches as a JSON array under `recentSearches` in its preferences, read once into
+an in-memory list when search is first used; the list's class puts each new search on top and writes the
+array back. The patch (same name, key and default as Kick's and Rumble's) makes the read return an empty
+list and the put-on-top method return at once while `no_search_history` is on, so nothing shows under the
+search box and nothing new is kept; the saved array itself is left alone and shows again once the switch is
+off and Twitch restarted. The two methods are found by the `recentSearches` string: the reader returns an
+`ArrayList`, the writer builds a `JSONArray` from a collection, and the put-on-top method is the one
+`(String)` method of the writer's class that calls `add(int, Object)`.
+
+Checked on the emulator, signed out: with the switch off a search ("poker") shows under RECENT and is in
+`twitch_user_prefs.xml`; with it on, after a restart, RECENT is gone, a new search ("chess") isn't written,
+and "poker" is still in the file.
+
+### Block update prompts
+
+Twitch reads a remote `forced_updates_setting` JSON into `ForcedUpdateResponseModel` (`min_app_ver`,
+`specific_app_ver_to_update_arr`, `disallowed_ver_arr`; the class and its methods keep their names). In
+31.8.0 the only live use is Google Play's in-app update prompt ("New Update Ready to Install"), which asks
+`isVersionCodeAllowed` about the version Play offers before it starts; `shouldPromptForUpgrade` has no
+caller, and the "App Update Required" dialog is only reachable from Twitch's debug menu. With
+`block_update_prompts` on (same name, key and default as Kick's and Rumble's, and kept while Lurk is
+paused) both return false. A re-signed install isn't Play's, so Play has no update to offer it and the
+switch matters for mount installs and for whenever Twitch wires the forced screen back in.
+
+Not seen working: there is no way to make Play offer an update on the emulator. Checked only that the patch
+applies and the app starts.
+
+### Show exact counts
+
+Native screens shorten every count through `NumberFormatUtil`'s `(long, boolean)` method (a
+`CompactDecimalFormat`; the class keeps its name, and the method is found by its hand-written German format
+`%.1f Tsd.`). With `exact_counts` on (same name, key and default as Kick's and Rumble's) the method returns
+`TwitchInterface.exactCount`, the count grouped the device locale's way. The signed-in Home feed is React
+Native and formats its own counts, so it keeps the short form.
+
+Checked on the emulator, signed out: the Home feed's viewer count reads "29,281" with the switch on and
+"24.2K" with it off.
 
 ### Background audio and Show video stats
 
@@ -338,7 +388,11 @@ The player patches hook IVS `CorePlayerImpl` (the SDK's names are kept) and Twit
 paths. Calls into obfuscated Twitch methods go through empty extension stubs whose bodies the patch
 fills in.
 
-*Sleep timer* re-arms on every `play()`. It pauses through the Guest Star pause-all registry (native
+*Sleep timer* re-arms on every `play()`, and on `start()` of Twitch's ExoPlayer 2 player
+(`tv.twitch.android.shared.player.core.b`, found by its "Error unregistering stream volume receiver" log
+string), which *Force ExoPlayer* plays through without ever reaching IVS
+([issue #70](https://github.com/jordanwoodson/lurk-morphe-patches/issues/70); checked on the emulator with
+Force ExoPlayer on: the debug log shows `sleep timer: play on …core.b`, and the stream pauses when the time is up). It pauses through the Guest Star pause-all registry (native
 and portal) and through `TwitchMediaSessionModule`/`FeedPlayerRegistry` (React Native), so background
 audio can be resumed from its notification. The time can also be changed without leaving the stream
 ([issue #52](https://github.com/jordanwoodson/lurk-morphe-patches/issues/52)): the player's settings sheet
@@ -649,7 +703,13 @@ its three users, keeping Clips when Home opens on a clip.
 
 *Hide player buttons* filters the clip button state and live overlay options, every AndroidX
 `MediaRouteButton` (Cast), and the VOD and vertical-theatre share buttons. *Hide Home sections*
-clears the `ShowStoriesShelf` argument and filters the Following page's section list. *Hide mature
+clears the `ShowStoriesShelf` argument and filters the Following page's section list. On the React Native Home
+(phones, signed in) it returns null from three components: `FollowingContinueWatching`,
+`FollowingOfflineChannels` ("Your Offline Channels" in Following,
+[issue #73](https://github.com/jordanwoodson/lurk-morphe-patches/issues/73)) and `RecapsShelf` (the "From
+channels you follow" shelf of past streams on the Live tab, switch *Hide recent streams*). The last two were
+checked on a phone only as far as Home still rendering with the switches on: the test account can't follow
+channels (Twitch asks for a phone number first), so neither section was there to hide. *Hide mature
 content warning* makes the label-acknowledgement check return true without saving anything; age,
 region, guardian and account gates still apply.
 
@@ -750,6 +810,25 @@ in the registry JSON, edited in a dialog on the settings screen. Words match as 
 case. Blocked live messages are dropped at the chat list feeder, before the Chat overlay sees them.
 History and VOD replay lines are marked by the shared line builder (`ChatMessageSpanGroup`) and
 collapsed by the row binders.
+
+*Highlight users* (`chat_highlight_users`, a text setting under Chat keywords, empty by default;
+[discussion #67](https://github.com/jordanwoodson/lurk-morphe-patches/discussions/67)) tints every message of the
+listed users, whatever they write: `name`, or `name=#RRGGBB` for a color of the user's own (drawn at the default
+highlight's 30% opacity so text stays readable; `#AARRGGBB` is used as written; anything else falls back to the
+default tint). An entry with `@` is also a role, matched against the sender's badges: Twitch's badge set IDs, with
+`mod` for `moderator`, `sub` for `subscriber` and `founder`, `streamer` for `broadcaster` and `verified` for
+`partner` (so `@vip`, `@staff`, `@broadcaster` and any other set ID work as written). A user's own color wins over a
+role's; among roles, the first in the list with a color. Blocked users and words still hide first, and *Vibrate on
+highlights* applies to these lines too. The parsing is in the shared `ChatFilter` (Kick and Rumble don't register
+the key, so it reads empty there). The line builder's badge list (its parameter 2, Twitch's
+`MessageBadgeViewModel(name=, badgeUrl=)`, the same list for live chat, history and VOD replay) now goes to
+`TwitchChatKeywords.beginLine` with the sender and click configuration; the colour rides on the line's mark and the
+row binders paint it. Live messages pass `LiveChatMessage`'s `senderBadges` (found through its toString) to
+`onLiveMessage` for the vibration. React Native chat asks the native side for a verdict by sender and text only, so
+there names match in the default tint, and roles and colors don't. `bin/test-twitch-chat-style`
+(`ChatStyleArtProbe`, "highlighted users and roles") runs the real line builder with real badge view models: names
+in any case, VOD replay, own colors, roles with and without colors, precedence, whispers, blocked words and the
+switch off.
 
 *Compact chat* adds two switches, both off by default. *Hide badges* (`chat_hide_badges`) empties the badge
 span right before the line builder puts a line's spans together (`ChatMessageSpanGroup`), after Twitch's and
@@ -907,6 +986,87 @@ with Lurk's cache filled as if the services had answered: with the switch on it 
 real autocomplete filter over Twitch's emote source for `:pe` and checks the order and the duplicate rule, and
 that a chatter source keeps its own answer. Drawing the sections and inserting a tapped emote are Twitch's
 unchanged code but were not seen in the app.
+
+*Autocomplete without ':'* (`emotes_autocomplete_bare`, off by default;
+[issue #65](https://github.com/jordanwoodson/lurk-morphe-patches/issues/65)) suggests emotes for a plain word.
+Twitch's chat input (a `MultiAutoCompleteTextView`) decides in its text watcher's `onTextChanged` which source the
+drop-down gets from the word before the cursor (split on spaces): `@` the chatters, `:` the emote source, a
+command's argument the chatters again, anything else no drop-down (height 0). Its tokenizer's `findTokenStart` starts
+a token only at those markers and answers 0 otherwise. Two hooks: right after the watcher's `:` check (the boolean
+call on a detector object just before the branch that reads the emote-source field, which is how the patch finds
+it), `TwitchEmotes.bareTrigger` also says yes for a plain word; at the tokenizer's single return,
+`TwitchEmotes.bareTokenStart` starts the token at that word when Twitch's answer is 0. A plain word is the last
+word before the cursor, at least three characters, starting with a letter or digit, in a message that isn't a
+command (`/...`, so `/me` lines get none). The emote source's answer for it is cut to codes that start with the
+word (Twitch's own matcher also lists codes that merely contain it, which for ordinary words would be noise), with
+the services' emotes merged in while *Emotes in the picker* is on. A word nothing starts with gives no results, and
+Twitch's filter then shows no drop-down; picking a suggestion is Twitch's replace of the token with the code and a
+space. Off, both hooks return Twitch's answer. `bin/test-twitch-emotes` checks the trigger rule, the real patched
+tokenizer (plain words, `:`, `@`, commands, two letters, the switch off) and the filter's prefix-only answer with the
+switch on and off. The text watcher itself and the drop-down were not run: the chat input needs a signed-in account,
+which the emulator can't have, so the suggestions appearing while typing are unverified in the app.
+
+*Favorite emotes* (`emotes_favorites`, off by default;
+[issue #61](https://github.com/jordanwoodson/lurk-morphe-patches/issues/61)) adds a Favorites section to the emote
+picker. Twitch's picker has three fixed tabs (Frequently used, Channel, All: the `gwf` enum the presenter's state
+starts from), so a new tab would mean a new enum constant; the favorites are a section of the list instead, like the
+services'. What Twitch does on a long press: the item binder (`EmoteUiModel` items, found by that toString) gives the
+emote's view a long-press listener that sends `LongClick(emoteView=, clickedEmote=)`; the picker's view delegate
+shows a popup of the emote's modifier variants when the clicked emote is `Unlocked(…)` with a non-empty
+`modifiedEmotes`, and does nothing otherwise. The binder's `setOnLongClickListener` call goes through
+`TwitchEmoteFavorites.longClick` with the item model: with the switch on, a long press on an unlocked emote without
+variants adds it to the favorites or, if it is one, removes it (a toast says which), and everything else reaches
+Twitch's listener, so emotes with variants keep Twitch's popup and can't be favorited by long press. The emote's ID,
+code, asset type and type come from the emote's base-class getters (matched at patch time to the fields the
+`WithOwner(…)` constructor stores), through bridges. The list (up to 100) is kept in a preferences file of Lurk's
+own, `lurk_emote_favorites`, not in the settings, so settings export doesn't carry it. In the sets hook the favorites
+are made again as `WithOwner` emote objects owned by the open channel and go in as one owner set with a stand-in
+owner named "Favorites" (ID -4). The presenter (the sets case of its Function3) puts the channel's own set first and
+sorts the other owner sets by set ID with a plain String comparison (Twitch's emote set IDs are numeric, the
+services' start with `lurk`), so the favorites' set ID is `!lurkfav`, which sorts before both. Third-party favorites keep their `lurk…`
+IDs, whose image URLs the URL hook makes from the ID alone, so they show in any channel; inserting one puts its code
+in the message, which shows as an emote where that channel's lists have it. To show a change at once, the presenter's
+load (`(Tuid, surface)`, which Twitch calls each time the picker opens) is noted at its start
+(`TwitchEmoteFavorites.opened`) and called again on the main thread after a change, as reopening the picker would.
+`bin/test-twitch-emotes` builds picker items with the presenter's own item builder and runs the long-press handling and
+the real sets case: switch off (Twitch's), adding a Twitch and a 7TV emote, an emote with variants left to Twitch, the
+section first before the 7TV and BetterTTV ones, the stored lines read back after a restart, removing, and no section
+when off or empty. The listener on a real view, the toast, the picker showing the change right away (the reload) and
+inserting a favorite were not seen in the app: the picker needs a signed-in account.
+
+**Image cache** ([issue #71](https://github.com/jordanwoodson/lurk-morphe-patches/issues/71): 7TV emotes loaded
+slowly in the picker, vanished when scrolled back to and kept reloading in chat). Twitch loads every image with
+Glide (`TwitchGlideModule`, kept by name, gives Glide a 64 MB disk cache in `cache/image_manager_disk_cache` and
+the default memory cache), so third-party images share 64 MB with every avatar, thumbnail and Twitch emote. That
+was fine for Twitch's own emotes (a few kB each) but not for 7TV's: xQc's set on 2026-11-15 had 970 emotes, 667
+animated, whose 2x GIFs alone are 175 MB (268 kB on average; the 3x files chat uses for static emotes above 100%
+size add more). Scrolling the picker through one such set pushes the start of it, and chat's earlier emotes, out
+of the cache, so each comes back from the network; memory holds only a screen or two. Glide's cache journal on the
+emulator showed it working as designed (each key written once and read back), which left the size as the cause.
+
+The fix is a cache of Lurk's own under Glide, in `TwitchImageCache` (a dependency of *Third-party emotes*, so it
+also serves the badges). Glide's OkHttp fetcher (`OkHttpStreamFetcher`, found by its `onResponse` that makes
+Glide's `HttpException`, a class kept by name) gets two hooks: at the start of its load method,
+`TwitchImageCache.cached(url)` returns a stored image, which is handed to Glide's data callback and the request is
+never made; in `onResponse`, the body stream goes through `TwitchImageCache.store(url, stream)`, which copies what
+Glide reads and stores it once the body has reached its end. Only https URLs on `cdn.7tv.app`, `cdn.betterttv.net`
+and `cdn.frankerfacez.com`, and the exact image URLs the badge lists name, are kept; every other image takes
+Twitch's unchanged path after a string comparison. A body that fails, is cancelled, skips bytes, is over 6 MB or
+doesn't start like a GIF, PNG, JPEG, WebP or AVIF file is not stored. Files are in `cache/lurk-images/`, named by
+the SHA-256 of the URL (nothing readable about the emote or channel on disk), at most 256 MB, least recently used
+out first, deleted when unused for 14 days or older than 30; images up to 192 kB are also kept in 8 MB of memory.
+Expired files are swept once per start, when the first chat connects, even with the switches off. Android may
+clear the directory itself when storage runs low, like any cache. *Emote and badge info*'s larger images use the
+same cache. Glide still copies a served image into its own disk cache (it treats it as a network load), which is
+what it did with the downloaded one before. React Native chat loads images through its own image pipeline, which
+the cache doesn't cover.
+
+`tests/twitch/test_image_cache.py` (in `bin/test-host`) runs the real class over a temporary directory and a test
+clock: pass-through of other hosts, store and serve (also after a restart), partial and non-image bodies, the disk
+and memory bounds and expiry. On the emulator (signed out, xQc's VOD chat replay with 7TV, BetterTTV and
+FrankerFaceZ on): 26 images were stored in the first minute; after a force stop with Glide's disk cache deleted (as
+an overflow would), the same replay was served 5 images from `lurk-images` within seconds and drew them. The
+picker scroll from the report was not reproduced: the picker needs a signed-in account.
 
 Badges download FrankerFaceZ's and Chatterino's public lists of badge holders and match them on the
 device, so no chatter is looked up. Badge images come from the https addresses in those lists:

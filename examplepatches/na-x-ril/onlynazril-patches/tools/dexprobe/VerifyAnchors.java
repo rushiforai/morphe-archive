@@ -35,6 +35,12 @@ public class VerifyAnchors {
     private static final String COMMENT_CELL_V2 =
             "com.ss.android.ugc.aweme.commentv2.commentlist.powercell.BaseCommentCell";
     private static final String FEED_API = "com.ss.android.ugc.aweme.feed.cache.IFeedApi";
+    private static final String PHOTO_SEARCH_SERVICE =
+            "com.ss.android.ugc.aweme.vision.IPhotoSearchService";
+    private static final String SEARCH_VISUAL_TAG_TRIGGER =
+            "com.ss.android.ugc.aweme.search.entry.visualsearch.ui.SearchVisualTagComponentTrigger";
+    private static final String VIDEO_ITEM_PARAMS =
+            "com.ss.android.ugc.aweme.feed.model.VideoItemParams";
     private static final String FEED_ITEM_LIST =
             "com.ss.android.ugc.aweme.feed.model.FeedItemList";
     private static final String AWEME = "com.ss.android.ugc.aweme.feed.model.Aweme";
@@ -135,6 +141,12 @@ public class VerifyAnchors {
             requireMethod(bridge, AWEME, "getStatistics", AWEME_STATISTICS, 0);
             requireMethod(bridge, AWEME_STATISTICS, "getPlayCount", "long", 0);
             requireMethod(bridge, AWEME_STATISTICS, "getDiggCount", "long", 0);
+
+            // Pause image search: the item manager's constructor asks the real-named photo-search
+            // service for its item, and the same class carries the list method the patch guards.
+            requirePauseImageSearch(bridge);
+            // The second surface: the visual search tag trigger's boolean (VideoItemParams) gate.
+            requireVisualSearchTag(bridge);
 
             // Host activity
             requireMethod(bridge, AD_PERSONALIZATION, "onCreate", "void", 1);
@@ -665,6 +677,64 @@ public class VerifyAnchors {
      * It has to be unique — a second implementation is a build the patch cannot choose between, and
      * the patch refuses rather than filtering one of them.
      */
+    /**
+     * The pause image-search anchor, matched as the patch's fingerprint does: the one constructor
+     * that asks the real-named photo-search service for its item, and the single list method on
+     * that class. The class and method names are obfuscated and move between builds.
+     */
+    private static void requirePauseImageSearch(DexKitBridge bridge) {
+        MethodDataList ctors = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .name("<init>")
+                        .paramCount(0)
+                        .returnType("void")
+                        .addInvoke(MethodMatcher.create()
+                                .declaredClass(PHOTO_SEARCH_SERVICE)
+                                .name("LJII"))));
+        if (ctors.size() != 1) {
+            fail("pause image search: expected one constructor reading "
+                    + PHOTO_SEARCH_SERVICE + "#LJII, matched " + ctors.size());
+            return;
+        }
+        MethodData ctor = ctors.get(0);
+        int listMethods = 0;
+        String found = null;
+        for (MethodData m : ctor.getDeclaredClass().getMethods()) {
+            if (!"java.util.List".equals(m.getReturnTypeName())) continue;
+            if (m.getParamTypeNames().size() != 1) continue;
+            if (m.getOpCodes().isEmpty()) continue;
+            listMethods++;
+            found = ctor.getDeclaredClassName() + "#" + m.getName() + " " + m.getParamTypeNames();
+        }
+        if (listMethods == 1) {
+            pass("pause image search " + found);
+        } else {
+            fail("pause image search: expected one list method in "
+                    + ctor.getDeclaredClassName() + ", matched " + listMethods);
+        }
+    }
+
+    /**
+     * The second image-search surface: the visual search tag trigger's boolean gate. The class is
+     * real-named but the method name moves (`lq` on 47.7.2, `tq` on 47.7.1), so the signature is
+     * the anchor.
+     */
+    private static void requireVisualSearchTag(DexKitBridge bridge) {
+        MethodDataList methods = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .declaredClass(SEARCH_VISUAL_TAG_TRIGGER)
+                        .returnType("boolean")
+                        .paramTypes(VIDEO_ITEM_PARAMS)));
+        if (methods.size() == 1) {
+            MethodData method = methods.get(0);
+            pass("visual search tag " + method.getDeclaredClassName() + "#" + method.getName()
+                    + " " + method.getParamTypeNames());
+        } else {
+            fail("visual search tag: expected one boolean (VideoItemParams) method, matched "
+                    + methods.size());
+        }
+    }
+
     private static void requireFeedFetch(DexKitBridge bridge) {
         ClassDataList classes = bridge.findClass(FindClass.create()
                 .matcher(ClassMatcher.create().addInterface(FEED_API)));

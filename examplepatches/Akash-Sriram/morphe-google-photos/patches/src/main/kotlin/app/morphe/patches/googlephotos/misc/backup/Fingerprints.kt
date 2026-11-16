@@ -61,8 +61,12 @@ internal object CreateItemUpdateFingerprint : Fingerprint(
         method.parameterTypes[0] == "Ljava/lang/Object;" &&
         method.implementation?.instructions?.any { inst ->
             inst is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction && (
-                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)?.type?.let { it == "Lsll;" || it == "Lsob;" } == true ||
-                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference)?.let { it.name == "f" && (it.type.endsWith("slm;") || it.type.endsWith("soc;")) } == true
+                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)?.type?.let {
+                    it == "Lsll;" || it == "Lsob;" || it == "Lssf;" || it == "Lsse;"
+                } == true ||
+                (inst.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference)?.let {
+                    it.name == "f" && (it.type.endsWith("slm;") || it.type.endsWith("soc;") || it.type.endsWith("ssf;") || it.type.endsWith("ssg;"))
+                } == true
             )
         } == true
     }
@@ -72,9 +76,11 @@ internal object DeviceFoldersSettingsQueryFingerprint : Fingerprint(
     returnType = "Landroid/database/Cursor;",
     parameters = listOf("I"),
     custom = { method, classDef ->
-        method.name == "a" && classDef.methods.any { it.referencesStringContaining("getNonCameraBuckets") }
-    }
+        method.name == "a" &&
+            classDef.methods.any { it.referencesStringContaining("getNonCameraBuckets") }
+    },
 )
+
 
 internal object InCameraFolderFeatureFingerprint : Fingerprint(
     returnType = "I",
@@ -91,8 +97,15 @@ internal object CreateItemButtonTextFingerprint : Fingerprint(
     custom = { method, _ ->
         method.parameterTypes.size == 2 &&
         (
-            (method.parameterTypes[0] == "Lslm;" && method.parameterTypes[1] == "Leky;") ||
-            (method.parameterTypes[0] == "Lsoc;" && method.parameterTypes[1] == "Lelp;")
+            method.parameterTypes[0].endsWith("slm;") ||
+            method.parameterTypes[0].endsWith("soc;") ||
+            method.parameterTypes[0].endsWith("ssf;")
+        ) &&
+        (
+            method.parameterTypes[1] == "Leky;" ||
+            method.parameterTypes[1] == "Lelp;" ||
+            method.parameterTypes[1] == "Lenj;" ||
+            method.parameterTypes[1].startsWith("L")
         )
     }
 )

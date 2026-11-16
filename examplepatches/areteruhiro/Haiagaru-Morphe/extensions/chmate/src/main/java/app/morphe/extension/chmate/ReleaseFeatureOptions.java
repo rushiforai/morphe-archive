@@ -14,7 +14,11 @@ final class ReleaseFeatureOptions {
         IMAGE_NG("1.25.0"), COPY_PASTE_NG("1.25.0"), REPLACE_TXT("1.25.0"),
         HISTORY_TARGETS("1.25.0"), WATCH_AFTER_POSTING("1.25.0"), DELETE_READ("1.25.0"),
         IP_WIFI("1.25.0"), IP_MOBILE("1.25.0"), IMAGE_NG_SETTINGS("1.25.0"),
-        ORG("1.26.0"), LOCAL_IMAGES("1.28.0"), WACCHOI_COPY_UPPER("1.28.0"), WACCHOI_COPY_LOWER("1.28.0");
+        ORG("1.26.0"), LOCAL_IMAGES("1.28.0"), WACCHOI_COPY_UPPER("1.28.0"), WACCHOI_COPY_LOWER("1.28.0"),
+        GLOBAL_SEARCH_BACKGROUND("1.40.0"), GLOBAL_SEARCH_HISTORY("1.40.0"), GLOBAL_SEARCH_PARTIAL("1.40.0"),
+        VIEWER_DOUBLE_BACK("1.40.0"), ALWAYS_MOSAIC_GRAY("1.40.0"), ALWAYS_MOSAIC_STRENGTH("1.40.0"),
+        MODERATION_ADULT("1.40.0"), MODERATION_GORE("1.40.0"), MODERATION_LIST("1.40.0"),
+        UPLOAD_DESTINATION("1.40.0"), NG_REPLY_NOTIFICATIONS("1.40.0"), THREAD_RENAME("1.41.0"), KEYWORD_NAMES("1.41.0");
 
         final String version;
         Option(String version) { this.version = version; }
@@ -22,6 +26,9 @@ final class ReleaseFeatureOptions {
             switch(this){
                 case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
                 case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
+                case THREAD_RENAME:case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:return "表示・検索";
+                case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
+                case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
                 case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:return "画像・動画";
                 case IMAGE_NG:case COPY_PASTE_NG:case REPLACE_TXT:case IMAGE_NG_SETTINGS:return "NG・文字列置換";
                 default:return "履歴・投稿";
@@ -48,6 +55,19 @@ final class ReleaseFeatureOptions {
                 case DELETE_READ:return "更新ボタンの長押しから、既読スレを削除する画面を開けます。";
                 case IP_WIFI:case IP_MOBILE:return "選択した通信回線でIP表示スレへ投稿する前に確認を表示します。";
                 case IMAGE_NG_SETTINGS:return "画像の登録、URLからの追加、判定レベル、一致枚数を設定します。";
+                case GLOBAL_SEARCH_BACKGROUND:return "HOMEの全板検索をバックグラウンドで実行します。";
+                case GLOBAL_SEARCH_HISTORY:return "取得した検索結果を保存し、HOMEから開けるようにします。";
+                case GLOBAL_SEARCH_PARTIAL:return "検索中でも取得済みの途中結果を開けるようにします。";
+                case VIEWER_DOUBLE_BACK:return "専用ビューアーは本体の戻る操作を連続2回行うと閉じます。";
+                case ALWAYS_MOSAIC_GRAY:return "ChMateの「画像は常にモザイク」にモノクロを重ねます。";
+                case ALWAYS_MOSAIC_STRENGTH:return "ChMateの「画像は常にモザイク」にHaiagaruのモザイク強度を適用します。";
+                case MODERATION_ADULT:return "成人向け画像を検出してサムネイルをモザイクにします。画像検出ZIPが必要です。";
+                case MODERATION_GORE:return "グロ画像を検出してサムネイルをモザイクにします。画像検出ZIPが必要です。";
+                case MODERATION_LIST:return "スレ一覧の画像にも有効な自動検出を適用します。画像検出ZIPが必要です。";
+                case UPLOAD_DESTINATION:return "書き込み画面から画像・動画を添付するときに、送信先を選べます。";
+                case NG_REPLY_NOTIFICATIONS:return "NGに該当する返信を新着通知の対象から外します。";
+                case THREAD_RENAME:return "スレタイトル長押しに「スレの名前を変更」を表示します。表示名はHOMEとスレ一覧で使います。";
+                case KEYWORD_NAMES:return "検索条件ごとに短い表示名を付けられます。縦棒やカンマも使用できます。";
                 default:throw new AssertionError(this);
             }
         }
@@ -77,7 +97,7 @@ final class ReleaseFeatureOptions {
         }
         if (base.equals("1.27.4")) result.add(Option.THREAD_THUMBNAILS);
         // The history-control correction affects every control in this screen.
-        if (base.equals("1.27.5")) for(Option option:Option.values()) if(!option.version.equals("1.28.0")) result.add(option);
+        if (base.equals("1.27.5")) for(Option option:Option.values()) if(option.version.equals("1.25.0") || option.version.equals("1.26.0")) result.add(option);
         return result;
     }
 

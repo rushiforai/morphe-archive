@@ -20,14 +20,16 @@ import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
 // Hook points shared by Chat keywords and Chat appearance. Each patch adds its own calls at the same points, so
 // either works alone; their extension classes agree on who paints a row's background.
 
-/** A live chat line's render model and the fields the hooks read: message ID, sender and tokens. */
-internal class LiveChatLine(val type: String, val id: FieldReference, val sender: FieldReference, val tokens: FieldReference)
+/** A live chat line's render model and the fields the hooks read: message ID, sender, tokens and the sender's badges. */
+internal class LiveChatLine(
+    val type: String, val id: FieldReference, val sender: FieldReference, val tokens: FieldReference, val badges: FieldReference,
+)
 
 internal fun BytecodePatchContext.liveChatLine(): LiveChatLine {
     val method = LiveChatLineFingerprint.twitchMatch("live chat message").method
     val line = LiveChatLine(method.definingClass, method.printedField("LiveChatMessage(messageId="),
-        method.printedField(", sender="), method.printedField(", messageTokens="))
-    if (line.id.type != "Ljava/lang/String;" || line.tokens.type != "Ljava/util/List;") {
+        method.printedField(", sender="), method.printedField(", messageTokens="), method.printedField(", senderBadges="))
+    if (line.id.type != "Ljava/lang/String;" || line.tokens.type != "Ljava/util/List;" || line.badges.type != "Ljava/util/List;") {
         throw PatchException("Twitch: unexpected live chat message fields")
     }
     return line

@@ -73,12 +73,12 @@ with zipfile.ZipFile(APK) as archive:
             string_index = struct.unpack_from('<I', data, type_offset + 4 * type_index)[0]
             descriptor = string(string_index)
             classes[descriptor] += 1
-            if descriptor not in ['Ljd/d;', 'Lbo;', 'Lb7/a;', 'Ld24;',
+            if descriptor not in ['Ljd/d;', 'Lbo;', 'Lc24;',
                                   'Lcom/google/firebase/installations/remote/FirebaseInstallationServiceClient;']:
                 continue
 
-            # The runtime regression is in this scheduler's h()Z guard in build 8240 and
-            # its i()Z equivalent in 8.3.0.1.
+            # The runtime regression is in this scheduler's h()Z guard in build 8240, its
+            # i()Z equivalent in 8.3.0.1 and the same Lbo.i()Z guard in 8.3.0.2.
             offset = struct.unpack_from('<I', data, class_offset + index * 32 + 24)[0]
 
             def read_uleb(position):
@@ -111,7 +111,7 @@ with zipfile.ZipFile(APK) as archive:
                             or (descriptor == 'Lbo;' and string(name_index) == 'i')):
                         assert code_offset and data[code_offset + 16:code_offset + 20] == bytes([0x12, 0, 0x0f, 0]), 'Reminder guard must return false'
                         reminder_guard_checked = True
-                    if descriptor in ('Lb7/a;', 'Ld24;') and string(name_index) == '<init>':
+                    if descriptor == 'Lc24;' and string(name_index) == '<init>':
                         assert code_offset, 'Legacy analytics constructor has no code'
                         registers, incoming = struct.unpack_from('<HH', data, code_offset)
                         opcode, callee, arguments, end = struct.unpack_from('<HHHH', data, code_offset + 16)

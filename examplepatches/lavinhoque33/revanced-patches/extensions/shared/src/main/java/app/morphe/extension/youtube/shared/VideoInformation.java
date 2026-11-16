@@ -11,7 +11,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-13
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -281,6 +281,10 @@ public final class VideoInformation {
 
             // Try regular playback controller first, and it will not succeed if casting.
             if (overrideVideoTime(adjustedSeekTime)) {
+                if (adjustedSeekTime == 0 && videoLength - seekTime <= 500) {
+                    AlwaysRepeatPatch.pauseAfterRepeat();
+                }
+
                 GoogleVoiceOverTranslationPatch.onVideoSeeked();
                 return true;
             }
@@ -1155,6 +1159,19 @@ public final class VideoInformation {
      */
     public static void overrideVideoQuality(int qualityOverride) {
         Logger.printDebug(() -> "Overriding video quality to: " + qualityOverride);
+    }
+
+    /** Replaced during patching only when the native controller pause path is resolved. */
+    public static boolean isPauseVideoSupported() {
+        return false;
+    }
+
+    /**
+     * Pause through YouTube's controller, keeping its cached play intent in sync with ExoPlayer.
+     * Implementation added by patch. Never substitute the backend-only setPlayerPlaying method.
+     */
+    public static boolean pauseVideo() {
+        return false;
     }
 
     /**

@@ -4,6 +4,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnInt
+import app.morphe.patches.shared.replaceWithReturnVoid
 
 @Suppress("unused")
 val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
@@ -24,13 +27,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.a.a(Context)")
         }
 
@@ -40,13 +37,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.a.b(mapsCheck)")
         }
 
@@ -56,13 +47,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.a.c(pkgCheck)")
         }
 
@@ -72,13 +57,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.a.d(stackCheck)")
         }
 
@@ -89,13 +68,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.b.i(rootCheck)")
         }
 
@@ -106,13 +79,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.c.e(virtualAppCheck)")
         }
 
@@ -124,13 +91,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.g.c(emulatorFiles)")
         }
 
@@ -140,13 +101,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.g.d(emulatorProps)")
         }
 
@@ -156,13 +111,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("g9.g.f(qemuCheck)")
         }
 
@@ -175,13 +124,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.A(substrateCheck)")
         }
 
@@ -191,13 +134,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.C(vpnCheck)")
         }
 
@@ -207,13 +144,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.D(xposedCheck)")
         }
 
@@ -223,13 +154,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.t(emulatorOperatorCheck)")
         }
 
@@ -239,13 +164,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.u(adbCheck)")
         }
 
@@ -255,13 +174,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf(),
             returnType = "I",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnInt(0)
             hookedMethods.add("SensorHelper.y(rootCheck)")
         }
 
@@ -271,7 +184,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/hardware/SensorEvent;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("SensorHelper.onSensorChanged")
         }
 
@@ -284,13 +197,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("e.z(emulatorCheck)")
         }
 
@@ -300,13 +207,7 @@ val xiaomiEarbudsAntiTamperBypassPatch = bytecodePatch(
             parameters = listOf("Landroid/content/Context;"),
             returnType = "Z",
         ).method.apply {
-            addInstructions(
-                0,
-                """
-                    const/4 v0, 0
-                    return v0
-                """.trimIndent(),
-            )
+            replaceWithReturnBoolean(false)
             hookedMethods.add("e.F(rootCheck)")
         }
 

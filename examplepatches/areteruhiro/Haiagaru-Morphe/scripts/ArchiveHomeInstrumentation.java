@@ -26,15 +26,47 @@ public final class ArchiveHomeInstrumentation extends Instrumentation {
   f(response,number).setInt(one,1);f(response,number).setInt(two,2);f(response,refs).set(one,new int[0]);f(response,refs).set(two,new int[0]);
   Object rows=java.lang.reflect.Array.newInstance(response,2);java.lang.reflect.Array.set(rows,0,one);java.lang.reflect.Array.set(rows,1,two);
   Class<?> projector=loader.loadClass(old?"o.mb":middle?"o.setPushObserverokhttp":"o.zzaX");Method project=null;for(Method candidate:projector.getDeclaredMethods())if(candidate.getParameterTypes().length>=8&&candidate.getParameterTypes()[0].isArray()&&candidate.getParameterTypes()[0].getComponentType()==response){project=candidate;break;}ok(project!=null,"native tree projector exists");project.setAccessible(true);
-  for(boolean hide:new boolean[]{false,true}){
-   ArrayList<Object> out=new ArrayList<>();Class<?>[] types=project.getParameterTypes();Object[] args=new Object[types.length];args[0]=rows;args[1]=0;args[2]=1;args[3]=out;
-   if(old){android.util.SparseIntArray flags=new android.util.SparseIntArray();if(hide)flags.put(1,16);args[4]=flags;}
-   else if(middle){Class<?> map=types[4];Object flags=map.getConstructor().newInstance();if(hide){Method put=map.getMethod("c",int.class,int.class);put.invoke(flags,1,16);}args[4]=flags;}
-   else{HashMap<Integer,Integer> flags=new HashMap<>();if(hide)flags.put(1,16);args[4]=flags;}
-   args[5]=false;args[6]=9999;args[7]=false;
-   if(types.length>8)args[8]=Collections.emptyMap();if(types.length>9){args[9]=alloc(types[9]);for(Method method:types[9].getDeclaredMethods())if(java.lang.reflect.Modifier.isStatic(method.getModifiers())&&method.getParameterTypes().length==0&&method.getReturnType()==types[9]){method.setAccessible(true);args[9]=method.invoke(null);break;}}
-   project.invoke(java.lang.reflect.Modifier.isStatic(project.getModifiers())?null:alloc(projector),args);
-   ok(out.size()==(hide?1:2),"first response tree native hide="+hide+" size="+out.size());
+  SharedPreferences prefs=app.getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config",0);
+  String key="disableFirstResponseNg";
+  Boolean previous=prefs.contains(key)?prefs.getBoolean(key,true):null;
+  Class<?> policy=ext("FirstResponseNg");
+  Method disabled=m(policy,"disabled"), visible=m(policy,"visibleFlags",int.class,int.class);
+  try{
+   prefs.edit().remove(key).commit();
+   android.view.ViewGroup settings=(android.view.ViewGroup)m(ext("Haiagaru"),"settingsNG",Activity.class).invoke(null,host);
+   android.widget.Switch toggle=null;
+   for(int i=0;i<settings.getChildCount();i++){
+    if(settings.getChildAt(i) instanceof android.widget.Switch){
+     android.widget.Switch candidate=(android.widget.Switch)settings.getChildAt(i);
+     if(">>1 レスNGを無効化する".contentEquals(candidate.getText())||"Exclude the first response from NG".contentEquals(candidate.getText())){toggle=candidate;break;}
+    }
+   }
+   ok(toggle!=null&&toggle.isChecked(),"settings initially shows opening post exclusion ON");
+   toggle.performClick();
+   ok(prefs.contains(key)&&!prefs.getBoolean(key,true),"switch saves explicit OFF");
+   for(Boolean configured:new Boolean[]{null,false,true}){
+    if(configured==null)prefs.edit().remove(key).commit();else prefs.edit().putBoolean(key,configured).commit();
+    boolean exempt=configured==null||configured;
+    ok((Boolean)disabled.invoke(null)==exempt,"unset defaults ON; explicit setting respected");
+    int input=0x1010|0x01;
+    ok((Integer)visible.invoke(null,1,input)==(exempt?1:input),"only opening NG flags removed");
+    ok((Integer)visible.invoke(null,2,input)==input,"second reply flags unchanged");
+    Map<Integer,Integer> sourceFlags=new HashMap<>();sourceFlags.put(1,input);sourceFlags.put(2,input);
+    Map<?,?> filtered=(Map<?,?>)m(policy,"modernFlags",Map.class).invoke(null,sourceFlags);
+    ok(filtered.get(1).equals(exempt?1:input)&&filtered.get(2).equals(input)&&sourceFlags.get(1)==input,"modern projection leaves source map untouched");
+    for(boolean hide:new boolean[]{false,true}){
+     ArrayList<Object> out=new ArrayList<>();Class<?>[] types=project.getParameterTypes();Object[] args=new Object[types.length];args[0]=rows;args[1]=0;args[2]=1;args[3]=out;
+     if(old){android.util.SparseIntArray flags=new android.util.SparseIntArray();if(hide)flags.put(1,16);args[4]=flags;}
+     else if(middle){Class<?> map=types[4];Object flags=map.getConstructor().newInstance();if(hide){Method put=map.getMethod("c",int.class,int.class);put.invoke(flags,1,16);}args[4]=flags;}
+     else{HashMap<Integer,Integer> flags=new HashMap<>();if(hide)flags.put(1,16);args[4]=flags;}
+     args[5]=false;args[6]=9999;args[7]=false;
+     if(types.length>8)args[8]=Collections.emptyMap();if(types.length>9){args[9]=alloc(types[9]);for(Method method:types[9].getDeclaredMethods())if(java.lang.reflect.Modifier.isStatic(method.getModifiers())&&method.getParameterTypes().length==0&&method.getReturnType()==types[9]){method.setAccessible(true);args[9]=method.invoke(null);break;}}
+     project.invoke(java.lang.reflect.Modifier.isStatic(project.getModifiers())?null:alloc(projector),args);
+     ok(out.size()==(hide&&!exempt?1:2),"opening post tree projection exemption="+exempt+" hide="+hide+" size="+out.size());
+    }
+   }
+  }finally{
+   if(previous==null)prefs.edit().remove(key).commit();else prefs.edit().putBoolean(key,previous).commit();
   }
  }
 

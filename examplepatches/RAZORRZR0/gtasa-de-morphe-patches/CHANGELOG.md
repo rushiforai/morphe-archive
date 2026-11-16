@@ -1,3 +1,13 @@
+## [1.3.0](https://github.com/RAZORRZR0/gtasa-de-morphe-patches/compare/v1.2.3...v1.3.0) (2026-11-16)
+
+### ✨ New Features
+
+* Add online co-op (SA:COOP DE): two to four players over the network, with its animation packs ([f227a5f](https://github.com/RAZORRZR0/gtasa-de-morphe-patches/commit/f227a5fa5130b34a3e5631131c4415cc77bc0928))
+
+### 🐛 Bug Fixes
+
+* mods unticked when patching an installed game again are removed, Add PS2 graphics' FSR no longer crops 16:9 cutscenes, and the mod menu shows SkyGfx's tab again ([94ef22d](https://github.com/RAZORRZR0/gtasa-de-morphe-patches/commit/94ef22db193cccf931987d0707d96af9d480a06e))
+
 ## [1.2.3](https://github.com/RAZORRZR0/gtasa-de-morphe-patches/compare/v1.2.2...v1.2.3) (2026-11-05)
 
 ### 🐛 Bug Fixes

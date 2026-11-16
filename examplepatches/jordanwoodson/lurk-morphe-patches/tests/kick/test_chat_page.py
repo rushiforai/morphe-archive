@@ -7,8 +7,8 @@ every request is answered by the test through the DevTools protocol, so the scri
 https://chat.mobile.kick.com shaped like Kick's (the #app message list, its message, emote, link and highlight
 elements; none of Kick's code), plus fixed Kick and 7TV responses. Checks the host guard, running once per page,
 hidden highlight lines, ignored clears, 7TV words in existing and new messages (channel over global, exact words
-only, links and Kick emotes untouched), global emotes only without a known owner, and that no request carries
-a referrer or cookies.
+only, links and Kick emotes untouched), global emotes only without a known owner, 7TV badges from a stand-in event
+socket, and that no request carries a referrer or cookies.
 It also runs the Show deleted messages script at document start on a page that reads its config the way Kick's
 does, and first checks that every class Lurk selects is one Kick's real page used when
 tests/kick/chat-page-contract.json was captured (refresh_chat_page_contract.py refreshes it from the live page).
@@ -159,7 +159,7 @@ class Page:
             body, kind = self.html.encode(), "text/html"
         elif url in JSON_RESPONSES:
             body, kind = json.dumps(JSON_RESPONSES[url]).encode(), "application/json"
-        elif url.startswith(("https://cdn.7tv.app/emote/", "https://files.kick.com/emotes/")):
+        elif url.startswith(("https://cdn.7tv.app/emote/", "https://cdn.7tv.app/badge/", "https://files.kick.com/emotes/")):
             body, kind = PIXEL, "image/png"
         else:
             self.unexpected.append(url)
@@ -538,6 +538,99 @@ async def resilient_scenario(page):
     check(await page.eval("attempts") == attempts, "no work after teardown")
 
 
+BADGE_LINES = """const app = document.getElementById('app');
+    window.line = (sender, name) => { const line = document.createElement('div');
+        line.className = 'message-container'; line.dataset.senderId = sender;
+        line.innerHTML = '<span class="user-wrapper"><span class="timestamp">01:05 PM</span><span><img class="badge" '
+            + 'src="/badges/vip.png" alt="VIP"></span><span class="username">' + name + '</span></span>'
+            + '<span class="message-content">hi</span>';
+        app.appendChild(line); return line; };
+    line('101', 'holder'); line('202', 'plain');"""
+
+
+def badge_event(kind, body):
+    return {"op": 0, "d": {"type": kind, "body": {"object": body}}}
+
+
+def cosmetic(badge_id, files=None, url=None):
+    return badge_event("cosmetic.create", {"kind": "BADGE", "data": {"id": badge_id, "tooltip": "Subscriber", "host": {
+        "url": url or f"//cdn.7tv.app/badge/{badge_id}",
+        "files": files or [{"name": "1x.webp", "static_name": "1x_static.webp", "width": 18, "frame_count": 10},
+                           {"name": "3x.webp", "static_name": "3x_static.webp", "width": 54, "frame_count": 10},
+                           {"name": "4x.webp", "width": 72}]}}})
+
+
+def entitlement(kind, badge_id, kick_id):
+    return badge_event(kind, {"kind": "BADGE", "ref_id": badge_id, "user": {"connections": [
+        {"platform": "TWITCH", "id": "999"}, {"platform": "KICK", "id": kick_id}]}})
+
+
+async def badges_scenario(page):
+    """7TV badges: the subscription, badges drawn after Kick's own on lines already shown and new ones, changes and
+    removals, untrusted images refused, and teardown."""
+    await page.go(PAGE)
+    page.requests.clear()
+    await page.eval("""window.sockets = [];
+        window.WebSocket = class {
+            constructor(url) { this.url = url; this.sent = []; sockets.push(this); setTimeout(() => this.onopen(), 0); }
+            send(s) { this.sent.push(JSON.parse(s)); }
+            close() { this.closed = true; if (this.onclose) this.onclose(); }
+        };
+        window.deliver = (m) => sockets[sockets.length - 1].onmessage({data: JSON.stringify(m)});""" + BADGE_LINES)
+    applied = await page.apply({"sevenTvBadges": True, "sevenTvUser": "676"})
+    check(applied == "7tv badges 676", f"7TV badges applies with the channel owner: {applied}")
+    await page.until("sockets.length === 1 && sockets[0].sent.length === 2")
+    check(await page.eval("sockets[0].url") == "wss://events.7tv.io/v3" and
+          await page.eval("sockets[0].sent.map(s => s.op + ' ' + s.d.type + ' ' + JSON.stringify(s.d.condition))") ==
+          ['35 cosmetic.* {"platform":"KICK","ctx":"channel","id":"676"}',
+           '35 entitlement.* {"platform":"KICK","ctx":"channel","id":"676"}'],
+          "one socket to events.7tv.io subscribes to the channel owner's cosmetics and entitlements on Kick")
+    check(not any("7tv" in r["url"] for r in page.requests), "no chatter or channel is looked up over HTTP")
+    holder = "document.querySelector('[data-sender-id=\"101\"] .user-wrapper')"
+    plain = "document.querySelector('[data-sender-id=\"202\"] .user-wrapper')"
+    await page.eval(f"deliver({json.dumps(entitlement('entitlement.create', 'BADGEA', '101'))})")
+    check(await page.eval(f"{holder}.querySelectorAll('img').length") == 1,
+          "a holder whose badge isn't defined yet gets nothing")
+    await page.eval(f"deliver({json.dumps(cosmetic('BADGEA'))})")
+    check(await page.eval(f"Array.from({holder}.children).map(e => e.className || (e.dataset.lurkBadge ? 'lurk' : 'kick'))") ==
+          ["timestamp", "kick", "lurk", "username"], "the badge goes after Kick's own badges, before the name")
+    check(await page.eval(f"{holder}.querySelector('[data-lurk-badge] img').src") ==
+          "https://cdn.7tv.app/badge/BADGEA/3x_static.webp",
+          "the largest file up to 3x, its still copy for an animated badge")
+    check(await page.eval(f"{holder}.querySelector('[data-lurk-badge] img').className") == "badge" and
+          await page.eval(f"{holder}.querySelector('[data-lurk-badge] img').title") == "Subscriber",
+          "drawn with Kick's badge class and 7TV's tooltip")
+    check(await page.eval(f"{plain}.querySelectorAll('img').length") == 1, "other chatters keep Kick's badges only")
+    await page.eval("line('101', 'holder again'); line('202', 'plain again')")
+    await page.until("document.querySelectorAll('[data-lurk-badge]').length === 2")
+    check(await page.eval("document.querySelectorAll('[data-sender-id=\"202\"] [data-lurk-badge]').length") == 0,
+          "new lines of the holder get the badge as they arrive")
+    await page.eval(f"deliver({json.dumps(cosmetic('BADGEB', files=[{'name': '2x.png', 'width': 36}]))});"
+                    f"deliver({json.dumps(entitlement('entitlement.create', 'BADGEB', '101'))})")
+    check(await page.eval("Array.from(document.querySelectorAll('[data-lurk-badge] img')).map(i => i.src)") ==
+          ["https://cdn.7tv.app/badge/BADGEB/2x.png"] * 2, "a newer badge replaces the old one on every line")
+    await page.eval(f"deliver({json.dumps(entitlement('entitlement.delete', 'BADGEA', '101'))})")
+    check(await page.eval("document.querySelectorAll('[data-lurk-badge]').length") == 2,
+          "removing a badge the chatter no longer holds changes nothing")
+    await page.eval(f"deliver({json.dumps(entitlement('entitlement.delete', 'BADGEB', '101'))})")
+    check(await page.eval("document.querySelectorAll('[data-lurk-badge]').length") == 0, "a removed badge goes")
+    await page.eval(f"deliver({json.dumps(cosmetic('BADGEC', url='//evil.example/badge/BADGEC'))});"
+                    f"deliver({json.dumps(cosmetic('BADGED', files=[{'name': '../x.webp', 'width': 18}]))});"
+                    f"deliver({json.dumps(entitlement('entitlement.create', 'BADGEC', '202'))});"
+                    f"deliver({json.dumps(entitlement('entitlement.create', 'BADGED', '101'))})")
+    check(await page.eval("document.querySelectorAll('[data-lurk-badge]').length") == 0,
+          "images from anywhere but cdn.7tv.app, or with odd file names, are refused")
+    await page.eval("window.dispatchEvent(new Event('pagehide'))")
+    check(await page.eval("sockets[0].closed === true"), "page teardown closes the socket")
+    await asyncio.sleep(0.1)
+    check(await page.eval("sockets.length") == 1, "and nothing reconnects afterwards")
+
+    await page.go(PAGE)
+    await page.eval("window.sockets = []; window.WebSocket = class { constructor() { sockets.push(this); } };")
+    check(await page.apply({"sevenTvBadges": True, "sevenTvUser": None}) == "7tv badges: channel owner unknown" and
+          await page.eval("sockets.length") == 0, "without the channel's owner nothing connects")
+
+
 async def native_scenario(page, captures):
     """Run exactly the strings captured from production WebView.evaluateJavascript on ART."""
     expected = {"full", "info", "unknown", "provider-off", "malformed", "provider-only",
@@ -622,6 +715,7 @@ async def main():
                 await keywords_scenario(page)
                 await look_scenario(page)
                 await resilient_scenario(page)
+                await badges_scenario(page)
                 await scenario(page)
                 if args.native_captures:
                     captures = {}

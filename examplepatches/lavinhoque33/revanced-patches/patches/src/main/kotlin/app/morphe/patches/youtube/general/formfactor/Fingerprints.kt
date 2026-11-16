@@ -3,6 +3,7 @@ package app.morphe.patches.youtube.general.formfactor
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -24,11 +25,31 @@ internal object widthDpUIFingerprint : Fingerprint(
     returnType = "I",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IF_NEZ, Opcode.CONST_4, Opcode.RETURN,
-        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4, Opcode.RETURN,
-        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4, Opcode.RETURN,
-        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4, Opcode.RETURN,
-        Opcode.CONST_4, Opcode.RETURN,
+        Opcode.IF_NEZ, Opcode.CONST_4,
+    ) + anyInstruction(
+        opcode(Opcode.RETURN),
+        opcode(Opcode.GOTO),
+        location = MatchAfterImmediately()
+    ) + OpcodesFilter.opcodesToFilters(
+        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4,
+    ) + anyInstruction(
+        opcode(Opcode.RETURN),
+        opcode(Opcode.GOTO),
+        location = MatchAfterImmediately()
+    ) + OpcodesFilter.opcodesToFilters(
+        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4,
+    ) + anyInstruction(
+        opcode(Opcode.RETURN),
+        opcode(Opcode.GOTO),
+        location = MatchAfterImmediately()
+    ) + OpcodesFilter.opcodesToFilters(
+        Opcode.CONST_16, Opcode.IF_GE, Opcode.CONST_4,
+    ) + anyInstruction(
+        opcode(Opcode.RETURN),
+        opcode(Opcode.GOTO),
+        location = MatchAfterImmediately()
+    ) + OpcodesFilter.opcodesToFilters(
+        Opcode.CONST_4, Opcode.RETURN
     ),
     custom = { method, _ ->
         method.containsLiteralInstruction(480L) &&

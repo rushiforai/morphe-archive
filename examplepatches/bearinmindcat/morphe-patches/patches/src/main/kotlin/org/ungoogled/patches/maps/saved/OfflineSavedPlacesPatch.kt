@@ -1,5 +1,8 @@
 package org.ungoogled.patches.maps.saved
 
+import org.ungoogled.patches.maps.ui.customization.accountSheet
+import org.ungoogled.patches.maps.ui.mapsId
+import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -42,11 +45,11 @@ import org.ungoogled.patches.maps.microg.MicrogSelection
 private const val SAVED_PLACES = "Lorg/ungoogled/ui/SavedPlaces;"
 private const val OPEN_SCREEN = "Lorg/ungoogled/ui/SavedPlaces\$OpenScreen;"
 private const val ACTIVITY = "org.ungoogled.ui.YouActivity"
-/** drawable/gs_bookmark_vd_theme_24 in this build. */
-private const val BOOKMARK_ICON = 0x7f080519
+/** drawable/gs_bookmark_vd_theme_24. */
+private val BOOKMARK_ICON get() = mapsId(ResourceType.DRAWABLE, "gs_bookmark_vd_theme_24")
 /** The Save button's own icons: drawable/ic_qu_placelist_heart and drawable/ic_suitcase (density split). */
-private const val HEART_ICON = 0x7f080824
-private const val SUITCASE_ICON = 0x7f080879
+private val HEART_ICON get() = mapsId(ResourceType.DRAWABLE, "ic_qu_placelist_heart")
+private val SUITCASE_ICON get() = mapsId(ResourceType.DRAWABLE, "ic_suitcase")
 
 /** Declares the Local saved screen; it is launched by explicit class name from inside the app only. */
 private val savedManifestPatch = resourcePatch(description = "Declares the Local saved screen.") {
@@ -74,22 +77,13 @@ private object SaveControllerFingerprint : Fingerprint(
 )
 
 /**
- * The quick-save path: with a Maps flag on, Save skips the list picker and calls `b(place)`
- * on this (R8-merged) class, which makes a signed-out user pick an account first. The
- * class is the only one with this log message.
- */
-private object QuickSaveOwnerFingerprint : Fingerprint(
-    filters = listOf(string("Failed to create SplitEngineRenderer, cannot launch Magic Window")),
-)
-
-/**
  * The Save button's state: its icon chooser, the only method returning both the suitcase and the
  * heart (filters match in bytecode order, and the suitcase's case comes first there).
  */
 private object SaveButtonIconFingerprint : Fingerprint(
     returnType = "I",
     parameters = emptyList(),
-    filters = listOf(literal(SUITCASE_ICON), literal(HEART_ICON)),
+    filters = listOf(literal({ SUITCASE_ICON.toLong() }), literal({ HEART_ICON.toLong() })),
 )
 
 /** The place sheet's Call chip: its click is the only method with this trace label. */
@@ -103,11 +97,11 @@ private object PlaceSummaryFingerprint : Fingerprint(
 )
 
 /** string/ACCESSIBILITY_SHARE_PLACE ("Share %1${'$'}s"): only the place sheet's Share chip uses it. */
-private const val SHARE_PLACE_A11Y = 0x7f1400cb
+private val SHARE_PLACE_A11Y get() = mapsId(ResourceType.STRING, "ACCESSIBILITY_SHARE_PLACE")
 
 /** The place sheet's Share chip, by its content description. */
 private object ShareLabelFingerprint : Fingerprint(
-    filters = listOf(literal(SHARE_PLACE_A11Y)),
+    filters = listOf(literal({ SHARE_PLACE_A11Y.toLong() })),
 )
 
 /** The place sheet's hero image view model, which reads the place's photos. Its trace label is unique. */
@@ -121,11 +115,11 @@ private object AddPlaceFingerprint : Fingerprint(
 )
 
 /** string/ADD_PLACE_TO_LIST_HINT ("Add a place"), the screen's search hint. */
-private const val ADD_PLACE_HINT = 0x7f140166
+private val ADD_PLACE_HINT get() = mapsId(ResourceType.STRING, "ADD_PLACE_TO_LIST_HINT")
 /** ALIAS_SETTING_SIGN_IN_PROMPT: "Sign in to search for "%1$s" and your other personal places." */
-private const val ALIAS_SIGN_IN_PROMPT = 0x7f1401fe
+private val ALIAS_SIGN_IN_PROMPT get() = mapsId(ResourceType.STRING, "ALIAS_SETTING_SIGN_IN_PROMPT")
 /** ALIASING_NEW_PLACE_SIGN_IN_PROMPT: "To label places and quickly find them on Maps, sign in." */
-private const val LABEL_SIGN_IN_PROMPT = 0x7f1401e1
+private val LABEL_SIGN_IN_PROMPT get() = mapsId(ResourceType.STRING, "ALIASING_NEW_PLACE_SIGN_IN_PROMPT")
 
 /** SavedPlaces.PICKED: a place picked on "Add a place" for one of the user's lists. */
 private const val PICKED = 64
@@ -144,100 +138,10 @@ private val SAVE_ENTRY_SHAPE = listOf(
 
 /** The "Local saved" row on the account sheet, right after Customization, in both of the sheet's builders. */
 private fun BytecodePatchContext.addLocalSavedRow() {
-    val rowHolder = mutableClassDefBy("Lolr;")
-    val template = rowHolder.methods.single { it.name == "a" && it.returnType == "Lbrmi;" && it.parameterTypes.isEmpty() }
-    val templateRefs = template.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
-    listOf(
-        "Lmm;->s(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;", "Lbrmi;->a()Lbrmg;",
-        "Lbrmg;->c(I)V", "Lbrmg;->d(Ljava/lang/String;)V", "Lbrmg;->f(I)V",
-        "Lbrmg;->e(Landroid/view/View\$OnClickListener;)V", "Lbrmf;->d:Lbrmf;", "Lbrmg;->a()Lbrmi;",
-    ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
-    // Its action id must be unique on the sheet (Maps throws "appears in more than one action"
-    // otherwise), so it is generated rather than copied from the Customization row.
-    rowHolder.methods.add(
-        ImmutableMethod(
-            rowHolder.type, "uaSavedRow", emptyList(), "Lbrmi;",
-            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
-        ).toMutable().apply {
-            addInstructions(
-                0,
-                """
-                    iget-object v0, p0, Lolr;->a:Lnxb;
-                    const v1, $BOOKMARK_ICON
-                    invoke-static { v0, v1 }, Lmm;->s(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
-                    move-result-object v1
-                    invoke-static { }, Lbrmi;->a()Lbrmg;
-                    move-result-object v3
-                    invoke-static { }, Landroid/view/View;->generateViewId()I
-                    move-result v4
-                    invoke-virtual { v3, v4 }, Lbrmg;->c(I)V
-                    iput-object v1, v3, Lbrmg;->a:Landroid/graphics/drawable/Drawable;
-                    const-string v4, "Local saved"
-                    invoke-virtual { v3, v4 }, Lbrmg;->d(Ljava/lang/String;)V
-                    const v4, 0x161a8
-                    invoke-virtual { v3, v4 }, Lbrmg;->f(I)V
-                    new-instance v2, $OPEN_SCREEN
-                    invoke-direct { v2 }, $OPEN_SCREEN-><init>()V
-                    invoke-virtual { v3, v2 }, Lbrmg;->e(Landroid/view/View${'$'}OnClickListener;)V
-                    sget-object v4, Lbrmf;->d:Lbrmf;
-                    iput-object v4, v3, Lbrmg;->d:Lbrmf;
-                    invoke-virtual { v3 }, Lbrmg;->a()Lbrmi;
-                    move-result-object v0
-                    return-object v0
-                """,
-            )
-        },
-    )
-
-    // Both sheet builders: find the Customization row's `add`, and add ours right after it.
-    fun addAfterCustomization(returnType: String, parameters: List<String>) {
-        val found = mutableListOf<Pair<String, String>>()
-        classDefForEach { c ->
-            for (m in c.methods) {
-                if (m.returnType != returnType || m.parameterTypes.map { it.toString() } != parameters) continue
-                val callsRow = m.implementation?.instructions?.any {
-                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == "Lolr;" && r.name == "uaCustomizationRow" } == true
-                } == true
-                if (callsRow) found += c.type to m.name
-            }
-        }
-        val (owner, name) = found.singleOrNull()
-            ?: throw PatchException("account sheet builder $returnType(${parameters.joinToString()}) with the Customization row: found ${found.size}")
-        val method = mutableClassDefBy(owner).methods.single {
-            it.name == name && it.returnType == returnType && it.parameterTypes.map { t -> t.toString() } == parameters
-        }
-        val ins = method.implementation!!.instructions
-        val call = ins.indexOfFirst {
-            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == "Lolr;" && r.name == "uaCustomizationRow" } == true
-        }
-        val result = ins[call + 1]
-        val add = ins[call + 2]
-        if (result.opcode != Opcode.MOVE_RESULT_OBJECT || add.opcode != Opcode.INVOKE_VIRTUAL ||
-            ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != "Lbwxy;" || it.name != "i" }
-        ) throw PatchException("Customization row add changed shape")
-        val scratch = (result as OneRegisterInstruction).registerA
-        val list = (add as Instruction35c).registerC
-        val holder = (ins[call] as Instruction35c).registerC
-        // Modern builder: the holder is cast from a wider register just before; do the same.
-        val cast = ins.getOrNull(call - 1)?.takeIf { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == "Lolr;" }
-        val source = cast?.let { (ins[call - 2] as TwoRegisterInstruction).registerB }
-        method.addInstructions(
-            call + 3,
-            if (source != null) """
-                move-object v$scratch, v$source
-                check-cast v$scratch, Lolr;
-                invoke-virtual { v$scratch }, Lolr;->uaSavedRow()Lbrmi;
-                move-result-object v$scratch
-                invoke-virtual { v$list, v$scratch }, Lbwxy;->i(Ljava/lang/Object;)V
-            """ else """
-                invoke-virtual { v$holder }, Lolr;->uaSavedRow()Lbrmi;
-                move-result-object v$scratch
-                invoke-virtual { v$list, v$scratch }, Lbwxy;->i(Ljava/lang/Object;)V
-            """,
-        )
+    accountSheet().apply {
+        addRowBuilder("uaSavedRow", "Local saved", BOOKMARK_ICON, OPEN_SCREEN, listenerTakesContext = false)
+        placeRow("uaSavedRow", after = listOf("uaCustomizationRow"))
     }
-    addAfterCustomization("Lbrhh;", listOf("Lafmm;"))
-    addAfterCustomization("Lbrfb;", listOf("Z"))
 }
 
 /** Maps' place object, read off the Save button's state class [stateClass]: its position and feature id getters. */
@@ -380,11 +284,39 @@ internal val localSavedPlacesPatch = bytecodePatch(
         }
 
         // ---- 1b. Quick save (Save's other route, behind a Maps flag): the same list picker ----
-        val quickOwner = mutableClassDefBy(QuickSaveOwnerFingerprint.method.definingClass)
-        val quick = quickOwner.methods.singleOrNull { m ->
-            m.returnType == "V" && m.parameterTypes.map { it.toString() } == listOf(placeType)
-        } ?: throw PatchException("quick save not found in ${quickOwner.type}")
-        if (quick.implementation!!.registerCount - 2 < 3) throw PatchException("quick save has too few locals")
+        //      Its method, on an R8-merged class: `b(place)` -- if the place or its position is null, a no-arg
+        //      fallback; otherwise a Runnable(this, place, n) that is run once an account is picked.
+        val quickRef = run {
+            val found = mutableListOf<Pair<String, String>>()
+            classDefForEach { c ->
+                if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+                for (m in c.methods) {
+                    if (AccessFlags.STATIC.isSet(m.accessFlags) || m.returnType != "V" ||
+                        m.parameterTypes.map { it.toString() } != listOf(placeType)
+                    ) continue
+                    val code = m.implementation?.instructions?.toList() ?: continue
+                    if (code.size < 8 || code[0].opcode != Opcode.IF_EQZ || code[2].opcode != Opcode.MOVE_RESULT_OBJECT ||
+                        code[3].opcode != Opcode.IF_EQZ ||
+                        ((code[1] as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                            it.definingClass == placeType && it.name == positionGetter.name
+                        } != true
+                    ) continue
+                    val runnable = code.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE }
+                    val init = code.getOrNull(runnable + 2) as? Instruction35c ?: continue
+                    val p0 = m.implementation!!.registerCount - 2
+                    if (init.opcode != Opcode.INVOKE_DIRECT || init.registerCount != 4 || init.registerD != p0 || init.registerE != p0 + 1) continue
+                    found += c.type to m.name
+                }
+            }
+            found.singleOrNull() ?: throw PatchException("quick save: expected one (place)V method that runs the place " +
+                "once an account is picked, found ${found.size}")
+        }
+        val quickOwner = mutableClassDefBy(quickRef.first)
+        val quick = quickOwner.methods.single { m ->
+            m.name == quickRef.second && m.returnType == "V" && m.parameterTypes.map { it.toString() } == listOf(placeType)
+        }
+        if (quick.implementation!!.registerCount - 2 < 2) throw PatchException("quick save has too few locals")
+        // p1 (the place) is read last, then reused for its position.
         quick.addInstructionsWithLabels(
             0,
             """
@@ -394,9 +326,9 @@ internal val localSavedPlacesPatch = bytecodePatch(
                 invoke-virtual { p1 }, $placeType->${featureIdGetter.name}()${featureIdGetter.returnType}
                 move-result-object v1
                 invoke-virtual { p1 }, $placeType->${positionGetter.name}()${positionGetter.returnType}
-                move-result-object v2
+                move-result-object p1
                 const/4 p0, 0x0
-                invoke-static { p0, v0, v1, v2 }, $SAVED_PLACES->save(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+                invoke-static { p0, v0, v1, p1 }, $SAVED_PLACES->save(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
                 return-void
             """,
             ExternalLabel("maps_quick_save", quick.implementation!!.instructions.first()),
@@ -976,6 +908,17 @@ private fun BytecodePatchContext.savedOnMap(featureType: String, positionType: S
         throw PatchException("${info.kind} is not the saved list kind")
     }
 
+    // The extension's stubs (org.ungoogled.ui) use these classes directly; 26.43 made the generator
+    // package-private (IllegalAccessError in SavedOnMap.redraw), so every one of them is made public.
+    listOf(generatorType, itemType, builderType, info.type, info.kind, aliasType, featureType, positionType).distinct().forEach {
+        val c = mutableClassDefBy(it)
+        if (!AccessFlags.PUBLIC.isSet(c.accessFlags)) c.accessFlags = c.accessFlags or AccessFlags.PUBLIC.value
+    }
+    mutableClassDefBy(builderType).fields.single { it.name == aliasField.name && it.type == aliasField.type }.apply {
+        val hidden = AccessFlags.PRIVATE.value or AccessFlags.PROTECTED.value
+        if (!AccessFlags.PUBLIC.isSet(accessFlags)) accessFlags = (accessFlags and hidden.inv()) or AccessFlags.PUBLIC.value
+    }
+
     // The generator: its setter adds the phone's places, its switch draws them, uaRefresh redraws.
     setter.addInstructions(
         0,
@@ -1120,10 +1063,11 @@ private fun BytecodePatchContext.personalPlaceSearch() {
     fun Instruction.method() = (this as? ReferenceInstruction)?.reference as? MethodReference
     // The sign-in dialog's view model: the class that names the sign-in prompt.
     val promptOwners = mutableListOf<String>()
+    val aliasPrompt = ALIAS_SIGN_IN_PROMPT.toLong()
     classDefForEach { c ->
         if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
         val names = c.methods.any { m ->
-            m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == ALIAS_SIGN_IN_PROMPT.toLong() } == true
+            m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == aliasPrompt } == true
         }
         if (names) promptOwners += c.type
     }
@@ -1381,9 +1325,10 @@ private fun BytecodePatchContext.localLabels(
     fun Instruction.ref() = (this as? ReferenceInstruction)?.reference
     // The prompt's text: the one class naming "To label places ... sign in".
     val texts = mutableListOf<String>()
+    val labelPrompt = LABEL_SIGN_IN_PROMPT.toLong()
     classDefForEach { c ->
         if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
-        if (c.methods.any { m -> m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == LABEL_SIGN_IN_PROMPT.toLong() } == true }) {
+        if (c.methods.any { m -> m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == labelPrompt } == true }) {
             texts += c.type
         }
     }

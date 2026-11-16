@@ -11,6 +11,8 @@ import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.childrenNamed
 import app.morphe.patches.shared.disableComponentsByName
 import app.morphe.patches.shared.removeComponentDiscoveryRegistrarsWhere
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
 import app.morphe.patches.shared.setApplicationMetaData
 import app.morphe.patches.shared.stripPermissionsWhere
 import com.android.tools.smali.dexlib2.iface.Method
@@ -239,17 +241,11 @@ private fun BytecodePatchContext.hookAppsFlyerDelegate(
     if (delegateSig in hookedSignatures) return
 
     if (isSafeVoidDispatcher(delegateMethod)) {
-        delegateMethod.addInstructions(0, "return-void")
+        delegateMethod.replaceWithReturnVoid()
         hookedSignatures.add(delegateSig)
         hookedMethods.add("AppsFlyerDelegate.${delegateMethod.name}")
     } else if (isSafeBooleanDispatcher(delegateMethod)) {
-        delegateMethod.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """.trimIndent(),
-        )
+        delegateMethod.replaceWithReturnBoolean(false)
         hookedSignatures.add(delegateSig)
         hookedMethods.add("AppsFlyerDelegate.${delegateMethod.name}")
     }
@@ -266,7 +262,7 @@ private fun BytecodePatchContext.hookAppsFlyer(
         for (method in mutableAnalytics.methods) {
             val sig = "$analyticsClassType->${method.name}"
             if (sig !in hookedSignatures && isSafeVoidDispatcher(method)) {
-                method.addInstructions(0, "return-void")
+                method.replaceWithReturnVoid()
                 hookedSignatures.add(sig)
                 hookedMethods.add("AppsFlyerAnalytics.${method.name}")
             }
@@ -295,17 +291,11 @@ private fun BytecodePatchContext.hookAppsFlyer(
             val sig = "$defClass->${method.name}"
             if (sig !in hookedSignatures) {
                 if (isSafeVoidDispatcher(method)) {
-                    method.addInstructions(0, "return-void")
+                    method.replaceWithReturnVoid()
                     hookedSignatures.add(sig)
                     hookedMethods.add("AppsFlyerDataflow.${method.name}")
                 } else if (isSafeBooleanDispatcher(method)) {
-                    method.addInstructions(
-                        0,
-                        """
-                            const/4 v0, 0x0
-                            return v0
-                        """.trimIndent(),
-                    )
+                    method.replaceWithReturnBoolean(false)
                     hookedSignatures.add(sig)
                     hookedMethods.add("AppsFlyerDataflow.${method.name}")
                 }
@@ -328,7 +318,7 @@ private fun BytecodePatchContext.hookAppLog(
                 (method.name.startsWith("onEvent") || method.name.contains("event", ignoreCase = true)) &&
                 isSafeVoidDispatcher(method)
             ) {
-                method.addInstructions(0, "return-void")
+                method.replaceWithReturnVoid()
                 hookedSignatures.add(sig)
                 hookedMethods.add("AppLogInstance.${method.name}")
             }
@@ -344,7 +334,7 @@ private fun BytecodePatchContext.hookAppLog(
         ) {
             val sig = "$defClass->${method.name}"
             if (sig !in hookedSignatures && isSafeVoidDispatcher(method)) {
-                method.addInstructions(0, "return-void")
+                method.replaceWithReturnVoid()
                 hookedSignatures.add(sig)
                 hookedMethods.add("AppLog.${method.name}")
             }
@@ -363,7 +353,7 @@ private fun BytecodePatchContext.hookDispatchersForClass(
     for (method in mutableClass.methods) {
         val sig = "$classType->${method.name}${method.parameterTypes}"
         if (sig !in hookedSignatures && isSafeVoidDispatcher(method)) {
-            method.addInstructions(0, "return-void")
+            method.replaceWithReturnVoid()
             hookedSignatures.add(sig)
             hookedMethods.add("$prefix.${method.name}")
         }
@@ -416,7 +406,7 @@ val capcutBlockTelemetryPatch = bytecodePatch(
             parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Landroid/os/Bundle;"),
             returnType = "V",
         ).method.apply {
-            addInstructions(0, "return-void")
+            replaceWithReturnVoid()
             hookedMethods.add("AppMeasurement.logEventInternal")
             hookedSignatures.add("Lcom/google/android/gms/measurement/AppMeasurement;->logEventInternal")
         }

@@ -13,7 +13,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.general.navigation
@@ -597,45 +597,54 @@ val navigationBarComponentsPatch = bytecodePatch(
                     }
                     val messageLiteRegister = constructorStartRegister + messageLiteIndex + 1
                     val insertIndex = it.instructionMatches.last().index
-                    val backupRegister =
-                        getFreeRegisterProvider(insertIndex, 1).getFreeRegister()
+                    // Constructor arguments remain needed by both clones, even if dead at the return.
+                    // The protobuf parser uses a non-range invoke, so its inputs must be 4-bit registers.
+                    val scratchRegisters = getFreeRegisterProvider(
+                        insertIndex,
+                        3,
+                        (16 until implementation!!.registerCount).toList() +
+                                (constructorStartRegister..constructorEndRegister).toList()
+                    )
+                    val backupRegister = scratchRegisters.getFreeRegister()
+                    val protoRegister = scratchRegisters.getFreeRegister()
+                    val bytesRegister = scratchRegisters.getFreeRegister()
 
                     addInstructionsAtControlFlowLabel(
                         insertIndex,
                         """
                         # Preserve the original renderer while cloning Home into additional tabs.
                         move-object/16 v$backupRegister, v$messageLiteRegister
-                        invoke-static { v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->parseSettingsPivotBarItemRenderer(Lcom/google/protobuf/MessageLite;)[B
-                        move-result-object v$constructorStartRegister
-                        if-eqz v$constructorStartRegister, :ignore_settings
+                        invoke-static/range { v$messageLiteRegister .. v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->parseSettingsPivotBarItemRenderer(Lcom/google/protobuf/MessageLite;)[B
+                        move-result-object v$bytesRegister
+                        if-eqz v$bytesRegister, :ignore_settings
 
-                        sget-object v$messageLiteRegister, $pivotBarItemRendererType->a:$pivotBarItemRendererType
-                        invoke-static { v$messageLiteRegister, v$constructorStartRegister }, ${parseByteArrayMethodRef.get()!!}
+                        sget-object v$protoRegister, $pivotBarItemRendererType->a:$pivotBarItemRendererType
+                        invoke-static { v$protoRegister, v$bytesRegister }, ${parseByteArrayMethodRef.get()!!}
                         move-result-object v$messageLiteRegister
                         check-cast v$messageLiteRegister, $pivotBarItemRendererType
 
                         new-instance v$constructorStartRegister, ${constructorReference.definingClass}
                         invoke-direct/range { v$constructorStartRegister .. v$constructorEndRegister }, $constructorReference
-                        invoke-static { v$constructorStartRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarSettingsRenderer(Ljava/lang/Object;)V
+                        invoke-static/range { v$constructorStartRegister .. v$constructorStartRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarSettingsRenderer(Ljava/lang/Object;)V
                         :ignore_settings
 
                         move-object/16 v$messageLiteRegister, v$backupRegister
-                        invoke-static { v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->parseSearchPivotBarItemRenderer(Lcom/google/protobuf/MessageLite;)[B
-                        move-result-object v$constructorStartRegister
-                        if-eqz v$constructorStartRegister, :ignore_search
+                        invoke-static/range { v$messageLiteRegister .. v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->parseSearchPivotBarItemRenderer(Lcom/google/protobuf/MessageLite;)[B
+                        move-result-object v$bytesRegister
+                        if-eqz v$bytesRegister, :ignore_search
 
-                        sget-object v$messageLiteRegister, $pivotBarItemRendererType->a:$pivotBarItemRendererType
-                        invoke-static { v$messageLiteRegister, v$constructorStartRegister }, ${parseByteArrayMethodRef.get()!!}
+                        sget-object v$protoRegister, $pivotBarItemRendererType->a:$pivotBarItemRendererType
+                        invoke-static { v$protoRegister, v$bytesRegister }, ${parseByteArrayMethodRef.get()!!}
                         move-result-object v$messageLiteRegister
                         check-cast v$messageLiteRegister, $pivotBarItemRendererType
 
                         new-instance v$constructorStartRegister, ${constructorReference.definingClass}
                         invoke-direct/range { v$constructorStartRegister .. v$constructorEndRegister }, $constructorReference
-                        invoke-static { v$constructorStartRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarSearchRenderer(Ljava/lang/Object;)V
+                        invoke-static/range { v$constructorStartRegister .. v$constructorStartRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarSearchRenderer(Ljava/lang/Object;)V
                         :ignore_search
 
                         move-object/16 v$messageLiteRegister, v$backupRegister
-                        invoke-static { v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarWatchLaterRenderer(Lcom/google/protobuf/MessageLite;)V
+                        invoke-static/range { v$messageLiteRegister .. v$messageLiteRegister }, $EXTENSION_CLASS_DESCRIPTOR->setPivotBarWatchLaterRenderer(Lcom/google/protobuf/MessageLite;)V
                         nop
                     """
                     )

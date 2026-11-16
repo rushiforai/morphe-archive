@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -61,11 +61,13 @@ val pipStateHookPatch = bytecodePatch(
     dependsOn(versionCheckPatch)
 
     execute {
-        // YouTube 21.39: PiP entry method signature changed (returns Z); use the V2 fingerprint.
         val pipFingerprint =
             if (is_21_04_or_greater) {
-                if (pipPlaybackModernFingerprint.resolvable()) pipPlaybackModernFingerprint
-                else pipPlaybackModernV2Fingerprint
+                when {
+                    pipPlaybackModernFingerprint.resolvable() -> pipPlaybackModernFingerprint
+                    pipPlaybackModernV2Fingerprint.resolvable() -> pipPlaybackModernV2Fingerprint
+                    else -> pipPlaybackModernV3Fingerprint
+                }
             } else pipPlaybackFingerprint
 
         pipFingerprint.matchOrThrow().let {

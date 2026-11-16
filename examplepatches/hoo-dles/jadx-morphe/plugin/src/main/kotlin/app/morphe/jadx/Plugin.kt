@@ -27,7 +27,7 @@ class Plugin : JadxPlugin {
             .name("JADX Morphe")
             .description("On-the-fly evaluation of Morphe Patcher's Fingerprint matching against decompiled Smali code.")
             .homepage("https://github.com/hoo-dles/jadx-morphe")
-            .requiredJadxVersion("1.5.2, r2472")
+            .requiredJadxVersion("1.5.6, r2678")
             .build()
     }
 

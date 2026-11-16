@@ -23,3 +23,12 @@ internal object FeedInitialPropsFingerprint : Fingerprint(
             method.parameterTypes[3].toString() == "Ljava/lang/String;"
     },
 )
+
+// The native Home feed's navigation destination (tablets get that Home; its toString names it
+// DiscoveryFeedHome). Its constructor takes the page to open on, then showStoriesShelf, isFromDeeplink,
+// isFromPushNotif, notificationId and clipSlug.
+internal object NativeHomeDestinationFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf("DiscoveryFeedHome(location=", ", isFromPushNotif="),
+)

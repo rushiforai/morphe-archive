@@ -1,3 +1,67 @@
+## [1.77.6](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.5...v1.77.6) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** compact centered pill, see-through glass ([588ca21](https://github.com/mwbra130/Retro-Bowl-College/commit/588ca21f5f0614854c2e8dced035c91f4ddf38ef))
+
+## [1.77.5](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.4...v1.77.5) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** rebuild GlassNav the Morphe way - capsule inside the bar ([bf49a12](https://github.com/mwbra130/Retro-Bowl-College/commit/bf49a1232ff2802dee9e5c3410449b38ab965391))
+
+## [1.77.4](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.3...v1.77.4) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** make the glass pill actually float (ConstraintLayout anchors) ([fc7a577](https://github.com/mwbra130/Retro-Bowl-College/commit/fc7a577e8ac15c53989284c0b3b5a1e5ec0fac7c))
+
+## [1.77.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.2...v1.77.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** force the classic bar with b()=false, drop own settings row ([edc0ab4](https://github.com/mwbra130/Retro-Bowl-College/commit/edc0ab432df161f12ac812da1dd0601db66c2d64))
+
+## [1.77.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.1...v1.77.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** support Strava 486.11 (build 12400195) ([d9fd94a](https://github.com/mwbra130/Retro-Bowl-College/commit/d9fd94ad69043e390d1ce8bfa15d1c7c663c2ff3))
+
+## [1.77.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.0...v1.77.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **strava:** keep Liquid Glass pill floating and move settings into Extra Settings ([1ee4b4c](https://github.com/mwbra130/Retro-Bowl-College/commit/1ee4b4c35da5d727c399e6786cbbb0b13c3a514a))
+
+## [1.77.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.76.0...v1.77.0) (2026-11-15)
+
+### ✨ New Features
+
+* **strava:** Liquid Glass v2 — real backdrop blur and in-app settings ([e2c2c45](https://github.com/mwbra130/Retro-Bowl-College/commit/e2c2c451739fddf523711da01e9fab7c1a5d863f))
+
+## [1.76.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.75.0...v1.76.0) (2026-11-15)
+
+### ✨ New Features
+
+* **strava:** replace Strava patches with Liquid Glass navigation ([180102f](https://github.com/mwbra130/Retro-Bowl-College/commit/180102f059a7ca7f96cd965d2cc35462baafc940))
+
+## [1.75.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.74.0...v1.75.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* use register properties for the audio ducking constructor call ([9759993](https://github.com/mwbra130/Retro-Bowl-College/commit/9759993b45252a02802b59e7487269d7598094e8))
+
+### ✨ New Features
+
+* add YouTube Music (Wear OS) QUIC, audio ducking, spoof version and skip silence patches ([058b0b2](https://github.com/mwbra130/Retro-Bowl-College/commit/058b0b233de14a108bb381d91207506a24559401))
+
+## [1.74.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.73.0...v1.74.0) (2026-11-15)
+
+### ✨ New Features
+
+* add YouTube Music (Wear OS) downloads patch for 9.45.41-WEAR_RELEASE ([0c4947f](https://github.com/mwbra130/Retro-Bowl-College/commit/0c4947f777968d522a160111fdfaa616514b5138))
+
 ## [1.73.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.72.0...v1.73.0) (2026-11-14)
 
 ### ✨ New Features

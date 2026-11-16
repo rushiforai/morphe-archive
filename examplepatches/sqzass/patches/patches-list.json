@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.15.0",
+  "version": "1.21.0",
   "patches": [
     {
       "name": "Allow screen recording",
@@ -16,6 +16,54 @@
       "default": false,
       "category": null,
       "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Allow text selection",
+      "description": "Flips setTextIsSelectable(false)/setLongClickable(false) to true so text can be selected and copied.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Bypass root / emulator detection",
+      "description": "Forces common root and emulator detection methods to report clean. Covers Java/Kotlin-level checks in app code; library packages and native (.so) detection are not affected.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Bypass signature check",
+      "description": "Forces TamperCheck.validateAppSignature to true. Patched builds are re-signed, so the app's three hardcoded certificate SHA-1 hashes no longer match.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.stealthcopter.portdroid",
+          "name": "PortDroid - Network Analysis",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.0.7",
+              "versionCodes": {
+                "ARM64_V8A": 113,
+                "ARMEABI_V7A": 113,
+                "X86_64": 113,
+                "X86": 113
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
@@ -57,6 +105,37 @@
       ]
     },
     {
+      "name": "Change version name / code",
+      "description": "Rewrites the manifest versionName/versionCode and the baked-in BuildConfig values. 'Current' keeps the existing value.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "versionName",
+          "title": "Version name",
+          "description": "New android:versionName (e.g. 9.9.9), or 'Current'.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "Current",
+          "values": {
+            "Current": "Current"
+          }
+        },
+        {
+          "key": "versionCode",
+          "title": "Version code",
+          "description": "New android:versionCode (digits), or 'Current'.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "Current",
+          "values": {
+            "Current": "Current"
+          }
+        }
+      ]
+    },
+    {
       "name": "Custom font",
       "description": "Overrides the app's typeface with a built-in font family. Affects explicit Typeface usage; views that never set a typeface keep the system default.",
       "default": false,
@@ -79,6 +158,14 @@
       ]
     },
     {
+      "name": "Disable ads",
+      "description": "Neutralizes common ad SDKs (AdMob, Unity, Meta, AppLovin) by forcing their void load/show sinks to no-op and their boolean readiness predicates to false. Object-returning APIs are left intact to avoid null returns. Missing SDKs are skipped, so this is safe as a universal patch. Tradeoff: rewarded-ad gates never complete, so 'watch an ad to unlock' flows dead-end.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
       "name": "Disable boot start-up",
       "description": "Prevents the app from auto-starting on device boot by removing boot intent-filter actions and the RECEIVE_BOOT_COMPLETED permission.",
       "default": false,
@@ -97,12 +184,176 @@
       ]
     },
     {
+      "name": "Enable media sniffer",
+      "description": "Restores Pawxy's hidden video/media sniffer to the default tool menu. The toolbar builder excludes Tool$Action.SNIFFER from the default list; this patch removes that exclusion so the sniffer appears like any other tool.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.pawxy.browser",
+          "name": "Pawxy - Fast VPN & Web Browser",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#00E4FF",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.15.1",
+              "versionCodes": {
+                "ARM64_V8A": 104,
+                "ARMEABI_V7A": 104,
+                "X86_64": 104,
+                "X86": 104
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Force dark / AMOLED theme",
+      "description": "Forces AppCompat night mode to YES and (optionally) flips AMOLED/pure-black flags. Covers AppCompat/Material apps; Jetpack Compose themes are not affected.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "amoled",
+          "title": "Enable AMOLED / pure-black",
+          "description": "Also force isPureBlack/isAmoled-style flags to true (best-effort).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Force refresh rate",
+      "description": "Rewrites the float argument at Surface.setFrameRate() call sites to the selected refresh rate. This only affects apps that already request a frame rate; it does not globally force a display mode. Missing call sites are skipped safely.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "targetHz",
+          "title": "Target refresh rate",
+          "description": "Hz value to inject into Surface.setFrameRate() calls.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "120",
+          "values": {
+            "120": "120",
+            "90": "90",
+            "60": "60"
+          }
+        },
+        {
+          "key": "patchSurface",
+          "title": "Patch Surface.setFrameRate()",
+          "description": "Rewrites float args at Surface.setFrameRate() call sites.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Forced-update bypass",
+      "description": "Neuters in-app forced-update gates (dialogs, blocking checks, version prompts). Works on apps that keep readable method names; fully-obfuscated apps need per-app fingerprints.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
       "name": "Hide app icon",
       "description": "Hides the app from the launcher by replacing the LAUNCHER category with DEFAULT. The app stays installed; launch it via another app or a shortcut.",
       "default": false,
       "category": null,
       "compatiblePackages": null,
       "options": []
+    },
+    {
+      "name": "Rate-us popup",
+      "description": "Either removes the rate-us popup entirely, or rewrites its text. Rewrite mode changes the dialog title/body/buttons. Remove mode kills the trigger so the popup never appears.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.pawxy.browser",
+          "name": "Pawxy - Fast VPN & Web Browser",
+          "description": null,
+          "apkFileType": "APKS_REQUIRED",
+          "appIconColor": "#00E4FF",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.15.1",
+              "versionCodes": {
+                "ARM64_V8A": 104,
+                "ARMEABI_V7A": 104,
+                "X86_64": 104,
+                "X86": 104
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removePopup",
+          "title": "Remove popup entirely",
+          "description": "Prevents the rate-us dialog from ever appearing. Off = rewrite mode (change text instead of removing).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "customTitle",
+          "title": "Dialog title",
+          "description": "Replaces rate_app_title and rate_head. Only used if remove is off.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "Lustx was here",
+          "values": {
+            "Lustx was here": "Lustx was here"
+          }
+        },
+        {
+          "key": "customBody",
+          "title": "Dialog body",
+          "description": "Replaces rate_request and rate_app_propose. Only used if remove is off.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "This build was patched. The original rating prompt was replaced.",
+          "values": {
+            "This build was patched. The original rating prompt was replaced.": "This build was patched. The original rating prompt was replaced."
+          }
+        },
+        {
+          "key": "customConfirm",
+          "title": "Confirm button",
+          "description": "Replaces rate_rate_now. Only used if remove is off.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "Nice",
+          "values": {
+            "Nice": "Nice"
+          }
+        }
+      ]
     },
     {
       "name": "Remove PairIP",
@@ -113,17 +364,165 @@
       "options": []
     },
     {
-      "name": "Spoof device information",
-      "description": "Replaces android.os.Build device identity fields with a chosen device preset.",
+      "name": "Remove rate-us / review prompts",
+      "description": "Suppresses in-app rating/review dialogs and gates. Optionally blocks the Play Core system review dialog (may crash apps that don't null-check the returned Task).",
       "default": false,
       "category": null,
       "compatiblePackages": null,
       "options": [
         {
-          "key": "device",
-          "title": "Device preset",
-          "description": "The device to impersonate.",
+          "key": "blockSystemReview",
+          "title": "Block Play Core review dialog",
+          "description": "No-ops ReviewManager.requestReviewFlow/launchReviewFlow. Off by default: some apps NPE on the null Task. Enable only if you see the system dialog.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Rename app label",
+      "description": "Sets a literal launcher name on <application>, launcher activities and aliases. 'Current' keeps the existing label.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "appLabel",
+          "title": "App label",
+          "description": "New display name shown in the launcher, or 'Current'.",
           "required": true,
+          "type": "kotlin.String",
+          "default": "Current",
+          "values": {
+            "Current": "Current"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Skip splash",
+      "description": "Skips splash/intro screens by running their deferred navigation immediately and removing artificial sleeps. Scoped to splash-named Activity/Fragment classes.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "convertDelays",
+          "title": "Convert splash delays to immediate",
+          "description": "Replaces postDelayed/sleep inside splash classes with immediate execution. If a splash blanks or hangs, disable this.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Spoof device identity",
+      "description": "Unified device spoofing with per-category toggles: Android ID, MAC address, SIM/carrier, and Build device fields. Includes emulator presets. Library packages keep the real device so their internal behavior is unaffected.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "enableAndroidId",
+          "title": "Spoof Android ID",
+          "description": "Overrides Settings.Secure 'android_id' reads.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "androidIdValue",
+          "title": "Android ID value",
+          "description": "16 hex chars, or 'Random' to generate one per build.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "Random",
+          "values": {
+            "Random": "Random"
+          }
+        },
+        {
+          "key": "enableMac",
+          "title": "Spoof MAC address",
+          "description": "Overrides WifiInfo.getMacAddress() and BluetoothAdapter.getAddress().",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "macValue",
+          "title": "MAC address value",
+          "description": "Format AA:BB:CC:DD:EE:FF, or 'Random'.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "Random",
+          "values": {
+            "Random": "Random"
+          }
+        },
+        {
+          "key": "enableSim",
+          "title": "Spoof SIM / carrier",
+          "description": "Overrides TelephonyManager and SubscriptionInfo country/operator getters.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "simPreset",
+          "title": "SIM preset",
+          "description": "The simulated SIM/network identity.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "US - T-Mobile",
+          "values": {
+            "US - T-Mobile": "US - T-Mobile",
+            "US - AT&T": "US - AT&T",
+            "US - Verizon": "US - Verizon",
+            "UK - EE": "UK - EE",
+            "UK - Vodafone": "UK - Vodafone",
+            "UK - O2": "UK - O2",
+            "DE - Telekom": "DE - Telekom",
+            "DE - Vodafone": "DE - Vodafone",
+            "FR - Orange": "FR - Orange",
+            "FR - SFR": "FR - SFR",
+            "ES - Movistar": "ES - Movistar",
+            "IT - TIM": "IT - TIM",
+            "NL - KPN": "NL - KPN",
+            "PL - Orange": "PL - Orange",
+            "BR - Vivo": "BR - Vivo",
+            "IN - Jio": "IN - Jio",
+            "IN - Airtel": "IN - Airtel",
+            "JP - docomo": "JP - docomo",
+            "KR - SK Telecom": "KR - SK Telecom",
+            "AU - Telstra": "AU - Telstra",
+            "CA - Rogers": "CA - Rogers",
+            "SG - StarHub": "SG - StarHub",
+            "AE - etisalat": "AE - etisalat",
+            "TR - Turkcell": "TR - Turkcell"
+          }
+        },
+        {
+          "key": "enableDevice",
+          "title": "Spoof device / Build fields",
+          "description": "Overrides Build device identity fields using read-site patching. Includes emulator presets.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "devicePreset",
+          "title": "Device preset",
+          "description": "Target device identity.",
+          "required": false,
           "type": "kotlin.String",
           "default": "Pixel 9 Pro XL",
           "values": {
@@ -155,13 +554,17 @@
             "Xperia 1 V": "Xperia 1 V",
             "Zenfone 10": "Zenfone 10",
             "ROG Phone 8": "ROG Phone 8",
-            "Fairphone 5": "Fairphone 5"
+            "Fairphone 5": "Fairphone 5",
+            "Generic emulator (ranchu)": "Generic emulator (ranchu)",
+            "Genymotion": "Genymotion",
+            "BlueStacks": "BlueStacks",
+            "Nox Player": "Nox Player"
           }
         },
         {
           "key": "spoofVersion",
           "title": "Also spoof OS version",
-          "description": "Also spoof Build.VERSION (RELEASE, SDK_INT, ...). Can break apps; off by default.",
+          "description": "Also spoof Build.VERSION RELEASE, SDK_INT, SECURITY_PATCH, INCREMENTAL in app code. Can break apps; off by default.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
@@ -193,6 +596,24 @@
             "Xiaomi GetApps": "com.xiaomi.market",
             "ADB / sideload": "com.android.shell"
           }
+        }
+      ]
+    },
+    {
+      "name": "Spoof rooted environment",
+      "description": "Makes Java-level root checks report rooted: forces named detection methods true, spoofs Build.TAGS/USER/HOST at read sites, and forces su-path file checks to succeed. String/field-based targeting survives obfuscation. Native checks and Runtime.exec(\"su\") are not faked.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "spoofBuild",
+          "title": "Spoof Build fields",
+          "description": "Replaces Build.TAGS/USER/HOST reads with test-keys/root/buildbot.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
         }
       ]
     },
@@ -306,6 +727,53 @@
           "key": "notifications",
           "title": "Notifications",
           "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Telemetry / crash-reporter kill",
+      "description": "Silences common analytics, crash-reporting, attribution, session-replay and telemetry SDKs by forcing void logging/tracking sinks and boolean readiness predicates to no-op. Object-returning SDK methods are left intact to avoid null return crashes. Missing SDKs are skipped, so this is safe as a universal patch.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "killInit",
+          "title": "Also kill SDK initialization",
+          "description": "Aggressive: no-ops init/activate/start/configure methods in SDK classes. May break apps that require SDK init to run. Off by default.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Toast on launch",
+      "description": "Shows a Toast when the app starts by injecting framework Toast calls into the Application subclass's onCreate(). Pure inline smali — adds no classes or methods. No-op, never crashes, if the app has no custom Application, does not override onCreate, or its onCreate has too few free registers.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "message",
+          "title": "Toast message",
+          "description": "Text shown at launch.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "Patched build",
+          "values": {
+            "Patched build": "Patched build"
+          }
+        },
+        {
+          "key": "longDuration",
+          "title": "Long duration",
+          "description": "Use Toast.LENGTH_LONG instead of SHORT.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,

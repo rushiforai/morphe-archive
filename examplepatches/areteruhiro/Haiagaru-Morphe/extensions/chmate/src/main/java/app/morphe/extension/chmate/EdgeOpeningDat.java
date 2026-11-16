@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,10 @@ final class EdgeOpeningDat {
     }
 
     static String body(Transport transport) throws IOException {
+        return body(transport,1);
+    }
+    static String body(Transport transport,int lines) throws IOException {
+        if(lines<1||lines>2)throw new IllegalArgumentException("Only opening records may be read");
         ByteArrayOutputStream record = new ByteArrayOutputStream();
         int first=0, size=1024;
         while(first<MAX_BYTES) {
@@ -31,7 +36,7 @@ final class EdgeOpeningDat {
             Part part=transport.get(first,last);
             if(part.status==200) {
                 // A server ignoring Range is still read only as far as its first newline.
-                return decode(part.bytes,part.type);
+                return decode(part.bytes,part.type,lines);
             }
             if(part.status!=206)throw new IOException("HTTP "+part.status);
             Matcher range=RANGE.matcher(part.range==null?"":part.range);
@@ -44,9 +49,9 @@ final class EdgeOpeningDat {
             if(start!=first||end<start||end>last||(total>=0&&end>=total)
                     ||part.bytes.length>end-start+1)throw new IOException("DATの取得範囲が一致しません");
             record.write(part.bytes,0,part.bytes.length);
-            if(newline(part.bytes)>=0)return decode(record.toByteArray(),part.type);
+            if(newlines(record.toByteArray())>=lines)return decode(record.toByteArray(),part.type,lines);
             if(part.bytes.length!=end-start+1)throw new IOException("DATの先頭が途中で切れています");
-            if(total>=0&&end+1==total)return decode(record.toByteArray(),part.type);
+            if(total>=0&&end+1==total)return decode(record.toByteArray(),part.type,lines);
             first=(int)end+1;size=Math.min(size*2,MAX_BYTES);
         }
         throw new IOException("1レス目の取得上限を超えました");
@@ -54,25 +59,36 @@ final class EdgeOpeningDat {
 
     /** Leave following records unread, including when the server ignores Range. */
     static byte[] read(InputStream input,int limit) throws IOException {
+        return read(input,limit,1);
+    }
+    static byte[] read(InputStream input,int limit,int lines) throws IOException {
         ByteArrayOutputStream output=new ByteArrayOutputStream();
+        int records=0;
         byte[] buffer=new byte[128];
         while(output.size()<limit) {
             int count=input.read(buffer,0,Math.min(buffer.length,limit-output.size()));
             if(count<0)break;
-            for(int i=0;i<count;i++)if(buffer[i]=='\n') {
+            for(int i=0;i<count;i++)if(buffer[i]=='\n'&&++records>=lines) {
                 output.write(buffer,0,i+1);return output.toByteArray();
             }
             output.write(buffer,0,count);
         }
         return output.toByteArray();
     }
+    private static int newlines(byte[] bytes){int count=0;for(byte value:bytes)if(value=='\n')count++;return count;}
 
     private static int newline(byte[] bytes) {
         for(int i=0;i<bytes.length;i++)if(bytes[i]=='\n')return i;
         return -1;
     }
 
-    private static String decode(byte[] bytes,String type) throws IOException {
+    private static String decode(byte[] bytes,String type,int lines) throws IOException {
+        if(lines==2){
+            int first=newline(bytes);
+            if(first<0)return decode(bytes,type,1);
+            byte[] following=Arrays.copyOfRange(bytes,first+1,bytes.length);
+            return decode(Arrays.copyOf(bytes,first+1),type,1)+"<br>"+(following.length==0?"":decode(following,type,1));
+        }
         int end=newline(bytes);if(end<0)end=bytes.length;
         if(end>MAX_BYTES)throw new IOException("1レス目の取得上限を超えました");
         if(end>0&&bytes[end-1]=='\r')end--;

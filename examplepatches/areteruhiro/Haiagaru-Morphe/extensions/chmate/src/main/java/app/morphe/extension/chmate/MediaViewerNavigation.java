@@ -45,7 +45,7 @@ public final class MediaViewerNavigation {
     }
     private static WeakReference<TextView> body=new WeakReference<>(null);
     private static long touched;
-    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;int next,previous;boolean custom;String selected;MediaViewerBackGesture back;}
+    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;int next,previous;boolean custom,canPage,horizontalPriority;String selected;MediaViewerBackGesture back;}
     private static final WeakHashMap<Activity,WeakReference<Object>> MODELS=new WeakHashMap<>();
 
     static void rememberBody(TextView view,MotionEvent event) {
@@ -243,11 +243,15 @@ public final class MediaViewerNavigation {
         ArrayList<String> links=links(activity);return links.size()>1?" · "+(links.indexOf(current(activity))+1)+"/"+links.size():"";
     }
     static boolean move(Activity activity,int step) {
-        return move(activity,step,current(activity));
+        return move(activity,step,current(activity),false);
     }
-    private static boolean move(Activity activity,int step,String selected){
+    private static boolean move(Activity activity,int step,String selected,boolean closeAtEdge){
         ArrayList<String> links=links(activity);int current=links.indexOf(selected),next=current+step;
-        if(current<0||next<0||next>=links.size())return false;
+        if(current<0)return false;
+        if(next<0||next>=links.size()){
+            if(closeAtEdge)activity.finish();
+            return closeAtEdge;
+        }
         activity.startActivity(destination(activity,links,next));activity.finish();activity.overridePendingTransition(0,0);return true;
     }
     public static boolean onNativeTouch(Activity activity,MotionEvent event) {
@@ -278,38 +282,45 @@ public final class MediaViewerNavigation {
         int action=event.getActionMasked();Swipe swipe=SWIPES.get(activity);
         // Validate installation/version once per gesture, not on every MOVE frame.
         if(action!=MotionEvent.ACTION_DOWN&&swipe==null)return false;
-        if(action==MotionEvent.ACTION_DOWN&&!Haiagaru.videoViewerEnabled()
-                ||!VideoViewerSettings.prefs(activity).getBoolean("videoViewerEnabled",true)
-                ||!VideoViewerSettings.prefs(activity).getBoolean(activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)
-                        ?VideoViewerSettings.THREAD_MEDIA:VideoViewerSettings.MEDIA_SWIPE,!activity.getIntent().getBooleanExtra(THREAD_EXTRA,false))){
+        boolean dedicated=activity instanceof VideoViewerActivity||activity instanceof GifViewerActivity;
+        boolean doubleBack=dedicated&&VideoViewerSettings.prefs(activity).getBoolean(MediaViewerBackGesture.DOUBLE_BACK,false);
+        boolean paging=Haiagaru.videoViewerEnabled()
+                &&VideoViewerSettings.prefs(activity).getBoolean("videoViewerEnabled",true)
+                &&VideoViewerSettings.prefs(activity).getBoolean(activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)
+                        ?VideoViewerSettings.THREAD_MEDIA:VideoViewerSettings.MEDIA_SWIPE,!activity.getIntent().getBooleanExtra(THREAD_EXTRA,false));
+        if(!paging&&!doubleBack){
             SWIPES.remove(activity);return false;
         }
         if(swipe!=null&&swipe.cancelling)return false;
         if(action==MotionEvent.ACTION_DOWN){
-            if(links(activity).size()<2)return false;
-            swipe=new Swipe();swipe.selected=current(activity);swipe.x=event.getRawX();swipe.y=event.getRawY();
+            boolean canPage=paging&&links(activity).size()>=2;
+            if(!canPage&&!doubleBack)return false;
+            swipe=new Swipe();swipe.canPage=canPage;swipe.selected=current(activity);swipe.x=event.getRawX();swipe.y=event.getRawY();
             swipe.custom=NativeImagePaging.isNativeActivity(activity)&&NativeImagePaging.enabled(activity);
             if(swipe.custom){
                 android.content.SharedPreferences prefs=VideoViewerSettings.prefs(activity);
                 swipe.next=NativeImagePaging.direction(prefs,NativeImagePaging.NEXT);
                 swipe.previous=NativeImagePaging.direction(prefs,NativeImagePaging.PREVIOUS);
+                swipe.horizontalPriority=NativeImagePaging.legacy191(activity)&&(swipe.next>=NativeImagePaging.LEFT||swipe.previous>=NativeImagePaging.LEFT);
             }
             Rect bounds=new Rect();View area=surface!=null?surface:activity.getWindow().getDecorView();
             swipe.blocked=!area.getGlobalVisibleRect(bounds)||!bounds.contains((int)swipe.x,(int)swipe.y)
                     ||controlAt(activity.getWindow().getDecorView(),swipe.x,swipe.y)
                     ||activity instanceof VideoViewerActivity&&((VideoViewerActivity)activity).isVideoToolbarTouch(swipe.x,swipe.y)
                     ||surface==null&&zoomed(activity.getWindow().getDecorView());
-            if(!swipe.blocked){swipe.back=new MediaViewerBackGesture(activity);swipe.back.dispatch(event);}
+            if(!swipe.blocked){swipe.back=new MediaViewerBackGesture(activity,activity::finish,dedicated);swipe.back.dispatch(event);}
             SWIPES.put(activity,swipe);return false;
         }
         if(swipe==null)return false;
         if(event.getPointerCount()>1||action==MotionEvent.ACTION_POINTER_DOWN){swipe.blocked=true;return swipe.dragging;}
         if(action==MotionEvent.ACTION_CANCEL){SWIPES.remove(activity);return false;}
         if(swipe.blocked){if(action==MotionEvent.ACTION_UP)SWIPES.remove(activity);return swipe.dragging;}
-        if(swipe.back!=null&&swipe.back.dispatch(event)){SWIPES.remove(activity);return true;}
-        boolean backPriority=swipe.back!=null&&swipe.back.active();
         float dx=event.getRawX()-swipe.x,dy=event.getRawY()-swipe.y;
         float threshold=Math.max(48,48*activity.getResources().getDisplayMetrics().density);
+        boolean pageFlick=swipe.canPage&&swipe.horizontalPriority&&NativeImagePaging.assignedHorizontal(dx,dy,threshold,swipe.next,swipe.previous);
+        if(!pageFlick&&swipe.back!=null&&swipe.back.dispatch(event)){SWIPES.remove(activity);return true;}
+        if(!swipe.canPage){if(action==MotionEvent.ACTION_UP)SWIPES.remove(activity);return false;}
+        boolean backPriority=!pageFlick&&swipe.back!=null&&swipe.back.active();
         // Whole-thread paging has the same four directions in every version.
         // The configured native Back recognizer above still gets first refusal.
         int step=swipe.custom?NativeImagePaging.step(NativeImagePaging.axis(dx,dy,threshold),swipe.next,swipe.previous)
@@ -330,9 +341,9 @@ public final class MediaViewerNavigation {
                         final Swipe completed=swipe;
                         // Native recognizers post completion to the main Handler.
                         activity.getWindow().getDecorView().post(()->{
-                            if(!completed.back.returned()&&!activity.isFinishing()&&!activity.isDestroyed())move(activity,step,completed.selected);
+                            if(!completed.back.returned()&&!activity.isFinishing()&&!activity.isDestroyed())move(activity,step,completed.selected,completed.custom);
                         });
-                    }else move(activity,step,swipe.selected);
+                    }else move(activity,step,swipe.selected,swipe.custom);
                 }return true;}
         }
         return swipe.dragging;

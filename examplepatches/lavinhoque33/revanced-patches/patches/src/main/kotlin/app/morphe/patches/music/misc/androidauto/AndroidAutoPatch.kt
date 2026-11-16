@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3341
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-13: capture the selected-account catalog owner on supported versions only.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (fork extension, version check and utility
  * packages; skipped with a warning before YouTube Music 9.15, where the Android Auto classes differ).
@@ -180,6 +181,7 @@ val androidAutoPatch = bytecodePatch(
         // endregion
 
         hookPlaylistsTitleMediaIds()
+        patchPlaylistAccount()
         patchPhoneBrowseClient()
         patchPhoneBrowseResponses()
         val encodeCommandMediaIdMethod = patchPhoneBrowseItem()

@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.youtube.utils.loadvideo
@@ -13,7 +13,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.morphe.patches.youtube.interaction.reload.BackButtonFinishActivityOnNewVideoIntentFingerprint
+import app.morphe.patches.youtube.interaction.reload.backButtonFinishActivityOnNewVideoIntentFingerprint
 import app.morphe.patches.youtube.interaction.reload.MiniAppOpenYtContentCommandEndpointFingerprint
 import app.morphe.patches.youtube.interaction.reload.MiniAppOpenYtContentCommandEndpointFingerprint2139
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
@@ -127,6 +127,6 @@ internal val loadVideoHookPatch = bytecodePatch(
         }
 
         // Opening a video with an intent must not finish the activity when the back button is pressed.
-        BackButtonFinishActivityOnNewVideoIntentFingerprint.method.addInstruction(0, "return-void")
+        backButtonFinishActivityOnNewVideoIntentFingerprint().method.addInstruction(0, "return-void")
     }
 }

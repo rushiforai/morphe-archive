@@ -7,12 +7,14 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 | [Sleep as Android](docs/apps/sleep-as-android.md) | `com.urbandroid.sleep` | `20261016` |
 | [SnoreLab](docs/apps/snorelab.md) | `com.snorelab.app` | `2.33.7.7953` |
 | [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.50.0` |
-| [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.23` |
-| [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.3` |
+| [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.27` |
+| [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.5` |
 | [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.7` |
 | [FolderSync](docs/apps/foldersync.md) | `dk.tacit.android.foldersync.lite` | `4.14.0` |
 | [Projectivy Launcher](docs/apps/projectivy-launcher.md) | `com.spocky.projengmenu` | `4.73` |
 | [Solid Explorer](docs/apps/solidexplorer.md) | `pl.solidexplorer2` | `3.6.4` |
+| [nzb360](docs/apps/nzb360.md) | `com.kevinforeman.nzb360` | `25.3` |
+| [Trakt](docs/apps/trakt.md) | `tv.trakt.trakt` | `3.28.0` |
 
 ### How to use these patches
 
@@ -29,7 +31,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
+> **[v1.9.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -52,14 +54,14 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 4.10.23-googleplay |
+| 4.10.27-googleplay |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [AMOLED black](#amoled-black) | Pure black backgrounds instead of chess.com's dark grey, in the newer and the older screens. Switch it in Noam's Patches (then restart the app). |  |
 | [Accent color](#accent-color) | Your own colour in place of chess.com's green, chosen in Noam's Patches → Accent color: buttons, highlights, icons and text of the app. |  |
-| [Arcade animations](#arcade-animations) | Adds the chess.com website's Arcade piece animations to every board: light trails, bursts when a piece is picked up, dropped or captured, a flash on check, outlined last-move squares and animated move hints. Switch it in Noam's Patches. |  |
+| [Arcade animations](#arcade-animations) | Adds the chess.com website's Arcade piece animations to the classic board (live games and the Puzzle Rush, Puzzle Battle, Learning and Review puzzle modes): light trails, bursts when a piece is picked up, dropped or captured, a flash on check, outlined last-move squares and animated move hints. The newer board used by bot games, the Daily Puzzle, Solve Puzzles and Lichess Puzzles is not covered yet. Switch it in Noam's Patches. |  |
 | [Arrows in games](#arrows-in-games) | Adds Arrows and Clear buttons to the live, daily and pass-and-play game bars, and a small chip over the board in bot games. While Arrows is on, dragging on the board draws an arrow and tapping marks a square, as on the website, and pieces don't move. |  |
 | [Board colors](#board-colors) | Choose the board's square colours: your own, or one of chess.com's colour themes, on every board of the app. In Noam's Patches → Board colors. |  |
 | [Clone Chess.com](#clone-chess-com) | Renames the app to com.chess.noam so it installs next to the real Chess.com app instead of over it. Leave it off to keep updating your current install. |  |
@@ -86,7 +88,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 6.104.3 |
+| 6.104.5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -156,6 +158,37 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Pro](#enable-pro) | Enables the features locked behind the Pro subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Trakt&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.28.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Fix sign-in](#fix-sign-in) | Signs in through a regular browser tab so the OAuth callback can return to a re-signed build. If the browser offers to open Trakt, choose it. |  |
+| [Unlock VIP](#unlock-vip) | Reports the signed-in account as VIP to the app's own checks, unlocking the local VIP gates (the recap screens, the VIP badge and the other surfaces gated on that flag). Client side only: limits and perks the Trakt API enforces server-side still follow the real account tier. |  |
+
+</details>
+
+<details open>
+<summary>📦 nzb360&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 25.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock All Access](#unlock-all-access) | Unlocks All Access without the in-app purchase, so every service module and the Upgrade Center behave as if the subscription is active. |  |
 
 </details>
 
@@ -250,7 +283,7 @@ WebViews with the website's own dark theme and stay dark grey.
 
 ## 📱 Chess.com
 
-Supported target: `4.10.23-googleplay`. Older builds, including 4.10.18, are no longer
+Supported target: `4.10.27-googleplay`. Older builds, including 4.10.23, are no longer
 supported.
 
 20 patches, most backed by the bundle's Java extension. The **Noam's Patches** row in the
@@ -263,7 +296,7 @@ one and is off by default.
 
 ## 📱 Duolingo
 
-Supported target: `6.104.3` (APKM, versionCode 2492).
+Supported target: `6.104.5` (APKM, versionCode 2494).
 
 | Patch | Default | What it does |
 |---|---|---|
@@ -277,7 +310,7 @@ signed-in account changes and a friend's profile still shows their real state. E
 on the re-signed build depends on the login-integrity patch, which every other Duolingo
 patch depends on.
 
-[6.104.3 hook changes and on-device verification →](docs/apps/duolingo.md)
+[6.104.5 hook changes and on-device verification →](docs/apps/duolingo.md)
 
 ## 📱 Nova Launcher
 
@@ -294,6 +327,106 @@ which also keeps the Play licence revocation path from starting. Client-side onl
 Nova asks its backend for still needs a real account.
 
 [Port notes, hook map and on-device verification →](docs/apps/nova-launcher.md)
+
+## 📱 FolderSync
+
+Supported target: `4.14.0` (APKM, versionCode `2020100216`).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Unlock Premium | on | Reports the lite build as the paid version and turns off its ads. |
+
+FolderSync keeps the licence in one `VersionFeaturesConfig` record and rebuilds it from Play
+Billing on every preference change, so forcing only the preference getter would be undone a
+moment after startup. The patch forces the constructor's `isPaidVersion` argument instead, which
+covers every config the app builds, and forces `getPremiumVersionPurchased()` for the readers
+that use the preference directly. `showAds` follows the same flag, so the dashboard ads are
+gone, and the lite build already ships `Int.MAX_VALUE` for the account and folder-pair limits.
+Anything FolderSync's backend verifies still sees the real account.
+
+[Port notes, billing details and verification →](docs/apps/foldersync.md)
+
+## 📱 Projectivy Launcher
+
+Supported target: `4.73` (versionCode `98`), as both the APKMirror APKM and the GitHub release
+APK.
+
+| Patch | Default | What it does |
+|---|---|---|
+| Unlock Premium | on | Starts the app in its registered state, so the purchase prompts and feature locks are gone. |
+
+The premium flag is one `StateFlow<Boolean>` created by `PTApplication`, and it is inverted:
+`true` means **not registered**. The patch flips the constructor's `Boolean.TRUE` seed to
+`FALSE` and turns the licence writer `d(Z)V` into `return-void`, so neither the startup re-check
+nor the Play Billing collector can set it back.
+
+The 4.73 release exists as two separately compiled builds with the same identity — the
+APKMirror APKM and the GitHub universal APK — and they do not share R8 names, so the
+fingerprints anchor on structure rather than class names, and both `APKM` and `APK` are
+declared (the file type is part of compatibility). An APKM carries only its own ABIs; the
+GitHub APK has all four. Every patch also depends on an internal resource patch that sets
+`android:extractNativeLibs="true"`, without which a repackaged build can fail on 16 KB-page
+devices with `INSTALL_FAILED_NO_MATCHING_ABIS`.
+
+[Build variants, install notes and verification →](docs/apps/projectivy-launcher.md)
+
+## 📱 Solid Explorer
+
+Supported target: `3.6.4` (APKM, versionCode `306041`).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Enable Pro | on | Reports the free licence as Pro, so the Pro features unlock and the ads are gone. |
+
+The licence is one immutable `LicenseDetails` record, and every gate reads its `LicenseState`:
+`FeatureGate.isAccessGranted()` accepts `SUBSCRIBER` and `PREMIUM_PRO`, while `adsEnabled()` is
+`state == UNLICENSED`. At the end of the constructor the patch rewrites a record that still
+reports ads to `PREMIUM_PRO`, which unlocks the Pro features (folder encryption, the storage
+analyser, backup sync, icon sets) and stops the ad views from being created. A record that is
+already licensed keeps its state, and the product id, trial dates and server decisions are
+untouched.
+
+[Port notes, hook map and verification →](docs/apps/solidexplorer.md)
+
+## 📱 nzb360
+
+Supported target: `25.3` (versionCode `537`, universal APK).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Unlock All Access | on | Reports All Access as active, so every service module and the Upgrade Center unlock. |
+
+All Access is decided on the device by `NZB360LicenseHelper`: `isAASubscriptionActive()` gates
+`isUnlocked(Service, Z)`, and the two `isLocked` wrappers the UI calls invert it. The patch
+rewrites those four licence checks plus `Contract$UIState.isSubscribed()` for the Upgrade
+Center, and seeds the plan toggle on `"Yearly"`. The modules added in 25.3 need no change
+because the unlock is at the All Access level; credits and Feature Bounties are separate and are
+not granted, and anything the backend verifies still sees the real account.
+
+[Port notes, hook map and verification →](docs/apps/nzb360.md)
+
+## 📱 Trakt
+
+Supported target: `3.28.0` (APKM, versionCode `452`).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Fix sign-in | on | Signs in through a regular browser tab so the OAuth callback can return to a re-signed build. If the browser offers to open Trakt, choose it. |
+| Unlock VIP | on | Reports the signed-in account as VIP to the app's own checks, unlocking the local VIP gates. |
+
+VIP is one boolean on the Kotlinx-serialized `User` model. The patch sets it in both
+constructors that write it — the primary one used when mapping the API response and the
+serialization synthetic used when decoding a cached session — so the local VIP gates (the recap
+screens, the VIP badge, Discover → Filters) see a VIP account. Server-enforced limits and perks
+still follow the real tier.
+
+3.28 signs in through AuthTab with an `https://app.trakt.tv/…` redirect, and Chrome only
+completes that hand-off after Digital Asset Links verification, which a Morphe-signed build
+fails. `Fix sign-in` forces the HTTPS callback on and routes the flow to the app's regular
+Custom Tab path, which `MainActivity` already accepts; the callback may ask for **Open in
+Trakt** once. Without it, AuthTab fails and the retired `trakt://auth` redirect is refused.
+
+[Sign-in, hook map and verification →](docs/apps/trakt.md)
 
 ## ✅ Verification
 
@@ -328,9 +461,10 @@ export GITHUB_TOKEN=<token with read:packages>
 
 The bundle lands in `patches/build/libs/patches-*.mpp`.
 
-- Make changes on `dev`. `fix:` / `feat:` commits produce pre-releases, `chore:`
-  commits do not.
-- Merge `dev` into `main` (merge, don't squash) for a stable release.
+- Make changes on `dev`. `fix:` / `feat:` / `bump:` commits produce pre-releases;
+  `chore:`, `docs:` and `ci:` commits do not.
+- Merge `dev` into `main` (merge, don't squash) for a stable release. Documentation-only
+  changes may go straight to `main` with a `docs:` commit.
 - Enable *Allow GitHub Actions to create and approve pull requests* in
   Settings → Actions → General → Workflow permissions, or the `dev` → `main` PR
   job fails.
@@ -346,7 +480,7 @@ attribution:
   [MorpheApp/morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
 - **Sleep as Android:** descends from
   [Entree3k/Morning-Entree-Patches](https://github.com/Entree3k/Morning-Entree-Patches)
-  (GPLv3). The 20261006 compatibility target, the two extra fingerprint hooks and the cloud
+  (GPLv3). The 20261016 compatibility target, the two extra fingerprint hooks and the cloud
   patch are new here.
 - **SnoreLab:** port of
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3).
@@ -354,11 +488,11 @@ attribution:
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) (GPLv3).
 - **Chess.com:** port of
   [Noam's Morphe Patches](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPLv3); the
-  4.10.23 support is new here. The clone patch derives from
+  4.10.27 support is new here. The clone patch derives from
   [PrathxmOp/Prathxm-Patches](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0).
 - **Duolingo:** port of
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3), re-resolved
-  for 6.104.3.
+  for 6.104.5.
 - **Nova Launcher:** port of
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (both GPLv3),
@@ -366,16 +500,26 @@ attribution:
 - **FolderSync:** port of
   [arandomhooman/hoomans-morphe-patches](https://github.com/arandomhooman/hoomans-morphe-patches)
   (GPLv3), re-resolved for 4.14.0.
+- **Projectivy Launcher:** port of the 4.71 "Unlock Premium" patch in
+  [Entree3k/Morning-Entree-Patches](https://github.com/Entree3k/Morning-Entree-Patches)
+  (GPLv3), re-resolved for 4.73 with the APK/APKM split targets.
 - **Solid Explorer:** port of
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3), re-resolved
   for 3.6.4.
+- **nzb360:** port of
+  [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) (GPLv3),
+  re-resolved for 25.3.
+- **Trakt:** port of
+  [ineednotitle/Proteus-Patches](https://github.com/ineednotitle/Proteus-Patches) (GPLv3),
+  re-resolved for 3.28.0.
 
 Original patch code is © the upstream authors and contributors — ImNoammm, hoo-dles,
-rushiranpise, Entree3k, PrathxmOp, arandomhooman and their contributors. New code in this
-repository is © hyzor.
+rushiranpise, Entree3k, PrathxmOp, arandomhooman, ineednotitle and their contributors. New
+code in this repository is © hyzor.
 
-Not affiliated with Urbandroid, The New York Times, Duolingo, Chess.com, Nova Launcher,
-TeslaCoil Software, Tacit Dynamics, the Morphe project, or the above authors.
+Not affiliated with Urbandroid, SnoreLab, The New York Times, Chess.com, Duolingo, Nova
+Launcher, TeslaCoil Software, Tacit Dynamics, Projectivy Launcher, Solid Explorer, nzb360,
+Trakt, the Morphe project, or the above authors.
 
 ## ⚠️ Disclaimer
 

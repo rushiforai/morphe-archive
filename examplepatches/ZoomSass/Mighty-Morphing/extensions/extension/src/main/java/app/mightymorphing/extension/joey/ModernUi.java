@@ -65,6 +65,8 @@ public final class ModernUi {
     public static final String KEY_AMOLED = "pure_amoled";
     public static final String KEY_ALBUM_SWIPE = "album_swipe_close";
     public static final String KEY_FULLSCREEN_MEDIA = "fullscreen_media";
+    public static final String KEY_ALBUM_VIEWER = "album_viewer";
+    public static final String KEY_CLASSIC_DOWNLOADS = "classic_download_button";
     public static final String KEY_HIDE_CONTROLS_ON_OPEN = "hide_controls_on_open";
     public static final String KEY_HIDE_ICON = "hide_subreddit_icon";
 
@@ -1037,6 +1039,33 @@ public final class ModernUi {
         getPrefs(context).edit().putBoolean(KEY_ALBUM_SWIPE, enabled).apply();
     }
 
+    /**
+     * Modern UI is patched and switched on. The media features (shared with Media enhancements)
+     * run in both looks; only a few details follow this, such as who owns the viewer bars when
+     * Full screen media is off.
+     */
+    public static boolean modernLook(Context context) {
+        return MorpheSettings.modernUiControls() && isModernUiEnabled(context);
+    }
+
+    /** Morphe's album screen: counter, captions, thumbnail strip, grid, remembered place. */
+    public static boolean albumViewer(Context context) {
+        return context != null && getPrefs(context).getBoolean(KEY_ALBUM_VIEWER, true);
+    }
+
+    public static void setAlbumViewer(Context context, boolean enabled) {
+        getPrefs(context).edit().putBoolean(KEY_ALBUM_VIEWER, enabled).apply();
+    }
+
+    /** Classic only: the download button beside Joey's save star. Modern uses Post buttons & menu. */
+    public static boolean classicDownloads(Context context) {
+        return context != null && getPrefs(context).getBoolean(KEY_CLASSIC_DOWNLOADS, true);
+    }
+
+    public static void setClassicDownloads(Context context, boolean enabled) {
+        getPrefs(context).edit().putBoolean(KEY_CLASSIC_DOWNLOADS, enabled).apply();
+    }
+
     /** Modern media viewers fill the screen, camera area included. Off keeps the system bars. */
     public static boolean fullscreenMedia(Context context) {
         return getPrefs(context).getBoolean(KEY_FULLSCREEN_MEDIA, true);
@@ -1398,10 +1427,11 @@ public final class ModernUi {
     // Immersive Fullscreen Media Viewer Hook
     // =========================================================================
 
+    // The viewer hooks below come from the shared media hooks (Modern UI or Media enhancements),
+    // so they run in Modern and in Classic. Each feature has its own switch.
     public static void setupPhotoViewer(Activity activity) {
         if (activity == null) return;
         setContext(activity);
-        if (!isModernUiEnabled(activity)) return;
         ViewerDock.attach(activity);
         applyImmersiveFullscreen(activity);
     }
@@ -1410,10 +1440,9 @@ public final class ModernUi {
     public static void setupAlbumViewer(Activity activity) {
         if (activity == null) return;
         setContext(activity);
-        if (!isModernUiEnabled(activity)) return;
         ViewerDock.attach(activity);
         applyImmersiveFullscreen(activity);
-        hideAlbumPageLine(activity);
+        if (fullscreenMedia(activity)) hideAlbumPageLine(activity);
         AlbumChrome.showOnOpen(activity);
         AlbumChrome.attach(activity);
     }
@@ -1453,7 +1482,6 @@ public final class ModernUi {
     public static void setupVideoViewer(Activity activity) {
         if (activity == null) return;
         setContext(activity);
-        if (!isModernUiEnabled(activity)) return;
         applyImmersiveFullscreen(activity);
     }
 
@@ -1462,7 +1490,7 @@ public final class ModernUi {
      * the picture, album and video viewers stay fullscreen, so B1 does nothing there.
      */
     public static boolean keepViewerFullscreen(Activity activity) {
-        if (activity == null || !isModernUiEnabled(activity) || !fullscreenMedia(activity)) return false;
+        if (activity == null || !fullscreenMedia(activity)) return false;
         for (Class<?> type = activity.getClass(); type != null; type = type.getSuperclass()) {
             String name = type.getName();
             if (name.endsWith(".PhotoViewer") || name.endsWith(".BaseAlbumActivity") || name.endsWith(".VActivity")) {
@@ -1475,7 +1503,8 @@ public final class ModernUi {
     /** Joey's picture viewer resets the system bars on every tap (ja.v.T0). Modern keeps them hidden. */
     public static boolean ownsViewerBars(Object fragment) {
         Context context = getContext();
-        return context != null && isModernUiEnabled(context);
+        // Classic with Full screen media off leaves the bars to Joey and its Immersive mode.
+        return context != null && (fullscreenMedia(context) || modernLook(context));
     }
 
     /**
@@ -1488,7 +1517,8 @@ public final class ModernUi {
             Window window = activity.getWindow();
             if (window == null) return;
             if (!fullscreenMedia(activity)) {
-                showViewerBars(window);
+                // Classic keeps Joey's own viewer bars, which follow its Immersive mode.
+                if (modernLook(activity)) showViewerBars(window);
                 return;
             }
             // Joey keeps the viewer window transparent and fades its own black backdrop

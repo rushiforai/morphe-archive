@@ -495,6 +495,38 @@
       "options": []
     },
     {
+      "name": "Skip Age Verification",
+      "description": "Answers the Google Play age-signals request locally instead of waiting for the Play Store. The managed startup code blocks on that answer for up to two minutes, and the call never completes on sideloaded builds or devices without Play Services. Also skips the follow-up age-range query. Not selected by default: it disables the regional age gate.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.devolutions.remotedesktopmanager",
+          "name": "Remote Desktop Manager",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E8523F",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.3.1.5",
+              "versionCodes": {
+                "ARM64_V8A": 500987,
+                "ARMEABI_V7A": 500987,
+                "X86_64": 500987,
+                "X86": 500987
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Spoof WARP+ Unlimited UI",
       "description": "Forces WarpPlusState to UNLIMITED on every AccountData instance by intercepting the primary constructor before the account type field is written.",
       "default": true,
@@ -553,6 +585,40 @@
               },
               "isExperimental": false,
               "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Locket Gold",
+      "description": "Makes the app treat the signed-in account as a Locket Gold subscriber, enabling the Gold-only feature gates and replacing the paywall with subscription management. Client-side only: features validated by Locket's servers still need a real subscription.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.locket.Locket",
+          "name": "Locket Widget",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FFB201",
+          "signatures": [
+            "f7dd2c755cbbdf342b216c453e76e2ffcb34d688e5f91499bec0341648cbcb16"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.247.1",
+              "versionCodes": {
+                "ARM64_V8A": 632,
+                "ARMEABI_V7A": 632,
+                "X86_64": 632,
+                "X86": 632
+              },
+              "isExperimental": false,
+              "minSdk": 27,
               "description": null
             }
           ]
@@ -663,6 +729,40 @@
               },
               "isExperimental": false,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Video quality control",
+      "description": "Adds an on-screen settings menu for the player's video quality. Auto follows the app's own selection; the other presets override the player's quality caps.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "vn.vtv.vtvgo",
+          "name": "VTVGo",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#DC0000",
+          "signatures": [
+            "651a068b47d26e1a79ba6fcdae64eab8b512bde27d1ca60e20686cf06c94f227"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "12.11.13",
+              "versionCodes": {
+                "ARM64_V8A": 260935,
+                "ARMEABI_V7A": 260935,
+                "X86_64": 260935,
+                "X86": 260935
+              },
+              "isExperimental": false,
+              "minSdk": 24,
               "description": null
             }
           ]

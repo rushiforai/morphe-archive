@@ -24,7 +24,7 @@ public final class TwitchDns {
     }
 
     public static InetAddress[] getAllByName(String host) throws UnknownHostException {
-        if (HostBlocklist.isBlocked(host)) {
+        if (app.morphed.extension.twitch.settings.PatchSettings.adBlock() && HostBlocklist.isBlocked(host)) {
             report(host);
             // The label only shows while a stream is watched; main page ads are blocked silently.
             if (HostBlocklist.isAdServer(host)) StreamAdsPatch.adBlocked();

@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -41,6 +43,7 @@ public final class OfflineBrowsePages {
     private static final Set<String> ids = ConcurrentHashMap.newKeySet();
     /** The list of the pages whose id is not the list's own, by page id. */
     private static final Map<String, String> owners = new ConcurrentHashMap<>();
+    private static boolean loaded;
 
     private OfflineBrowsePages() {}
 
@@ -57,7 +60,9 @@ public final class OfflineBrowsePages {
     }
 
     /** Learns which pages are recorded. A worker thread; the answers of {@link #has} are false until it ran. */
-    static void load() {
+    static synchronized void load() {
+        if (loaded) return;
+        loaded = true;
         File[] files = directory().listFiles();
         if (files == null) return;
 
@@ -82,6 +87,11 @@ public final class OfflineBrowsePages {
     /** Whether a page is recorded under the id. In memory, so the main thread may ask; false until loaded. */
     static boolean has(String pageId) {
         return ids.contains(pageId);
+    }
+
+    /** Canonical playback playlist of a saved album page, when its recorded response established the mapping. */
+    static String sourceOf(String pageId) {
+        return owners.getOrDefault(pageId, pageId);
     }
 
     /**
@@ -126,6 +136,21 @@ public final class OfflineBrowsePages {
             Logger.printException(() -> "OfflineBrowsePages: could not read the page " + pageId, ex);
             return null;
         }
+    }
+
+    /** AA may read a catalog-only saved page as metadata without enabling native offline playback. */
+    @Nullable
+    static byte[] readSource(String sourceId) {
+        load();
+        byte[] direct = read(sourceId);
+        if (direct != null) return direct;
+        for (var owner : owners.entrySet()) {
+            if (sourceId.equals(owner.getValue())) {
+                byte[] page = read(owner.getKey());
+                if (page != null) return page;
+            }
+        }
+        return null;
     }
 
     /** Forgets the pages of the lists that are no longer kept. A worker thread. */

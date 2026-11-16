@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -357,6 +358,7 @@ public final class DownloadedMarkers {
     private static void refreshLater() {
         refresh.request();
         DownloadsPage.onCopiesChanged();
+        app.morphe.extension.music.patches.androidauto.AndroidAutoPatch.onPlaylistsChanged();
     }
 
     private static void refreshViews() {

@@ -2,6 +2,7 @@ package io.github.jordanwoodson.extension.shared.settings;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -410,7 +411,7 @@ public final class Settings {
     }
 
     /** Starts the app again from its launcher activity, for settings that are read once at startup. */
-    static void restart(Activity activity) {
+    static void restart(Context activity) {
         Intent launch = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
         if (launch == null || launch.getComponent() == null) return;
         // Changes are saved with apply(), which writes in the background; exit() doesn't wait for it.
@@ -509,11 +510,38 @@ public final class Settings {
         return current;
     }
 
+    /**
+     * Opens the screen as {@link SettingsActivity}, which the app's settings patch declares in the manifest.
+     * Android only knows the manifest of the APK that was installed, so where the patched APK is mounted over
+     * the original app (a root "mount" install) the activity doesn't exist for it: then the screen opens as
+     * {@link SettingsDialog} over the app's own activity instead of crashing the app.
+     */
     static void open(Context from) {
         if (from == null) return;
         Intent intent = new Intent(from, SettingsActivity.class);
         if (!(from instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        from.startActivity(intent);
+        try {
+            if (declared(from, intent)) {
+                from.startActivity(intent);
+                return;
+            }
+        } catch (ActivityNotFoundException e) {
+            // Falls through to the dialog.
+        }
+        Activity host = from instanceof Activity ? (Activity) from : ResumedActivityTracker.current();
+        Logger.w("settings: the installed app doesn't declare the settings activity, "
+                + (host == null ? "and no activity is open" : "opening over " + host.getClass().getSimpleName()));
+        if (host != null) SettingsDialog.show(host);
+    }
+
+    /** Whether the installed app's manifest has the activity {@code intent} names, and it is enabled. */
+    private static boolean declared(Context from, Intent intent) {
+        try {
+            return from.getPackageManager().resolveActivity(intent, 0) != null;
+        } catch (RuntimeException e) {
+            // Let startActivity decide.
+            return true;
+        }
     }
 
     private static SharedPreferences preferences() {

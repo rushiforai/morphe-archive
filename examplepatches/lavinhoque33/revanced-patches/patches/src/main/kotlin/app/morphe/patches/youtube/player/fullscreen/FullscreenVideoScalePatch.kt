@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.youtube.player.fullscreen
@@ -26,10 +26,13 @@ import app.morphe.patches.youtube.utils.playercontrols.injectControl
 import app.morphe.patches.youtube.utils.playercontrols.playerControlsPatch
 import app.morphe.patches.youtube.utils.playertype.PlayerTypeEnumFingerprint
 import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 
 private const val EXTENSION_CLASS_VIDEO_SCALE =
     "Lapp/morphe/extension/youtube/patches/FullscreenVideoScalePatch;"
@@ -80,16 +83,34 @@ val fullscreenVideoScalePatch = bytecodePatch(
     execute {
         injectControl(EXTENSION_BUTTON, false)
 
-        Fingerprint(
-            classFingerprint = YouTubePlayerOverlaysLayoutConstructorFingerprint,
-            accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-            returnType = "V",
-            parameters = listOf(PlayerTypeEnumFingerprint.originalClassDef.type),
-        ).method.addInstruction(
-            0,
-            "invoke-static { p0 }, $EXTENSION_CLASS_VIDEO_SCALE->" +
-                    "attachPlayerOverlay(Landroid/view/View;)V",
-        )
+        if (is_21_41_or_greater) {
+            Fingerprint(
+                definingClass = "Lcom/google/android/apps/youtube/app/player/YouTubePlayerViewNotForReflection;",
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = "V",
+                parameters = listOf(PlayerTypeEnumFingerprint.originalClassDef.type),
+            ).method.apply {
+                // Apply after the native and extension player-state callbacks have completed.
+                findInstructionIndicesReversedOrThrow(Opcode.RETURN_VOID).forEach { index ->
+                    addInstructionsAtControlFlowLabel(
+                        index,
+                        "invoke-static { p0 }, $EXTENSION_CLASS_VIDEO_SCALE->" +
+                                "onPlayerViewLayout(Landroid/view/View;)V",
+                    )
+                }
+            }
+        } else {
+            Fingerprint(
+                classFingerprint = YouTubePlayerOverlaysLayoutConstructorFingerprint,
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = "V",
+                parameters = listOf(PlayerTypeEnumFingerprint.originalClassDef.type),
+            ).method.addInstruction(
+                0,
+                "invoke-static { p0 }, $EXTENSION_CLASS_VIDEO_SCALE->" +
+                        "attachPlayerOverlay(Landroid/view/View;)V",
+            )
+        }
 
         YouTubePlayerOverlaysLayoutConstructorFingerprint.matchAll().forEach {
             it.method.addInstruction(

@@ -25,7 +25,7 @@ fun main() = runBlocking {
             apkFile = outputApk,
             temporaryFilesPath = tempDir,
             validate = true,
-        )
+        ),
     ).use { patcher ->
         patcher += patches
         patcher().collect { result ->

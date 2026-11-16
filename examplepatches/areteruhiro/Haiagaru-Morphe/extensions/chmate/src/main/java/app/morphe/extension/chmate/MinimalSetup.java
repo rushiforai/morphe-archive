@@ -12,30 +12,43 @@ final class MinimalSetup {
     static final String PROMPT="minimalSetupPromptV1",ACTIVE="minimalSetupV1";
     static void offer(Activity a){if(!SettingsProfiles.prefs(a).getBoolean(PROMPT,false))show(a);}
     static boolean toolbarDefault(int id){return id==0x7e000001&&FeatureSwitches.enabled(ACTIVE,false);}
-    static void show(Activity a){
+    static void choose(Activity a){
+        new HaiagaruDialog.Builder(a).setTitle("プリセットを選択")
+            .setItems(new String[]{"おすすめプリセット","広告削除だけのプリセット"},(d,which)->show(a,which==1))
+            .setNegativeButton("キャンセル",null).show();
+    }
+    static void show(Activity a){show(a,false);}
+    private static void show(Activity a,boolean adsOnly){
         if(a.isFinishing()||a.isDestroyed())return;
         LinearLayout panel=new LinearLayout(a);panel.setOrientation(1);
         TextView info=new TextView(a);info.setText("最低限パッチとして以下を有効にし、他のHaiagaru追加機能を無効にします。\n\n"
             +"・エッヂの記者ID表示＆NG\n・エッヂ過去ログ検索のツールバー\n・Kyodemo／必死チェッカーの専用ビューア\n"
             +"・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n・191の接続再利用抑止・代替IPへの切替高速化・進捗通知の集約\n\n"
             +"ログ・認証情報・登録済みルールは削除しません。通信互換性の修正や安全対策は残ります。元のChMate標準機能は変更しません。"
-            +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");panel.addView(info);
-        Switch on=new Switch(a);on.setText("最低限構成を有効にする");on.setChecked(false);panel.addView(on);
+            +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");if(adsOnly)info.setText("広告削除だけを有効にし、ほかのHaiagaru追加機能をオフにします。保存済みログやNGルールは保持します。");panel.addView(info);
+        Switch on=new Switch(a);on.setText(adsOnly?"広告削除だけの構成を有効にする":"最低限構成を有効にする");on.setChecked(false);panel.addView(on);
         new HaiagaruDialog.Builder(a).setTitle("Haiagaruの初期設定").setView(panel)
             .setNegativeButton("今は変更しない",(d,w)->SettingsProfiles.prefs(a).edit().putBoolean(PROMPT,true).apply())
             .setPositiveButton("決定",(d,w)->{
                 if(!on.isChecked()){SettingsProfiles.prefs(a).edit().putBoolean(PROMPT,true).apply();return;}
                 try{
-                    SettingsProfiles.catalog(a);
-                    if(!SettingsProfiles.apply(a,SettingsProfiles.minimalValues()))throw new IllegalStateException("設定の保存に失敗しました");
-                    for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,"haiagaru.hidden-id-ng"})
-                        if(!a.getSharedPreferences(name,0).edit().putBoolean("enabled",false).commit())throw new IllegalStateException("追加機能の設定を保存できません");
-                    if(!a.getSharedPreferences("haiagaru.mega-sync.options",0).edit().putBoolean("automatic",false).commit()
-                        ||!a.getSharedPreferences("haiagaru_imgur_web",0).edit().putBoolean("enabled",false).commit()
-                        ||!a.getSharedPreferences("haiagaru_upload_hosts",0).edit().putString("imageHost","native").putString("videoHost","native").commit())
-                        throw new IllegalStateException("同期・アップロード設定を保存できません");
-                    updateToolbars(a);
-                    if(!SettingsProfiles.prefs(a).edit().putBoolean(ACTIVE,true).putBoolean(PROMPT,true).commit())throw new IllegalStateException("初期設定を保存できません");
+                    if(adsOnly){
+                        LightweightSetup.apply(a);
+                    }else{
+                        SettingsProfiles.catalog(a);
+                        if(!SettingsProfiles.apply(a,SettingsProfiles.minimalValues(false)))throw new IllegalStateException("設定の保存に失敗しました");
+                        for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,
+                                "haiagaru.hidden-id-ng",StringReplacement.PREFS,RegisteredImageNg.PREFS}){
+                            if(!a.getSharedPreferences(name,0).edit().putBoolean("enabled",false).commit())
+                                throw new IllegalStateException("追加機能の設定を保存できません");
+                        }
+                        if(!a.getSharedPreferences("haiagaru.mega-sync.options",0).edit().putBoolean("automatic",false).commit()
+                                ||!a.getSharedPreferences("haiagaru_imgur_web",0).edit().putBoolean("enabled",false).commit()
+                                ||!a.getSharedPreferences("haiagaru_upload_hosts",0).edit().putString("imageHost","native").putString("videoHost","native").commit())
+                            throw new IllegalStateException("同期・アップロード設定を保存できません");
+                        updateToolbars(a);
+                    }
+                    if(!SettingsProfiles.prefs(a).edit().putBoolean(ACTIVE,!adsOnly).putBoolean(PROMPT,true).commit())throw new IllegalStateException("初期設定を保存できません");
                     for(WacchoiBackgroundJob job:WacchoiSearchService.jobs().values())if(job.running)job.cancel();
                     Haiagaru.refreshBoardListAfterReadSortChange();
                     SettingsRestart.confirm(a);
@@ -53,12 +66,15 @@ final class MinimalSetup {
             boolean changed=false;
             for(int i=0;i<rows.length();i++){
                 JSONObject row=rows.optJSONObject(i);if(row==null)continue;int id=row.optInt("id",Integer.MIN_VALUE);
-                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB||id==HomeRefreshTargets.TAB;
-                for(int action:ResponseMenuSettings.IDS)if(id==action)custom=true;
-                if(custom){row.put("visible",id==0x7e000001);changed=true;}
+                if(isCustomToolbarAction(id)){row.put("visible",id==0x7e000001);changed=true;}
             }
             if(changed&&!p.edit().putString("toolbarSettings",root.toString()).commit())throw new IllegalStateException("ツールバー設定を保存できません");
         }
+    }
+    static boolean isCustomToolbarAction(int id){
+        if(ToolbarIcons.index(id)>=0)return true;
+        for(int action:ResponseMenuSettings.IDS)if(id==action)return true;
+        return false;
     }
     private MinimalSetup(){}
 }

@@ -7,7 +7,6 @@ import com.dmoniak.patches.shared.Constants.COMPATIBILITY_CRYPTOMATOR_FREEMIUM
 import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
-@Suppress("unused")
 val cryptomatorAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Recording - Cryptomator",
     description = "Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview.",
@@ -28,9 +27,8 @@ fun BytecodePatchContext.executeCryptomatorAllowScreenshotsLogic(logger: Logger)
         val type = classDef.type
         val tl = type.lowercase()
 
-        if (tl.contains("androidx") || tl.contains("com/google")) return@classDefForEach
-
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
+        if (!tl.contains("androidx") && !tl.contains("com/google")) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 1. SharedPreferencesHandler.secureScreen -> false
         if (type.contains("SharedPreferencesHandler")) {
@@ -79,6 +77,8 @@ fun BytecodePatchContext.executeCryptomatorAllowScreenshotsLogic(logger: Logger)
                     logger.fine("[Cryptomator Screenshots] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
+    }
         }
     }
 

@@ -21,7 +21,7 @@ private object QueueMetricFingerprint : Fingerprint(
 @Suppress("unused")
 val blockTrackingPatch = bytecodePatch(
     name = "Block tracking",
-    description = "Adds an option (off by default) to stop sending most LinkedIn analytics events.",
+    description = "Adds an option (on by default) to stop sending most LinkedIn analytics events.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

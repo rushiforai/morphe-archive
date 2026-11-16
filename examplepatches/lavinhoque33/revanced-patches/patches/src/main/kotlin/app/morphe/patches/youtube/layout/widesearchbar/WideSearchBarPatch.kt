@@ -7,6 +7,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.layout.widesearchbar
@@ -25,6 +26,7 @@ import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.utils.toolbar.hookToolBarWithImageView
 import app.morphe.patches.youtube.utils.toolbar.toolBarHookPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/WideSearchBarPatch;"
@@ -62,20 +64,19 @@ val wideSearchBarPatch = bytecodePatch(
         hookToolBarWithImageView("$EXTENSION_CLASS->setSearchButtonView")
 
         ActionbarRingoViewFingerprint.apply {
-            arrayOf(
-                instructionMatches[5],
-                instructionMatches[3],
-                instructionMatches[1]
-            ).forEach { match ->
-                val index = match.index
-                val register = match.getInstruction<OneRegisterInstruction>().registerA
+            // Older layouts return from each branch; 21.42+ joins all branches at one return.
+            method.implementation!!.instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                .reversed()
+                .forEach { (index, instruction) ->
+                    val register = (instruction as OneRegisterInstruction).registerA
 
-                method.addInstructionsAtControlFlowLabel(
-                    index,
-                    "invoke-static { v$register }, $EXTENSION_CLASS->" +
-                            "initializeWideSearchbar(Landroid/view/View;)V"
-                )
-            }
+                    method.addInstructionsAtControlFlowLabel(
+                        index,
+                        "invoke-static { v$register }, $EXTENSION_CLASS->" +
+                                "initializeWideSearchbar(Landroid/view/View;)V"
+                    )
+                }
         }
 
         if (is_21_02_or_greater) {

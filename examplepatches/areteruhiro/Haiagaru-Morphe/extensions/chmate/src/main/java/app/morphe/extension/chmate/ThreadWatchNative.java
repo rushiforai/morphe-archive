@@ -16,6 +16,7 @@ public final class ThreadWatchNative {
     private static final ThreadLocal<ArrayDeque<Frame>> CURRENT=ThreadLocal.withInitial(ArrayDeque::new);
     private static final class Frame{
         final ThreadWatchRules.Target target;final String token;final File dat;final int before;
+        String preview;
         Frame(ThreadWatchRules.Target t,String k,File f,int b){target=t;token=k;dat=f;before=b;}
     }
     private static TreeMap<Integer,Integer> ranges(JSONObject item){
@@ -57,13 +58,13 @@ public final class ThreadWatchNative {
     public static void beginPacked(Object[] args){begin(args!=null&&args.length>1?args[1]:null);}
     public static void begin(Object info){
         Frame frame=new Frame(null,"",null,-1);Context c=Haiagaru.applicationContextForExtension();
-        if(c==null||ThreadWatch.prefs(c).getAll().isEmpty()){CURRENT.get().push(frame);return;}
+        if(c==null||!NotificationNg.enabled(c)&&ThreadWatch.prefs(c).getAll().isEmpty()){CURRENT.get().push(frame);return;}
         try{
             String version=c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName;boolean old=version.contains("191"),middle=version.contains("226");
             String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
             String board=(String)NativeFields.find(info.getClass(),old?"b":middle?"f":"g").get(info);Object id=NativeFields.find(info.getClass(),middle?"c":"e").get(info);
             ThreadWatchRules.Target t=ThreadWatchRules.fromParts(server,board,id);
-            synchronized(ThreadWatch.LOCK){if(t!=null&&ThreadWatch.prefs(c).contains(t.url)){
+            synchronized(ThreadWatch.LOCK){if(t!=null){
                 String token=new JSONObject(ThreadWatch.prefs(c).getString(t.url,"{}")).optString("token");
                 String name=RefreshTargets.nativeBoard(info,version).toString();
                 if(!name.contains("/")&&!name.contains("\\")&&!name.contains("..")){
@@ -84,17 +85,31 @@ public final class ThreadWatchNative {
         Set<Integer> own=new HashSet<>(ThreadWatchOwnPosts.read(c,frame.target));
         JSONObject item=new JSONObject(ThreadWatch.prefs(c).getString(frame.target.url,"{}"));JSONArray saved=item.optJSONArray("own");if(saved!=null)for(int i=0;i<saved.length();i++)if(saved.optInt(i)>0)own.add(saved.optInt(i));
         Set<Integer> result=new TreeSet<>();String charset=frame.target.shitaraba?"EUC-JP":frame.target.url.contains("eddibb.cc/")?"UTF-8":"MS932";
+        if(frame.dat.length()>32L*1024*1024)throw new IOException("Notification DAT too large");
+        StringBuilder dat=new StringBuilder();
+        List<Integer> rawReplies=new ArrayList<>();
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(new FileInputStream(frame.dat),Charset.forName(charset)))){
             String line;int ordinal=0;while((line=reader.readLine())!=null){
-                ordinal++;String[] fields=line.split("<>",-1);if(fields.length<5)continue;
+                dat.append(line).append('\n');ordinal++;String[] fields=line.split("<>",-1);if(fields.length<5)continue;
                 int number=ordinal,body=3;
                 // Native caches can retain Shitaraba rawmode's leading response number.
                 if(frame.target.shitaraba&&fields.length>=7&&fields[0].matches("[0-9]{1,7}")){number=Integer.parseInt(fields[0]);body=4;}
                 if(number<=frame.before)continue;
-                String plain=android.text.Html.fromHtml(fields[body]).toString();if(ThreadWatchRules.repliesTo(plain,number,own))result.add(number);
+                String plain=android.text.Html.fromHtml(fields[body]).toString();if(ThreadWatchRules.repliesTo(plain,number,own))rawReplies.add(number);
             }
         }
-        return result.isEmpty()?null:result;
+        if(rawReplies.isEmpty())return null;
+        Map<Integer,String> visible=NotificationNg.filter(c,frame.target,dat.toString(),Math.max(0,frame.before),Integer.MAX_VALUE);
+        result.addAll(rawReplies);result.retainAll(visible.keySet());
+        if(NotificationNg.enabled(c)&&!result.isEmpty()){
+            List<String> lines=new ArrayList<>();
+            for(int number:result){String text=android.text.Html.fromHtml(visible.get(number)).toString();
+                lines.add(">>"+number+" "+text.substring(0,Math.min(text.length(),300)));
+                if(lines.size()>3)lines.remove(0);
+            }
+            frame.preview=android.text.TextUtils.join("\n",lines);
+        }
+        return result;
     }
     private static boolean allowed(Context c,String channel){
         NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -104,7 +119,7 @@ public final class ThreadWatchNative {
         return true;
     }
     private static boolean duplicate(Frame frame,Context c,Set<Integer> replies)throws Exception{
-        return replies!=null&&!replies.isEmpty()&&seen(c,frame.target.url,replies).containsAll(replies);
+        return replies!=null&&(replies.isEmpty()||seen(c,frame.target.url,replies).containsAll(replies));
     }
     private static void delivered(Frame frame,Context c,Set<Integer> replies,String channel)throws Exception{
         if(frame==null||frame.target==null||replies==null||!allowed(c,channel))return;
@@ -117,7 +132,7 @@ public final class ThreadWatchNative {
         synchronized(ThreadWatch.LOCK){
             Frame frame=CURRENT.get().peek();Set<Integer> replies=null;
             try{if("reply".equals(channel)&&frame!=null&&frame.target!=null){replies=replies(frame,c);if(duplicate(frame,c,replies))return;}}catch(Exception error){android.util.Log.w("Haiagaru","Reply duplicate check unavailable",error);}
-            nativeLegacy(c,icon,title,ticker,text,id,tap,sound,time,channel);
+            nativeLegacy(c,icon,title,frame!=null&&frame.preview!=null?title:ticker,frame!=null&&frame.preview!=null?frame.preview:text,id,tap,sound,time,channel);
             try{delivered(frame,c,replies,channel);}catch(Exception error){android.util.Log.w("Haiagaru","Reply notification state unavailable",error);}
         }
     }
@@ -125,7 +140,7 @@ public final class ThreadWatchNative {
         synchronized(ThreadWatch.LOCK){
             Frame frame=CURRENT.get().peek();Set<Integer> replies=null;
             try{if("reply".equals(channel)&&frame!=null&&frame.target!=null){replies=replies(frame,c);if(duplicate(frame,c,replies))return;}}catch(Exception error){android.util.Log.w("Haiagaru","Reply duplicate check unavailable",error);}
-            nativeModern(c,icon,title,ticker,text,tap,sound,channel);
+            nativeModern(c,icon,title,frame!=null&&frame.preview!=null?title:ticker,frame!=null&&frame.preview!=null?frame.preview:text,tap,sound,channel);
             try{delivered(frame,c,replies,channel);}catch(Exception error){android.util.Log.w("Haiagaru","Reply notification state unavailable",error);}
         }
     }

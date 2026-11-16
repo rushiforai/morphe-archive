@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-13.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -85,6 +85,7 @@ import app.morphe.patches.shared.textcomponent.textComponentPatch
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findFieldFromToString
+import app.morphe.util.findFreeRegister
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstInstruction
@@ -92,6 +93,7 @@ import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversed
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
+import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -142,14 +144,19 @@ val actionBarComponentsPatch = bytecodePatch(
             offlineVideoEndpointFingerprint.let {
                 val (_, downloadCall) = it.instructionMatches
                 val videoIdRegister = (downloadCall.instruction as FiveRegisterInstruction).registerD
-                // Reuse the ID YTM resolved for its single-video download action.
-                // v1 is unused by the download call, which is followed by return-void.
+                val hookResultRegister = it.method.findFreeRegister(
+                    downloadCall.index,
+                    downloadCall.instruction.registersUsed
+                )
+                val onClickHook = "$ACTIONBAR_CLASS_DESCRIPTOR->offlineVideoEndpointOnClick(Ljava/lang/String;)Z"
+
+                // Reuse YTM's resolved video ID without overwriting any native download arguments.
                 it.method.addInstructionsAtControlFlowLabel(
                     downloadCall.index,
                     """
-                        invoke-static/range { v$videoIdRegister .. v$videoIdRegister }, $ACTIONBAR_CLASS_DESCRIPTOR->offlineVideoEndpointOnClick(Ljava/lang/String;)Z
-                        move-result v1
-                        if-eqz v1, :show_native_downloader
+                        invoke-static/range { v$videoIdRegister .. v$videoIdRegister }, $onClickHook
+                        move-result v$hookResultRegister
+                        if-eqz v$hookResultRegister, :show_native_downloader
                         return-void
                         :show_native_downloader
                         nop

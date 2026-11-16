@@ -45,7 +45,13 @@ internal fun bundled(name: String): ByteArray =
         ?: throw PatchException("$name is missing from the patches file")
 
 private val amlLibraryPatch = rawResourcePatch {
-    execute { get("lib/arm64-v8a/libAML.so", false).writeBytes(bundled("libAML.so")) }
+    execute {
+        // Re-patching an installed patched game: its assets/gtade/ still holds the previous selection, so a mod unticked
+        // now would be installed again by Boot. Its entries are dropped (the patcher's delete: original APK entries under
+        // the prefix); the mod patches (all depending on this one) then write the current selection.
+        delete("assets/gtade/")
+        get("lib/arm64-v8a/libAML.so", false).writeBytes(bundled("libAML.so"))
+    }
 }
 
 /**

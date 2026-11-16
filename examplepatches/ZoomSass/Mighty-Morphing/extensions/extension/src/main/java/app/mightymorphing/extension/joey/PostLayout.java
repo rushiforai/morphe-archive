@@ -72,6 +72,7 @@ public final class PostLayout {
             {"share_icon", "Share"},
             {"link_icon", "Link"},
             {"preview_icon", "Text preview"},
+            {"reply", "Reply"},
             {"hide_icon", "Hide"},
             {"commentsTextView", "Comments"},
             {"upvote", "Upvote"},
@@ -133,10 +134,23 @@ public final class PostLayout {
         edit.commit();
     }
 
+    /**
+     * Modern offers Full height, 16:9 and Thumbnail. Joey's Blank thumbnail and No image are moved
+     * to Thumbnail, in the feed and on the opened post ("Same as above" on).
+     */
+    private static void liftImageStyle(Context context) {
+        if (!modern()) return;
+        String name = imageName();
+        if (!"BLANK_THUMBNAIL".equals(name) && !"NO_IMAGE".equals(name)) return;
+        writeJoey("PREF_SUBMISSION_IMAGE_STYLE", "THUMBNAIL", "jc.k$b", "b");
+        joeySubmission(context).edit().putBoolean(KEY_SAME_STYLE, true).apply();
+    }
+
     private static Settings bar(Context context) {
         Settings cached = sBar;
         if (cached != null) return cached;
         migrate(context);
+        liftImageStyle(context);
         watch(context);
         Settings next = new Settings();
         next.order = Collections.unmodifiableList(barOrder(context));
@@ -211,11 +225,27 @@ public final class PostLayout {
         run(card);
     }
 
+    /**
+     * Shared media hooks, end of the post bind. Classic gets the download button on Joey's own
+     * bar; Modern places it through run() and Post buttons & menu.
+     */
+    public static void classicPost(Object card) {
+        try {
+            if (card == null) return;
+            View item = itemOf(card);
+            if (item == null || ModernUi.modernLook(item.getContext())) return;
+            MediaDownload.attachClassic(item, field(card, "b"));
+        } catch (Throwable t) {
+            Log.e(TAG, "classicPost", t);
+        }
+    }
+
     private static void run(Object card) {
         try {
             View item = itemOf(card);
             if (item == null || !ModernUi.isModernUiEnabled(item.getContext())) return;
             styleChrome(item);
+            markStyle(item, card);
             placeThumbnail(item);
             PostMotion.wireTaps(item);
             MediaDownload.attach(item, field(card, "b"));
@@ -242,7 +272,7 @@ public final class PostLayout {
         hideParent(activity, "hide_as_action_switch", 1);
         hideParent(activity, "share_as_action_switch", 1);
         hideParent(activity, "author_flair_switch", 1);
-        // Modern always gives the post on the comments screen the feed's layout.
+        // Image style offers this in Modern, so Joey's own row stays hidden.
         hideParent(activity, "comment_screen_post_layout_same_as_above", 3);
     }
 
@@ -294,6 +324,10 @@ public final class PostLayout {
         String current = imageName();
         int selected = "FULL_HEIGHT".equals(current) ? 0 : "_16_IS_TO_9".equals(current) ? 1
                 : "THUMBNAIL".equals(current) ? 2 : -1;
+        boolean sameNow = joeySubmission(activity).getBoolean(KEY_SAME_STYLE, false);
+        View[] thumbOnly = new View[2];
+        // Both choices wait for Save, so a style and the opened-post box can be set in one go.
+        int[] pick = {selected};
         float density = activity.getResources().getDisplayMetrics().density;
         int accent = MorpheDialog.accent(activity);
         int sub = MorpheDialog.sub(activity);
@@ -302,6 +336,7 @@ public final class PostLayout {
         cards.setOrientation(LinearLayout.HORIZONTAL);
         AlertDialog[] shown = new AlertDialog[1];
         String[] labels = {"Full height", "16:9", "Thumbnail"};
+        LinearLayout[] cardViews = new LinearLayout[3];
         for (int i = 0; i < 3; i++) {
             int index = i;
             LinearLayout card = new LinearLayout(activity);
@@ -309,37 +344,72 @@ public final class PostLayout {
             card.setGravity(Gravity.CENTER_HORIZONTAL);
             int pad = Math.round(10 * density);
             card.setPadding(pad, pad, pad, pad);
-            GradientDrawable frame = new GradientDrawable();
-            frame.setCornerRadius(12 * density);
-            frame.setColor(i == selected ? (accent & 0x00FFFFFF) | 0x22000000 : 0);
-            frame.setStroke(Math.round((i == selected ? 2 : 1) * density), i == selected ? accent : (sub & 0x00FFFFFF) | 0x66000000);
-            card.setBackground(frame);
-            card.addView(imageSketch(activity, i, i == selected ? accent : sub));
             TextView label = new TextView(activity);
             label.setText(labels[i]);
-            label.setTextColor(i == selected ? accent : MorpheDialog.text(activity));
             label.setTextSize(14);
             label.setGravity(Gravity.CENTER);
             label.setPadding(0, Math.round(8 * density), 0, 0);
             card.addView(label);
+            cardViews[i] = card;
             card.setOnClickListener(v -> {
-                String name = index == 0 ? "FULL_HEIGHT" : index == 1 ? "_16_IS_TO_9" : "THUMBNAIL";
-                writeJoey("PREF_SUBMISSION_IMAGE_STYLE", name, "jc.k$b", "b");
-                if (subtitle != null) subtitle.setText(imageBlurb());
-                if (shown[0] != null) shown[0].dismiss();
-                changed(activity);
+                pick[0] = index;
+                for (int k = 0; k < 3; k++) paintImageCard(activity, cardViews[k], k, k == pick[0], accent, sub, density);
+                for (View view : thumbOnly) if (view != null) view.setVisibility(pick[0] == 2 ? View.VISIBLE : View.GONE);
             });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
             if (i > 0) lp.leftMargin = Math.round(8 * density);
             cards.addView(card, lp);
         }
+        for (int k = 0; k < 3; k++) paintImageCard(activity, cardViews[k], k, k == pick[0], accent, sub, density);
         page.addView(cards);
+        // Only matters with Thumbnail: the other two already show the picture in full when opened.
+        // Ticked is Joey's "Same as above" off. Joey's own choice is kept as the user left it.
+        CheckBox same = MorpheDialog.check(activity, "Show the full picture when a post is opened", !sameNow, null);
+        LinearLayout.LayoutParams sameLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sameLp.topMargin = Math.round(12 * density);
+        page.addView(same, sameLp);
+        TextView sameNote = new TextView(activity);
+        sameNote.setText("Thumbnails stay in the feed. Off keeps the thumbnail on the comments screen too.");
+        sameNote.setTextColor(sub);
+        sameNote.setTextSize(13);
+        page.addView(sameNote);
+        thumbOnly[0] = same;
+        thumbOnly[1] = sameNote;
+        for (View view : thumbOnly) view.setVisibility(pick[0] == 2 ? View.VISIBLE : View.GONE);
         TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
         cancel.setOnClickListener(v -> {
             if (shown[0] != null) shown[0].dismiss();
         });
-        page.addView(MorpheDialog.actions(activity, cancel));
+        TextView save = MorpheDialog.action(activity, "Save", MorpheDialog.GOLD);
+        save.setOnClickListener(v -> {
+            boolean styleChanged = pick[0] >= 0 && pick[0] != selected;
+            // The box is only offered with Thumbnail; otherwise the saved choice is left alone.
+            boolean sameChanged = pick[0] == 2 && !same.isChecked() != sameNow;
+            if (styleChanged) {
+                String name = pick[0] == 0 ? "FULL_HEIGHT" : pick[0] == 1 ? "_16_IS_TO_9" : "THUMBNAIL";
+                writeJoey("PREF_SUBMISSION_IMAGE_STYLE", name, "jc.k$b", "b");
+                if (subtitle != null) subtitle.setText(imageBlurb());
+            }
+            if (sameChanged) joeySubmission(activity).edit().putBoolean(KEY_SAME_STYLE, !same.isChecked()).apply();
+            if (shown[0] != null) shown[0].dismiss();
+            if (styleChanged || sameChanged) changed(activity);
+        });
+        page.addView(MorpheDialog.actions(activity, cancel, save));
         shown[0] = MorpheDialog.show(activity, page, 520);
+    }
+
+    /** One style card: outlined and tinted when picked. The sketch is redrawn in the matching colour. */
+    private static void paintImageCard(Activity activity, LinearLayout card, int style, boolean on, int accent, int sub, float density) {
+        GradientDrawable frame = new GradientDrawable();
+        frame.setCornerRadius(12 * density);
+        frame.setColor(on ? (accent & 0x00FFFFFF) | 0x22000000 : 0);
+        frame.setStroke(Math.round((on ? 2 : 1) * density), on ? accent : (sub & 0x00FFFFFF) | 0x66000000);
+        card.setBackground(frame);
+        if (card.getChildCount() > 1) card.removeViewAt(0);
+        card.addView(imageSketch(activity, style, on ? accent : sub), 0);
+        View label = card.getChildAt(card.getChildCount() - 1);
+        if (label instanceof TextView) ((TextView) label).setTextColor(on ? accent : MorpheDialog.text(activity));
     }
 
     /** A small drawing of a post: title lines, and the picture where that style puts it. */
@@ -387,7 +457,7 @@ public final class PostLayout {
     }
 
     public static void showDetails(Activity activity) {
-        showPlaces(activity, "Post details",
+        showPlaces(activity, "Post info line",
                 "Drag the handle to change the order. Hide takes a detail off the line.",
                 DETAILS, false, false, KEY_DETAIL_ORDER, KEY_DETAIL_PLACE, PostLayout::drawDetails);
     }
@@ -424,6 +494,10 @@ public final class PostLayout {
             int save = left.indexOf("save");
             left.add(save < 0 ? left.size() : save + 1, "download");
         }
+        // Reply came back after some orders were saved. It starts where Joey has it, first on the
+        // right, rather than at the end where a new item would otherwise go.
+        String saved = prefs(context).getString(KEY_ACTION_ORDER, null);
+        if (saved != null && !saved.contains("\"reply\"") && right.remove("reply")) right.add(0, "reply");
         List<String> merged = new ArrayList<>();
         merged.addAll(left);
         merged.addAll(right);
@@ -693,7 +767,7 @@ public final class PostLayout {
         View thumb = find(item, "thumbnail");
         View title = find(item, "titleTextView");
         View bar = find(item, "actionbar_layout");
-        if (!"THUMBNAIL".equals(imageName()) || thumb == null || title == null
+        if (thumb == null || !"THUMBNAIL".equals(styleOf(thumb)) || title == null
                 || thumb.getVisibility() == View.GONE) {
             // A recycled row that had a thumbnail keeps the moved constraints. Put Joey's back.
             unseat(item, bar);
@@ -902,7 +976,7 @@ public final class PostLayout {
         View body = thumb.getParent() instanceof View
                 ? find((View) thumb.getParent(), "htmlDisplay_submission_card") : null;
         boolean written = body != null && body.getVisibility() == View.VISIBLE;
-        if (!written && thumb.getVisibility() != View.GONE && "THUMBNAIL".equals(imageName())) {
+        if (!written && thumb.getVisibility() != View.GONE && "THUMBNAIL".equals(styleOf(thumb))) {
             need = Math.max(0, thumb.getBottom() + gap - (bar.getTop() - extra));
         }
         if (need == extra) return;
@@ -938,8 +1012,8 @@ public final class PostLayout {
     }
 
     /**
-     * Joey asks whether to put the author, the domain or the post flair on the info line, or
-     * whether the post on the comments screen uses the feed's layout. Modern always says yes.
+     * Joey asks whether to put the author, the domain or the post flair on the info line.
+     * Modern always says yes.
      */
     public static boolean joeyLine(boolean joey) {
         return joey || modern();
@@ -1550,7 +1624,7 @@ public final class PostLayout {
         float density = activity.getResources().getDisplayMetrics().density;
         int text = MorpheDialog.text(activity);
         List<List<String>> lists = actionLists(activity);
-        LinearLayout page = MorpheDialog.page(activity, "Post actions",
+        LinearLayout page = MorpheDialog.page(activity, "Post buttons & menu",
                 "Choose what shows on the post bar and in its \u22ee menu.");
         SharedPreferences prefs = prefs(activity);
         int[] columns = new int[]{prefs.getInt(KEY_MENU_COLUMNS, 0)};
@@ -2652,6 +2726,7 @@ public final class PostLayout {
         if ("share_icon".equals(id)) return "share";
         if ("link_icon".equals(id)) return "link";
         if ("preview_icon".equals(id)) return "text_content_type";
+        if ("reply".equals(id)) return "reply_outline";
         if ("hide_icon".equals(id)) return "eye_off_outline";
         if ("upvote".equals(id)) return "upvote_arrow_outline";
         if ("downvote".equals(id)) return "downvote_arrow_outline";
@@ -2731,6 +2806,38 @@ public final class PostLayout {
 
     private static String layoutName() {
         return enumName("a", "LIST");
+    }
+
+    private static final int STYLE_TAG = 0x4d4f0049;
+    private static Method cardStyle;
+
+    /**
+     * The image style this post actually shows. On the comments screen Joey uses its own style
+     * unless "Same as above" is on (ud.b.a), so the feed's setting is not enough there.
+     */
+    private static void markStyle(View item, Object card) {
+        View thumb = find(item, "thumbnail");
+        if (thumb == null) return;
+        String name = null;
+        try {
+            if (cardStyle == null) cardStyle = Class.forName("ud.b").getMethod("a", Class.forName("jc.l"));
+            Object style = cardStyle.invoke(null, field(card, "e"));
+            if (style instanceof Enum) name = ((Enum<?>) style).name();
+        } catch (Throwable ignored) {
+        }
+        thumb.setTag(STYLE_TAG, name != null ? name : imageName());
+    }
+
+    private static String styleOf(View thumb) {
+        Object tag = thumb.getTag(STYLE_TAG);
+        return tag instanceof String ? (String) tag : imageName();
+    }
+
+    /** Joey's "Same as above": the opened post uses the feed's image style (submission_preferences). */
+    private static final String KEY_SAME_STYLE = "PREF_SAA_COMMENT_SCREENT_POST_STYLE";
+
+    private static SharedPreferences joeySubmission(Context context) {
+        return context.getSharedPreferences("submission_preferences", Context.MODE_PRIVATE);
     }
 
     private static String imageName() {

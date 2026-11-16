@@ -85,11 +85,20 @@ public final class GboardEmojiFontRuntime {
     public static Typeface getCustomEmojiTypefaceOrNull(Context context) {
         if (context == null) return null;
         if (cacheInitialized) {
-            return CACHED_TYPEFACE.get();
+            Typeface current = CACHED_TYPEFACE.get();
+            if (current != null) {
+                return current;
+            }
         }
         synchronized (CACHED_TYPEFACE) {
             if (cacheInitialized) {
-                return CACHED_TYPEFACE.get();
+                Typeface current = CACHED_TYPEFACE.get();
+                if (current != null) {
+                    return current;
+                }
+            }
+            if (!dev.jason.gboardpatches.extension.settings.GboardPatchesSettings.isUserUnlocked(context)) {
+                return null;
             }
             Typeface loaded = null;
             try {

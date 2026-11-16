@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-14.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the fork's patcher 1.15 helpers; proto
  * serialisation in the queue and router bridges is skipped while Jam queue sharing is off.
@@ -18,6 +19,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -26,7 +28,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 private const val CLOCK = "Lapp/morphe/extension/music/patches/jam/JamClock;"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -230,13 +234,16 @@ private fun BytecodePatchContext.installPalette(palette: PaletteAbi) {
             return-void
         """
     )
+    // Newer sources consume palette streams without retaining the native bitmap extractor.
+    val loadExtractor = palette.extractor?.let { "iget-object v0, p0, $it" }
+        ?: "sget-object v0, ${installPaletteExtractorCapture(palette)}"
     source.addBridge(
         "patch_jamExtract",
         listOf("Landroid/graphics/Bitmap;"),
         "Ljava/lang/Object;",
         3,
         body = """
-            iget-object v0, p0, ${palette.extractor}
+            $loadExtractor
             ${invokeKind(palette.extract)} {v0, p1}, ${palette.extract}
             move-result-object v0
             return-object v0
@@ -255,6 +262,40 @@ private fun BytecodePatchContext.installPalette(palette: PaletteAbi) {
             return-void
         """
     )
+}
+
+/** Retains the app-created extractor, including its native feature-flag dependencies. */
+private fun BytecodePatchContext.installPaletteExtractorCapture(palette: PaletteAbi): FieldReference {
+    val extractor = mutableClassDefBy(palette.extract.definingClass)
+    val instance =
+        ImmutableField(
+            extractor.type,
+            "patch_jamInstance",
+            extractor.type,
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.VOLATILE.value,
+            null,
+            null,
+            null,
+        ).toMutable()
+    extractor.staticFields.add(instance)
+
+    val captureName = "patch_jamCaptureExtractor"
+    extractor.addBridge(
+        captureName,
+        listOf(extractor.type),
+        "V",
+        1,
+        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+        """
+            sput-object p0, $instance
+            return-void
+        """,
+    )
+    palette.extractorConstructors.forEach { constructor ->
+        installQueueConstructorCapture(constructor, "${extractor.type}->$captureName(${extractor.type})V")
+    }
+
+    return instance
 }
 
 private fun BytecodePatchContext.installPlayback(playback: PlaybackAbi) {

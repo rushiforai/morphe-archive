@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.findMutableMethodOf
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.all.shared.isControlFlow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -50,6 +51,7 @@ private fun forceFamily(method: MutableMethod, invokeIndex: Int, reg: Int, famil
     for (j in invokeIndex - 1 downTo 0) {
         val ins = method.getInstruction(j)
         val op = ins.opcode
+
         if ((op == Opcode.CONST_STRING || op == Opcode.CONST_STRING_JUMBO) &&
             ins is OneRegisterInstruction &&
             ins.registerA == reg
@@ -57,16 +59,9 @@ private fun forceFamily(method: MutableMethod, invokeIndex: Int, reg: Int, famil
             method.replaceInstruction(j, "const-string v$reg, \"$family\"")
             return
         }
-        if (op == Opcode.GOTO ||
-            op == Opcode.GOTO_16 ||
-            op == Opcode.GOTO_32 ||
-            op == Opcode.PACKED_SWITCH ||
-            op == Opcode.SPARSE_SWITCH ||
-            op.name.startsWith("if-") ||
-            op.name.startsWith("return")
-        ) {
-            return
-        }
+
+        if (isControlFlow(op)) return
+
         if (ins is OneRegisterInstruction && ins.registerA == reg) return
     }
 }

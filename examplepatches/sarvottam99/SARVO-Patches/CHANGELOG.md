@@ -1,3 +1,7 @@
+## 1.4.0 (2026-11-15)
+
+- Bug Fixes in Patch List.
+
 ## 1.3.0 (2026-11-14)
 
 - Added HeyMelody to SARVO-Patches.

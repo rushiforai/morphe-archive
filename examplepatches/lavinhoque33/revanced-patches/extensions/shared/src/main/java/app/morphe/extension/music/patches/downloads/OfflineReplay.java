@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-12.
+ * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -430,6 +430,10 @@ public final class OfflineReplay {
         DownloadedRegistry registry = DownloadedMarkers.loadedRegistry();
         if (registry != null) watch = OfflineReplayLogic.canonicalTargetOf(watch, registry::canonicalId);
         if (browseId == null && watch == null) return false;
+        if (watch != null && !Utils.isInternetReachable() && !holds(watch.videoId())) {
+            PlayerFallback.unavailable();
+            return true;
+        }
 
         Map<String, List<String>> tracks = OfflineCopyStore.tracksBySource();
         OfflineReplayLogic.Decision decision = OfflineReplayLogic.routeOf(Utils.isInternetReachable(), browseId, watch,
@@ -635,9 +639,10 @@ public final class OfflineReplay {
             logDecision(HOOK_PLAYER, "lookup entered v=" + videoId + " offlineRequest=" + offlineRequest);
 
             byte[] stored = null;
-            if (enabled() && offlineRequest && videoId != null) stored = storedResponseOf(videoId);
+            boolean localRequest = offlineRequest || !Utils.isInternetReachable();
+            if (enabled() && localRequest && videoId != null) stored = storedResponseOf(videoId);
 
-            String reason = OfflineReplayLogic.skipReason(enabled(), offlineRequest, stored != null, true);
+            String reason = OfflineReplayLogic.skipReason(enabled(), localRequest, stored != null, true);
             if (reason != null) {
                 logDecision(HOOK_PLAYER, "lookup declined:" + reason + " v=" + videoId);
                 return null;
@@ -681,24 +686,27 @@ public final class OfflineReplay {
         return "flagR=" + marker;
     }
 
-    /**
-     * Injection point: the watch-next future of a request. While online, with the setting off, and for any request
-     * that is not an offline watch of ours the stock future is returned as it is. For ours, a stock failure is
-     * answered with the queue of the list.
-     */
+    /** Keeps online successes untouched; an in-flight online next request may fail after disconnection. */
     static ListenableFuture<?> wrapNext(Object request, ListenableFuture<?> stock) {
         try {
             noteAlive(HOOK_NEXT);
-            OfflineReplayLogic.WatchTarget target = watchTargetOf(request);
-            boolean ours = target != null
-                    && (sourceOf(target.playlistId()) != null || holds(target.videoId()));
-            String reason = OfflineReplayLogic.skipReason(enabled(), target != null, ours, true);
-            if (reason != null) {
-                logSkip(HOOK_NEXT, reason);
-                return stock;
-            }
+            if (!enabled() || watchTargetOf(request) == null) return stock;
 
-            return answerNextFailure((NextRequest) request, target, stock);
+            PlayerFallbackFuture future = PlayerFallbackFuture.recoverAsync(stock, Utils::runOnBackgroundThread,
+                    (result, failure) -> {
+                if (!PlayerFallback.currentFailure(request, result, failure)) return;
+                NextRequest next = (NextRequest) request;
+                Command command = (Command) next.rvxCommand();
+                boolean offlineWatch = OfflineReplayLogic.offlineWatchOf(command.toByteArray()) != null;
+                if (!PlayerFallback.replayFailure(request, failure) && !offlineWatch) {
+                    result.setException(failure);
+                    return;
+                }
+                Object response = nextResponse(request);
+                PlayerFallback.completeRecovery(request, result, response, failure);
+            });
+            PlaybackConnectivity.watch(request, future, true);
+            return future;
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineReplay: could not wrap the watch-next request", ex);
             return stock;
@@ -709,40 +717,38 @@ public final class OfflineReplay {
     private static OfflineReplayLogic.WatchTarget watchTargetOf(Object request) {
         if (!(request instanceof NextRequest next) || !(next.rvxCommand() instanceof Command command)) return null;
 
-        return OfflineReplayLogic.offlineWatchOf(command.toByteArray());
+        byte[] bytes = command.toByteArray();
+        OfflineReplayLogic.WatchTarget offline = OfflineReplayLogic.offlineWatchOf(bytes);
+        return offline == null ? OfflineReplayLogic.onlineWatchOf(bytes) : offline;
     }
 
-    private static ListenableFuture<?> answerNextFailure(NextRequest request, OfflineReplayLogic.WatchTarget target,
-                                                         ListenableFuture<?> stock) {
+    /** Disconnected next requests complete from the committed queue before stock can schedule network work. */
+    @Nullable
+    static ListenableFuture<?> localNext(Object request) {
+        if (!enabled() || Utils.isInternetReachable() || watchTargetOf(request) == null) return null;
+
         ReplayFuture result = new ReplayFuture();
-        stock.addListener(() -> {
-            try {
-                result.set(stock.get());
-            } catch (Exception failure) {
-                if (!result.isCancelled()) {
-                    Utils.runOnBackgroundThread(() -> answerFromStore(request, target, failure, result));
-                }
-            }
-        }, Runnable::run);
-        result.addListener(() -> {
-            if (result.isCancelled()) stock.cancel(false);
-        }, Runnable::run);
+        Utils.runOnBackgroundThread(() -> {
+            if (result.isCancelled()) return;
+            Object response = nextResponse(request);
+            if (response != null) result.set(response);
+            else PlayerFallback.finishUnavailable(request, result);
+        });
         return result;
     }
 
-    private static void answerFromStore(NextRequest request, OfflineReplayLogic.WatchTarget target,
-                                        Exception failure, ReplayFuture result) {
+    @Nullable
+    static Object nextResponse(Object request) {
         try {
-            byte[] bytes = nextBytes(target.playlistId(), target.videoId(), target.index(), true);
-            if (bytes == null) {
-                result.setException(failure);
-                return;
-            }
+            OfflineReplayLogic.WatchTarget target = watchTargetOf(request);
+            if (target == null || !(request instanceof NextRequest next)) return null;
 
-            result.set(request.rvxNextResponse(bytes));
-        } catch (Exception ex) {
-            Logger.printException(() -> "OfflineReplay: next v=" + target.videoId() + " could not be answered", ex);
-            result.setException(failure);
+            byte[] bytes = PlayerFallback.nextBytes(target.playlistId(), target.videoId(), next.rvxCommand());
+            if (bytes == null) bytes = nextBytes(target.playlistId(), target.videoId(), target.index(), true);
+            return bytes == null ? null : next.rvxNextResponse(bytes);
+        } catch (Exception failure) {
+            Logger.printException(() -> "OfflineReplay: could not answer the native queue", failure);
+            return null;
         }
     }
 

@@ -69,7 +69,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_ACCOUNT_MENU = new BooleanSetting("revanced_hide_account_menu", FALSE);
     public static final StringSetting HIDE_ACCOUNT_MENU_FILTER_STRINGS = new StringSetting("revanced_hide_account_menu_filter_strings", "", true);
     public static final BooleanSetting HIDE_ACCOUNT_MENU_EMPTY_COMPONENT = new BooleanSetting("revanced_hide_account_menu_empty_component", FALSE);
-    public static final BooleanSetting HIDE_HANDLE = new BooleanSetting("revanced_hide_handle", TRUE, true);
+    public static final BooleanSetting HIDE_HANDLE = new BooleanSetting("revanced_hide_handle", FALSE, true);
     public static final BooleanSetting HIDE_TERMS_CONTAINER = new BooleanSetting("revanced_hide_terms_container", FALSE);
 
 
@@ -178,6 +178,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting FORCE_PORTRAIT_ORIENTATION = new BooleanSetting("revanced_force_portrait_orientation", FALSE, true);
     public static final BooleanSetting CUSTOM_FILTER = new BooleanSetting("revanced_custom_filter", FALSE);
     public static final StringSetting CUSTOM_FILTER_STRINGS = new StringSetting("revanced_custom_filter_strings", "", true);
+    public static final BooleanSetting SETTINGS_SHORTCUT = new BooleanSetting("revanced_settings_shortcut", FALSE, true);
 
     // Settings menu filter
     public static final StringSetting SETTINGS_MENU_FILTER_STRINGS = new StringSetting("morphe_settings_menu_filter_strings", "", true);
@@ -220,6 +221,95 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting REPLACE_NAVIGATION_SAMPLES_BUTTON = new BooleanSetting("revanced_replace_navigation_samples_button", FALSE, true);
     public static final BooleanSetting REPLACE_NAVIGATION_UPGRADE_BUTTON = new BooleanSetting("revanced_replace_navigation_upgrade_button", FALSE, true);
     public static final BooleanSetting REPLACE_NAVIGATION_BUTTON_ABOUT = new BooleanSetting("revanced_replace_navigation_button_about", FALSE, false);
+
+    public static final BooleanSetting NAVIGATION_BAR_GLASS = new BooleanSetting(
+            "morphe_music_navigation_bar_glass", FALSE, true, parentInverted(HIDE_NAVIGATION_BAR));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_OPACITY = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_opacity", 20, false,
+            new Setting.SliderConfig(0, 100, 1, "%"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_BLUR = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_blur", 20, false,
+            new Setting.SliderConfig(0, 40, 1, "dp"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_RIM = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_rim", 50, false,
+            new Setting.SliderConfig(0, 100, 5, "%"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final BooleanSetting NAVIGATION_BAR_GLASS_LIGHT = new BooleanSetting(
+            "morphe_music_navigation_bar_glass_light", FALSE, false, parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final BooleanSetting NAVIGATION_BAR_GLASS_ALBUM_TINT = new BooleanSetting(
+            "morphe_music_navigation_bar_glass_album_tint", FALSE, false, parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final BooleanSetting NAVIGATION_BAR_GLASS_HIDE_INDICATOR = new BooleanSetting(
+            "morphe_music_navigation_bar_glass_hide_indicator", FALSE, false, parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_HEIGHT = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_height", 100, false,
+            new Setting.SliderConfig(60, 160, 5, "%"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_WIDTH = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_width", 100, false,
+            new Setting.SliderConfig(50, 100, 5, "%"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_BUTTON_SPACING = new IntegerSetting(
+            "morphe_music_navigation_bar_glass_button_spacing", 48, false,
+            new Setting.SliderConfig(8, 96, 4, "dp"), parentsAll(parent(NAVIGATION_BAR_GLASS), parentInverted(HIDE_NAVIGATION_BAR)));
+    public static final BooleanSetting MINIPLAYER_GLASS = new BooleanSetting(
+            "morphe_music_miniplayer_glass", FALSE, true);
+    public static final IntegerSetting MINIPLAYER_GLASS_OPACITY = new IntegerSetting(
+            "morphe_music_miniplayer_glass_opacity", 25, false,
+            new Setting.SliderConfig(0, 100, 1, "%"), parent(MINIPLAYER_GLASS));
+    public static final IntegerSetting MINIPLAYER_GLASS_BLUR = new IntegerSetting(
+            "morphe_music_miniplayer_glass_blur", 20, false,
+            new Setting.SliderConfig(0, 40, 1, "dp"), parent(MINIPLAYER_GLASS));
+    public static final IntegerSetting MINIPLAYER_GLASS_RIM = new IntegerSetting(
+            "morphe_music_miniplayer_glass_rim", 50, false,
+            new Setting.SliderConfig(0, 100, 5, "%"), parent(MINIPLAYER_GLASS));
+    public static final BooleanSetting MINIPLAYER_GLASS_LIGHT = new BooleanSetting(
+            "morphe_music_miniplayer_glass_light", FALSE, false, parent(MINIPLAYER_GLASS));
+    public static final BooleanSetting MINIPLAYER_GLASS_ALBUM_TINT = new BooleanSetting(
+            "morphe_music_miniplayer_glass_album_tint", TRUE, false, parent(MINIPLAYER_GLASS));
+    public static final BooleanSetting MINIPLAYER_GLASS_SPINNING_ARTWORK = new BooleanSetting(
+            "morphe_music_miniplayer_glass_spinning_artwork", FALSE, false, parent(MINIPLAYER_GLASS));
+    public static final BooleanSetting MINIPLAYER_GLASS_HIDE_PROGRESS_BAR = new BooleanSetting(
+            "morphe_music_miniplayer_glass_hide_progress_bar", FALSE, false, parent(MINIPLAYER_GLASS));
+    public static final IntegerSetting MINIPLAYER_GLASS_CORNER_RADIUS = new IntegerSetting(
+            "morphe_music_miniplayer_glass_corner_radius", 18, false,
+            new Setting.SliderConfig(8, 32, 1, "dp"), parent(MINIPLAYER_GLASS));
+    public static final IntegerSetting MINIPLAYER_GLASS_ARTWORK_PADDING = new IntegerSetting(
+            "morphe_music_miniplayer_glass_artwork_padding", 7, false,
+            new Setting.SliderConfig(4, 14, 1, "dp"), parent(MINIPLAYER_GLASS));
+
+    static {
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_OPACITY, 0, 100, 1, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_BLUR, 0, 40, 1, "dp"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_RIM, 0, 100, 5, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_HEIGHT, 60, 160, 5, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_WIDTH, 50, 100, 5, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        NAVIGATION_BAR_GLASS_BUTTON_SPACING, 8, 96, 4, "dp"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        MINIPLAYER_GLASS_OPACITY, 0, 100, 1, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        MINIPLAYER_GLASS_BLUR, 0, 40, 1, "dp"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        MINIPLAYER_GLASS_RIM, 0, 100, 5, "%"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        MINIPLAYER_GLASS_CORNER_RADIUS, 8, 32, 1, "dp"));
+        app.morphe.extension.shared.settings.preference.SeekBarPreference.register(
+                new app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig(
+                        MINIPLAYER_GLASS_ARTWORK_PADDING, 4, 14, 1, "dp"));
+    }
+
 
 
     // PreferenceScreen: Player

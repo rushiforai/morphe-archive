@@ -1,0 +1,2 @@
+71f9eea14a39a22029518b75bef25fc85978a1bdcd0fde32f3f86b9bbc5401fe  OperaBeta-104_v12_patch-bundle.zip
+299e46406e1f0ea66f8d79c2ee874be2313607c6fda1d4206887390f6e63b8ac  OperaBeta-104.0.5262.91143-custom-v12-universal.apk

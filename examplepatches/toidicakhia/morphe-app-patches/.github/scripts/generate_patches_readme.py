@@ -54,6 +54,7 @@ APP_ICONS = {
     "cz.mroczis.netmonster": ".github/assets/apps/cz.mroczis.netmonster.png",
     "com.anetcapture.mock": ".github/assets/apps/com.anetcapture.mock.png",
     "vn.vtv.vtvgo": ".github/assets/apps/vn.vtv.vtvgo.png",
+    "com.locket.Locket": ".github/assets/apps/com.locket.Locket.png",
 }
 
 

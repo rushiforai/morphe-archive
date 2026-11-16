@@ -38,6 +38,15 @@
             android:authorities="app.soundsync.settings"
             android:exported="true" />
 
+        <!-- DriveDeck says when a car session starts and ends. -->
+        <receiver
+            android:name=".CarHostReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="app.soundsync.action.CAR_HOST" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".SyncTileService"
             android:exported="true"

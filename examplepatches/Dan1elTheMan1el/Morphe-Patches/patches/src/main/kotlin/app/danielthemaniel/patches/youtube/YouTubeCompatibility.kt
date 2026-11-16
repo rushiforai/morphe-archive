@@ -8,6 +8,7 @@ internal val COMPATIBILITY_YOUTUBE = Compatibility(
     name = "YouTube",
     packageName = "com.google.android.youtube",
     apkFileType = ApkFileType.APK,
+    appIconColor = 0xFF0033,
     targets = listOf(
         // The background-frame hooks match by shape, so they are not tied to one build. Both targets
         // pass verify_fingerprints.py; only 21.20.405 has been run on a device.

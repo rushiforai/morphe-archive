@@ -1,0 +1,150 @@
+{
+ "2ed7035de3a5f43309535047151e9208f8b7dec569f90e69791672e306b9280b": {
+  "id": "regional_spanish_portuguese",
+  "url": "https://filters.adtidy.org/android/filters/9.txt"
+ },
+ "a1b47cf4bba8a74f44d983fef4dfae9a9623bb758b20cbbbe8a5c7e957dc8118": {
+  "id": "regional_france",
+  "url": "https://filters.adtidy.org/android/filters/14.txt"
+ },
+ "49b408a48fda0ff864ed0313f03662732b22b235819c39923ac9581afe9e2b54": {
+  "id": "ublock",
+  "url": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt"
+ },
+ "7f23de92d0ccf2af46647fa495a2bba2e1b54dea3d952d993713668dd4173bf3": {
+  "id": "regional_hungary",
+  "url": "https://raw.githubusercontent.com/hufilter/hufilter/master/sections/ads.txt"
+ },
+ "63109422b16e5766e9dbed07ca878bc834098b184c583fdfcbc70aa42659aefb": {
+  "id": "regional_chinese",
+  "url": "https://filters.adtidy.org/android/filters/10.txt"
+ },
+ "81d7485bc820209a01cfb506b39572b2a0bf4d36eb0c5a42cbfe563c1d8ff74f": {
+  "id": "regional_poland",
+  "url": "https://raw.githubusercontent.com/MajkiIT/polish-ads-filter/master/polish-adblock-filters/adblock.txt"
+ },
+ "5b8f9bad9dd9d861e97aa7e0a547f358fccde11f9949dafe9099664c8e7fc581": {
+  "id": "regional_vietnam",
+  "url": "https://raw.githubusercontent.com/abpvn/abpvn/master/filter/abpvn.txt"
+ },
+ "3a256c13e8fb5a36954a484a4782cb1d89615806dee9363f6eee31fc33799fd0": {
+  "id": "regional_sweden",
+  "url": "https://raw.githubusercontent.com/lassekongo83/Frellwits-filter-lists/master/Frellwits-Swedish-Filter.txt"
+ },
+ "6873cce8b47ecace4e3489d688eed715aac917a517ec18ccdf5ba731783b7be1": {
+  "id": "regional_japan",
+  "url": "https://filters.adtidy.org/android/filters/7.txt"
+ },
+ "fe6aa24325c1ce2c9705d0df414234cc17fe7da37178c8c09b89b3069aad9aca": {
+  "id": "adguard_ads",
+  "url": "https://filters.adtidy.org/extension/ublock/filters/2_without_easylist.txt"
+ },
+ "403941abec0a8b2528a683318c0e7b20a4a757ee8c692b57a3f92dd2fe706882": {
+  "id": "regional_arabic",
+  "url": "https://raw.githubusercontent.com/easylist/listear/master/Liste_AR.txt"
+ },
+ "27fcd4dc3bd766f7c3c290a3f1ece54cbab7e67230b769362a6c339ce6f53aa3": {
+  "id": "regional_thailand",
+  "url": "https://raw.githubusercontent.com/easylist-thailand/easylist-thailand/master/subscription/easylist-thailand.txt"
+ },
+ "fc9258eec1f91b8348feb24f60c52c0ef99756299ed2e63e35e778c1c23e3d4c": {
+  "id": "regional_slovenia",
+  "url": "https://raw.githubusercontent.com/betterwebleon/slovenian-list/master/filters.txt"
+ },
+ "d7ecb9014330ee6d0af4a4e201281751ae976c8bdaf04cb91981e0968844dce8": {
+  "id": "regional_albania",
+  "url": "https://raw.githubusercontent.com/AnXh3L0/blocklist/master/albanian-easylist-addition/Albania.txt"
+ },
+ "fbe1cce4116a9fd16003c1ec986eba44ddf7899083b4bee6d0dc03b6fff4de24": {
+  "id": "regional_finland",
+  "url": "https://raw.githubusercontent.com/finnish-easylist-addition/finnish-easylist-addition/master/Finland_adb.txt"
+ },
+ "7461d53ab3f6e23f0ffa43f65e9bf3e8e455d5edfaf970b689de14791f12994f": {
+  "id": "regional_germany",
+  "url": "https://easylist-downloads.adblockplus.org/easylistgermany.txt"
+ },
+ "a3ad11d1112fe21f6c3a429fe1f4b8bf30ea2386d1e8baa4bbeb7aa82e18140c": {
+  "id": "adguard_mobile_ads",
+  "url": "https://filters.adtidy.org/android/filters/11.txt"
+ },
+ "74f1b1747bbaaba7a12288cbb6f6f444330b3d0947e87b4a3179f356a45b21fb": {
+  "id": "regional_persia",
+  "url": "https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlocker.txt"
+ },
+ "43c37bc03d7fcd738aab7a40ea4496dd64a08552ae6eb00ed4ad74ea37ec4704": {
+  "id": "regional_romania",
+  "url": "https://raw.githubusercontent.com/tcptomato/ROad-Block/master/road-block-filters-light.txt"
+ },
+ "eba1ff4fb69abbe0d2b7ea492bfc9a80c9d2d18fe749e478031119d4c0774e42": {
+  "id": "regional_bulgarian",
+  "url": "https://stanev.org/abp/adblock_bg.txt"
+ },
+ "426183deb25ca9d50a3fcb2c0daae9a16d108e97e3d80ba71db78ed1ff54a882": {
+  "id": "easylist",
+  "url": "https://easylist.to/easylist/easylist.txt"
+ },
+ "d2487e450b7003f3050c63618031eabf59c17e0a17bf572c97a1236fb24e9b0e": {
+  "id": "regional_greek",
+  "url": "https://raw.githubusercontent.com/kargig/greek-adblockplus-filter/master/void-gr-filters.txt"
+ },
+ "6963e716a67670eb5a829fa1de98baac2a61f4c2732aad2322bc8ee15615d069": {
+  "id": "regional_russia",
+  "url": "https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt"
+ },
+ "51788c206cb25eabb80aa5b71c514d027fe4f6c996fb089a4b3b1bf466bc5e71": {
+  "id": "nocoin",
+  "url": "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt"
+ },
+ "5036bcede055989e23f7e2c4520b9c460ad834731c4aa2a26075734c74432d91": {
+  "id": "regional_serbia_croatia",
+  "url": "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/SerboCroatianList.txt"
+ },
+ "5d0dd56b62d99225a21b56e3e64d0120fb50a782a369ea825c5860c13452ecdf": {
+  "id": "regional_estonia",
+  "url": "https://adblock.ee/list.php"
+ },
+ "6e9dacc492c38f19543da3d4704fc574b9347ca677cb0c2618b11dc8c6dbbb61": {
+  "id": "regional_indonesia",
+  "url": "https://raw.githubusercontent.com/ABPindo/indonesianadblockrules/master/subscriptions/abpindo.txt"
+ },
+ "9653fd730413de579ba1733b61dfd268d3f48c88ff1997968eb4720d4e6d015d": {
+  "id": "regional_lithuania",
+  "url": "https://raw.githubusercontent.com/EasyList-Lithuania/easylist_lithuania/master/easylistlithuania.txt"
+ },
+ "30c071d1e50812f7efc4546a5184533a3461344c079ec77adf679adb9aac345e": {
+  "id": "regional_czech_slovak",
+  "url": "https://raw.githubusercontent.com/tomasko126/easylistczechandslovak/master/filters.txt"
+ },
+ "c9e4923569dee086e0ff552e9c47609644e1dd57ca93d2a72df4734b73cde210": {
+  "id": "regional_norway",
+  "url": "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianList.txt"
+ },
+ "0e1449cdb7952555a2dbb81aab65fe14e8a2677ba4c1821ded3d2b414ecd7a32": {
+  "id": "regional_italy",
+  "url": "https://easylist-downloads.adblockplus.org/easylistitaly.txt"
+ },
+ "df717b5e225064e3925bbbeacf883f0654f8569c6bfdc8856359190b606f90cd": {
+  "id": "regional_latvia",
+  "url": "https://raw.githubusercontent.com/Latvian-List/adblock-latvian/master/lists/latvian-list.txt"
+ },
+ "ffca6eba457e3371727fb24c03938245912341f58b0634739ed9a578c260b55f": {
+  "id": "regional_hebrew",
+  "url": "https://raw.githubusercontent.com/easylist/EasyListHebrew/master/EasyListHebrew.txt"
+ },
+ "784b01b4a6f2a6d71ac530d5594745097a8cb61f28758f7aff1ad17bbbe03071": {
+  "id": "regional_turkey",
+  "url": "https://filters.adtidy.org/android/filters/13.txt"
+ },
+ "267765cd30f6aa75c1526d9fd19fe6670488a414d5cfbe8bfa8f9bf7c111e4b8": {
+  "id": "regional_netherlands",
+  "url": "https://filters.adtidy.org/android/filters/8.txt"
+ },
+ "5444534ed5edde0aa0fa1497ec4b4007cd9fb80786835862dba1266c46fb1341": {
+  "id": "fanboy-cookiemonster",
+  "url": "https://secure.fanboy.co.nz/fanboy-cookiemonster.txt"
+ },
+ "946393f3fe6fd54458b7e109b6d801617da0ff6286f7707c78670a784267b710": {
+  "id": "easyprivacy",
+  "url": "https://easylist.to/easylist/easyprivacy.txt"
+ }
+}

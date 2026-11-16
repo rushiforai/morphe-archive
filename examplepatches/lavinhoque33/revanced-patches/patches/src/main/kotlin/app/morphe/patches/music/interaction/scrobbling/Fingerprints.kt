@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-13
  *
  * modified by lavinhoque33, 2026-10-17: like endpoint fingerprints from Morphe's shared
  * returnyoutubedislike package, copied for the Music scrobbling port (the fork only has them for YouTube).
@@ -32,6 +33,21 @@ internal object EndpointServiceNameFingerprint : Fingerprint(
             definingClass = "this",
             type = "Ljava/lang/String;"
         )
+    )
+)
+
+// Music 6.20 loads the service name before its log label instead of after it.
+internal object LegacyEndpointServiceNameFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    parameters = listOf(),
+    returnType = "L",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "this",
+            type = "Ljava/lang/String;"
+        ),
+        string("serviceName")
     )
 )
 

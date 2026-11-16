@@ -11,7 +11,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-14
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -103,7 +103,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private val resourceFileArray = arrayOf(
     "yt_bold_play_arrow_half_circle_black_24.png",
@@ -291,38 +293,64 @@ val flyoutMenuComponentsPatch = bytecodePatch(
 
         // region patch for hide flyout menu components and replace menu
 
-        menuItemFingerprint.matchOrThrow().let {
-            it.method.apply {
-                val freeIndex = indexOfFirstInstructionOrThrow(Opcode.OR_INT_LIT16)
-                val textViewIndex = it.instructionMatches.first().index
-                val imageViewIndex = it.instructionMatches.last().index
+        val menuItemMethod = menuItemFingerprint.methodOrThrow()
+        val iconMatch = menuItemIconFingerprint.matchOrThrow(menuItemFingerprint)
+        val iconMethod = iconMatch.method
+        val iconMatches = iconMatch.instructionMatches
+        val rendererField = iconMethod.getInstruction<ReferenceInstruction>(iconMatches[0].index).reference
+        val iconResolver = iconMethod.getInstruction<ReferenceInstruction>(iconMatches[1].index).reference
+        val iconTypeField = iconMethod.getInstruction<ReferenceInstruction>(iconMatches[3].index).reference
+        val iconTypeResolver = iconMethod.getInstruction<ReferenceInstruction>(iconMatches[4].index).reference
+        val enumIndex = iconMatches.last().index
+        val enumRegister = iconMethod.getInstruction<OneRegisterInstruction>(enumIndex).registerA
 
-                val freeRegister =
-                    getInstruction<TwoRegisterInstruction>(freeIndex).registerA
-                val textViewRegister =
-                    getInstruction<OneRegisterInstruction>(textViewIndex).registerA
-                val imageViewRegister =
-                    getInstruction<OneRegisterInstruction>(imageViewIndex).registerA
-
-                val enumIndex = indexOfFirstInstructionOrThrow {
-                    opcode == Opcode.INVOKE_STATIC
-                            && (this as? ReferenceInstruction)?.reference.toString()
-                        .contains("(I)L")
-                } + 1
-                val enumRegister = getInstruction<OneRegisterInstruction>(enumIndex).registerA
-
-                addInstructionsWithLabels(
-                    enumIndex + 1,
-                    """
-                        invoke-static {v$enumRegister, v$textViewRegister, v$imageViewRegister, p0}, $FLYOUT_CLASS_DESCRIPTOR->replaceComponents(Ljava/lang/Enum;Landroid/widget/TextView;Landroid/widget/ImageView;Ljava/lang/Object;)V
-                        invoke-static {v$enumRegister}, $FLYOUT_CLASS_DESCRIPTOR->hideComponents(Ljava/lang/Enum;)Z
-                        move-result v$freeRegister
-                        if-nez v$freeRegister, :hide
-                        """,
-                    ExternalLabel("hide", getInstruction(implementation!!.instructions.lastIndex))
-                )
-            }
+        val textViewIndex = iconMethod.indexOfFirstInstructionOrThrow {
+            opcode == Opcode.CHECK_CAST &&
+                    getReference<TypeReference>()?.type == "Landroid/widget/TextView;"
         }
+        val imageViewIndex = iconMethod.indexOfFirstInstructionOrThrow {
+            opcode == Opcode.INVOKE_DIRECT &&
+                    getReference<MethodReference>()?.returnType == "Landroid/widget/ImageView;"
+        } + 1
+        val textViewRegister = iconMethod.getInstruction<OneRegisterInstruction>(textViewIndex).registerA
+        val imageViewRegister = iconMethod.getInstruction<OneRegisterInstruction>(imageViewIndex).registerA
+
+        // Hide in the builder, not the icon binder: returning from the split binder still adds the row.
+        // The container destination is dead here and is restored by the original iget-object.
+        menuItemMethod.apply {
+            val containerIndex = indexOfFirstInstructionOrThrow {
+                opcode == Opcode.IGET_OBJECT &&
+                        getReference<FieldReference>()?.type == "Landroid/widget/FrameLayout;"
+            }
+            val register = getInstruction<TwoRegisterInstruction>(containerIndex).registerA
+
+            addInstructionsWithLabels(
+                containerIndex,
+                """
+                    iget-object v$register, p0, $rendererField
+                    invoke-static {v$register}, $iconResolver
+                    move-result-object v$register
+                    if-eqz v$register, :show
+                    iget v$register, v$register, $iconTypeField
+                    invoke-static {v$register}, $iconTypeResolver
+                    move-result-object v$register
+                    invoke-static {v$register}, $FLYOUT_CLASS_DESCRIPTOR->hideComponents(Ljava/lang/Enum;)Z
+                    move-result v$register
+                    if-nez v$register, :hide
+                    :show
+                    nop
+                """,
+                ExternalLabel("hide", getInstruction(implementation!!.instructions.lastIndex))
+            )
+        }
+
+        // On older versions both hooks share one method; the later container insertion leaves enumIndex unchanged.
+        val replaceComponentsMethod = "$FLYOUT_CLASS_DESCRIPTOR->replaceComponents(" +
+                "Ljava/lang/Enum;Landroid/widget/TextView;Landroid/widget/ImageView;Ljava/lang/Object;)V"
+        iconMethod.addInstruction(
+            enumIndex + 1,
+            "invoke-static {v$enumRegister, v$textViewRegister, v$imageViewRegister, p0}, $replaceComponentsMethod"
+        )
 
         touchOutsideFingerprint.methodOrThrow().apply {
             val setOnClickListenerIndex = indexOfFirstInstructionOrThrow {

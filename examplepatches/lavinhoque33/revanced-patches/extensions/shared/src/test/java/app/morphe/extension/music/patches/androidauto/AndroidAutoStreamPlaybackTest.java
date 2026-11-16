@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-14
  * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-11-10.
  */
@@ -105,12 +106,33 @@ public class AndroidAutoStreamPlaybackTest {
         List<Exception> failures = new ArrayList<>();
         List<byte[]> delivered = new ArrayList<>();
         AndroidAutoStreamPlayback playback = new AndroidAutoStreamPlayback(worker, session, failures::add);
-        playback.resolve(playback.begin(), () -> null, delivered::add);
+        playback.<byte[]>resolve(playback.begin(), () -> null, delivered::add);
         worker.drain();
         session.drain();
         assertEquals(1, failures.size());
         assertTrue(failures.get(0) instanceof IOException);
         assertTrue(delivered.isEmpty());
         assertTrue(worker.queued.isEmpty());
+    }
+
+    @Test
+    public void typedPlaylistResolutionRetainsSongIdentityAndOnlyTheLatestSessionMayDispatchIt() {
+        Tasks worker = new Tasks();
+        Tasks session = new Tasks();
+        List<Exception> failures = new ArrayList<>();
+        List<AndroidAutoPlaylistChildren.Selection> delivered = new ArrayList<>();
+        AndroidAutoStreamPlayback playback = new AndroidAutoStreamPlayback(worker, session, failures::add);
+        var target = new AndroidAutoPlaylistChildren.Selection("PLone", "middle", 4);
+        playback.resolve(playback.begin(), () -> target, delivered::add);
+        worker.drain();
+        assertTrue(delivered.isEmpty());
+        long latest = playback.begin();
+        session.drain();
+        assertTrue(delivered.isEmpty());
+        playback.resolve(latest, () -> target, delivered::add);
+        worker.drain();
+        session.drain();
+        assertEquals(List.of(target), delivered);
+        assertTrue(failures.isEmpty());
     }
 }

@@ -55,7 +55,11 @@ object SettingsTabUi {
                     LazyColumn(Modifier.fillMaxSize().imePadding(), contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(rows, key = { System.identityHashCode(it.control) }) { option ->
-                            HaiagaruUi.Group { BoundSettingRow(option) { revision++ } }
+                            HaiagaruUi.Group {
+                                SettingCopyScope(listOf("Haiagaru設定", sectionTitle(source, false))) {
+                                    BoundSettingRow(option) { revision++ }
+                                }
+                            }
                         }
                     }
                 }

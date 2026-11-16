@@ -20,7 +20,7 @@ internal object MainActivityOnCreateFingerprint : Fingerprint(
 
 @Suppress("unused")
 val overlayPatch = bytecodePatch(
-    name = "Word finder overlay",
+    name = "Word Finder overlay",
     description = "Adds a floating button on the game screen that opens a list of all possible moves.",
     default = true
 ) {

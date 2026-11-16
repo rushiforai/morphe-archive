@@ -1,7 +1,7 @@
 package arpit.morphe.patches.c25k.premium
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import arpit.morphe.patches.c25k.shared.Constants.COMPATIBILITY_C25K
 
 /**

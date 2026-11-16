@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-13
  */
 
 package app.morphe.patches.shared.misc.spoof
@@ -57,6 +57,9 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.w3c.dom.Element
+
+private const val WEBVIEW_CHECK_CLASS = "Lapp/morphe/extension/shared/spoof/WebViewCheck;"
 
 internal const val EXTENSION_CLASS =
     "Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;"
@@ -73,6 +76,23 @@ internal fun addMediaSessionOverride(extension: String) {
 
 private val spoofVideoStreamsResourcePatch = resourcePatch {
     execute {
+        document("AndroidManifest.xml").use { manifest ->
+            val queries = manifest.getElementsByTagName("queries").item(0)
+                ?: manifest.createElement("queries").also { manifest.documentElement.appendChild(it) }
+
+            for (packageName in listOf("com.google.android.webview", "com.android.vending")) {
+                val packages = manifest.getElementsByTagName("package")
+                val exists = (0 until packages.length).any {
+                    (packages.item(it) as Element).getAttribute("android:name") == packageName
+                }
+                if (!exists) {
+                    queries.appendChild(manifest.createElement("package").apply {
+                        setAttribute("android:name", packageName)
+                    })
+                }
+            }
+        }
+
         copyResources(
             "spoof",
             ResourceGroup(
@@ -116,7 +136,8 @@ internal fun spoofVideoStreamsPatch(
         mainActivityOnCreateFingerprint.method.addInstructions(
             0,
             """
-                invoke-static { }, $extensionClass->setClientOrderToUse()V   
+                invoke-static { }, $extensionClass->setClientOrderToUse()V
+                invoke-static/range { p0 .. p0 }, $WEBVIEW_CHECK_CLASS->showDialogIfNeeded(Landroid/app/Activity;)V
             """
         )
 

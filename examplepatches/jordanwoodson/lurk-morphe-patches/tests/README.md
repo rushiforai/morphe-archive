@@ -38,12 +38,15 @@ need it rather than skipping them.
 | `tests/twitch/test_privacy_consent.py` | Twitch's privacy and consent helper. |
 | `tests/twitch/test_providers.py` | Third-party emote, badge and pronoun providers: scheduling, ownership, both response orders. |
 | `tests/twitch/test_seventv_badges.py` | *7TV badges*: cosmetic and entitlement events into the badge pipeline (native models, React Native snapshots, Emote and badge info, deletes, the holder bound, the switch off), and the WebSocket client against a local server: handshake, masking, 2- and 8-byte lengths, ping, fragmentation, resubscribing to another channel, close, and no connection while off or without a channel. |
+| `tests/twitch/test_image_cache.py` | The third-party image cache under Glide's network fetcher (issue 71): only third-party image URLs kept, a complete body stored and served again (also after a restart), partial, failed, non-image and oversized bodies not stored, the disk and memory limits (least recently used out first) and expiry. |
 | `tests/twitch/test_rn_chat.py` | The compiled React Native chat helpers, the chat overlay's context and the landscape chat column's opacity. |
 | `tests/shared/test_settings.py` | The real `Settings`, `Registry` and settings screen helpers against each app's registered settings (`tests/shared/registry/`): JSON round trip, parent ordering, defaults, restart flags, stored and wrongly typed values, the unreadable-registry fallback. |
 | `tests/shared/test_sleep_timer.py` | *Sleep timer* in Kick and Twitch on a virtual clock: expiry, resuming, stop and release, races at dispatch. |
-| `tests/rumble/test_state_transitions.py` | Rumble's chat keywords across sign-in changes, and *Remember playback speed* switched on, off and on. |
+| `tests/rumble/test_state_transitions.py` | Rumble's chat keywords across sign-in changes, *Anonymous chat*'s cookie and send decisions, and *Remember playback speed* switched on, off and on. |
+| `tests/rumble/test_video_stats.py` | Rumble's *Show video stats* text from Media3-shaped format logs and decoder counters: live and VOD renditions, missing values, and keys the panel skips not running into the ones it shows. |
 | `tests/kick/verify_player.py` | Kick's player decisions: mobile-data quality ceiling, normal latency, background audio. |
 | `tests/kick/verify_privacy.py` | Kick's privacy helper. |
+| `tests/kick/test_touch.py` | Kick's player touches on a window double: which touches *Player gestures* takes (landscape, the video's left and right, past the touch slop) and which stay Kick's, the volume and brightness they set, and the brightness handed back in portrait; *Refresh stream*'s long press, with the patch-time bridges swapped for recorders (one reload and one cancel, a video seeking back, and what stays Kick's). |
 | `tests/kick/test_chat_page.py` | Lurk's Kick chat page script in headless Chrome, with every request answered by the test. |
 | `tests/kick/test_compiled_bundle.py` | Kick's runtime code compiled with both pinned Hermes compilers, and the chat composer and page lifecycle scripts. |
 | `tests/test_release.py` | The release script on local Git fixtures, without GitHub or a build: recovering unpublished releases (also when the other branch's release commit is newer), the stable backmerge, generated files, release notes and the host gate itself. |

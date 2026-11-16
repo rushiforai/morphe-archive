@@ -36,11 +36,13 @@ import android.widget.TextView;
 import com.bytedance.android.live.design.resource.theme.LiveThemeAwareDialogFragment;
 import com.bytedance.android.live.design.resource.theme.LiveThemeAwareFragment;
 import com.bytedance.android.live.design.view.sheet.LiveSheetFragment;
+import com.bytedance.android.live.liveinteract.multiguestv3.main.userinfo.guest.MultiLiveGuestUserInfoDialog;
 import com.bytedance.android.live.rank.impl.list.RankListDialog;
 import com.bytedance.android.livesdk.definition.LiveDefinitionSelectionDialog;
 import com.bytedance.android.livesdk.definition.talent.LiveTalentDefinitionSelectionDialog;
 import com.bytedance.android.livesdk.fansclub.FansClubPanel;
 import com.bytedance.android.livesdk.profile.ProfilePanel;
+import com.bytedance.android.livesdk.widgets.giftwidget.presenter.FastGiftConfirmDialog;
 
 import androidx.cardview.widget.CardView;
 import com.bytedance.android.live.rank.impl.list.view.PopularityRankingEducationDialog;
@@ -348,7 +350,7 @@ public class LivePanelThemeTest {
         assertSame("without the patch", tiktok, LivePanelTheme.darkLivePage(list, tiktok));
     }
 
-    /** #362: the moderator settings' muted and blocked lists are plain fragments under a dark panel. */
+    /** #362: a plain fragment under a dark panel reads dark on its dark sheet with the room's colors. */
     @Test public void aPlainFragmentUnderADarkenedPanelTakesItsDarkContext() {
         LayoutInflater tiktok = LayoutInflater.from(dark);
         Settings.DARK_LIVE_PANELS.save(true);
@@ -390,6 +392,110 @@ public class LivePanelThemeTest {
         assertSame("without the patch", tiktok, LivePanelTheme.darkLivePage(list, tiktok));
     }
 
+    /**
+     * #362: the moderator settings' Moderation, Blocked and Muted lists are LIVE pages under the
+     * dark panel. With the room's theme their sheet kept LIVE's fixed gray under the black AMOLED
+     * Settings sheet, and went black only where search hosts the room.
+     */
+    @Test public void aLivePageUnderADarkenedPanelTakesItsDarkContext() {
+        LayoutInflater tiktok = LayoutInflater.from(dark);
+        Settings.DARK_LIVE_PANELS.save(true);
+        ShareDialog admin = dialog();
+        assertSame("before any panel was darkened", tiktok, LivePanelTheme.darkLivePanel(page(admin), tiktok));
+
+        LayoutInflater sheet = LivePanelTheme.darkLivePanel(admin, tiktok);
+        LayoutInflater list = LivePanelTheme.darkLivePanel(page(admin), tiktok);
+        assertNotSame(tiktok, list);
+        assertSame("the panel's own dark context", sheet.getContext(), list.getContext());
+        assertEquals(textColor(new ContextThemeWrapper(dark, OVERLAY)), textColor(list.getContext()));
+        assertSame("a page under a page", sheet.getContext(), LivePanelTheme.darkLivePanel(page(page(admin)), tiktok).getContext());
+
+        assertSame("a room's own page", tiktok, LivePanelTheme.darkLivePanel(page(null), tiktok));
+        assertSame("a page under a panel that wasn't darkened", tiktok, LivePanelTheme.darkLivePanel(page(dialog()), tiktok));
+        LayoutInflater day = LayoutInflater.from(light);
+        assertSame("light mode", day, LivePanelTheme.darkLivePanel(page(admin), day));
+        ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, true));
+        assertSame("paused", tiktok, LivePanelTheme.darkLivePanel(page(admin), tiktok));
+        ReflectionHelpers.callStaticMethod(Setting.class, "setPausedForProcess", ClassParameter.from(boolean.class, false));
+    }
+
+    /** A LIVE page with its view, the way the moderator settings' lists sit under the panel. */
+    public static final class ManageList extends LiveThemeAwareFragment {
+    }
+
+    /**
+     * #362: the moderator settings' Blocked, Muted and Moderation lists draw their title, back arrow
+     * and Quit button in TikTok's fixed #161823, so under the dark panel they read dark on dark.
+     */
+    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aPageUnderADarkenedPanelHasItsFixedDarkInkLit() {
+        Settings.DARK_LIVE_PANELS.save(true);
+        ShareDialog admin = dialog();
+        LayoutInflater tiktok = LayoutInflater.from(dark);
+        LivePanelTheme.darkLivePanel(admin, tiktok);
+
+        android.widget.LinearLayout root = new android.widget.LinearLayout(dark);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        // The page's ground is the panel's, whatever drawable paints it.
+        root.setBackground(new LayerDrawable(new Drawable[]{new ColorDrawable(Color.BLACK)}));
+        TextView title = text(dark, 0xFF161823);
+        root.addView(title);
+        android.widget.ImageView back = new android.widget.ImageView(dark);
+        back.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        back.setPadding(10, 10, 10, 10);
+        back.setImageDrawable(new ColorDrawable(0xFF161823));
+        root.addView(back, new android.widget.LinearLayout.LayoutParams(40, 40));
+        GradientDrawable outline = new GradientDrawable();
+        outline.setStroke(6, 0xFF161823);
+        outline.setCornerRadius(12);
+        FrameLayout quit = new FrameLayout(dark);
+        quit.setBackground(outline);
+        TextView quitLabel = text(dark, 0xFF161823);
+        quit.addView(quitLabel);
+        root.addView(quit, new android.widget.LinearLayout.LayoutParams(200, 60));
+        GradientDrawable white = new GradientDrawable();
+        white.setColor(Color.WHITE);
+        FrameLayout chip = new FrameLayout(dark);
+        chip.setBackground(white);
+        TextView onChip = text(dark, 0xFF161823);
+        chip.addView(onChip);
+        root.addView(chip, new android.widget.LinearLayout.LayoutParams(200, 60));
+
+        ManageList page = new ManageList();
+        page.parent = admin;
+        assertNotSame(tiktok, LivePanelTheme.darkLivePanel(page, tiktok));
+        // The page's view comes after its inflater.
+        page.view = root;
+        Dialog shown = dialogWith(root);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        nextFrame(shown);
+
+        assertEquals("the title", Color.WHITE, title.getCurrentTextColor());
+        assertNotNull("the back arrow goes white", back.getColorFilter());
+        assertEquals("the Quit label", Color.WHITE, quitLabel.getCurrentTextColor());
+        assertNotNull("the Quit outline goes white", outline.getColorFilter());
+        assertEquals("text on its own light chip keeps its ink", 0xFF161823, onChip.getCurrentTextColor());
+        assertNull("the chip keeps its look", white.getColorFilter());
+
+        // TikTok sets the fixed color back as it binds the page again.
+        title.setTextColor(0xFF161823);
+        nextFrame(shown);
+        assertEquals(Color.WHITE, title.getCurrentTextColor());
+
+        // A page under a panel that wasn't darkened is left alone.
+        TextView stockTitle = text(dark, 0xFF161823);
+        FrameLayout stockRoot = new FrameLayout(dark);
+        stockRoot.addView(stockTitle);
+        ManageList stock = new ManageList();
+        stock.parent = dialog();
+        stock.view = stockRoot;
+        assertSame(tiktok, LivePanelTheme.darkLivePanel(stock, tiktok));
+        Dialog stockShown = dialogWith(stockRoot);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        nextFrame(stockShown);
+        assertEquals(0xFF161823, stockTitle.getCurrentTextColor());
+    }
+
     /** #362: the gift guide bubble is white, so over a darkened room it inflates over the room's light theme. */
     @Test public void theGiftGuideBubbleOverADarkenedRoomTakesTheRoomsLightTheme() {
         RuntimeEnvironment.setQualifiers("+night");
@@ -420,7 +526,7 @@ public class LivePanelThemeTest {
     }
 
     /**
-     * #362, S22 2026-11-08: TikTok applies its LIVE color theme to the room after the room hook took
+     * #362, S22 2026-11-08: TikTok applies color scheme styles to the room after the room hook took
      * the light copy, so the bubble inflated over a copy missing attributes its text looks up and
      * threw. Every style the room gets afterwards reaches the copy too, with TikTok's force.
      */
@@ -456,6 +562,45 @@ public class LivePanelThemeTest {
         Activity plain = room();
         LivePanelTheme.roomStyle(plain.getTheme(), PARTIAL_OVERLAY, 0);
         assertTrue(hasOverlay(plain));
+    }
+
+    /**
+     * #362, Login2 2026-11-13: over a darkened room TikTok's LIVE color theme picks LIVE's dark
+     * overlay, and the room's light copy took it too, so the creator's DM tip had white text on its
+     * white bubble. The color theme now runs once more through a context whose theme is the copy,
+     * asking TikTok's own answer, so the copy takes the light overlay.
+     */
+    @Test public void tikToksLiveColorThemeRunsAgainOnTheRoomsLightCopy() {
+        RuntimeEnvironment.setQualifiers("+night");
+        Settings.DARK_LIVE_PANELS.save(true);
+        Activity live = room();
+        int roomText = textColor(live);
+        assertNull("nothing kept yet", LivePanelTheme.lightColorTheme(live));
+        LivePanelTheme.darkLiveRoom(live, android.R.style.Theme_Black);
+
+        Context light = LivePanelTheme.lightColorTheme(live);
+        assertNotNull(light);
+        assertSame("its theme is the copy itself",
+                ReflectionHelpers.<Map<Activity, Resources.Theme>>getStaticField(LivePanelTheme.class, "LIGHT_ROOMS").get(live),
+                light.getTheme());
+        assertNotNull("found through the room's own theme from a wrapper without one",
+                LivePanelTheme.lightColorTheme(new ContextThemeWrapper(live, live.getTheme())));
+        light.getTheme().applyStyle(PARTIAL_OVERLAY, false);
+        assertTrue("a style applied through it reaches the copy", hasOverlay(LivePanelTheme.lightRoomView(live)));
+        assertTrue("and not the room", !hasOverlay(live));
+        assertEquals(roomText, textColor(LivePanelTheme.lightRoomView(live)));
+
+        assertNull("the copy's own theme", LivePanelTheme.lightColorTheme(light));
+        assertNull("a bubble over the copy", LivePanelTheme.lightColorTheme(LivePanelTheme.lightRoomView(live)));
+        assertNull("a wrapper with a theme of its own", LivePanelTheme.lightColorTheme(new ContextThemeWrapper(live, PARTIAL_OVERLAY)));
+        assertNull("another theme", LivePanelTheme.lightColorTheme(RuntimeEnvironment.getApplication()));
+        assertNull(LivePanelTheme.lightColorTheme(null));
+
+        LivePanelTheme.liveColorTheme(live, true);
+        assertTrue("TikTok's answer is its own again afterwards", !LivePanelTheme.askingStock());
+        LivePanelTheme.liveColorTheme(null, false);
+        LivePanelTheme.liveColorTheme(RuntimeEnvironment.getApplication(), false);
+        assertTrue(!LivePanelTheme.askingStock());
     }
 
     /** Sets only the window animations, the way TikTok's light LIVE overlay leaves most of a theme alone. */
@@ -1255,6 +1400,147 @@ public class LivePanelThemeTest {
         assertNull("colored art stays", art.getColorFilter());
         assertEquals("the sheet stays black", Color.BLACK,
                 ((GradientDrawable) root.getBackground()).getColor().getDefaultColor());
+    }
+
+    /**
+     * #362: the Rose's first-time quick gift card fills from the dark theme, but its title,
+     * description and footer are fixed #161823 inks, so they read dark on the black card.
+     */
+    @Test public void theQuickGiftCardsFixedDarkTextTurnsLightOnItsDarkCard() {
+        FrameLayout root = new FrameLayout(dark);
+        root.setBackground(new ColorDrawable(0x80000000));
+        android.widget.LinearLayout card = new android.widget.LinearLayout(dark);
+        card.setOrientation(android.widget.LinearLayout.VERTICAL);
+        GradientDrawable fill = new GradientDrawable();
+        fill.setCornerRadius(12f);
+        fill.setColor(Color.BLACK);
+        card.setBackground(fill);
+        TextView title = text(dark, 0xFF161823);
+        TextView description = text(dark, 0xBF161823);
+        TextView price = text(dark, 0xFFFE2C55);
+        FrameLayout button = new FrameLayout(dark);
+        GradientDrawable pink = new GradientDrawable();
+        pink.setColor(0xFFFE2C55);
+        button.setBackground(pink);
+        TextView send = text(dark, Color.WHITE);
+        button.addView(send);
+        TextView footer = text(dark, 0x88161823);
+        card.addView(title);
+        card.addView(description);
+        card.addView(price);
+        card.addView(button);
+        card.addView(footer);
+        root.addView(card);
+        FastGiftConfirmDialog gift = new FastGiftConfirmDialog();
+        gift.overlay = OVERLAY;
+        gift.view = root;
+        gift.dialog = dialogWith(root);
+
+        LivePanelTheme.darkLivePanel(gift, LayoutInflater.from(dark));
+        assertEquals("the switch starts off", 0xFF161823, title.getCurrentTextColor());
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.darkLivePanel(gift, LayoutInflater.from(light));
+        assertEquals("TikTok Light stays stock", 0xFF161823, title.getCurrentTextColor());
+
+        LivePanelTheme.darkLivePanel(gift, LayoutInflater.from(dark));
+        assertEquals("the title turns white", Color.WHITE, title.getCurrentTextColor());
+        assertEquals("the description keeps its see-through amount", 0xBFFFFFFF, description.getCurrentTextColor());
+        assertEquals("so does the footer", 0x88FFFFFF, footer.getCurrentTextColor());
+        assertEquals("the pink price keeps its color", 0xFFFE2C55, price.getCurrentTextColor());
+        assertEquals("the white text on the pink button stays white", Color.WHITE, send.getCurrentTextColor());
+        assertEquals("the dark card stays as it is", Color.BLACK, fill.getColor().getDefaultColor());
+        assertEquals("so does the dim around it", 0x80000000, ((ColorDrawable) root.getBackground()).getColor());
+        assertTrue(LivePanelTheme.fillPanel(FastGiftConfirmDialog.class));
+        assertSame("its root is its sheet", root, LivePanelTheme.sheet(gift));
+    }
+
+    /**
+     * #362: the guest panel a room's guest button opens sits on a fixed white sheet as wide as its
+     * window while its title and the line under it follow the dark theme, so they read light on
+     * white. The sheet goes black, an inset light row on it takes the tiles' fill, and the row's
+     * fixed dark text turns light.
+     */
+    @Test public void theGuestPanelsWhiteSheetGoesBlackUnderItsLightText() {
+        FrameLayout root = new FrameLayout(dark);
+        android.widget.LinearLayout sheet = new android.widget.LinearLayout(dark);
+        sheet.setOrientation(android.widget.LinearLayout.VERTICAL);
+        GradientDrawable white = new GradientDrawable();
+        white.setCornerRadii(new float[] {16f, 16f, 16f, 16f, 0f, 0f, 0f, 0f});
+        white.setColor(Color.WHITE);
+        sheet.setBackground(white);
+        TextView title = text(dark, 0xE6FFFFFF);
+        TextView line = text(dark, 0x99FFFFFF);
+        FrameLayout row = new FrameLayout(dark);
+        row.setBackground(new ColorDrawable(0xFFF1F1F2));
+        TextView rowText = text(dark, 0xFF161823);
+        row.addView(rowText);
+        android.widget.LinearLayout.LayoutParams inset = new android.widget.LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        inset.setMargins(32, 16, 32, 16);
+        sheet.addView(title);
+        sheet.addView(line);
+        sheet.addView(row, inset);
+        root.addView(sheet, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        MultiLiveGuestUserInfoDialog guest = new MultiLiveGuestUserInfoDialog();
+        guest.overlay = OVERLAY;
+        guest.view = root;
+        layOut(root);
+
+        LivePanelTheme.darkLivePanel(guest, LayoutInflater.from(dark));
+        assertEquals("the switch starts off", Color.WHITE, white.getColor().getDefaultColor());
+
+        Settings.DARK_LIVE_PANELS.save(true);
+        LivePanelTheme.darkLivePanel(guest, LayoutInflater.from(light));
+        assertEquals("TikTok Light stays stock", Color.WHITE, white.getColor().getDefaultColor());
+
+        LivePanelTheme.darkLivePanel(guest, LayoutInflater.from(dark));
+        assertEquals("the sheet goes black", LivePanelTheme.SHEET_FILL,
+                ((GradientDrawable) sheet.getBackground()).getColor().getDefaultColor());
+        assertEquals("the inset row takes the tiles' fill", LivePanelTheme.DARK_FILL,
+                ((ColorDrawable) row.getBackground()).getColor());
+        assertEquals("the row's dark text turns light", Color.WHITE, rowText.getCurrentTextColor());
+        assertEquals("the title keeps its light color", 0xE6FFFFFF, title.getCurrentTextColor());
+        assertEquals("so does the line under it", 0x99FFFFFF, line.getCurrentTextColor());
+
+        // The page lays out again with its fills dark: the sheet is still the sheet.
+        layOut(root);
+        ReflectionHelpers.callInstanceMethod(root.getViewTreeObserver(), "dispatchOnGlobalLayout");
+        assertSame(sheet, LivePanelTheme.sheet(guest, root));
+        assertEquals("the sheet stays black", LivePanelTheme.SHEET_FILL,
+                ((GradientDrawable) sheet.getBackground()).getColor().getDefaultColor());
+        assertEquals("the row stays dark", LivePanelTheme.DARK_FILL, ((ColorDrawable) row.getBackground()).getColor());
+        assertTrue(LivePanelTheme.fillPanel(MultiLiveGuestUserInfoDialog.class));
+    }
+
+    /** #362: before its first layout a guest panel's sheet can't be told from its rows, so its fills wait for it. */
+    @Test public void aGuestPanelsFillsWaitForItsFirstLayout() {
+        FrameLayout root = new FrameLayout(dark);
+        FrameLayout sheet = new FrameLayout(dark);
+        GradientDrawable white = new GradientDrawable();
+        white.setColor(Color.WHITE);
+        sheet.setBackground(white);
+        FrameLayout row = new FrameLayout(dark);
+        row.setBackground(new ColorDrawable(0xFFF1F1F2));
+        FrameLayout.LayoutParams inset = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        inset.setMargins(32, 16, 32, 16);
+        sheet.addView(row, inset);
+        root.addView(sheet);
+        MultiLiveGuestUserInfoDialog guest = new MultiLiveGuestUserInfoDialog();
+        guest.overlay = OVERLAY;
+        guest.view = root;
+        Settings.DARK_LIVE_PANELS.save(true);
+
+        LivePanelTheme.darkLivePanel(guest, LayoutInflater.from(dark));
+        assertEquals("nothing is swapped before the layout", Color.WHITE, white.getColor().getDefaultColor());
+        assertNull(LivePanelTheme.sheet(guest, root));
+
+        layOut(root);
+        ReflectionHelpers.callInstanceMethod(root.getViewTreeObserver(), "dispatchOnGlobalLayout");
+        assertEquals("the sheet goes black, not gray", LivePanelTheme.SHEET_FILL, white.getColor().getDefaultColor());
+        assertEquals(LivePanelTheme.DARK_FILL, ((ColorDrawable) row.getBackground()).getColor());
     }
 
     /** A plain LIVE sheet with a window, like the gift sheet: dark through its overlay, no fills of its own. */

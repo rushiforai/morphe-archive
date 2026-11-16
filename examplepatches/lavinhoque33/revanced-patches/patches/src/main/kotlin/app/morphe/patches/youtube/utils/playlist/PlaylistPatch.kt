@@ -7,7 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.mainactivity.getMainActivityMethod
-import app.morphe.patches.youtube.interaction.reload.BackButtonFinishActivityOnNewVideoIntentFingerprint
+import app.morphe.patches.youtube.interaction.reload.backButtonFinishActivityOnNewVideoIntentFingerprint
 import app.morphe.patches.youtube.player.overlaybuttons.geminiButton
 import app.morphe.patches.youtube.utils.auth.authHookPatch
 import app.morphe.patches.youtube.utils.dismiss.dismissPlayerHookPatch
@@ -89,7 +89,7 @@ val playlistPatch = bytecodePatch(
                 }
         }
 
-        BackButtonFinishActivityOnNewVideoIntentFingerprint.method.addInstruction(
+        backButtonFinishActivityOnNewVideoIntentFingerprint().method.addInstruction(
             0,
             "return-void"
         )

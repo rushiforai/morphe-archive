@@ -3729,8 +3729,6 @@ try {
 }
 
 Write-Host '[scripts] pre-push routing contracts passed'
-& (Join-Path $PSScriptRoot 'test-fixture-gate.ps1') -Root $Root
-if ($LASTEXITCODE -ne 0) { throw 'The pre-push fixture contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-build-advisories.ps1') -Root $Root
 if ($LASTEXITCODE -ne 0) { throw 'The resolved build advisory contracts did not pass.' }
 

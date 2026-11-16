@@ -512,7 +512,13 @@ public final class TwitchChatInfo {
                 return comma < 0 || !url.substring(0, comma).endsWith(";base64") ? null
                         : Base64.decode(url.substring(comma + 1), Base64.DEFAULT);
             }
-            return url.startsWith("https://") ? TwitchThirdParty.getBytes(url, MAX_IMAGE_BYTES) : null;
+            if (!url.startsWith("https://")) return null;
+            byte[] cached = TwitchImageCache.get(url);
+            if (cached != null) return cached;
+            byte[] loaded = TwitchThirdParty.getBytes(url, MAX_IMAGE_BYTES);
+            // Kept for next time when it is a third-party image; Twitch's own are left to Twitch.
+            TwitchImageCache.put(url, loaded);
+            return loaded;
         } catch (Exception e) {
             Logger.d("chat info: image " + url + " unavailable: " + e);
             return null;

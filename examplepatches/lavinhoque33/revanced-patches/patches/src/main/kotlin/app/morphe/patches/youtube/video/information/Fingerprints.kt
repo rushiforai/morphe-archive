@@ -12,7 +12,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.youtube.video.information
@@ -100,6 +100,42 @@ internal object PlayerInitFingerprint : Fingerprint(
         string("playVideo called on player response with no videoStreamingData."),
     )
 )
+
+internal object NativePauseVideoFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(string("pauseVideo.")),
+)
+
+internal object MedialibStopVideoFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(string("MedialibPlayer.stopVideo(), %s")),
+)
+
+// Older targets remove the facade's pause log, but retain its native-interface delegate.
+internal fun getPauseVideoFacadeFingerprint(nativePause: MethodReference) = object : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(
+        patcherMethodCall(name = nativePause.name, returnType = "V", parameters = listOf("I")),
+    ),
+) {}
+
+internal fun getControllerPauseFingerprint(pauseMethod: MethodReference) = object : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(
+        patcherMethodCall(
+            definingClass = pauseMethod.definingClass,
+            name = pauseMethod.name,
+            returnType = "V",
+            parameters = listOf("I"),
+        ),
+    ),
+) {}
 
 /**
  * Matched using class found in [PlayerInitFingerprint].
@@ -247,12 +283,16 @@ internal val playbackSpeedClassFingerprint = Fingerprint(
 )
 
 internal val playerControllerSetTimeReferenceFingerprint = Fingerprint(
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_DIRECT_RANGE,
-        Opcode.IGET_OBJECT
+    // 21.45 can route the progress event through either playback session after construction.
+    // Match the payload constructor itself, not the instructions selecting its recipient.
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_DIRECT_RANGE,
+            name = "<init>",
+            parameters = listOf("J", "J", "J", "J", "J", "J", "J", "Z", "Ljava/lang/String;"),
+        ),
     ),
-    // 21.39: the message became "Media progress reported outside media playback: %s" (format string
-    // instead of concatenation), so the string is matched by prefix instead of exactly.
+    // 21.39 changed the message from concatenation to a format string.
     custom = { method, _ ->
         method.indexOfFirstInstruction {
             getReference<StringReference>()?.string

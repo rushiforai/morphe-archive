@@ -17,14 +17,16 @@ object Constants {
         packageName = "com.fgol.HungrySharkEvolution",
         name = "Hungry Shark Evolution",
         description = "Hungry Shark Evolution by Ubisoft Entertainment / FGOL",
-        appIconColor = 0x0077AA
+        appIconColor = 0x0077AA,
+        targets = listOf(AppTarget("11.8.0", isExperimental = true))
     )
 
     val COMPATIBILITY_HUNGRY_SHARK_HEROES = Compatibility(
         packageName = "com.ubisoft.hungrysharkheroes",
         name = "Hungry Shark Heroes",
         description = "Hungry Shark Heroes by Ubisoft Entertainment / FGOL",
-        appIconColor = 0x005588
+        appIconColor = 0x005588,
+        targets = listOf(AppTarget("1.3.0", isExperimental = true))
     )
 
     val COMPATIBILITY_COINSNAP = Compatibility(
@@ -55,56 +57,64 @@ object Constants {
         packageName = "com.nekki.shadowfight",
         name = "Shadow Fight 2",
         description = "Shadow Fight 2 by NEKKI",
-        appIconColor = 0xE65100
+        appIconColor = 0xE65100,
+        targets = listOf(AppTarget("2.39.0", isExperimental = true))
     )
 
     val COMPATIBILITY_SHADOW_FIGHT_2_SE = Compatibility(
         packageName = "com.nekki.shadowfight2.specialedition",
         name = "Shadow Fight 2 Special Edition",
         description = "Shadow Fight 2 Special Edition by NEKKI",
-        appIconColor = 0xD84315
+        appIconColor = 0xD84315,
+        targets = listOf(AppTarget("1.0.11", isExperimental = true))
     )
 
     val COMPATIBILITY_SHADOW_FIGHT_3 = Compatibility(
         packageName = "com.nekki.shadowfight3",
         name = "Shadow Fight 3",
         description = "Shadow Fight 3 by NEKKI / Banzai Games",
-        appIconColor = 0xC2185B
+        appIconColor = 0xC2185B,
+        targets = listOf(AppTarget("1.38.2", isExperimental = true))
     )
 
     val COMPATIBILITY_SHADOW_FIGHT_SHADES = Compatibility(
         packageName = "com.nekki.shadowfight.shades",
         name = "Shades: Shadow Fight Roguelike",
         description = "Shades: Shadow Fight Roguelike by NEKKI",
-        appIconColor = 0x7B1FA2
+        appIconColor = 0x7B1FA2,
+        targets = listOf(AppTarget("1.4.1", isExperimental = true))
     )
 
     val COMPATIBILITY_SHADOW_FIGHT_4 = Compatibility(
         packageName = "com.nekki.shadowfightarena",
         name = "Shadow Fight 4: Arena",
         description = "Shadow Fight 4: Arena by NEKKI / Banzai Games",
-        appIconColor = 0x1976D2
+        appIconColor = 0x1976D2,
+        targets = listOf(AppTarget("1.9.31", isExperimental = true))
     )
 
     val COMPATIBILITY_BEACH_BUGGY_RACING = Compatibility(
         packageName = "com.vectorunit.cobalt.googleplay",
         name = "Beach Buggy Racing",
         description = "Beach Buggy Racing by Vector Unit",
-        appIconColor = 0xFF5722
+        appIconColor = 0xFF5722,
+        targets = listOf(AppTarget("2026.08.10", isExperimental = true))
     )
 
     val COMPATIBILITY_ROBBERY_BOB = Compatibility(
         packageName = "com.chillingo.robberybobfree.android.row",
         name = "Robbery Bob",
         description = "Robbery Bob - Sneaky Sneak by Chillingo / Deca Games",
-        appIconColor = 0x4CAF50
+        appIconColor = 0x4CAF50,
+        targets = listOf(AppTarget("1.27.0", isExperimental = true))
     )
 
     val COMPATIBILITY_VECTOR_2 = Compatibility(
         packageName = "com.nekki.vector2",
         name = "Vector 2",
         description = "Vector 2 by NEKKI",
-        appIconColor = 0x00E5FF
+        appIconColor = 0x00E5FF,
+        targets = listOf(AppTarget("1.2.1", isExperimental = true))
     )
 
     val COMPATIBILITY_SPOTIFY = Compatibility(
@@ -119,28 +129,32 @@ object Constants {
         packageName = "com.duolingo",
         name = "Duolingo",
         description = "Duolingo: Language Lessons by Duolingo",
-        appIconColor = 0x58CC02
+        appIconColor = 0x58CC02,
+        targets = listOf(AppTarget("6.63.0", isExperimental = true))
     )
 
     val COMPATIBILITY_WAZE = Compatibility(
         packageName = "com.waze",
         name = "Waze",
         description = "Waze Navigation & Live Traffic by Waze / Google",
-        appIconColor = 0x33CCFF
+        appIconColor = 0x33CCFF,
+        targets = listOf(AppTarget("5.4.0.0", isExperimental = true))
     )
 
     val COMPATIBILITY_SOUNDCLOUD = Compatibility(
         packageName = "com.soundcloud.android",
         name = "SoundCloud",
         description = "SoundCloud: Play Music & Songs by SoundCloud Global Limited & Co KG",
-        appIconColor = 0xFF5500
+        appIconColor = 0xFF5500,
+        targets = listOf(AppTarget("2026.11.05", isExperimental = true))
     )
 
     val COMPATIBILITY_PINTEREST = Compatibility(
         packageName = "com.pinterest",
         name = "Pinterest",
         description = "Pinterest: Discover and Save Creative Ideas by Pinterest",
-        appIconColor = 0xE60023
+        appIconColor = 0xE60023,
+        targets = listOf(AppTarget("12.44.0", isExperimental = true))
     )
 
     val COMPATIBILITY_SHAZAM = Compatibility(
@@ -148,14 +162,18 @@ object Constants {
         name = "Shazam",
         description = "Shazam: Identify & Discover Music by Apple Inc. / Shazam",
         appIconColor = 0x0088FF,
-        targets = listOf(AppTarget("16.63.0-261008"))
+        targets = listOf(
+            AppTarget("16.67.0"),
+            AppTarget("16.63.0-261008")
+        )
     )
 
     val COMPATIBILITY_STRAVA = Compatibility(
         packageName = "com.strava",
         name = "Strava",
         description = "Strava: Run, Ride, Hike & Train by Strava Inc.",
-        appIconColor = 0xFC4C02
+        appIconColor = 0xFC4C02,
+        targets = listOf(AppTarget("390.10", isExperimental = true))
     )
 
     val COMPATIBILITY_TRUECALLER = Compatibility(
@@ -173,77 +191,88 @@ object Constants {
         packageName = "com.mxtech.videoplayer.ad",
         name = "MX Player",
         description = "MX Player: Video Player & Streaming by MX Media / Time Internet",
-        appIconColor = 0x0078FF
+        appIconColor = 0x0078FF,
+        targets = listOf(AppTarget("1.96.4", isExperimental = true))
     )
 
     val COMPATIBILITY_HILL_CLIMB = Compatibility(
         packageName = "com.fingersoft.hillclimb",
         name = "Hill Climb Racing",
         description = "Hill Climb Racing by Fingersoft",
-        appIconColor = 0xD32F2F
+        appIconColor = 0xD32F2F,
+        targets = listOf(AppTarget("1.63.1", isExperimental = true))
     )
 
     val COMPATIBILITY_JETPACK_JOYRIDE = Compatibility(
         packageName = "com.halfbrick.jetpackjoyride",
         name = "Jetpack Joyride",
         description = "Jetpack Joyride by Halfbrick Studios",
-        appIconColor = 0xFF9800
+        appIconColor = 0xFF9800,
+        targets = listOf(AppTarget("1.99.1", isExperimental = true))
     )
 
     val COMPATIBILITY_ALTOS_ADVENTURE = Compatibility(
         packageName = "com.noodlecake.altosadventure",
         name = "Alto's Adventure",
         description = "Alto's Adventure by Noodlecake / Team Alto",
-        appIconColor = 0x2E7D32
+        appIconColor = 0x2E7D32,
+        targets = listOf(AppTarget("1.8.18", isExperimental = true))
     )
 
     val COMPATIBILITY_SPEEDTEST = Compatibility(
         packageName = "org.zwanoo.android.speedtest",
         name = "Speedtest",
         description = "Speedtest by Ookla by Ookla LLC",
-        appIconColor = 0x141526
+        appIconColor = 0x141526,
+        targets = listOf(AppTarget("5.5.4", isExperimental = true))
     )
 
     val COMPATIBILITY_PROTON_VPN = Compatibility(
         packageName = "ch.protonvpn.android",
         name = "Proton VPN",
         description = "Proton VPN: Fast & Secure by Proton AG",
-        appIconColor = 0x6D4AFF
+        appIconColor = 0x6D4AFF,
+        targets = listOf(AppTarget("5.6.38.0", isExperimental = true))
     )
 
     val COMPATIBILITY_TURBO_VPN = Compatibility(
         packageName = "free.vpn.unblock.proxy.turbovpn",
         name = "Turbo VPN",
         description = "Turbo VPN - Secure VPN Proxy by Innovative Connecting",
-        appIconColor = 0xFF6D00
+        appIconColor = 0xFF6D00,
+        targets = listOf(AppTarget("4.2.2.1", isExperimental = true))
     )
 
     val COMPATIBILITY_WINDSCRIBE = Compatibility(
         packageName = "com.windscribe.vpn",
         name = "Windscribe",
         description = "Windscribe VPN by Windscribe Security",
-        appIconColor = 0x152238
+        appIconColor = 0x152238,
+        targets = listOf(AppTarget("3.91.1578", isExperimental = true))
     )
 
     val COMPATIBILITY_PROTON_MAIL = Compatibility(
         packageName = "ch.protonmail.android",
         name = "Proton Mail",
         description = "Proton Mail: Encrypted Email by Proton AG",
-        appIconColor = 0x6D4AFF
+        appIconColor = 0x6D4AFF,
+        targets = listOf(AppTarget("4.1.20", isExperimental = true))
     )
 
     val COMPATIBILITY_PROTON_PASS = Compatibility(
         packageName = "proton.android.pass",
         name = "Proton Pass",
         description = "Proton Pass: Password Manager by Proton AG",
-        appIconColor = 0x6D4AFF
+        appIconColor = 0x6D4AFF,
+        targets = listOf(AppTarget("1.24.4", isExperimental = true))
     )
 
     val COMPATIBILITY_TUTA_MAIL = Compatibility(
         packageName = "de.tutao.tutanota",
         name = "Tuta Mail",
         description = "Tuta Mail: Secure & Private Email by Tutao GmbH",
-        appIconColor = 0xC70000
+        appIconColor = 0xC70000,
+        targets = listOf(AppTarget("266.241108.0", isExperimental = true))
     )
 
     val COMPATIBILITY_GOOGLE_PHONE = Compatibility(
@@ -258,63 +287,72 @@ object Constants {
         packageName = "com.google.android.apps.maps",
         name = "Google Maps",
         description = "Google Maps: Navigate & Explore by Google LLC",
-        appIconColor = 0x34A853
+        appIconColor = 0x34A853,
+        targets = listOf(AppTarget("11.161.0102", isExperimental = true))
     )
 
     val COMPATIBILITY_GOOGLE_PHOTOS = Compatibility(
         packageName = "com.google.android.apps.photos",
         name = "Google Photos",
         description = "Google Photos: Photo & Video Storage by Google LLC",
-        appIconColor = 0xEA4335
+        appIconColor = 0xEA4335,
+        targets = listOf(AppTarget("7.14.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CHATGPT = Compatibility(
         packageName = "com.openai.chatgpt",
         name = "ChatGPT",
         description = "ChatGPT: The official AI assistant by OpenAI",
-        appIconColor = 0x10A37F
+        appIconColor = 0x10A37F,
+        targets = listOf(AppTarget("1.2026.312", isExperimental = true))
     )
 
     val COMPATIBILITY_PERPLEXITY = Compatibility(
         packageName = "ai.perplexity.app.android",
         name = "Perplexity",
         description = "Perplexity: Where Knowledge Begins by Perplexity AI",
-        appIconColor = 0x20B2AA
+        appIconColor = 0x20B2AA,
+        targets = listOf(AppTarget("2.44.0", isExperimental = true))
     )
 
     val COMPATIBILITY_GEMINI = Compatibility(
         packageName = "com.google.android.apps.bard",
         name = "Google Gemini",
         description = "Google Gemini: Your AI Assistant by Google LLC",
-        appIconColor = 0x4285F4
+        appIconColor = 0x4285F4,
+        targets = listOf(AppTarget("1.0.261108", isExperimental = true))
     )
 
     val COMPATIBILITY_TELEGRAM = Compatibility(
         packageName = "org.telegram.messenger",
         name = "Telegram",
         description = "Telegram Messenger by Telegram FZ-LLC",
-        appIconColor = 0x24A1DE
+        appIconColor = 0x24A1DE,
+        targets = listOf(AppTarget("11.4.1", isExperimental = true))
     )
 
     val COMPATIBILITY_SIGNAL = Compatibility(
         packageName = "org.thoughtcrime.securesms",
         name = "Signal",
         description = "Signal Private Messenger by Signal Foundation",
-        appIconColor = 0x3A76F0
+        appIconColor = 0x3A76F0,
+        targets = listOf(AppTarget("7.24.2", isExperimental = true))
     )
 
     val COMPATIBILITY_SESSION = Compatibility(
         packageName = "network.loki.messenger",
         name = "Session",
         description = "Session: Private Messenger by Oxen Privacy Tech / The Session Foundation",
-        appIconColor = 0x00E599
+        appIconColor = 0x00E599,
+        targets = listOf(AppTarget("1.18.9", isExperimental = true))
     )
 
     val COMPATIBILITY_SIMPLEX = Compatibility(
         packageName = "chat.simplex.app",
         name = "SimpleX Chat",
         description = "SimpleX Chat: Private Messenger with No User IDs by SimpleX Chat Ltd",
-        appIconColor = 0x7E3FF2
+        appIconColor = 0x7E3FF2,
+        targets = listOf(AppTarget("6.1.4", isExperimental = true))
     )
 
     val COMPATIBILITY_SNAPCHAT = Compatibility(
@@ -337,35 +375,40 @@ object Constants {
         packageName = "com.dubox.drive",
         name = "TeraBox",
         description = "TeraBox: Cloud Storage Space by Flextech Inc.",
-        appIconColor = 0x0084FF
+        appIconColor = 0x0084FF,
+        targets = listOf(AppTarget("3.38.5", isExperimental = true))
     )
 
     val COMPATIBILITY_PROTON_DRIVE = Compatibility(
         packageName = "me.proton.android.drive",
         name = "Proton Drive",
         description = "Proton Drive: Cloud Storage by Proton AG",
-        appIconColor = 0x6D4AFF
+        appIconColor = 0x6D4AFF,
+        targets = listOf(AppTarget("1.19.1", isExperimental = true))
     )
 
     val COMPATIBILITY_NEXTCLOUD = Compatibility(
         packageName = "org.nextcloud.client",
         name = "Nextcloud",
         description = "Nextcloud: Open source file sync and share by Nextcloud",
-        appIconColor = 0x0082C9
+        appIconColor = 0x0082C9,
+        targets = listOf(AppTarget("3.30.2", isExperimental = true))
     )
 
     val COMPATIBILITY_CANVA = Compatibility(
         packageName = "com.canva.editor",
         name = "Canva",
         description = "Canva: Design, Photo & Video by Canva",
-        appIconColor = 0x00C4CC
+        appIconColor = 0x00C4CC,
+        targets = listOf(AppTarget("2.296.0", isExperimental = true))
     )
 
     val COMPATIBILITY_GOOGLE_DRIVE = Compatibility(
         packageName = "com.google.android.apps.docs",
         name = "Google Drive",
         description = "Google Drive: Free Cloud Storage by Google LLC",
-        appIconColor = 0x1FA463
+        appIconColor = 0x1FA463,
+        targets = listOf(AppTarget("2.24.457.0", isExperimental = true))
     )
 
     val COMPATIBILITY_MOVIX = Compatibility(
@@ -389,189 +432,216 @@ object Constants {
         packageName = "com.bandlab.bandlab",
         name = "BandLab",
         description = "BandLab: Music Making Studio, DAW, Beat Maker & Audio Recording",
-        appIconColor = 0xEE3344
+        appIconColor = 0xEE3344,
+        targets = listOf(AppTarget("11.36.1", isExperimental = true))
     )
 
     val COMPATIBILITY_BRAVE = Compatibility(
         packageName = "com.brave.browser",
         name = "Brave Browser",
         description = "Brave Browser: Fast, AdBlocker & Private Web Browser by Brave Software",
-        appIconColor = 0xFB542B
+        appIconColor = 0xFB542B,
+        targets = listOf(AppTarget("1.71.123", isExperimental = true))
     )
 
     val COMPATIBILITY_FIREFOX = Compatibility(
         packageName = "org.mozilla.firefox",
         name = "Firefox",
         description = "Firefox: Fast, Private & Safe Web Browser by Mozilla",
-        appIconColor = 0xFF7139
+        appIconColor = 0xFF7139,
+        targets = listOf(AppTarget("132.0.2", isExperimental = true))
     )
 
     val COMPATIBILITY_TWITCH = Compatibility(
         packageName = "tv.twitch.android.app",
         name = "Twitch",
         description = "Twitch: Live Game Streaming & Esports by Twitch Interactive",
-        appIconColor = 0x9146FF
+        appIconColor = 0x9146FF,
+        targets = listOf(AppTarget("20.7.0", isExperimental = true))
     )
 
     val COMPATIBILITY_VLC = Compatibility(
         packageName = "org.videolan.vlc",
         name = "VLC",
         description = "VLC for Android: Fast, Open-Source Media Player by VideoLAN",
-        appIconColor = 0xFF8800
+        appIconColor = 0xFF8800,
+        targets = listOf(AppTarget("3.7.2", isExperimental = true))
     )
 
     val COMPATIBILITY_SUBWAY_SURFERS = Compatibility(
         packageName = "com.kiloo.subwaysurf",
         name = "Subway Surfers",
         description = "Subway Surfers by SYBO Games / Kiloo",
-        appIconColor = 0x00D26A
+        appIconColor = 0x00D26A,
+        targets = listOf(AppTarget("3.37.0", isExperimental = true))
     )
 
     val COMPATIBILITY_TEMPLE_RUN_2 = Compatibility(
         packageName = "com.imangi.templerun2",
         name = "Temple Run 2",
         description = "Temple Run 2 by Imangi Studios",
-        appIconColor = 0x00A859
+        appIconColor = 0x00A859,
+        targets = listOf(AppTarget("1.114.1", isExperimental = true))
     )
 
     val COMPATIBILITY_PLANTS_VS_ZOMBIES = Compatibility(
         packageName = "com.ea.game.pvzfree_row",
         name = "Plants vs. Zombies",
         description = "Plants vs. Zombies FREE by Electronic Arts / PopCap",
-        appIconColor = 0x8BC34A
+        appIconColor = 0x8BC34A,
+        targets = listOf(AppTarget("3.5.4", isExperimental = true))
     )
 
     val COMPATIBILITY_CUT_THE_ROPE = Compatibility(
         packageName = "com.zeptolab.ctr.ads",
         name = "Cut the Rope",
         description = "Cut the Rope by ZeptoLab",
-        appIconColor = 0x7CB342
+        appIconColor = 0x7CB342,
+        targets = listOf(AppTarget("3.58.0", isExperimental = true))
     )
 
     val COMPATIBILITY_FRUIT_NINJA = Compatibility(
         packageName = "com.halfbrick.fruitninja",
         name = "Fruit Ninja",
         description = "Fruit Ninja by Halfbrick Studios",
-        appIconColor = 0xE53935
+        appIconColor = 0xE53935,
+        targets = listOf(AppTarget("3.83.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CROSSY_ROAD = Compatibility(
         packageName = "com.yodo1.crossyroad",
         name = "Crossy Road",
         description = "Crossy Road by Hipster Whale",
-        appIconColor = 0x3F51B5
+        appIconColor = 0x3F51B5,
+        targets = listOf(AppTarget("5.1.0", isExperimental = true))
     )
 
     val COMPATIBILITY_GEOMETRY_DASH = Compatibility(
         packageName = "com.robtopx.geometryjump",
         name = "Geometry Dash",
         description = "Geometry Dash by RobTop Games",
-        appIconColor = 0xFFEB3B
+        appIconColor = 0xFFEB3B,
+        targets = listOf(AppTarget("2.2.142", isExperimental = true))
     )
 
     val COMPATIBILITY_DOODLE_JUMP = Compatibility(
         packageName = "com.lima.doodlejump",
         name = "Doodle Jump",
         description = "Doodle Jump by Lima Sky LLC",
-        appIconColor = 0xCDDC39
+        appIconColor = 0xCDDC39,
+        targets = listOf(AppTarget("3.11.37", isExperimental = true))
     )
 
     val COMPATIBILITY_ANGRY_BIRDS = Compatibility(
         packageName = "com.rovio.baba",
         name = "Angry Birds Classic",
         description = "Angry Birds Classic by Rovio Entertainment",
-        appIconColor = 0xD32F2F
+        appIconColor = 0xD32F2F,
+        targets = listOf(AppTarget("2.84.0", isExperimental = true))
     )
 
     val COMPATIBILITY_DAN_THE_MAN = Compatibility(
         packageName = "com.halfbrick.dantheman",
         name = "Dan The Man",
         description = "Dan The Man: Action Platformer by Halfbrick Studios",
-        appIconColor = 0xF57C00
+        appIconColor = 0xF57C00,
+        targets = listOf(AppTarget("1.11.45", isExperimental = true))
     )
 
     val COMPATIBILITY_STELLARIUM = Compatibility(
         packageName = "com.noctuasoftware.stellarium_free",
         name = "Stellarium Mobile",
         description = "Stellarium Mobile: Star Map Planetarium by Noctua Software",
-        appIconColor = 0x1A237E
+        appIconColor = 0x1A237E,
+        targets = listOf(AppTarget("1.12.9", isExperimental = true))
     )
 
     val COMPATIBILITY_STELLARIUM_ALT = Compatibility(
         packageName = "com.noctuasoftware.stellarium",
         name = "Stellarium Mobile (Alt)",
         description = "Stellarium Mobile: Star Map by Noctua Software",
-        appIconColor = 0x1A237E
+        appIconColor = 0x1A237E,
+        targets = listOf(AppTarget("1.12.9", isExperimental = true))
     )
 
     val COMPATIBILITY_WORLD_MAP_QUIZ = Compatibility(
         packageName = "com.qbis.guessthecountry",
         name = "World Map Quiz",
         description = "World Map Quiz: Geography & Capitals by Qbis Studio",
-        appIconColor = 0x2E7D32
+        appIconColor = 0x2E7D32,
+        targets = listOf(AppTarget("3.12.2", isExperimental = true))
     )
 
     val COMPATIBILITY_PHOTOMATH = Compatibility(
         packageName = "com.microblink.photomath",
         name = "Photomath",
         description = "Photomath: Camera Calculator & Math Solver by Google LLC",
-        appIconColor = 0xD32F2F
+        appIconColor = 0xD32F2F,
+        targets = listOf(AppTarget("8.39.0", isExperimental = true))
     )
 
     val COMPATIBILITY_MEMRISE = Compatibility(
         packageName = "com.memrise.android.memrisecompanion",
         name = "Memrise",
         description = "Memrise: Language Learning & Native Speaker Practice by Memrise",
-        appIconColor = 0xFFA000
+        appIconColor = 0xFFA000,
+        targets = listOf(AppTarget("2026.11.04.0", isExperimental = true))
     )
 
     val COMPATIBILITY_PEAK = Compatibility(
         packageName = "com.brainbow.peak.app",
         name = "Peak",
         description = "Peak: Brain Games & Cognitive Training by Brainbow",
-        appIconColor = 0x00ACC1
+        appIconColor = 0x00ACC1,
+        targets = listOf(AppTarget("4.18.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CAMSCANNER = Compatibility(
         packageName = "com.intsig.camscanner",
         name = "CamScanner",
         description = "CamScanner: PDF Scanner & Document OCR by INTSIG",
-        appIconColor = 0x009688
+        appIconColor = 0x009688,
+        targets = listOf(AppTarget("6.78.0.261108", isExperimental = true))
     )
 
     val COMPATIBILITY_FLIGHTRADAR24 = Compatibility(
         packageName = "com.flightradar24free",
         name = "Flightradar24",
         description = "Flightradar24: Live Flight Tracker & Radar by Flightradar24 AB",
-        appIconColor = 0xFBC02D
+        appIconColor = 0xFBC02D,
+        targets = listOf(AppTarget("10.5.1", isExperimental = true))
     )
 
     val COMPATIBILITY_PICTURETHIS = Compatibility(
         packageName = "cn.danatech.xingseus",
         name = "PictureThis",
         description = "PictureThis: Plant & Flower Identifier by Glority Global Group",
-        appIconColor = 0x4CAF50
+        appIconColor = 0x4CAF50,
+        targets = listOf(AppTarget("4.2.18", isExperimental = true))
     )
 
     val COMPATIBILITY_ALLTRAILS = Compatibility(
         packageName = "com.alltrails.alltrails",
         name = "AllTrails",
         description = "AllTrails: Hike, Bike & Run Outdoor GPS Navigation by AllTrails",
-        appIconColor = 0x388E3C
+        appIconColor = 0x388E3C,
+        targets = listOf(AppTarget("18.15.0", isExperimental = true))
     )
 
     val COMPATIBILITY_WINDY = Compatibility(
         packageName = "com.windyty.android",
         name = "Windy.com",
         description = "Windy.com: Weather & Wind Radar Forecast by Windyty SE",
-        appIconColor = 0x0288D1
+        appIconColor = 0x0288D1,
+        targets = listOf(AppTarget("43.2.1", isExperimental = true))
     )
 
     val COMPATIBILITY_VPN_LAT = Compatibility(
         packageName = "com.vpn.lat",
         name = "VPN.lat",
         description = "VPN.lat: Unlimited Fast VPN Proxy",
-        appIconColor = 0x2979FF
+        appIconColor = 0x2979FF,
+        targets = listOf(AppTarget("2.6.2", isExperimental = true))
     )
 
     val COMPATIBILITY_HIDEME = Compatibility(
@@ -594,14 +664,16 @@ object Constants {
         packageName = "com.infomaniak.euria",
         name = "Euria",
         description = "Euria: Sovereign AI Assistant by Infomaniak",
-        appIconColor = 0x4F46E5
+        appIconColor = 0x4F46E5,
+        targets = listOf(AppTarget("26.45", isExperimental = true))
     )
 
     val COMPATIBILITY_BITWARDEN = Compatibility(
         packageName = "com.x8bit.bitwarden",
         name = "Bitwarden",
         description = "Bitwarden: Password Manager & Authenticator by Bitwarden Inc.",
-        appIconColor = 0x175DDC
+        appIconColor = 0x175DDC,
+        targets = listOf(AppTarget("2026.10.1", isExperimental = true))
     )
 
     val COMPATIBILITY_DEEPL = Compatibility(
@@ -656,49 +728,56 @@ object Constants {
         packageName = "com.reddit.frontpage",
         name = "Reddit",
         description = "Reddit: The front page of the internet by reddit Inc.",
-        appIconColor = 0xFF4500
+        appIconColor = 0xFF4500,
+        targets = listOf(AppTarget("2026.44.0", isExperimental = true))
     )
 
     val COMPATIBILITY_INSTAGRAM = Compatibility(
         packageName = "com.instagram.android",
         name = "Instagram",
         description = "Instagram by Meta Platforms Inc.",
-        appIconColor = 0xE1306C
+        appIconColor = 0xE1306C,
+        targets = listOf(AppTarget("358.0.0.45.98", isExperimental = true))
     )
 
     val COMPATIBILITY_PLAGUE_INC = Compatibility(
         packageName = "com.miniclip.plagueinc",
         name = "Plague Inc.",
         description = "Plague Inc. by Ndemic Creations / Miniclip",
-        appIconColor = 0x8B0000
+        appIconColor = 0x8B0000,
+        targets = listOf(AppTarget("1.19.19", isExperimental = true))
     )
 
     val COMPATIBILITY_PLAGUE_INC_ALT = Compatibility(
         packageName = "com.ndemiccreations.plagueinc",
         name = "Plague Inc. (Ndemic)",
         description = "Plague Inc. by Ndemic Creations",
-        appIconColor = 0x8B0000
+        appIconColor = 0x8B0000,
+        targets = listOf(AppTarget("1.19.19", isExperimental = true))
     )
 
     val COMPATIBILITY_UNDERCOVER = Compatibility(
         packageName = "com.yanstarstudio.joss.undercover",
         name = "Undercover",
         description = "Undercover®: Word Party Game by Yanstar Studio OU",
-        appIconColor = 0x2A2E3D
+        appIconColor = 0x2A2E3D,
+        targets = listOf(AppTarget("5.2.0", isExperimental = true))
     )
 
     val COMPATIBILITY_FREE_FIRE_MAX = Compatibility(
         packageName = "com.dts.freefiremax",
         name = "Free Fire MAX",
         description = "Free Fire MAX by Garena International I Private Limited",
-        appIconColor = 0xFF5722
+        appIconColor = 0xFF5722,
+        targets = listOf(AppTarget("2.108.1", isExperimental = true))
     )
 
     val COMPATIBILITY_FREE_FIRE = Compatibility(
         packageName = "com.dts.freefireth",
         name = "Free Fire",
         description = "Free Fire by Garena International I Private Limited",
-        appIconColor = 0xFF5722
+        appIconColor = 0xFF5722,
+        targets = listOf(AppTarget("1.108.1", isExperimental = true))
     )
 
     val COMPATIBILITY_FCTV = Compatibility(
@@ -737,7 +816,8 @@ object Constants {
         packageName = "org.fossify.phone",
         name = "Fossify Phone",
         description = "Fossify Phone: Privacy-friendly phone call app & dialer",
-        appIconColor = 0x2E7D32
+        appIconColor = 0x2E7D32,
+        targets = listOf(AppTarget("1.4.1", isExperimental = true))
     )
 
     val COMPATIBILITY_CRYPTOMATOR = Compatibility(
@@ -760,210 +840,240 @@ object Constants {
         packageName = "com.letterboxd.letterboxd",
         name = "Letterboxd",
         description = "Letterboxd: Social network for film lovers by Letterboxd Limited",
-        appIconColor = 0x00E054
+        appIconColor = 0x00E054,
+        targets = listOf(AppTarget("3.3.0", isExperimental = true))
     )
 
     val COMPATIBILITY_IMDB = Compatibility(
         packageName = "com.imdb.mobile",
         name = "IMDb",
         description = "IMDb: Movies & TV Shows by IMDb",
-        appIconColor = 0xF5C518
+        appIconColor = 0xF5C518,
+        targets = listOf(AppTarget("9.13.0.109130200", isExperimental = true))
     )
 
     val COMPATIBILITY_TUMBLR = Compatibility(
         packageName = "com.tumblr",
         name = "Tumblr",
         description = "Tumblr: Fandom, art, and chaotic social blog feed by Tumblr, Inc.",
-        appIconColor = 0x001935
+        appIconColor = 0x001935,
+        targets = listOf(AppTarget("34.8.0.10", isExperimental = true))
     )
 
     val COMPATIBILITY_QUIZLET = Compatibility(
         packageName = "com.quizlet",
         name = "Quizlet",
         description = "Quizlet: AI-powered Flashcards & Study Sets by Quizlet Inc.",
-        appIconColor = 0x4257B2
+        appIconColor = 0x4257B2,
+        targets = listOf(AppTarget("9.22.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CHESS = Compatibility(
         packageName = "com.chess",
         name = "Chess.com",
         description = "Chess.com: Play chess online & offline against bots and friends by Chess.com",
-        appIconColor = 0x7FA650
+        appIconColor = 0x7FA650,
+        targets = listOf(AppTarget("4.7.13", isExperimental = true))
     )
 
     val COMPATIBILITY_MOOVIT = Compatibility(
         packageName = "com.moovit.android.phone",
         name = "Moovit",
         description = "Moovit: Public Transit & Urban Mobility by Moovit",
-        appIconColor = 0xF36F21
+        appIconColor = 0xF36F21,
+        targets = listOf(AppTarget("5.166.0.1345", isExperimental = true))
     )
 
     val COMPATIBILITY_HEVY = Compatibility(
         packageName = "com.hevy.app",
         name = "Hevy",
         description = "Hevy: Gym Workout Tracker & Weight Lifting Log by HevyApp",
-        appIconColor = 0x3B82F6
+        appIconColor = 0x3B82F6,
+        targets = listOf(AppTarget("2.0.4", isExperimental = true))
     )
 
     val COMPATIBILITY_MYFITNESSPAL = Compatibility(
         packageName = "com.myfitnesspal.android",
         name = "MyFitnessPal",
         description = "MyFitnessPal: Calorie Counter, Macro & Nutrition Tracker by MyFitnessPal, Inc.",
-        appIconColor = 0x0066EE
+        appIconColor = 0x0066EE,
+        targets = listOf(AppTarget("24.45.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CRONOMETER = Compatibility(
         packageName = "com.cronometer.android.gold",
         name = "Cronometer",
         description = "Cronometer: Nutrition & Calorie Tracker by Cronometer Software Inc.",
-        appIconColor = 0xFF6F00
+        appIconColor = 0xFF6F00,
+        targets = listOf(AppTarget("4.17.2", isExperimental = true))
     )
 
     val COMPATIBILITY_TODOIST = Compatibility(
         packageName = "com.todoist",
         name = "Todoist",
         description = "Todoist: To-Do List & Task Planner by Doist",
-        appIconColor = 0xE44332
+        appIconColor = 0xE44332,
+        targets = listOf(AppTarget("11388", isExperimental = true))
     )
 
     val COMPATIBILITY_POWERAMP = Compatibility(
         packageName = "com.maxmpz.audioplayer",
         name = "Poweramp",
         description = "Poweramp: Music Player (Equalizer & Hi-Res Audio) by Max MP",
-        appIconColor = 0x222222
+        appIconColor = 0x222222,
+        targets = listOf(AppTarget("build-987-bundle-play", isExperimental = true))
     )
 
     val COMPATIBILITY_MONEY_MANAGER = Compatibility(
         packageName = "com.realbyteapps.moneymanager",
         name = "Money Manager",
         description = "Money Manager: Expense Tracker & Budget by Realbyte Inc.",
-        appIconColor = 0xE53935
+        appIconColor = 0xE53935,
+        targets = listOf(AppTarget("8.9.1", isExperimental = true))
     )
 
     val COMPATIBILITY_SWIFTKEY = Compatibility(
         packageName = "com.touchtype.swiftkey",
         name = "Microsoft SwiftKey",
         description = "Microsoft SwiftKey AI Keyboard by Microsoft Corporation",
-        appIconColor = 0x0078D4
+        appIconColor = 0x0078D4,
+        targets = listOf(AppTarget("9.10.45.24", isExperimental = true))
     )
 
     val COMPATIBILITY_AUTOZEN = Compatibility(
         packageName = "com.zenoph.autozen",
         name = "AutoZen",
         description = "AutoZen: Car Dashboard & Navigation by Zenoph Labs",
-        appIconColor = 0x1E88E5
+        appIconColor = 0x1E88E5,
+        targets = listOf(AppTarget("2.4.9", isExperimental = true))
     )
 
     val COMPATIBILITY_BLOCKERHERO = Compatibility(
         packageName = "com.blockerhero",
         name = "BlockerHero",
         description = "BlockerHero: Porn & Adult Content Blocker by BlockerHero Team",
-        appIconColor = 0x2196F3
+        appIconColor = 0x2196F3,
+        targets = listOf(AppTarget("2.0.26", isExperimental = true))
     )
 
     val COMPATIBILITY_NOKOPRINT = Compatibility(
         packageName = "com.nokoprint",
         name = "NokoPrint",
         description = "NokoPrint: Mobile Printing for Android by NokoPrint",
-        appIconColor = 0x4CAF50
+        appIconColor = 0x4CAF50,
+        targets = listOf(AppTarget("5.14.0", isExperimental = true))
     )
 
     val COMPATIBILITY_TEACH_ME_ANATOMY = Compatibility(
         packageName = "info.cloudmed.teachmeanatomy",
         name = "Teach Me Anatomy",
         description = "Teach Me Anatomy: 3D Human Anatomy & Clinical Encyclopedia by CloudMed",
-        appIconColor = 0x009688
+        appIconColor = 0x009688,
+        targets = listOf(AppTarget("7.3.0", isExperimental = true))
     )
 
     val COMPATIBILITY_BUSUU = Compatibility(
         packageName = "com.busuu.android.enc",
         name = "Busuu",
         description = "Busuu: Learn Languages, Grammar & Vocabulary by Busuu Limited",
-        appIconColor = 0x1976D2
+        appIconColor = 0x1976D2,
+        targets = listOf(AppTarget("33.1.0", isExperimental = true))
     )
 
     val COMPATIBILITY_GOODREADS = Compatibility(
         packageName = "com.goodreads",
         name = "Goodreads",
         description = "Goodreads: Book Reviews & Reading Tracker by Goodreads",
-        appIconColor = 0x553B08
+        appIconColor = 0x553B08,
+        targets = listOf(AppTarget("3.29.1", isExperimental = true))
     )
 
     val COMPATIBILITY_GENIUS = Compatibility(
         packageName = "com.genius.android",
         name = "Genius",
         description = "Genius: Song Lyrics & Music Knowledge by Genius Media Group",
-        appIconColor = 0xFFFF64
+        appIconColor = 0xFFFF64,
+        targets = listOf(AppTarget("6.15.0", isExperimental = true))
     )
 
     val COMPATIBILITY_POCKET_CASTS = Compatibility(
         packageName = "au.com.shiftyjelly.pocketcasts",
         name = "Pocket Casts",
         description = "Pocket Casts: Podcast Player by Automattic / Pocket Casts",
-        appIconColor = 0xF43E37
+        appIconColor = 0xF43E37,
+        targets = listOf(AppTarget("7.76.0", isExperimental = true))
     )
 
     val COMPATIBILITY_TIDAL = Compatibility(
         packageName = "com.aspiro.tidal",
         name = "Tidal",
         description = "TIDAL Music: HiFi Sound & Streaming by TIDAL",
-        appIconColor = 0x000000
+        appIconColor = 0x000000,
+        targets = listOf(AppTarget("2.138.0", isExperimental = true))
     )
 
     val COMPATIBILITY_BUMBLE = Compatibility(
         packageName = "com.bumble.app",
         name = "Bumble",
         description = "Bumble: Dating, Friends & Chat by Bumble Holding",
-        appIconColor = 0xFFC629
+        appIconColor = 0xFFC629,
+        targets = listOf(AppTarget("5.399.1", isExperimental = true))
     )
 
     val COMPATIBILITY_MATHWAY = Compatibility(
         packageName = "com.bagatrix.mathway.android",
         name = "Mathway",
         description = "Mathway: Math Problem Solver & Calculator by Chegg",
-        appIconColor = 0x00A859
+        appIconColor = 0x00A859,
+        targets = listOf(AppTarget("6.1.1", isExperimental = true))
     )
 
     val COMPATIBILITY_VIRTUAL_MASTER = Compatibility(
         packageName = "com.clone.android.dual.space",
         name = "Virtual Master",
         description = "Virtual Master: Android on Android VM & Dual Space by VM Space Tech",
-        appIconColor = 0x6200EE
+        appIconColor = 0x6200EE,
+        targets = listOf(AppTarget("3.1.20", isExperimental = true))
     )
 
     val COMPATIBILITY_VIRTUAL_MASTER_ALT = Compatibility(
         packageName = "com.virtualmaster",
         name = "Virtual Master (Alt)",
         description = "Virtual Master: Android on Android VM & Dual Space (Standalone / Direct)",
-        appIconColor = 0x6200EE
+        appIconColor = 0x6200EE,
+        targets = listOf(AppTarget("3.1.20", isExperimental = true))
     )
 
     val COMPATIBILITY_CAPCUT = Compatibility(
         packageName = "com.lemon.lvoverseas",
         name = "CapCut",
         description = "CapCut: Video Editor & Maker by Bytedance",
-        appIconColor = 0x000000
+        appIconColor = 0x000000,
+        targets = listOf(AppTarget("13.0.0", isExperimental = true))
     )
 
     val COMPATIBILITY_CAPCUT_ALT = Compatibility(
         packageName = "com.lemon.lv",
         name = "CapCut (Alt)",
         description = "CapCut: Video Editor & Maker (Domestic / JianYing)",
-        appIconColor = 0x000000
+        appIconColor = 0x000000,
+        targets = listOf(AppTarget("13.0.0", isExperimental = true))
     )
 
     val COMPATIBILITY_THE_ATHLETIC = Compatibility(
         packageName = "com.theathletic",
         name = "The Athletic",
         description = "The Athletic: Sports News, Stories, Scores, and Analysis by The New York Times Company",
-        appIconColor = 0x000000
+        appIconColor = 0x000000,
+        targets = listOf(AppTarget("14.18.0", isExperimental = true))
     )
 
     val COMPATIBILITY_FOTMOB = Compatibility(
         packageName = "com.mobilefootie.wc2010",
         name = "FotMob",
         description = "FotMob: Soccer and Football Live Scores, Stats, and News by FotMob",
-        appIconColor = 0x008000
+        appIconColor = 0x008000,
+        targets = listOf(AppTarget("206.11545.20261108", isExperimental = true))
     )
 
     val COMPATIBILITY_HOTSTAR = Compatibility(
@@ -991,7 +1101,12 @@ object Constants {
     val COMPATIBILITY_FCTV_ANDROID_TV = COMPATIBILITY_FCTV_TV
     val COMPATIBILITY_RBTV = COMPATIBILITY_RBLIVE
     val COMPATIBILITY_RBTV_TV = COMPATIBILITY_RBLIVE_TV
+
+    val COMPATIBILITY_SHOWLY = Compatibility(
+        packageName = "com.michaldrabik.showly2",
+        name = "Showly",
+        description = "Showly: Track TV Shows and Movies (Open Source Trakt Client by Michal Drabik)",
+        appIconColor = 0xFF5722,
+        targets = listOf(AppTarget("3.72.0", isExperimental = true))
+    )
 }
-
-
-

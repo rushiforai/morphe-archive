@@ -8,6 +8,9 @@
     "semantic-release": "^25.0.9"
   },
   "overrides": {
-    "undici": ">= 6.29.1"
+    "undici": ">= 6.29.1",
+    "npm": ">= 12.2.2",
+    "glob": ">= 14.0.4",
+    "minimatch": ">= 11.0.5"
   }
 }

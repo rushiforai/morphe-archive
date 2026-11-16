@@ -375,18 +375,38 @@ public final class MorpheSettingsActivity extends Activity {
 
     private void renderBoardColors() {
         int dark = BoardColors.dark(), light = BoardColors.light();
-        LinearLayout preview = card();
-        preview.setPadding(dp(12), dp(12), dp(12), dp(12));
-        preview.addView(boardPreview(dark, light), new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, dp(84)));
-        list.addView(preview, cardParams(16));
+        boolean appTheme = BoardColors.appTheme();
+
+        if (appTheme) {
+            list.addView(caption("Using the board from More → Theme → Board. Pick a colour below to "
+                + "use these colours instead."));
+        } else {
+            LinearLayout preview = card();
+            preview.setPadding(dp(12), dp(12), dp(12), dp(12));
+            preview.addView(boardPreview(dark, light), new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(84)));
+            list.addView(preview, cardParams(16));
+        }
+
+        // The app's own Theme → Board choice, so both can be used without turning the feature off.
+        list.addView(header("chess.com theme"));
+        LinearLayout appThemeCard = card();
+        appThemeCard.addView(optionRow(
+            "Use the app's board theme",
+            "The board chosen in More → Theme → Board.",
+            appTheme, checked -> {
+                BoardColors.setAppTheme(checked);
+                render();
+            }));
+        list.addView(appThemeCard, cardParams());
 
         list.addView(header("chess.com colors"));
         List<View> presets = new ArrayList<>();
         for (String[] preset : BoardColors.PRESETS) {
             int presetDark = Color.parseColor(preset[1]), presetLight = Color.parseColor(preset[2]);
-            boolean selected = presetDark == dark && presetLight == light;
+            boolean selected = !appTheme && presetDark == dark && presetLight == light;
             presets.add(choice(miniBoard(presetDark, presetLight, selected), 56, preset[0], selected, () -> {
+                BoardColors.setAppTheme(false);
                 BoardColors.set(presetDark, presetLight);
                 render();
             }));
@@ -396,11 +416,18 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(header("Your own"));
         LinearLayout custom = card();
         list.addView(custom, cardParams());
-        custom.addView(colorRow("Light squares", light, color -> BoardColors.set(BoardColors.dark(), color)));
+        custom.addView(colorRow("Light squares", light, color -> {
+            BoardColors.setAppTheme(false);
+            BoardColors.set(BoardColors.dark(), color);
+        }));
         custom.addView(divider(56));
-        custom.addView(colorRow("Dark squares", dark, color -> BoardColors.set(color, BoardColors.light())));
-        list.addView(caption("Every board uses these colours while Board colors is on. Boards already "
-            + "open change when they next redraw."));
+        custom.addView(colorRow("Dark squares", dark, color -> {
+            BoardColors.setAppTheme(false);
+            BoardColors.set(color, BoardColors.light());
+        }));
+        list.addView(caption("Every board uses these colours while Board colors is on, unless \"Use the "
+            + "app's board theme\" above is switched on. Boards already open change when they next "
+            + "redraw."));
     }
 
     private void renderArcade() {
@@ -409,6 +436,12 @@ public final class MorpheSettingsActivity extends Activity {
         preview.addView(new ArcadePreview(this), new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(156)));
         list.addView(preview, cardParams(16));
+        list.addView(header("Where it applies"));
+        list.addView(noteCard("chess.com's classic board: live games and the Puzzle Rush, Puzzle "
+            + "Battle, Learning and Review puzzle modes. Bot games, the Daily Puzzle, Solve Puzzles "
+            + "and Lichess Puzzles use the newer board, where these effects do not run yet."),
+            cardParams());
+        list.addView(header("What it does"));
         list.addView(caption("A light trail follows each move, the square lights up where the piece "
             + "lands and captures burst. In games, pieces also flash as you pick them up and drop "
             + "them, a king in check flashes and move hints are animated."));
@@ -1252,6 +1285,48 @@ public final class MorpheSettingsActivity extends Activity {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    /** A card row with a switch, for a choice that is on or off. */
+    private View optionRow(String title, String summary, boolean checked, OnChecked onChecked) {
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16), dp(12), dp(12), dp(12));
+        row.setMinimumHeight(dp(64));
+        row.setBackground(ripple());
+
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.addView(text(title, 16, TEXT));
+        if (summary != null) {
+            TextView detail = text(summary, 13, TEXT_SECONDARY);
+            detail.setPadding(0, dp(2), 0, 0);
+            texts.addView(detail);
+        }
+        row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        Switch toggle = toggle(checked, onChecked);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMarginStart(dp(12));
+        row.addView(toggle, params);
+        row.setOnClickListener(view -> toggle.toggle());
+        return row;
+    }
+
+    /** A card that sets a note apart from the page's plain captions. */
+    private View noteCard(String value) {
+        LinearLayout card = card();
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(cardColor);
+        shape.setCornerRadius(dp(14));
+        shape.setStroke(dp(1), (accent & 0x00FFFFFF) | 0x55000000);
+        card.setBackground(shape);
+        card.setPadding(dp(16), dp(12), dp(16), dp(12));
+        TextView body = text(value, 14, TEXT);
+        body.setLineSpacing(dp(2), 1f);
+        card.addView(body);
+        return card;
     }
 
     private LinearLayout card() {

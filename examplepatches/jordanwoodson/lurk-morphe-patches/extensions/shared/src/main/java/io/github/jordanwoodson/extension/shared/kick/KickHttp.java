@@ -11,9 +11,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Kick's own API requests, for two switches. 7TV emotes reads which channel a chat belongs to: 7TV looks emotes up by
- * the channel owner's Kick user ID, and Kick's chat page only knows the channel ID. Kick's own channel responses give
- * the channel's slug for its ID, which leads to the owner; they are only read, never changed. Anonymous chat refuses
+ * Kick's own API requests, for three switches. 7TV emotes and 7TV badges read which channel a chat belongs to: 7TV
+ * knows channels by their owner's Kick user ID, and Kick's chat page only knows the channel ID. Kick's own channel
+ * responses give the channel's slug for its ID, which leads to the owner; they are only read, never changed. Anonymous chat refuses
  * the requests that post to chat (a message, a reply or a quick emote, and a celebration's action, which can post
  * one), so nothing is sent as you while the chat page reads chat as a guest. The only extension class that names
  * OkHttp, which Kick ships unrenamed; Twitch and Rumble never load it.
@@ -38,11 +38,11 @@ public final class KickHttp implements Interceptor {
 
     /**
      * Injection point: the end of React Native's OkHttpClientProvider.createClientBuilder(), which every client
-     * Kick makes starts from. Clients built while both switches are off stay as they are; Kick builds its clients at
+     * Kick makes starts from. Clients built while those switches are off stay as they are; Kick builds its clients at
      * start, so a change applies after a restart, together with Anonymous chat's change to the chat page.
      */
     public static OkHttpClient.Builder withInterceptor(OkHttpClient.Builder builder) {
-        boolean channels = KickChat.on(KickChat.SEVEN_TV);
+        boolean channels = KickChat.on(KickChat.SEVEN_TV) || KickChat.on(KickChat.SEVEN_TV_BADGES);
         boolean sends = KickChat.on(ANONYMOUS);
         if (channels || sends) builder.addInterceptor(new KickHttp(channels, sends));
         return builder;

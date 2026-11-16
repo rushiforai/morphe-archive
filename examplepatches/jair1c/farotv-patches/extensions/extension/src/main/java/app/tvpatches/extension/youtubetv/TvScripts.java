@@ -44,7 +44,10 @@ public final class TvScripts {
     public static void onTitle(String title) {
         if (title != null && title.startsWith(LOG_PREFIX)) {
             String message = title.substring(LOG_PREFIX.length());
-            if (message.startsWith(NetBridge.REQUEST_PREFIX)) {
+            if (message.startsWith("@locale ")) {
+                I18n.setLanguage(message.substring(8));
+                Log.i(TAG, "UI language: " + message.substring(8));
+            } else if (message.startsWith(NetBridge.REQUEST_PREFIX)) {
                 NetBridge.handle(message);
             } else {
                 Log.i(TAG, message);

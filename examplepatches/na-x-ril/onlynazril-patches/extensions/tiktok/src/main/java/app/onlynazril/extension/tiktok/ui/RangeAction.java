@@ -5,7 +5,7 @@ import android.content.Context;
 /**
  * The control a Min/Max row carries: an {@link ActionView} that shows the range in force and opens
  * {@link RangeDialog} to change it.
- *
+ * <p>
  * A factory rather than a subclass, because the button is the screen's own — this only adds what the
  * label says and what a tap does. The value lives in the settings, and the label is what the dialog
  * last saved; a control keeping its own copy could disagree with what the filter reads.

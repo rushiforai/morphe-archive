@@ -135,9 +135,6 @@ public final class GboardAiWritingToolsRuntime {
             String flagName = readFlagName(receiver);
             if (!isOverrideCandidate(flagName, originalResult)) return originalResult;
             Context context = resolveContext();
-            if (context == null) {
-                return originalResult;
-            }
             GboardAiWritingToolsSettings.Snapshot settings =
                     GboardAiWritingToolsSettings.snapshot(context);
             Object enforced = computeOverrideValue(
@@ -272,8 +269,7 @@ public final class GboardAiWritingToolsRuntime {
         }
         try {
             Context context = resolveContext();
-            if (context == null
-                    || signal == null
+            if (signal == null
                     || !GboardAiWritingToolsSettings.snapshot(context).featureEnabled) {
                 return false;
             }
@@ -312,8 +308,7 @@ public final class GboardAiWritingToolsRuntime {
     public static boolean shouldBypassSettingsRemoval(int keyResId) {
         try {
             Context context = resolveContext();
-            if (context == null
-                    || currentSettingsControllerScopeDepth() <= 0
+            if (currentSettingsControllerScopeDepth() <= 0
                     || !GboardAiWritingToolsSettings.snapshot(context).featureEnabled) {
                 return false;
             }

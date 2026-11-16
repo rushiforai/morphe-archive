@@ -309,6 +309,143 @@ public final class EmotePickerArtProbe {
         check(complete(users, "pe").equals(List.of("pepega_viewer")), "Other sources must keep their answer");
     }
 
+    /** The real chat input tokenizer: where the token to complete starts in {@code text}, cursor at its end. */
+    private static int tokenStart(String text) throws Exception {
+        Class<?> type = Class.forName(ProbeLocators.type("twitch.emote_picker.tokenizer", "awp"));
+        Constructor<?> make = type.getDeclaredConstructors()[0];
+        Class<?>[] parameters = make.getParameterTypes();
+        check(parameters.length == 3 && parameters[0] == parameters[2], "Unexpected tokenizer constructor");
+        // The two detectors ('@' and ':'); the tokenizer takes the larger of their answers, so their order is moot.
+        Constructor<?> detector = parameters[0].getDeclaredConstructor(int.class);
+        detector.setAccessible(true);
+        // The input view: only its commands helper is read, which with nothing set knows no commands.
+        Object view = allocate(parameters[1]);
+        for (Field field : parameters[1].getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive() || field.getType().isInterface()) continue;
+            for (Method method : field.getType().getDeclaredMethods()) {
+                if (method.getReturnType() == boolean.class && method.getParameterTypes().length == 1
+                        && method.getParameterTypes()[0] == List.class) {
+                    field.setAccessible(true);
+                    field.set(view, allocate(field.getType()));
+                }
+            }
+        }
+        make.setAccessible(true);
+        Object tokenizer = make.newInstance(detector.newInstance(1), view, detector.newInstance(0));
+        Method start = type.getMethod("findTokenStart", CharSequence.class, int.class);
+        return (int) start.invoke(tokenizer, text, text.length());
+    }
+
+    private static void bareAutocomplete() throws Exception {
+        autocompleteSetup();
+        settings.put("emotes_picker", true);
+        settings.put("emotes_autocomplete_bare", false);
+        check(complete(twitchSource, "pee").equals(List.of("peepoTwitch", "peepoClap", "WidepeepoHappy")),
+            "Off: Twitch's matching, contains included: " + complete(twitchSource, "pee"));
+        check(tokenStart("say pepe") == 0 && tokenStart("hi :pe") == 3 && tokenStart("@vie") == 1, "Off: Twitch's tokens");
+        Method trigger = Class.forName(EMOTES).getMethod("bareTrigger", boolean.class, CharSequence.class);
+        check(!(boolean) trigger.invoke(null, false, "say pepe") && (boolean) trigger.invoke(null, true, "hi :pe"), "Off: Twitch's ':' check");
+
+        settings.put("emotes_autocomplete_bare", true);
+        check(complete(twitchSource, "pee").equals(List.of("peepoTwitch", "peepoClap")),
+            "On: a plain word gets prefix matches only: " + complete(twitchSource, "pee"));
+        check(complete(twitchSource, ":pee").equals(List.of("peepoTwitch", "peepoClap", "WidepeepoHappy")), "':' unchanged");
+        check(complete(twitchSource, "PEPEL").equals(List.of("pepeLaugh")), "Any case");
+        settings.put("emotes_picker", false);
+        check(complete(twitchSource, "pee").equals(List.of("peepoTwitch")), "Without the picker switch: Twitch's emotes only");
+        settings.put("emotes_picker", true);
+        check(tokenStart("say pepe") == 4 && tokenStart("pepe") == 0, "On: the plain word is the token");
+        check(tokenStart("say pe") == 0, "Two characters aren't enough");
+        check(tokenStart("hi :pe") == 3 && tokenStart("@vie") == 1 && tokenStart("hi @vie") == 4, "':' and '@' unchanged");
+        check(tokenStart("/ban pepe") == 0 && tokenStart("say !cmd") == 0, "Commands and symbols aren't emotes");
+        check((boolean) trigger.invoke(null, false, "say Kappa") && !(boolean) trigger.invoke(null, false, "say Ka")
+            && !(boolean) trigger.invoke(null, false, "say Kappa ") && !(boolean) trigger.invoke(null, false, "/me Kappa"),
+            "On: the trigger follows the same rule");
+        settings.put("emotes_autocomplete_bare", false);
+    }
+
+    private static final String FAVORITES = "io.github.jordanwoodson.extension.shared.twitch.TwitchEmoteFavorites";
+
+    /** A picker item for {@code emote}, made by the presenter's own item builder. */
+    private static Object item(Object emote) throws Exception {
+        for (Method method : presenter.getClass().getDeclaredMethods()) {
+            Class<?>[] p = method.getParameterTypes();
+            if (p.length == 5 && p[0] == emote.getClass() && p[1] == String.class && p[4] == boolean.class) {
+                method.setAccessible(true);
+                return method.invoke(presenter, emote, "set", tuid(CHANNEL), surface, false);
+            }
+        }
+        throw new AssertionError("No item builder");
+    }
+
+    private static Object emote(String id, String code, boolean variants) throws Exception {
+        Class<?> type = Class.forName(ProbeLocators.type("twitch.match.client_emote", "lvf"));
+        for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+            Class<?>[] types = constructor.getParameterTypes();
+            if (types.length != 6) continue;
+            List<Object> modified = new ArrayList<>();
+            if (variants) modified.add(constructor.newInstance(id + "_SG", code + "_SG", tuid(CHANNEL),
+                enumValue(types[3], "STATIC"), Collections.emptyList(), enumValue(types[5], "OTHER")));
+            return constructor.newInstance(id, code, tuid(CHANNEL), enumValue(types[3], "STATIC"), modified,
+                enumValue(types[5], "OTHER"));
+        }
+        throw new AssertionError("No emote constructor");
+    }
+
+    private static boolean press(Object item) throws Exception {
+        return (boolean) method(Class.forName(FAVORITES), "pressed", Context.class, Object.class).invoke(null, null, item);
+    }
+
+    private static void favorites() throws Exception {
+        if (pickerCase < 0) pickerSetup();
+        Map<String, Object> stored = new HashMap<>();
+        SharedPreferences.Editor[] editor = new SharedPreferences.Editor[1];
+        editor[0] = (SharedPreferences.Editor) Proxy.newProxyInstance(SharedPreferences.class.getClassLoader(),
+            new Class<?>[]{SharedPreferences.Editor.class}, (proxy, method, values) -> {
+                if (method.getName().equals("putString")) { stored.put((String) values[0], values[1]); return editor[0]; }
+                if (method.getName().equals("commit")) return true;
+                return null;
+            });
+        SharedPreferences preferences = (SharedPreferences) Proxy.newProxyInstance(SharedPreferences.class.getClassLoader(),
+            new Class<?>[]{SharedPreferences.class}, (proxy, method, values) -> {
+                if (method.getName().equals("getString")) return stored.getOrDefault((String) values[0], values[1]);
+                if (method.getName().equals("edit")) return editor[0];
+                throw new UnsupportedOperationException(method.getName());
+            });
+        Field store = Class.forName(FAVORITES).getDeclaredField("preferences");
+        store.setAccessible(true);
+        store.set(null, preferences);
+        Method forget = method(Class.forName(FAVORITES), "forget");
+        forget.invoke(null);
+        settings.put("emotes_picker", false);
+        settings.put("emotes_favorites", false);
+        Object twitch = item(emote("1001", "peepoTwitch", false));
+        check(!press(twitch) && stored.isEmpty(), "Off: a long press is Twitch's");
+        settings.put("emotes_favorites", true);
+        check(sections().isEmpty(), "No favorites, no section");
+        check(press(twitch), "A long press on a Twitch emote adds it");
+        check(press(item(emote("lurk7a_peepo", "peepoClap", false))), "And on a 7TV one");
+        check(!press(item(emote("1002", "subHype", true))), "An emote with Twitch's variants keeps Twitch's long press");
+        Map<String, List<String>> sections = sections();
+        check(sections.keySet().iterator().next().equals("Favorites|Favorites")
+            && sections.get("Favorites|Favorites").equals(List.of("1001", "lurk7a_peepo")), "The Favorites section: " + sections);
+        settings.put("emotes_picker", true);
+        List<String> order = new ArrayList<>(sections().keySet());
+        check(order.equals(List.of("Favorites|Favorites", "7TV|7TV", "BetterTTV|BetterTTV")), "Favorites go first: " + order);
+        // A new process reads the same list back.
+        String line = String.valueOf(stored.get("favorites"));
+        check(line.equals("1001\tpeepoTwitch\tSTATIC\tOTHER\nlurk7a_peepo\tpeepoClap\tSTATIC\tOTHER"), "Stored: " + line);
+        forget.invoke(null);
+        check(sections().get("Favorites|Favorites").equals(List.of("1001", "lurk7a_peepo")), "Read back after a restart");
+        // A long press on a favorite (in its section or anywhere) removes it.
+        check(press(twitch) && sections().get("Favorites|Favorites").equals(List.of("lurk7a_peepo")), "Removed");
+        settings.put("emotes_favorites", false);
+        check(!sections().containsKey("Favorites|Favorites"), "Off: no section, the list kept");
+        settings.put("emotes_favorites", true);
+        check(press(item(emote("lurk7a_peepo", "peepoClap", false))) && !sections().containsKey("Favorites|Favorites"), "Last one removed");
+        settings.put("emotes_favorites", false);
+    }
+
     private interface Section {
         void run() throws Exception;
     }
@@ -344,6 +481,8 @@ public final class EmotePickerArtProbe {
         Class.forName(EMOTES).getMethod("onChatChannel", Object.class).invoke(null, tuid(CHANNEL));
         section("emote picker: a section per service from Twitch's presenter", EmotePickerArtProbe::picker);
         section("autocomplete: Twitch's emote source lists the services' emotes", EmotePickerArtProbe::autocomplete);
+        section("autocomplete without ':': trigger, Twitch's tokenizer, prefix matches", EmotePickerArtProbe::bareAutocomplete);
+        section("favorite emotes: long press, the Favorites section first, stored list", EmotePickerArtProbe::favorites);
         if (failures > 0) {
             System.out.println("FAILED: " + failures + " section(s)");
             System.exit(1);

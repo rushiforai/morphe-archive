@@ -27,6 +27,11 @@ public final class OpeningPostFetchTest {
         return new EdgeOpeningDat.Part(206,"bytes "+first+"-"+end+"/"+dat.length,"text/plain; charset=Shift_JIS",chunk);
     };}
     public static void main(String[] args)throws Exception{
+        byte[] mirror=("案内<><><>元スレURL<>title\n名前<><>date<>https://img.2chan.net/b/src/12345.jpg<>\nthird<><><>not-read<>\n").getBytes(Charset.forName("windows-31j"));
+        Counted two=new Counted(mirror);
+        byte[] twoLines=EdgeOpeningDat.read(two,65536,2);
+        String twoBodies=EdgeOpeningDat.body((first,last)->new EdgeOpeningDat.Part(200,null,"text/plain",twoLines),2);
+        check(twoBodies.contains("https://img.2chan.net/b/src/12345.jpg")&&!twoBodies.contains("not-read"),"mirror reads only first two DAT records");
         String tail="<li id=res3><div class=resbody>https://cdn.example.org/ignored.jpg "+"x".repeat(1000000)+"</div></li>";
         String animanch=html("<title>あにまん</title><ul id=resList><li id=res1><div class=resbody>https://cdn.example.org/first.jpg</div></li><li id=res2><div class=resbody>second</div></li>"+tail+"</ul>","animanch",unused->false);
         check(animanch.contains("first.jpg")&&!animanch.contains("res2")&&!animanch.contains("ignored.jpg"),"only Animanch post 1 retained");
@@ -64,6 +69,29 @@ public final class OpeningPostFetchTest {
         var edge=ThreadListThumbnailRules.board("https://bbs.eddibb.cc/liveedge/");
         check(edge.openingDatUrl("1794543005").equals("https://bbs.eddibb.cc/liveedge/dat/1794543005.dat"),"Edge preview endpoint is DAT, not full HTML");
         check(ThreadListThumbnailRules.board("https://egg.5ch.io/android/").openingDatUrl("1794543005")==null,"5ch keeps first-response HTML route");
+        for (String host : new String[]{"img.2chan.net", "may.2chan.net", "nov.2chan.net"}) {
+            String address="https://"+host+"/b/res/123.htm";
+            String source="<div class=thre data-res=123><span class=cno>No.123</span>"
+                    + "<blockquote>http://cdn.example.org/first.jpg</blockquote>"
+                    + "<table><tr><td class=rtd><span class=cno>No.124</span>"
+                    + "<blockquote>https://cdn.example.org/second.jpg</blockquote></td></tr></table></div>";
+            var board=SiteBoardProtocol.address("https://"+host+"/b/");
+            List<String> originals=List.of(board.url+"src/123.png");
+            String attachment="<a href='/b/src/123.png'><img src='/b/thumb/123s.jpg'></a>";
+            check(SiteBoardProtocol.futabaPreviews(board,attachment,originals)
+                    .equals(List.of(board.url+"thumb/123s.jpg")),"site-provided thumbnail is used on "+host);
+            check(originals.equals(List.of(board.url+"src/123.png")),"full-size URL remains the click target on "+host);
+            check(SiteBoardProtocol.futabaPreviews(board,"",originals).equals(originals),"missing preview keeps original on "+host);
+            String prefix=OpeningPostHtml.read(new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)),
+                    "text/html; charset=UTF-8",address,"futaba","123",html -> {
+                        var opening=SiteBoardProtocol.thread(board,"123",html).entries.get(0);
+                        return !ThreadListThumbnailRules.openingTextMedia(opening.body,address,1).isEmpty();
+                    });
+            var parsed=SiteBoardProtocol.thread(board,"123",prefix);
+            check(parsed.entries.size()==1,"plain first-post URL stops before replies on "+host);
+            check(ThreadListThumbnailRules.openingTextMedia(parsed.entries.get(0).body,address,2)
+                    .equals(List.of("https://cdn.example.org/first.jpg")),"first-post media remains available on "+host);
+        }
         var futabaBoard=SiteBoardProtocol.address("https://img.2chan.net/b/");
         String first="<span class=cno>No.123</span><span class=cnm>名</span><span class=cnw>日付</span><blockquote>本文</blockquote>";
         String second="<table><tr><td class=rtd><span class=cno>No.124</span><span class=cnm>名</span><span class=cnw>日付</span><a href='https://img.2chan.net/b/src/reply.jpg'>画像</a><blockquote>返信</blockquote></td></tr></table>";

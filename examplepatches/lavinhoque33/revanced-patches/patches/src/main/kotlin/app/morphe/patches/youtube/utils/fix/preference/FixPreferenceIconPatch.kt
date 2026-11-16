@@ -7,6 +7,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-14.
  */
 
 package app.morphe.patches.youtube.utils.fix.preference
@@ -23,6 +24,8 @@ import app.morphe.patches.shared.settingmenu.PreferenceGroupFindPreferenceFinger
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
+import app.morphe.patches.youtube.utils.settings.settingsBytecodePatch
+import app.morphe.patches.youtube.utils.settings.settingsFragmentReloadInstructions
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -48,6 +51,7 @@ internal val fixPreferenceIconPatch = bytecodePatch {
     dependsOn(
         sharedExtensionPatch,
         versionCheckPatch,
+        settingsBytecodePatch,
     )
 
     execute {
@@ -233,19 +237,19 @@ internal val fixPreferenceIconPatch = bytecodePatch {
 
         PreferenceScreenSyntheticFingerprint.let {
             it.method.apply {
-                val getPreferenceScreenIndex = it.instructionMatches[1].index
+                val getScreenMatch = it.instructionMatches[1]
                 val getPreferenceScreenRegister =
-                    getInstruction<FiveRegisterInstruction>(getPreferenceScreenIndex).registerC
-                val getPreferenceScreenReference =
-                    getInstruction<ReferenceInstruction>(getPreferenceScreenIndex).reference
+                    (getScreenMatch.instruction as FiveRegisterInstruction).registerC
+                val getPreferenceScreenReference = getScreenMatch.methodReference
 
-                val insertIndex = it.instructionMatches.last().index
+                val insertIndex = implementation!!.instructions.lastIndex
                 val preferenceScreenRegister =
                     findFreeRegister(insertIndex, getPreferenceScreenRegister)
 
                 addInstructionsAtControlFlowLabel(
                     insertIndex,
                     """
+                        ${settingsFragmentReloadInstructions(getPreferenceScreenRegister)}
                         invoke-virtual { v$getPreferenceScreenRegister }, $getPreferenceScreenReference
                         move-result-object v$preferenceScreenRegister
 

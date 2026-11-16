@@ -1,15 +1,10 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      send_fcm:
-        description: 'Send FCM push notification'
-        type: boolean
-        default: true
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   release:
@@ -21,6 +16,9 @@ jobs:
       attestations: write
       actions: write
     runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -36,8 +34,8 @@ jobs:
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3
 
-      - name: Install dependencies
-        run: npm install
+      - name: Lint
+        run: ./gradlew :patches:ktlintCheck
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -48,40 +46,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: ./gradlew :patches:ktlintCheck --no-daemon
-        
       - name: Release
-        run: npx semantic-release
+        id: release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          before=$(git tag --points-at HEAD)
+          npx semantic-release
+          after=$(git tag --points-at HEAD)
+          new_tag=$(comm -13 <(printf '%s\n' "$before" | sort) <(printf '%s\n' "$after" | sort) | head -n1)
+          if [ -n "$new_tag" ]; then
+            version=$(python3 -c "import json;print(json.load(open('patches-list.json'))['version'])")
+            {
+              echo "new_release_published=true"
+              echo "new_release_git_tag=$new_tag"
+              echo "new_release_version=$version"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build patch bundle
+        if: steps.release.outputs.new_release_published == 'true'
+        run: ./gradlew :patches:buildAndroid
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: 'Inepts Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-name: 'Lustx Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
-
-      - name: Wait before sending FCM
-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
-        run: sleep 300
-
-      - name: Setup Python for FCM
-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-
-      - name: Send FCM push notification
-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
-        env:
-          FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
-          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
-          FCM_TYPE: bundle_update
-          FCM_VERSION: ${{ steps.release.outputs.new_release_version }}
-          BRANCH: ${{ github.ref_name }}
-        run: |
-          pip install cryptography
-          python3 .github/scripts/send_fcm.py

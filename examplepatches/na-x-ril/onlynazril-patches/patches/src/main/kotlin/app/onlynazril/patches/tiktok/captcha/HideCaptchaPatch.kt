@@ -106,13 +106,9 @@ val tiktokCaptchaPatch = bytecodePatch(
         // the second shape's request or the older challenge code; the first parameter is the
         // activity and the third the callback, whichever it is. The real-named class is the
         // anchor, the request type is never written down.
-        val turingDialogs = mutableListOf<Method>()
-        classDefForEach { classDef ->
-            if (classDef.type != TURING_DIALOG) return@classDefForEach
-            classDef.methods
-                .filter { it.isTuringShowVerifyDialog() }
-                .forEach { turingDialogs += it }
-        }
+        val turing = classDefByOrNull(TURING_DIALOG)
+            ?: throw PatchException("$PATCH: the Turing dialog $TURING_DIALOG is not in the app.")
+        val turingDialogs = turing.methods.filter { it.isTuringShowVerifyDialog() }
         if (turingDialogs.size != 2) {
             throw PatchException(
                 "$PATCH: expected the two $TURING_DIALOG#$TURING_SHOW shapes, " +

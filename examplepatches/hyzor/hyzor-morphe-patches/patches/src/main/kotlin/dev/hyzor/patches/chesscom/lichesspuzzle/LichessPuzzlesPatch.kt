@@ -30,9 +30,9 @@ private const val SETTINGS_COMBINE =
     "Lcom/chess/features/settings/puzzles/PuzzlesSettingsViewModel\$special\$\$inlined\$combine\$1\$1\$1;"
 // The Classic puzzle layout: the state the rating box reads, its rating graph and the
 // graph's points. The constructor parameter lists identify them, not the short names.
-private const val CLASSIC_STATE = "Lcom/chess/features/puzzles/rated/ui/h0\$a;"
-private const val RATING_HISTORY = "Lcom/chess/features/puzzles/rated/ui/l;"
-private const val RATING_POINT = "Lcom/chess/features/puzzles/rated/ui/m;"
+private const val CLASSIC_STATE = "Lcom/chess/features/puzzles/rated/ui/l0\$a;"
+private const val RATING_HISTORY = "Lcom/chess/features/puzzles/rated/ui/p;"
+private const val RATING_POINT = "Lcom/chess/features/puzzles/rated/ui/q;"
 private const val PUZZLES_TAB = "Lcom/chess/features/puzzles/home/ui/HomePuzzlePathRootContentKt;"
 private const val BUTTON_SIZE = "Lcom/chess/palette/core/style/ButtonSize;"
 private const val MENU_LISTENER = "Lcom/chess/palette/components/menu/a;"
@@ -41,22 +41,22 @@ private const val BIG_BUTTON_CLICK =
 private const val PUZZLES_MENU_SCREEN = "Lcom/chess/features/puzzles/home/"
 private const val MODE = "Lcom/chess/navigationinterface/PathPuzzlesMode;"
 private const val SOURCE = "Lcom/chess/features/puzzles/db/model/ProblemSource;"
-private const val SOLUTION = "Lcom/chess/features/puzzles/db/model/m;"
+private const val SOLUTION = "Lcom/chess/features/puzzles/db/model/l;"
 private const val TACTICS_PROBLEM = "Lcom/chess/net/model/TacticsProblem;"
 private const val PATH_RESULT = "Lchesscom/puzzles/v1/PuzzlePathResult;"
 private const val RATING = "Lchesscom/puzzles/v1/Rating;"
 private const val API_EXCEPTION = "Lcom/chess/net/errors/ApiException;"
 private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/t\$l0;"
 private const val PUZZLE_SETTINGS = "Lcom/chess/features/puzzles/rated/api/PuzzleSettings;"
-private const val PATH_STATS = "Lcom/chess/features/path/ui/o2;"
-private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
+private const val PATH_STATS = "Lcom/chess/features/path/ui/t2;"
+private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/n;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/t\$q0;"
 private const val VIEW_MODEL = "Lcom/chess/features/puzzles/rated/RatedPuzzlesGameViewModel;"
 private const val PATH_REPOSITORY = "Lcom/chess/features/path/data/PathProgressRepositoryImpl;"
 private const val PUZZLE_SERVICE = "Lcom/chess/features/puzzles/api/h;"
-private const val HUB_STATE = "Lcom/chess/features/puzzles/home/ui/o0;"
-private const val HUB_PATH = "Lcom/chess/features/puzzles/home/ui/q0;"
-private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/p0;"
+private const val HUB_STATE = "Lcom/chess/features/puzzles/home/ui/i0;"
+private const val HUB_PATH = "Lcom/chess/features/puzzles/home/ui/o0;"
+private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/n0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -96,6 +96,9 @@ val lichessPuzzlesPatch = bytecodePatch(
         markFeaturePatched("lichessPuzzlesPatched")
         val names = mutableClassDefBy(PUZZLES).methods
         fun name(stub: String, value: String) = names.first { it.name == stub }.returnString(value)
+        // Obfuscated model names the extension has to construct (the patcher passes them along).
+        name("ratingStatsClass", RATING_STATS.javaName())
+        name("ratingPointClass", RATING_POINT.javaName())
 
         // An enum constant's field, from the name its static initialiser gives it.
         fun enumField(type: String, constant: String): String {
@@ -200,9 +203,11 @@ val lichessPuzzlesPatch = bytecodePatch(
             classDef.type.startsWith("Lcom/chess/internal/puzzles/") &&
                 classDef.methods.any { method ->
                     val instructions = method.implementation?.instructions ?: return@any false
+                    // The converter is netdbtransformers.e.h in 4.10.27 (i in 4.10.23); its
+                    // signature is what identifies it.
                     val converts = instructions.any { instruction ->
                         instruction.methodReference?.let { reference ->
-                            reference.name == "i" && reference.parameterTypes.size == 3 &&
+                            reference.parameterTypes.size == 3 &&
                                 reference.parameterTypes[0].toString() == TACTICS_PROBLEM &&
                                 reference.parameterTypes[1].toString() == SOURCE &&
                                 reference.parameterTypes[2].toString() == "J"
@@ -336,7 +341,8 @@ val lichessPuzzlesPatch = bytecodePatch(
                 """,
             )
         }
-        hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 13, pathIndex = 5, userIndex = 6)
+        // 4.10.27 dropped the leading boolean from the state, so path/user moved one slot left.
+        hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 13, pathIndex = 4, userIndex = 5)
 
         val score: MutableMethod = repository.methods.singleOrNull { method ->
             method.parameterTypes.size == 4 && method.parameterTypes[0].toString() == "Ljava/util/List;" &&
@@ -414,9 +420,15 @@ val lichessPuzzlesPatch = bytecodePatch(
                 snapshot.indices.filter { index ->
                     val instruction = snapshot[index]
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    instruction.opcode == Opcode.INVOKE_STATIC &&
-                        reference?.definingClass == "Lcom/chess/utils/android/preferences/f;" &&
-                        reference.name == "a" && reference.returnType == "Z" &&
+                    // The helper lives in .../preferences/ (f in 4.10.23, e in 4.10.27);
+                    // (SharedPreferences, key, default, Z)Z identifies it.
+                    instruction.opcode == Opcode.INVOKE_STATIC && reference != null &&
+                        reference.definingClass.startsWith("Lcom/chess/utils/android/preferences/") &&
+                        reference.returnType == "Z" &&
+                        reference.parameterTypes.map(CharSequence::toString) == listOf(
+                            "Landroid/content/SharedPreferences;", "Ljava/lang/String;",
+                            "Ljava/lang/String;", "Z",
+                        ) &&
                         snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
                 }.sortedDescending().forEach { index ->
                     val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
@@ -565,7 +577,10 @@ val lichessPuzzlesPatch = bytecodePatch(
             fun Instruction.handsOffSettingsList(): Boolean {
                 val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
                 return opcode == Opcode.INVOKE_INTERFACE &&
-                    reference.definingClass == "Lcom/google/android/vb6;" && reference.name == "j"
+                    reference.parameterTypes.size == 2 &&
+                    reference.parameterTypes[0].toString().startsWith("Lcom/google/android/") &&
+                    reference.parameterTypes[1].toString() == "Ljava/lang/Object;" &&
+                    reference.returnType == "Ljava/lang/Object;"
             }
             val emit = settings.methods.firstOrNull { method ->
                 method.returnType == "Ljava/lang/Object;" &&

@@ -143,10 +143,19 @@ TwitchEmotes.messageTokens
 TwitchEmotes.onChatChannel
 TwitchEmotes.rnFrame
 TwitchEmotes.url
+# Lurk's image cache under Glide's network fetcher (issue 71): a stored image instead of a request, and the copy of a response.
+TwitchImageCache.cached
+TwitchImageCache.store
 
 # if emotes_picker
 TwitchEmotes.autocomplete
 TwitchEmotes.pickerSets
+# Autocomplete without ':' (issue 65): the chat input's ':' check and its tokenizer.
+TwitchEmotes.bareTokenStart
+TwitchEmotes.bareTrigger
+# Favorite emotes (issue 61): the picker item's long press, and the picker's load (to show a change).
+TwitchEmoteFavorites.longClick
+TwitchEmoteFavorites.opened
 
 # if badges_ffz
 TwitchBadges.badges
@@ -176,6 +185,9 @@ TwitchHighlights.storiesShelf
 # if hide_tipping
 TwitchInterface.bitsVisible
 
+# if exact_counts
+TwitchInterface.exactCount
+
 # if hide_subscription_upsells
 # The chat header's Subscribe, Gift A Sub and Upgrade buttons.
 TwitchInterface.subscriptionButtons
@@ -191,6 +203,7 @@ TwitchInterface.homeTabs
 # if default_tab
 TwitchInterface.startDestination
 TwitchInterface.feedTab
+TwitchInterface.homePage
 
 # if amoled_black
 TwitchTheme.init

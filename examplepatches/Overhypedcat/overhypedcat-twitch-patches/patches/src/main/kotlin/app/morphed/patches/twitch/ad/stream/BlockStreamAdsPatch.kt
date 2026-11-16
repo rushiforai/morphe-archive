@@ -3,15 +3,16 @@ package app.morphed.patches.twitch.ad.stream
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphed.patches.twitch.settings.patchSettingsPatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
+import app.morphed.patches.twitch.shared.markIncluded
+import app.morphed.patches.twitch.shared.playerHttpHookPatch
 import app.morphed.patches.twitch.shared.addInstructionsBeforeReturn
 import app.morphed.patches.twitch.shared.checkRegisterNotReused
 import app.morphed.patches.twitch.shared.indicesOf
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
-private const val HTTP_CLIENT = "Lcom/amazonaws/ivs/net/HttpClient;"
-private const val WRAPPER_CLASS = "Lcom/amazonaws/ivs/net/MorphedHttpClient;"
 private const val REFRESHER_CLASS = "Lapp/morphed/extension/twitch/patches/PlayerRefresher;"
 private const val PLAYER = "Lcom/amazonaws/ivs/player/Player;"
 
@@ -24,21 +25,11 @@ val blockStreamAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 
+    dependsOn(playerHttpHookPatch, patchSettingsPatch)
     extendWith("extensions/twitch.mpe")
 
     execute {
-        HttpClientFactoryCreateFingerprint.method.apply {
-            indicesOf(Opcode.RETURN_OBJECT).forEach { returnIndex ->
-                val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-                addInstructionsBeforeReturn(
-                    returnIndex,
-                    """
-                        invoke-static/range { v$register .. v$register }, $WRAPPER_CLASS->wrap($HTTP_CLIENT)$HTTP_CLIENT
-                        move-result-object v$register
-                    """
-                )
-            }
-        }
+        markIncluded("adBlock")
 
         // Remember each player so it can be nudged back to the live edge after an ad break.
         CorePlayerImplConstructorFingerprint.method.apply {

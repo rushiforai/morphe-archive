@@ -13,8 +13,8 @@
 
     youtv.feature({
         id: "topics",
-        name: "Ocultar pestañas temáticas",
-        summary: "Quita Videojuegos, Pódcasts, Noticias, Música, Deportes y Películas del menú (al reiniciar la app)",
+        nameKey: "feature.topics.name",
+        summaryKey: "feature.topics.summary",
         defaultEnabled: false,
         restart: true,
         onResponse: function (response) {

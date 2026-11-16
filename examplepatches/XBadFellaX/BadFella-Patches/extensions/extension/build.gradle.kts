@@ -4,7 +4,7 @@ extension {
 
 android {
     namespace = "app.badfella.extension"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
     }
@@ -97,3 +97,6 @@ val generateTranslations by tasks.registering {
 
 android.sourceSets.getByName("main").java.srcDir(generatedTranslationsDir.get().asFile)
 tasks.named("preBuild") { dependsOn(generateTranslations) }
+tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+    enabled = false
+}

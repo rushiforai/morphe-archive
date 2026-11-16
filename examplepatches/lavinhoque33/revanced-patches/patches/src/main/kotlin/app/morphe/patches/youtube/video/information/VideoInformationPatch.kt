@@ -11,7 +11,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-13.
  *
  * Modified by lavinhoque33, 2026-10-24
  *
@@ -99,6 +99,8 @@ import app.morphe.patches.youtube.video.videoid.hookBackgroundPlayVideoIdNoArgs
 import app.morphe.patches.youtube.video.videoid.hookPlayerResponseVideoId
 import app.morphe.patches.youtube.video.videoid.hookVideoId
 import app.morphe.patches.youtube.video.videoid.videoIdPatch
+import app.morphe.util.Utils.printInfo
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addStaticFieldToExtension
 import app.morphe.util.cloneMutable
@@ -115,6 +117,7 @@ import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
+import app.morphe.util.returnEarly
 import app.morphe.util.or
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -435,6 +438,46 @@ val videoInformationPatch = bytecodePatch(
             }
 
             videoEndMethod = getWalkerMethod(walkerIndex)
+        }
+
+        // Use the same controller path as native Pause, not ExoPlayer.setPlayWhenReady directly:
+        // the medialib wrapper caches play intent and otherwise ignores the following user Play.
+        val nativePause = NativePauseVideoFingerprint.matchOrNull()?.method
+        val pauseFacadeClass = MedialibStopVideoFingerprint.classDefOrNull
+        val pauseBackend = if (nativePause != null && pauseFacadeClass != null) {
+            getPauseVideoFacadeFingerprint(nativePause).matchOrNull(pauseFacadeClass)?.method
+        } else null
+        val pauseController = pauseBackend?.let {
+            getControllerPauseFingerprint(it).matchOrNull(
+                mutableClassDefBy(playerConstructorMethod.definingClass)
+            )?.method
+        }
+
+        if (pauseController == null) {
+            printWarn("Yellow repeat is unavailable in this version: native pause controller was not found.")
+        } else {
+            val extensionClass = mutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR)
+            val originalPause = extensionClass.methods.single { it.name == "pauseVideo" }
+            val pauseBridge = originalPause.cloneMutable(registerCount = 2, clearImplementation = true)
+            pauseBridge.addInstructions(
+                0,
+                """
+                    invoke-static {}, Lapp/morphe/extension/shared/utils/Utils;->verifyOnMainThread()V
+                    sget-object v0, $EXTENSION_CLASS_DESCRIPTOR->videoInformationClass:${pauseController.definingClass}
+                    if-eqz v0, :unavailable
+                    const/4 v1, 0x1
+                    invoke-virtual { v0, v1 }, $pauseController
+                    const/4 v0, 0x1
+                    return v0
+                    :unavailable
+                    const/4 v0, 0x0
+                    return v0
+                """
+            )
+            extensionClass.methods.remove(originalPause)
+            extensionClass.methods.add(pauseBridge)
+            extensionClass.methods.single { it.name == "isPauseVideoSupported" }.returnEarly(true)
+            printInfo("Yellow repeat pause: $pauseController -> $pauseBackend -> $nativePause")
         }
 
         mdxPlayerDirectorSetVideoStageFingerprint.method.apply {

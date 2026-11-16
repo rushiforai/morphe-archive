@@ -8,12 +8,17 @@ import java.lang.reflect.*;
 
 /** Let ChMate decode its own saved Back gesture before gallery navigation claims it. */
 final class MediaViewerBackGesture {
+    static final String DOUBLE_BACK="mediaViewerDoubleBack";
+    private static final java.util.Map<Activity,Long> ARMED=new java.util.WeakHashMap<>();
     private final Activity activity;
     private Object recognizer;
     private Method touch;
     private boolean returned;
     MediaViewerBackGesture(Activity activity){this(activity,activity::finish);}
     MediaViewerBackGesture(Activity activity,Runnable onBack){
+        this(activity,onBack,false);
+    }
+    MediaViewerBackGesture(Activity activity,Runnable onBack,boolean dedicated){
         this.activity=activity;
         SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(activity);
         int back=prefs.getInt("gestureBack",0);
@@ -31,7 +36,8 @@ final class MediaViewerBackGesture {
                     if(args!=null&&args.length==3&&args[0] instanceof Integer&&(Integer)args[0]==back){
                         returned=true;
                         if(activity instanceof VideoViewerActivity)((VideoViewerActivity)activity).endHoldSpeed();
-                        onBack.run();
+                        if (dedicated) finishDedicated(activity,onBack);
+                        else onBack.run();
                     }return null;
                 });
                 recognizer=constructor.newInstance(activity,listener);break;
@@ -43,6 +49,18 @@ final class MediaViewerBackGesture {
                 if(m.getReturnType()==void.class&&java.util.Arrays.equals(m.getParameterTypes(),new Class<?>[]{int.class}))m.invoke(recognizer,prefs.getInt("gestureLength",100));
             }
         }catch(ReflectiveOperationException|RuntimeException error){recognizer=null;touch=null;}
+    }
+    static void finishDedicated(Activity activity,Runnable close){
+        if(!VideoViewerSettings.prefs(activity).getBoolean(DOUBLE_BACK,false)){
+            ARMED.remove(activity);close.run();return;
+        }
+        long now=android.os.SystemClock.uptimeMillis();
+        Long previous=ARMED.get(activity);
+        // The video surface and the gallery recognizer may report the same gesture.
+        if(previous!=null&&now-previous<120)return;
+        if(previous!=null&&now-previous<=1000){ARMED.remove(activity);close.run();return;}
+        ARMED.put(activity,now);
+        android.widget.Toast.makeText(activity,"もう一度戻るジェスチャーで閉じる",0).show();
     }
     boolean returned(){return returned;}
     boolean active(){return recognizer!=null&&touch!=null;}

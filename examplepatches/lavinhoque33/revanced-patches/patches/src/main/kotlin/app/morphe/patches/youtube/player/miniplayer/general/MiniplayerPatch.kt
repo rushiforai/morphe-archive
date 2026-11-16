@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-14
  */
 
 package app.morphe.patches.youtube.player.miniplayer.general
@@ -18,6 +18,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.youtube.utils.playertype.PlayerTypeEnumFingerprint
 import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
@@ -354,20 +355,44 @@ val miniplayerPatch = bytecodePatch(
                 } else sizeMatch.method.apply {
                     val minimumIndex = sizeMatch.instructionMatches[1].index
                     val register = getInstruction<OneRegisterInstruction>(minimumIndex).registerA
-                    val minimumCallIndex = indexOfFirstInstructionOrThrow(minimumIndex + 1, Opcode.INVOKE_STATIC)
-                    val initialCallIndex = indexOfFirstInstructionOrThrow(minimumCallIndex + 1, Opcode.INVOKE_STATIC)
+                    val minimumCallIndex = indexOfFirstInstruction(minimumIndex + 1, Opcode.INVOKE_STATIC)
 
-                    // Must be done first, as it does not shift the indexes.
-                    replaceInstruction(minimumIndex, "const/16 v$register, 170")
+                    if (minimumCallIndex >= 0) {
+                        val initialCallIndex = indexOfFirstInstructionOrThrow(
+                            minimumCallIndex + 1, Opcode.INVOKE_STATIC
+                        )
 
-                    addInstructions(
-                        initialCallIndex,
-                        """
-                            const/16 v$register, 192
-                            invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->getMiniplayerDefaultSize(I)I
-                            move-result v$register
-                        """
-                    )
+                        replaceInstruction(minimumIndex, "const/16 v$register, 170")
+
+                        addInstructions(
+                            initialCallIndex,
+                            """
+                                const/16 v$register, 192
+                                invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->getMiniplayerDefaultSize(I)I
+                                move-result v$register
+                            """
+                        )
+                    } else {
+                        // 21.45+ inlines both dp conversions and shares the float width constant.
+                        val minimumMultiplyIndex = indexOfFirstInstructionOrThrow(
+                            minimumIndex + 1, Opcode.MUL_FLOAT_2ADDR
+                        )
+                        val initialMultiplyIndex = indexOfFirstInstructionOrThrow(
+                            minimumMultiplyIndex + 1, Opcode.MUL_FLOAT_2ADDR
+                        )
+
+                        replaceInstruction(minimumIndex, "const v$register, ${170.0f.toRawBits()}")
+
+                        addInstructions(
+                            initialMultiplyIndex,
+                            """
+                                const/16 v$register, 192
+                                invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->getMiniplayerDefaultSize(I)I
+                                move-result v$register
+                                int-to-float v$register, v$register
+                            """
+                        )
+                    }
 
                     settingArray += "SETTINGS: MINIPLAYER_WIDTH_DIP"
                 }
@@ -391,7 +416,11 @@ val miniplayerPatch = bytecodePatch(
         } else if (is_19_36_or_greater) {
             // 21.39: the rounded corners flag is gone. The outline provider is chosen in a method of the
             // corner applier class, so the non-rounded provider is used when the setting is off.
-            val roundedMatch = runCatching { MiniplayerRoundedCornersFingerprint.match() }.getOrNull()
+            val roundedMatch = if (is_21_41_or_greater) {
+                MiniplayerRoundedCornersModernFingerprint.matchOrNull()
+            } else {
+                MiniplayerRoundedCornersFingerprint.matchOrNull()
+            }
             if (roundedMatch == null) {
                 printWarn("\"Enable rounded corners\" is not supported in this version. Use YouTube versions up to 21.39.")
             } else {
@@ -473,7 +502,7 @@ val miniplayerPatch = bytecodePatch(
             MiniplayerOffscreenHandlerFingerprint.let {
                 it.method.apply {
                     val index = it.instructionMatches.last().index
-                    val register = findFreeRegister(index)
+                    val register = findFreeRegister(index + 1)
 
                     addInstructionsWithLabels(
                         index + 1,

@@ -1,7 +1,7 @@
 /*
  * Copyright 2026 Morphe.
  * Copyright (C) 2026 lavinhoque33
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-14.
  * https://github.com/MorpheApp/morphe-patches/pull/2638
  * https://github.com/MorpheApp/morphe-patches/pull/4416
  *
@@ -20,6 +20,7 @@ import app.morphe.patcher.util.cloneParameters
 import app.morphe.patcher.util.p0Register
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.youtube.utils.playservice.is_21_35_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.util.Utils.printInfo
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -147,6 +148,11 @@ context(_: BytecodePatchContext)
 internal fun hookFeatureFlags(): Boolean {
     val booleanHooked = hookFlag("boolean", ExperimentalBooleanFeatureFlagFingerprint) {
         overrideBooleanFeatureValue(it)
+    }
+    if (is_21_41_or_greater) {
+        hookFlag("indexed boolean", ExperimentalIndexedBooleanFeatureFlagFingerprint) {
+            overrideBooleanFeatureValue(it)
+        }
     }
     val doubleMethod = "$EXTENSION_CLASS->isDoubleFeatureFlagEnabled(DJD)D"
     val longMethod = "$EXTENSION_CLASS->isLongFeatureFlagEnabled(JJJ)J"

@@ -232,3 +232,11 @@ internal object StreamSettingsViewFingerprint : Fingerprint(
         resourceLiteral(ResourceType.ID, "pip_wrapper"),
     ),
 )
+
+// Twitch's ExoPlayer 2 player (Force ExoPlayer, and whatever Twitch itself sends there): the method that
+// lets go of the player logs this when its volume receiver was already gone. The class keeps start(),
+// pause() and stop() by name.
+internal object ExoPlayerTeardownFingerprint : Fingerprint(
+    returnType = "V", parameters = emptyList(),
+    strings = listOf("Error unregistering stream volume receiver"),
+)

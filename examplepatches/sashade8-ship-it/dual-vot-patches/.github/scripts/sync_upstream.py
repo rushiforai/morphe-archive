@@ -183,6 +183,12 @@ STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS = (
     "a3d212876ff8c3f3b04d7464fd5575044e47ed09",
     "8bc03940ae52d5e74c6a46cf04072393cb677b6b",
 )
+# Morphe dev.6/dev.7 retries Mobile Web with a new session instead of skipping it.
+STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS = (
+    "8bc03940ae52d5e74c6a46cf04072393cb677b6b",
+    "a79452a66c2994760246e680f40c94b18ee39527",
+    "2a6305bce1d7ca487aa3b1bd6c2515a436873424",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -1239,6 +1245,23 @@ def merge_streaming_data_request_dev234(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_dev237(source: str) -> str:
+    """Keep Dual clients while accepting Morphe's new Mobile Web retry lifecycle."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    if len(conflicts) != 1 or hashlib.sha256(
+        (conflicts[0].group(1) + "\0" + conflicts[0].group(2)).encode()
+    ).hexdigest() != "f16c2c8dd70592c8eefb2664965f8497fa53632d879a2334dbc17bd45033934b":
+        raise SyncError("Unexpected dev 2.3.0-dev.6/dev.7 streaming conflict sides")
+    replacement = conflicts[0].group(2).replace(
+        "for (ClientType clientType : clientOrder)", "for (ClientType clientType : clients)"
+    )
+    merged = re.sub(pattern, lambda _: replacement, source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved dev 2.3.0-dev.6/dev.7 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -1253,7 +1276,8 @@ def resolve_streaming_data_request_conflict() -> None:
                        STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
@@ -1263,6 +1287,7 @@ def resolve_streaming_data_request_conflict() -> None:
             STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS: merge_streaming_data_request_dev230,
             STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
+            STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS: merge_streaming_data_request_dev237,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")

@@ -634,6 +634,11 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_splash_screen_animation_style_title">Splash screen style</string>
     <string name="morphe_spoof_video_streams_about_end_early">• Playback may end 1 second early</string>
     <string name="morphe_spoof_video_streams_about_js">• If deobfuscation fails, playback may fail</string>
+    <!-- Morphe #4733; Modified by lavinhoque33, 2026-11-13 -->
+    <string name="morphe_spoof_video_streams_about_webview_missing">• Android System WebView is turned off or not installed.
+Turn it on and update it, or playback may fail</string>
+    <string name="morphe_spoof_video_streams_about_webview_outdated">• Android System WebView is out of date.
+Update it, or playback may fail</string>
     <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Audio track menu is missing</string>
     <string name="morphe_spoof_video_streams_about_no_av1">• No AV1 video codec</string>
     <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Force original audio is not available</string>
@@ -653,6 +658,20 @@ Video playback with AV1 may stutter or drop frames"</string>
 
 Make %2$s the default client?"</string>
     <string name="morphe_spoof_video_streams_client_failing_dialog_switch">Switch</string>
+    <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+    <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"Android System WebView is unavailable.
+
+Video playback needs Android System WebView. Turn it on and update it to the latest version.
+
+Tap OK to open Android System WebView."</string>
+    <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"WebView is out of date (version %s).
+
+Video playback may fail until Android System WebView is updated to the latest version.
+
+Tap OK to open Android System WebView."</string>
+    <string name="morphe_spoof_video_streams_webview_dialog_ignore">Do not show again</string>
+    <string name="morphe_spoof_video_streams_webview_toast_not_installed">Android System WebView is not installed.
+Install it to fix video playback</string>
     <string name="morphe_spoof_video_streams_client_failing_dialog_title">Default client does not work</string>
     <string name="morphe_spoof_video_streams_client_type_title">Default client</string>
     <string name="morphe_spoof_video_streams_no_clients_toast">Could not fetch any client streams</string>
