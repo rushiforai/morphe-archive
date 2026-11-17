@@ -2851,14 +2851,6 @@
                 "updatedAt": 1791873479613
             },
             {
-                "name": "piko",
-                "source": "https://raw.githubusercontent.com/zalfafa/piko/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 402,
-                "createdAt": 1791873481319,
-                "updatedAt": 1791873481319
-            },
-            {
                 "name": "pinterest-patches",
                 "source": "https://raw.githubusercontent.com/archivesteak/pinterest-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5155,12 +5147,44 @@
                 "updatedAt": 1794719169383
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/0x11DFE/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 728,
-                "createdAt": 1794805990890,
-                "updatedAt": 1794805990890
+                "createdAt": 1794899043001,
+                "updatedAt": 1794899043001
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ak800i/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 729,
+                "createdAt": 1794899043681,
+                "updatedAt": 1794899043681
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/drappula/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 730,
+                "createdAt": 1794899047026,
+                "updatedAt": 1794899047026
+            },
+            {
+                "name": "tiktok-tweaks",
+                "source": "https://raw.githubusercontent.com/inxomnyaa/tiktok-tweaks/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 731,
+                "createdAt": 1794899050416,
+                "updatedAt": 1794899050416
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/rimixyz/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 732,
+                "createdAt": 1794899055219,
+                "updatedAt": 1794899055219
             }
         ]
     }
