@@ -1,2 +1,5 @@
-# Repos reported by the last notification (1)
-RizkLee/morphe-bilibili-danmaku
+# Repos reported by the last notification (4)
+0x11DFE/morphe-patches
+ak800i/morphe-patches
+drappula/morphe-patches
+rimixyz/morphe-patches
