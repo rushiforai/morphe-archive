@@ -2,7 +2,8 @@ package app.fakh.patches.windy.premium
 
 import app.fakh.patches.windy.shared.Constants.COMPATIBILITY_WINDY
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 
 // ── Architecture ─────────────────────────────────────────────────────────────
 //
@@ -184,7 +185,7 @@ private val PATCHES = listOf(
 )
 
 @Suppress("unused")
-val windyUnlockPremiumPatch = rawResourcePatch(
+val windyUnlockPremiumPatch = patch(
     name = "Premium unlock",
     description = "Unlocks Windy Pro on your phone: deeper map zoom, 1-hour forecast steps, " +
         "the premium calendar view and the rest of the premium screens, and hides the " +
@@ -197,7 +198,7 @@ val windyUnlockPremiumPatch = rawResourcePatch(
     execute {
         // Locate the versioned JS bundle: assets/public/v/<version>/mobile.js.
         // The directory name is versioned and changes each release — never hardcode it.
-        val bundleFile = get("assets/public/v")
+        val bundleFile = resourceFile("assets/public/v")
             .listFiles()
             .orEmpty()
             .asSequence()

@@ -5,7 +5,9 @@
 package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.*;
+import static org.robolectric.Shadows.shadowOf;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.view.View;
@@ -45,7 +47,8 @@ public class SendConfirmTest {
 
     /** Built when a test runs, after the rule gave the settings a context; run alone, a field here would load Settings without one. */
     private static List<BooleanSetting> switches() {
-        return Arrays.asList(Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL);
+        return Arrays.asList(Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_ROUND_VIDEO,
+                Settings.ASK_BEFORE_MESSAGE, Settings.ASK_BEFORE_CALL, Settings.ASK_BEFORE_JOIN);
     }
 
     @Before public void reset() { restore(); }
@@ -91,6 +94,9 @@ public class SendConfirmTest {
         assertTrue(SendConfirm.video(new Object(), 1, true, 0, 0, 0L, 0L));
         assertTrue(SendConfirm.videoReordered(new Object(), 1, 0, 0, 0L, 0L, true));
         assertTrue(SendConfirm.stripSticker(new Object(), 0L));
+        assertTrue(SendConfirm.text(view, 0, 1, 0, 1, 0L));
+        assertTrue(SendConfirm.textReordered(view, 1, 0, 0, 0L, 1));
+        assertTrue(SendConfirm.join(new Object(), null, 0, null, window, null, null));
         assertNull("no question was put", ShadowDialog.getLatestDialog());
         assertTrue(String.join("\n", HookStatus.report()).contains(FamilyNames.ASK_BEFORE_STICKER));
     }
@@ -208,6 +214,7 @@ public class SendConfirmTest {
 
     @Test public void aRecordingIsHeldOnlyWhenItsQuestionCanShowAndAVideoSendsFromItsPreview() {
         Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        Settings.ASK_BEFORE_ROUND_VIDEO.save(true);
         // No main window to ask in: nothing is paused, and Telegram sends as it always did.
         assertTrue(SendConfirm.voice(new Object(), 1, true, 0, false, 0L));
         assertTrue(SendConfirm.video(new Object(), 1, true, 0, 0, 0L, 0L));
@@ -230,6 +237,7 @@ public class SendConfirmTest {
         assertTrue("off by default", SendConfirm.previewVoice(bar, 0, 1, 0, 1, 0L));
         assertTrue(SendConfirm.previewVideo(bar, 0, 1, 0, 1, 0L));
         Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        Settings.ASK_BEFORE_ROUND_VIDEO.save(true);
         assertTrue("no window to ask in", SendConfirm.previewVoice(new Object(), 0, 1, 0, 1, 0L));
         assertTrue("a scheduled send", SendConfirm.previewVideo(bar, 1_790_000_000, 1, 0, 0, 0L));
         assertNull(ShadowDialog.getLatestDialog());
@@ -292,6 +300,7 @@ public class SendConfirmTest {
     @Test public void thirteenTwoPassesThePreviewSendSoundFirstAndStarsBeforeTheQuestion() {
         View bar = new View(window());
         Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        Settings.ASK_BEFORE_ROUND_VIDEO.save(true);
         assertTrue("without sound", SendConfirm.previewVideoReordered(bar, 0, 0, 0, 0L, 1));
         assertTrue("scheduled", SendConfirm.previewVoiceReordered(bar, 1, 1_790_000_000, 0, 0L, 1));
         assertTrue("repeating", SendConfirm.previewVideoReordered(bar, 1, 0, 86_400, 0L, 1));
@@ -336,6 +345,7 @@ public class SendConfirmTest {
 
     @Test public void aSecondSendWhileTheQuestionIsUpAsksNothingMoreAndSendsNothing() {
         Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        Settings.ASK_BEFORE_ROUND_VIDEO.save(true);
         AtomicInteger sent = new AtomicInteger();
         assertFalse(SendConfirm.askHeld(3, window(), "Send voice message", "Send this voice message to this chat?", sent::incrementAndGet));
         Dialog dialog = ShadowDialog.getLatestDialog();
@@ -433,6 +443,173 @@ public class SendConfirmTest {
         assertTrue(dialog.isShowing());
         assertNotNull(button(dialog.getWindow().getDecorView(), "Call"));
         dialog.dismiss();
+    }
+
+    @Test public void voiceAndRoundVideoMessagesEachAskUnderTheirOwnSwitch() {
+        View bar = new View(window());
+        Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        assertTrue("the voice message switch leaves round videos alone", SendConfirm.previewVideo(bar, 0, 1, 0, 1, 0L));
+        assertTrue(SendConfirm.previewVideoReordered(bar, 1, 0, 0, 0L, 1));
+        assertNull(ShadowDialog.getLatestDialog());
+        assertFalse("and asks about a voice message", SendConfirm.previewVoice(bar, 0, 1, 0, 1, 0L));
+        Dialog voice = ShadowDialog.getLatestDialog();
+        assertNotNull(voice);
+        // While it asks, the round video recorder's own send isn't held back: its switch is off.
+        assertTrue(SendConfirm.video(new Object(), 1, true, 0, 0, 0L, 0L));
+        voice.dismiss();
+
+        Settings.ASK_BEFORE_VOICE_VIDEO.save(false);
+        Settings.ASK_BEFORE_ROUND_VIDEO.save(true);
+        assertTrue("the round video switch leaves voice messages alone", SendConfirm.previewVoice(bar, 0, 1, 0, 1, 0L));
+        assertSame(voice, ShadowDialog.getLatestDialog());
+        assertFalse("and asks about a round video", SendConfirm.previewVideo(bar, 0, 1, 0, 1, 0L));
+        Dialog video = ShadowDialog.getLatestDialog();
+        assertNotSame(voice, video);
+        assertTrue(video.isShowing());
+        assertFalse("the recorder's own send waits for the question", SendConfirm.video(new Object(), 1, true, 0, 0, 0L, 0L));
+        assertTrue("the voice recorder's doesn't", SendConfirm.voice(new Object(), 1, true, 0, false, 0L));
+        video.dismiss();
+    }
+
+    @Test public void aTypedMessageAsksUnderItsOwnSwitchAndCancelLeavesItWhereItIs() {
+        View bar = new View(window());
+        for (BooleanSetting other : switches()) if (other != Settings.ASK_BEFORE_MESSAGE) other.save(true);
+        assertTrue("the other questions leave typed messages alone", SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+        for (BooleanSetting other : switches()) other.resetToDefault();
+        Settings.ASK_BEFORE_MESSAGE.save(true);
+        assertTrue("no window to ask in", SendConfirm.text(new Object(), 0, 1, 0, 1, 0L));
+        assertTrue("scheduled", SendConfirm.text(bar, 1_790_000_000, 1, 0, 1, 0L));
+        assertTrue("without sound", SendConfirm.text(bar, 0, 0, 0, 1, 0L));
+        assertTrue("repeating", SendConfirm.text(bar, 0, 1, 86_400, 1, 0L));
+        assertTrue("Telegram's own paid-message question asks", SendConfirm.text(bar, 0, 1, 0, 0, 5L));
+        assertNull(ShadowDialog.getLatestDialog());
+
+        // Asked, the send returns as one that sent nothing, the way its own checks do.
+        assertFalse("asked instead", SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+        Dialog dialog = ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertTrue(dialog.isShowing());
+        assertNotNull(button(dialog.getWindow().getDecorView(), "Send"));
+        assertFalse("a second tap asks nothing more", SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+        assertSame("no second question", dialog, ShadowDialog.getLatestDialog());
+        button(dialog.getWindow().getDecorView(), "Cancel").performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse(dialog.isShowing());
+        assertFalse("Cancel leaves no pass behind", SendConfirm.passed(7));
+
+        // Send runs the bar's send again and its pass ends with it.
+        assertFalse(SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+        Dialog next = ShadowDialog.getLatestDialog();
+        assertNotSame(dialog, next);
+        button(next.getWindow().getDecorView(), "Send").performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse(next.isShowing());
+        assertFalse(SendConfirm.asking());
+        assertFalse(SendConfirm.passed(7));
+
+        // The answered send goes through once; another kind's pass lets nothing through.
+        AtomicBoolean through = new AtomicBoolean();
+        AtomicBoolean again = new AtomicBoolean(true);
+        SendConfirm.answered(7, () -> {
+            through.set(SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+            again.set(SendConfirm.text(bar, 0, 1, 0, 1, 0L));
+        });
+        assertTrue(through.get());
+        assertFalse("the pass was used up", again.get());
+        ShadowDialog.getLatestDialog().dismiss();
+        SendConfirm.answered(3, () -> through.set(SendConfirm.text(bar, 0, 1, 0, 1, 0L)));
+        assertFalse(through.get());
+        ShadowDialog.getLatestDialog().dismiss();
+
+        // 13.2's send gives the sound flag first and the stars before the question.
+        assertTrue("without sound", SendConfirm.textReordered(bar, 0, 0, 0, 0L, 1));
+        assertTrue("scheduled", SendConfirm.textReordered(bar, 1, 1_790_000_000, 0, 0L, 1));
+        assertTrue("repeating", SendConfirm.textReordered(bar, 1, 0, 86_400, 0L, 1));
+        assertTrue("already confirmed as paid", SendConfirm.textReordered(bar, 1, 0, 0, 5L, 0));
+        Dialog last = ShadowDialog.getLatestDialog();
+        assertFalse(last.isShowing());
+        assertFalse("asked", SendConfirm.textReordered(bar, 1, 0, 0, 0L, 1));
+        assertNotSame(last, ShadowDialog.getLatestDialog());
+        ShadowDialog.getLatestDialog().dismiss();
+    }
+
+    @Test public void joiningAVoiceChatAsksOnlyWithAWindowAndItsSwitchOn() throws Exception {
+        Activity window = window();
+        Object chat = new Object();
+        Settings.ASK_BEFORE_CALL.save(true);
+        assertTrue("the call switch leaves joins alone", SendConfirm.join(chat, null, 0, null, window, null, null));
+        Settings.ASK_BEFORE_JOIN.save(true);
+        assertTrue("starting a new one", SendConfirm.join(chat, null, 1, null, window, null, null));
+        assertTrue("no window", SendConfirm.join(chat, null, 0, null, new Object(), null, null));
+        assertTrue("no window", SendConfirm.join(chat, null, 0, null, null, null, null));
+        AtomicBoolean offMain = new AtomicBoolean();
+        Thread other = new Thread(() -> offMain.set(SendConfirm.join(chat, null, 0, null, window, null, null)));
+        other.start();
+        other.join();
+        assertTrue("off the main thread nothing can ask", offMain.get());
+        assertNull(ShadowDialog.getLatestDialog());
+
+        assertFalse("asked instead", SendConfirm.join(chat, null, 0, null, window, null, null));
+        Dialog dialog = ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertTrue(dialog.isShowing());
+        assertNotNull(button(dialog.getWindow().getDecorView(), "Join"));
+        assertFalse("a second tap asks nothing more", SendConfirm.join(chat, null, 0, null, window, null, null));
+        assertSame(dialog, ShadowDialog.getLatestDialog());
+        button(dialog.getWindow().getDecorView(), "Cancel").performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse(dialog.isShowing());
+        assertFalse(SendConfirm.passed(8));
+
+        AtomicBoolean through = new AtomicBoolean();
+        SendConfirm.answered(8, () -> through.set(SendConfirm.join(chat, null, 0, null, window, null, null)));
+        assertTrue("the answered join goes through", through.get());
+        assertFalse(SendConfirm.passed(8));
+
+        // Join with the microphone still off: Telegram asks for it and joins again once it's allowed,
+        // and that join goes through without a second question.
+        assertFalse(SendConfirm.join(chat, null, 0, null, window, null, null));
+        button(ShadowDialog.getLatestDialog().getWindow().getDecorView(), "Join").performClick();
+        ShadowLooper.idleMainLooper();
+        Dialog answered = ShadowDialog.getLatestDialog();
+        assertFalse(answered.isShowing());
+        shadowOf(window.getApplication()).grantPermissions(Manifest.permission.RECORD_AUDIO);
+        assertTrue("the join after the microphone", SendConfirm.join(chat, null, 0, null, window, null, null));
+        assertSame("asked nothing", answered, ShadowDialog.getLatestDialog());
+        assertFalse("the next join asks again", SendConfirm.join(chat, null, 0, null, window, null, null));
+        ShadowDialog.getLatestDialog().dismiss();
+    }
+
+    @Test public void onlyTheJoinTelegramMakesAgainForTheSameChatOnceTheMicrophoneIsOnSkipsTheQuestion() {
+        Activity window = window();
+        assertFalse("nothing waits", SendConfirm.afterMicrophone(42L, window));
+        SendConfirm.waitForMicrophone(42L, window);
+        assertFalse("the microphone is still off", SendConfirm.afterMicrophone(42L, window));
+        shadowOf(window.getApplication()).grantPermissions(Manifest.permission.RECORD_AUDIO);
+        assertFalse("and that join ended the wait", SendConfirm.afterMicrophone(42L, window));
+
+        shadowOf(window.getApplication()).denyPermissions(Manifest.permission.RECORD_AUDIO);
+        SendConfirm.waitForMicrophone(42L, window);
+        shadowOf(window.getApplication()).grantPermissions(Manifest.permission.RECORD_AUDIO);
+        assertFalse("another chat", SendConfirm.afterMicrophone(7L, window));
+        assertFalse("which ended the wait too", SendConfirm.afterMicrophone(42L, window));
+
+        shadowOf(window.getApplication()).denyPermissions(Manifest.permission.RECORD_AUDIO);
+        SendConfirm.waitForMicrophone(42L, window);
+        shadowOf(window.getApplication()).grantPermissions(Manifest.permission.RECORD_AUDIO);
+        assertTrue(SendConfirm.afterMicrophone(42L, window));
+        assertFalse("once", SendConfirm.afterMicrophone(42L, window));
+
+        // With the microphone already on, Join leaves nothing waiting.
+        SendConfirm.waitForMicrophone(42L, window);
+        assertFalse(SendConfirm.afterMicrophone(42L, window));
+
+        // A minute on, the wait is over.
+        shadowOf(window.getApplication()).denyPermissions(Manifest.permission.RECORD_AUDIO);
+        SendConfirm.waitForMicrophone(42L, window);
+        shadowOf(window.getApplication()).grantPermissions(Manifest.permission.RECORD_AUDIO);
+        ShadowLooper.idleMainLooper(SendConfirm.MICROPHONE_WAIT_MS, TimeUnit.MILLISECONDS);
+        assertFalse(SendConfirm.afterMicrophone(42L, window));
     }
 
     @Test public void pausingAnEarlyStartOrAnUnreadableSwitchKeepsTelegramsOwnWay() {

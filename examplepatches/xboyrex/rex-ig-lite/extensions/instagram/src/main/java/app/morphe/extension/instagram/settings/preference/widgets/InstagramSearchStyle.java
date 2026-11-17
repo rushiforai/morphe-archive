@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -24,8 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import app.morphe.extension.instagram.constants.UI;
-
 public final class InstagramSearchStyle {
     private static final int NO_RESULTS_PORTRAIT_TOP_MARGIN_DP = 132;
     private static final int NO_RESULTS_LANDSCAPE_TOP_MARGIN_DP = 24;
@@ -36,7 +34,7 @@ public final class InstagramSearchStyle {
         input.setHighlightColor(Color.TRANSPARENT);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return;
         GradientDrawable cursor = new GradientDrawable();
-        cursor.setColor(InstagramPreferenceStyle.primaryTextColor());
+        cursor.setColor(InstagramPreferenceStyle.REX_CYAN_ACCENT);
         cursor.setSize(
                 InstagramPreferenceStyle.dp(input.getContext(), 2),
                 InstagramPreferenceStyle.dp(input.getContext(), 24)
@@ -44,7 +42,6 @@ public final class InstagramSearchStyle {
         input.setTextCursorDrawable(cursor);
     }
 
-    // Keep search input backgrounds consistent while preserving IME underlines and composition state.
     public static void removeBackgroundSpans(Editable editable) {
         if (editable == null || editable.length() == 0) return;
         for (BackgroundColorSpan span : editable.getSpans(0, editable.length(), BackgroundColorSpan.class)) {
@@ -65,7 +62,7 @@ public final class InstagramSearchStyle {
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         int iconPadding = InstagramPreferenceStyle.dp(context, 12);
         icon.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
-        UI.setThemedIcon(icon, UI.DRAWABLE_SEARCH, "igds_color_secondary_text");
+        icon.setImageDrawable(RexIcon.getDrawable(context, "search", InstagramPreferenceStyle.secondaryTextColor(), 48));
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         message.addView(icon, new LinearLayout.LayoutParams(
                 InstagramPreferenceStyle.dp(context, 96),

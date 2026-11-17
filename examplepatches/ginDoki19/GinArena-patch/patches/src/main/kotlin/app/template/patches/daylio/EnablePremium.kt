@@ -1,149 +1,172 @@
 package app.template.patches.daylio
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.shared.Constants.COMPATIBILITY_DAYLIO
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
-// Adapted from Epxec/android-patches v1.15.0 (GPL-3.0), with separately
-// verified targets and callback-preserving behavior for Daylio 1.71.1 (289).
-private val preferenceInit = Fingerprint(definingClass = "Lt38;", name = "<clinit>", returnType = "V", parameters = emptyList())
-private val preferenceGet = Fingerprint(definingClass = "Lt38;", name = "f", returnType = "Ljava/lang/Object;", parameters = listOf("Ls38;"))
-private val premiumStatus = Fingerprint(definingClass = "Luu6;", name = "x", returnType = "Z", parameters = emptyList())
-private val expiryStatus = Fingerprint(definingClass = "Lb17;", name = "A", returnType = "Z", parameters = emptyList())
-private val premiumLost = Fingerprint(definingClass = "Luu6;", name = "C", returnType = "V", parameters = listOf("Ln44;"))
-private val premiumExpired = Fingerprint(definingClass = "Liz1;", name = "g", returnType = "V", parameters = emptyList())
-private val completion = Fingerprint(definingClass = "Llb0;", name = "w", returnType = "J", parameters = listOf("[Ln44;"))
+// Daylio 1.72.0 (291) - retargeted from 1.71.1 (289).
+//
+// Obfuscated names move between builds (1.71.1 -> 1.72.0 shifted the preferences holder
+// Lt38; -> Lq48; and the pref-key type Ls38; -> Lp48;), so every target below was re-derived from
+// the 1.72.0 dex rather than assumed, and each one is validated structurally before anything is
+// edited. If the layout does not match, the patch refuses instead of editing blind.
+//
+// How premium is decided in this app
+// ----------------------------------
+// Every premium flag is a static key object read through ONE accessor:
+//
+//     q48.f(Lp48 key) -> Object      the reader used by ~everything
+//     q48.i(Lp48 key, Object value)  the writer used by ~everything
+//
+//     IS_PRO_VERSION_PURCHASED -> q48.E
+//     IS_PREMIUM_EXPIRED       -> q48.e1
+//
+// So the patch pins those two keys at both ends:
+//   * the reader answers TRUE for E and FALSE for e1, whatever is stored;
+//   * the writer ignores writes to E and e1, so a "premium lost"/"premium expired" event coming
+//     back from the billing backend cannot put the app back to free while it runs.
+//
+// 1.71.1 did this by replacing two event-handler bodies. Pinning the write path instead is both
+// smaller and stricter: it covers every writer, not the two that were known about, and it leaves
+// the handlers' own callback dispatch completely untouched.
+//
+// This is a local unlock. Anything that needs the billing backend (restore purchase, cloud
+// entitlements) will still behave as it does on a free account.
 
-private fun reference(i: Instruction) = (i as? ReferenceInstruction)?.reference
-private fun field(i: Instruction) = reference(i) as? FieldReference
-private fun method(i: Instruction) = reference(i) as? MethodReference
-private fun str(i: Instruction) = (reference(i) as? StringReference)?.string
-private fun List<Instruction>.hasField(owner: String, name: String, type: String) = any {
-    val f = field(it); f?.definingClass == owner && f.name == name && f.type == type
+private val preferenceInit = Fingerprint(
+    definingClass = "Lq48;", name = "<clinit>", returnType = "V", parameters = emptyList(),
+)
+private val preferenceGet = Fingerprint(
+    definingClass = "Lq48;", name = "f", returnType = "Ljava/lang/Object;", parameters = listOf("Lp48;"),
+)
+private val preferenceSet = Fingerprint(
+    definingClass = "Lq48;", name = "i", returnType = "V", parameters = listOf("Lp48;", "Ljava/lang/Object;"),
+)
+
+private fun reference(i: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
+    (i as? ReferenceInstruction)?.reference
+private fun field(i: com.android.tools.smali.dexlib2.iface.instruction.Instruction) = reference(i) as? FieldReference
+private fun method(i: com.android.tools.smali.dexlib2.iface.instruction.Instruction) = reference(i) as? MethodReference
+private fun str(i: com.android.tools.smali.dexlib2.iface.instruction.Instruction) = (reference(i) as? StringReference)?.string
+
+/**
+ * True when the method already reads one of the two premium keys. The stock reader and writer are
+ * generic (neither ever mentions E or e1), so such a read can only be this patch's own prologue.
+ * Used to make the card idempotent: re-patching an already-patched APK must not stack a second pin.
+ */
+private fun MutableMethod.alreadyPinsPremium(): Boolean = instructions.any { i ->
+    i.opcode == Opcode.SGET_OBJECT && (i as? ReferenceInstruction)?.reference.let {
+        it is FieldReference && it.definingClass == "Lq48;" && (it.name == "E" || it.name == "e1")
+    }
 }
-private fun List<Instruction>.hasMethod(owner: String, name: String, args: List<String>, ret: String) = any {
-    val m = method(it); m?.definingClass == owner && m.name == name && m.parameterTypes.toList() == args && m.returnType == ret
-}
 
-// Replace whole methods only after resolving and validating every target. This
-// preserves access flags/annotations and the original parameter register layout.
-private fun BytecodePatchContext.replaceBody(target: MutableMethod, body: String) {
-    val impl = target.implementation ?: error("Missing implementation: ${target.name}")
-    check(impl.tryBlocks.isEmpty()) { "Unexpected try blocks in ${target.name}" }
-    val replacement = MutableMethod(ImmutableMethod(target.definingClass, target.name, target.parameters,
-        target.returnType, target.accessFlags, target.annotations, target.hiddenApiRestrictions,
-        MutableMethodImplementation(impl.registerCount)))
-    replacement.addInstructions(0, body.trimIndent())
-    val owner = mutableClassDefBy(target.definingClass)
-    @Suppress("UNCHECKED_CAST")
-    val methods = (owner as ClassDef).methods as MutableSet<MutableMethod>
-    val found = methods.filter { it.name == target.name && it.returnType == target.returnType &&
-        it.parameterTypes.toList() == target.parameterTypes.toList() }
-    check(found.size == 1 && methods.remove(found.single()) && methods.add(replacement)) { "Could not replace ${target.name}" }
-}
-
-@Suppress("unused")
-val enableDaylioPremium = bytecodePatch(
+internal val enableDaylioPremium = bytecodePatch(
     name = "Enable premium",
-    description = "Enables local premium status in Daylio 1.71.1. Account- or server-dependent features may not work; this is not a purchase.",
+    description = "Unlocks Daylio's local premium state. Account- or server-dependent features (restore " +
+        "purchase, cloud entitlements) still behave as they do on a free account; this is not a purchase.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_DAYLIO)
     execute {
-        check(packageMetadata.packageName == "net.daylio" && packageMetadata.versionName == "1.71.1" &&
-            packageMetadata.versionCode == "289") { "Unsupported Daylio version; refusing to patch." }
+        check(packageMetadata.packageName == "net.daylio" && packageMetadata.versionName == "1.72.0" &&
+            packageMetadata.versionCode == "291") { "Unsupported Daylio build; this patch targets 1.72.0 (291)." }
 
-        // Resolve everything and validate before changing anything.
+        // ---- 1. the two premium keys must still map to the two fields we know about -------------
         val init = preferenceInit.method.instructions.toList()
-        fun hasKeyMapping(key: String, fieldName: String): Boolean {
+        fun keyMapsTo(key: String, fieldName: String): Boolean {
             val indexes = init.indices.filter { str(init[it]) == key }
             if (indexes.size != 1) return false
             val i = indexes.single()
-            val f = init.getOrNull(i + 2)?.let(::field)
+            val constructor = init.getOrNull(i + 1)?.let(::method)
+            val stored = init.getOrNull(i + 2)?.let(::field)
             return init.getOrNull(i + 1)?.opcode == Opcode.INVOKE_DIRECT &&
                 init.getOrNull(i + 2)?.opcode == Opcode.SPUT_OBJECT &&
-                f?.definingClass == "Lt38;" && f.name == fieldName && f.type == "Ls38;"
+                constructor?.definingClass == "Lp48;" &&
+                stored?.definingClass == "Lq48;" && stored.name == fieldName && stored.type == "Lp48;"
         }
-        check(init.size == 1160 && hasKeyMapping("IS_PRO_VERSION_PURCHASED", "E") &&
-            hasKeyMapping("IS_PREMIUM_EXPIRED", "e1")) { "Unexpected preference key mapping." }
+        check(keyMapsTo("IS_PRO_VERSION_PURCHASED", "E")) { "Unexpected mapping for IS_PRO_VERSION_PURCHASED." }
+        check(keyMapsTo("IS_PREMIUM_EXPIRED", "e1")) { "Unexpected mapping for IS_PREMIUM_EXPIRED." }
 
+        // ---- 2. the reader must still be the one shared accessor -------------------------------
         val get = preferenceGet.method
-        val getIns = get.instructions.toList()
-        check(get.accessFlags == 9 && get.implementation?.registerCount == 6 &&
-            get.implementation?.tryBlocks?.isEmpty() == true && getIns.size == 54 &&
-            getIns[0].opcode == Opcode.IGET_OBJECT &&
-            getIns.hasMethod("Landroid/content/SharedPreferences;", "getBoolean", listOf("Ljava/lang/String;", "Z"), "Z")) {
-            "Unexpected preference reader."
+        val getInstructions = get.instructions.toList()
+        check(get.accessFlags and 0x8 != 0) { "premium reader is no longer static." }
+        check(get.implementation?.registerCount ?: 0 >= 3) { "premium reader lost its registers." }
+        check(getInstructions.any {
+            val m = method(it)
+            m?.definingClass == "Landroid/content/SharedPreferences;" && m.name == "getBoolean"
+        }) { "premium reader no longer reads a boolean preference." }
+
+        // ---- 3. the writer must still be the one shared setter ---------------------------------
+        val set = preferenceSet.method
+        check(set.accessFlags and 0x8 != 0) { "premium writer is no longer static." }
+        check((set.implementation?.registerCount ?: 0) >= 3) { "premium writer lost its registers." }
+
+        // Snapshot both methods BEFORE editing them: the idempotency test must describe the input
+        // APK, not the state we are about to create. (Testing afterwards makes a fresh stock APK
+        // look "already pinned", which is what a previous version of this log line got wrong.)
+        val readerWasPinned = get.alreadyPinsPremium()
+        val writerWasPinned = set.alreadyPinsPremium()
+
+        // ---- 4. pin the reader ------------------------------------------------------------------
+        // Prepended, so the original body stays intact and simply becomes unreachable for these keys.
+        if (readerWasPinned) {
+            println("Daylio premium: reader already pinned - leaving it (re-patched APK).")
+        } else {
+        get.addInstructionsWithLabels(
+            0,
+            """
+                sget-object v0, Lq48;->E:Lp48;
+                if-ne p0, v0, :daylio_check_expired
+                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                return-object v0
+                :daylio_check_expired
+                sget-object v0, Lq48;->e1:Lp48;
+                if-ne p0, v0, :daylio_ordinary
+                sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                return-object v0
+                :daylio_ordinary
+                nop
+            """.trimIndent(),
+        )
         }
-        val status = premiumStatus.method.instructions.toList()
-        val expired = expiryStatus.method.instructions.toList()
-        check(status.size == 7 && status.hasField("Lt38;", "E", "Ls38;") &&
-            status.hasMethod("Lt38;", "f", listOf("Ls38;"), "Ljava/lang/Object;") &&
-            expired.size == 7 && expired.hasField("Lt38;", "e1", "Ls38;") &&
-            expired.hasMethod("Lt38;", "f", listOf("Ls38;"), "Ljava/lang/Object;")) { "Unexpected premium status gates." }
-        val lost = premiumLost.method
-        val lostIns = lost.instructions.toList()
-        check(lost.accessFlags == 17 && lost.implementation?.registerCount == 7 && lost.implementation?.tryBlocks?.isEmpty() == true &&
-            lostIns.size == 43 && lostIns.any { str(it) == "p_be_premium_lost" } &&
-            lostIns.hasField("Lt38;", "E", "Ls38;") &&
-            lostIns.hasMethod("Llb0;", "w", listOf("[Ln44;"), "J")) { "Unexpected premium-lost handler." }
-        val expiry = premiumExpired.method
-        val expiryIns = expiry.instructions.toList()
-        check(expiry.accessFlags == 17 && expiry.implementation?.registerCount == 6 && expiry.implementation?.tryBlocks?.isEmpty() == true &&
-            expiryIns.size == 43 && expiryIns.any { str(it) == "p_be_premium_expired" } &&
-            expiryIns.hasField("Lt38;", "e1", "Ls38;") && expiryIns.hasField("Liz1;", "G", "Lnz1;") &&
-            expiryIns.hasField("Liz1;", "q", "Ln44;") &&
-            expiryIns.hasMethod("Llb0;", "w", listOf("[Ln44;"), "J")) { "Unexpected premium-expired handler." }
-        val callbackIns = completion.method.instructions.toList()
-        check(callbackIns.size == 11 && callbackIns.hasMethod("Ln44;", "g", emptyList(), "V") &&
-            callbackIns.last().opcode == Opcode.RETURN_WIDE) { "Unexpected completion dispatch." }
 
-        // The app reads these static key objects through this common accessor in
-        // many UI paths. Other preferences retain the original implementation;
-        // no subscription state is written to the user's preferences.
-        get.addInstructionsWithLabels(0, """
-            sget-object v0, Lt38;->E:Ls38;
-            if-ne p0, v0, :check_expired
-            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-            return-object v0
-            :check_expired
-            sget-object v0, Lt38;->e1:Ls38;
-            if-ne p0, v0, :ordinary
-            sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
-            return-object v0
-            :ordinary
-            nop
-        """)
+        // ---- 5. pin the writer ------------------------------------------------------------------
+        // No event from the billing backend can turn premium off while the app runs.
+        if (writerWasPinned) {
+            println("Daylio premium: writer already pinned - leaving it (re-patched APK).")
+        } else {
+        set.addInstructionsWithLabels(
+            0,
+            """
+                sget-object v0, Lq48;->E:Lp48;
+                if-ne p0, v0, :daylio_set_expired
+                return-void
+                :daylio_set_expired
+                sget-object v0, Lq48;->e1:Lp48;
+                if-ne p0, v0, :daylio_set_ordinary
+                return-void
+                :daylio_set_ordinary
+                nop
+            """.trimIndent(),
+        )
+        }
 
-        // Preserve the exact app completion-dispatch path rather than turning
-        // the asynchronous handlers into no-ops that drop their callbacks.
-        replaceBody(lost, """
-            filled-new-array {p1}, [Ln44;
-            move-result-object v0
-            invoke-virtual {p0, v0}, Llb0;->w([Ln44;)J
-            return-void
-        """)
-        replaceBody(expiry, """
-            iget-object v0, p0, Liz1;->G:Lnz1;
-            iget-object v1, p0, Liz1;->q:Ln44;
-            filled-new-array {v1}, [Ln44;
-            move-result-object v1
-            invoke-virtual {v0, v1}, Llb0;->w([Ln44;)J
-            return-void
-        """)
+        if (readerWasPinned && writerWasPinned) {
+            println("Daylio premium: reader and writer already pinned - nothing to do (re-patched APK).")
+        } else {
+            println(
+                "Daylio premium: IS_PRO_VERSION_PURCHASED pinned TRUE and IS_PREMIUM_EXPIRED pinned FALSE " +
+                    "(reader q48.f + writer q48.i).",
+            )
+        }
     }
 }

@@ -1,3 +1,15 @@
+## [1.0.2](https://github.com/rafag00/morphe-patches/compare/v1.0.1...v1.0.2) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* update Sony Sound Connect patch ([a65eb78](https://github.com/rafag00/morphe-patches/commit/a65eb78c66c36bd50d51715468ba997b28e06082))
+
+## [1.0.2-dev.1](https://github.com/rafag00/morphe-patches/compare/v1.0.1...v1.0.2-dev.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* update Sony Sound Connect patch ([a65eb78](https://github.com/rafag00/morphe-patches/commit/a65eb78c66c36bd50d51715468ba997b28e06082))
+
 ## [1.0.1](https://github.com/rafag00/morphe-patches/compare/v1.0.0...v1.0.1) (2026-09-09)
 
 ### 🐛 Bug Fixes

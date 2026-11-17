@@ -49,6 +49,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,6 +60,7 @@ import java.util.Locale;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.misc.MediaTime;
 
 /** Activity-scoped native UI. Catalog pages contain at most 100 views. */
 final class LibraryDialog {
@@ -303,6 +305,7 @@ final class LibraryDialog {
             }
 
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //noinspection SizeReplaceableByIsEmpty
                 clear.setVisibility(s.length() == 0 ? View.GONE : View.VISIBLE);
                 if (selected.isEmpty() && alive()) {
                     scroll.scrollTo(0, 0);
@@ -475,9 +478,9 @@ final class LibraryDialog {
                     ? (plan.ordinal() > 0
                        ? UiText.format("morphe_series_tracker_episode_position",
                     s.episodeNumber(plan.ordinal()),
-                    ResumePlanner.time(plan.positionMs()))
+                    MediaTime.format(plan.positionMs()))
                        : UiText.format("morphe_series_tracker_saved_position",
-                    ResumePlanner.time(plan.positionMs())))
+                    MediaTime.format(plan.positionMs())))
                     : UiText.get(plan.messageKey());
             if (s.newEpisodeCount() > 0 && plan.playable() && plan.positionMs() == 0)
                 subtitle = s.newEpisodeCount() == 1
@@ -509,7 +512,7 @@ final class LibraryDialog {
     }
 
     private static String searchKey(String text) {
-        return java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
+        return Normalizer.normalize(text, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "")
                 .toLowerCase(Locale.ROOT)
                 .trim();
@@ -747,7 +750,7 @@ final class LibraryDialog {
             labels.add(p.watched()
                     ? "morphe_series_tracker_ui_play_again_from_0_00"
                     : UiText.format("morphe_series_tracker_resume_at",
-                    ResumePlanner.time(p.positionMs())));
+                    MediaTime.format(p.positionMs())));
             actions.add(() -> play(
                     s,
                     e.videoId,
@@ -1120,7 +1123,7 @@ final class LibraryDialog {
         thumbnail.addView(picture, new FrameLayout.LayoutParams(-1, -1));
         ThumbnailLoader.load(picture, id);
         if (duration > 0 && !compact) {
-            TextView badge = label(null, ResumePlanner.time(duration), 12);
+            TextView badge = label(null, MediaTime.format(duration), 12);
             badge.setTextColor(0xfff1f1f1);
             badge.setBackground(HistoryUi.rounded(0xbb000000, 4));
             badge.setPadding(HistoryUi.dp(4), 0, HistoryUi.dp(4), 0);

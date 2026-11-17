@@ -7,18 +7,12 @@ import android.view.ViewTreeObserver;
 
 import java.lang.ref.WeakReference;
 
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
+
 /**
  * Watches the window for the bottom tab bar's "feed_tab" (Home) and "direct_tab"
- * (Messages) buttons and gives each a long-press that opens the xboyrex settings.
- *
- * This is the sole settings entry point. An injected action-bar button was tried
- * but failed to appear on many devices, since it depends on the feed's top action
- * bar being present and laid out a particular way. Long-pressing a tab only needs
- * the tab bar, which always exists, so settings stay reachable everywhere. The ids
- * are resolved by name (with a clone fallback) so they survive Instagram version bumps.
- *
- * It stays attached: Instagram can rebuild the tab buttons mid-session, and the
- * new ones need the long-press again. Each button is armed once, tracked weakly.
+ * (Messages) buttons and gives each a long-press that opens the Rex IG Lite Quick Access menu.
  */
 public final class HomeTabWatcher implements ViewTreeObserver.OnGlobalLayoutListener {
 
@@ -28,7 +22,8 @@ public final class HomeTabWatcher implements ViewTreeObserver.OnGlobalLayoutList
     private static final View.OnLongClickListener OPEN_SETTINGS = v -> {
         Context activity = Settings.getActivityContext(v);
         if (activity == null) return false;
-        Settings.show(activity);
+        RexHaptics.longPress(v);
+        RexDialogs.showHomeQuickMenu(activity);
         return true;
     };
 
@@ -48,17 +43,14 @@ public final class HomeTabWatcher implements ViewTreeObserver.OnGlobalLayoutList
 
         View homeTab = find(context, window, "feed_tab");
         if (homeTab != null && homeTab != armedHome.get()) {
+            homeTab.setLongClickable(true);
             homeTab.setOnLongClickListener(OPEN_SETTINGS);
             armedHome = new WeakReference<>(homeTab);
-            // First launch with a signed-in account: point at the gesture just
-            // installed. The tab bar only exists once the user is past the login
-            // screens, so reaching here *is* "after the Instagram connection".
-            // No-op once delivered or while a watch is already running.
             Onboarding.maybeShow(root);
         }
-        // xboyrex: Messages opens them too, so Home can be hidden.
         View directTab = find(context, window, "direct_tab");
         if (directTab != null && directTab != armedDirect.get()) {
+            directTab.setLongClickable(true);
             directTab.setOnLongClickListener(OPEN_SETTINGS);
             armedDirect = new WeakReference<>(directTab);
         }

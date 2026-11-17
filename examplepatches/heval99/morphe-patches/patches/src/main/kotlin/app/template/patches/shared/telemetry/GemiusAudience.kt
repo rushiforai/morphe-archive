@@ -2,7 +2,7 @@ package app.template.patches.shared.telemetry
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 
 // Gemius audience measurement (the "gemius" / AdOcean SDK). The three event classes keep their
 // names, and each overrides sendEvent(), so all three must be no-opped.

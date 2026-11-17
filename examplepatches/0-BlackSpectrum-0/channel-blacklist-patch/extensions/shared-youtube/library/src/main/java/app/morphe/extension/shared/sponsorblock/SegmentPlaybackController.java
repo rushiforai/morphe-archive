@@ -9,9 +9,9 @@ package app.morphe.extension.shared.sponsorblock;
 
 import static app.morphe.extension.shared.StringRef.str;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
@@ -34,12 +34,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.misc.MediaTime;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.LongSetting;
@@ -61,7 +61,7 @@ import app.morphe.extension.shared.ui.Dim;
  * <p>
  * Class is not thread safe. All methods must be called on the main thread unless otherwise specified.
  */
-@SuppressLint("NewApi")
+@SuppressWarnings("unused")
 public class SegmentPlaybackController {
 
     /**
@@ -477,7 +477,6 @@ public class SegmentPlaybackController {
     /**
      * Injection point.
      */
-    @SuppressWarnings("unused")
     public static void setAdProgressTextVisibility(int visibility) {
         if (adProgressTextVisibility != visibility) {
             adProgressTextVisibility = visibility;
@@ -1073,7 +1072,6 @@ public class SegmentPlaybackController {
      * Injection point. Stores all four sides; the two draw overloads consume either left/right
      * with a caller-supplied posY, or the full rect for centered drawing.
      */
-    @SuppressWarnings("unused")
     public static void setSeekbarRectangle(@Nullable Rect seekbarRect) {
         if (seekbarRect == null) return;
         final int left = seekbarRect.left;
@@ -1090,7 +1088,6 @@ public class SegmentPlaybackController {
     /**
      * Injection point.
      */
-    @SuppressWarnings("unused")
     public static void setSeekbarThickness(int thickness) {
         seekbarThickness = thickness;
     }
@@ -1098,7 +1095,6 @@ public class SegmentPlaybackController {
     /**
      * Injection point.
      */
-    @SuppressWarnings("unused")
     public static String appendTimeWithoutSegments(String totalTime) {
         try {
             if (isOn(settings().videoLengthWithoutSegments())
@@ -1153,20 +1149,12 @@ public class SegmentPlaybackController {
             return;
         }
 
-        final long hours = timeWithoutSegmentsValue / 3600000;
-        final long minutes = (timeWithoutSegmentsValue / 60000) % 60;
-        final long seconds = (timeWithoutSegmentsValue / 1000) % 60;
-        if (hours > 0) {
-            timeWithoutSegments = String.format(Locale.ENGLISH, "\u2009(%d:%02d:%02d)", hours, minutes, seconds);
-        } else {
-            timeWithoutSegments = String.format(Locale.ENGLISH, "\u2009(%d:%02d)", minutes, seconds);
-        }
+        timeWithoutSegments = " (" + MediaTime.format(timeWithoutSegmentsValue) + ")";
     }
 
     /**
      * Injection point. Caller supplies the seekbar's center Y from its draw context.
      */
-    @SuppressWarnings("unused")
     public static void drawSegmentTimeBars(final Canvas canvas, final float posY) {
         try {
             if (segments == null || isAdProgressTextVisible()) return;
@@ -1198,7 +1186,6 @@ public class SegmentPlaybackController {
      * Injection point. Overload without posY - draws centered on the rect captured by
      * {@link #setSeekbarRectangle(Rect)} as a single line.
      */
-    @SuppressWarnings("unused")
     public static void drawSegmentTimeBars(@NonNull Canvas canvas) {
         try {
             SponsorSegment[] segs = segments;
@@ -1221,7 +1208,7 @@ public class SegmentPlaybackController {
                 float right = seekbarAbsoluteLeft + (float) seg.end   / videoLength * barWidth;
                 right = Math.max(left + 2, right);
 
-                seg.category.paint.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+                seg.category.paint.setStrokeCap(Paint.Cap.ROUND);
                 seg.category.paint.setStrokeWidth(thickness);
                 canvas.drawLine(left, centerY, right, centerY, seg.category.paint);
             }

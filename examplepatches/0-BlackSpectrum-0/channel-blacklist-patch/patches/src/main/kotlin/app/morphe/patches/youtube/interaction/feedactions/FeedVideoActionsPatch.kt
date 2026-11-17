@@ -7,9 +7,10 @@
 
 package app.morphe.patches.youtube.interaction.feedactions
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.addPatchInterface
 import app.morphe.patches.all.misc.resources.addResourcesPatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.layout.flyout.flyoutPatch
@@ -17,55 +18,45 @@ import app.morphe.patches.youtube.misc.auth.authHookPatch
 import app.morphe.patches.youtube.misc.commandrouter.commandRouterHookPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.feedcards.feedVideoCardsHookPatch
+import app.morphe.patches.youtube.misc.navigation.browseIdHookPatch
+import app.morphe.patches.youtube.misc.navigation.browsePageBinding
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
-import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.setExtensionIsPatchIncluded
-import com.android.tools.smali.dexlib2.Opcode
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/FeedVideoActionsPatch;"
 
-@Suppress("unused")
-val feedVideoActionsPatch = patch(
-    name = "Feed video actions",
-    description = "Adds a Watch later button to video thumbnails in feeds, " +
-            "and opens the video menu by tapping and holding anywhere on a video.",
+/**
+ * Hooks used by both "Feed video actions" and the queue button of "Add to queue",
+ * so either patch can be included without the other.
+ */
+internal val feedVideoActionsHookPatch = patch(
+    description = "Hooks the touches and the page of feed video cards.",
 ) {
-    dependsOn(
-        sharedExtensionPatch,
-        settingsPatch,
-        addResourcesPatch,
-        // Finds the video id of the menu, to learn the description of the menu button.
-        flyoutPatch,
-        // Finds the video of each card, to hide the button while it plays in the feed.
-        feedVideoCardsHookPatch,
-        // Runs the commands of the Watch later button.
-        commandRouterHookPatch,
-        // Loads the videos of the Watch later playlist, to show if the video is saved.
-        authHookPatch,
-    )
-
-    compatibleWith(COMPATIBILITY_YOUTUBE)
+    dependsOn(sharedExtensionPatch, feedVideoCardsHookPatch, browseIdHookPatch)
 
     execute {
-        PreferenceScreen.FEED.addPreferences(
-            SwitchPreference("morphe_feed_long_press_menu", summary = true),
-            SwitchPreference("morphe_feed_watch_later_button", summary = true),
-        )
-
-        // Feed videos are Litho components and have no views of their own,
-        // so the root host of each video is found when it is laid out
-        // and the Watch later button is drawn on its overlay.
-        FeedComponentHostLayoutFingerprint.method.apply {
-            findInstructionIndicesReversedOrThrow(Opcode.RETURN_VOID).forEach { index ->
-                addInstruction(
-                    index,
-                    "invoke-static { p0 }, $EXTENSION_CLASS->" +
-                            "onComponentHostLayout(Lcom/facebook/litho/ComponentHost;)V"
-                )
-            }
+        // The browse fragment tells the extension the browse id of its page,
+        // to not show the thumbnail buttons on playlist pages.
+        val (endpoint, browseIdReader) = browsePageBinding
+        mutableClassDefBy(endpoint.definingClass).apply {
+            addPatchInterface(
+                EXTENSION_CLASS.dropLast(1) + $$"$BrowsePage;",
+                "patch_getBrowseId",
+                """
+                    iget-object v0, p0, $endpoint
+                    if-eqz v0, :empty
+                    invoke-static { v0 }, $browseIdReader
+                    move-result-object v0
+                    return-object v0
+                    :empty
+                    # A separate null constant, as the verifier sees the endpoint type here.
+                    const/4 v0, 0x0
+                    return-object v0
+                """
+            )
         }
 
         // The touches of the root host decide the long press and the Watch later button.
@@ -81,6 +72,39 @@ val feedVideoActionsPatch = patch(
                 nop
             """
         )
+    }
+}
+
+val feedVideoActionsPatch = patch(
+    name = "Feed video actions",
+    description = "Adds a Watch later button to video thumbnails in feeds, " +
+            "and opens the video menu by tapping and holding anywhere on a video.",
+) {
+    dependsOn(
+        sharedExtensionPatch,
+        settingsPatch,
+        addResourcesPatch,
+        // Finds the video id of the menu, to learn the description of the menu button.
+        flyoutPatch,
+        // Finds the video of each card, to hide the button while it plays in the feed.
+        feedVideoActionsHookPatch,
+        // Runs the commands of the Watch later button.
+        commandRouterHookPatch,
+        // Loads the videos of the Watch later playlist, to show if the video is saved.
+        authHookPatch,
+    )
+
+    compatibleWith(COMPATIBILITY_YOUTUBE)
+
+    execute {
+        PreferenceScreen.FEED.addPreferences(
+            SwitchPreference("morphe_feed_long_press_menu", summary = true),
+            SwitchPreference("morphe_feed_watch_later_button", summary = true),
+        )
+
+        // The root host of each video is found by the layout hook of feedVideoCardsHookPatch,
+        // which gives every laid out card to the extension with FeedVideoCardsPatch.onCardLaidOut,
+        // so no layout hook of this patch is needed.
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
     }

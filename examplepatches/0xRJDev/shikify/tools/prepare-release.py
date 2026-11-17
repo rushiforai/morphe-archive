@@ -19,11 +19,15 @@ version = re.search(r'^version\s*=\s*([^\s]+)', (ROOT/'gradle.properties').read_
 if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-.][A-Za-z0-9.-]+)?', version):
     raise SystemExit('Invalid release version')
 bundle = ROOT/'output'/f'shikify-{version}.mpp'
+changelog = (ROOT/'changelog.md').read_text()
+heading = f'# Version {version}\n'
+if heading not in changelog:
+    raise SystemExit(f'Add a changelog.md entry for version {version}')
 metadata = json.loads((ROOT/'patches-list.json').read_text())
-if metadata['version'] != version or len(metadata['patches']) != 25:
-    raise SystemExit('Rebuild first: patch list version/count does not match the release')
+if metadata['version'] != version or not metadata['patches']:
+    raise SystemExit('Rebuild first: patch list is empty or its version does not match the release')
 names = [patch['name'] for patch in metadata['patches']]
-if len(set(names)) != 25 or any(name.startswith('Shikify:') for name in names):
+if len(set(names)) != len(names) or any(name.startswith('Shikify:') for name in names):
     raise SystemExit('Unexpected public patch names')
 with zipfile.ZipFile(bundle) as archive:
     if not {'classes.dex', 'extensions/extension.mpe'}.issubset(archive.namelist()):
@@ -38,10 +42,10 @@ digest = hashlib.sha256(asset.read_bytes()).hexdigest()
 (release/(asset.name+'.sha256')).write_text(f'{digest}  {asset.name}\n')
 shutil.copy2(ROOT/'patches-list.json', release/'patches-list.json')
 # Keep the simple project changelog as the source of release notes.
-changelog = (ROOT/'changelog.md').read_text()
-notes = changelog.split(f'# Version {version}\n', 1)[1].split('\n# Version ', 1)[0].strip()
-notes += '\n\nImport the `.mpp` into Morphe Manager and patch Boost for Reddit 1.14.3 (`com.rubenmayayo.reddit`). Recheck patch selections after the display-name cleanup. No Boost APK is included.\n'
-(release/'release-notes.md').write_text(notes)
+notes = changelog.split(heading, 1)[1].split('\n# Version ', 1)[0].strip()
+notes += '\n\nImport the `.mpp` into Morphe Manager and patch your own copy of Boost for Reddit 1.14.4 (`com.rubenmayayo.reddit`). No Boost APK is included.\n'
+# The tip jar link stays on GitHub; Morphe Manager shows the bundle description without it.
+(release/'release-notes.md').write_text(notes+'\nEnjoying Shikify? You can support it on [Ko-fi](https://ko-fi.com/shikify) ☕\n')
 if args.repository:
     descriptor = {
         'created_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),

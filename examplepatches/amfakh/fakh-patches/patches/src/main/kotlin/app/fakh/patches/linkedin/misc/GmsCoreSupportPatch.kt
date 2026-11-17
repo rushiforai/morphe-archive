@@ -7,7 +7,7 @@ import app.fakh.patches.shared.gms.gmsCoreSupportResourcePatch
 import app.fakh.patches.shared.gms.mutableClass
 import app.fakh.patches.shared.gms.redirectToGmsCore
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val LINKEDIN_PACKAGE = "com.linkedin.android"
 
@@ -18,7 +18,7 @@ private const val LINKEDIN_SIGNATURE = "443cb997718d0ac5162888bae5e4724582862676
 private const val CREDENTIAL_PROVIDER_FACTORY = "Landroidx/credentials/CredentialProviderFactory;"
 
 @Suppress("unused")
-val gmsCoreSupportPatch = bytecodePatch(
+val gmsCoreSupportPatch = patch(
     name = "GmsCore support",
     description = "Makes \"Continue with Google\" work by signing in through microG RE " +
         "(GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account.",

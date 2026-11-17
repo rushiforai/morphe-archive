@@ -29,6 +29,13 @@ The bundle contains five patches:
    makes **Web Widget Overlay** and **button emulation** work; a bytecode-only patch cannot reach
    them, which is why earlier releases of this bundle dropped the engine altogether.
 
+   The routine itself is **not** stubbed out. Only the traps are no-ops; the routine runs in full.
+   Up to 1.6.9 its prologue was overwritten with `mov w0, wzr; ret`, which removed the routine
+   rather than disarming it: the engine came up half-initialised and `nativeActions` - the JNI
+   entry point every key-code injection goes through - did nothing, so a remote's **numpad** was
+   dead while pointer input kept working through `nativeRender`. If a future release needs the
+   engine touched again, keep that distinction in mind.
+
 **Unlock native engine** depends on **Unlock premium**, so selecting the former runs both.
 
 3. **Never stop itself** (bytecode) keeps the app from stopping its own package. **Stop recent
@@ -78,7 +85,7 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.9](https://github.com/6zev/morphe-patches/releases/tag/v1.6.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.7.1](https://github.com/6zev/morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
 <summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>

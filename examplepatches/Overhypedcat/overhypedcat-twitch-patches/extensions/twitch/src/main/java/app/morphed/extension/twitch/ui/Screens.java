@@ -71,6 +71,7 @@ public final class Screens implements Application.ActivityLifecycleCallbacks {
     @Override
     public void onActivityPaused(Activity activity) {
         if (resumed.get() == activity) LogWindow.hide();
+        PlayerOverlay.paused(activity); // a screen lock ends when the screen goes
         // Left Settings: its rows aren't on screen, nothing to rebuild (the player's screen must never be).
         if (settings.get() == activity) settings = new WeakReference<>(null);
     }
@@ -128,6 +129,7 @@ public final class Screens implements Application.ActivityLifecycleCallbacks {
                 }
                 try {
                     PlayerOptionsSection.scan(activity, root);
+                    if (main) PlayerOverlay.scan(activity, root);
                 } catch (Throwable t) {
                     PlayerOptionsSection.failed(t);
                 }

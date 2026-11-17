@@ -67,5 +67,7 @@ plugins:
   # Publishes the release with the bundle, and nothing else.
   - - "@semantic-release/github"
     - assets:
-        - path: "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+        # Only the bundle this release built. The glob form attached every .mpp in the folder, so a
+        # 3.1.0 build left from the pre-bump Gradle run shipped inside the 3.1.1 release too.
+        - path: "patches/build/libs/patches-${nextRelease.version}.mpp"
       successComment: false

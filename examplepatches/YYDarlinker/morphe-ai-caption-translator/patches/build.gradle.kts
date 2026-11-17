@@ -54,7 +54,7 @@ localCompositionPatcherJar?.let { jar ->
             zip.getInputStream(zip.getEntry("app/morphe/patcher/version.properties")).use { load(it) }
         }.getProperty("version")
     }
-    require(version == "2.0.0") { "Composition requires Patcher 2.0.0, got $version" }
+    require(version in setOf("2.0.0", "2.4.0")) { "Composition requires a verified Patcher (2.0.0 or 2.4.0), got $version" }
 }
 dependencies {
     if (localCompositionPatcherJar != null) {

@@ -22,6 +22,7 @@ import android.util.Base64;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import app.morphe.extension.instagram.utils.Pref;
 
 public final class InstagramSignature {
 
@@ -79,7 +80,7 @@ public final class InstagramSignature {
      * {@code null}, leaving Instagram's own read untouched.
      */
     public static List<Signature> originalSigners(PackageInfo info) {
-        if (info == null || !"com.instagram.android".equals(info.packageName)) return null;
+        if (info == null || !Pref.restoreTrustSpoof() || !"com.instagram.android".equals(info.packageName)) return null;
         // The name alone is not proof it is this app: the uid is. When PackageManager hasn't filled
         // in the ApplicationInfo there is nothing else to go on, so answer anyway.
         if (info.applicationInfo != null && info.applicationInfo.uid != Process.myUid()) return null;

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * "Report Wi-Fi connection" and "Hide VPN connection" (both opt-in) runtime.
+ * Runtime for the Report Wi-Fi connection and VPN connection options of "Hide device identifiers".
  *
  * Every app call to the network-state APIs below is rewritten to the static
  * method of the same name here, with the receiver passed first. Each method
@@ -57,12 +57,12 @@ public final class NetworkStateSpoofer {
     private NetworkStateSpoofer() {
     }
 
-    /** Overwritten to return true by "Report Wi-Fi connection". */
+    /** Overwritten to return true by the Report Wi-Fi connection option. */
     public static boolean reportWifi() {
         return false;
     }
 
-    /** Overwritten to return true by "Hide VPN connection". */
+    /** Overwritten to return true by the VPN connection option. */
     public static boolean hideVpn() {
         return false;
     }

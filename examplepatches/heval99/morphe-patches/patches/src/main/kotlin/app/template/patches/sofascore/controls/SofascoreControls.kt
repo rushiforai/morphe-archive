@@ -14,6 +14,12 @@ internal const val SOFASCORE_CONTROLS = "Lapp/template/extension/sofascore/Sofas
 /** The "Animation speed" hooks (getFloat redirect, ValueAnimator scale, transitions) in extensions/sofascore. */
 internal const val SOFASCORE_ANIMATION_SPEED = "Lapp/template/extension/sofascore/AnimationSpeed;"
 
+/** The "Clean shared links" hooks (share text cleaner, utm parameter skip) in extensions/sofascore. */
+internal const val SOFASCORE_SHARE_LINKS = "Lapp/template/extension/sofascore/ShareLinks;"
+
+/** The "Keep screen on" and screenshot prompt hooks in extensions/sofascore. */
+internal const val SOFASCORE_SCREEN_CALM = "Lapp/template/extension/sofascore/ScreenCalm;"
+
 /**
  * Sections of the Sofascore features on the Patch settings screen (titles only: the saved choices are
  * keyed by feature id, so regrouping never resets them). Listed in registration order, except that

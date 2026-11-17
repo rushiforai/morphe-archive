@@ -15,6 +15,7 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 | [Solid Explorer](docs/apps/solidexplorer.md) | `pl.solidexplorer2` | `3.6.4` |
 | [nzb360](docs/apps/nzb360.md) | `com.kevinforeman.nzb360` | `25.3` |
 | [Trakt](docs/apps/trakt.md) | `tv.trakt.trakt` | `3.28.0` |
+| [Sparkle TV](docs/apps/sparkle.md) | `se.hedekonsult.sparkle` | `2.4.0` |
 
 ### How to use these patches
 
@@ -31,7 +32,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.10.0](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -113,6 +114,21 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 |----------|----------------|-----------|
 | [Enable Cloud Premium](#enable-cloud-premium) | Reports the Sleep Cloud subscription as active. Client side only; the backend may still refuse. |  |
 | [Enable Premium](#enable-premium) | Unlocks Sleep as Android Premium. Tap Wait I already Paid when Prompted |  |
+
+</details>
+
+<details open>
+<summary>📺 Sparkle TV (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.4.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Plus](#enable-plus) | Unlocks the Plus subscription features, including DVR, timeshift, multiview, VOD (movies & series), multi-source setup and channel/category editing. |  |
 
 </details>
 
@@ -428,6 +444,31 @@ Trakt** once. Without it, AuthTab fails and the retired `trakt://auth` redirect 
 
 [Sign-in, hook map and verification →](docs/apps/trakt.md)
 
+## 📱 Sparkle TV
+
+Supported target: `2.4.0` (APK, versionCode `204004`, Android TV only).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Enable Plus | on | Unlocks the Plus subscription features: DVR, timeshift, multiview, VOD, multi-source setup and channel/category editing. |
+
+Sparkle keeps the licence in one bitmask and asks one static gatekeeper
+(`kh.x.e(Context, int mask, int required, String prompt)`) from every premium surface, so
+returning `true` at its entry opens all of them. The patch also forces the mask that
+`MainActivity.K` and `LibUtils.h` distribute to `0xFF`, pins the feature bits the gatekeeper
+compares against, and neutralises the native handshake plus the debugger and
+purchase-signature checks. The setup wizard keeps its own copy of the mask: it is seeded and
+then re-asserted in the overview updater (a Play Billing failure callback writes `0` into it),
+and the six fragments that cache it are clamped. The VOD background artwork is capped at
+960 x 540dp — still 4K at density 4 — because the stock 2000dp values ask Glide for an
+8000 x 8000 bitmap on a 640 dpi TV, which Android refuses to draw and which killed
+Movies/Series on entry.
+
+Timeshift is untouched — the patch only changes the licence decision, never the session or
+buffer classes. Client-side only: anything the backend verifies still sees the real account.
+
+[Licence model, hook map and verification →](docs/apps/sparkle.md)
+
 ## ✅ Verification
 
 `tools/verify_fingerprints.py` re-checks the pinned class/method fingerprints against an
@@ -512,14 +553,17 @@ attribution:
 - **Trakt:** port of
   [ineednotitle/Proteus-Patches](https://github.com/ineednotitle/Proteus-Patches) (GPLv3),
   re-resolved for 3.28.0.
+- **Sparkle TV:** port of the "Unlock Plus" patch in
+  [HSlightsteel/slight-patches](https://github.com/HSlightsteel/slight-patches) (GPLv3),
+  re-resolved for 2.4.0.
 
 Original patch code is © the upstream authors and contributors — ImNoammm, hoo-dles,
-rushiranpise, Entree3k, PrathxmOp, arandomhooman, ineednotitle and their contributors. New
-code in this repository is © hyzor.
+rushiranpise, Entree3k, PrathxmOp, arandomhooman, ineednotitle, HSlightsteel and their
+contributors. New code in this repository is © hyzor.
 
 Not affiliated with Urbandroid, SnoreLab, The New York Times, Chess.com, Duolingo, Nova
 Launcher, TeslaCoil Software, Tacit Dynamics, Projectivy Launcher, Solid Explorer, nzb360,
-Trakt, the Morphe project, or the above authors.
+Trakt, Sparkle TV, the Morphe project, or the above authors.
 
 ## ⚠️ Disclaimer
 

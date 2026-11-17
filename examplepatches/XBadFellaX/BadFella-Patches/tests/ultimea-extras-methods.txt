@@ -1,0 +1,11 @@
+LK7/s;->d()V
+Lcom/dynanic/ultimea/MainActivity;->onCreate(Landroid/os/Bundle;)V
+Lh6/J0;->g(Lh6/J0;Lorg/json/JSONObject;)LB5/a;
+Lio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JI)V
+Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->log(Ljava/lang/String;)V
+Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->recordException(Ljava/lang/Throwable;)V
+Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->sendUnsentReports()V
+Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->setCrashlyticsCollectionEnabled(Ljava/lang/Boolean;)V
+Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->setCrashlyticsCollectionEnabled(Z)V
+Lcom/google/firebase/crashlytics/internal/common/DataCollectionArbiter;->isAutomaticDataCollectionEnabled()Z
+Lm5/a;->onMethodCall(LU7/m;LU7/o;)V

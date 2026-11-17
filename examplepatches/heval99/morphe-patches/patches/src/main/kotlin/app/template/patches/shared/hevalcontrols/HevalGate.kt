@@ -14,7 +14,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.addInstructionsAtControlFlowLabel
-import app.morphe.util.findFreeRegister
+import app.morphe.patcher.util.findFreeRegister
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import com.android.tools.smali.dexlib2.AccessFlags

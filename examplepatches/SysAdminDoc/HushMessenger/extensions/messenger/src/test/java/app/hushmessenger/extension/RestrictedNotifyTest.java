@@ -85,12 +85,12 @@ public class RestrictedNotifyTest {
         }
     }
 
-    @Test public void theSwitchSitsUnderPrivacyStartsOffAndIsMarkedExperimental() {
+    @Test public void theSwitchSitsUnderNotificationsStartsOffAndIsMarkedExperimental() {
         String[] spec = null;
         for (String[] control : SettingsActivity.CONTROLS) if (control[0].equals("restricted_notify")) spec = control;
         assertNotNull(spec);
         assertEquals("Notify for restricted chats", spec[1]);
-        assertEquals("privacy", spec[3]);
+        assertEquals("notifications", spec[3]);
         assertTrue("Not checked on a phone yet", SettingsActivity.EXPERIMENTAL.contains("restricted_notify"));
         assertTrue(Settings.installed.contains("restricted_notify"));
         assertFalse(Settings.preferences.getBoolean("restricted_notify", false));

@@ -18,14 +18,14 @@ import app.morphe.patches.instagram.media.taptoplay.FRAGMENT_ACTIVITY
 import app.morphe.patches.instagram.media.taptoplay.TOUCH as TAP_CLOCK
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
-import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.requireThisIntact
-import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -60,8 +60,14 @@ internal const val PROFILE_RESUMED_HOOK = "$SWIPE_TO_PROFILE->profileResumed(Lja
 internal const val PROFILE_PAUSED_HOOK = "$SWIPE_TO_PROFILE->profilePaused(Ljava/lang/Object;)V"
 internal const val SWIPE_TARGETS = "$EXTENSION_PACKAGE/reels/SwipeToProfileTargets;"
 
-/** The marker, less its release, of the Reels viewer's check of whether a swipe may go from a reel to its side panel. */
-internal const val SWIPE_ALLOWED = "ClipsViewerSwipeNavigationDelegate_isSwipeFromReelsToActionAllowed"
+/**
+ * A name the Reels viewer's check of whether a swipe may go from a reel to its side panel loads
+ * (`LX/0A4B;->A00()Z` on 386214574): a reel showing a megaphone keeps its own swipe. Instagram 456
+ * dropped the check's ClipsViewerSwipeNavigationDelegate_isSwipeFromReelsToActionAllowed purge
+ * marker; the check is the one instance method loading this name that takes nothing and answers a
+ * boolean.
+ */
+internal const val REELS_MEGAPHONE = "reels_megaphone"
 
 /** The view that slides a tab's side panels in under a sideways swipe. Instagram keeps its name. */
 internal const val SWIPE_CONTAINER = "Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;"
@@ -135,22 +141,20 @@ internal class SwipeGate(
 
 /**
  * Finds the gate that decides, for an ordinary reel, whether a swipe may go on to the side panel.
- * The Reels viewer's check is the one instance method marked [SWIPE_ALLOWED], taking nothing and
- * answering a boolean. Its last gate asks one call taking just the user session and answering a
+ * The Reels viewer's check is the one instance method loading [REELS_MEGAPHONE] that takes nothing
+ * and answers a boolean. Its last gate asks one call taking just the user session and answering a
  * boolean, then branches on the answer with an if-nez to the "allowed" return. The check has to hold
  * exactly one such call, its move-result has to come straight after it and the branch straight after
  * that, on the same register, with nothing jumping between them.
  */
 internal fun BytecodePatchContext.findSwipeGate(): SwipeGate {
-    val holders = typesMarked(SWIPE_ALLOWED)
-    val checks = holders.flatMap { type ->
-        classDefBy(type).methods.filter { SWIPE_ALLOWED in it.markers() }
+    val checks = classesLoadingString(REELS_MEGAPHONE).sortedBy { it.type }.flatMap { it.methods }.filter {
+        it.isSwipeCheckShape() && loadsString(it, REELS_MEGAPHONE)
     }
-    val check = checks.singleOrNull() ?: refuse("expected one check marked $SWIPE_ALLOWED, found ${checks.size}")
+    val check = checks.singleOrNull() ?: refuse(
+        "expected one instance ()Z check loading \"$REELS_MEGAPHONE\", found ${checks.size}",
+    )
     val where = "${check.definingClass}->${check.name}"
-    if (AccessFlags.STATIC.isSet(check.accessFlags) || check.returnType != "Z" || check.parameterTypes.isNotEmpty()) {
-        refuse("$where isn't an instance method without parameters answering a boolean")
-    }
     val code = check.implementation!!.instructions.toList()
     val asks = code.indices.filter { code[it].isSessionGate() }
     val ask = asks.singleOrNull() ?: refuse("expected $where to make one call taking only the user session and answering a boolean, found ${asks.size}")
@@ -165,6 +169,10 @@ internal fun BytecodePatchContext.findSwipeGate(): SwipeGate {
     if (ask + 2 in check.jumpTargets()) refuse("something in $where jumps between the gate's answer and the branch on it")
     return SwipeGate(check.definingClass, check.name, ask + 1, result.registerA)
 }
+
+/** Whether this is an instance method with code, taking nothing and answering a boolean, as the swipe check is. */
+private fun Method.isSwipeCheckShape(): Boolean =
+    !AccessFlags.STATIC.isSet(accessFlags) && returnType == "Z" && parameterTypes.isEmpty() && implementation != null
 
 /** Whether this is an invoke-virtual of a method taking only the user session and answering a boolean. */
 private fun Instruction.isSessionGate(): Boolean {
@@ -181,7 +189,7 @@ private fun Instruction.isSessionGate(): Boolean {
  */
 internal fun BytecodePatchContext.hookSwipeGate(gate: SwipeGate) {
     val method: MutableMethod = mutableClassDefBy(gate.type).methods.single {
-        it.name == gate.name && SWIPE_ALLOWED in it.markers()
+        it.name == gate.name && it.isSwipeCheckShape() && loadsString(it, REELS_MEGAPHONE)
     }
     val register = "v${gate.register}"
     method.addInstructions(
@@ -201,7 +209,8 @@ internal fun BytecodePatchContext.hookSwipeGate(gate: SwipeGate) {
  * which keeps its on flag and its position. The tab host's tab-change method (00M2.A0O) is the
  * gate's one other caller; the host answers its tab with [currentTab] (A09), compares it with
  * [reelsTab] (08kM.A08), and reaches the container through its [controller] field (A03, a 004N) and
- * that one's [container] field (A0E).
+ * that one's [container] field (A0E). From 455 the tab change (04sL.A0S on 386113969) leaves the
+ * gate to the controller's panel update (04sV.A0I), which asks and fetches the container instead.
  */
 internal class ProfilePanel(
     val touch: Method,
@@ -231,7 +240,10 @@ internal class ProfilePanel(
  *   right one; the switch reads the same field. The panel keeps its position in its one float
  *   field, which the switch reads too.
  * - The tab-change method is the one other method calling the gate. It is an instance method
- *   answering nothing whose first two parameters are a tab. Before the gate it asks the host's tab
+ *   answering nothing whose first two parameters are a tab. From 455 the gate's other caller is
+ *   the controller's panel update, taking and answering nothing, and the tab change is the one
+ *   method of that shape calling it; the rest is read in the panel update.
+ *   Before the gate it asks the host's tab
  *   (a call of the host taking nothing and answering a tab, or on 454 a call of the host asking
  *   whether its tab is the one handed, beside which sits the getter) and loads the tab it's compared with,
  *   which the touch check loads as well. After the gate it fetches the container with a static call
@@ -304,15 +316,16 @@ internal fun BytecodePatchContext.findProfilePanel(): ProfilePanel {
     val callers = classesCalling(gateCall.definingClass, gateCall.name).flatMap { holder ->
         holder.methods.filter { method -> method.implementation?.instructions?.any { it.called()?.matches(gateCall) == true } == true }
     }.filterNot { it.definingClass == SWIPE_CONTAINER && it.name == touch.name }
-    val tabChange = callers.singleOrNull() ?: refuse("expected the panel gate $gateCall to have one caller besides the touch check, found ${callers.size}")
+    val asker = callers.singleOrNull() ?: refuse("expected the panel gate $gateCall to have one caller besides the touch check, found ${callers.size}")
+    val tabChange = if (asker.isTabChange() || !asker.isPanelUpdate()) asker else tabChangeCalling(asker)
     val host = "${tabChange.definingClass}->${tabChange.name}"
     val parameters = tabChange.parameterTypes.map(CharSequence::toString)
-    if (tabChange.returnType != "V" || parameters.size < 2 || parameters[0] != parameters[1] || !parameters[0].startsWith("L")) {
+    if (!tabChange.isTabChange()) {
         refuse("$host, the gate's other caller, doesn't take two tabs first and answer nothing")
     }
     requirePublicInstance(tabChange)
     val tab = parameters[0]
-    val body = tabChange.implementation!!.instructions.toList()
+    val body = asker.implementation!!.instructions.toList()
     val ask = body.indexOfFirst { it.called()?.matches(gateCall) == true }
     val hostCalls = (0 until ask).reversed().mapNotNull { at ->
         body[at].takeIf { it.opcode == Opcode.INVOKE_VIRTUAL }?.called()?.takeIf { it.definingClass == tabChange.definingClass }
@@ -334,6 +347,9 @@ internal fun BytecodePatchContext.findProfilePanel(): ProfilePanel {
     val controllerType = fetch.parameterTypes.single().toString()
     if (setter.parameterTypes.first().toString() != controllerType) {
         refuse("the panel setter ${setter.name} takes a ${setter.parameterTypes.first()}, not the container's holder $controllerType")
+    }
+    if (asker != tabChange && asker.definingClass != controllerType) {
+        refuse("${asker.definingClass}->${asker.name}, the gate's other caller, isn't the container's holder $controllerType")
     }
     val controllers = instanceFields(classDefBy(tabChange.definingClass)).filter { it.type == controllerType }
     val controller = controllers.singleOrNull()
@@ -357,6 +373,31 @@ internal fun BytecodePatchContext.findProfilePanel(): ProfilePanel {
     return ProfilePanel(
         touch, toggle, panel, panelOn, position, setter, tabChange, currentTab, reelsTab, controllerRef, containerRef,
     )
+}
+
+/** Whether this answers nothing and its first two parameters are one class. */
+private fun Method.isTabChange(): Boolean {
+    val parameters = parameterTypes.map(CharSequence::toString)
+    return returnType == "V" && parameters.size >= 2 && parameters[0] == parameters[1] && parameters[0].startsWith("L")
+}
+
+/** Whether this is an instance method taking and answering nothing, as 455's panel update (04sV.A0I) is. */
+private fun Method.isPanelUpdate(): Boolean =
+    !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" && parameterTypes.isEmpty() && implementation != null
+
+/**
+ * The one tab-change method calling [update], the controller's panel update that asks the gate from
+ * 455 (04sL.A0S calling 04sV.A0I on 386113969).
+ */
+private fun BytecodePatchContext.tabChangeCalling(update: Method): Method {
+    val where = "${update.definingClass}->${update.name}"
+    val changes = classesCalling(update.definingClass, update.name).flatMap { holder ->
+        holder.methods.filter { method ->
+            method.isTabChange() && method.implementation?.instructions?.any { it.called()?.matches(update) == true } == true
+        }
+    }
+    return changes.singleOrNull()
+        ?: refuse("expected $where, the gate's other caller, to be called by one method taking two tabs first and answering nothing, found ${changes.size}")
 }
 
 /**

@@ -1,0 +1,31 @@
+{
+  "_source": "Written by lavinhoque33, 2026-11-15. Minimal row structures from capture/device/run2/catA-p11-shuffle-play/browse-000-response.json and catB-chart-top100/browse-000-response.json. Tracking/opaque fields omitted; identities replaced with synthetic values.",
+  "contents": [
+    {
+      "musicTwoColumnItemRenderer": {
+        "title": {"runs": [{"text": "Add a song"}]},
+        "navigationEndpoint": {"searchEndpoint": {}},
+        "potentialThumbnailOverlays": [
+          {"musicItemThumbnailOverlayRenderer": {"content": {"musicIconBadgeRenderer": {}}}}
+        ]
+      }
+    },
+    {
+      "musicTwoColumnItemRenderer": {
+        "navigationEndpoint": {"browseEndpoint": {"browseId": "MPED-synthetic-album"}},
+        "playlistItemData": {},
+        "potentialThumbnailOverlays": [
+          {
+            "musicItemThumbnailOverlayRenderer": {
+              "content": {
+                "musicPlayButtonRenderer": {
+                  "playbackIdMatchers": [{"videoId": "overlay-original"}]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

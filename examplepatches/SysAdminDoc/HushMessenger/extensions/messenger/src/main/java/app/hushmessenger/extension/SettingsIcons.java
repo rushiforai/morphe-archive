@@ -41,7 +41,7 @@ final class SettingsIcons {
         return icon;
     }
 
-    private static Bitmap bitmap(String encoded) {
+    static Bitmap bitmap(String encoded) {
         synchronized (DECODED) {
             Bitmap found = DECODED.get(encoded);
             if (found != null) return found;

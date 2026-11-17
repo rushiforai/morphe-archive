@@ -21,6 +21,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
+import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.patches.utils.requests.PlaylistRoutes;
 
 /** Fetch the initial, finite batch of a dynamic Mix, without fetching player streams. */
@@ -28,7 +29,8 @@ final class MixPlaylistRequest {
     private static final String PLAYLIST = "contents.singleColumnWatchNextResults.playlist.playlist";
     private static final String MIX_PATH =
             "next?prettyPrint=false&fields=" + PLAYLIST + "(playlistId,contents.playlistPanelVideoRenderer"
-                    + "(videoId,title,shortBylineText,longBylineText,videoInfo,lengthText,unplayableText))";
+                    + "(videoId,title,shortBylineText,longBylineText,videoInfo,lengthText,unplayableText,"
+                    + "lightColorPalette,darkColorPalette))";
 
     private MixPlaylistRequest() {}
 
@@ -37,7 +39,7 @@ final class MixPlaylistRequest {
         Utils.verifyOffMainThread();
         HttpURLConnection connection = null;
         try {
-            byte[] body = PlaylistRoutes.getSetVideoIdBody(seedVideoId, playlistId);
+            byte[] body = PlaylistRoutes.getSetVideoIdBody(seedVideoId, playlistId, Requester.getAppLocale());
             connection = PlaylistRoutes.getConnection(new Route(Route.Method.POST, MIX_PATH).compile(), headers);
             connection.setFixedLengthStreamingMode(body.length);
             try (var output = connection.getOutputStream()) {
@@ -81,7 +83,7 @@ final class MixPlaylistRequest {
                 continue;
             }
             String id = video.optString("videoId");
-            if (!PlaylistQueue.isVideoId(id)) {
+            if (!VideoInformation.isVideoId(id)) {
                 return null;
             }
             String channel = VideoMetadata.text(video.optJSONObject("longBylineText"));
@@ -91,7 +93,9 @@ final class MixPlaylistRequest {
             }
             result.add(new VideoMetadata(id, VideoMetadata.text(video.optJSONObject("title")), channel,
                     VideoMetadata.text(video.optJSONObject("videoInfo")),
-                    VideoMetadata.text(video.optJSONObject("lengthText")), fullByline, true));
+                    VideoMetadata.text(video.optJSONObject("lengthText")), fullByline, true,
+                    VideoMetadata.colorPalette(video.optJSONObject("lightColorPalette")),
+                    VideoMetadata.colorPalette(video.optJSONObject("darkColorPalette"))));
         }
 
         // A Mix is generated dynamically. Append its initial batch, without

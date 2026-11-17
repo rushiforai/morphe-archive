@@ -2,7 +2,7 @@ package app.fakh.patches.shared.pairip
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /**
  * `com.pairip.licensecheck.LicenseClient.checkLicense(Context)`, called from
@@ -19,7 +19,7 @@ private val checkLicenseFingerprint = Fingerprint(
 )
 
 /** Makes Pairip's license check return at once. Apps that carry it depend on this patch. */
-val pairipLicenseCheckPatch = bytecodePatch {
+val pairipLicenseCheckPatch = patch {
     execute {
         checkLicenseFingerprint.method.addInstructions(0, "return-void")
     }

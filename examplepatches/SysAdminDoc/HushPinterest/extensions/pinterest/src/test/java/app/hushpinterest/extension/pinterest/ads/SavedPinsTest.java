@@ -96,7 +96,8 @@ public class SavedPinsTest {
         repinned.owned = false;
         saved.board = new Board();
         owned.owned = true;
-        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_SAVED_PINS, PatchFamily.Capability.SAVE_AND_DOWNLOAD));
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_SAVED_PINS, PatchFamily.Capability.SAVE_AND_DOWNLOAD,
+                PatchFamily.Capability.FEED_SAVED_SEARCH, PatchFamily.Capability.FEED_SAVED_RELATED));
     }
 
     @After
@@ -104,6 +105,7 @@ public class SavedPinsTest {
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
         Settings.HIDE_SAVED_PINS.resetToDefault();
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.resetToDefault();
         Settings.SAVE_DOWNLOADED_PINS.resetToDefault();
         ModelFields.clearForTests();
         ModuleItems.clearForTests();
@@ -233,5 +235,103 @@ public class SavedPinsTest {
         assertTrue(SavedPins.active());
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(SavedPins.active());
+    }
+
+    // #34: search results and More to explore, on a switch of their own.
+
+    @Test
+    public void searchAndMoreToExploreStartOffAndAskForNothingExtra() {
+        assertFalse(Settings.HIDE_SAVED_PINS_ELSEWHERE.get());
+        String fields = "pin.{id,title},board.{id}";
+        assertSame(fields, SavedPins.elsewhereFields(fields));
+        List<Object> page = Arrays.asList(fresh, saved);
+        assertSame(page, SavedPins.searchPage(page));
+        assertFalse(SavedPins.dropRelated(saved));
+    }
+
+    /** Home's switch is about Home: a search for new pins still shows the saved ones until this one is on. */
+    @Test
+    public void theHomeSwitchLeavesSearchAndMoreToExploreAlone() {
+        Settings.HIDE_SAVED_PINS.save(true);
+        String fields = "pin.{id}";
+        assertSame(fields, SavedPins.elsewhereFields(fields));
+        List<Object> page = Arrays.asList(fresh, saved);
+        assertSame(page, SavedPins.searchPage(page));
+        assertFalse(SavedPins.dropRelated(saved));
+    }
+
+    @Test
+    public void onTheRequestsAskWhetherEachPinIsSavedButNeverForTheProfileField() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        assertEquals("pin.{pinned_to_board,id,title},board.{id}", SavedPins.elsewhereFields("pin.{id,title},board.{id}"));
+        assertFalse(SavedPins.elsewhereFields("pin.{id}").contains(SavedPins.PINNED_TO_PROFILE));
+        String already = "pin.{id,pinned_to_board}";
+        assertSame(already, SavedPins.elsewhereFields(already));
+        assertEquals(null, SavedPins.elsewhereFields(null));
+    }
+
+    /** A page Pinterest built as a read-only list can't lose items, so the saved ones go from a copy. */
+    @Test
+    public void aSearchPageComesBackWithoutItsSavedPinsAndPinterestsPageUntouched() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        SavedRecordForTests.add("quickSaved");
+        Pin quickSaved = new Pin("quickSaved");
+        Intro intro = new Intro();
+        List<Object> page = Collections.unmodifiableList(Arrays.asList(fresh, saved, repinned, owned, quickSaved, intro));
+        List<?> shown = SavedPins.searchPage(page);
+        assertEquals(Arrays.asList(fresh, repinned, intro), shown);
+        assertEquals(6, page.size());
+        assertTrue(report(), report().contains(FamilyNames.FILTER_FEED) && report().contains("saved pin removed 3"));
+    }
+
+    @Test
+    public void aSearchPageWithNothingSavedIsHandedBackAsItCame() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        List<Object> page = Arrays.asList(fresh, repinned);
+        assertSame(page, SavedPins.searchPage(page));
+        List<Object> empty = Collections.emptyList();
+        assertSame(empty, SavedPins.searchPage(empty));
+        assertSame(null, SavedPins.searchPage(null));
+    }
+
+    /** More to explore's own filter drops what this says to, and judges everything else itself. */
+    @Test
+    public void moreToExploreDropsSavedPinsAndKeepsNewOnes() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        SavedRecordForTests.add("quickSaved");
+        assertTrue(SavedPins.dropRelated(saved));
+        assertTrue(SavedPins.dropRelated(owned));
+        assertTrue(SavedPins.dropRelated(new Pin("quickSaved")));
+        assertFalse(SavedPins.dropRelated(fresh));
+        assertFalse(SavedPins.dropRelated(repinned));
+        assertFalse(SavedPins.dropRelated(new Intro()));
+        assertFalse(SavedPins.dropRelated(null));
+        assertTrue(report(), report().contains("saved pin removed 3"));
+    }
+
+    @Test
+    public void pauseTurnsSearchAndMoreToExploreOff() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        String fields = "pin.{id}";
+        assertSame(fields, SavedPins.elsewhereFields(fields));
+        List<Object> page = Arrays.asList(fresh, saved);
+        assertSame(page, SavedPins.searchPage(page));
+        assertFalse(SavedPins.dropRelated(saved));
+    }
+
+    /** A build where search's hooks went in and More to explore's didn't still asks search, and only drops there. */
+    @Test
+    public void eachHalfWorksOnTheHookItHas() {
+        Settings.HIDE_SAVED_PINS_ELSEWHERE.save(true);
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_SAVED_SEARCH));
+        assertEquals("pin.{pinned_to_board,id}", SavedPins.elsewhereFields("pin.{id}"));
+        assertEquals(Arrays.asList(fresh), SavedPins.searchPage(Arrays.asList(fresh, saved)));
+        assertFalse(SavedPins.dropRelated(saved));
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.FEED_SAVED_PINS));
+        String fields = "pin.{id}";
+        assertSame(fields, SavedPins.elsewhereFields(fields));
+        List<Object> page = Arrays.asList(fresh, saved);
+        assertSame(page, SavedPins.searchPage(page));
     }
 }

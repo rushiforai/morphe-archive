@@ -21,7 +21,25 @@ Or add `https://github.com/SledgeSune/morphe-patches` as a patch source in Morph
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.4.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+<details open>
+<summary>📦 CP&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `pt.cp.mobiapp`
+
+**🎯 Supported versions:**
+
+| 2.3.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Allow sideloading](#allow-sideloading) | Stops the app sending you to the Play Store on startup because it wasn't installed from Play. Needed for any patched build to open. |  |
+| [Dark mode](#dark-mode) | Darkens the app by inverting its colours (hues are kept). Choose Auto (follow the phone), Always dark, or Off. Note: brand colours look lighter, and photos and QR codes are inverted too. | • Mode |
+
+</details>
+
 <details open>
 <summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -30,8 +48,8 @@ Or add `https://github.com/SledgeSune/morphe-patches` as a patch source in Morph
 
 **🎯 Supported versions:**
 
-| 5.27.4.900 |
-| :---: |
+| 5.27.0.1 | 5.27.4.900 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -62,6 +62,7 @@ import app.hushtelegram.extension.shared.settings.preference.ImmediateAction;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.telegram.misc.AppPasscodeForTests;
 import app.hushtelegram.extension.telegram.misc.CallRecorder;
+import app.hushtelegram.extension.telegram.misc.CustomFont;
 import app.hushtelegram.extension.telegram.misc.HiddenAccounts;
 import app.hushtelegram.extension.telegram.misc.HiddenAccountsForTests;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
@@ -72,10 +73,13 @@ import app.hushtelegram.extension.telegram.misc.HiddenChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChatsForTests;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
 import app.hushtelegram.extension.telegram.misc.LaunchFolderForTests;
+import app.hushtelegram.extension.telegram.misc.ListBackground;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests;
 import app.hushtelegram.extension.telegram.misc.RecordChats;
+import app.hushtelegram.extension.telegram.misc.ChatListBanner;
+import app.hushtelegram.extension.telegram.misc.SavedPicture;
 import app.hushtelegram.extension.telegram.misc.SpecialContactsForTests;
 
 import org.json.JSONObject;
@@ -261,6 +265,8 @@ public class HushTelegramPreferenceFragmentTest {
             }
             // The settings entry's own switches are Pause's to turn off too.
             for (BooleanSetting setting : PatchFamily.ENTRY_SWITCHES) switchKeys.add(setting.key);
+            // The picture behind the lists takes Android 13, so its switch isn't drawn below it.
+            if (!ListBackground.supported()) switchKeys.remove(Settings.LIST_BACKGROUND.key);
             Set<String> shown = new HashSet<>();
             Preference stays = null;
             for (Preference row : rows) {
@@ -318,12 +324,14 @@ public class HushTelegramPreferenceFragmentTest {
                     for (BooleanSetting setting : family.switches) {
                         boolean drawn = page.findPreference(setting.key) != null;
                         // Ghost mode exceptions are picked from Hide picked chats' list and long press menu,
-                        // and Delete for them keeps its copy on Keep deleted messages' list.
+                        // and Delete for them keeps its copy on Keep deleted messages' list. The picture
+                        // behind the lists takes Android 13.
                         boolean expected = build.contains(family)
                                 && (setting != Settings.GHOST_CHATS && setting != Settings.FAKE_TYPING
                                         || build.contains(PatchFamily.HIDE_FOLDER_COUNTERS))
                                 && (setting != Settings.MESSAGE_MENU_DELETE_FOR_THEM
-                                        || build.contains(PatchFamily.KEEP_DELETED_MESSAGES));
+                                        || build.contains(PatchFamily.KEEP_DELETED_MESSAGES))
+                                && (setting != Settings.LIST_BACKGROUND || ListBackground.supported());
                         if (drawn != expected) wrong.add(build + ": " + setting.key + (drawn ? " is drawn" : " isn't drawn"));
                     }
                 }
@@ -530,6 +538,16 @@ public class HushTelegramPreferenceFragmentTest {
             // Search keeps asking Telegram's server until someone turns the switch on.
             assertFalse(Settings.LOCAL_SEARCH.key,
                     ((SwitchPreference) page.findPreference(Settings.LOCAL_SEARCH.key)).isChecked());
+            assertEquals("Fix link previews", String.valueOf(page.findPreference(Settings.LINK_PREVIEW_RULES.key).getTitle()));
+            assertEquals("When you send a link to a site in your rules, its preview comes from the other site the rule "
+                    + "names, like fixupx.com for x.com. Your message keeps the link you typed.",
+                    String.valueOf(page.findPreference(Settings.LINK_PREVIEW_RULES.key).getSummary()));
+            // Previews come from the linked site itself until someone turns the switch on.
+            assertFalse(Settings.LINK_PREVIEW_RULES.key,
+                    ((SwitchPreference) page.findPreference(Settings.LINK_PREVIEW_RULES.key)).isChecked());
+            assertEquals("Link preview rules", String.valueOf(page.findPreference(LinkPreviewRulesEditor.KEY).getTitle()));
+            assertEquals("Rules: 14. Fix link previews follows these for the links you send.",
+                    String.valueOf(page.findPreference(LinkPreviewRulesEditor.KEY).getSummary()));
             assertEquals("Camera only on tap", String.valueOf(page.findPreference(Settings.GALLERY_CAMERA_ON_TAP.key).getTitle()));
             assertEquals("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the "
                     + "camera tile to start it.",
@@ -593,6 +611,13 @@ public class HushTelegramPreferenceFragmentTest {
             // Telegram keeps its own holiday dates until someone turns the switch on.
             assertFalse(Settings.HOLIDAY_LOOK.key,
                     ((SwitchPreference) page.findPreference(Settings.HOLIDAY_LOOK.key)).isChecked());
+            assertEquals("Your own chat list title", String.valueOf(page.findPreference(Settings.CHAT_LIST_TITLE.key).getTitle()));
+            assertEquals("Shows text of your choice in place of Telegram's name at the top of the chat list, in the title's "
+                    + "own font and color. It stays on this phone. Restart Telegram to see the change.",
+                    String.valueOf(page.findPreference(Settings.CHAT_LIST_TITLE.key).getSummary()));
+            // Telegram's own title stays until someone turns the switch on.
+            assertFalse(Settings.CHAT_LIST_TITLE.key,
+                    ((SwitchPreference) page.findPreference(Settings.CHAT_LIST_TITLE.key)).isChecked());
             assertEquals("Use system font", String.valueOf(page.findPreference(Settings.USE_SYSTEM_FONT.key).getTitle()));
             assertEquals("Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart"
                     + " Telegram to see the change.",
@@ -600,6 +625,9 @@ public class HushTelegramPreferenceFragmentTest {
             // Telegram's bundled fonts stay until someone turns the switch on.
             assertFalse(Settings.USE_SYSTEM_FONT.key,
                     ((SwitchPreference) page.findPreference(Settings.USE_SYSTEM_FONT.key)).isChecked());
+            assertEquals("Font file", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.FONT_FILE_ROW).getTitle()));
+            assertEquals("No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.",
+                    String.valueOf(page.findPreference(HushTelegramPreferenceFragment.FONT_FILE_ROW).getSummary()));
             assertEquals("AMOLED black", String.valueOf(page.findPreference(Settings.AMOLED_BLACK.key).getTitle()));
             assertEquals("Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. "
                     + "Restart Telegram to see the change.",
@@ -607,6 +635,10 @@ public class HushTelegramPreferenceFragmentTest {
             // Telegram's own theme colors stay until someone turns the switch on.
             assertFalse(Settings.AMOLED_BLACK.key,
                     ((SwitchPreference) page.findPreference(Settings.AMOLED_BLACK.key)).isChecked());
+            // Finding the list pages' colors takes Android 13, so this Android 11 phone gets neither
+            // background row (theBackgroundPictureRowPicksDimsAndRemovesThePicture reads them on 13).
+            assertNull(page.findPreference(Settings.LIST_BACKGROUND.key));
+            assertNull(page.findPreference(HushTelegramPreferenceFragment.LIST_BACKGROUND_ROW));
             assertEquals("Hide translate bar", String.valueOf(page.findPreference(Settings.HIDE_TRANSLATE_BAR.key).getTitle()));
             assertEquals("Chats in another language stop showing the translate bar at the top. Translate moves to the "
                     + "chat's menu, and a chat you're translating keeps its bar.",
@@ -614,6 +646,13 @@ public class HushTelegramPreferenceFragmentTest {
             // Telegram's translate bar stays until someone turns the switch on.
             assertFalse(Settings.HIDE_TRANSLATE_BAR.key,
                     ((SwitchPreference) page.findPreference(Settings.HIDE_TRANSLATE_BAR.key)).isChecked());
+            assertEquals("Hide pinned message bar", String.valueOf(page.findPreference(Settings.HIDE_PINNED_BAR.key).getTitle()));
+            assertEquals("The bar under a chat's top bar that shows pinned messages is gone, along with its counter "
+                    + "and list button. Messages stay pinned and nothing is marked as read.",
+                    String.valueOf(page.findPreference(Settings.HIDE_PINNED_BAR.key).getSummary()));
+            // The pinned message bar stays until someone turns its own switch on.
+            assertFalse(Settings.HIDE_PINNED_BAR.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_PINNED_BAR.key)).isChecked());
             assertEquals("Exact numbers", String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getTitle()));
             assertEquals("Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of "
                     + "12.3K.",
@@ -675,6 +714,12 @@ public class HushTelegramPreferenceFragmentTest {
             // Videos follow the phone as Telegram has it until the switch is turned on.
             assertFalse(Settings.VIDEO_ONLY_FROM_BUTTON.key,
                     ((SwitchPreference) page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key)).isChecked());
+            assertEquals("Audio track and subtitles", String.valueOf(page.findPreference(Settings.VIDEO_TRACKS.key).getTitle()));
+            assertEquals("A video's settings menu gets Audio track when the video has more than one, and Subtitles when it "
+                    + "has any. The subtitles you pick show over the video.",
+                    String.valueOf(page.findPreference(Settings.VIDEO_TRACKS.key).getSummary()));
+            // The video menu stays as Telegram has it until the switch is turned on.
+            assertFalse(Settings.VIDEO_TRACKS.key, ((SwitchPreference) page.findPreference(Settings.VIDEO_TRACKS.key)).isChecked());
             assertEquals("Swipe back on profiles", String.valueOf(page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key).getTitle()));
             assertEquals("Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, "
                     + "instead of showing the previous photo or tab.",
@@ -830,7 +875,7 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.SAVE_RESTRICTED_DOWNLOADS.key).getTitle()));
             assertEquals("With Save downloaded files on, files from chats whose owner turned off saving get copied too. "
                     + "Only use it where the owner is fine with you keeping a copy, since it goes past their setting. "
-                    + "Secret chats still stay in Telegram.",
+                    + "Secret chats need Also save from secret chats too.",
                     String.valueOf(page.findPreference(Settings.SAVE_RESTRICTED_DOWNLOADS.key).getSummary()));
             // The owner's setting holds until this one is turned on as well.
             assertFalse(Settings.SAVE_RESTRICTED_DOWNLOADS.key,
@@ -839,11 +884,35 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getTitle()));
             assertEquals("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video "
                     + "messages get copied to Download/Telegram when they download. The sender meant them to disappear, "
-                    + "so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.",
+                    + "so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret "
+                    + "chats too.",
                     String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getSummary()));
             // The sender's timer holds until this one is turned on as well.
             assertFalse(Settings.SAVE_TIMED_MEDIA.key,
                     ((SwitchPreference) page.findPreference(Settings.SAVE_TIMED_MEDIA.key)).isChecked());
+            assertEquals("Also save from secret chats",
+                    String.valueOf(page.findPreference(Settings.SAVE_SECRET_CHATS.key).getTitle()));
+            assertEquals("Works with Also save from chats that don't allow saving on. Files, photos and videos from "
+                    + "secret chats get copied too, and the message menu's Save to Downloads shows up there. Their "
+                    + "view-once and timed media also need Also save view-once and timed media. A secret chat is meant "
+                    + "to stay on your two phones, so only use it where the other person is fine with that.",
+                    String.valueOf(page.findPreference(Settings.SAVE_SECRET_CHATS.key).getSummary()));
+            // A secret chat stays on its two phones until this one is turned on as well (#82).
+            assertFalse(Settings.SAVE_SECRET_CHATS.key,
+                    ((SwitchPreference) page.findPreference(Settings.SAVE_SECRET_CHATS.key)).isChecked());
+            assertEquals("Screenshots and screen recording work in those chats, their photos, profiles and stories. "
+                    + "Telegram doesn't tell anyone. Secret chats need Also allow screenshots in secret chats. "
+                    + "View-once media and the passcode screen stay blocked.",
+                    String.valueOf(page.findPreference(Settings.ALLOW_SCREENSHOTS.key).getSummary()));
+            assertEquals("Also allow screenshots in secret chats",
+                    String.valueOf(page.findPreference(Settings.SECRET_CHAT_SCREENSHOTS.key).getTitle()));
+            assertEquals("Works with Allow screenshots in chats that don't allow saving on. Secret chats, their photos "
+                    + "and profiles can be captured too. Telegram tells the other person when you take one, unless "
+                    + "Suppress screenshot notification is on. Their view-once media stays blocked.",
+                    String.valueOf(page.findPreference(Settings.SECRET_CHAT_SCREENSHOTS.key).getSummary()));
+            // A secret chat stays blocked until this one is turned on as well (#82).
+            assertFalse(Settings.SECRET_CHAT_SCREENSHOTS.key,
+                    ((SwitchPreference) page.findPreference(Settings.SECRET_CHAT_SCREENSHOTS.key)).isChecked());
             assertEquals("Silence people outside your contacts", String.valueOf(page.findPreference(Settings.SILENCE_NON_CONTACTS.key).getTitle()));
             assertEquals("Private messages from people not in your contacts still show a notification, but without "
                     + "sound or vibration. Bots, reminders and login codes keep their sound.",
@@ -939,6 +1008,28 @@ public class HushTelegramPreferenceFragmentTest {
             // The label keeps the time's color until the switch is turned on.
             assertFalse(Settings.RED_DELETED_LABEL.key,
                     ((SwitchPreference) page.findPreference(Settings.RED_DELETED_LABEL.key)).isChecked());
+            assertEquals("Keep my messages too", String.valueOf(page.findPreference(Settings.KEEP_OWN_DELETED.key).getTitle()));
+            assertEquals("When someone deletes a whole chat for both of you, your own messages stay here along with theirs. "
+                    + "So do messages you delete on another of your devices. Works with Keep deleted messages on.",
+                    String.valueOf(page.findPreference(Settings.KEEP_OWN_DELETED.key).getSummary()));
+            assertFalse(Settings.KEEP_OWN_DELETED.key,
+                    ((SwitchPreference) page.findPreference(Settings.KEEP_OWN_DELETED.key)).isChecked());
+            assertEquals("Keep self-destructing secret chat messages",
+                    String.valueOf(page.findPreference(Settings.KEEP_SECRET_TIMED.key).getTitle()));
+            assertEquals("Messages, photos and videos in secret chats stay on this phone when their self-destruct timer "
+                    + "runs out. The other person's copy still disappears on their own timer, and they aren't told.",
+                    String.valueOf(page.findPreference(Settings.KEEP_SECRET_TIMED.key).getSummary()));
+            // A secret chat's timer deletes as usual until the switch is turned on.
+            assertFalse(Settings.KEEP_SECRET_TIMED.key,
+                    ((SwitchPreference) page.findPreference(Settings.KEEP_SECRET_TIMED.key)).isChecked());
+            assertEquals("Keep chats you're removed from",
+                    String.valueOf(page.findPreference(Settings.KEEP_REMOVED_CHATS.key).getTitle()));
+            assertEquals("When a group or channel removes or bans you, it stays in your chats with what this phone saved, "
+                    + "and you can still open and scroll it. Delete it from the chat list to let it go.",
+                    String.valueOf(page.findPreference(Settings.KEEP_REMOVED_CHATS.key).getSummary()));
+            // A group or channel that removes you leaves the chat list as usual until the switch is turned on.
+            assertFalse(Settings.KEEP_REMOVED_CHATS.key,
+                    ((SwitchPreference) page.findPreference(Settings.KEEP_REMOVED_CHATS.key)).isChecked());
             assertEquals("Ask before sending a sticker", String.valueOf(page.findPreference(Settings.ASK_BEFORE_STICKER.key).getTitle()));
             assertEquals("Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled "
                     + "stickers go out without asking.",
@@ -1017,6 +1108,12 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.COMPACT_TAB_BAR.key).getSummary()));
             // The bar keeps Telegram's size until the switch is turned on.
             assertFalse(((SwitchPreference) page.findPreference(Settings.COMPACT_TAB_BAR.key)).isChecked());
+            assertEquals("Outline the bottom bar", String.valueOf(page.findPreference(Settings.BAR_OUTLINE.key).getTitle()));
+            assertEquals("Draws a thin Telegram blue line around the bar at the bottom of the main screen, so it stands "
+                            + "out on a black background. Restart Telegram to see the change.",
+                    String.valueOf(page.findPreference(Settings.BAR_OUTLINE.key).getSummary()));
+            // The bar has no outline until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.BAR_OUTLINE.key)).isChecked());
             assertEquals("Side menu", String.valueOf(page.findPreference(Settings.SIDE_MENU.key).getTitle()));
             assertEquals("Swipe right on your first chat folder and a menu slides in, like the one older Telegram had. It has "
                             + "your profile, new message, contacts, calls, saved messages and settings, plus a way to switch "
@@ -1051,12 +1148,30 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.ASK_BEFORE_GIF.key).getSummary()));
             assertFalse(Settings.ASK_BEFORE_GIF.key,
                     ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_GIF.key)).isChecked());
-            assertEquals("Ask before sending a voice or video message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getTitle()));
-            assertEquals("Asks Send or Cancel before a voice or video message you recorded goes out. The recording"
+            assertEquals("Ask before sending a voice message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getTitle()));
+            assertEquals("Asks Send or Cancel before a voice message you recorded goes out. The recording"
                     + " pauses first, and Cancel leaves it paused, ready to play, delete or send.",
                     String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getSummary()));
             assertFalse(Settings.ASK_BEFORE_VOICE_VIDEO.key,
                     ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key)).isChecked());
+            assertEquals("Ask before sending a round video message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_ROUND_VIDEO.key).getTitle()));
+            assertEquals("Asks Send or Cancel before a round video message you recorded goes out. The recording"
+                    + " pauses first, and Cancel leaves it paused, ready to play, delete or send.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_ROUND_VIDEO.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_ROUND_VIDEO.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_ROUND_VIDEO.key)).isChecked());
+            assertEquals("Ask before sending a message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_MESSAGE.key).getTitle()));
+            assertEquals("Asks Send or Cancel before the send button or the keyboard's send key sends what you typed. "
+                    + "Cancel leaves the text as it was. Scheduled and silent messages, edits and forwards go out without asking.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_MESSAGE.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_MESSAGE.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_MESSAGE.key)).isChecked());
+            assertEquals("Ask before joining a voice chat", String.valueOf(page.findPreference(Settings.ASK_BEFORE_JOIN.key).getTitle()));
+            assertEquals("Asks Join or Cancel before you join a group's voice chat or a channel's live stream. Starting a "
+                    + "new one doesn't ask.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_JOIN.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_JOIN.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_JOIN.key)).isChecked());
             assertEquals("Ask before starting a call", String.valueOf(page.findPreference(Settings.ASK_BEFORE_CALL.key).getTitle()));
             assertEquals("Asks Call or Cancel before the call button in a chat or on a profile starts a call.",
                     String.valueOf(page.findPreference(Settings.ASK_BEFORE_CALL.key).getSummary()));
@@ -1134,6 +1249,46 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("There are no kept messages to clear.", ShadowToast.getTextOfLatestToast());
             assertTrue(HookStatus.missing(FamilyNames.KEEP_DELETED_MESSAGES).toString().contains("accounts"));
         } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
+     * Remove kept messages after (#91) sits right under Clear kept messages and saves one of its
+     * days. The test JVM has no account to hand anything over from, so no notice follows.
+     */
+    @Test
+    public void removeKeptMessagesAfterSitsUnderClearAndSavesOneOfItsDays() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.KEEP_DELETED_MESSAGES);
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            Preference days = rows.get(indexOfKey(rows, HushTelegramPreferenceFragment.CLEAR_KEPT) + 1);
+            assertEquals(HushTelegramPreferenceFragment.KEPT_DAYS_ROW, days.getKey());
+            assertEquals("Remove kept messages after", String.valueOf(days.getTitle()));
+            assertEquals("Kept messages stay until you clear them.", String.valueOf(days.getSummary()));
+            assertFalse(days.isPersistent());
+
+            AlertDialog list = dialogOf(days);
+            assertEquals("Remove kept messages after", String.valueOf(shadowOf(list).getTitle()));
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < list.getListView().getCount(); i++) {
+                labels.add(String.valueOf(list.getListView().getAdapter().getItem(i)));
+            }
+            assertEquals(Arrays.asList("Never", "1 day", "7 days", "30 days", "90 days"), labels);
+            assertEquals(0, list.getListView().getCheckedItemPosition());
+            shadowOf(list).clickOnItem(2);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(7, (int) Settings.KEEP_DELETED_DAYS.get());
+            assertEquals("Kept messages are removed 7 days after they were deleted.", String.valueOf(days.getSummary()));
+            assertEquals(2, dialogOf(days).getListView().getCheckedItemPosition());
+            assertNull("nothing could be handed over, so nothing is announced", ShadowToast.getLatestToast());
+            assertEquals("Kept messages are removed 1 day after they were deleted.", HushTelegramPreferenceFragment.keptDaysLabel(1));
+            assertEquals("a number the list doesn't offer reads as Never", "Never", HushTelegramPreferenceFragment.keptDaysShort(45));
+        } finally {
+            Settings.KEEP_DELETED_DAYS.resetToDefault();
             HookStatus.clear();
         }
     }
@@ -1433,7 +1588,7 @@ public class HushTelegramPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = new ArrayList<>();
             collect(pageOf(controller).getPreferenceScreen(), rows);
-            Preference folder = rows.get(indexOfKey(rows, Settings.SAVE_TIMED_MEDIA.key) + 1);
+            Preference folder = rows.get(indexOfKey(rows, Settings.SAVE_SECRET_CHATS.key) + 1);
             assertEquals(HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW, folder.getKey());
             assertEquals("Playback", String.valueOf(folder.getParent().getTitle()));
             assertFalse("it stores nothing itself", folder.isPersistent());
@@ -1607,6 +1762,71 @@ public class HushTelegramPreferenceFragmentTest {
             }
         } finally {
             Settings.STORAGE_FOLDER.resetToDefault();
+        }
+    }
+
+    /**
+     * Save downloaded files brings the File icons and thumbnails switch last on its page when either
+     * of its places went in (#79), and it starts off.
+     */
+    @Test
+    public void theFileIconsSwitchShowsWhenEitherPlaceWentInAndStartsOff() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SAVE_DOWNLOADS);
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.SAVE_DOWNLOADS.key));
+            assertNull("a build without either place has no row", page.findPreference(Settings.FILE_ICONS.key));
+        }
+        for (PatchFamily.Capability place : EnumSet.of(PatchFamily.Capability.FILE_ICONS_CHAT, PatchFamily.Capability.FILE_ICONS_SHARED)) {
+            PatchFamily.capabilitiesForTests = EnumSet.of(place);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                SwitchPreference icons = (SwitchPreference) pageOf(controller).findPreference(Settings.FILE_ICONS.key);
+                assertNotNull(place.name(), icons);
+                assertEquals("Playback", String.valueOf(icons.getParent().getTitle()));
+                assertEquals("File icons and thumbnails", String.valueOf(icons.getTitle()));
+                assertEquals("APK and EXE files get their own icon in chats and in Shared media. Once downloaded, a PDF"
+                        + " shows its first page and a video a frame from it. Files with a thumbnail from Telegram keep it.",
+                        String.valueOf(icons.getSummary()));
+                assertFalse("Telegram's icons stay until someone turns it on", icons.isChecked());
+            }
+        }
+        PatchFamily.capabilitiesForTests = null;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            assertEquals("it comes after the folder rows", indexOfKey(rows, StorageFolderEditor.KEY) + 1,
+                    indexOfKey(rows, Settings.FILE_ICONS.key));
+        }
+    }
+
+    /**
+     * Save downloaded files brings Recognize files you already have right after File icons and
+     * thumbnails when its hook went in (#79), and it starts off.
+     */
+    @Test
+    public void theKnownFilesSwitchShowsWhenItsHookWentInAndStartsOff() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SAVE_DOWNLOADS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FILE_ICONS_CHAT);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.FILE_ICONS.key));
+            assertNull("a build without the hook has no row", page.findPreference(Settings.KNOWN_FILES.key));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SwitchPreference known = (SwitchPreference) pageOf(controller).findPreference(Settings.KNOWN_FILES.key);
+            assertNotNull(known);
+            assertEquals("Playback", String.valueOf(known.getParent().getTitle()));
+            assertEquals("Recognize files you already have", String.valueOf(known.getTitle()));
+            assertEquals("A file Telegram already downloaded, in another account for example, shows as downloaded here too"
+                    + " when its folders hold one with the same name and size. With Keep Telegram's files in internal storage"
+                    + " on, files from before a reinstall count too.", String.valueOf(known.getSummary()));
+            assertFalse("Telegram's download buttons stay until someone turns it on", known.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            assertEquals("it comes after the file icons row", indexOfKey(rows, Settings.FILE_ICONS.key) + 1,
+                    indexOfKey(rows, Settings.KNOWN_FILES.key));
         }
     }
 
@@ -1942,6 +2162,199 @@ public class HushTelegramPreferenceFragmentTest {
         }
     }
 
+    /** The registration month gets its own switch, off until turned on, only in a build where its hook went in. */
+    @Test
+    public void registrationMonthHasItsOwnSwitchWhenItsHookIsIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHOW_LOCAL_IDS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("a build without the hook has no switch", pageOf(controller).findPreference(Settings.REGISTRATION_DATE.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.REGISTRATION_DATE);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                SwitchPreference toggle = (SwitchPreference) pageOf(controller).findPreference(Settings.REGISTRATION_DATE.key);
+                assertEquals("Show when an account was made", String.valueOf(toggle.getTitle()));
+                assertEquals("A person's profile menu also shows about which month they joined Telegram, worked out from their "
+                        + "user ID. It's an estimate, and nothing is asked of Telegram. Bots, groups and channels get none.",
+                        String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /** Member join dates get their own switch, off until turned on, only in a build where their hooks went in. */
+    @Test
+    public void memberJoinDatesHaveTheirOwnSwitchWhenTheirHooksAreIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHOW_LOCAL_IDS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("a build without the hooks has no switch", pageOf(controller).findPreference(Settings.MEMBER_JOIN_DATES.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.MEMBER_JOIN_DATES);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                SwitchPreference toggle = (SwitchPreference) pageOf(controller).findPreference(Settings.MEMBER_JOIN_DATES.key);
+                assertEquals("Show when members joined", String.valueOf(toggle.getTitle()));
+                assertEquals("A group's member lists, on its profile and its Members page, also show when each person joined, "
+                        + "next to their last seen. The date comes with the list, so nothing more is asked of Telegram. "
+                        + "Admins and the owner keep their role.", String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /** Forward dates get their own switch, off until turned on, only in a build where their hooks went in (#79). */
+    @Test
+    public void forwardDatesHaveTheirOwnSwitchWhenTheirHooksAreIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHOW_LOCAL_IDS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.MEMBER_JOIN_DATES);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("a build without the hooks has no switch", pageOf(controller).findPreference(Settings.FORWARD_DATES.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.MEMBER_JOIN_DATES,
+                    PatchFamily.Capability.FORWARD_DATES);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.FORWARD_DATES.key);
+                assertEquals("Show when forwards were first sent", String.valueOf(toggle.getTitle()));
+                assertEquals("A forwarded message's header also shows the date and time it was first sent, after Forwarded from. "
+                        + "The date comes with the message, so nothing more is asked of Telegram.", String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+                // It sits right under the member join dates switch.
+                SwitchPreference joined = (SwitchPreference) page.findPreference(Settings.MEMBER_JOIN_DATES.key);
+                assertSame(joined.getParent(), toggle.getParent());
+                assertEquals(joined.getOrder() + 1, toggle.getOrder());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /** Pin chats on this phone gets its own switch, off until turned on, only in a build where its selection stub went in (#79). */
+    @Test
+    public void pinChatsOnThisPhoneHasItsOwnSwitchWhenItsStubIsIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("a build without the stub has no switch", pageOf(controller).findPreference(Settings.LOCAL_PINS.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE,
+                    PatchFamily.Capability.LOCAL_PINS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.LOCAL_PINS.key);
+                assertEquals("Pin chats on this phone", String.valueOf(toggle.getTitle()));
+                assertEquals("Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your "
+                        + "pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and "
+                        + "Telegram's pin limit stay as they are.", String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+                // It comes right after the date order's two switches.
+                assertSame(page.findPreference(Settings.SORT_OLDEST_FIRST.key).getParent(), toggle.getParent());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /**
+     * Change avatar size gets its own switch, off until turned on, and its Avatar size row right
+     * under it, only in a build where the avatar hook went in. A pick saves at once (#89).
+     */
+    @Test
+    public void changeAvatarSizeHasItsSwitchAndSizeRowWhenItsHookIsIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.LOCAL_PINS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                assertNull("a build without the hook has no switch", page.findPreference(Settings.CHAT_LIST_AVATAR.key));
+                assertNull("and no size row", page.findPreference(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.LOCAL_PINS,
+                    PatchFamily.Capability.CHAT_LIST_AVATAR);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                List<Preference> rows = new ArrayList<>();
+                collect(page.getPreferenceScreen(), rows);
+                int at = indexOfKey(rows, Settings.CHAT_LIST_AVATAR.key);
+                SwitchPreference toggle = (SwitchPreference) rows.get(at);
+                assertEquals("Change avatar size", String.valueOf(toggle.getTitle()));
+                assertEquals("Chat pictures in the chat list show at the size you pick below. Each row keeps its height, "
+                        + "and the picture stays centered where Telegram puts it.", String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+                assertSame("it comes after Pin chats on this phone", page.findPreference(Settings.LOCAL_PINS.key), rows.get(at - 1));
+                Preference size = rows.get(at + 1);
+                assertEquals(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW, size.getKey());
+                assertEquals("Avatar size", String.valueOf(size.getTitle()));
+                assertEquals("80% of Telegram's size", String.valueOf(size.getSummary()));
+                assertSame(toggle.getParent(), size.getParent());
+                assertFalse("it stores nothing itself", size.isPersistent());
+
+                assertTrue(size.getOnPreferenceClickListener().onPreferenceClick(size));
+                ShadowLooper.idleMainLooper();
+                AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+                assertEquals("Avatar size", String.valueOf(shadowOf(list).getTitle()));
+                ListView choices = list.getListView();
+                List<String> labels = new ArrayList<>();
+                for (int i = 0; i < choices.getCount(); i++) labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+                assertEquals(Arrays.asList("70%", "80%", "90%", "110%", "120%"), labels);
+                assertEquals("the saved size is checked", 1, choices.getCheckedItemPosition());
+                shadowOf(list).clickOnItem(4);
+                settle();
+                assertFalse(list.isShowing());
+                assertEquals(120, (int) Settings.CHAT_LIST_AVATAR_SIZE.savedValue());
+                assertEquals("120% of Telegram's size", String.valueOf(size.getSummary()));
+                assertFalse("picking a size leaves the switch alone", Settings.CHAT_LIST_AVATAR.savedValue());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+            Settings.CHAT_LIST_AVATAR_SIZE.resetToDefault();
+        }
+    }
+
+    /**
+     * Do Not Disturb in the chat list menu sits under Proxy in the chat list menu, off until turned
+     * on, only in a build where its hooks went in, and each change of it starts with Do Not Disturb
+     * off (#79).
+     */
+    @Test
+    public void doNotDisturbHasItsOwnSwitchUnderProxyWhenItsHooksAreIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PROXY_MENU);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                assertNotNull(page.findPreference(Settings.PROXY_MENU.key));
+                assertNull("a build without the hooks has no switch", page.findPreference(Settings.DND_MENU.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.DO_NOT_DISTURB);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.DND_MENU.key);
+                assertEquals("Do Not Disturb in the chat list menu", String.valueOf(toggle.getTitle()));
+                assertEquals("Adds Do Not Disturb to the menu at the top of the chat list. While it's on, no message "
+                        + "notification shows or makes a sound, and messages still arrive. Calls ring as usual.",
+                        String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+                assertSame(page.findPreference(Settings.PROXY_MENU.key).getParent(), toggle.getParent());
+                app.hushtelegram.extension.telegram.misc.DoNotDisturbForTests.on(true);
+                assertTrue(toggle.getOnPreferenceChangeListener().onPreferenceChange(toggle, true));
+                assertFalse("a change of the switch starts with it off",
+                        app.hushtelegram.extension.telegram.misc.DoNotDisturbForTests.isOn());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+            app.hushtelegram.extension.telegram.misc.DoNotDisturbForTests.forget();
+        }
+    }
+
     /**
      * Hide folder tab counters brings the folder at launch switch and, under it, a row that lists
      * All Chats and the account's folders and saves the pick for the account shown.
@@ -2273,6 +2686,184 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Background picture (#88): with none saved a tap opens the gallery, and the picked picture is
+     * copied in and turns its switch on. Then a tap offers the dims, and Remove background takes the
+     * picture away and turns the switch off at once.
+     */
+    @Test
+    @Config(sdk = 33)
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void theBackgroundPictureRowPicksDimsAndRemovesThePicture() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.AMOLED_BLACK);
+        Context appContext = RuntimeEnvironment.getApplication();
+        Uri gallery = Uri.parse("content://media.test/picture/88");
+        android.graphics.Bitmap made = android.graphics.Bitmap.createBitmap(40, 30, android.graphics.Bitmap.Config.ARGB_8888);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        made.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, png);
+        shadowOf(appContext.getContentResolver()).registerInputStream(gallery, new java.io.ByteArrayInputStream(png.toByteArray()));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.LIST_BACKGROUND_ROW);
+            SwitchPreference lists = (SwitchPreference) page.findPreference(Settings.LIST_BACKGROUND.key);
+            assertEquals("Picture behind the lists", String.valueOf(lists.getTitle()));
+            assertEquals("Shows a picture from your gallery behind the chat list, Settings, profiles and the other lists. "
+                    + "Chats keep their wallpaper, and menus and dialogs stay solid. Works with Telegram's built-in themes.",
+                    String.valueOf(lists.getSummary()));
+            // Telegram's own pages stay until someone turns it on and picks a picture.
+            assertFalse(lists.isChecked());
+            assertEquals("Background picture", String.valueOf(row.getTitle()));
+            assertEquals("No picture yet. Tap to pick one.", String.valueOf(row.getSummary()));
+            assertFalse("it stores nothing itself", row.isPersistent());
+
+            // With the settings locked a tap opens nothing.
+            SettingsLockForTests.handClocks(new long[]{1_800_000_000_000L});
+            try {
+                assertTrue(SettingsLock.lock());
+                assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+                assertNull("the gallery opened while locked", shadowOf(controller.get()).getNextStartedActivityForResult());
+            } finally {
+                SettingsLockForTests.forget();
+            }
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowActivity.IntentForResult picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals(android.provider.MediaStore.ACTION_PICK_IMAGES, picker.intent.getAction());
+            assertEquals("image/*", picker.intent.getType());
+
+            // Cancelled: nothing saved and the switch stays off.
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_CANCELED, null);
+            settle();
+            assertFalse(SavedPicture.present(appContext, SavedPicture.LIST_BACKGROUND));
+            assertFalse(Settings.LIST_BACKGROUND.get());
+
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_OK, new Intent().setData(gallery));
+            settle();
+            settle();
+            assertTrue(SavedPicture.present(appContext, SavedPicture.LIST_BACKGROUND));
+            assertTrue(Settings.LIST_BACKGROUND.get());
+            assertTrue(lists.isChecked());
+            assertEquals("Background picture saved.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Dimmed by 40%. Tap to change it.", String.valueOf(row.getSummary()));
+
+            AlertDialog dims = dialogOf(row);
+            assertEquals("Dim the picture", String.valueOf(shadowOf(dims).getTitle()));
+            assertEquals("the saved dim is checked", 1, dims.getListView().getCheckedItemPosition());
+            shadowOf(dims).clickOnItem(2);
+            settle();
+            settle();
+            assertFalse(dims.isShowing());
+            assertEquals(60, (int) Settings.LIST_BACKGROUND_DIM.savedValue());
+            assertEquals("Dimmed by 60%. Tap to change it.", String.valueOf(row.getSummary()));
+
+            dims = dialogOf(row);
+            dims.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+            settle();
+            assertFalse(SavedPicture.present(appContext, SavedPicture.LIST_BACKGROUND));
+            assertFalse(Settings.LIST_BACKGROUND.get());
+            assertFalse(lists.isChecked());
+            assertEquals("Background removed.", ShadowToast.getTextOfLatestToast());
+            assertEquals("No picture yet. Tap to pick one.", String.valueOf(row.getSummary()));
+        } finally {
+            SavedPicture.remove(appContext, SavedPicture.LIST_BACKGROUND);
+            Settings.LIST_BACKGROUND.resetToDefault();
+            Settings.LIST_BACKGROUND_DIM.resetToDefault();
+        }
+    }
+
+    /**
+     * Font file (#79): with none saved a tap opens the file picker, a file that isn't a font is
+     * turned away, and a font is copied in and turns Use system font on, both waiting for a
+     * restart. Then a tap offers another font or none, and Remove font takes it away.
+     */
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void theFontFileRowPicksAFontTurnsTheFontOnAndRemovesIt() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.USE_SYSTEM_FONT);
+        Context appContext = RuntimeEnvironment.getApplication();
+        java.io.ByteArrayOutputStream arvo = new java.io.ByteArrayOutputStream();
+        try (java.io.InputStream in = getClass().getClassLoader().getResourceAsStream("fonts/Arvo-Regular.ttf")) {
+            assertNotNull("Arvo is on the test classpath", in);
+            byte[] buffer = new byte[8192];
+            for (int read; (read = in.read(buffer)) != -1; ) arvo.write(buffer, 0, read);
+        }
+        Uri notes = Uri.parse("content://fonts.test/document/notes.txt");
+        Uri font = Uri.parse("content://fonts.test/document/Arvo-Regular.ttf");
+        shadowOf(appContext.getContentResolver()).registerInputStream(notes,
+                new java.io.ByteArrayInputStream("not a font".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        shadowOf(appContext.getContentResolver()).registerInputStream(font, new java.io.ByteArrayInputStream(arvo.toByteArray()));
+        String none = "No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.";
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.FONT_FILE_ROW);
+            SwitchPreference systemFont = (SwitchPreference) page.findPreference(Settings.USE_SYSTEM_FONT.key);
+            assertEquals("Font file", String.valueOf(row.getTitle()));
+            assertEquals(none, String.valueOf(row.getSummary()));
+            assertFalse("it stores nothing itself", row.isPersistent());
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowActivity.IntentForResult picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals(Intent.ACTION_OPEN_DOCUMENT, picker.intent.getAction());
+            assertEquals("phones don't agree on a type for fonts", "*/*", picker.intent.getType());
+            assertTrue(picker.intent.hasCategory(Intent.CATEGORY_OPENABLE));
+            assertEquals(HushTelegramPreferenceFragment.FONT_FILE_REQUEST, picker.requestCode);
+
+            // Not a font: turned away, and nothing else changes.
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_OK, new Intent().setData(notes));
+            settle();
+            settle();
+            assertEquals("That file isn't a font.", ShadowToast.getTextOfLatestToast());
+            assertFalse(CustomFont.present(appContext));
+            assertEquals("", Settings.CUSTOM_FONT.savedValue());
+            assertFalse(Settings.USE_SYSTEM_FONT.savedValue());
+            assertEquals(none, String.valueOf(row.getSummary()));
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_OK, new Intent().setData(font));
+            settle();
+            settle();
+            assertTrue(CustomFont.present(appContext));
+            assertEquals("Arvo-Regular.ttf", Settings.CUSTOM_FONT.savedValue());
+            assertTrue("the font is drawn only while Use system font is on", Settings.USE_SYSTEM_FONT.savedValue());
+            assertTrue(systemFont.isChecked());
+            assertTrue(app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .contains(Settings.CUSTOM_FONT.key));
+            assertTrue(app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .contains(Settings.USE_SYSTEM_FONT.key));
+            assertEquals(app.hushtelegram.extension.shared.L10n.isolate("Arvo-Regular.ttf") + ", used for all of "
+                    + "Telegram's text while Use system font is on. Tap to change it.", String.valueOf(row.getSummary()));
+
+            AlertDialog change = dialogOf(row);
+            assertEquals("Arvo-Regular.ttf", String.valueOf(shadowOf(change).getTitle()).replaceAll("[^\\p{ASCII}]", ""));
+            assertEquals("Choose another font", String.valueOf(change.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            assertEquals("Remove font", String.valueOf(change.getButton(AlertDialog.BUTTON_NEUTRAL).getText()));
+            change.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals(Intent.ACTION_OPEN_DOCUMENT, picker.intent.getAction());
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_CANCELED, null);
+            settle();
+            assertEquals("cancelled, the font stays", "Arvo-Regular.ttf", Settings.CUSTOM_FONT.savedValue());
+
+            change = dialogOf(row);
+            change.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+            settle();
+            assertFalse(CustomFont.present(appContext));
+            assertEquals("", Settings.CUSTOM_FONT.savedValue());
+            // Telegram started without a font, so taking it away again owes nothing.
+            assertFalse(app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .contains(Settings.CUSTOM_FONT.key));
+            assertEquals("Font removed.", ShadowToast.getTextOfLatestToast());
+            assertEquals(none, String.valueOf(row.getSummary()));
+            assertTrue("the switch stays as it was", Settings.USE_SYSTEM_FONT.savedValue());
+        } finally {
+            CustomFont.remove(appContext);
+            Settings.CUSTOM_FONT.resetToDefault();
+            Settings.USE_SYSTEM_FONT.resetToDefault();
+        }
+    }
+
+    /**
      * Delete account (#71) is on the Privacy page of a build with it. A tap names the account in use
      * and sends nothing until Delete account is tapped, which then waits dimmed for Telegram's answer.
      */
@@ -2557,6 +3148,329 @@ public class HushTelegramPreferenceFragmentTest {
         }
     }
 
+    /**
+     * The device in Active sessions (#79): a row under Don't notify contacts says what the other
+     * sessions see, and its editor saves a device name and a system version together, cleaned to
+     * one line, owing a restart. Emptied again, Telegram's own go out and nothing waits.
+     */
+    @Test
+    public void theSessionDeviceRowSavesBothAndOwesARestart() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        String model = app.hushtelegram.extension.telegram.misc.SessionDevice.stockModel();
+        String stock = "Your other sessions see " + model + ", SDK 30.";
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            Preference row = rows.get(indexOfKey(rows, Settings.QUIET_SIGN_UP.key) + 1);
+            assertEquals(SessionDeviceEditor.KEY, row.getKey());
+            assertEquals("Device in Active sessions", String.valueOf(row.getTitle()));
+            assertEquals(stock, String.valueOf(row.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+            assertFalse("it stores nothing itself", row.isPersistent());
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            AlertDialog editor = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(editor.isShowing());
+            assertEquals("Device in Active sessions", String.valueOf(shadowOf(editor).getTitle()));
+            EditText name = editor.findViewById(SessionDeviceEditor.NAME_FIELD);
+            EditText system = editor.findViewById(SessionDeviceEditor.SYSTEM_FIELD);
+            assertEquals("", name.getText().toString());
+            assertEquals("an empty box sends what the hint says", model, String.valueOf(name.getHint()));
+            assertEquals("SDK 30", String.valueOf(system.getHint()));
+
+            name.setText("  Office\n\tPC ");
+            system.setText("Windows 11");
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            }
+            assertTrue("a save that fails keeps the dialog", editor.isShowing());
+            assertEquals("Couldn't save the device. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+            assertEquals("", Settings.SESSION_DEVICE_NAME.savedValue());
+            assertEquals("", Settings.SESSION_SYSTEM_VERSION.savedValue());
+
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            // The write is on the worker, and the dialog closes once its answer is back.
+            settle();
+            assertFalse(editor.isShowing());
+            assertEquals("saved cleaned", "Office PC", Settings.SESSION_DEVICE_NAME.savedValue());
+            assertEquals("Windows 11", Settings.SESSION_SYSTEM_VERSION.savedValue());
+            assertTrue("each account sends it after a restart",
+                    app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                            .contains(Settings.SESSION_DEVICE_NAME.key));
+            assertEquals("Your other sessions see Office PC, Windows 11.",
+                    String.valueOf(row.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            editor = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            name = editor.findViewById(SessionDeviceEditor.NAME_FIELD);
+            system = editor.findViewById(SessionDeviceEditor.SYSTEM_FIELD);
+            assertEquals("Office PC", name.getText().toString());
+            name.setText("");
+            system.setText(" ");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(editor.isShowing());
+            assertEquals("", Settings.SESSION_DEVICE_NAME.savedValue());
+            assertEquals("", Settings.SESSION_SYSTEM_VERSION.savedValue());
+            assertEquals("Saved.", ShadowToast.getTextOfLatestToast());
+            assertFalse(app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .contains(Settings.SESSION_DEVICE_NAME.key));
+            assertEquals(stock, String.valueOf(row.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+        } finally {
+            Settings.SESSION_DEVICE_NAME.resetToDefault();
+            Settings.SESSION_SYSTEM_VERSION.resetToDefault();
+            app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .remove(Settings.SESSION_DEVICE_NAME.key);
+            app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .remove(Settings.SESSION_SYSTEM_VERSION.key);
+        }
+    }
+
+    /**
+     * Link preview rules (#79): the row under Fix link previews opens the rules, one per line. Save
+     * keeps the lines that are rules, written the editor's way, and says how many it left out.
+     * Default rules puts the starting rules back in the box without saving them, and rules too long
+     * to keep or a write that fails keep the dialog and what was typed.
+     */
+    @Test
+    public void theLinkPreviewRulesEditorKeepsTheRulesAndSaysWhatItLeftOut() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        String defaults = app.hushtelegram.extension.telegram.misc.LinkPreviewRules.DEFAULT_RULES;
+        String kept = "x.com -> fixupx.com\n*.example.org -> *.mirror.example";
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference row = pageOf(controller).findPreference(LinkPreviewRulesEditor.KEY);
+            assertFalse("it stores nothing itself", row.isPersistent());
+            AlertDialog editor = dialogOf(row);
+            assertTrue(editor.isShowing());
+            assertEquals("Link preview rules", String.valueOf(shadowOf(editor).getTitle()));
+            EditText field = editor.findViewById(android.R.id.edit);
+            assertEquals(defaults, field.getText().toString());
+            assertEquals("One rule per line, like x.com/*/status -> fixupx.com", String.valueOf(field.getHint()));
+
+            field.setText("X.COM  ->  FixupX.com\nnot a rule\n\n*.Example.org -> *.mirror.example\nx.com -> x.com");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(editor.isShowing());
+            assertEquals(kept, Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+            assertEquals("Lines left out: 2. They aren't rules.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Rules: 2. Fix link previews follows these for the links you send.", String.valueOf(row.getSummary()));
+
+            // Default rules only fills the box: Cancel keeps what was saved.
+            editor = dialogOf(row);
+            field = editor.findViewById(android.R.id.edit);
+            assertEquals(kept, field.getText().toString());
+            editor.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+            assertTrue("Default rules keeps the dialog", editor.isShowing());
+            assertEquals(defaults, field.getText().toString());
+            editor.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertEquals(kept, Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+
+            // Emptied, there are no rules and the row says how to add one.
+            editor = dialogOf(row);
+            field = editor.findViewById(android.R.id.edit);
+            field.setText("");
+            ShadowToast.reset();
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(editor.isShowing());
+            assertNull("nothing to say when every line was a rule", ShadowToast.getTextOfLatestToast());
+            assertEquals("", Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+            assertEquals("No rules yet. Add one per line, like x.com/*/status -> fixupx.com.", String.valueOf(row.getSummary()));
+
+            // Rules too long to keep stay in the box, and nothing is saved.
+            StringBuilder many = new StringBuilder();
+            for (int i = 0; many.length() <= app.hushtelegram.extension.telegram.misc.LinkPreviewRules.MAX_TEXT + 50; i++) {
+                many.append("site").append(i).append(".com -> fixupx.com\n");
+            }
+            editor = dialogOf(row);
+            field = editor.findViewById(android.R.id.edit);
+            field.setText(many);
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertTrue(editor.isShowing());
+            assertEquals(many.toString(), field.getText().toString());
+            assertEquals("Too many rules to keep. Take some out.", ShadowToast.getTextOfLatestToast());
+            assertEquals("", Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+
+            field.setText("x.com -> fixupx.com");
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            }
+            assertTrue("a save that fails keeps the dialog", editor.isShowing());
+            assertEquals("Couldn't save the rules. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+            assertEquals("", Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+            editor.dismiss();
+        } finally {
+            Settings.LINK_PREVIEW_RULE_LIST.resetToDefault();
+        }
+    }
+
+    /**
+     * The own title's switch and its text row sit under the emoji's row (#86). The editor saves a
+     * cleaned title, refuses one that's too long, and a restart is owed only while the saved text
+     * isn't the one running.
+     */
+    @Test
+    public void theChatListTitleRowsSaveACleanTitleAndSayWhenARestartIsOwed() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HOLIDAY_LOOK);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.TITLE_EMOJI);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNull("a build without the title target has no switch", page.findPreference(Settings.CHAT_LIST_TITLE.key));
+            assertNull("or text row", page.findPreference(TitleEmojiEditor.TITLE_KEY));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        String invitation = "Type what shows in place of Telegram's name while Your own chat list title is on. Empty keeps "
+                + "Telegram's name.";
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            int emoji = indexOfKey(rows, TitleEmojiEditor.KEY);
+            assertEquals(Settings.CHAT_LIST_TITLE.key, rows.get(emoji + 1).getKey());
+            Preference row = rows.get(emoji + 2);
+            assertEquals(TitleEmojiEditor.TITLE_KEY, row.getKey());
+            assertEquals("Text for the chat list title", String.valueOf(row.getTitle()));
+            assertEquals(invitation, String.valueOf(row.getSummary()));
+            assertFalse("it stores nothing itself", row.isPersistent());
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            AlertDialog editor = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(editor.isShowing());
+            assertEquals("Text for the chat list title", String.valueOf(shadowOf(editor).getTitle()));
+            EditText field = editor.findViewById(android.R.id.edit);
+            assertEquals("", field.getText().toString());
+            assertEquals("A short name", String.valueOf(field.getHint()));
+            StringBuilder tooLong = new StringBuilder();
+            for (int i = 0; i <= app.hushtelegram.extension.telegram.misc.TitleEmoji.MAX_TITLE_CODE_POINTS; i++) tooLong.append('a');
+            field.setText(tooLong);
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("too long keeps the dialog", editor.isShowing());
+            assertEquals("That's too long. Try a shorter name.", ShadowToast.getTextOfLatestToast());
+            assertEquals("", Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+
+            field.setText("  My   chats\n");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(editor.isShowing());
+            assertEquals("saved cleaned", "My chats", Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+            assertEquals("the emoji is a separate text", "", Settings.TITLE_EMOJI.savedValue());
+            assertTrue("the chat list shows it after a restart",
+                    app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                            .contains(Settings.CHAT_LIST_TITLE_TEXT.key));
+            assertEquals(app.hushtelegram.extension.shared.L10n.isolate("My chats") + " shows in place of Telegram's name "
+                    + "while Your own chat list title is on. Tap to change it.", String.valueOf(row.getSummary()));
+
+            // Cleared again, it's what Telegram runs with, so nothing waits for a restart.
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            editor = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            field = editor.findViewById(android.R.id.edit);
+            assertEquals("My chats", field.getText().toString());
+            field.setText("");
+            editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(editor.isShowing());
+            assertEquals("", Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+            assertEquals("Saved.", ShadowToast.getTextOfLatestToast());
+            assertFalse(app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .contains(Settings.CHAT_LIST_TITLE_TEXT.key));
+            assertEquals(invitation, String.valueOf(row.getSummary()));
+        } finally {
+            Settings.CHAT_LIST_TITLE_TEXT.resetToDefault();
+            app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                    .remove(Settings.CHAT_LIST_TITLE_TEXT.key);
+        }
+    }
+
+    /**
+     * Chat list banner (#86): the row sits under the own title's text row and offers none, five
+     * gradients and a picture. A gradient saves at once; a picture not picked yet opens the gallery
+     * and is saved from there; None takes the picture away too.
+     */
+    @Test
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void theChatListBannerRowPicksAGradientAPictureOrNone() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HOLIDAY_LOOK);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.CHAT_LIST_TITLE);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull("a build without the bar's hooks has no row",
+                    pageOf(controller).findPreference(HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        Context appContext = RuntimeEnvironment.getApplication();
+        Uri gallery = Uri.parse("content://media.test/picture/86");
+        android.graphics.Bitmap made = android.graphics.Bitmap.createBitmap(60, 20, android.graphics.Bitmap.Config.ARGB_8888);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        made.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, png);
+        shadowOf(appContext.getContentResolver()).registerInputStream(gallery, new java.io.ByteArrayInputStream(png.toByteArray()));
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            Preference row = rows.get(indexOfKey(rows, TitleEmojiEditor.TITLE_KEY) + 1);
+            assertEquals(HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW, row.getKey());
+            assertEquals("Chat list banner", String.valueOf(row.getTitle()));
+            assertEquals("None. Tap to pick colors or a picture.", String.valueOf(row.getSummary()));
+            assertFalse("it stores nothing itself", row.isPersistent());
+
+            AlertDialog choice = dialogOf(row);
+            assertEquals("Chat list banner", String.valueOf(shadowOf(choice).getTitle()));
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choice.getListView().getCount(); i++) labels.add(String.valueOf(choice.getListView().getItemAtPosition(i)));
+            assertEquals(java.util.Arrays.asList("None", "Dusk", "Ocean", "Forest", "Ember", "Slate", "Picture from your gallery"), labels);
+            assertEquals("none is checked", 0, choice.getListView().getCheckedItemPosition());
+            Button swap = choice.getButton(AlertDialog.BUTTON_POSITIVE);
+            assertTrue("no picture yet, so nothing to swap", swap == null || swap.getVisibility() != View.VISIBLE);
+            shadowOf(choice).clickOnItem(2);
+            settle();
+            settle();
+            assertFalse(choice.isShowing());
+            assertEquals("ocean", Settings.CHAT_LIST_BANNER.savedValue());
+            assertEquals("Ocean", String.valueOf(row.getSummary()));
+
+            choice = dialogOf(row);
+            assertEquals("the saved one is checked", 2, choice.getListView().getCheckedItemPosition());
+            shadowOf(choice).clickOnItem(6);
+            settle();
+            ShadowActivity.IntentForResult picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals(HushTelegramPreferenceFragment.CHAT_LIST_BANNER_REQUEST, picker.requestCode);
+            assertEquals(Intent.ACTION_GET_CONTENT, picker.intent.getAction());
+            assertEquals("the gradient stays until a picture lands", "ocean", Settings.CHAT_LIST_BANNER.savedValue());
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_OK, new Intent().setData(gallery));
+            settle();
+            settle();
+            assertTrue(SavedPicture.present(appContext, SavedPicture.CHAT_LIST_BANNER));
+            assertFalse("the lists' picture is a separate file", SavedPicture.present(appContext, SavedPicture.LIST_BACKGROUND));
+            assertEquals(ChatListBanner.PICTURE, Settings.CHAT_LIST_BANNER.savedValue());
+            assertEquals("Banner picture saved.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Your picture", String.valueOf(row.getSummary()));
+
+            choice = dialogOf(row);
+            assertEquals(6, choice.getListView().getCheckedItemPosition());
+            assertEquals("Choose another picture", String.valueOf(choice.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            shadowOf(choice).clickOnItem(0);
+            settle();
+            assertFalse(choice.isShowing());
+            assertFalse(SavedPicture.present(appContext, SavedPicture.CHAT_LIST_BANNER));
+            assertEquals(ChatListBanner.NONE, Settings.CHAT_LIST_BANNER.savedValue());
+            assertEquals("Banner removed.", ShadowToast.getTextOfLatestToast());
+            assertEquals("None. Tap to pick colors or a picture.", String.valueOf(row.getSummary()));
+        } finally {
+            SavedPicture.remove(appContext, SavedPicture.CHAT_LIST_BANNER);
+            Settings.CHAT_LIST_BANNER.resetToDefault();
+        }
+    }
+
     @Test
     public void aListThatIsTooLongOrHasALongLineIsSaid() {
         StringBuilder many = new StringBuilder();
@@ -2792,6 +3706,25 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals(null, page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key));
             assertEquals(null, page.findPreference(Settings.KEEP_ALIVE_RUNNING.key));
             assertFalse(sections(page).contains("Notifications"));
+        }
+    }
+
+    @Test
+    public void theTypedMessageAndJoinQuestionsShowOnlyWhenTheirHooksWerePatchedIn() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.ASK_BEFORE_STICKER);
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.ASK_BEFORE_STICKER.key));
+            assertNotNull(page.findPreference(Settings.ASK_BEFORE_ROUND_VIDEO.key));
+            assertEquals(null, page.findPreference(Settings.ASK_BEFORE_MESSAGE.key));
+            assertEquals(null, page.findPreference(Settings.ASK_BEFORE_JOIN.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.ASK_TEXT, PatchFamily.Capability.ASK_JOIN);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.ASK_BEFORE_MESSAGE.key));
+            assertNotNull(page.findPreference(Settings.ASK_BEFORE_JOIN.key));
         }
     }
 

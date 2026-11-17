@@ -2,7 +2,7 @@ package app.template.patches.gpsmapcamera.misc.license
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_GPSMAPCAMERA
 
 private const val LICENSE_CLIENT = "Lcom/pairip/licensecheck/LicenseClient;"

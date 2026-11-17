@@ -7,11 +7,14 @@ import app.fakh.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -263,7 +266,7 @@ private val APP_THEMES = listOf("VoyagerAppTheme.Mercado", "VoyagerAppTheme.Merc
 private const val CONTAINER_COLOR = "@color/mercado_mvp_color_background_container"
 
 /** Accent resource colors: XML layouts and the View based screens. */
-private val materialYouResourcePatch = resourcePatch {
+private val materialYouResourcePatch = patch {
     execute {
         val colors = mutableMapOf<String, String>()
         for ((tone, accent) in ACCENT_SHADES) {
@@ -301,7 +304,7 @@ private val NOTIFICATION_BADGES = listOf(
 )
 
 /** Background resource colors, and the theme attributes that use a generic white or gray as a background. */
-private val materialYouBackgroundsResourcePatch = resourcePatch {
+private val materialYouBackgroundsResourcePatch = patch {
     execute {
         // A window background that "Hide gaps and dividers" already gave the card color keeps it.
         val surfaces = editThemeItems { style, item, current ->
@@ -321,7 +324,7 @@ private val materialYouBackgroundsResourcePatch = resourcePatch {
 }
 
 /** Gives the window and list backgrounds, which show through the gaps of server drawn lists, the card color. */
-private val removeGapsResourcePatch = resourcePatch {
+private val removeGapsResourcePatch = patch {
     execute {
         val windows = editThemeItems { style, item, _ ->
             if (style == "VoyagerAppTheme.Mercado" && item in GAP_ATTRIBUTES) CONTAINER_COLOR
@@ -343,7 +346,7 @@ private val removeGapsResourcePatch = resourcePatch {
         // Layouts are decoded on demand, so decode them all before reading them from disk.
         decode("res/layout*/*.xml").filter { path ->
             // Parse only layouts with a candidate view, most have none.
-            GAP_VIEW_TAG.findAll(get(path).readText()).any { it.isGapView { value -> dp(value, 0) } }
+            GAP_VIEW_TAG.findAll(resourceFile(path).readText()).any { it.isGapView { value -> dp(value, 0) } }
         }.forEach { path ->
             document(path).use { document ->
                 val all = document.getElementsByTagName("*")
@@ -379,7 +382,7 @@ private fun MatchResult.isGapView(dp: (String) -> Float?): Boolean {
  * Sets every theme item for which [value] (style name, item name, current value) returns a value, in
  * res/values/styles.xml. Returns how many items were set.
  */
-private fun ResourcePatchContext.editThemeItems(value: (String, String, String) -> String?): Int {
+private fun editThemeItems(value: (String, String, String) -> String?): Int {
     var edited = 0
     document("res/values/styles.xml").use { document ->
         val styles = document.getElementsByTagName("style")
@@ -398,7 +401,7 @@ private fun ResourcePatchContext.editThemeItems(value: (String, String, String) 
 }
 
 /** Adds the item [name] with [value] to the style [style] in res/values/styles.xml. */
-private fun ResourcePatchContext.addThemeItem(style: String, name: String, value: String) {
+private fun addThemeItem(style: String, name: String, value: String) {
     document("res/values/styles.xml").use { document ->
         val styles = document.getElementsByTagName("style")
         val element = (0 until styles.length).map { styles.item(it) as Element }
@@ -414,8 +417,8 @@ private fun ResourcePatchContext.addThemeItem(style: String, name: String, value
  * Sets [colors] (resource name to system color) in the directory's colors.xml. Entries are merged into the file
  * LinkedIn may already have, so its other colors stay and no name is defined twice.
  */
-private fun ResourcePatchContext.writeColors(directory: String, colors: Map<String, String>) {
-    val file = get("res").resolve(directory).resolve("colors.xml")
+private fun writeColors(directory: String, colors: Map<String, String>) {
+    val file = resourceFile("res").resolve(directory).resolve("colors.xml")
     if (!file.exists()) {
         file.parentFile.mkdirs()
         file.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n")
@@ -518,7 +521,7 @@ private val MVP_GETTERS = mapOf(
  * Hooks that both "Hide gaps and dividers" and "Material You" need: the Mercado MVP canvas and container, and
  * the raw and base palette colors of server drawn screens. Each hook checks both settings.
  */
-private val sharedColorsPatch = bytecodePatch {
+private val sharedColorsPatch = patch {
     dependsOn(settingsPatch)
 
     execute {
@@ -580,14 +583,14 @@ private const val STREAK_CARD = "Lcom/linkedin/android/profile/components/games/
 private const val THEME_MANAGER = "Lcom/linkedin/android/infra/ui/theme/ThemeManager;"
 
 /** The class with type [type]. */
-private fun BytecodePatchContext.mutableClass(type: String): MutableClass =
+private fun mutableClass(type: String): MutableClass =
     mutableClassDefByOrNull(type) ?: throw PatchException("$type not found")
 
 /**
  * In the methods of [type] named [method] (every method when null), adds [smali] (for the result register) after
  * each wide result of a call to a method named [called]. Returns how many calls were found.
  */
-private fun BytecodePatchContext.afterCallResults(
+private fun afterCallResults(
     type: String,
     method: String?,
     called: String,
@@ -620,7 +623,7 @@ private fun Instruction.isNavigationBarColorCall() =
     ((this as ReferenceInstruction).reference as MethodReference).name == "setNavigationBarColor"
 
 /** The Compose theme classes that have a static initializer. */
-private fun BytecodePatchContext.composeThemes(): List<MutableClass> {
+private fun composeThemes(): List<MutableClass> {
     val themes = mutableListOf<MutableClass>()
     classDefForEach { classDef ->
         if (COMPOSE_THEME_PACKAGES.any { classDef.type.startsWith(it) } &&
@@ -680,7 +683,7 @@ private fun MutableClass.mapColorConstants(colors: Set<Long>, method: String): I
 }
 
 @Suppress("unused")
-val removeGapsAndDividersPatch = bytecodePatch(
+val removeGapsAndDividersPatch = patch(
     name = "Hide gaps and dividers",
     description = "Removes the gray gaps between posts and the dividers between list items, so the feed and " +
         "lists are one flat surface.",
@@ -720,7 +723,7 @@ val removeGapsAndDividersPatch = bytecodePatch(
  * The runtime color hooks of the Compose themes, the server drawn screens and the system bars, which "Material You"
  * and "Pitch black" both use. Each hook checks the settings of the patches that are included.
  */
-private val colorHooksPatch = bytecodePatch {
+private val colorHooksPatch = patch {
     dependsOn(settingsPatch, sharedColorsPatch)
 
     execute {
@@ -852,7 +855,7 @@ private val colorHooksPatch = bytecodePatch {
 }
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch = patch(
     name = "Material You",
     description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
         "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
@@ -902,14 +905,14 @@ private val AMOLED_COLORS = listOf(
  * `notlong` on their own, so the extension forces it per activity: `notlong` while Pitch black is on, `long` while
  * it is off, and the black colors of bars and screens follow the switch.
  */
-private val amoledResourcePatch = resourcePatch {
+private val amoledResourcePatch = patch {
     execute {
         writeColors("values-notlong-night", AMOLED_COLORS.flatMap { (hex, names) -> names.map { it to hex } }.toMap())
     }
 }
 
 @Suppress("unused")
-val amoledBlackPatch = bytecodePatch(
+val amoledBlackPatch = patch(
     name = "Pitch black",
     description = "Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter " +
         "black. Takes effect when the system is in dark mode. Works with or without Material You.",

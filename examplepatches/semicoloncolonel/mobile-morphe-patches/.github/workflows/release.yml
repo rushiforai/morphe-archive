@@ -12,6 +12,8 @@ jobs:
     name: Release
     permissions:
       contents: write
+      # Lets semantic-release open an issue when a release fails.
+      issues: write
       packages: write
       id-token: write
       attestations: write
@@ -54,6 +56,13 @@ jobs:
       # Semantic release runs its own Gradle build, which signs the bundle with
       # MORPHE_SIGNING_KEY. A separate build before it would leave a second .mpp
       # with the old version number in patches/build/libs.
+      #
+      # Android TV source, two repository variables (see .github/TV_SOURCE_LAUNCH.md):
+      #   TV_SOURCE          set to semicoloncolonel/tv-morphe-patches, the steps
+      #                      after Attest publish the Android TV bundle there.
+      #   PHONE_ONLY_BUNDLE  set to true, main releases build the phone-only
+      #                      bundle too. dev releases always do. Until then main
+      #                      stays combined, so TV users can move over gradually.
       - name: Release
         uses: cycjimmy/semantic-release-action@v8
         id: release
@@ -62,8 +71,15 @@ jobs:
         with:
           semantic_version: 25
         env:
+          # Gradle reads GITHUB_TOKEN for the Morphe plugin on GitHub Packages.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # semantic-release pushes, tags, and releases with GH_TOKEN, which it
+          # prefers over GITHUB_TOKEN. RELEASE_TOKEN is a personal token with the
+          # repo scope, used when GitHub refuses the built-in token's push.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+          # dev releases are phone-only. main stays combined until 1.1.
+          ORG_GRADLE_PROJECT_flavor: ${{ (github.ref_name == 'dev' || vars.PHONE_ONLY_BUNDLE == 'true') && 'phone' || 'all' }}
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
@@ -72,8 +88,50 @@ jobs:
           subject-name: 'Mobile Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
+      # Runs after Attest, because the clean removes the phone bundle.
+      - name: Build the Android TV bundle
+        id: tv
+        if: vars.TV_SOURCE != '' && steps.release.outputs.new_release_published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+        run: |
+          mkdir -p build/tv
+          # The list is read from the JVM bundle, so it is written before the dex build.
+          ./gradlew :patches:clean :patches:generatePatchesList -Pflavor=tv "-PpatchesList=$PWD/build/tv/patches-list.json"
+          ./gradlew :patches:buildAndroid -Pflavor=tv
+          cp "patches/build/libs/patches-$VERSION.mpp" "build/tv/patches-$VERSION.mpp"
+
+      - name: Attest the Android TV bundle
+        if: steps.tv.outcome == 'success'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'TV Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: build/tv/patches-*.mpp
+
+      # Publishes only when a file the TV bundle is built from changed since the
+      # last TV release on this branch. The token needs write access to the TV
+      # repository's contents and issues, and the workflow scope when its
+      # workflow files change: TV_SOURCE_TOKEN, or RELEASE_TOKEN without it.
+      - name: Publish the Android TV bundle
+        if: steps.tv.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.TV_SOURCE_TOKEN || secrets.RELEASE_TOKEN }}
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+        run: >
+          python3 .github/scripts/publish_tv_bundle.py
+          --repo "${{ vars.TV_SOURCE }}"
+          --branch "${{ github.ref_name }}"
+          --version "$VERSION"
+          --mpp "build/tv/patches-$VERSION.mpp"
+          --patches-list build/tv/patches-list.json
+
       - name: Verify project compiles
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew clean :patches:buildAndroid
+        run: |
+          ./gradlew clean :patches:buildAndroid
+          ./gradlew :patches:compileKotlin -Pflavor=phone
+          ./gradlew :patches:compileKotlin -Pflavor=tv

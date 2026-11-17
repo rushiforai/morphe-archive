@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Before;
@@ -167,7 +168,10 @@ public class FeedSeekBarTest {
         Settings.FEED_SEEK_BAR_LOOK.resetToDefault();
         Settings.FEED_SEEK_BAR_ON_EDGE.resetToDefault();
         Settings.SEEK_BAR_SHAPE.resetToDefault();
+        Settings.FEED_SEEK_SHAPE.resetToDefault();
         Settings.SEEK_PREVIEW.resetToDefault();
+        Settings.FEED_SEEK_TIME.resetToDefault();
+        Settings.FEED_SEEK_TIME_LEFT.resetToDefault();
         HookStatus.clear();
     }
 
@@ -176,7 +180,10 @@ public class FeedSeekBarTest {
         FeedSeekBar.resetForTests();
         SeekPreview.resetForTests();
         Settings.SEEK_BAR_SHAPE.resetToDefault();
+        Settings.FEED_SEEK_SHAPE.resetToDefault();
         Settings.SEEK_PREVIEW.resetToDefault();
+        Settings.FEED_SEEK_TIME.resetToDefault();
+        Settings.FEED_SEEK_TIME_LEFT.resetToDefault();
         TabSwipe.forgetForTests();
         Settings.FEED_SEEK_BAR.resetToDefault();
         Settings.FEED_SEEK_BUTTON.resetToDefault();
@@ -653,6 +660,131 @@ public class FeedSeekBarTest {
         tick();
         assertEquals(Math.round(FeedSeekBar.EDGE_TALL_DP * density), bar.getLayoutParams().height);
         assertTrue(((SeekShapeDrawable) bar.getProgressDrawable()).draws(SeekShape.WAVE, true));
+    }
+
+    /** #567: Feed seek bar shape gives feed videos a thin line while every other bar stays standard, and Same follows it again. */
+    @Test
+    public void theFeedKeepsAShapeOfItsOwn() {
+        Settings.FEED_SEEK_BAR.save(true);
+        assertEquals(FeedSeekShape.SAME, Settings.FEED_SEEK_SHAPE.defaultValue);
+        Settings.FEED_SEEK_SHAPE.save(FeedSeekShape.LINE);
+        FeedSeekBar.progress(player, 3000, 15000);
+        tick();
+        SeekBar bar = bar();
+        float density = bar.getResources().getDisplayMetrics().density;
+        assertEquals(SeekShape.STANDARD, Settings.SEEK_BAR_SHAPE.get());
+        assertEquals("reels and stories keep the standard bar", SeekShape.STANDARD, SeekShapes.wanted());
+        assertTrue(((SeekShapeDrawable) bar.getProgressDrawable()).draws(SeekShape.LINE, true));
+        assertEquals("the line lies on the edge", Math.round(FeedSeekBar.EDGE_MIN_DP * density), bar.getLayoutParams().height);
+
+        Settings.FEED_SEEK_SHAPE.save(FeedSeekShape.SAME);
+        Settings.SEEK_BAR_SHAPE.save(SeekShape.ROUNDED);
+        FeedSeekBar.progress(player, 4000, 15000);
+        tick();
+        assertTrue("Same follows Seek bar shape", ((SeekShapeDrawable) bar.getProgressDrawable()).draws(SeekShape.ROUNDED, false));
+        assertEquals(Math.round(FeedSeekBar.HEIGHT_DP * density), bar.getLayoutParams().height);
+
+        Settings.FEED_SEEK_SHAPE.save(FeedSeekShape.STANDARD);
+        FeedSeekBar.progress(player, 5000, 15000);
+        tick();
+        assertFalse("Standard for the feed alone", bar.getProgressDrawable() instanceof SeekShapeDrawable);
+        assertEquals(SeekShape.ROUNDED, SeekShapes.wanted());
+    }
+
+    /**
+     * #711: Time on the seek bar puts the time played and the length over the bar's middle, follows the
+     * video and a drag, flips to the time left with a tap, and goes with the bar or its switch.
+     */
+    @Test
+    public void theTimeSitsOverTheBarAndATapShowsWhatsLeft() {
+        assertEquals(Boolean.FALSE, Settings.FEED_SEEK_TIME.defaultValue);
+        assertEquals(Boolean.FALSE, Settings.FEED_SEEK_TIME_LEFT.defaultValue);
+        assertEquals(Settings.FEED_SEEK_TIME, Settings.FEED_SEEK_TIME_LEFT.getParentSettings().get(0));
+        assertFalse(Settings.FEED_SEEK_TIME.rebootApp);
+        Settings.FEED_SEEK_BAR.save(true);
+        FeedSeekBar.progress(player, 3000, 15000);
+        tick();
+        SeekBar bar = bar();
+        int children = first.getChildCount();
+        assertNull("off to start", FeedSeekBar.timeForTests());
+        assertNull(FeedSeekBar.shownTime());
+
+        Settings.FEED_SEEK_TIME.save(true);
+        FeedSeekBar.progress(player, 3000, 15000);
+        TextView time = FeedSeekBar.timeForTests();
+        assertNotNull(time);
+        assertSame(first, time.getParent());
+        assertEquals(children + 1, first.getChildCount());
+        assertTrue("over the bar", first.indexOfChild(time) > first.indexOfChild(bar));
+        assertEquals("0:03 / 0:15", time.getText().toString());
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) time.getLayoutParams();
+        assertEquals(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+        float density = bar.getResources().getDisplayMetrics().density;
+        assertEquals(bar.getLayoutParams().height + Math.round(FeedSeekBar.TIME_GAP_DP * density), params.bottomMargin);
+        idle();
+        assertSame(time, FeedSeekBar.shownTime());
+
+        FeedSeekBar.progress(player, 4000, 15000);
+        assertEquals("it follows the video", "0:04 / 0:15", time.getText().toString());
+        assertTrue(time.performClick());
+        assertTrue(Settings.FEED_SEEK_TIME_LEFT.get());
+        assertEquals("a tap shows what's left", "-0:11 / 0:15", time.getText().toString());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains("Counted: " + FeedSeekBar.COUNT_TIME_FLIPS + " 1"));
+
+        SeekBar.OnSeekBarChangeListener listener = shadowOf(bar).getOnSeekBarChangeListener();
+        new Listener(bar).start();
+        bar.setProgress(9000);
+        listener.onProgressChanged(bar, 9000, true);
+        assertEquals("it follows a drag", "-0:06 / 0:15", time.getText().toString());
+        FeedSeekBar.progress(player, 4000, 15000);
+        assertEquals("and the finger beats the paused video", "-0:06 / 0:15", time.getText().toString());
+        new Listener(bar).stop();
+        assertTrue(time.performClick());
+        assertFalse(Settings.FEED_SEEK_TIME_LEFT.get());
+        assertEquals("0:09 / 0:15", time.getText().toString());
+
+        Settings.FEED_SEEK_BAR.save(false);
+        tick();
+        assertNull("it goes with the bar", FeedSeekBar.shownTime());
+        assertNull(time.getParent());
+
+        Settings.FEED_SEEK_BAR.save(true);
+        tick();
+        assertNotNull("and comes back with it", FeedSeekBar.timeForTests());
+        Settings.FEED_SEEK_TIME.save(false);
+        tick();
+        assertNull("its switch off takes it away", FeedSeekBar.timeForTests());
+        assertEquals(children, first.getChildCount());
+    }
+
+    /** #711: the time reads as the reels' does, the end counted as the end, and an hour or more gets its own place. */
+    @Test
+    public void theTimeReadsPlayedOrLeftOverTheLength() {
+        assertEquals("0:03 / 0:15", FeedSeekBar.timeText(3000, 15000, false));
+        assertEquals("-0:12 / 0:15", FeedSeekBar.timeText(3000, 15000, true));
+        assertEquals("0:15 / 0:15", FeedSeekBar.timeText(16000, 15000, false));
+        assertEquals("-0:00 / 0:15", FeedSeekBar.timeText(16000, 15000, true));
+        assertEquals("0:00 / 0:15", FeedSeekBar.timeText(-500, 15000, false));
+        assertEquals("1:05 / 1:02:05", FeedSeekBar.timeText(65000, 3725000, false));
+    }
+
+    /** #711: HushGram paused, the time goes with the bar, and nothing flips. */
+    @Test
+    public void aPauseTakesTheTimeAwayToo() {
+        Settings.FEED_SEEK_BAR.save(true);
+        Settings.FEED_SEEK_TIME.save(true);
+        FeedSeekBar.progress(player, 3000, 15000);
+        TextView time = FeedSeekBar.timeForTests();
+        assertNotNull(time);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        tick();
+        assertNull(FeedSeekBar.timeForTests());
+        assertNull(time.getParent());
+        time.performClick();
+        assertFalse(Settings.FEED_SEEK_TIME_LEFT.savedValue());
     }
 
     /** #567: dragging shows the time above the finger; the player moving on its own doesn't. */

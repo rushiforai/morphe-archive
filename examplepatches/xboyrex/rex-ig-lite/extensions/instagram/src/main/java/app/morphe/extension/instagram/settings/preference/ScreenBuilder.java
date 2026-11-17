@@ -9,6 +9,7 @@ package app.morphe.extension.instagram.settings.preference;
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -35,6 +36,7 @@ import app.morphe.extension.instagram.settings.preference.widgets.ButtonPref;
 import app.morphe.extension.instagram.settings.preference.widgets.CategoryPref;
 import app.morphe.extension.instagram.settings.preference.widgets.DownloadButtonPreference;
 import app.morphe.extension.instagram.settings.preference.widgets.FocusLockDurationPreference;
+import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
 import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
 import app.morphe.extension.instagram.theme.MaterialYouTheme;
 import app.morphe.extension.instagram.utils.Pref;
@@ -100,6 +102,32 @@ public class ScreenBuilder {
             buildInstantsSection();
         } else if (Constants.REX_FRAGMENT_FONT.equals(fragmentName)) {
             buildFontSection();
+        }
+        assignCardGroupPositions(screen, fragmentName);
+    }
+
+    public static void assignCardGroupPositions(PreferenceScreen screen, String fragmentName) {
+        if (screen == null) return;
+        boolean standaloneAll = fragmentName == null || Constants.REX_FRAGMENT_SETTINGS.equals(fragmentName);
+        int topCount = screen.getPreferenceCount();
+        for (int i = 0; i < topCount; i++) {
+            Preference item = screen.getPreference(i);
+            if (item instanceof PreferenceCategory) {
+                PreferenceCategory cat = (PreferenceCategory) item;
+                int childCount = cat.getPreferenceCount();
+                for (int j = 0; j < childCount; j++) {
+                    Preference child = cat.getPreference(j);
+                    Bundle extras = child.getExtras();
+                    extras.putBoolean(InstagramPreferenceStyle.EXTRA_CARD_FIRST, standaloneAll || j == 0);
+                    extras.putBoolean(InstagramPreferenceStyle.EXTRA_CARD_LAST, standaloneAll || j == childCount - 1);
+                }
+            } else if (item != null) {
+                boolean isFirst = standaloneAll || i == 0 || (screen.getPreference(i - 1) instanceof PreferenceCategory);
+                boolean isLast = standaloneAll || i == topCount - 1 || (screen.getPreference(i + 1) instanceof PreferenceCategory);
+                Bundle extras = item.getExtras();
+                extras.putBoolean(InstagramPreferenceStyle.EXTRA_CARD_FIRST, isFirst);
+                extras.putBoolean(InstagramPreferenceStyle.EXTRA_CARD_LAST, isLast);
+            }
         }
     }
 
@@ -183,44 +211,28 @@ public class ScreenBuilder {
                 Constants.REX_FRAGMENT_DEV_OPTIONS
         ));
         addPreference(helper.categoryPreference(
-                "About xboyrex",
-                "SakuraTunes Liquid Glass About, Developer Links, Changelogs & Backup/Restore",
+                "About Rex IG Lite",
+                "by xboyrex • About, Developer Links, Changelogs & Backup/Restore",
                 Constants.REX_FRAGMENT_ABOUT
         ));
     }
 
     public void ghostSection() {
-        PreferenceCategory catMaster = addCategory("Master Switch");
-        addPreference(catMaster, helper.switchPreference(
-                "Turn On All Ghost Modes",
-                "Enable all stealth privacy switches with a single tap",
-                Settings.TURN_ON_ALL_GHOST_MODES
-        ));
-
-        PreferenceCategory catChat = addCategory("Direct Messages & Chat");
+        PreferenceCategory catChat = addCategory("Ghost Mode Controls");
         addPreference(catChat, helper.switchPreference(
-                "Hide Message Seen",
-                "Read Direct Messages without sending read receipts",
-                Settings.VIEW_DM_ANONYMOUSLY
-        ));
-        addPreference(catChat, helper.availableWhen(
-                helper.switchPreference(
-                        "Mark as Read Only After Reply",
-                        "Automatically mark chat as read when you send a reply",
-                        Settings.MARK_AS_READ_AFTER_REPLY
-                ),
-                () -> SharedPref.getBooleanPref(Settings.VIEW_DM_ANONYMOUSLY)
-                        || SharedPref.getBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES)
-        ));
-        addPreference(catChat, helper.switchPreference(
-                "Hide Typing Status",
-                "Prevent others from seeing 'Typing...' in Direct Messages",
+                "Hide Typing in DM",
+                "Hide typing indicator while chatting",
                 Settings.DISABLE_TYPING_STATUS
         ));
         addPreference(catChat, helper.switchPreference(
-                "Hide Screenshot Detection",
-                "Take screenshots in DM threads and vanish mode without notifying the sender",
-                Settings.DISABLE_SCREENSHOT_DETECTION
+                "Hide View Stories",
+                "Hide your name from story viewers",
+                Settings.VIEW_STORIES_ANONYMOUSLY
+        ));
+        addPreference(catChat, helper.switchPreference(
+                "Hide Live Viewing",
+                "Hide your name when watching live videos",
+                Settings.VIEW_LIVE_ANONYMOUSLY
         ));
         addPreference(catChat, helper.switchPreference(
                 "Hide View Once Seen",
@@ -228,31 +240,60 @@ public class ScreenBuilder {
                 Settings.HIDE_VIEW_ONCE_SEEN
         ));
         addPreference(catChat, helper.switchPreference(
+                "Hide Screenshot",
+                "Prevent others from detecting screenshots",
+                Settings.DISABLE_SCREENSHOT_DETECTION
+        ));
+        addPreference(catChat, helper.switchPreference(
                 "Unlimited Replays on View Once Media",
-                "Keep ephemeral photos and videos replayable forever",
+                "Hide replay status when viewing one-time media again",
                 Settings.UNLIMITED_REPLAYS
+        ));
+        addPreference(catChat, helper.switchPreference(
+                "Hide Message Seen in DM",
+                "Hide read receipts in direct messages",
+                Settings.VIEW_DM_ANONYMOUSLY
+        ));
+        addPreference(catChat, helper.availableWhen(
+                helper.switchPreference(
+                        "Mark As Read After Reply",
+                        "Automatically send seen after you reply while Hide Message Seen is enabled",
+                        Settings.MARK_AS_READ_AFTER_REPLY
+                ),
+                () -> SharedPref.getBooleanPref(Settings.VIEW_DM_ANONYMOUSLY)
+                        || SharedPref.getBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES)
         ));
         addPreference(catChat, helper.switchPreference(
                 "Ghost Instants (Quicksnap)",
                 "View Quicksnap / Instants media without marking them as opened",
                 Settings.GHOST_INSTANTS
         ));
-
-        PreferenceCategory catFeed = addCategory("Stories, Live & Audio");
-        addPreference(catFeed, helper.switchPreference(
-                "Hide Story Seen",
-                "Watch stories anonymously without appearing in the viewer list",
-                Settings.VIEW_STORIES_ANONYMOUSLY
-        ));
-        addPreference(catFeed, helper.switchPreference(
-                "Hide Live Seen",
-                "Join live broadcasts anonymously without showing in the viewer list",
-                Settings.VIEW_LIVE_ANONYMOUSLY
-        ));
-        addPreference(catFeed, helper.switchPreference(
+        addPreference(catChat, helper.switchPreference(
                 "Hide Voice Message Listen Status",
                 "Listen to voice notes in Direct Messages without sending a played receipt",
                 Settings.HIDE_AUDIO_SEEN
+        ));
+        addPreference(catChat, helper.switchPreference(
+                "Turn On All Ghost Modes",
+                "Master stealth override for all Ghost Mode hooks",
+                Settings.TURN_ON_ALL_GHOST_MODES
+        ));
+        addPreference(catChat, helper.buttonPreference(
+                "Last Active Timestamp Format",
+                SharedPref.getStringPref(Settings.LAST_ACTIVE_FORMAT),
+                "rex_last_active_format_btn"
+        ));
+
+        PreferenceCategory catMaster = addCategory("Bulk Actions");
+        addPreference(catMaster, helper.buttonPreference(
+                "Enable All Ghost Features",
+                "Turn on all ghost mode features at once",
+                "rex_enable_all_ghost"
+        ));
+        addPreference(catMaster, helper.buttonPreference(
+                "Disable All Ghost Features",
+                "Turn off all ghost mode features at once",
+                "rex_disable_all_ghost"
         ));
     }
 
@@ -291,7 +332,7 @@ public class ScreenBuilder {
         ));
         addPreference(catAds, helper.switchPreference(
                 "Hide Reels & Stories Ad Pods",
-                "Strip multi-ad pod chains and netego commercial reels",
+                "Strip multi-ad pod chains and sponsored commercial reels",
                 Settings.HIDE_REELS_AND_STORIES_AD_PODS
         ));
         addPreference(catAds, helper.switchPreference(
@@ -340,6 +381,29 @@ public class ScreenBuilder {
                         Settings.HIDDEN_CHATS_TAPS
                 ),
                 () -> SharedPref.getBooleanPref(Settings.HIDDEN_CHATS)
+        ));
+        addPreference(catLock, helper.buttonPreference(
+                "Set Passcode Lock to Hide Chat",
+                "Configure 4-digit PIN passcode for Hidden Chats and Inbox Lock",
+                "rex_passcode_lock_btn"
+        ));
+        addPreference(catLock, helper.buttonPreference(
+                "Show All Hidden Chats",
+                "View and unhide conversations currently stored in your Hidden Chats Vault",
+                "rex_hidden_chats_list_btn"
+        ));
+        addPreference(catLock, helper.switchPreference(
+                "Private Screen Dimmer Mode",
+                "Apply a privacy screen dimmer overlay to prevent shoulder-surfing",
+                Settings.PRIVATE_SCREEN_MODE
+        ));
+        addPreference(catLock, helper.availableWhen(
+                helper.buttonPreference(
+                        "Private Screen Opacity",
+                        "Adjust privacy screen dimmer opacity (" + SharedPref.getStringPref(Settings.PRIVATE_SCREEN_OPACITY) + "%)",
+                        "rex_private_screen_opacity_btn"
+                ),
+                () -> SharedPref.getBooleanPref(Settings.PRIVATE_SCREEN_MODE)
         ));
         addPreference(catLock, helper.switchPreference(
                 "Restore APK Trust & Signature Spoof",
@@ -486,8 +550,8 @@ public class ScreenBuilder {
                 Settings.UPLOAD_60FPS_STORIES
         ));
         addPreference(catQuality, helper.switchPreference(
-                "Remove 60s Story Duration Limit",
-                "Allow uploading longer story segments without forced 15s/60s clipping",
+                "Extend Story Duration to 3 Minutes (180s)",
+                "Allow uploading up to 180s (3-minute) story segments instead of 60s clipping",
                 Settings.EXTENDED_STORY_DURATION
         ));
     }
@@ -535,13 +599,18 @@ public class ScreenBuilder {
         ));
         addPreference(catChat, helper.buttonPreference(
                 "Choose Chat Background Color",
-                "Pick from 7 curated AMOLED & Liquid Glass presets",
+                "Pick from 7 curated AMOLED & Gaussian Blur presets",
                 "rex_chat_wallpaper_picker"
         ));
 
         PreferenceCategory catBars = addCategory("Top Action Bar, Bottom Nav & Floating Toolbar");
         addPreference(catBars, helper.buttonPreference(
-                "Top Action Bar Icons (⬡ & Eye)",
+                "Quick Access Sheet",
+                "Open the Rex IG Lite Quick Access sheet (also accessible by holding the Home button)",
+                "rex_quick_access_sheet"
+        ));
+        addPreference(catBars, helper.buttonPreference(
+                "Top Action Bar Icons",
                 "Configure which xboyrex icons appear on Home, Profile, Inbox & Chat",
                 Constants.REX_FRAGMENT_ACTION_BAR
         ));
@@ -553,7 +622,7 @@ public class ScreenBuilder {
             ));
         }
         addPreference(catBars, helper.switchPreference(
-                "Reels Floating Top-Right Toolbar (⬡ + ⬇)",
+                "Reels Floating Top-Right Toolbar",
                 "Show quick xboyrex Options and Download buttons at top-right of Reels",
                 Settings.REELS_FLOATING_TOOLBAR
         ));
@@ -562,15 +631,33 @@ public class ScreenBuilder {
                 "Reclaim bottom padding under the navigation bar on gesture nav devices",
                 Settings.REMOVE_EMPTY_BOTTOM_SPACE
         ));
+        addPreference(catTheme, helper.buttonPreference(
+                "Choose Emoji Type",
+                SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE),
+                "rex_emoji_type_btn"
+        ));
+        addPreference(catTheme, helper.buttonPreference(
+                "Choose Font Preset",
+                SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE),
+                "rex_font_type_btn"
+        ));
+        addPreference(catTheme, helper.buttonPreference(
+                "Creative Fonts for DMs",
+                "Style and copy Unicode fonts (" + SharedPref.getStringPref(Settings.DM_CREATIVE_FONT_STYLE) + ") for messages",
+                "rex_creative_fonts_btn"
+        ));
         addPreference(catBars, helper.switchPreference(
                 "Story Filters (Hide by Type / Count)",
                 "Filter out specific story types or accounts with too many story slides",
                 Settings.STORY_FILTERS_MASTER
         ));
-        addPreference(catBars, helper.buttonPreference(
-                "Configure Story Filters",
-                "Set story type filters and min/max story count rules",
-                Constants.REX_FRAGMENT_FILTER_CONTENT
+        addPreference(catBars, helper.availableWhen(
+                helper.buttonPreference(
+                        "Configure Story Filters",
+                        "Set story type filters and min/max story count rules",
+                        Constants.REX_FRAGMENT_FILTER_CONTENT
+                ),
+                Pref::storyFiltersMaster
         ));
     }
 
@@ -578,70 +665,88 @@ public class ScreenBuilder {
         if (!SettingsStatus.distractionFreeSection()) return;
 
         if (SettingsStatus.focusLock) {
-            addPreference(helper.buttonPreference(
+            PreferenceCategory focusCat = addCategory("Timed Focus Lock");
+            addPreference(focusCat, helper.buttonPreference(
                     str("rex_focus_lock"),
                     FocusLock.statusSummary(),
                     Constants.REX_FRAGMENT_FOCUS_LOCK
             ));
         }
+        PreferenceCategory surfaceCat = addCategory("Surface & Feed Filters");
         if (SettingsStatus.disableStories) {
-            addLockableSwitch(str("rex_disable_stories"), "", Settings.DISABLE_STORIES);
+            addLockableSwitch(surfaceCat, str("rex_disable_stories"), "", Settings.DISABLE_STORIES);
         }
         if (SettingsStatus.hideStoriesTray) {
-            addLockableSwitch(str("rex_hide_stories_tray"), str("rex_hide_stories_tray_desc"), Settings.HIDE_STORIES_TRAY);
+            addLockableSwitch(surfaceCat, str("rex_hide_stories_tray"), str("rex_hide_stories_tray_desc"), Settings.HIDE_STORIES_TRAY);
         }
         if (SettingsStatus.hideHiddenRequests) {
-            addLockableSwitch(str("rex_hide_hidden_requests"), str("rex_hide_hidden_requests_desc"), Settings.HIDE_HIDDEN_REQUESTS);
+            addLockableSwitch(surfaceCat, str("rex_hide_hidden_requests"), str("rex_hide_hidden_requests_desc"), Settings.HIDE_HIDDEN_REQUESTS);
         }
         if (SettingsStatus.disableHighlights) {
-            addLockableSwitch(str("rex_disable_highlights"), "", Settings.DISABLE_HIGHLIGHTS);
+            addLockableSwitch(surfaceCat, str("rex_disable_highlights"), "", Settings.DISABLE_HIGHLIGHTS);
         }
         if (SettingsStatus.hideNotesTray) {
-            addLockableSwitch(str("rex_hide_notes_tray"), str("rex_hide_notes_tray_desc"), Settings.HIDE_NOTES_TRAY);
+            addLockableSwitch(surfaceCat, str("rex_hide_notes_tray"), str("rex_hide_notes_tray_desc"), Settings.HIDE_NOTES_TRAY);
         }
         if (SettingsStatus.disableExplore) {
-            addLockableSwitch(str("rex_disable_explore"), "", Settings.DISABLE_EXPLORE);
+            addLockableSwitch(surfaceCat, str("rex_disable_explore"), "", Settings.DISABLE_EXPLORE);
         }
         if (SettingsStatus.disableComments) {
-            addLockableSwitch(str("rex_disable_comments"), "", Settings.DISABLE_COMMENTS);
+            addLockableSwitch(surfaceCat, str("rex_disable_comments"), "", Settings.DISABLE_COMMENTS);
         }
         if (SettingsStatus.hideFeedPosts) {
-            addPreference(helper.switchPreference(str("rex_hide_feed_posts"), str("rex_hide_feed_posts_desc"), Settings.HIDE_FEED_POSTS));
+            addPreference(surfaceCat, helper.switchPreference(str("rex_hide_feed_posts"), str("rex_hide_feed_posts_desc"), Settings.HIDE_FEED_POSTS));
         }
         if (SettingsStatus.limitFollowingFeed) {
-            addLockableSwitch(str("rex_limit_following_feed"), str("rex_limit_following_feed_desc"), Settings.LIMIT_FOLLOWING_FEED);
+            addLockableSwitch(surfaceCat, str("rex_limit_following_feed"), str("rex_limit_following_feed_desc"), Settings.LIMIT_FOLLOWING_FEED);
         }
         if (SettingsStatus.disableDiscoverPeople) {
-            addPreference(helper.switchPreference(str("rex_disable_discover_people"), "", Settings.DISABLE_DISCOVER_PEOPLE));
+            addPreference(surfaceCat, helper.switchPreference(str("rex_disable_discover_people"), "", Settings.DISABLE_DISCOVER_PEOPLE));
         }
         if (SettingsStatus.disableReelsScrolling) {
-            addLockableSwitch(str("rex_disable_reels_scrolling"), str("rex_disable_reels_scrolling_desc"), Settings.DISABLE_REELS_SCROLLING);
+            addLockableSwitch(surfaceCat, str("rex_disable_reels_scrolling"), str("rex_disable_reels_scrolling_desc"), Settings.DISABLE_REELS_SCROLLING);
         }
         if (SettingsStatus.disableSwipeToCreate) {
-            addLockableSwitch(str("rex_disable_swipe_to_create"), str("rex_disable_swipe_to_create_desc"), Settings.DISABLE_SWIPE_TO_CREATE);
+            addLockableSwitch(surfaceCat, str("rex_disable_swipe_to_create"), str("rex_disable_swipe_to_create_desc"), Settings.DISABLE_SWIPE_TO_CREATE);
         }
         if (SettingsStatus.hideGroupCreationOnSharesheet) {
-            addLockableSwitch(str("rex_hide_group_creation_button_on_sharesheet"), "", Settings.HIDE_GROUP_CREATION_BUTTON_ON_SHARESHEET);
+            addLockableSwitch(surfaceCat, str("rex_hide_group_creation_button_on_sharesheet"), "", Settings.HIDE_GROUP_CREATION_BUTTON_ON_SHARESHEET);
         }
         if (SettingsStatus.hideReelsFollowButton) {
-            addLockableSwitch(str("rex_hide_reels_follow_button"), str("rex_hide_reels_follow_button_desc"), Settings.HIDE_REELS_FOLLOW_BUTTON);
+            addLockableSwitch(surfaceCat, str("rex_hide_reels_follow_button"), str("rex_hide_reels_follow_button_desc"), Settings.HIDE_REELS_FOLLOW_BUTTON);
         }
         if (SettingsStatus.hideLikes) {
-            addPreference(helper.switchPreference(str("rex_hide_likes"), "", Settings.HIDE_LIKES));
+            addPreference(surfaceCat, helper.switchPreference(str("rex_hide_likes"), "", Settings.HIDE_LIKES));
         }
         if (SettingsStatus.hideShareButton) {
-            addPreference(helper.switchPreference(str("rex_hide_share_button"), "", Settings.HIDE_SHARE_BUTTON));
+            addPreference(surfaceCat, helper.switchPreference(str("rex_hide_share_button"), "", Settings.HIDE_SHARE_BUTTON));
         }
         if (SettingsStatus.hideSaveButtons) {
-            addPreference(helper.multiSelectListPref(str("rex_hide_save_buttons"), "", Settings.HIDE_SAVE_BUTTON_SURFACES));
+            addPreference(surfaceCat, helper.multiSelectListPref(str("rex_hide_save_buttons"), "", Settings.HIDE_SAVE_BUTTON_SURFACES));
         }
         if (SettingsStatus.hideReshareButton) {
-            addPreference(helper.switchPreference(str("rex_hide_reshare_button"), "", Settings.HIDE_RESHARE_BUTTON));
+            addPreference(surfaceCat, helper.switchPreference(str("rex_hide_reshare_button"), "", Settings.HIDE_RESHARE_BUTTON));
         }
+
+        PreferenceCategory bulkCat = addCategory("Bulk Actions");
+        addPreference(bulkCat, helper.buttonPreference(
+                "Block All Distractions",
+                "Block all distracting content at once",
+                "rex_enable_all_distractions"
+        ));
+        addPreference(bulkCat, helper.buttonPreference(
+                "Unblock All Content",
+                "Show all content again",
+                "rex_disable_all_distractions"
+        ));
     }
 
     private void addLockableSwitch(String title, String summary, BooleanSetting setting) {
-        addPreference(helper.forcedSwitchPreference(
+        addLockableSwitch(null, title, summary, setting);
+    }
+
+    private void addLockableSwitch(PreferenceCategory category, String title, String summary, BooleanSetting setting) {
+        addPreference(category, helper.forcedSwitchPreference(
                 title,
                 summary,
                 setting,
@@ -704,7 +809,7 @@ public class ScreenBuilder {
         PreferenceCategory catPost = addCategory("Post, Comment & DM Enhancements");
         addPreference(catPost, helper.switchPreference(
                 "Enable xboyrex Options on Posts",
-                "Add ⬡ xboyrex Options to post menus and UFI bar beside Save",
+                "Add xboyrex Options to post menus and UFI bar beside Save",
                 Settings.ENABLE_MORE_OPTIONS_ON_POST
         ));
         addPreference(catPost, helper.switchPreference(
@@ -754,10 +859,35 @@ public class ScreenBuilder {
                 "Browse recently viewed posts, reels, and profiles",
                 "rex_watch_history_btn"
         ));
+        addPreference(catPost, helper.switchPreference(
+                "Copy Captions Without Hashtags",
+                "Automatically strip #hashtags when copying post or reel captions",
+                Settings.COPY_CAPTION_WITHOUT_HASHTAGS
+        ));
+        addPreference(catPost, helper.switchPreference(
+                "Include Caption When Reposting to WhatsApp",
+                "Attach post caption text automatically when sharing media to WhatsApp",
+                Settings.REPOST_WITH_CAPTION_WA
+        ));
+        addPreference(catPost, helper.buttonPreference(
+                "Choose WhatsApp Target App",
+                SharedPref.getStringPref(Settings.CHOOSE_WHATSAPP_TYPE),
+                "rex_whatsapp_type_btn"
+        ));
+        addPreference(catPost, helper.switchPreference(
+                "Disable Local Watch History Recording",
+                "Pause recording viewed posts and reels in the local Watch History Vault",
+                Settings.DISABLE_WATCH_HISTORY
+        ));
         addPreference(catVaults, helper.buttonPreference(
                 "Long Video Splitter (Stories & Reels)",
-                "Split long MP4 videos into lossless 60-second segments without re-encoding",
+                "Split long MP4 videos into lossless segments (" + SharedPref.getStringPref(Settings.SPLIT_VIDEO_DURATION) + ")",
                 "rex_video_splitter_btn"
+        ));
+        addPreference(catVaults, helper.buttonPreference(
+                "Clear Temporary Media & Cache",
+                "Delete cached repost/download temp files and free storage space",
+                "rex_clear_cache_btn"
         ));
         if (SettingsStatus.instantsDownload) {
             addPreference(catVaults, helper.switchPreference(
@@ -855,6 +985,11 @@ public class ScreenBuilder {
                 str("rex_download_set_path"),
                 StorageUtils.getCustomPathForDisplay(),
                 "rex_download_set_path"
+        ));
+        addPreference(helper.buttonPreference(
+                "Reset Download Path to Default",
+                "Restore default folder (/storage/emulated/0/Download/xboyrex)",
+                "rex_reset_download_path"
         ));
 
         if (SettingsStatus.downloadWithExternalDownloader) {

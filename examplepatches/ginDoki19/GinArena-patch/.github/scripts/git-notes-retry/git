@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Git wrapper that only touches semantic-release's notes push.
+#
+# semantic-release pushes refs/notes/semantic-release-<tag> immediately AFTER it has already
+# created and pushed the release tag and commit. GitHub intermittently rejects that push with
+# a bare "! [remote rejected] ... (failed)". semantic-release treats it as fatal, so the run
+# dies before the "publish" step: the tag exists, the GitHub Release does not, and a plain
+# re-run then finds the tag and publishes nothing.
+#
+# This wrapper retries that one push. Every other git command is passed straight through.
+
+# Find the git subcommand, skipping global options that take a value (-C, -c, --git-dir, ...).
+subcommand() {
+  local skip=0
+  for a in "$@"; do
+    if [ "$skip" -eq 1 ]; then skip=0; continue; fi
+    case "$a" in
+      -C|-c|--git-dir|--work-tree|--namespace|--config-env|-c*) skip=1; continue ;;
+      -*) continue ;;
+      *) printf '%s' "$a"; return 0 ;;
+    esac
+  done
+}
+
+is_notes_push() {
+  [ "$(subcommand "$@")" = "push" ] || return 1
+  local a
+  for a in "$@"; do
+    case "$a" in refs/notes/semantic-release-*) return 0 ;; esac
+  done
+  return 1
+}
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+real_git() {
+  local p
+  while IFS= read -r p; do
+    case "$p" in "$SELF_DIR"/*) continue ;; esac   # never re-enter this wrapper
+    printf '%s\n' "$p"; return 0
+  done < <(type -ap git)
+  return 1
+}
+
+REAL="$(real_git)" || { echo "git-shim: no real git on PATH besides this wrapper" >&2; exit 127; }
+
+if is_notes_push "$@"; then
+  delay=2
+  for attempt in 1 2 3 4 5; do
+    if "$REAL" "$@"; then
+      [ "$attempt" -gt 1 ] && echo "git-shim: notes push succeeded on attempt $attempt" >&2
+      exit 0
+    fi
+    echo "git-shim: notes push rejected (attempt $attempt/5), retrying in ${delay}s" >&2
+    sleep "$delay"
+    delay=$(( delay * 2 ))
+  done
+  echo "git-shim: notes push still rejected after 5 attempts." >&2
+  echo "git-shim: release notes are non-essential (they only record the channel); continuing." >&2
+  exit 0
+fi
+
+exec "$REAL" "$@"

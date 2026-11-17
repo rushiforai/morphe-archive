@@ -6,12 +6,15 @@ package app.morphe.patches.telegram.misc.mymessages
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -82,6 +85,14 @@ val myMessagesPatch = bytecodePatch(
         insertHeaderMenu(site.header.visibility)
         insertHeaderClick(site.header.delegate)
         enableStatus("myMessages")
+        // Admin tools ride the same hooks with their own stubs, and a build they don't fit keeps My messages.
+        try {
+            val admin = resolveAdminTools(site)
+            writeAdminToolsStubs(site, admin)
+            enableCapability("adminTools")
+        } catch (unfit: PatchException) {
+            patchLog.warning("My messages: ${unfit.message}. The patch goes on without Admin tools.")
+        }
     }
 }
 

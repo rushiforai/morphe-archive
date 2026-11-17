@@ -51,7 +51,7 @@ private const val TIMED_IS_OUT = "$MESSAGE_OBJECT->isOut()Z"
 private const val TIMED_IS_SECRET_MEDIA = "$MESSAGE_OBJECT->isSecretMedia()Z"
 private const val TIMED_OWNER = "$MESSAGE_OBJECT->messageOwner:Lorg/telegram/tgnet/TLRPC\$Message;"
 private const val TIMED_DIALOG_ID = "$MESSAGE_OBJECT->getDialogId()J"
-private const val TIMED_IS_ENCRYPTED = "$TIMED_DIALOG_OBJECT->isEncryptedDialog(J)Z"
+internal const val TIMED_IS_ENCRYPTED = "$TIMED_DIALOG_OBJECT->isEncryptedDialog(J)Z"
 internal const val TIMED_HOLD = "$KEEP_TIMED_MEDIA->hold(Ljava/lang/Object;)Z"
 internal const val TIMED_KEEP_STORED = "$KEEP_TIMED_MEDIA->keepStored(J)Z"
 /** What emptying a chat's expired media reads back first, the start of a query R8 builds piece by piece. */

@@ -171,6 +171,12 @@ STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS = (
     "794a3a68bb32005fbebb62452bc472a305cad112",
     "f39d702feea1ced9f7c157a37417d0ec58f69a82",
 )
+# Stable 2.3.0 has the same reviewed constructor/gate conflict as dev.1.
+STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS = (
+    "9fb14c32594ac97add05a6d50c05e1adccd632af",
+    "794a3a68bb32005fbebb62452bc472a305cad112",
+    "101dfdab5a18ff0ed5466ea76c33a3c4334701c1",
+)
 # Morphe 2.3.0-dev.4 adds one-shot Mobile Web fallback to the Dual client loop.
 STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS = (
     "8d184073a010b28255b1c53ce0f92dd498639514",
@@ -1275,6 +1281,7 @@ def resolve_streaming_data_request_conflict() -> None:
                        STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS):
@@ -1285,6 +1292,7 @@ def resolve_streaming_data_request_conflict() -> None:
             STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS: merge_streaming_data_request_dev2110,
             STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS: merge_streaming_data_request_stable210,
             STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS: merge_streaming_data_request_dev230,
+            STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS: merge_streaming_data_request_dev230,
             STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS: merge_streaming_data_request_dev237,

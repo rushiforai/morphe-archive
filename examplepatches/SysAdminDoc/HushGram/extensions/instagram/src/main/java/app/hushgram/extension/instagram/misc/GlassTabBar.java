@@ -60,6 +60,7 @@ import java.util.WeakHashMap;
 import app.hushgram.extension.instagram.feed.AmbientLight;
 import app.hushgram.extension.instagram.reels.FullScreenBars;
 import app.hushgram.extension.instagram.reels.ReelBlurBars;
+import app.hushgram.extension.instagram.reels.ReelSeekRoom;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.instagram.settings.SettingsStatus;
@@ -291,12 +292,82 @@ public final class GlassTabBar {
      * when the reel runs behind it: the slot, while the slot is kept (#372). With no slot kept, as over a
      * reel opened from a feed post where Instagram hides its bar (#347), the viewer can run down over the
      * navigation bar, where nothing pads it, so the band clears [nav], how far the viewer reaches into
-     * that bar ({@link #intoTheNavigationBar}), and the seek bar stays off the gesture handle (#450). A
-     * viewer that stops at the slot needs no lift.
+     * that bar ({@link #intoTheNavigationBar}), and the seek bar stays off the gesture handle (#450).
+     * Over a kept slot the band also leaves [gap] ({@link #REELS_GAP_DP}) between the seek bar and the
+     * pill, which a viewer that stops at the slot otherwise put right on top of it (#187).
      */
-    static int reelsBandLift(boolean keep, boolean behind, int slot, int nav) {
+    static int reelsBandLift(boolean keep, boolean behind, int slot, int nav, int gap) {
         if (!keep) return Math.max(0, nav);
-        return behind ? Math.max(0, slot) : 0;
+        return (behind ? Math.max(0, slot) : 0) + Math.max(0, gap);
+    }
+
+    /**
+     * The bottom margin a reel's video or cover gets so a reel running behind the pill sits where it would
+     * in a viewer stopped at the [slot] (#450). Instagram centres a reel shorter than its viewer, so a viewer
+     * run down behind the pill put the reel half the slot lower, with that much more black over it. A
+     * FrameLayout moves a centred child up by its whole bottom margin, so the margin is half the slot, cut
+     * to half the [room] the view's [height] leaves in its parent so the reel never rises past the viewer's
+     * top. 0 unless the slot is kept ([keep]), the reel runs behind ([behind]) and the view is centred top
+     * to bottom ([gravity]).
+     */
+    static int reelsMediaMargin(boolean keep, boolean behind, int slot, int room, int height, int gravity) {
+        if (!keep || !behind || slot <= 0 || height <= 0 || room <= 0) return 0;
+        if ((gravity & Gravity.VERTICAL_GRAVITY_MASK) != Gravity.CENTER_VERTICAL) return 0;
+        return Math.max(0, Math.min(slot, room - height)) / 2;
+    }
+
+    /** The class of a reel's video view, which Instagram's reel binder sizes and centres along with its cover. */
+    static final String REEL_VIDEO_LAYOUT = "com.instagram.ui.simplevideolayout.SimpleVideoLayout";
+
+    /**
+     * Puts in [media] each reel video under [view] ({@link #REEL_VIDEO_LAYOUT}) and the views beside it that
+     * Instagram sized with it, its cover: the same parent, the same set height and the same gravity. Doesn't
+     * look inside those.
+     */
+    static void reelMedia(View view, java.util.List<View> media, int depth) {
+        if (depth > 60 || view.getVisibility() == View.GONE) return;
+        if (REEL_VIDEO_LAYOUT.equals(view.getClass().getName())) {
+            media.add(view);
+            if (!(view.getParent() instanceof ViewGroup)
+                    || !(view.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;
+            FrameLayout.LayoutParams video = (FrameLayout.LayoutParams) view.getLayoutParams();
+            ViewGroup parent = (ViewGroup) view.getParent();
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                View sibling = parent.getChildAt(i);
+                if (sibling == view || !(sibling.getLayoutParams() instanceof FrameLayout.LayoutParams)) continue;
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) sibling.getLayoutParams();
+                if (params.height > 0 && params.height == video.height && params.gravity == video.gravity) {
+                    media.add(sibling);
+                }
+            }
+            return;
+        }
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) reelMedia(group.getChildAt(i), media, depth + 1);
+    }
+
+    /**
+     * Gives [view], a reel's video or cover, the bottom margin {@link #reelsMediaMargin} works out for its
+     * parent's room, on top of the margin it had before this gave it one, which [given] remembers. Says
+     * whether that changed it.
+     */
+    static boolean placeReelMedia(View view, boolean keep, boolean behind, int slot, Map<View, Integer> given) {
+        if (!(view.getLayoutParams() instanceof FrameLayout.LayoutParams) || !(view.getParent() instanceof View)) {
+            return false;
+        }
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+        View parent = (View) view.getParent();
+        Integer before = given.get(view);
+        int own = before != null ? before : params.bottomMargin;
+        int room = parent.getHeight() - parent.getPaddingTop() - parent.getPaddingBottom();
+        int margin = parent.getHeight() <= 0 ? 0 : reelsMediaMargin(keep, behind, slot, room, params.height, params.gravity);
+        if (margin == 0) given.remove(view);
+        else given.put(view, own);
+        if (params.bottomMargin == own + margin) return false;
+        params.bottomMargin = own + margin;
+        view.setLayoutParams(params);
+        return true;
     }
 
     /**
@@ -398,6 +469,23 @@ public final class GlassTabBar {
     }
 
     /**
+     * Whether [view]'s translation is someone else's, to be left alone: neither 0 nor [ours], the last one
+     * the pill gave it (null for none). A lift the seek bar's room gave the reel's seek bar row
+     * ({@link ReelSeekRoom#holdsUp}) is the pill's to take over. Taken for Instagram's, the row kept only
+     * that lift out of the navigation bar, and the seek bar stayed behind the pill (#704).
+     */
+    static boolean othersTranslation(View view, @Nullable Float ours) {
+        float now = view.getTranslationY();
+        return ours == null ? now != 0f && !ReelSeekRoom.holdsUp(view) : now != ours;
+    }
+
+    /** {@link #othersTranslation} for [view]'s scroll, which the seek bar's room gives the caption over the bar. */
+    static boolean othersScroll(View view, @Nullable Integer ours) {
+        int now = view.getScrollY();
+        return ours == null ? now != 0 && !ReelSeekRoom.scrollsUp(view) : now != ours;
+    }
+
+    /**
      * Puts each shown view under [view] whose id is [info] or [scrubber] in [anchors], and each whose id
      * is [footers] in [footerViews], without looking inside those.
      */
@@ -490,6 +578,46 @@ public final class GlassTabBar {
         bar.getLocationOnScreen(at);
         float sx = x + at[0] - left, sy = y + at[1] - top;
         return sx >= 0 && sx < strip.getWidth() && sy >= 0 && sy < strip.getHeight();
+    }
+
+    /**
+     * Whether a press at [x], [y], in [bar]'s own pixels, goes to something drawn over the bar first, the way
+     * Android hands a press out: a sheet or menu Instagram opened over the bar, say. The Reels share sheet's
+     * Send button sits right where the seek bar's strip runs over the pill, and a press there went to the strip
+     * and seeked the reel instead of sending (#526). That sheet isn't in the holder {@link #showsASheet} knows.
+     */
+    static boolean coveredAt(View bar, float x, float y) {
+        if (!bar.isAttachedToWindow()) return false;
+        int[] at = new int[2];
+        bar.getLocationInWindow(at);
+        View taker = firstTaker(bar.getRootView(), bar, Math.round(x + at[0]), Math.round(y + at[1]), new Rect());
+        return taker != null && taker != bar;
+    }
+
+    /**
+     * The first view in [view]'s tree offered a press at [x], [y], in the window's pixels, that would take it:
+     * [bar] itself once the press reaches it, or a shown view over it that's clickable or long-clickable.
+     * Children are asked the way a ViewGroup offers a press, the highest first and, at the same height, the
+     * last drawn first. Null when nothing there would take it.
+     */
+    @Nullable
+    static View firstTaker(View view, View bar, int x, int y, Rect scratch) {
+        if (view == bar) return bar;
+        if (view.getVisibility() != View.VISIBLE) return null;
+        if (!view.getGlobalVisibleRect(scratch) || !scratch.contains(x, y)) return null;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            int count = group.getChildCount();
+            View[] order = new View[count];
+            for (int i = 0; i < count; i++) order[i] = group.getChildAt(i);
+            // Stable, so children at the same height keep their drawing order.
+            java.util.Arrays.sort(order, (a, b) -> Float.compare(a.getZ(), b.getZ()));
+            for (int i = count - 1; i >= 0; i--) {
+                View taker = firstTaker(order[i], bar, x, y, scratch);
+                if (taker != null) return taker;
+            }
+        }
+        return view.isClickable() || view.isLongClickable() ? view : null;
     }
 
     /**
@@ -731,6 +859,17 @@ public final class GlassTabBar {
         return id == 0 ? null : root.findViewById(id);
     }
 
+    /** Whether [holder], Instagram's bottom sheet holder ({@link #SHEET_HOLDER}), is shown with a sheet in it. */
+    static boolean showsASheet(@Nullable View holder) {
+        if (!(holder instanceof ViewGroup) || !holder.isShown()) return false;
+        ViewGroup sheets = (ViewGroup) holder;
+        for (int i = 0; i < sheets.getChildCount(); i++) {
+            View sheet = sheets.getChildAt(i);
+            if (sheet.getVisibility() == View.VISIBLE && sheet.getHeight() > 0) return true;
+        }
+        return false;
+    }
+
     /** The first shown view called [name] under [root], or null ({@link #shownById}). */
     @Nullable
     static View findShown(View root, String name) {
@@ -849,6 +988,8 @@ public final class GlassTabBar {
      * and the bottom of that height.
      */
     static final int FIT_GAP_DP = 1;
+    /** The room a reel's seek bar keeps above the pill's slot on the Reels tab ({@link #reelsBandLift}, #187). */
+    static final int REELS_GAP_DP = 8;
     /**
      * Where the glass's blur slider starts (#391). Light enough that a post's thin white icons under the
      * pill still read as soft shapes. The 18 dp it started on before smeared them into a flat tint (#289).
@@ -914,6 +1055,8 @@ public final class GlassTabBar {
     static final String COUNT_REELS_LIFTED = "Reels viewer kept above the pill's slot";
     /** Counted each time a reel's caption, buttons or seek bar is raised clear of a footer laid over the reel (#260). */
     static final String COUNT_REEL_RAISED = "Reel's caption or seek bar raised over its footer";
+    /** What a reel's video or cover moved up to where the slot would put it, with the reel behind the pill, is counted under (#450). */
+    static final String COUNT_REEL_MEDIA_PLACED = "Reel behind the pill placed as over the slot";
     /** Counted each time a footer under a reel is laid over the reel instead of shrinking it (#260). */
     static final String COUNT_FOOTER_OVERLAID = "Footer laid over the reel";
     /**
@@ -1378,6 +1521,36 @@ public final class GlassTabBar {
         return Math.min(Math.round(dp * density), Math.max(0f, heightPx / 2f));
     }
 
+    /** Material 3's baseline surface container and secondary container, dark then light, for phones without Material You (#720). */
+    static final int[] MATERIAL_DARK = {0xff211f26, 0xff4a4458};
+    static final int[] MATERIAL_LIGHT = {0xfff3edf7, 0xffe8def8};
+
+    /** Whether the Material look is on (#720): its switch, which rests while the liquid look is on. */
+    public static boolean material() {
+        return Settings.GLASS_TAB_BAR_MATERIAL.isAvailable() && Settings.GLASS_TAB_BAR_MATERIAL.get();
+    }
+
+    /**
+     * The Material look's colors (#720): the bar's, Material 3's surface container, then the marker's, its
+     * secondary container, both from the phone's Material You palette. Android 14 and newer name the two
+     * tokens; Android 12 and 13 get them from the tones they're made of (neutral 12 and secondary 30 when
+     * [dark], neutral 95 and secondary 90 when light); older phones get Material 3's baseline.
+     */
+    public static int[] materialColors(Context context, boolean dark) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return new int[] {
+                    context.getColor(dark ? android.R.color.system_surface_container_dark : android.R.color.system_surface_container_light),
+                    context.getColor(dark ? android.R.color.system_secondary_container_dark : android.R.color.system_secondary_container_light)};
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            int surface = dark
+                    ? blend(context.getColor(android.R.color.system_neutral1_900), context.getColor(android.R.color.system_neutral1_800), 0.2f)
+                    : context.getColor(android.R.color.system_neutral1_50);
+            return new int[] {surface, context.getColor(dark ? android.R.color.system_accent2_700 : android.R.color.system_accent2_100)};
+        }
+        return (dark ? MATERIAL_DARK : MATERIAL_LIGHT).clone();
+    }
+
     /** The selected tab's capsule: a quarter of white on dark glass, a sixth of grey on light. */
     static int highlight(int base) {
         return isDark(base) ? 0x40ffffff : 0x2a787880;
@@ -1614,6 +1787,10 @@ public final class GlassTabBar {
         private boolean stripWatched;
         /** Where a sliding finger holds the capsule's middle, in the bar's pixels, or NaN while none does. */
         private float dragX = Float.NaN;
+        /** Glass lens under your finger (#705): the liquid look's bubble swells and bends harder under a held finger. */
+        private final boolean holdLens;
+        /** Where a finger held on the pill is, in the bar's pixels, or NaN while none is (#705). */
+        private float holdX = Float.NaN;
         private final RectF touchArea = new RectF();
         /** Whether this slide has had its tick: one tick for a change of tab, however many tabs the capsule crosses. */
         private boolean tickedThisSlide;
@@ -1663,6 +1840,9 @@ public final class GlassTabBar {
         private final WeakHashMap<View, View> bands = new WeakHashMap<>();
         /** The footers laid over a reel's bottom (#260), each with the top margin it was given. */
         private final WeakHashMap<View, Integer> overlapped = new WeakHashMap<>();
+        /** The reel videos and covers moved up for a reel behind the pill (#450), each with the margin it had before. */
+        private final WeakHashMap<View, Integer> mediaMargins = new WeakHashMap<>();
+        private final java.util.ArrayList<View> media = new java.util.ArrayList<>();
         private final java.util.ArrayList<View> anchors = new java.util.ArrayList<>();
         private final java.util.ArrayList<View> footerViews = new java.util.ArrayList<>();
         private final java.util.Set<View> raisedNow = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
@@ -1688,6 +1868,8 @@ public final class GlassTabBar {
         private final Rect reelsRect = new Rect();
         /** The liquid look (#65): a round pill and highlight, Search in a circle of its own, and the compact row on a scroll. */
         private final boolean liquid;
+        /** The Material look (#720): a solid pill in the phone's colors, fully round, with a round marker and no glass. */
+        private final boolean material;
         /** Whether the pill's rim bends what's behind it (#369), the liquid pill's or the standard one's (#391). */
         private final boolean refract;
         /** How far the liquid bar has shrunk to its compact row: 0 is the whole bar, 1 the tab you're on and Search. */
@@ -1714,7 +1896,9 @@ public final class GlassTabBar {
         Glass(ViewGroup bar) {
             this.bar = bar;
             this.density = bar.getResources().getDisplayMetrics().density;
-            this.blurWanted = Settings.GLASS_TAB_BAR_BLUR.get() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+            this.material = material();
+            // The Material look is solid, so there's nothing for a blur to show through (#720).
+            this.blurWanted = !material && Settings.GLASS_TAB_BAR_BLUR.get() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
             this.floating = Settings.GLASS_TAB_BAR_FLOAT.get();
             this.haptics = Settings.GLASS_TAB_BAR_HAPTICS.get();
             this.hapticStyle = Settings.GLASS_TAB_BAR_HAPTIC_STYLE.get();
@@ -1723,6 +1907,7 @@ public final class GlassTabBar {
             this.lift = liftPx(Settings.GLASS_TAB_BAR_LIFT.get(), floating, density);
             this.room = lift;
             this.liquid = Settings.GLASS_TAB_BAR_LIQUID.get();
+            this.holdLens = liquid && Settings.GLASS_TAB_BAR_HOLD_LENS.get();
             this.refract = Settings.GLASS_TAB_BAR_REFRACT.get();
             boolean hideOnScroll = Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.get();
             // The liquid look shrinks the bar as a list scrolls down, unless a scroll is to take it away altogether
@@ -1771,11 +1956,12 @@ public final class GlassTabBar {
         }
 
         /**
-         * With Slide across the tabs on, [window]'s touches go through the slide from now on. With it off, only
-         * once a reel's seek bar strip turns up ({@link #watchTheStrip}), so a screen without one stays as it was.
+         * With Slide across the tabs or Glass lens under your finger (#705) on, [window]'s touches go through the
+         * slide from now on. With both off, only once a reel's seek bar strip turns up ({@link #watchTheStrip}), so
+         * a screen without one stays as it was.
          */
         void watchSlides(Window window) {
-            if (!slide.slides()) {
+            if (!watchesEveryTouch()) {
                 stripWindow = new WeakReference<>(window);
                 return;
             }
@@ -1787,9 +1973,14 @@ public final class GlassTabBar {
             }
         }
 
+        /** Whether the slide sees every touch from the start: a finger on the pill slides, or a held one grows the lens (#705). */
+        private boolean watchesEveryTouch() {
+            return slide.slides() || holdLens;
+        }
+
         /** Has the window's touches go through the slide once a reel's strip shows, with Slide across the tabs off (#526). */
         private void watchTheStrip() {
-            if (stripWatched || slide.slides()) return;
+            if (stripWatched || watchesEveryTouch()) return;
             Window window = stripWindow == null ? null : stripWindow.get();
             if (window == null) return;
             stripWatched = true;
@@ -2014,6 +2205,12 @@ public final class GlassTabBar {
             bar.invalidate();
         }
 
+        @Override public void hold(float x) {
+            if (!holdLens || (Float.isNaN(x) && Float.isNaN(holdX))) return;
+            holdX = x;
+            bar.invalidate();
+        }
+
         /**
          * The bar's activity is in front again. Going to the background dropped the wait on Reels, and
          * a reel that plays on untouched would never start another.
@@ -2030,15 +2227,12 @@ public final class GlassTabBar {
         }
 
         /** Whether Instagram's bottom sheet holder in the bar's window shows a sheet. */
-        boolean underASheet() {
-            View holder = sheetHolder();
-            if (!(holder instanceof ViewGroup) || !holder.isShown()) return false;
-            ViewGroup sheets = (ViewGroup) holder;
-            for (int i = 0; i < sheets.getChildCount(); i++) {
-                View sheet = sheets.getChildAt(i);
-                if (sheet.getVisibility() == View.VISIBLE && sheet.getHeight() > 0) return true;
-            }
-            return false;
+        @Override public boolean underASheet() {
+            return showsASheet(sheetHolder());
+        }
+
+        @Override public boolean coveredAt(float x, float y) {
+            return GlassTabBar.coveredAt(bar, x, y);
         }
 
         /**
@@ -2322,6 +2516,17 @@ public final class GlassTabBar {
                 HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_REELS_LIFTED);
                 movedForReels("lifted the Reels viewer", moved, wanted);
             }
+            media.clear();
+            for (View viewer : viewers) {
+                if (viewer != null && viewer.isAttachedToWindow()) reelMedia(viewer, media, 0);
+            }
+            for (View view : media) {
+                if (placeReelMedia(view, keep, behind, slot, mediaMargins)) {
+                    reelsMoved = true;
+                    HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_REEL_MEDIA_PLACED);
+                }
+            }
+            media.clear();
         }
 
         /**
@@ -2351,7 +2556,7 @@ public final class GlassTabBar {
                 reelAnchors(viewer, info, scrubber, footers, anchors, footerViews, 0);
                 int footer = 0;
                 for (View view : footerViews) footer += overlapFooter(view);
-                footer += reelsBandLift(reelsKept, reelsBehind, reelsSlot, reelsKept ? 0 : navUnder(viewer));
+                footer += reelsBandLift(reelsKept, reelsBehind, reelsSlot, reelsKept ? 0 : navUnder(viewer), dp(REELS_GAP_DP));
                 for (View anchor : anchors) {
                     View band = bands.get(anchor);
                     if (band == null || !holds(band, anchor)) {
@@ -2423,7 +2628,7 @@ public final class GlassTabBar {
         private boolean scrollUp(View view, int by) {
             Integer ours = scrolled.get(view);
             int now = view.getScrollY();
-            if (ours == null ? now != 0 : now != ours) {
+            if (othersScroll(view, ours)) {
                 if (ours != null) {
                     scrolled.remove(view);
                     unwatch(view);
@@ -2478,12 +2683,13 @@ public final class GlassTabBar {
         /**
          * Moves [view] by [lift] up the screen (a negative translation) and says whether that changed it.
          * A translation that is neither 0 nor the last one this gave is Instagram's: the view is left to it
-         * and taken up again once Instagram puts it back to 0.
+         * and taken up again once Instagram puts it back to 0. The seek bar room's lift is taken over
+         * ({@link #othersTranslation}).
          */
         private boolean raise(View view, int lift) {
             Float ours = raised.get(view);
             float now = view.getTranslationY();
-            if (ours == null ? now != 0f : now != ours) {
+            if (othersTranslation(view, ours)) {
                 if (ours != null) forget(view);
                 return false;
             }
@@ -2719,6 +2925,14 @@ public final class GlassTabBar {
             private long slideStart;
             /** The size the liquid look's bubble is drawn at now, and at when the slide it is in began (#289). */
             private float bubbleNow = 1f, bubbleFrom = 1f;
+            /**
+             * Glass lens under your finger (#705): how far the bubble has grown under a held finger, 0 to 1, whether
+             * a finger holds it, and when that last changed on the frame clock and from what amount.
+             */
+            private float holdNow;
+            private boolean held;
+            private long heldSince;
+            private float heldFrom;
             /** Whether the blurred backdrop was drawn into the pill this frame, which the bubble's lens needs. */
             private boolean blurShown;
             @Nullable private GlassLens lens;
@@ -2728,6 +2942,9 @@ public final class GlassTabBar {
             private final Paint bubbleRim = new Paint(Paint.ANTI_ALIAS_FLAG);
             private final Matrix bubbleMatrix = new Matrix();
             private int bubbleShade;
+            /** The Material look's bar and marker colors (#720), and whether they're the dark shade's. */
+            @Nullable private int[] materialColors;
+            private boolean materialDark;
             /** The tab the capsule's middle was over when it last ticked, or -1 before the first frame. */
             private int tickedTab = -1;
             private boolean reported;
@@ -2765,6 +2982,10 @@ public final class GlassTabBar {
                 if (!pillBounds(rect)) return;
                 if (liquidNow()) {
                     drawLiquid(canvas);
+                    return;
+                }
+                if (material) {
+                    drawMaterial(canvas);
                     return;
                 }
                 float radius = cornerPx(corners, false, rect.height(), density);
@@ -2838,6 +3059,33 @@ public final class GlassTabBar {
                     outline.inset(half, half);
                     canvas.drawOval(outline, stroke);
                 }
+            }
+
+            /**
+             * The Material look (#720): the pill solid in Material 3's surface container, its ends fully round and
+             * lifted on a soft shadow in either shade, with the marker on the tab you're on in the secondary
+             * container, as round. The opacity slider still scales the pill's fill.
+             */
+            private void drawMaterial(@NonNull Canvas canvas) {
+                boolean dark = isDark(base);
+                float radius = rect.height() / 2f;
+                underlay(canvas);
+                shadow(canvas, rect, radius);
+                int surface = materialPair(dark)[0];
+                fill.setColor((surface & 0x00ffffff) | (scaledAlpha(Color.alpha(surface), opacityScale()) << 24));
+                canvas.drawRoundRect(rect, radius, radius, fill);
+                drawCapsule(canvas, rect, Math.max(0f, radius - dp(HIGHLIGHT_INSET_DP)), 1f);
+            }
+
+            /** The Material look's two colors for the shade the bar is in, read again only when the shade changes. */
+            private int[] materialPair(boolean dark) {
+                int[] pair = materialColors;
+                if (pair == null || materialDark != dark) {
+                    pair = GlassTabBar.materialColors(bar.getContext(), dark);
+                    materialColors = pair;
+                    materialDark = dark;
+                }
+                return pair;
             }
 
             /**
@@ -2931,32 +3179,53 @@ public final class GlassTabBar {
                     capsule.set(nowLeft, within.top + inset, nowRight, within.bottom - inset);
                 }
                 tick((nowLeft + nowRight) / 2f);
-                int color = highlight(base);
+                // A finger held on the bubble, or sliding it, grows it into a stronger lens (#705).
+                boolean underFinger = bubble && !Float.isNaN(holdX)
+                        && (!Float.isNaN(dragX) || (holdX >= nowLeft && holdX <= nowRight));
+                holdNow = holdAt(now, underFinger);
+                int color = material ? materialPair(isDark(base))[1] : highlight(base);
                 if (share < 1f) color = (color & 0x00ffffff) | (scaledAlpha(Color.alpha(color), Math.max(0f, share)) << 24);
                 fill.setColor(color);
-                if (bubble && bubbleNow != 1f) {
-                    float swell = (bubbleNow - 1f) / 2f;
+                float size = bubbleNow * holdScale(holdNow);
+                if (bubble && size != 1f) {
+                    float swell = (size - 1f) / 2f;
                     capsule.inset(-capsule.width() * swell, -capsule.height() * swell);
-                    corner *= bubbleNow;
+                    corner *= size;
                 }
-                if (bubble) paintLens(canvas, corner);
+                if (bubble) paintLens(canvas, corner, holdNow);
                 fill.setColor(color);
                 if (share > 0f) canvas.drawRoundRect(capsule, corner, corner, fill);
                 if (bubble) paintBubble(canvas, corner, share);
-                if (elapsed < (bubble ? SPRING_MS : SLIDE_MS)) invalidateSelf();
+                if (elapsed < (bubble ? SPRING_MS : SLIDE_MS) || (held ? holdNow < 1f : holdNow > 0f)) invalidateSelf();
+            }
+
+            /**
+             * How far the bubble has grown under a finger at [now], 0 to 1, after noting whether a finger is
+             * [on] it: it grows over {@link #HOLD_GROW_MS} once one is and eases back once it isn't, carrying
+             * on from where it was, at once when the phone's animations are off (#705).
+             */
+            private float holdAt(long now, boolean on) {
+                if (on != held) {
+                    heldFrom = holdAmount(now - heldSince, heldFrom, held);
+                    held = on;
+                    heldSince = animationsOn() ? now : now - HOLD_GROW_MS;
+                }
+                return holdAmount(now - heldSince, heldFrom, held);
             }
 
             /**
              * The lens under the bubble (#289): the blurred backdrop magnified a little, on Android 13 and newer and
              * only where the pill is blurred. The pill's tint goes back over it so the bubble reads as part of the pill.
+             * [hold] is how far a held finger has grown it, which bends it harder (#705).
              */
-            private void paintLens(Canvas canvas, float corner) {
+            private void paintLens(Canvas canvas, float corner, float hold) {
                 if (!blurShown || !GlassLens.supported()) return;
                 GlassLens made = lens;
                 if (made == null) {
                     made = new GlassLens();
                     lens = made;
                 }
+                made.boost = lensBoost(hold);
                 if (made.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), capsule, corner)) {
                     fill.setColor(tint(base, true, opacityScale()));
                     canvas.drawRoundRect(capsule, corner, corner, fill);
@@ -3461,6 +3730,35 @@ public final class GlassTabBar {
         return Math.max(swell, carried);
     }
 
+    /** How much more the liquid look's bubble grows under a finger held all the way, with Glass lens under your finger (#705). */
+    static final float HOLD_SWELL = 0.12f;
+
+    /** How long the bubble takes to grow under a finger, and to ease back once it lets go (#705). */
+    static final long HOLD_GROW_MS = 180;
+
+    /**
+     * How far the bubble has grown under a finger [elapsed] ms after it was put down, when [on], or lifted,
+     * when not, starting [from] the amount it had then: 0 is the bubble at rest and 1 fully grown. It eases
+     * out over {@link #HOLD_GROW_MS} either way (#705).
+     */
+    static float holdAmount(long elapsed, float from, boolean on) {
+        float start = Math.max(0f, Math.min(1f, from));
+        float t = Math.max(0f, Math.min(1f, elapsed / (float) HOLD_GROW_MS));
+        float eased = 1f - (1f - t) * (1f - t);
+        float target = on ? 1f : 0f;
+        return start + (target - start) * eased;
+    }
+
+    /** The bubble's size for [hold], how far it has grown under a finger: 1 at rest, 1 plus {@link #HOLD_SWELL} fully grown. */
+    static float holdScale(float hold) {
+        return 1f + HOLD_SWELL * Math.max(0f, Math.min(1f, hold));
+    }
+
+    /** What the bubble lens's bend is multiplied by for [hold]: 1 at rest, 1 plus {@link GlassLens#HOLD_BEND} fully grown. */
+    static float lensBoost(float hold) {
+        return 1f + GlassLens.HOLD_BEND * Math.max(0f, Math.min(1f, hold));
+    }
+
     /**
      * Where the capsule's left edge goes while a finger slides it (#136): [width] wide, centered on
      * [finger], and kept between [min] and [max]. With no room to move it stays at [min].
@@ -3506,7 +3804,8 @@ public final class GlassTabBar {
      * <p>Haptic strength (#640) moves each style off its own tick, as {@link #plan} works out: lighter is the
      * built-in tick, a weaker pulse or a smaller primitive, and stronger is the built-in heavy click, a harder
      * and then longer pulse, or the click primitive. A motor that runs at only one strength can only be made
-     * stronger by running it longer, so above 100% it plays a pulse of {@link #PULSE_MS} times the strength.
+     * stronger by running it longer, so above 100% it plays a pulse of {@link #PULSE_MS} times the strength
+     * squared. Past {@link #STRONG_FROM} every style plays that pulse at full strength (#689).
      */
     static final class Haptics {
         /** How much of the phone's tick primitive the light tick plays. */
@@ -3514,8 +3813,13 @@ public final class GlassTabBar {
         /** The short pulse: how long, and how hard of 255. */
         static final int SHORT_MS = 4;
         static final int SHORT_AMPLITUDE = 170;
-        /** At 100% strength, how long the pulse is on a motor that runs at only one strength. */
+        /**
+         * At 100% strength, how long the pulse is on a motor that runs at only one strength. Above 100% it grows
+         * with the square of the strength, to 60 ms at 200%, long enough for a coin motor to be clearly felt.
+         */
         static final int PULSE_MS = 15;
+        /** Past this strength every style plays the growing full-strength pulse, whatever the motor. */
+        static final int STRONG_FROM = 150;
         static final long MIN_TICK_GAP_MS = 35;
         private static final int TICK_PRIMITIVE = 1;
         private static final int CLICK_PRIMITIVE = 2;
@@ -3585,8 +3889,11 @@ public final class GlassTabBar {
         static Plan plan(HapticStyle style, int percent, int sdk, boolean amplitudeControl,
                          boolean tickPrimitive, boolean clickPrimitive) {
             float strength = percent / 100f;
-            if (!amplitudeControl && percent > 100) {
-                return Plan.pulse(Math.round(PULSE_MS * strength), android.os.VibrationEffect.DEFAULT_AMPLITUDE);
+            // Past the built-in heavy click (#689): it played the same from 101% to 200%, and on some phones it's
+            // barely felt, so the rest of the slider goes into a full-strength pulse that keeps growing.
+            if (percent > 100 && (!amplitudeControl || percent > STRONG_FROM)) {
+                return Plan.pulse(Math.round(PULSE_MS * strength * strength),
+                        amplitudeControl ? 255 : android.os.VibrationEffect.DEFAULT_AMPLITUDE);
             }
             if (style == HapticStyle.SYSTEM && sdk >= Build.VERSION_CODES.Q) {
                 return Plan.effect(percent < 100 ? android.os.VibrationEffect.EFFECT_TICK

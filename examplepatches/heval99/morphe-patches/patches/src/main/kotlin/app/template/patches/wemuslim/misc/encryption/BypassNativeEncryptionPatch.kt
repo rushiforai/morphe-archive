@@ -4,7 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_WEMUSLIM
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode

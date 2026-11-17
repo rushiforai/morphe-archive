@@ -175,6 +175,22 @@ final class ChannelRules {
         return null;
     }
 
+    /** Whether a list of channels (one a line, or commas: a name, an @handle, or an ID) names the channel with this ID and name. */
+    static boolean listed(String list, String channelId, String channelName, String channelHandle) {
+        if (list == null) return false;
+        for (String line : list.split("[\\n,;]")) {
+            String s = line.trim();
+            if (s.isEmpty() || s.startsWith("#")) continue;
+            Channel c = new Channel(s);
+            boolean same = (c.id != null && c.id.equals(channelId))
+                    || (c.name != null && channelName != null && c.name.equalsIgnoreCase(channelName.trim()))
+                    || (c.handle != null && (c.handle.equalsIgnoreCase(channelHandle)
+                    || channelId != null && c.handle.equals(Channels.handleOf(channelId))));
+            if (same) return true;
+        }
+        return false;
+    }
+
     /** The comment keywords of the channel whose video plays, given its channel ID and name. */
     static List<Rule> commentRules(String channelId, String channelName) {
         List<Rule> out = new ArrayList<>();

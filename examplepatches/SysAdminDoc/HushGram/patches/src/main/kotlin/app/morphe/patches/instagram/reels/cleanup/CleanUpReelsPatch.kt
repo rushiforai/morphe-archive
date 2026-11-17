@@ -25,11 +25,13 @@ import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.requireThisIntact
 import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.reels.live.findReelsItemInserts
 import app.morphe.patches.instagram.reels.partnership.findReelsPage
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.RegisterLiveness
+import app.morphe.util.readsAfter
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -38,6 +40,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -46,13 +49,15 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val PATCH = "Clean up Reels"
 
 /**
- * Takes thirteen things off the Reels viewer, each behind its own switch: the Follow button beside a
+ * Takes fourteen things off the Reels viewer, each behind its own switch: the Follow button beside a
  * reel's author, the pills that prompt you to make something or promote something, and friends'
  * activity with the comment preview, and the Add comment bar under a reel opened from a profile's
  * reposts, and the same bar under every reel, the Reels tab's included, the reply bar under a reel
  * opened from a chat, the Like, Comment and Save buttons in a reel's button column (each with its
- * count, #668), the Reels tab's top bar, the
+ * count, #668), the big pause icon and sound button of a paused reel (#686), the Reels tab's top bar, the
  * Create (+) and Your algorithm buttons in the top bar of reels, and the Friends tab beside Reels.
+ * Each number in the button column also has a switch of its own that leaves the button, the repost
+ * and share counts included (#719).
  * The patch is in the default selection and every switch starts off. Friends' activity covers the
  * floating bubbles and the Liked by or Followed by line with its faces. See ReelParts.kt for each
  * part.
@@ -85,7 +90,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban " +
         "Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Like, Comment and Save buttons, the " +
-        "Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't " +
+        "count under any of the buttons beside a reel, the pause icon on a paused reel, the Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't " +
         "touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels, and can start every reel in it. " +
         "Starts off. Turn it on in HushGram settings > Reels.",
 ) {
@@ -102,12 +107,13 @@ val cleanUpReelsPatch = bytecodePatch(
         val friendsRow = findFriendsRow()
         val friendPicks = findFriendPicks()
         val reelsPage = findReelsPage(PATCH)
+        val reelsInserts = findReelsItemInserts(PATCH, FRIEND_LANE_PICKS)
         val cameraButton = findCameraButton()
         hideReelParts()
         hideCameraButton(cameraButton)
         markFriendsTab(friendsTab)
         keepFriendsRow(friendsRow)
-        pickFriends(reelsPage, friendPicks)
+        pickFriends(reelsPage, friendPicks, reelsInserts)
         if (clearMode != null) {
             applyClearMode(clearMode)
             clearModeStubs.fill(clearMode)
@@ -156,9 +162,19 @@ internal fun BytecodePatchContext.hideReelParts() {
     val ufi = likes.getValue(LIKE_PARTS[0]).definingClass
     likes.forEach { (part, method) -> requireUfiBuilder(part.marker, method, ufi) }
     val (commentButton, commentCount) = commentBuilders(markedClasses.getValue(ufi), holding(COMMENT_BUTTON_RENDER).definingClass)
-    val ufiParts = likes + mapOf(COMMENT_BUTTON to commentButton, COMMENT_COUNT to commentCount)
-    val everyMethod = (methods.values + saves.values + ufiParts.values + productCta + bubbles + socialContext).map { "${it.definingClass}->${it.name}" }
+    // The repost count and the share count, which have a switch of their own and no button's (#719).
+    val repostCount = repostCountBuilder(markedClasses.getValue(ufi), saves.getValue(SAVE_PARTS[0]))
+    val shareCount = shareCountAdd(holding(SHARE_COUNT_MARKER), ufi, commentCount.returnType)
+    val ufiParts = likes + mapOf(COMMENT_BUTTON to commentButton, COMMENT_COUNT to commentCount, REPOST_COUNT to repostCount)
+    // The big pause icon and the sound button of a paused reel (#686).
+    val pauses = PAUSE_PARTS.associateWith { holding(it.marker) }
+    requirePauseBuilders(pauses)
+    val everyMethod = (methods.values + saves.values + ufiParts.values + pauses.values + productCta + bubbles + socialContext)
+        .map { "${it.definingClass}->${it.name}" }
     if (everyMethod.toSet().size != everyMethod.size) throw PatchException("$PATCH: two parts are held by one method: $everyMethod")
+    // The share count's hook goes in at an index worked out before anything changes, so no guard may go first in its method.
+    val shareCountRender = "${shareCount.render.definingClass}->${shareCount.render.name}"
+    if (shareCountRender in everyMethod) throw PatchException("$PATCH: the share count is built in $shareCountRender, which another part changes")
     val renders = methods.filterKeys { !it.check }.values
     val shapes = renders.map { it.parameterTypes.single().toString() to it.returnType }.toSet()
     if (shapes.size != 1) throw PatchException("$PATCH: the renders don't share one shape: $shapes")
@@ -168,14 +184,14 @@ internal fun BytecodePatchContext.hideReelParts() {
     val replyBar = directReplyBar(holding(DIRECT_REPLY_BAR_SHOW), holding(DIRECT_REPLY_BAR_HIDE), holding(DIRECT_REPLY_BAR_CREATED))
     // The reply bar's hooks go in further down their methods, at places worked out before anything
     // changes, so neither method may be one another part writes into.
-    val written = (methods.values + saves.values + ufiParts.values + productCta + bubbles + socialContext + bar.show + bar.created + bar.unVanish.method)
+    val written = (methods.values + saves.values + ufiParts.values + pauses.values + productCta + bubbles + socialContext + bar.show + bar.created + bar.unVanish.method + shareCount.render)
         .map { it.signature() }
     val replyBarMethods = listOf(replyBar.show, replyBar.created).map { it.signature() }
     if (replyBarMethods.toSet().size != replyBarMethods.size || replyBarMethods.any { it in written }) {
         throw PatchException("$PATCH: the direct reply bar's show or onViewCreated is a method another part changes: $replyBarMethods")
     }
 
-    (methods + saves + ufiParts + (PRODUCT_CTA to productCta)).forEach { (part, found) ->
+    (methods + saves + ufiParts + pauses + (PRODUCT_CTA to productCta)).forEach { (part, found) ->
         val method = mutable(found)
         method.requireLocals(PATCH, 1)
         val answer = if (part.check) "return v0" else "return-object v0"
@@ -191,6 +207,7 @@ internal fun BytecodePatchContext.hideReelParts() {
             ExternalLabel("draw", method.getInstruction(0)),
         )
     }
+    hideShareCount(shareCount)
     hideFloatingBubbles(bubbles, none)
     hideFriendsSocialContext(socialContext, line)
     hideCommentBar(bar)
@@ -683,6 +700,26 @@ private fun requireUfiBuilder(what: String, method: Method, ufi: String) {
 }
 
 /**
+ * The pause icon's and the sound button's builders (#686) are instance methods of one component with a
+ * body, both taking the component scope first and answering the component or nothing.
+ */
+private fun requirePauseBuilders(builders: Map<ReelPart, Method>) {
+    val owners = builders.values.map { it.definingClass }.toSet()
+    val scopes = builders.values.map { it.parameterTypes.firstOrNull()?.toString() }.toSet()
+    builders.forEach { (part, method) ->
+        val problem = when {
+            owners.size != 1 -> "is not in the same component as the other paused reel builder: $owners"
+            method.implementation == null -> "has no body"
+            AccessFlags.STATIC.isSet(method.accessFlags) || !method.returnType.startsWith("L") ->
+                "is not an instance builder answering a component"
+            scopes.size != 1 || scopes.single() == null -> "doesn't take the same component scope first as the other: $scopes"
+            else -> null
+        } ?: return@forEach
+        throw PatchException("$PATCH: ${method.definingClass}->${method.name}, holding the ${part.marker} marker, $problem")
+    }
+}
+
+/**
  * The Comment button's builder in the clips UFI [ufi], the one method answering the button's
  * [component], and the comment count's, the one other method of the UFI taking the same parameters
  * and loading [UFI_COUNT] (#668).
@@ -706,7 +743,90 @@ private fun commentBuilders(ufi: ClassDef, component: String): Pair<Method, Meth
     return button to count
 }
 
-private fun Instruction.loadsUfiCount() = (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+/**
+ * The repost count's builder in the clips UFI [ufi] (#719): the one method holding no marker that
+ * takes the Save button's builder's ([save]'s) parameters and loads [UFI_COUNT].
+ */
+private fun repostCountBuilder(ufi: ClassDef, save: Method): Method {
+    val parameters = save.parameterTypes.map { it.toString() }
+    val counts = ufi.methods.filter { method ->
+        method.markers().isEmpty() && method.parameterTypes.map { it.toString() } == parameters &&
+            method.implementation?.instructions?.any { it.loadsUfiCount() } == true
+    }
+    val count = counts.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one unmarked method of ${ufi.type} taking ${parameters.joinToString("")} and loading \"$UFI_COUNT\" " +
+            "for the repost count, found ${counts.map { it.name }}",
+    )
+    requireUfiBuilder("repost count", count, ufi.type)
+    return count
+}
+
+/**
+ * Where the clips UFI's render [render] adds the share count (#719): instruction [at] hands the
+ * column v[count], which [SHARE_COUNT] answers in its place cast back to [type], the add's parameter.
+ */
+internal class ShareCountAdd(val render: Method, val at: Int, val count: Int, val type: String)
+
+/**
+ * Finds the share count's add in the clips UFI's render [render] before anything changes. After the
+ * [SHARE_COUNT_MARKER] marker comes the first call of one of the UFI [ufi]'s own builders answering
+ * its [text], that answer moved into a register, and right after it that register handed to a
+ * one-argument add answering nothing. Every way to the add meets there, a count or none, so the hook
+ * goes in at its label, and nothing may read the register after the add, its own handlers included.
+ */
+private fun shareCountAdd(render: Method, ufi: String, text: String): ShareCountAdd {
+    val what = "$PATCH: the share count in ${render.definingClass}->${render.name}"
+    if (render.definingClass != ufi || AccessFlags.STATIC.isSet(render.accessFlags)) {
+        throw PatchException("$what is not built in an instance method of the clips UFI $ufi")
+    }
+    val code = render.implementation?.instructions?.toList().orEmpty()
+    val marker = code.indexOfFirst { instruction ->
+        (instruction.opcode == Opcode.CONST_STRING || instruction.opcode == Opcode.CONST_STRING_JUMBO) &&
+            PURGE_MARKER.find(((instruction as ReferenceInstruction).reference as StringReference).string)?.groupValues?.get(1) == SHARE_COUNT_MARKER
+    }
+    if (marker < 0) throw PatchException("$what: it doesn't load the $SHARE_COUNT_MARKER marker")
+    val build = (marker + 1 until code.size).firstOrNull { index ->
+        val call = code[index]
+        (call.opcode == Opcode.INVOKE_DIRECT || call.opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+            ((call as ReferenceInstruction).reference as MethodReference).let { it.definingClass == ufi && it.returnType == text }
+    } ?: throw PatchException("$what: no call of the UFI's own $text builder follows the $SHARE_COUNT_MARKER marker")
+    val moved = code.getOrNull(build + 1)
+    if (moved?.opcode != Opcode.MOVE_RESULT_OBJECT) throw PatchException("$what: the text builder's answer isn't kept in a register")
+    val count = (moved as OneRegisterInstruction).registerA
+    val at = build + 2
+    val add = code.getOrNull(at)
+    val reference = (add as? ReferenceInstruction)?.reference as? MethodReference
+    val registers = when {
+        add is FiveRegisterInstruction && add.registerCount == 2 -> listOf(add.registerC, add.registerD)
+        add is RegisterRangeInstruction && add.registerCount == 2 -> listOf(add.startRegister, add.startRegister + 1)
+        else -> emptyList()
+    }
+    if ((add?.opcode != Opcode.INVOKE_VIRTUAL && add?.opcode != Opcode.INVOKE_VIRTUAL_RANGE) || reference == null ||
+        reference.parameterTypes.size != 1 || !reference.parameterTypes.single().toString().startsWith("L") ||
+        reference.returnType != "V" || registers.getOrNull(1) != count
+    ) throw PatchException("$what: the count isn't handed to a one-argument add right after it's built")
+    val reads = render.readsAfter(at, count)
+    if (reads.isNotEmpty()) throw PatchException("$what: v$count is read again after the add, at $reads")
+    return ShareCountAdd(render, at, count, reference.parameterTypes.single().toString())
+}
+
+/**
+ * Hands the share count to the extension right before its add, at the add's label, so the count
+ * built there and every branch that jumps to the add with another count or none all ask (#719).
+ */
+private fun BytecodePatchContext.hideShareCount(add: ShareCountAdd) {
+    val count = add.count
+    mutable(add.render).addInstructionsAtControlFlowLabel(
+        add.at,
+        """
+            invoke-static/range { v$count .. v$count }, $SHARE_COUNT
+            move-result-object v$count
+            check-cast v$count, ${add.type}
+        """,
+    )
+}
+
+private fun Instruction.loadsUfiCount() =(opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
     ((this as ReferenceInstruction).reference as StringReference).string == UFI_COUNT
 
 /** The reel CTA's product button is built from the component scope and its label, and answers the component. */

@@ -7,6 +7,10 @@ final class FutabaCatalogue {
     private static final Map<String,String> TITLES=Collections.synchronizedMap(new LinkedHashMap<String,String>(128,.75f,true){
         @Override protected boolean removeEldestEntry(Map.Entry<String,String> entry){return size()>2048;}
     });
+    private static final Map<String,Long> DATES=Collections.synchronizedMap(new LinkedHashMap<String,Long>(128,.75f,true){
+        @Override protected boolean removeEldestEntry(Map.Entry<String,Long> entry){return size()>2048;}
+    });
+    static long creation(SiteBoardProtocol.Board board,String id){Long value=DATES.get(board.url+id);return value==null?0:value;}
     interface Fetch { String get(String url)throws IOException; }
     static List<SiteBoardProtocol.Topic> topics(SiteBoardProtocol.Board board,String catalogue,Fetch fetch)throws IOException {
         return topics(board,catalogue,fetch,150);
@@ -25,6 +29,8 @@ final class FutabaCatalogue {
             for(Element thread:doc.select(".thre[data-res]")) {
                 String id=thread.attr("data-res");if(!id.matches("[1-9][0-9]{0,11}"))continue;
                 Element opening=thread.clone();opening.select("table").remove();
+                Element date=opening.selectFirst(".cnw");long created=date==null?0:SiteThreadDates.parse(date.text());
+                if(created>0)DATES.put(board.url+id,created);
                 Element subject=opening.selectFirst(".csb"),body=opening.selectFirst("blockquote");
                 String title=subject==null?"":subject.text().trim();
                 if(title.isEmpty()||title.equals("無題")||title.equals("無念"))title=body==null?"":body.text().trim();

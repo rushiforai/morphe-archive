@@ -184,8 +184,14 @@ public class SheetBottomDialog {
         ScrollView scrollView = new ScrollView(context) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(
-                        Dim.pctHeight(maxHeightPercent), MeasureSpec.AT_MOST));
+                final int maxHeight = Dim.pctHeight(maxHeightPercent);
+                // A smaller height of the parent is kept, so a layout weight can shrink the scroll view
+                // to leave room for the views below it.
+                if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED
+                        || MeasureSpec.getSize(heightMeasureSpec) > maxHeight) {
+                    heightMeasureSpec = MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST);
+                }
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             }
         };
         scrollView.setVerticalScrollBarEnabled(false);
@@ -361,10 +367,13 @@ public class SheetBottomDialog {
 
                 case MotionEvent.ACTION_MOVE:
                     float dy = ev.getRawY() - initialTouchRawY;
-                    if (dy > ViewConfiguration.get(getContext()).getScaledTouchSlop()
-                            && !canChildScrollUp()) {
-                        isDragging = true;
-                        return true; // Intercept touches for drag.
+                    if (dy > ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+                        // No drag while a child can still scroll upward.
+                        View target = findScrollableChild(this);
+                        if (target == null || !target.canScrollVertically(-1)) {
+                            isDragging = true;
+                            return true; // Intercept touches for drag.
+                        }
                     }
                     break;
             }
@@ -395,34 +404,17 @@ public class SheetBottomDialog {
                     velocityTracker.computeCurrentVelocity(1000);
                     float velocityY = velocityTracker.getYVelocity();
 
-                    if (dragOffset > dismissThreshold || velocityY > MIN_FLING_VELOCITY) {
-                        startDismissAnimation();
-                    } else {
-                        startReturnAnimation();
-                    }
+                    // Slide the dialog downward to dismiss it, or back to its original position.
+                    scroller.startScroll(0, (int) dragOffset, 0,
+                            (dragOffset > dismissThreshold || velocityY > MIN_FLING_VELOCITY
+                                    ? getHeight() : 0) - (int) dragOffset,
+                            animationDuration);
+                    post(settleRunnable);
                     isDragging = false;
                     return true;
             }
             // Consume the touch event to prevent focus changes on child views.
             return true;
-        }
-
-        /**
-         * Starts an animation to dismiss the dialog by sliding it downward.
-         */
-        private void startDismissAnimation() {
-            scroller.startScroll(0, (int) dragOffset,
-                    0, getHeight() - (int) dragOffset, animationDuration);
-            post(settleRunnable);
-        }
-
-        /**
-         * Starts an animation to return the dialog to its original position.
-         */
-        private void startReturnAnimation() {
-            scroller.startScroll(0, (int) dragOffset,
-                    0, -(int) dragOffset, animationDuration);
-            post(settleRunnable);
         }
 
         /**
@@ -443,16 +435,6 @@ public class SheetBottomDialog {
             } else {
                 dragOffset = getTranslationY();
             }
-        }
-
-        /**
-         * Checks if any child view can scroll upward, preventing drag if scrolling is possible.
-         *
-         * @return True if a child can scroll upward, false otherwise.
-         */
-        private boolean canChildScrollUp() {
-            View target = findScrollableChild(this);
-            return target != null && target.canScrollVertically(-1);
         }
 
         /**
@@ -512,6 +494,7 @@ public class SheetBottomDialog {
          * Cancels the dialog, triggering a dismissal animation.
          */
         @Override
+        @SuppressWarnings("EmptyMethod")
         public void cancel() {
             super.cancel();
         }

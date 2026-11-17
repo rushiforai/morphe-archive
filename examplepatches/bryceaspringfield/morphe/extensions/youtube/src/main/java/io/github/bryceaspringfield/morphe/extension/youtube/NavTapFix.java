@@ -46,6 +46,9 @@ final class NavTapFix {
 
     private static boolean isButton(View v) {
         String d = desc(v);
+        // A button with news reads "Subscriptions: New content is available" or "Notifications: 2 new items".
+        int colon = d.indexOf(':');
+        if (colon > 0) d = d.substring(0, colon).trim();
         for (String b : BUTTONS) if (d.equals(b)) return true;
         return false;
     }
@@ -62,17 +65,23 @@ final class NavTapFix {
 
     /** Whether the button was selected when the finger went down, and the page list shown then. */
     private static boolean downSelected;
+    /** Counts every finger-down on a bar button: a repeat is dropped once the user tapped another button (2026-11-16). */
+    private static int touchSeq;
     private static java.lang.ref.WeakReference<View> downPage = new java.lang.ref.WeakReference<>(null);
 
     private static boolean onTouch(View v, MotionEvent e) {
         if (!XSettings.FIX_NAVIGATION_TAPS.get()) return false;
         if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
             downSelected = v.isSelected();
+            touchSeq++;
             downPage = new java.lang.ref.WeakReference<>(page(v.getRootView()));
         } else if (e.getActionMasked() == MotionEvent.ACTION_UP && e.getEventTime() - e.getDownTime() < 400 && !downSelected) {
             final View before = downPage.get();
+            final int seq = touchSeq;
             Utils.runOnMainThreadDelayed(() -> {
-                if (!v.isShown()) return;
+                // A later tap on any button (Home, then Subscriptions within 400 ms) made this repeat stale: repeating it
+                // sent the app back to the first button and left the bar highlighting a page not shown.
+                if (!v.isShown() || seq != touchSeq) return;
                 // Two failures seen: the button stays unselected, or (2026-11-11, with the miniplayer open) the button
                 // turns selected while the old page stays on screen. Either way the page list is the same view.
                 View now = page(v.getRootView());

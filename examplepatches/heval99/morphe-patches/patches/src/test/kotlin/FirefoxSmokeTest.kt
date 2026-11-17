@@ -95,7 +95,7 @@ class FirefoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "159.0.1",
+            version = "160.0",
             patchNames = setOf(
                 "Disable telemetry",
                 "Hide sponsored content",
@@ -244,9 +244,9 @@ class FirefoxSmokeTest {
         val lambda = classes.single { classDef ->
             classDef.type.startsWith("Lorg/mozilla/fenix/onboarding/view/OnboardingMapperKt\$\$") &&
                 "Lkotlin/jvm/functions/Function1;" in classDef.interfaces &&
-                classDef.methods.any { it.name == "<init>" && it.params() == listOf("Z", "Z", "Z", "Z") }
+                classDef.methods.any { m -> m.name == "<init>" && m.params().let { it.isNotEmpty() && it.all { p -> p == "Z" } } }
         }
-        val lambdaInit = lambda.method("<init>", listOf("Z", "Z", "Z", "Z"))
+        val lambdaInit = lambda.methods.single { it.name == "<init>" }
         val initFirst = lambdaInit.instructions().first()
         assertTrue(
             initFirst.opcode == Opcode.CONST_4 && initFirst.literal() == 0 && initFirst.registerA() == lambdaInit.p(1),
@@ -319,7 +319,7 @@ class FirefoxSmokeTest {
         assertDohEntryHidden(classes.first { it.type == SETTINGS_FRAGMENT })
 
         // Fallback mode and another resolver: TRR first (2) and Increased protection.
-        val fallback = applyDnsFilterFallback(apk, workDir, PKG, "159.0.1")
+        val fallback = applyDnsFilterFallback(apk, workDir, PKG, "160.0")
         assertGeckoViewDnsForced(fallback, OTHER_DOH_URL, trrMode = 2)
         assertReturnsStatic(
             fallback.first { it.type == SETTINGS }.method("getDohSettingsMode", emptyList()),

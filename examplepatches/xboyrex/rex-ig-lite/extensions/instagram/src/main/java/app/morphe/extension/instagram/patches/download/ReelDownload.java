@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -22,9 +22,10 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.morphe.extension.instagram.settings.Settings;
-import app.morphe.extension.shared.Logger;
-import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.instagram.settings.SettingsStatus;
+import app.morphe.extension.instagram.utils.Pref;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
@@ -37,22 +38,10 @@ import kotlin.jvm.functions.Function1;
  * The patch builds a second copy of the save button component next to the real one and registers it
  * here; every hook below receives the component being rendered and only changes the copy, so the real
  * save button renders exactly as before.
- *
- * <p>The copy keeps the save button's size, spacing, tint and layout. What the hooks swap is its icon,
- * its tap and long press handlers, its selected state and its id. The impression callback must stay
- * untouched: it runs whenever a reel is shown.
  */
 public final class ReelDownload {
-    /**
-     * The reels icons are drawn from the 44 size family (the save icon is `instagram_save_outline_44`), whose
-     * padding and stroke weight the 24 size vector does not match, so the download icon comes from it too.
-     */
     private static final String DRAWABLE_DOWNLOAD_ICON = "instagram_download_outline_44";
-
-    /** The attribute the save icon is tinted with when its component carries no color filter of its own. */
     private static final String ICON_TINT_ATTRIBUTE = "igds_color_primary_button_on_media";
-
-    /** The copies the patch created. Weak, because the UFI builds fresh components on every render. */
     private static final Set<Object> COPIES = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     private ReelDownload() {}
@@ -60,14 +49,13 @@ public final class ReelDownload {
     public static boolean isEnabled() {
         return SettingsStatus.reelDownloadButton
                 && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ENABLE_DOWNLOAD))
-                && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.REEL_DOWNLOAD_BUTTON));
+                && (Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.REEL_DOWNLOAD_BUTTON)) || Pref.reelsFloatingToolbar());
     }
 
     public static void register(Object component) {
         COPIES.add(component);
     }
 
-    /** What the save component being rendered on this thread needs, or null for the real save button. */
     private static final ThreadLocal<Copy> CURRENT = new ThreadLocal<>();
 
     private static final class Copy {
@@ -84,10 +72,6 @@ public final class ReelDownload {
         }
     }
 
-    /**
-     * Called at the start of every save component render. The hooks further down the render method run
-     * on the same thread and only receive the value they replace, so what they need is kept here.
-     */
     public static void begin(Object component, Object composer) {
         CURRENT.set(
                 COPIES.contains(component)
@@ -110,7 +94,6 @@ public final class ReelDownload {
         return drawable;
     }
 
-    /** The color the real save icon falls back to, resolved from the theme of the context it renders in. */
     private static ColorFilter themeTint(Context context) {
         if (context == null) throw new IllegalStateException("Reel download icon has no themed context");
         int attrId = ResourceUtils.getAttrIdentifier(ICON_TINT_ATTRIBUTE);
@@ -122,7 +105,6 @@ public final class ReelDownload {
         return new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN);
     }
 
-    /** The copy is never "saved", whatever the post's saved state is. */
     public static boolean selected(boolean original) {
         return CURRENT.get() == null && original;
     }
@@ -131,7 +113,6 @@ public final class ReelDownload {
         return CURRENT.get() == null ? original : str("rex_download_current_media");
     }
 
-    /** Keeps the save button's id unique, so lookups by that id still reach the real button. */
     public static int viewId(int original) {
         return CURRENT.get() == null ? original : -1;
     }
@@ -160,7 +141,7 @@ public final class ReelDownload {
             DownloadUtils.downloadPost(context, userSession, media, currentIndex(copy.component));
         } catch (Exception e) {
             Logger.printException(() -> "Error at reel download", e);
-            Utils.showToastShort(e.getMessage());
+            Utils.showToastShort("Couldn't load reel download options. Try again.");
         }
     }
 
@@ -178,9 +159,6 @@ public final class ReelDownload {
         }
     }
 
-    // The patch replaces the bodies below with direct reads of the resolved fields.
-
-    /** The `Media` the save component renders, or null. */
     static Object media(Object saveComponent) {
         return null;
     }
@@ -193,12 +171,10 @@ public final class ReelDownload {
         return null;
     }
 
-    /** The color filter that tints the save component's icon. */
     static ColorFilter tint(Object saveComponent) {
         return null;
     }
 
-    /** The context the Litho tree renders in, taken from the component tree's composer. */
     static Context context(Object composer) {
         return null;
     }

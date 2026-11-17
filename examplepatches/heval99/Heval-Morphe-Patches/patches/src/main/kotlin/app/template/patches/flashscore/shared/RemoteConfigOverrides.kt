@@ -8,10 +8,13 @@ import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
+import app.template.patches.shared.hevalcontrols.HevalFeature
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -60,11 +63,24 @@ private val logger = Logger.getLogger("FlashscoreRemoteConfig")
  * Resolves the enum constant [name] of [enumType] to its static field by following its
  * `<clinit>`: `const-string vN, NAME` -> `invoke-direct {vI, vN, ...}, <init>` -> `sput-object vI`.
  * Enum names survive R8: Enum.name() is backed by the constructor's string argument.
- * Returns `Lenum;->field:Lenum;`, or null when the constant is not there.
+ * Returns `Lenum;->field:Lenum;`, or null when the constant is not there or R8 left it without a
+ * static field of its own.
+ *
+ * R8 reuses one register for consecutive instances (`new-instance v1` ... `<init>` ... `sput-object v1`
+ * for one constant, then the next constant overwrites v1). A constant whose `sput-object` was
+ * dropped has no field, and a scan that ran on would pick up the next constant's store, i.e. a wrong
+ * field (26.11.6: AUDIO_COMMENT_HEADER_BUTTON_ENABLED would resolve to APPSFLYER_ENABLED). So the
+ * scan stops as soon as the instance register is overwritten.
  */
 internal fun BytecodePatchContext.enumConstantField(enumType: String, name: String): String? {
     val clinit = classDefBy(enumType).methods.singleOrNull { it.name == "<clinit>" } ?: return null
     val insns = clinit.implementation?.instructions?.toList() ?: return null
+    val field = findEnumConstantField(enumType, insns, name) ?: return null
+    return "${field.definingClass}->${field.name}:${field.type}"
+}
+
+/** The pure scan behind [enumConstantField] over the `<clinit>` instructions (the smoke test calls it too). */
+internal fun findEnumConstantField(enumType: String, insns: List<Instruction>, name: String): FieldReference? {
 
     val nameIndex = insns.indexOfFirst {
         (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
@@ -94,11 +110,20 @@ internal fun BytecodePatchContext.enumConstantField(enumType: String, name: Stri
 
     for (i in initIndex + 1 until insns.size) {
         val insn = insns[i]
-        if (insn.opcode != Opcode.SPUT_OBJECT) continue
-        val field = (insn as ReferenceInstruction).reference as FieldReference
-        if ((insn as OneRegisterInstruction).registerA != instanceRegister) continue
-        if (field.definingClass != enumType || field.type != enumType) continue
-        return "${field.definingClass}->${field.name}:${field.type}"
+        if (insn.opcode == Opcode.SPUT_OBJECT && (insn as OneRegisterInstruction).registerA == instanceRegister) {
+            val field = (insn as ReferenceInstruction).reference as FieldReference
+            if (field.definingClass != enumType || field.type != enumType) continue
+            return field
+        }
+        // The register now holds something else (the next constant's instance, a name string, ...).
+        if (insn is OneRegisterInstruction) {
+            val wideTail = insn.registerA + 1
+            if ((insn.opcode.setsRegister() && insn.registerA == instanceRegister) ||
+                (insn.opcode.setsWideRegister() && (insn.registerA == instanceRegister || wideTail == instanceRegister))
+            ) {
+                return null
+            }
+        }
     }
     return null
 }
@@ -123,13 +148,23 @@ internal fun BytecodePatchContext.enumConstantField(enumType: String, name: Stri
  *
  * Keys in [required] must exist (the patch fails otherwise); the others are skipped with a
  * warning when the enum lacks them.
+ *
+ * [gates] maps a key name to a Patch settings feature id. A gated key is forced only while
+ * `HevalSettings.isEnabled(id)` answers true; while it is off the helper takes the stock path
+ * (the next helper, or the holder) for that key. A key without an entry is forced unconditionally
+ * (build-time). The registering patch must depend on the Patch settings host, so the engine is merged.
  */
 internal fun BytecodePatchContext.forceRemoteConfigValues(
     patchName: String,
     helperName: String,
     forced: Map<String, ForcedConfigValue>,
     required: Set<String>,
+    gates: Map<String, String> = emptyMap(),
 ) {
+    gates.forEach { (key, id) ->
+        require(key in forced) { "$patchName: gate for $key, which is not forced" }
+        require(HevalFeature.ID_REGEX.matches(id)) { "$patchName: invalid feature id $id" }
+    }
     require(helperName.startsWith(HELPER_PREFIX)) { "$helperName must start with $HELPER_PREFIX" }
     val valueConstructor = RemoteConfigValueConstructorFingerprint.method
     val valueClass = RemoteConfigValueConstructorFingerprint.classDef
@@ -190,21 +225,30 @@ internal fun BytecodePatchContext.forceRemoteConfigValues(
             logger.warning("$patchName: $keyType has no $name constant, skipping it")
             null
         } else {
-            field to value
+            Triple(field, value, gates[name])
         }
     }
 
-    val groups = resolved.groupBy({ it.second }, { it.first })
-    val checks = groups.entries.joinToString("\n") { (value, fields) ->
-        fields.joinToString("\n") { field ->
+    // One answer block per (value, gate); the label carries the group's index.
+    val groups = resolved.groupBy({ it.second to it.third }, { it.first }).entries.toList()
+    val checks = groups.withIndex().joinToString("\n") { (index, group) ->
+        group.value.joinToString("\n") { field ->
             """
                 sget-object v1, $field
-                if-eq v0, v1, :forced_${value.name.lowercase()}
+                if-eq v0, v1, :forced_$index
             """.trimIndent()
         }
     }
-    val answers = groups.keys.joinToString("\n") { value ->
-        ":forced_${value.name.lowercase()}\n${value.smali}\nreturn-object v0"
+    val answers = groups.withIndex().joinToString("\n") { (index, group) ->
+        val (value, gate) = group.key
+        // The gate runs on v1 (free here: the key comparison is over); off means the stock path.
+        val check = if (gate == null) "" else """
+            const-string v1, "$gate"
+            invoke-static/range {v1 .. v1}, $HEVAL_SETTINGS_CLASS->isEnabled(Ljava/lang/String;)Z
+            move-result v1
+            if-eqz v1, :stock
+        """.trimIndent() + "\n"
+        ":forced_$index\n$check${value.smali}\nreturn-object v0"
     }
 
     // v0 = key, v1 = scratch, p0 (v2) = the value object.
@@ -223,6 +267,7 @@ internal fun BytecodePatchContext.forceRemoteConfigValues(
             """
                 iget-object v0, p0, ${valueClass.type}->${keyField.name}:$keyType
                 $checks
+                :stock
                 $fallThrough
                 return-object v0
                 $answers

@@ -140,14 +140,39 @@ public class FontSettingsTest {
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.FONT.key));
     }
 
-    /** With its neighbors, the row sits after Remove the empty space at the bottom and before the emoji switch. */
+    /**
+     * With its neighbors, the row sits after Remove the empty space at the bottom, with Text size
+     * (#682) under it, and before the emoji switch.
+     */
     @Test public void theRowSitsBeforeTheEmojiSwitch() throws Exception {
         open(EnumSet.of(PatchFamily.BOTTOM_SPACE, PatchFamily.FONT, PatchFamily.EMOJI_STYLE));
         PreferenceGroup layout = row().getParent();
         String[] keys = new String[layout.getPreferenceCount()];
         for (int i = 0; i < keys.length; i++) keys[i] = layout.getPreference(i).getKey();
-        assertArrayEquals(new String[] {Settings.REMOVE_BOTTOM_SPACE.key, Settings.FONT.key, Settings.NOTO_EMOJI.key, Settings.EMOJI_FONT.key,
-                LayoutCategory.PURE_BLACK_HINT_ROW}, keys);
+        assertArrayEquals(new String[] {Settings.REMOVE_BOTTOM_SPACE.key, Settings.FONT.key, Settings.TEXT_SIZE.key, Settings.NOTO_EMOJI.key,
+                Settings.EMOJI_FONT.key, LayoutCategory.PURE_BLACK_HINT_ROW}, keys);
+    }
+
+    /** #682: Text size is a slider under Font, from 70% to 200% in steps of 5, at 100% to start, kept in a backup. */
+    @Test public void textSizeIsASliderUnderTheFontRow() throws Exception {
+        open(EnumSet.of(PatchFamily.FONT));
+        PreferenceGroup layout = row().getParent();
+        assertEquals(Settings.TEXT_SIZE.key, layout.getPreference(1).getKey());
+        android.preference.Preference size = layout.getPreference(1);
+        assertTrue(size.getClass().getName(), size instanceof HushgramPreferenceFragment.SliderRow);
+        assertEquals("Text size", size.getTitle().toString());
+        assertEquals(100, (int) Settings.TEXT_SIZE.defaultValue);
+        assertEquals(70, Settings.TEXT_SIZE.minimum());
+        assertEquals(200, Settings.TEXT_SIZE.maximum());
+        assertEquals("100% (standard)", String.valueOf(size.getSummary()));
+        assertTrue("Instagram keeps its sizes once made, so it shows after a restart", Settings.TEXT_SIZE.rebootApp);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.TEXT_SIZE.key));
+    }
+
+    @Test public void aBuildWithoutTheFontPatchHasNoTextSize() throws Exception {
+        open(EnumSet.of(PatchFamily.EMOJI_STYLE));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.TEXT_SIZE.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.TEXT_SIZE.key));
     }
 
     /** The phone's font is an ordinary choice. Paused, Instagram's own answers and the saved choice stays. */
@@ -581,5 +606,40 @@ public class FontSettingsTest {
     private static void finish() throws Exception {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
+    }
+
+    /**
+     * A row's "i" description takes the picked font, as the page does (#166): it's a window of its
+     * own, which the page's watcher never sees, so it kept Android's font.
+     */
+    @Test public void descriptionsTakeThePickedFont() throws Exception {
+        Settings.FONT.save(FontChoice.FILE);
+        FontsForTests.loadEveryFile(Typeface.SERIF);
+        keep(TRUE_TYPE);
+        open(EnumSet.of(PatchFamily.FONT));
+        android.app.AlertDialog dialog = DescriptionInfo.show(controller.get(), "Change the font",
+                "Puts Instagram's text in the font you pick.");
+        try {
+            android.widget.TextView message = dialog.findViewById(android.R.id.message);
+            int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
+            android.widget.TextView title = dialog.findViewById(titleId);
+            // The picked font at the weight and slant each had, as the dialog painted them.
+            Typeface messageWas = message.getTypeface();
+            Typeface titleWas = title.getTypeface();
+            finish();
+            dialog.getWindow().getDecorView().getViewTreeObserver().dispatchOnPreDraw();
+            // Legacy graphics hands out a new Typeface for each create, equal to the last.
+            assertNotEquals(messageWas, message.getTypeface());
+            assertEquals(serifLike(messageWas), message.getTypeface());
+            assertNotEquals(titleWas, title.getTypeface());
+            assertEquals(serifLike(titleWas), title.getTypeface());
+        } finally {
+            dialog.dismiss();
+        }
+    }
+
+    private static Typeface serifLike(Typeface was) {
+        return was == null ? Typeface.create(Typeface.SERIF, 400, false)
+                : Typeface.create(Typeface.SERIF, was.getWeight(), was.isItalic());
     }
 }

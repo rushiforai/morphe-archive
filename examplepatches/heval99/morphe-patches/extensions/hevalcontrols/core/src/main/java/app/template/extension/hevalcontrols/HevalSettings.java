@@ -7,6 +7,8 @@
 package app.template.extension.hevalcontrols;
 
 import android.content.Context;
+import android.os.Build;
+import android.os.UserManager;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -167,19 +169,54 @@ public final class HevalSettings {
         init(context, "provider");
     }
 
+    /**
+     * Starts the engine. Returns null, publishing nothing, while the user is still locked (direct boot:
+     * a directBootAware host can run before first unlock, when its private storage cannot be read).
+     * Callers then answer the feature's default and ask again on a later call, once unlocked.
+     */
     static Snapshot init(Context context, String source) {
         Snapshot current = snapshot;
         if (current != null) return current;
         synchronized (LOCK) {
             if (snapshot != null) return snapshot;
+            if (userLocked(context)) return null;
             Store created;
             try {
                 Context app = context.getApplicationContext();
                 created = new PrefsStore(app != null ? app : context);
             } catch (Throwable failure) {
+                // The user may have locked between the check and the read: still not a failure.
+                if (userLocked(context)) return null;
                 return publishFailure(failure, source);
             }
             return attach(created, source);
+        }
+    }
+
+    /** How long a "locked" answer is reused, so a hook on every touch does not ask the system each time. */
+    private static final long LOCKED_RECHECK_MS = 1000;
+    private static volatile long lockedAt;
+    /** Tests: overrides the system's answer (null = ask the system). */
+    static volatile Boolean userUnlockedForTests;
+
+    /** Whether the user is locked (before first unlock, API 24+). Any error counts as unlocked: the old behaviour. */
+    private static boolean userLocked(Context context) {
+        Boolean forced = userUnlockedForTests;
+        if (forced != null) return !forced;
+        if (Build.VERSION.SDK_INT < 24) return false;
+        try {
+            long now = System.nanoTime() / 1000000L;
+            long last = lockedAt;
+            if (last != 0 && now - last < LOCKED_RECHECK_MS) return true;
+            UserManager users = (UserManager) context.getSystemService(Context.USER_SERVICE);
+            if (users == null || users.isUserUnlocked()) {
+                lockedAt = 0;
+                return false;
+            }
+            lockedAt = now == 0 ? 1 : now;
+            return true;
+        } catch (Throwable failure) {
+            return false;
         }
     }
 
@@ -954,6 +991,8 @@ public final class HevalSettings {
             pendingOptions.clear();
             flushScheduled.set(false);
             synchronousOptionsFlush = false;
+            userUnlockedForTests = null;
+            lockedAt = 0;
         }
     }
 

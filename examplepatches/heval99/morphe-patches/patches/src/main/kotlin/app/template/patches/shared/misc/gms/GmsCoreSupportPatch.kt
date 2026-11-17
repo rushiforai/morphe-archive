@@ -38,7 +38,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.misc.gms.GmsCoreConstants.ACTIONS
 import app.template.patches.shared.misc.gms.GmsCoreConstants.AUTHORITIES
@@ -112,7 +112,7 @@ fun gmsCoreSupportPatch(
     compatibility: Compatibility,
     earlyReturnFingerprints: Set<Fingerprint> = emptySet(),
     default: Boolean = true,
-    dependencies: Set<Patch<*>> = emptySet(),
+    dependencies: Set<Patch> = emptySet(),
     allowClone: Boolean = true,
     extraDescription: String? = null,
     scope: GmsCoreScope? = null,

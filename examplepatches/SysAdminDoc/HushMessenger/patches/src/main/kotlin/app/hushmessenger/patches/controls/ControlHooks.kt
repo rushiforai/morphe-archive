@@ -202,6 +202,8 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))
     found.getValue(FACEBOOK_PROFILE_HEADER).addAll(findProfileHeader(classes))
     found.getValue(TAB_CONFIG).addAll(findTabConfig(classes))
+    found.getValue(TAB_LABELS).addAll(findTabLabels(classes))
+    found.getValue(TAB_ICONS).addAll(findTabIcons(classes))
     found.getValue(AI_MENTIONS).addAll(findAiMentions(classes))
     found.getValue(AI_COMMANDS).addAll(findAiCommands(classes))
     val searchBars = findAiSearchHint(classes)
@@ -221,7 +223,9 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
         findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes, stringTables))
     found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
     found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
+    found.getValue(DWELL_TRACKING).addAll(findDwellTracking(classes))
     found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
+    found.getValue(LINK_PLAYER).addAll(findLinkPlayer(classes))
     findPinnedChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
     val hiddenChats = findHiddenChats(classes)
     hiddenChats.forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
@@ -245,6 +249,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(STORY_RING).addAll(findStoryRing(classes))
     found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
     found.getValue(QUIET_CALL_NOTIFICATION).addAll(findQuietCallNotification(classes))
+    found.getValue(QUIET_MODE).addAll(findQuietModeNotify(classes))
     found.getValue(CAR_MESSAGES).addAll(findCarMessages(classes))
     found.getValue(CAR_EXTENSION_GATE).addAll(findCarExtensionGate(classes))
     found.getValue(LOCAL_CHAT_SEARCH).addAll(findLocalChatSearch(classes))
@@ -271,6 +276,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(MARK_READ_BAR).addAll(markReadBar)
     found.getValue(HIDE_CALL_BAR).addAll(markReadBar)
     found.getValue(MARK_READ_CLICK).addAll(markReadClick)
+    found.getValue(LOCAL_READ).addAll(findLocalRead(classes))
     val (logBar, logClick) = findMessageLogButton(classes)
     found.getValue(MESSAGE_LOG_BUTTON).addAll(logBar)
     found.getValue(MESSAGE_LOG_CLICK).addAll(logClick)
@@ -282,6 +288,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(MENU_BLUR).addAll(findMenuBlur(classes))
     found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
     found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
+    found.getValue(PASTE_PHOTO).addAll(findPastePhoto(classes))
     for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
     return found
 }
@@ -568,6 +575,8 @@ private class ControlScan(
         // An open chat marks itself read, which also sends Seen, only through the job its seen handler schedules here.
         if (method.isChatSeenBroadcast()) add(HIDE_READ_RECEIPTS)
         if (method.isReplyReadDispatch()) add(REPLY_READ)
+        // Delivered goes out as a batch from one manager, which publishes its own op name over its own topic.
+        if (method.isDeliveryReceiptSend()) add(DELIVERY_RECEIPT)
         // Opening a story card sends its seen state through the handler Messenger tags with this name.
         if (ret == "V" && params == listOf(MONTAGE_CARD, "Z") &&
             !AccessFlags.STATIC.isSet(method.accessFlags) && STORY_MARK_READ_TAG in strings) add("anonymous_stories")
@@ -590,7 +599,12 @@ private class ControlScan(
             if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
             if (original == "M4TabNavigationFragment") add("chat_inbox")
         }
-        if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) add(CHAT_JUMP)
+        // Three controls open at the chat's own view handover: the jump menu, the screenshot block and the dimmer.
+        if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) {
+            add(CHAT_JUMP)
+            add(SECURE_CHAT)
+            add(INVISIBLE_BUTTONS)
+        }
         // Chats on Messenger's older route open in this fragment, which loads its own animation.
         if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
             method.hookId() == "${cls.type}->onCreateAnimation(IZI)$ANIMATION") add("chat_legacy")

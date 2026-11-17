@@ -11,6 +11,7 @@
       "@semantic-release/commit-analyzer", {
         "preset": "angular",
         "releaseRules": [
+          { "type": "feat", "scope": "release", "release": "minor" },
           { "type": "feat", "release": "patch" },
           { "type": "fix", "release": "patch" },
           { "type": "perf", "release": "patch" },

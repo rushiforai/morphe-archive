@@ -5,7 +5,9 @@ import app.fakh.patches.shared.firebase.firebaseManifestPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 
 /** AppsFlyer entry points that start attribution or log an event; `init` returns the library, the rest return nothing. */
 private val APPSFLYER_VOID = setOf("start", "logEvent")
@@ -31,7 +33,7 @@ private object InsiderInitFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Stops AppsFlyer, Mixpanel and Insider from tracking installs, reads and other in-app events, and " +
         "turns off Firebase Analytics, Crashlytics, Performance and Sessions.",

@@ -11,6 +11,6 @@ object Constants {
         description = "The National Park Service app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x2B4423,
-        targets = listOf(AppTarget("2.16.0", versionCode = 3937))
+        targets = listOf(AppTarget("2.16.0", versionCode = 3937), AppTarget("2.15.0", versionCode = 3834))
     )
 }

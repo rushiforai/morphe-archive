@@ -16,6 +16,7 @@ import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireThisIntact
@@ -107,10 +108,21 @@ val disableDraftPreviewsPatch = bytecodePatch(
         DraftPreviewTarget.entries.forEach { requireStatusMethod(it.capability) }
         requireStatusMethod("localDrafts")
         requireStatusMethod("localSearch")
+        requireStatusMethod("linkPreviewRules")
         // Every builder, skip target and borrowed register is checked before the first edit.
         val hooks = resolveDraftPreviewHooks()
         val drafts = resolveLocalDraftHook()
         val search = resolveLocalSearch()
+        // Link preview rules only touch the start of a message's send, so a build that sends
+        // differently keeps the rest of the patch.
+        val previewRules = try {
+            resolveLinkPreviewRules()
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without Fix link previews.")
+            null
+        }
+        shape(previewRules == null || (hooks.values.none { it.method === previewRules.method } && drafts.method !== previewRules.method &&
+            search.edits.none { it.method === previewRules.method }), "a message's send shares a method with a draft hook")
         shape(hooks.values.none { it.method === drafts.method }, "the draft upload shares a method with a preview builder")
         shape(search.edits.none { edit -> edit.method === drafts.method || hooks.values.any { it.method === edit.method } },
             "chat search shares a method with a draft hook")
@@ -134,6 +146,10 @@ val disableDraftPreviewsPatch = bytecodePatch(
                 DraftPreviewTarget.STORY -> enableCapability("storyLinkPreviews")
                 DraftPreviewTarget.BOT_SHARE -> enableCapability("botSharePreviews")
             }
+        }
+        if (previewRules != null) {
+            applyLinkPreviewRules(previewRules)
+            enableCapability("linkPreviewRules")
         }
         enableStatus("disableDraftPreviews")
     }

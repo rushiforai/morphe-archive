@@ -2,7 +2,7 @@
  * Original author(s):
  * - anddea (https://github.com/anddea)
  * - COOLak (https://github.com/COOLak)
- * Modified by lavinhoque33, 2026-11-11
+ * Modified by lavinhoque33, 2026-11-16
  */
 
 package app.morphe.extension.youtube.settings.preference;
@@ -72,9 +72,7 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
             }
 
             if (mPreference instanceof SwitchPreference) {
-                if (ExtendedUtils.anyMatchSetting(setting)) {
-                    ExtendedUtils.setPlayerFlyoutMenuAdditionalSettings();
-                } else if (setting.equals(HIDE_PREVIEW_COMMENT) || setting.equals(HIDE_PREVIEW_COMMENT_TYPE)) {
+                if (setting.equals(HIDE_PREVIEW_COMMENT) || setting.equals(HIDE_PREVIEW_COMMENT_TYPE)) {
                     ExtendedUtils.setCommentPreviewSettings();
                 }
             }

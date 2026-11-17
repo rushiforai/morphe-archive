@@ -65,6 +65,8 @@ public class GlassTabSlideTest {
         boolean fails;
         /** A reel's seek bar strip over the bar's top 28 pixels, or null on a screen without one. */
         View strip;
+        /** Whether one of Instagram's bottom sheets covers the bar. */
+        boolean sheet;
 
         @Override public boolean onPill(float x, float y) {
             return x >= 20 && x < 1060 && y >= 10 && y < 140;
@@ -74,6 +76,17 @@ public class GlassTabSlideTest {
             return strip != null && y >= 0 && y < 28 ? strip : null;
         }
 
+        @Override public boolean underASheet() {
+            return sheet;
+        }
+
+        /** How far down the bar, in its pixels, something Instagram drew over it takes presses. */
+        float coveredDown;
+
+        @Override public boolean coveredAt(float x, float y) {
+            return y < coveredDown;
+        }
+
         @Override public void follow(float x) {
             if (fails) throw new IllegalStateException("boom");
             follows.add(x);
@@ -81,6 +94,13 @@ public class GlassTabSlideTest {
 
         float last() {
             return follows.get(follows.size() - 1);
+        }
+
+        /** Where the glass was told a held finger is, NaN as it let go (#705). */
+        final List<Float> holds = new ArrayList<>();
+
+        @Override public void hold(float x) {
+            holds.add(x);
         }
     }
 
@@ -416,6 +436,59 @@ public class GlassTabSlideTest {
     }
 
     /**
+     * #526: a bottom sheet over the bar, like the share sheet on a reel, keeps every press. Where the strip
+     * runs over the bar sits the sheet's Send button, which used to seek the reel behind the sheet instead,
+     * and a sideways drag on the pill, like along the sheet's row of apps, never slides. With the sheet
+     * gone the strip has its presses back.
+     */
+    @Test public void underABottomSheetEveryPressIsTheSheets() {
+        List<float[]> got = stripOverTheBar();
+        pill.sheet = true;
+        assertFalse("the strip doesn't take the press", touch(MotionEvent.ACTION_DOWN, middle(1), 10));
+        assertEquals(GlassTabSlide.IDLE, slide.state());
+        assertFalse(touch(MotionEvent.ACTION_UP, middle(1), 10));
+        assertTrue("the strip got nothing", got.isEmpty());
+
+        assertFalse(touch(MotionEvent.ACTION_DOWN, middle(0), 75));
+        assertFalse("sideways past the slop is still the sheet's", touch(MotionEvent.ACTION_MOVE, middle(3), 78));
+        assertFalse(touch(MotionEvent.ACTION_UP, middle(3), 78));
+        assertTrue("no slide", pill.follows.isEmpty());
+        assertTrue("Instagram had no cancel", activity.actions.isEmpty());
+        assertTrue(clicked.isEmpty());
+
+        pill.sheet = false;
+        assertTrue("the sheet went, and the strip takes its press", touch(MotionEvent.ACTION_DOWN, middle(1), 10));
+        assertEquals(GlassTabSlide.ROUTED, slide.state());
+        assertTrue(touch(MotionEvent.ACTION_UP, middle(1), 10));
+        assertEquals(2, got.size());
+    }
+
+    /**
+     * #526: the Reels share sheet isn't one the holder knows, and its Send button sits over the strip's part
+     * of the bar. A press on something like that is its own, the strip's or the pill's below it too, and
+     * where nothing covers the bar the pill slides as ever.
+     */
+    @Test public void aButtonOverTheBarKeepsItsPress() {
+        List<float[]> got = stripOverTheBar();
+        pill.coveredDown = 40;
+        assertFalse("the strip doesn't take it", touch(MotionEvent.ACTION_DOWN, middle(1), 10));
+        assertEquals(GlassTabSlide.IDLE, slide.state());
+        assertFalse(touch(MotionEvent.ACTION_UP, middle(1), 10));
+        assertTrue("the strip got nothing", got.isEmpty());
+
+        assertFalse(touch(MotionEvent.ACTION_DOWN, middle(0), 30));
+        assertFalse("sideways on the covered pill is still no slide", touch(MotionEvent.ACTION_MOVE, middle(3), 33));
+        assertFalse(touch(MotionEvent.ACTION_UP, middle(3), 33));
+        assertTrue("no slide", pill.follows.isEmpty());
+
+        assertFalse(touch(MotionEvent.ACTION_DOWN, middle(0), 75));
+        assertTrue("below what covers it the pill slides", touch(MotionEvent.ACTION_MOVE, middle(0) + 40, 78));
+        assertEquals(GlassTabSlide.SLIDING, slide.state());
+        assertTrue(touch(MotionEvent.ACTION_UP, middle(0) + 40, 78));
+        assertTrue(got.isEmpty());
+    }
+
+    /**
      * With Slide across the tabs off the slide watches only for the strip: a sideways drag on the pill is
      * Instagram's, a drag on the strip is the strip's, and paused, both are Instagram's.
      */
@@ -495,5 +568,115 @@ public class GlassTabSlideTest {
         assertEquals(GlassTabSlide.IDLE, slide.state());
         String missing = String.valueOf(HookStatus.missing(FamilyNames.GLASS_TAB_BAR));
         assertTrue(missing, missing.contains("'tab slide' hook (it threw java.lang.IllegalStateException)"));
+    }
+
+    /** Asserts the glass was told exactly [expected] about a held finger, NaN for a let go (#705). */
+    private void assertHolds(float... expected) {
+        assertEquals(String.valueOf(pill.holds), expected.length, pill.holds.size());
+        for (int i = 0; i < expected.length; i++) {
+            if (Float.isNaN(expected[i])) {
+                assertTrue("let go at " + i + " in " + pill.holds, Float.isNaN(pill.holds.get(i)));
+            } else {
+                assertEquals("at " + i + " in " + pill.holds, expected[i], pill.holds.get(i), 0.01f);
+            }
+        }
+    }
+
+    /**
+     * #705: a finger down on the pill is followed for the lens from the moment it lands, through a jitter and
+     * a slide, until it lifts.
+     */
+    @Test public void aFingerOnThePillIsFollowedForTheLensUntilItLifts() {
+        assertFalse(touch(MotionEvent.ACTION_DOWN, middle(0), 75));
+        assertHolds(middle(0));
+        assertFalse(touch(MotionEvent.ACTION_MOVE, middle(0) + 3, 76));
+        assertTrue(touch(MotionEvent.ACTION_MOVE, middle(0) + 40, 78));
+        assertEquals(GlassTabSlide.SLIDING, slide.state());
+        assertTrue(touch(MotionEvent.ACTION_MOVE, middle(2), 78));
+        assertTrue(touch(MotionEvent.ACTION_UP, middle(2), 78));
+        assertHolds(middle(0), middle(0) + 3, middle(0) + 40, middle(2), Float.NaN);
+        assertEquals(Arrays.asList(2), clicked);
+
+        pill.holds.clear();
+        assertFalse(touch(MotionEvent.ACTION_DOWN, middle(1), 75));
+        assertFalse(touch(MotionEvent.ACTION_CANCEL, middle(1), 75));
+        assertHolds(middle(1), Float.NaN);
+    }
+
+    /** #705: a swipe up or down off the bar, a second finger, a pause or a failure each let the lens go, once. */
+    @Test public void aSwipeASecondFingerAPauseOrAFailureLetsTheLensGo() {
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        assertFalse(touch(MotionEvent.ACTION_MOVE, middle(1) + 2, 15));
+        assertFalse(touch(MotionEvent.ACTION_MOVE, middle(3), 15));
+        touch(MotionEvent.ACTION_UP, middle(3), 15);
+        assertHolds(middle(1), Float.NaN);
+
+        pill.holds.clear();
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        touch(MotionEvent.ACTION_POINTER_DOWN, middle(1), 75);
+        touch(MotionEvent.ACTION_MOVE, middle(3), 75);
+        touch(MotionEvent.ACTION_UP, middle(3), 75);
+        assertHolds(middle(1), Float.NaN);
+
+        pill.holds.clear();
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        running.set(false);
+        touch(MotionEvent.ACTION_MOVE, middle(1) + 2, 75);
+        touch(MotionEvent.ACTION_UP, middle(1) + 2, 75);
+        assertHolds(middle(1), Float.NaN);
+        running.set(true);
+
+        pill.holds.clear();
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        slide.giveUp();
+        touch(MotionEvent.ACTION_MOVE, middle(1) + 2, 75);
+        touch(MotionEvent.ACTION_UP, middle(1) + 2, 75);
+        assertHolds(middle(1), Float.NaN);
+
+        pill.holds.clear();
+        touch(MotionEvent.ACTION_DOWN, middle(0), 75);
+        touch(MotionEvent.ACTION_DOWN, middle(2), 75);
+        assertHolds(middle(0), Float.NaN, middle(2));
+    }
+
+    /** #705: off the pill, with the bar away, under a sheet or paused, no finger is held. */
+    @Test public void offThePillOrPausedNoFingerIsHeld() {
+        touch(MotionEvent.ACTION_DOWN, 5, 75);
+        touch(MotionEvent.ACTION_MOVE, middle(1), 75);
+        touch(MotionEvent.ACTION_UP, middle(1), 75);
+        touch(MotionEvent.ACTION_DOWN, middle(1), 145);
+        touch(MotionEvent.ACTION_UP, middle(1), 145);
+        bar.setTranslationY(150);
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        touch(MotionEvent.ACTION_UP, middle(1), 75);
+        bar.setTranslationY(0);
+        pill.sheet = true;
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        touch(MotionEvent.ACTION_UP, middle(1), 75);
+        pill.sheet = false;
+        running.set(false);
+        touch(MotionEvent.ACTION_DOWN, middle(1), 75);
+        touch(MotionEvent.ACTION_UP, middle(1), 75);
+        assertHolds();
+    }
+
+    /**
+     * #705: with Slide across the tabs off, a finger on the pill is still followed for the lens, and the whole
+     * gesture stays Instagram's: no slide, no cancel, nothing opened.
+     */
+    @Test public void withSlidesOffTheHeldFingerIsFollowedAndTheGestureStaysInstagrams() {
+        slide = new GlassTabSlide(bar, pill, running::get, false);
+        GlassTabSlide.install(activity.getWindow(), slide);
+        dispatch(MotionEvent.ACTION_DOWN, middle(0), 75);
+        assertEquals(GlassTabSlide.REFUSED, slide.state());
+        dispatch(MotionEvent.ACTION_MOVE, middle(0) + 40, 78);
+        dispatch(MotionEvent.ACTION_MOVE, middle(2), 78);
+        dispatch(MotionEvent.ACTION_UP, middle(2), 78);
+        assertHolds(middle(0), middle(0) + 40, middle(2), Float.NaN);
+        assertEquals(GlassTabSlide.IDLE, slide.state());
+        assertTrue("no slide", pill.follows.isEmpty());
+        assertEquals(Arrays.asList(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_MOVE,
+                MotionEvent.ACTION_UP), activity.actions);
+        assertTrue(clicked.isEmpty());
     }
 }

@@ -15,6 +15,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
@@ -72,6 +73,12 @@ private const val TL_DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$TL_document;"
 private const val VIDEO_INFO = "Lorg/telegram/messenger/VideoEditedInfo;"
 private const val LONG = "Ljava/lang/Long;"
 private const val SET_FIELD_TEXT = "$ENTER_VIEW->setFieldText(Ljava/lang/CharSequence;)V"
+private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
+private const val TEXT_LENGTH = "$CHAR_SEQUENCE->length()I"
+private const val BOOLEAN = "Ljava/lang/Boolean;"
+private const val CHAT = "Lorg/telegram/tgnet/TLRPC\$Chat;"
+private const val VOIP_SERVICE = "Lorg/telegram/messenger/voip/VoIPService;"
+private const val FRAGMENT_PACKAGE = "Lorg/telegram/ui/ActionBar/"
 private const val VOICE_PAUSED = "$MEDIA_CONTROLLER->isRecordingPaused()Z"
 private const val PAUSE_VOICE = "$MEDIA_CONTROLLER->toggleRecordingPause(Z)V"
 
@@ -93,6 +100,9 @@ internal val VOICE_TARGET_R8 = listOf("I", "I", "Z", "Z")
 private val VOICE_HOOK = listOf(OBJECT, "I", "Z", "I", "Z", "J")
 private val CALL_TARGET = listOf(USER, "Z", "Z", ACTIVITY, USER_FULL, ACCOUNT_INSTANCE)
 private val CALL_HOOK = listOf(OBJECT, "Z", "Z", OBJECT, OBJECT, OBJECT)
+/** Telegram's join of a voice chat: the chat, its invite hash, whether it starts one, a join-as flag, the window, the screen and the account. */
+private val JOIN_HOOK = listOf(OBJECT, OBJECT, "I", OBJECT, OBJECT, OBJECT, OBJECT)
+private val RESUME_JOIN = listOf(OBJECT, OBJECT, "Z", OBJECT, OBJECT, OBJECT, OBJECT)
 
 /** The chat bar's send of what it holds: date, sound, a flag, whether its paid-message question may ask, stars. */
 private val BAR_SEND = listOf("I", "Z", "I", "Z", "J")
@@ -130,6 +140,8 @@ val sendConfirmPatch = bytecodePatch(
         site.insert { target, apply -> apply(MutableMethod(ImmutableMethod.of(target))) }
         writeSendConfirmStubs(site)
         site.insert { target, apply -> apply(target) }
+        enableCapability("askBeforeText")
+        enableCapability("askBeforeJoin")
         enableStatus("askBeforeSending")
     }
 }
@@ -142,6 +154,7 @@ internal class SendConfirmSite(
     val startCall: String, val launchField: String, val strips: List<StripSite>,
     val barSend: String, val voiceClip: String, val videoClip: String,
     val barSendMethod: MutableMethod, val voicePreview: PreviewSite, val videoPreview: PreviewSite,
+    val text: PreviewSite, val join: MutableMethod,
 ) {
     /** Hands each place that gets code to [change] with the edit that does it, copy or real. */
     fun insert(change: (MutableMethod, (MutableMethod) -> Unit) -> Unit) {
@@ -157,8 +170,9 @@ internal class SendConfirmSite(
         strips.forEach { strip -> change(strip.method) { stripGate(it, strip) } }
         // The later one first, so the earlier one's index still holds.
         change(barSendMethod) { method ->
-            listOf(voicePreview, videoPreview).sortedByDescending { it.at }.forEach { previewGate(method, it) }
+            listOf(voicePreview, videoPreview, text).sortedByDescending { it.at }.forEach { previewGate(method, it) }
         }
+        change(join) { staticGate(it, "$SEND_CONFIRM->join(${JOIN_HOOK.joinToString("")})Z") }
     }
 }
 
@@ -239,6 +253,25 @@ private fun gate(target: MutableMethod, hook: String) {
 }
 
 /**
+ * [gate] for a static method: the extension's question with every parameter, which sit together in
+ * the top registers, in front of its first instruction. On false the method returns at once.
+ */
+private fun staticGate(target: MutableMethod, hook: String) {
+    val words = target.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
+    val first = target.implementation!!.registerCount - words
+    target.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range {v$first .. v${first + words - 1}}, $hook
+            move-result v0
+            if-nez v0, :hush_stock
+            return-void
+        """,
+        ExternalLabel("hush_stock", target.getInstruction(0)),
+    )
+}
+
+/**
  * [gate] for 13.2's end of a recording: this, send, notify, scheduleDate and once go to the
  * extension in 13.1.1's order through the first seven locals, with no stars, which 13.2 never passes.
  */
@@ -273,13 +306,17 @@ private fun replaceCall(target: MutableMethod, index: Int) {
 }
 
 /**
- * Four places, each a method that does the work only after a person asked for it: the chat bar's
- * sticker send, the GIF panel's listener, Telegram's end of a voice recording and the chat's
- * handling of the round video recorder. The calls come from the chat header's menu and the
- * profile's call buttons, the two places that call by hand.
+ * Five places, each a method that does the work only after a person asked for it: the chat bar's
+ * sticker send, the GIF panel's listener, Telegram's end of a voice recording, the chat's
+ * handling of the round video recorder and Telegram's join of a voice chat. The calls come from
+ * the chat header's menu and the profile's call buttons, the two places that call by hand. The
+ * chat bar's own send gets its questions where it sends a clip from its preview or the text typed
+ * in it.
  */
 internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     requireStatusMethod("askBeforeSending")
+    requireStatusMethod("askBeforeText")
+    requireStatusMethod("askBeforeJoin")
     controlHook(SEND_CONFIRM, "launchActivity", listOf(), ACTIVITY)
     controlHook(SEND_CONFIRM, "sticker", STICKER_HOOK, "Z")
     controlHook(SEND_CONFIRM, "gif", GIF_HOOK, "Z")
@@ -303,20 +340,30 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     controlHook(SEND_CONFIRM, "previewVideo", PREVIEW_HOOK, "Z")
     controlHook(SEND_CONFIRM, "previewVoiceReordered", PREVIEW_HOOK_R8, "Z")
     controlHook(SEND_CONFIRM, "previewVideoReordered", PREVIEW_HOOK_R8, "Z")
+    controlHook(SEND_CONFIRM, "text", PREVIEW_HOOK, "Z")
+    controlHook(SEND_CONFIRM, "textReordered", PREVIEW_HOOK_R8, "Z")
+    controlHook(SEND_CONFIRM, "join", JOIN_HOOK, "Z")
+    controlHook(SEND_CONFIRM, "resumeJoin", RESUME_JOIN, "V")
+    controlHook(SEND_CONFIRM, "ongoingCall", listOf(), "Z")
+    controlHook(SEND_CONFIRM, "chatId", listOf(OBJECT), "J")
+    controlHook(SEND_CONFIRM, "channel", listOf(OBJECT), "Z")
     for (shape in VideoShape.values()) {
         controlHook(SEND_CONFIRM, shape.hook, listOf(OBJECT).plus(shape.target), "Z")
         controlHook(SEND_CONFIRM, shape.resume, listOf(OBJECT).plus(shape.target), "V")
     }
 
     // The first pass reads only method headers. It finds Telegram's start of a call, the one static
-    // method taking these six, and the GIF panel's listener, which is known by its parameters alone.
+    // method taking these six, its join of a voice chat, the one static method taking a chat and
+    // these six, and the GIF panel's listener, which is known by its parameters alone.
     val starts = mutableListOf<Pair<String, String>>()
+    val joins = mutableListOf<Pair<String, String>>()
     val gifs = mutableListOf<Pair<String, String>>()
     classDefForEach { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@classDefForEach
         cls.methods.forEach { m ->
             val params = m.origParameterTypes
             if (AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && params == CALL_TARGET) starts += cls.type to signature(m)
+            if (AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && joinShape(params)) joins += cls.type to signature(m)
             if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && params == GIF_TARGET) gifs += cls.type to signature(m)
         }
     }
@@ -451,6 +498,35 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
             PreviewSite(at, paidPause.freeLocalsAt(NAME, at, 1, highest = 255).single(), hook, previewParams)
         }
 
+    // Where that send starts sending the text typed in the bar: right after its test that the text,
+    // checked against the account's length limit and trimmed, isn't empty. Everything before it
+    // only reads, so a question there leaves the bar as it was.
+    val textAt = textStarts(paidPause).controlSingle("the chat bar's send of a typed message")
+    controlShape(textAt != voicePreview.at && textAt != videoPreview.at, "the chat bar sends its typed text where it sends a clip")
+    for (register in barTop - 7 until barTop) {
+        controlShape(!writes(pauseBody[0], register) && barFlow.definitionReaches(0, textAt, register),
+            "the chat bar's send changes its arguments before it sends a typed message")
+    }
+    val text = PreviewSite(textAt, paidPause.freeLocalsAt(NAME, textAt, 1, highest = 255).single(), "text$suffix", previewParams)
+
+    // Telegram's join of a voice chat, which every Join button, link and banner goes through.
+    val (joinType, joinWanted) = joins.controlSingle("Telegram's join of a voice chat")
+    val joinOwner = tgMutableClassDefBy(joinType)
+    val join = joinOwner.methods.single { signature(it) == joinWanted }
+    controlShape(AccessFlags.PUBLIC.isSet(joinOwner.accessFlags) && join.controlCallable(true), "Telegram's join of a voice chat is inaccessible")
+    controlShape(join.implementation!!.registerCount - 7 >= 1, "Telegram's join of a voice chat has no local register to ask in")
+    controlShape(ControlFlow.of(join).normal.none { 0 in it }, "something jumps back to the start of Telegram's join of a voice chat")
+    controlShape(AccessFlags.PUBLIC.isSet(tgMutableClassDefBy(join.origParameterTypes[5]).accessFlags),
+        "the screen a voice chat is joined from is inaccessible")
+    val chatClass = tgMutableClassDefBy(CHAT)
+    controlShape(AccessFlags.PUBLIC.isSet(chatClass.accessFlags) && listOf("id" to "J", "broadcast" to "Z").all { (name, type) ->
+        chatClass.fields.any { it.origName == name && it.origType == type && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    }, "a chat no longer gives its id and whether it's a channel")
+    val serviceClass = tgMutableClassDefBy(VOIP_SERVICE)
+    controlShape(AccessFlags.PUBLIC.isSet(serviceClass.accessFlags) && serviceClass.methods.any {
+        it.origName == "getSharedInstance" && it.controlShape(listOf(), VOIP_SERVICE) && it.controlCallable(true)
+    }, "Telegram no longer says which call is going on")
+
     // The header menu's call item, and the profile's call button, each calling once.
     val (headerType, headerWanted, headerCalls) = headers.controlSingle("the chat header's menu")
     val header = tgMutableClassDefBy(headerType).methods.single { signature(it) == headerWanted }
@@ -497,7 +573,43 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
 
     return SendConfirmSite(sticker, gif, voice, video, shape, recorder, videoPaused, pauseVideo,
         header, headerCall, profile, profileCall, startRef, own, stripSites, signature(paidPause), voiceClip, videoClip,
-        paidPause, voicePreview, videoPreview)
+        paidPause, voicePreview, videoPreview, text, join)
+}
+
+/** Telegram's join of a voice chat: the chat, its invite hash, whether it starts one, a join-as flag, the window, the screen and the account. */
+private fun joinShape(params: List<String>) = params.size == 7 && params[0] == CHAT && params[1] == STRING &&
+    params[2] == "Z" && params[3] == BOOLEAN && params[4] == ACTIVITY && params[5].startsWith(FRAGMENT_PACKAGE) &&
+    params[6] == ACCOUNT_INSTANCE
+
+/**
+ * Where [method] goes on to send the text it holds: right after the `if-eqz` on that text's
+ * length, the first length it takes once it has checked the text against the account's length
+ * limit, where nothing but that test leads.
+ */
+internal fun textStarts(method: Method): List<Int> {
+    val body = method.controlBody()
+    val flow = ControlFlow.of(method)
+    val into = Array(body.size) { mutableListOf<Int>() }
+    body.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { into[it] += from } }
+    return body.indices.filter { lengthCheck(body[it]) }.mapNotNull { check ->
+        val length = (check + 1 until body.size).firstOrNull { body[it].controlRef() == TEXT_LENGTH } ?: return@mapNotNull null
+        val result = body.getOrNull(length + 1)
+        val test = body.getOrNull(length + 2)
+        if (result?.opcode != Opcode.MOVE_RESULT || test?.opcode != Opcode.IF_EQZ) return@mapNotNull null
+        if (test.namedRegisters().first() != result.namedRegisters().first()) return@mapNotNull null
+        val at = length + 3
+        if (into[length + 1] != listOf(length) || into[length + 2] != listOf(length + 1)) return@mapNotNull null
+        at.takeIf { it < body.size && into[it] == listOf(it - 1) }
+    }
+}
+
+/** Whether [instruction] is the chat bar's check of a text against the account's length limit: static, an int, a long, a screen and the text. */
+private fun lengthCheck(instruction: Instruction): Boolean {
+    if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) return false
+    val call = instruction.call() ?: return false
+    val params = call.origParameterTypes
+    return call.origDefiningClass == ENTER_VIEW && call.origReturnType == "Z" && params.size == 4 && params[0] == "I" &&
+        params[1] == "J" && params[2].startsWith(FRAGMENT_PACKAGE) && params[3] == CHAR_SEQUENCE
 }
 
 /**
@@ -669,6 +781,37 @@ $words
         check-cast p0, $CALLBACK
         invoke-interface {p0, p1}, $CALLBACK->run($OBJECT)V
         return-void
+    """)
+    val joinParams = site.join.origParameterTypes
+    writeStub(SEND_CONFIRM, "resumeJoin", 7, """
+        check-cast p0, $CHAT
+        check-cast p1, $STRING
+        check-cast p3, $BOOLEAN
+        check-cast p4, $ACTIVITY
+        check-cast p5, ${joinParams[5]}
+        check-cast p6, $ACCOUNT_INSTANCE
+        invoke-static/range {p0 .. p6}, ${signature(site.join)}
+        return-void
+    """)
+    writeStub(SEND_CONFIRM, "ongoingCall", 1, """
+        invoke-static {}, $VOIP_SERVICE->getSharedInstance()$VOIP_SERVICE
+        move-result-object v0
+        if-eqz v0, :hush_none
+        const/4 v0, 0x1
+        return v0
+        :hush_none
+        const/4 v0, 0x0
+        return v0
+    """)
+    writeStub(SEND_CONFIRM, "chatId", 3, """
+        check-cast p0, $CHAT
+        iget-wide v0, p0, $CHAT->id:J
+        return-wide v0
+    """)
+    writeStub(SEND_CONFIRM, "channel", 2, """
+        check-cast p0, $CHAT
+        iget-boolean v0, p0, $CHAT->broadcast:Z
+        return v0
     """)
 }
 

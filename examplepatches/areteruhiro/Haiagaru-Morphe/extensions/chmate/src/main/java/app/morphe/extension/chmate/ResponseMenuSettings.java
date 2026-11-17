@@ -26,10 +26,11 @@ public final class ResponseMenuSettings {
     }
     static boolean handleTools(Object item){if(!(item instanceof android.view.MenuItem)||((android.view.MenuItem)item).getItemId()!=TOOLS)return false;Runnable action=TOOL_ACTIONS.get(item);if(action!=null)action.run();return true;}
     private ResponseMenuSettings() {}
-    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079, RedIdAutoNg.MENU_EXCLUSION, SharedNgResponseExclusion.ITEM, ResponseMultiSelection.SELECT};
-    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録","自動NGの除外IDに追加", SharedNgResponseExclusion.TITLE, "選択（レス複数選択）"};
+    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079, RedIdAutoNg.MENU_EXCLUSION, SharedNgResponseExclusion.ITEM, ResponseMultiSelection.SELECT, ResponseNotes.MENU};
+    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録","自動NGの除外IDに追加", SharedNgResponseExclusion.TITLE, "選択（レス複数選択）", "メモ"};
     static boolean defaultVisible(int id){for(int action:IDS)if(action==id)return !FeatureSwitches.enabled(MinimalSetup.ACTIVE,false)&&(id==75||id==76||id==SharedNgResponseExclusion.ITEM);return true;}
     private static int icon(int id) {
+        if(id==ResponseNotes.MENU)return android.R.drawable.ic_menu_edit;
         if(id==ResponseMultiSelection.SELECT)return android.R.drawable.checkbox_on_background;
         if(id==RedIdAutoNg.MENU_EXCLUSION)return android.R.drawable.ic_menu_add;
         if(id==SharedNgResponseExclusion.ITEM)return android.R.drawable.ic_menu_revert;
@@ -176,6 +177,9 @@ public final class ResponseMenuSettings {
         layout.addView(toggle);
     }
     static void addSettings(android.widget.LinearLayout layout,android.app.Activity activity){
+        android.widget.Switch memoToggle=new LiveSettings.Toggle(activity);memoToggle.setText("レス長押しにメモを表示");memoToggle.setChecked(visible(ResponseNotes.MENU));
+        memoToggle.setOnCheckedChangeListener((button,on)->storeVisibility(activity.getSharedPreferences("haiagaru_response_actions",0),ResponseNotes.MENU,on?1:2));layout.addView(memoToggle);
+        android.widget.Button notes=new android.widget.Button(activity);notes.setText("メモの一覧・検索");notes.setOnClickListener(v->ResponseNotes.open(activity,null));layout.addView(notes);
         android.widget.Switch extra=new android.widget.Switch(activity);extra.setText("レス長押しに「追加ツール」を表示");extra.setChecked(FeatureSwitches.enabled("responseExtraTools",false));
         extra.setOnCheckedChangeListener((button,on)->activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0).edit().putBoolean("responseExtraTools",on).apply());layout.addView(extra);
         android.widget.Button button=new android.widget.Button(activity);button.setText("レス長押し・ツールバー項目を個別設定");layout.addView(button);

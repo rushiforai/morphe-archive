@@ -27,8 +27,8 @@ internal val hidePlayerAppLogoPatch = bytecodePatch {
         check(packageMetadata.packageName == "com.cricfytv.sports") {
             "Player logo patch is only for CRICFy TV."
         }
-        check(packageMetadata.versionName == "7.4" && packageMetadata.versionCode == "54") {
-            "Player logo patch is only supported on CRICFy TV 7.4 (54)."
+        check(packageMetadata.versionName == "7.5" && packageMetadata.versionCode == "55") {
+            "Player logo patch is only supported on CRICFy TV 7.5 (55)."
         }
         val ctor = PlayerWatermarkConstructor.repairedMethod
         val insns = ctor.instructions.toList()

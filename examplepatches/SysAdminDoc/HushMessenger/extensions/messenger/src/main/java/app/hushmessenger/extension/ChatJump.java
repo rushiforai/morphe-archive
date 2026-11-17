@@ -3,6 +3,7 @@ package app.hushmessenger.extension;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Rect;
@@ -17,10 +18,12 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,7 +49,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Jump to the first message or a date (#130). A long press on the chat's name in its top bar asks where to go.
+ * Jump to the first message or a date (#130). A long press on the chat's name in its top bar asks where to go, and a
+ * tap on one of the dates between the messages opens the day picker on that day (#177).
  * Messenger loads a chat a page at a time and its list's own methods are renamed, so the jump pages the list back
  * through the View API the list overrides (scrollBy, canScrollVertically and the accessibility row count), with a
  * count and Cancel on screen, until older messages stop coming or the day turns up. The chat fragment hands its view
@@ -82,10 +86,18 @@ public final class ChatJump {
         void choose(Context context, Target target);
     }
 
+    /** How the day is asked for, starting at [day], or at today when that's 0. Tests swap it. */
+    interface Picker {
+        void pick(Context context, long day, Target target);
+    }
+
     static volatile Chooser chooser = ChatJump::choose;
+    static volatile Picker picker = ChatJump::pickDay;
 
     /** Chat views Messenger has shown. Only touched on the main thread. */
     private static final List<WeakReference<View>> chats = new ArrayList<>();
+    /** The arrow on each chat on screen, so one chat only ever gets one. Only touched on the main thread. */
+    private static final Map<View, Arrow> arrows = new IdentityHashMap<>();
     static Jump running;
 
     private ChatJump() { }
@@ -102,15 +114,20 @@ public final class ChatJump {
                         } catch (Throwable error) {
                             Settings.hookFailed(KEY, "Can't watch the chat for a jump", error);
                         }
+                        showArrow(attached);
                     }
 
                     @Override public void onViewDetachedFromWindow(View detached) {
+                        hideArrow(detached);
                         Jump jump = running;
                         if (jump != null && jump.chat == detached) jump.lose();
                     }
                 });
             }
-            if (view.isAttachedToWindow()) watch(view);
+            if (view.isAttachedToWindow()) {
+                watch(view);
+                showArrow(view);
+            }
         } catch (Throwable error) {
             Settings.hookFailed(KEY, "Can't watch the chat for a jump", error);
         }
@@ -144,6 +161,23 @@ public final class ChatJump {
             context = ((ContextWrapper) context).getBaseContext();
         }
         return null;
+    }
+
+    /**
+     * Shows [dialog] over the chat [context] belongs to. A chat head draws from Messenger's own chat head service,
+     * where no activity holds a window a dialog can hang on, so the dialog goes up over other apps the way the chat
+     * head itself does. Without this nothing reached the screen there and whatever the dialog was asking went ahead
+     * unasked (#172). Every question Hush asks over a chat comes through here, so this is also where each one takes
+     * Hush's own look instead of the platform's flat alert sheet (#179).
+     */
+    static void showOverChat(Dialog dialog, Context context) {
+        if (activity(context) == null) {
+            Window window = dialog.getWindow();
+            if (window != null) window.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        }
+        ChatDialogs.dress(dialog);
+        dialog.show();
+        ChatDialogs.dressButtons(dialog);
     }
 
     /** The watcher behind [callback] when it's ours, else null. */
@@ -241,6 +275,46 @@ public final class ChatJump {
         return best;
     }
 
+    /**
+     * The day a tap at (x, y) landed on in [chat]'s message list, or 0 when it landed anywhere else. The dates between
+     * a chat's messages are rows nothing listens to, so a tap on one does nothing in Messenger today and the day it
+     * names is read off the row the same way the jump reads a message's own send time (#177). A row that takes taps,
+     * a message among them, is left to Messenger.
+     */
+    static long dateAt(View chat, int x, int y) {
+        // The arrow floats over the messages, so the row under it keeps its hands off that touch.
+        Arrow arrow = arrows.get(chat);
+        if (arrow != null && arrow.holds(x, y)) return 0;
+        View list = listIn(chat);
+        if (list == null || !contains(list, x, y)) return 0;
+        View row = rowAt(list, x, y);
+        if (row == null || listens(row)) return 0;
+        return times(Collections.singletonList(row), System.currentTimeMillis(), new HashMap<>())[0];
+    }
+
+    /** The row of [list] under (x, y), topmost first, or null. */
+    static View rowAt(View list, int x, int y) {
+        if (!(list instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) list;
+        for (int i = group.getChildCount() - 1; i >= 0; i--) {
+            View row = group.getChildAt(i);
+            if (row.getVisibility() == View.VISIBLE && contains(row, x, y)) return row;
+        }
+        return null;
+    }
+
+    /** Whether [row] or anything in it answers a tap, in which case that touch stays Messenger's. */
+    static boolean listens(View row) {
+        if (row.isClickable() || row.isLongClickable()) return true;
+        if (row instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) row;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (listens(group.getChildAt(i))) return true;
+            }
+        }
+        return false;
+    }
+
     static boolean isList(Class<?> type) {
         for (; type != null; type = type.getSuperclass()) {
             if (LIST.equals(type.getName())) return true;
@@ -275,31 +349,34 @@ public final class ChatJump {
     /** Asks where to go, then for the day when it's a date. */
     private static void choose(Context context, Target target) {
         SettingsText text = new SettingsText(context);
-        new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
+        showOverChat(new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
             .setTitle(text.get("chat_jump_title"))
             .setItems(new CharSequence[]{text.get("chat_jump_first"), text.get("chat_jump_date")}, (dialog, which) -> {
                 try {
                     if (which == 0) target.jump(0);
-                    else pickDay(context, target);
+                    else picker.pick(context, 0, target);
                 } catch (Throwable error) {
                     Settings.hookFailed(KEY, "Can't start the jump", error);
                 }
             })
-            .show();
+            .create(), context);
     }
 
-    private static void pickDay(Context context, Target target) {
+    /** The day picker, open on [day] or on today when that's 0, and never past today. */
+    static void pickDay(Context context, long day, Target target) {
         Calendar today = Calendar.getInstance();
-        DatePickerDialog picker = new DatePickerDialog(context, MaterialYouTheme.chatDialogTheme(),
-            (view, year, month, day) -> {
+        Calendar open = Calendar.getInstance();
+        if (day > 0) open.setTimeInMillis(Math.min(day, today.getTimeInMillis()));
+        DatePickerDialog dialog = new DatePickerDialog(context, MaterialYouTheme.chatDialogTheme(),
+            (view, year, month, picked) -> {
                 try {
-                    target.jump(midnight(year, month, day));
+                    target.jump(midnight(year, month, picked));
                 } catch (Throwable error) {
                     Settings.hookFailed(KEY, "Can't start the jump", error);
                 }
-            }, today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
-        picker.getDatePicker().setMaxDate(today.getTimeInMillis());
-        picker.show();
+            }, open.get(Calendar.YEAR), open.get(Calendar.MONTH), open.get(Calendar.DAY_OF_MONTH));
+        dialog.getDatePicker().setMaxDate(today.getTimeInMillis());
+        showOverChat(dialog, context);
     }
 
     /** Local midnight at the start of the day. [month] counts from 0, like the picker's. */
@@ -716,6 +793,7 @@ public final class ChatJump {
             handler.removeCallbacks(this);
             bar.hide();
             if (running == this) running = null;
+            refreshArrow(chat);
             String said = said(outcome);
             if (said != null) Toast.makeText(chat.getContext(), new SettingsText(chat.getContext()).get(said), Toast.LENGTH_SHORT).show();
         }
@@ -738,6 +816,153 @@ public final class ChatJump {
                 case NO_DATES: return "chat_jump_no_dates";
                 default: return null;
             }
+        }
+    }
+
+    /** Puts the arrow on [chat] unless it's already there. Never throws. */
+    static void showArrow(View chat) {
+        try {
+            if (!Settings.enabled(KEY) || arrows.containsKey(chat)) return;
+            Arrow arrow = new Arrow(chat);
+            arrows.put(chat, arrow);
+            arrow.show();
+        } catch (Throwable error) {
+            arrows.remove(chat);
+            Settings.hookFailed(KEY, "Can't put the jump arrow on the chat", error);
+        }
+    }
+
+    /** Takes the arrow off [chat]. */
+    static void hideArrow(View chat) {
+        Arrow arrow = arrows.remove(chat);
+        if (arrow != null) arrow.hide();
+    }
+
+    /** The arrow on [chat], for the tests. */
+    static Arrow arrowOn(View chat) {
+        return arrows.get(chat);
+    }
+
+    /**
+     * Takes [view] off [parent] once whatever is going on now is done. A window handing its children their detach
+     * walks the very list our view sits in, so taking it out right there leaves a hole the walk then trips over.
+     */
+    private static void takeOut(ViewGroup parent, View view) {
+        if (parent == null || view == null) return;
+        view.setVisibility(View.GONE);
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (view.getParent() == parent) parent.removeView(view);
+        });
+    }
+
+    /** Has [chat]'s arrow look again, for when the count bar comes and goes without a layout of its own. */
+    static void refreshArrow(View chat) {
+        Arrow arrow = arrows.get(chat);
+        if (arrow != null) arrow.update();
+    }
+
+    /**
+     * A round arrow at the bottom left of a chat that goes to its first message, the other way round from
+     * Messenger's own arrow down to the newest one, since a long press on the chat's name is easy to miss (#177).
+     * A long press on the arrow asks for a day instead. It's only up while the chat has older messages to go to,
+     * and it stands down while the count bar is on screen.
+     */
+    static final class Arrow implements ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnScrollChangedListener {
+        private final View chat;
+        private final Rect visible = new Rect();
+        private final int[] where = new int[2];
+        private ViewGroup content;
+        /** How far up from the bottom the arrow sits, clearing the chat box. */
+        private int above;
+        ImageView button;
+
+        Arrow(View chat) {
+            this.chat = chat;
+        }
+
+        void show() {
+            View found = chat.getRootView().findViewById(android.R.id.content);
+            if (!(found instanceof FrameLayout)) return;
+            content = (ViewGroup) found;
+            Context context = chat.getContext();
+            SettingsUi ui = new SettingsUi(context, MaterialYouTheme.chatIsLight());
+            int size = ui.dp(40), pad = ui.dp(11);
+            above = ui.dp(64);
+            button = new ImageView(context);
+            // The icon points back, so a quarter turn clockwise points it at the top of the chat.
+            button.setImageDrawable(SettingsIcons.icon(context, SettingsIcons.BACK, ui.text));
+            button.setRotation(90);
+            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            button.setPadding(pad, pad, pad, pad);
+            button.setBackground(ui.interactive(ui.surface, ui.line, size / 2));
+            button.setElevation(ui.dp(3));
+            button.setContentDescription(new SettingsText(context).get("chat_jump_first"));
+            button.setOnClickListener(tapped -> {
+                try {
+                    start(chat, 0);
+                } catch (Throwable error) {
+                    Settings.hookFailed(KEY, "Can't start the jump", error);
+                }
+            });
+            button.setOnLongClickListener(held -> {
+                try {
+                    held.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    chooser.choose(held.getContext(), day -> start(chat, day));
+                } catch (Throwable error) {
+                    Settings.hookFailed(KEY, "Can't ask where to jump", error);
+                }
+                return true;
+            });
+            button.setVisibility(View.GONE);
+            FrameLayout.LayoutParams params =
+                new FrameLayout.LayoutParams(size, size, Gravity.BOTTOM | Gravity.START);
+            params.setMarginStart(ui.dp(12));
+            params.bottomMargin = above;
+            content.addView(button, params);
+            content.getViewTreeObserver().addOnGlobalLayoutListener(this);
+            content.getViewTreeObserver().addOnScrollChangedListener(this);
+            update();
+        }
+
+        /** Whether the arrow is up and takes the touch at (x, y), which the date rows under it then leave alone. */
+        boolean holds(int x, int y) {
+            return button != null && button.getVisibility() == View.VISIBLE && contains(button, x, y);
+        }
+
+        /** Up while the chat is on screen with older messages to go to, down while a jump holds the bar. */
+        void update() {
+            if (button == null || content == null) return;
+            View list = chat.isShown() ? listIn(chat) : null;
+            Jump jump = running;
+            boolean up = list != null && list.canScrollVertically(-1) && (jump == null || jump.chat != chat);
+            int wanted = up ? View.VISIBLE : View.GONE;
+            if (button.getVisibility() != wanted) button.setVisibility(wanted);
+        }
+
+        @Override public void onScrollChanged() {
+            update();
+        }
+
+        @Override public void onGlobalLayout() {
+            if (button == null || content == null) return;
+            content.getWindowVisibleDisplayFrame(visible);
+            content.getLocationOnScreen(where);
+            int covered = Math.max(0, where[1] + content.getHeight() - visible.bottom);
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) button.getLayoutParams();
+            if (params.bottomMargin != covered + above) {
+                params.bottomMargin = covered + above;
+                button.setLayoutParams(params);
+            }
+            update();
+        }
+
+        void hide() {
+            if (content == null) return;
+            content.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            content.getViewTreeObserver().removeOnScrollChangedListener(this);
+            takeOut(content, button);
+            content = null;
+            button = null;
         }
     }
 
@@ -781,6 +1006,7 @@ public final class ChatJump {
             content.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
             content.getViewTreeObserver().addOnGlobalLayoutListener(this);
+            refreshArrow(chat);
         }
 
         void update() {
@@ -805,7 +1031,8 @@ public final class ChatJump {
         void hide() {
             if (content == null) return;
             content.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            content.removeView(bar);
+            // A chat leaving a window that's going away stops the jump from inside that window's own detach.
+            takeOut(content, bar);
             content = null;
             bar = null;
             status = null;
@@ -826,6 +1053,9 @@ public final class ChatJump {
         private MotionEvent last;
         private float downX, downY;
         private boolean held;
+        /** The chat whose date a touch went down on, and the day that date names. */
+        private View dateChat;
+        private long date;
 
         Watching(Window window, Window.Callback original) {
             this.window = window;
@@ -870,13 +1100,16 @@ public final class ChatJump {
                 held = false;
                 View decor = window.peekDecorView();
                 if (decor == null || chats.isEmpty() || !Settings.wouldUse(KEY)) return false;
-                View name = titleAt(decor, (int) event.getRawX(), (int) event.getRawY());
-                View heads = name != null ? chatFor(name) : null;
-                if (heads == null) return false;
-                title = name;
-                chat = heads;
                 downX = event.getRawX();
                 downY = event.getRawY();
+                View name = titleAt(decor, (int) downX, (int) downY);
+                View heads = name != null ? chatFor(name) : null;
+                if (heads == null) {
+                    dated(decor, (int) downX, (int) downY);
+                    return false;
+                }
+                title = name;
+                chat = heads;
                 keep(event);
                 handler.postDelayed(fire, ViewConfiguration.getLongPressTimeout());
                 return false;
@@ -885,15 +1118,42 @@ public final class ChatJump {
                 if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) held = false;
                 return true;
             }
-            if (title == null) return false;
+            if (title == null && dateChat == null) return false;
             if (action == MotionEvent.ACTION_MOVE) {
-                int slop = ViewConfiguration.get(title.getContext()).getScaledTouchSlop();
+                Context context = (title != null ? title : dateChat).getContext();
+                int slop = ViewConfiguration.get(context).getScaledTouchSlop();
                 if (Math.abs(event.getRawX() - downX) > slop || Math.abs(event.getRawY() - downY) > slop) forget();
-                else keep(event);
+                else if (title != null) keep(event);
+            } else if (action == MotionEvent.ACTION_UP) {
+                View chat = dateChat;
+                long day = date;
+                forget();
+                // The touch goes on to Messenger either way: a date row does nothing with it.
+                if (chat != null) tapped(chat, day);
             } else if (action != MotionEvent.ACTION_POINTER_UP) {
                 forget();
             }
             return false;
+        }
+
+        /** Keeps the chat and the day when the touch went down on a date between a chat's messages. */
+        private void dated(View decor, int x, int y) {
+            for (WeakReference<View> held : chats) {
+                View chat = held.get();
+                if (chat == null || !chat.isShown() || chat.getRootView() != decor.getRootView()) continue;
+                long day = dateAt(chat, x, y);
+                if (day != 0) {
+                    dateChat = chat;
+                    date = day;
+                    return;
+                }
+            }
+        }
+
+        /** A tap on a date: the day picker opens on that day, and the jump goes where it's left. */
+        private void tapped(View chat, long day) {
+            if (!Settings.enabled(KEY)) return;
+            picker.pick(window.getContext(), day, picked -> start(chat, picked));
         }
 
         private void keep(MotionEvent event) {
@@ -907,6 +1167,8 @@ public final class ChatJump {
             last = null;
             title = null;
             chat = null;
+            dateChat = null;
+            date = 0;
         }
 
         private void fire() {

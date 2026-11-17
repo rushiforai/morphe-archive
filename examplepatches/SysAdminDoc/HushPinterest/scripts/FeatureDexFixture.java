@@ -1056,6 +1056,8 @@ public final class FeatureDexFixture {
             // These synthetic targets have no Home request, so Hide pins you've already saved stays out,
             // and no pin model, so the See more like this bubble stays out too.
             FLAGS.put("feedSavedPins", false);
+            FLAGS.put("feedSavedSearch", false);
+            FLAGS.put("feedSavedRelated", false);
             FLAGS.put("feedbackFlyout", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             feed(classes, variant);

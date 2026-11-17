@@ -1,6 +1,6 @@
 package app.template.patches.sofascore.competitions
 
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.hevalcontrols.HevalListFeature
 import app.template.patches.shared.hevalcontrols.featurePatch
 import app.template.patches.sofascore.controls.SofascoreControlsCategory

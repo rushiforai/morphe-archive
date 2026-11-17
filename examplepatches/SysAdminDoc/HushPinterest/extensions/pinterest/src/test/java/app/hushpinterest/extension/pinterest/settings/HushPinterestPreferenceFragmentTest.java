@@ -118,6 +118,11 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_INBOX_UPDATES, "Hide Inbox updates");
         ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
         ROW_TITLES.put(PatchFamily.HIDE_SURVEY_PROMPTS, "Hide survey prompts");
+        ROW_TITLES.put(PatchFamily.HIDE_POPUP_BANNERS, "Hide pop-up banners");
+        ROW_TITLES.put(PatchFamily.HIDE_RELATED_PINS, "Hide related pins");
+        ROW_TITLES.put(PatchFamily.HIDE_CREATOR_NAME, "Hide creator name on pins");
+        ROW_TITLES.put(PatchFamily.CUSTOM_SAVE_SOUND, "Custom save sound");
+        ROW_TITLES.put(PatchFamily.CUSTOM_SPLASH_LOGO, "Custom splash logo");
         ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
         ROW_TITLES.put(PatchFamily.ORIGINAL_IMAGES, "Original-quality images");
         ROW_TITLES.put(PatchFamily.SHOW_POSTED_DATE, "Show posted date");
@@ -645,13 +650,15 @@ public class HushPinterestPreferenceFragmentTest {
 
     /** A method, not a field, so Settings loads after the rule has given it a context. */
     private static BooleanSetting[] longPressHides() {
-        return new BooleanSetting[] {Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH};
+        return new BooleanSetting[] {Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEND_APP,
+                Settings.LONG_PRESS_HIDE_SEARCH};
     }
 
     /** The long-press hide switches sit right under Long-press download, start off, and show only where their hook went in. */
     @Test
     public void longPressHideSwitchesShowUnderLongPressDownloadOnlyWhereTheirHookWentIn() {
-        String[] titles = {"Hide Save in the long-press menu", "Hide Send in the long-press menu", "Hide Search image in the long-press menu"};
+        String[] titles = {"Hide Save in the long-press menu", "Hide Send in the long-press menu",
+                "Hide Send with an app in the long-press menu", "Hide Search image in the long-press menu"};
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
         withoutIt.remove(PatchFamily.Capability.LONG_PRESS_CHOICES);
@@ -671,8 +678,33 @@ public class HushPinterestPreferenceFragmentTest {
                 assertNotNull(row);
                 assertEquals(titles[n], String.valueOf(row.getTitle()));
                 assertFalse(titles[n] + " starts off", row.isChecked());
-                assertEquals(indexOfKey(rows, Settings.LONG_PRESS_DOWNLOAD.key) + 1 + n, indexOfKey(rows, longPressHides()[n].key));
+                assertEquals(indexOfKey(rows, Settings.LONG_PRESS_DOWNLOAD.key) + 2 + n, indexOfKey(rows, longPressHides()[n].key));
             }
+        }
+    }
+
+    /** Long-press view (#37) sits right under Long-press download, starts off, and shows only where its hook went in. */
+    @Test
+    public void longPressViewShowsUnderLongPressDownloadOnlyWhereItsHookWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutIt.remove(PatchFamily.Capability.LONG_PRESS_VIEW);
+        PatchFamily.capabilitiesForTests = withoutIt;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.LONG_PRESS_VIEW.key));
+            assertNotNull(page.findPreference(Settings.LONG_PRESS_HIDE_SAVE.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.LONG_PRESS_VIEW.key);
+            assertNotNull(row);
+            assertEquals("Long-press view", String.valueOf(row.getTitle()));
+            assertFalse("Long-press view starts off", row.isChecked());
+            assertEquals(indexOfKey(rows, Settings.LONG_PRESS_DOWNLOAD.key) + 1, indexOfKey(rows, Settings.LONG_PRESS_VIEW.key));
         }
     }
 
@@ -705,16 +737,27 @@ public class HushPinterestPreferenceFragmentTest {
             ShadowLooper.idleMainLooper();
             assertNull("turning one off leaves its button", ShadowToast.getTextOfLatestToast());
 
+            Settings.LONG_PRESS_VIEW.save(true);
+            assertTrue(flip.onPreferenceChange(search, true));
+            ShadowLooper.idleMainLooper();
+            assertNull("View is still in the menu", ShadowToast.getTextOfLatestToast());
+
+            Settings.LONG_PRESS_VIEW.save(false);
             assertTrue(flip.onPreferenceChange(search, true));
             ShadowLooper.idleMainLooper();
             assertEquals("With nothing left in it, the menu keeps Pinterest's buttons.", ShadowToast.getTextOfLatestToast());
         } finally {
             for (BooleanSetting hide : longPressHides()) hide.resetToDefault();
             Settings.LONG_PRESS_DOWNLOAD.resetToDefault();
+            Settings.LONG_PRESS_VIEW.resetToDefault();
         }
     }
 
-    /** Black comments, Black pin menu and Black Save to sheet each have their own hook, so each row shows only where its hook went in, under Black bottom bar. */
+    /**
+     * Black comments, Black pin menu, Black Save to sheet, Black menus and sheets and Black board and
+     * profile buttons each have their own hook, so each row shows only where its hook went in, under
+     * Black bottom bar.
+     */
     @Test
     public void theBlackSheetRowsShowOnlyWhereTheirHooksWentIn() {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
@@ -722,12 +765,16 @@ public class HushPinterestPreferenceFragmentTest {
         barOnly.remove(PatchFamily.Capability.BLACK_COMMENTS);
         barOnly.remove(PatchFamily.Capability.BLACK_PIN_MENU);
         barOnly.remove(PatchFamily.Capability.BLACK_SAVE_SHEET);
+        barOnly.remove(PatchFamily.Capability.BLACK_SHEETS);
+        barOnly.remove(PatchFamily.Capability.BLACK_BOARDS);
         PatchFamily.capabilitiesForTests = barOnly;
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
             assertNull(page.findPreference(Settings.BLACK_COMMENTS.key));
             assertNull(page.findPreference(Settings.BLACK_PIN_MENU.key));
             assertNull(page.findPreference(Settings.BLACK_SAVE_SHEET.key));
+            assertNull(page.findPreference(Settings.BLACK_SHEETS.key));
+            assertNull(page.findPreference(Settings.BLACK_BOARDS.key));
             assertNotNull(page.findPreference(Settings.BLACK_BOTTOM_BAR.key));
         }
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
@@ -748,6 +795,14 @@ public class HushPinterestPreferenceFragmentTest {
             assertEquals("Black Save to sheet", String.valueOf(save.getTitle()));
             assertFalse("Black Save to sheet starts off", save.isChecked());
             assertEquals(bar + 3, indexOfKey(rows, Settings.BLACK_SAVE_SHEET.key));
+            SwitchPreference sheets = (SwitchPreference) page.findPreference(Settings.BLACK_SHEETS.key);
+            SwitchPreference boards = (SwitchPreference) page.findPreference(Settings.BLACK_BOARDS.key);
+            assertEquals("Black menus and sheets", String.valueOf(sheets.getTitle()));
+            assertEquals("Black board and profile buttons", String.valueOf(boards.getTitle()));
+            assertFalse("Black menus and sheets starts off", sheets.isChecked());
+            assertFalse("Black board and profile buttons starts off", boards.isChecked());
+            assertEquals(bar + 4, indexOfKey(rows, Settings.BLACK_SHEETS.key));
+            assertEquals(bar + 5, indexOfKey(rows, Settings.BLACK_BOARDS.key));
         }
     }
 
@@ -790,6 +845,8 @@ public class HushPinterestPreferenceFragmentTest {
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_COMMENTS.key));
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_PIN_MENU.key));
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_SAVE_SHEET.key));
+        assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_SHEETS.key));
+        assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_BOARDS.key));
     }
 
     /** The black surfaces, each with the switch that's its own. */
@@ -799,6 +856,8 @@ public class HushPinterestPreferenceFragmentTest {
         rows.put(PatchFamily.Capability.BLACK_COMMENTS, Settings.BLACK_COMMENTS);
         rows.put(PatchFamily.Capability.BLACK_PIN_MENU, Settings.BLACK_PIN_MENU);
         rows.put(PatchFamily.Capability.BLACK_SAVE_SHEET, Settings.BLACK_SAVE_SHEET);
+        rows.put(PatchFamily.Capability.BLACK_SHEETS, Settings.BLACK_SHEETS);
+        rows.put(PatchFamily.Capability.BLACK_BOARDS, Settings.BLACK_BOARDS);
         return rows;
     }
 

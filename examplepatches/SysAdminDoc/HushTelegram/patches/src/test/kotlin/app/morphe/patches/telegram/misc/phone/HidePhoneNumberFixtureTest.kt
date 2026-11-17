@@ -13,6 +13,8 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.namedRegisters
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.origRef
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -36,8 +38,13 @@ class HidePhoneNumberFixtureTest {
             val hosts = hidePhoneHosts(build)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val site = context.resolveHidePhoneNumber()
+            val asked = context.resolveAskedNumbers(site.format)
             val share = context.resolveContactShare()
             val before = site.calls.associate { (m, indices) -> key(m) to indices.map { m.controlBody()[it].namedRegisters() } }
+            // The new Settings page's card and the older suggestion cell both ask about the number.
+            assertEquals("$name: ${asked.problems}", emptyList<String>(), asked.problems)
+            assertTrue("$name: the cards asking about the number, ${asked.sites.map { it.method.definingClass }}", asked.sites.size >= 2)
+            val askedBefore = asked.sites.map { it.method.controlBody()[it.index - 1].namedRegisters() }
             assertTrue("$name: the side menu and Settings among ${site.calls.size} callers", site.calls.size >= 15)
             val kept = KEPT.filter { context.tgClassDefByOrNull(it) != null }
             assertTrue("$name: an exported card or link keeps the number", kept.isNotEmpty())
@@ -48,6 +55,17 @@ class HidePhoneNumberFixtureTest {
                 assertEquals("$name: ${method.definingClass}", before[key(method)],
                     indices.map { body[it].namedRegisters() })
                 indices.forEach { assertEquals("$name: ${method.definingClass} asks the extension", SHOWN, body[it].controlRef()) }
+            }
+            asked.sites.forEachIndexed { i, card ->
+                val body = card.method.controlBody()
+                val where = "$name: ${card.method.definingClass}->${card.method.name}"
+                assertEquals("$where: the number's move-result", Opcode.MOVE_RESULT_OBJECT, body[card.index - 1].opcode)
+                assertEquals("$where: the number's register", listOf(card.register), askedBefore[i])
+                assertEquals("$where: asks the extension", ASKED, body[card.index].controlRef())
+                assertEquals("$where: with the number", listOf(card.register), body[card.index].namedRegisters())
+                assertEquals("$where: and takes its answer", Opcode.MOVE_RESULT_OBJECT, body[card.index + 1].opcode)
+                assertEquals("$where: into the number's register", listOf(card.register), body[card.index + 1].namedRegisters())
+                assertTrue("$where: the question follows", body.drop(card.index + 2).take(8).any { it.loadsInt() && it.controlRef() == CHECK_PHONE_NUMBER })
             }
             val left = hosts.map { it.type }.filter { !it.startsWith("Lapp/hushtelegram/") }.flatMap { type ->
                 val cls = context.tgMutableClassDefBy(type)
@@ -80,6 +98,7 @@ internal fun hidePhoneHosts(build: java.io.File): List<ClassDef> {
     }.single().type
     return (FixtureDex.classesWhere(build, { true }) { m ->
         m.origDefiningClass == formatter || m.origDefiningClass == USER_CONFIG || m.origDefiningClass == TL_USER ||
-            m.controlBody().any { it.opcode != Opcode.NOP && it.controlRef()?.startsWith("$formatter->") == true }
+            m.controlBody().any { it.opcode != Opcode.NOP && it.controlRef()?.startsWith("$formatter->") == true } ||
+            m.controlBody().any { it.loadsInt() && it.origRef() == CHECK_PHONE_NUMBER }
     }.map(ImmutableClassDef::of) + contactShareHosts(build)).distinctBy { it.type }
 }

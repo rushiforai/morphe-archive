@@ -8,11 +8,14 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
+import app.morphe.util.call
 import app.morphe.patches.telegram.misc.translate.OUTSIDE_TRANSLATE
 import app.morphe.patches.telegram.misc.translate.OutsideTranslateFixtureTest
 import app.morphe.patches.telegram.misc.translate.outsideTranslatePatch
@@ -45,10 +48,33 @@ class MyMessagesFixtureTest {
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun Instruction.buildRef() = (this as? ReferenceInstruction)?.reference?.toString()
 
-    /** Outside translate's slice of the chat screen, plus the user and chat classes the stubs read. */
+    /** Outside translate's slice of the chat screen, plus the user and chat classes the stubs read and Admin tools' screens. */
     private fun hosts(build: File): List<ClassDef> =
-        (OutsideTranslateFixtureTest().hosts(build) + FixtureDex.classes(build, setOf(user, chat)).values.map(ImmutableClassDef::of))
-            .distinctBy { it.type }
+        (OutsideTranslateFixtureTest().hosts(build) + FixtureDex.classes(build, setOf(user, chat)).values.map(ImmutableClassDef::of) +
+            adminHosts(build)).distinctBy { it.type }
+
+    /**
+     * The member lists, every screen they open with their base classes, and the chat details Admin
+     * tools reads. A whole-APK search, so once per build.
+     */
+    private fun adminHosts(build: File): List<ClassDef> = adminCache.getOrPut(build.path) {
+        FixtureDex.namedBy(build) {
+            val lists = FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it == "selectType" } }) { m ->
+                m.name == "<init>" && m.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;") &&
+                    m.controlBody().mapNotNull { it.controlString() }.let { "open_search" in it && "selectType" in it }
+            }
+            val opened = lists.flatMap { it.methods }.flatMap { m -> m.controlBody().mapNotNull { it.call() } }
+                .filter { it.name == "<init>" && it.definingClass.startsWith("Lorg/telegram/ui/") }.map { it.definingClass }.toSet()
+            val loaded = (lists + FixtureDex.classes(build, opened + ADMIN_FIXED).values).distinctBy { it.type }.toMutableList()
+            var next = loaded.mapNotNull { it.superclass }.filter { it.startsWith("Lorg/telegram/") }.toSet() - loaded.map { it.type }.toSet()
+            while (next.isNotEmpty()) {
+                val more = FixtureDex.classes(build, next).values
+                loaded += more
+                next = more.mapNotNull { it.superclass }.filter { it.startsWith("Lorg/telegram/") }.toSet() - loaded.map { it.type }.toSet()
+            }
+            loaded.map(ImmutableClassDef::of)
+        }
+    }
 
     @Test fun `the header updater and click delegate ask first and the search takes Telegram's own steps`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -65,6 +91,7 @@ class MyMessagesFixtureTest {
             assertEquals("$name: the member button", "Landroid/widget/ImageView;", site.searchButton.type)
             val shownBefore = ImmutableMethod.of(site.header.visibility).controlBody()
             val clickBefore = ImmutableMethod.of(site.header.delegate).controlBody().filter { it.opcode != Opcode.NOP }
+            val admin = context.resolveAdminTools(site)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { myMessagesPatch.execute(context) })
 
             val shown = site.header.visibility.controlBody()
@@ -107,7 +134,81 @@ class MyMessagesFixtureTest {
 
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "myMessages" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            context.assertAdminTools(name, site, admin)
         }
+    }
+
+    /** Admin tools opens the screens Telegram's own member lists open, the way they open them. */
+    private fun BytecodePatchContext.assertAdminTools(name: String, site: MyMessagesSite, admin: AdminToolsSite) {
+        if (name.contains("-73039")) {
+            assertEquals("Lorg/telegram/ui/jr;", admin.members)
+            assertEquals("Lorg/telegram/ui/sb;", admin.log)
+            assertEquals("Lorg/telegram/ui/dg0;", admin.links)
+            assertEquals("m0", admin.linksInfo.name)
+            assertEquals(listOf("J", "I", "J"), admin.linksParameters)
+            assertEquals(0, admin.linksChatId)
+        }
+        assertEquals("$name: Invite Links' constructor", listOf("I", "J", "J"), admin.linksParameters.sorted())
+        assertEquals("$name: the chat's link", listOf("Lorg/telegram/tgnet/TLRPC\$ChatFull;", "exported_invite"),
+            listOf(admin.invite.definingClass, admin.invite.name))
+        val tools = tgMutableClassDefBy(ADMIN_TOOLS)
+        fun refs(stub: String) = tools.methods.single { it.origName == stub }.controlBody().mapNotNull { it.controlRef() }
+        val messages = "Lorg/telegram/messenger/MessagesController;"
+        val getChat = "$messages->getChat(Ljava/lang/Long;)$chat"
+        assertEquals("$name: rights", listOf(site.chat, site.header.dialogGetter.toString(), "Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;",
+            site.header.accountGetter.toString(), "$messages->getInstance(I)$messages", getChat, "$chat->monoforum:Z", "$chat->creator:Z",
+            "$chat->admin_rights:$RIGHTS", "$RIGHTS->ban_users:Z", "$RIGHTS->invite_users:Z", "$chat->broadcast:Z", "$chat->megagroup:Z"),
+            refs("rights"))
+        assertTrue("$name: chatFull", "$messages->getChatFull(J)Lorg/telegram/tgnet/TLRPC\$ChatFull;" in refs("chatFull"))
+        assertEquals("$name: activity", listOf(site.chat, admin.parentActivity), refs("activity"))
+        assertEquals("$name: recentActions", listOf(admin.log, "${admin.log}-><init>($chat)V", admin.present),
+            refs("recentActions").dropWhile { it != admin.log })
+        val members = refs("members")
+        assertTrue("$name: members $members", members.containsAll(listOf("${admin.members}-><init>(Landroid/os/Bundle;)V",
+            admin.membersInfo.toString(), admin.present, "Landroid/os/Bundle;->putLong(Ljava/lang/String;J)V",
+            "Landroid/os/Bundle;->putInt(Ljava/lang/String;I)V")))
+        // The chat's ID goes in at the constructor parameter Telegram's row puts it in, and zeros everywhere else.
+        val links = tools.methods.single { it.origName == "inviteLinks" }
+        val body = links.controlBody()
+        val made = body.single { it.controlRef()?.startsWith("${admin.links}-><init>") == true }
+        val registers = made.namedRegisters()
+        var at = 1
+        val starts = admin.linksParameters.map { type -> at.also { at += if (type == "J") 2 else 1 } }
+        val negated = (body.single { it.opcode == Opcode.NEG_LONG } as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerA
+        assertEquals("$name: the chat's ID", registers[starts[admin.linksChatId]], negated)
+        assertTrue("$name: inviteLinks", refs("inviteLinks").containsAll(listOf(admin.linksInfo.toString(), admin.present)))
+        for (stub in tools.methods.filter { it.origName in ADMIN_STUBS }) {
+            for (instruction in stub.controlBody()) {
+                assertTrue("$name: ${stub.name} ${instruction.opcode}", instruction.namedRegisters().all { it < stub.implementation!!.registerCount })
+            }
+        }
+        val status = tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "adminTools" }.controlBody()
+        assertEquals("$name: adminTools", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+    }
+
+    @Test fun `a build whose member lists can't be found keeps My messages without Admin tools`() {
+        val build = Fixtures.declaredBuilds().first()
+        val probe = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+        val members = probe.resolveAdminTools(probe.resolveMyMessages()).members
+        val context = PatchContexts.of(ExtensionDex.classes() + hosts(build).filter { it.type != members })
+        val before = context.tgMutableClassDefBy(ADMIN_TOOLS).methods.filter { it.origName in ADMIN_STUBS }
+            .associate { m -> m.name to m.controlBody().map { it.opcode } }
+        val warnings = PatchLogCapture.warnings { myMessagesPatch.execute(context) }
+        assertTrue(warnings.toString(), warnings.single().contains("member lists") && warnings.single().contains("without Admin tools"))
+        for ((flag, on) in listOf("myMessages" to 1L, "adminTools" to 0L)) {
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+            assertEquals(flag, on, (status.first() as WideLiteralInstruction).wideLiteral)
+        }
+        assertEquals(before, context.tgMutableClassDefBy(ADMIN_TOOLS).methods.filter { it.origName in ADMIN_STUBS }
+            .associate { m -> m.name to m.controlBody().map { it.opcode } })
+    }
+
+    private companion object {
+        val adminCache = mutableMapOf<String, List<ClassDef>>()
+        const val RIGHTS = "Lorg/telegram/tgnet/TLRPC\$TL_chatAdminRights;"
+        val ADMIN_FIXED = setOf("Lorg/telegram/tgnet/TLRPC\$ChatFull;", RIGHTS, "Lorg/telegram/tgnet/TLRPC\$ExportedChatInvite;",
+            "Lorg/telegram/tgnet/TLRPC\$TL_chatInviteExported;")
+        val ADMIN_STUBS = setOf("rights", "chatFull", "activity", "recentActions", "members", "inviteLinks")
     }
 
     /** Both patches put their calls at the top of the same updater and delegate, whichever runs first. */

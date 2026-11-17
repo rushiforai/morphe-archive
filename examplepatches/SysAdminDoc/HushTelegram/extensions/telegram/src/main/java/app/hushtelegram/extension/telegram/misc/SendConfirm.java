@@ -4,12 +4,15 @@
  */
 package app.hushtelegram.extension.telegram.misc;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +28,10 @@ import java.lang.ref.WeakReference;
 import java.util.function.Predicate;
 
 /**
- * Four questions Telegram doesn't ask: send this sticker, this GIF, this voice or video message,
- * start this call. Each is its own switch and each stands in front of the one method that does the
- * work, so with the switch off the method runs as it always did.
+ * Questions Telegram doesn't ask: send this sticker, this GIF, this voice message, this round video
+ * message, this typed message, start this call, join this voice chat. Each is its own switch and
+ * each stands in front of the one method that does the work, so with the switch off the method
+ * runs as it always did.
  *
  * <p>A question's hook returns true to let Telegram go on and false when it asked instead. Send
  * runs the same method again with the same arguments, once: the hook is told to let that one call
@@ -40,9 +44,10 @@ import java.util.function.Predicate;
  * that preview, where Telegram's own buttons play it, delete it or send it.
  *
  * <p>Only what a person starts by hand is asked about: a sticker or GIF picked in Telegram's
- * panels or its suggestion strip, a recording sent from the record button or from its preview, and the call buttons in
- * a chat's header and on a profile. A scheduled send, a send that already carries its own paid-message confirmation and a
- * call started from anywhere else go through untouched.
+ * panels or its suggestion strip, a recording sent from the record button or from its preview, a typed message sent from
+ * the chat bar, the call buttons in a chat's header and on a profile, and joining a group's voice chat or a channel's
+ * live stream. A scheduled send, a send without sound, a send that already carries its own paid-message confirmation, an
+ * edit, a forward with nothing typed and a call started from anywhere else go through untouched.
  */
 public final class SendConfirm {
     private SendConfirm() {}
@@ -53,6 +58,8 @@ public final class SendConfirm {
     private static final int VIDEO = 4;
     private static final int CALL = 5;
     private static final int STRIP = 6;
+    private static final int TEXT = 7;
+    private static final int JOIN = 8;
 
     /** The state Telegram's chat bar sends a paused round video in, the one its paid-message question sends with. */
     static final int VIDEO_PREVIEW = 4;
@@ -60,6 +67,13 @@ public final class SendConfirm {
     /** How many times, {@link #PREVIEW_STEP_MS} apart, Send looks for the preview of a paused clip: five seconds. */
     static final int PREVIEW_TRIES = 50;
     static final long PREVIEW_STEP_MS = 100L;
+
+    /** How long after Join, answered while the microphone was still off, the same chat joins without asking again. */
+    static final long MICROPHONE_WAIT_MS = 60_000L;
+
+    /** The chat a Join was answered for while the microphone was off, and until when it joins without asking. */
+    private static long microphoneChat;
+    private static long microphoneUntil;
 
     /** The kind of send the next call through its hook is the answered one of, or 0. */
     private static volatile int passing;
@@ -137,7 +151,7 @@ public final class SendConfirm {
     /** In front of the chat's handling of the round video recorder, in the order one build gives its arguments. */
     public static boolean video(Object chat, int state, boolean notify, int scheduleDate, int ttl, long effect, long stars) {
         if (passed(VIDEO)) return true;
-        if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_ROUND_VIDEO)) return true;
         if (asking()) return false;
         Activity window = current();
         if (window == null || !mainThread() || !holdVideo(chat)) return true;
@@ -148,7 +162,7 @@ public final class SendConfirm {
     /** {@link #video} for the build that gives the date, the timer and the effect before the sound flag. */
     public static boolean videoReordered(Object chat, int state, int scheduleDate, int ttl, long effect, long stars, boolean notify) {
         if (passed(VIDEO)) return true;
-        if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_ROUND_VIDEO)) return true;
         if (asking()) return false;
         Activity window = current();
         if (window == null || !mainThread() || !holdVideo(chat)) return true;
@@ -188,11 +202,33 @@ public final class SendConfirm {
     }
 
     /**
+     * In front of the chat bar's send of the text typed in it, the one its send button and the
+     * keyboard's send key run, once Telegram has checked the text and before the bar lets go of
+     * any of it, so Cancel leaves the text, its reply and its link preview as they were. Send runs
+     * the bar's send again, and the answered call goes through.
+     */
+    public static boolean text(Object bar, int scheduleDate, int notify, int repeat, int confirm, long stars) {
+        if (passed(TEXT)) return true;
+        if (!previewSend(scheduleDate, notify, repeat, stars) || !on(Settings.ASK_BEFORE_MESSAGE)) return true;
+        Activity window = activity(bar);
+        if (window == null) return true;
+        if (asking()) return false;
+        return ask(TEXT, window, L10n.t(window, "Send message"), L10n.t(window, "Send this message to this chat?"), L10n.t(window, "Send"),
+                () -> sendFromBar(bar), null);
+    }
+
+    /** {@link #text} for the build whose send takes the sound flag first and the stars before the question. */
+    public static boolean textReordered(Object bar, int notify, int scheduleDate, int repeat, long stars, int confirm) {
+        return text(bar, scheduleDate, notify, repeat, confirm, stars);
+    }
+
+    /**
      * Asks about the clip waiting in [bar]'s preview; Send runs [send], the bar's send again. A tap
      * while a question is up keeps the preview and asks nothing more.
      */
     static boolean preview(int kind, Object bar, int scheduleDate, int notify, int repeat, long stars, Runnable send) {
-        if (!previewSend(scheduleDate, notify, repeat, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        BooleanSetting setting = kind == VIDEO ? Settings.ASK_BEFORE_ROUND_VIDEO : Settings.ASK_BEFORE_VOICE_VIDEO;
+        if (!previewSend(scheduleDate, notify, repeat, stars) || !on(setting)) return true;
         Activity window = activity(bar);
         if (window == null) return true;
         if (asking()) return false;
@@ -317,6 +353,58 @@ public final class SendConfirm {
             HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "call", failure);
         }
         startCall(user, video, canVideo, activity, userFull, account);
+    }
+
+    /**
+     * In front of Telegram's join of a group's voice chat or a channel's live stream, with its
+     * arguments. Starting a new one, a join while a call is already going, which Telegram either
+     * opens or asks about itself, and the join Telegram makes again once the microphone is allowed
+     * go through.
+     *
+     * @param create 1 when this starts a new voice chat rather than joining one
+     */
+    public static boolean join(Object chat, Object hash, int create, Object checkJoiner, Object activity, Object fragment, Object account) {
+        try {
+            if (passed(JOIN)) return true;
+            if (create != 0 || !(activity instanceof Activity) || !on(Settings.ASK_BEFORE_JOIN)) return true;
+            Activity window = usable((Activity) activity, false) ? (Activity) activity : null;
+            if (window == null || !mainThread() || ongoingCall()) return true;
+            long id = chatId(chat);
+            if (afterMicrophone(id, window)) return true;
+            if (asking()) return false;
+            boolean stream = channel(chat);
+            String title = stream ? L10n.t(window, "Join live stream") : L10n.t(window, "Join voice chat");
+            String question = stream ? L10n.t(window, "Join this live stream?") : L10n.t(window, "Join this voice chat?");
+            return ask(JOIN, window, title, question, L10n.t(window, "Join"), () -> {
+                waitForMicrophone(id, window);
+                resumeJoin(chat, hash, create != 0, checkJoiner, activity, fragment, account);
+            }, null);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "join", failure);
+            return true;
+        }
+    }
+
+    /**
+     * Whether this join is the one Telegram makes again for [chat] once the microphone it asked
+     * for is allowed, shortly after Join. Any join ends the wait.
+     */
+    static boolean afterMicrophone(long chat, Context context) {
+        boolean again = microphoneUntil != 0L && microphoneChat == chat && SystemClock.elapsedRealtime() < microphoneUntil
+                && microphone(context);
+        microphoneUntil = 0L;
+        return again;
+    }
+
+    /** After Join with the microphone still off, lets [chat]'s next join, for a minute, go through. */
+    static void waitForMicrophone(long chat, Context context) {
+        if (microphone(context)) return;
+        microphoneChat = chat;
+        microphoneUntil = SystemClock.elapsedRealtime() + MICROPHONE_WAIT_MS;
+    }
+
+    static boolean microphone(Context context) {
+        return context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
     }
 
     /** Whether an end of a recording is the one that sends: Telegram's 1, with sound, now and with nothing to pay. */
@@ -469,4 +557,16 @@ public final class SendConfirm {
 
     /** Telegram's own start of a call. Replaced when patching. */
     public static void startCall(Object user, boolean video, boolean canVideo, Object activity, Object userFull, Object account) {}
+
+    /** Telegram's own join of a voice chat, again, with the same arguments. Replaced when patching. */
+    public static void resumeJoin(Object chat, Object hash, boolean create, Object checkJoiner, Object activity, Object fragment, Object account) {}
+
+    /** Whether a call or a voice chat is going on now. Replaced when patching. */
+    public static boolean ongoingCall() { return false; }
+
+    /** A chat's id. Replaced when patching. */
+    public static long chatId(Object chat) { return 0L; }
+
+    /** Whether a chat is a channel, whose voice chat Telegram calls a live stream. Replaced when patching. */
+    public static boolean channel(Object chat) { return false; }
 }

@@ -26,7 +26,7 @@ public class EphemeralMediaPatch {
     }
 
     public static boolean shouldSuppressEphemeralMediaReceipt(UserSession session, Object item) {
-        if (!MAKE_EPHEMERAL_MEDIA_PERMANENT) return false;
+        if (!MAKE_EPHEMERAL_MEDIA_PERMANENT && !Pref.hideViewOnceSeen()) return false;
         try {
             String key = localReadKey(session.getUserId(), item);
             SharedPreferences preferences = localReadPreferences();
@@ -36,7 +36,7 @@ public class EphemeralMediaPatch {
     }
 
     public static boolean wasEphemeralMediaViewed(Object item, Object viewer) {
-        if (!MAKE_EPHEMERAL_MEDIA_PERMANENT) return false;
+        if (!MAKE_EPHEMERAL_MEDIA_PERMANENT && !Pref.hideViewOnceSeen()) return false;
         try {
             String key = localReadKey(new UserData(viewer).getUserId(), item);
             SharedPreferences preferences = localReadPreferences();
@@ -76,4 +76,8 @@ public class EphemeralMediaPatch {
         return viewMode;
     }
 
+
+    public static boolean shouldSuppressVoiceSeenReceipt() {
+        return Pref.hideAudioSeen();
+    }
 }

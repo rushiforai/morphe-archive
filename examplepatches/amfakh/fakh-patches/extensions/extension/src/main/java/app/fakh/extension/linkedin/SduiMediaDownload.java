@@ -57,8 +57,14 @@ public final class SduiMediaDownload {
 
     private static Object resumedFragment;
     private static boolean resumedIsMedia;
+    private static volatile String resumedScreen = "";
     private static List<MediaItem> pending;
     private static long pendingAt;
+
+    /** The screen id of the SDUI screen in front, such as com.linkedin.sdui.flagshipnav.media.VideoViewer. */
+    static String resumedScreen() {
+        return resumedScreen;
+    }
 
     // region Hooks from SduiFragment (main thread)
 
@@ -67,6 +73,7 @@ public final class SduiMediaDownload {
             String screen = screenId(fragment);
             Settings.debugLog("SduiFragment resumed screen=" + screen);
             resumedFragment = fragment;
+            resumedScreen = screen;
             resumedIsMedia = screen.startsWith(MEDIA_SCREEN_PREFIX)
                     || screen.startsWith(PROFILE_PHOTO_SCREEN_PREFIX) || screen.equals(PROFILE_COVER_SCREEN)
                     || screen.equals(PROFILE_BACKGROUND_SCREEN);

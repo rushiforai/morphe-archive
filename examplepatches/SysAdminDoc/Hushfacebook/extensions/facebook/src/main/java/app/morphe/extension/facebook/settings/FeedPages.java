@@ -758,6 +758,11 @@ final class FeedPages {
         feed.addPreference(forget);
     }
 
+    /** Whether [build] boxes story names: Show full post text with its story-name hook in (#490). */
+    private static boolean storyNamesBoxed(Set<PatchFamily> build) {
+        return build.contains(PatchFamily.FULL_POST_TEXT) && VideoPages.storyNamesInBuild();
+    }
+
     /** Stories. */
     static void stories(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
@@ -766,7 +771,8 @@ final class FeedPages {
                 || build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.STORY_UPLOAD_HD)
                 || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.STORIES_TRAY_CIRCLES)
                 || build.contains(PatchFamily.STORY_TAPS) || build.contains(PatchFamily.STORY_VIEWER_CLEANUP)
-                || build.contains(PatchFamily.STORY_RINGS) || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
+                || build.contains(PatchFamily.STORY_RINGS) || build.contains(PatchFamily.PINCH_TO_ZOOM)
+                || storyNamesBoxed(build)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES,
@@ -793,6 +799,10 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.HIDE_SEEN_STORIES,
                         L10n.t("Stories you've already watched leave the Stories tray until there's a new one. Applies when "
                                 + "Facebook next loads the tray.")));
+                // Kept, but after the ones you haven't watched (#489).
+                stories.addPreference(toggle(context, Settings.SEEN_STORIES_LAST,
+                        L10n.t("Stories you've already watched move to the end of the Stories tray, after the ones you "
+                                + "haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.")));
                 // The other way round, so the tray flips between the two with one switch (#340).
                 stories.addPreference(toggle(context, Settings.SHOW_ONLY_WATCHED_STORIES,
                         L10n.t("The Stories tray keeps only the stories you've already watched, so you can find one again. "
@@ -847,6 +857,13 @@ final class FeedPages {
                         L10n.t("Draws the stories row on Home as round pictures, like Instagram. Applies the next time "
                                 + "Home loads its stories.")));
                 stories.addPreference(HushfacebookPreferenceFragment.sizeRow(context));
+            }
+            if (storyNamesBoxed(build)) {
+                // Show full post text's story half (#490), asked as each name is built.
+                stories.addPreference(toggle(context, Settings.DIM_STORY_NAMES,
+                        L10n.t("Names in the stories row and on an open story sit on a dark box, so a bright story "
+                                + "doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows "
+                                + "the next time the stories load.")));
             }
             if (build.contains(PatchFamily.STORY_TAPS)) {
                 // Read on each tap, so a change shows from the next one.
@@ -993,6 +1010,8 @@ final class FeedPages {
                     L10n.t("Takes Like off the row under comments. Reply and the reaction count stay.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_REPLY_BUTTON,
                     L10n.t("Takes Reply off the row under comments. View replies, Like and the reaction count stay.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENTER_BADGES,
+                    L10n.t("Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.")));
             comments.addPreference(toggle(context, Settings.COMMENT_BLOCK_BUTTON,
                     L10n.t("The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.")));
             comments.addPreference(toggle(context, Settings.REACTOR_BLOCK_BUTTON,
@@ -1012,6 +1031,10 @@ final class FeedPages {
                     L10n.t("Takes away the line that says someone is typing a comment. Your own typing is a separate switch under Privacy.")));
             comments.addPreference(toggle(context, Settings.HIDE_NEW_COMMENTS_PILL,
                     L10n.t("The \"new comments\" bubble no longer pops up while you read comments. New comments still show in the list.")));
+            // Read as each comment's row is built, so a change shows on the comments drawn after it.
+            comments.addPreference(toggle(context, Settings.SHOW_EVERY_COMMENT_REACTION,
+                    L10n.t("Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every "
+                            + "reaction instead. A change shows on the comments drawn after it.")));
             comments.addPreference(reactionCountsRow(context));
         }
         if (fullHeight) {

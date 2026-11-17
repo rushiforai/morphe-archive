@@ -238,7 +238,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (!DownloadFolderPreference.onResult(this, requestCode, resultCode, data)) {
+        if (!DownloadFolderPreference.onResult(this, requestCode, resultCode, data)
+                && !SaveSoundPreference.onResult(this, requestCode, resultCode, data)) {
             SettingsBackupPreference.onResult(this, requestCode, resultCode, data);
         }
     }
@@ -306,7 +307,16 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             // Its own hooks, on Home's request and pages: no row where they didn't go in.
             if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_SAVED_PINS.installed()) {
                 feed.addPreference(mark(toggle(context, Settings.HIDE_SAVED_PINS, L10n.t("Hide pins you've already saved"),
-                        L10n.t("Takes pins you've saved out of your home feed. Your boards and search still show them.")),
+                        L10n.t("Takes pins you've saved out of your home feed. Your boards still show them.")),
+                        SettingsIcons.BLOCK));
+            }
+            // Its own hooks, on the search and More to explore requests and lists: no row where neither went in.
+            if (build.contains(PatchFamily.FILTER_FEED) && (PatchFamily.Capability.FEED_SAVED_SEARCH.installed()
+                    || PatchFamily.Capability.FEED_SAVED_RELATED.installed())) {
+                feed.addPreference(mark(toggle(context, Settings.HIDE_SAVED_PINS_ELSEWHERE,
+                        L10n.t("Hide saved pins in search and More to explore"),
+                        L10n.t("Takes pins you've saved out of search results and the More to explore pins under a pin "
+                            + "you open. Your boards still show them.")),
                         SettingsIcons.BLOCK));
             }
             // Its own hooks, on the list hook and the pin's feedback bubble: no row where neither went in.
@@ -324,6 +334,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(feed, context, build, PatchFamily.KEEP_HOME_FEED, Settings.KEEP_HOME_FEED,
                     L10n.t("Keep Home feed"), L10n.t("Home keeps the pins you were looking at when you come back to "
                         + "Pinterest or to the Home tab. Pull down on Home to load new pins."), SettingsIcons.BLOCK);
+            // Its own hook, on Home's Back handler: no row where that wasn't found.
+            if (build.contains(PatchFamily.KEEP_HOME_FEED) && PatchFamily.Capability.HOME_BACK.installed()) {
+                feed.addPreference(mark(toggle(context, Settings.BACK_LEAVES_HOME, L10n.t("Back leaves Home right away"),
+                        L10n.t("When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top "
+                            + "and loading new pins first.")), SettingsIcons.BLOCK));
+            }
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
@@ -427,6 +443,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Long-press download"), L10n.t("Adds Download to a grid pin's long-press menu. Slide onto it "
                         + "and release. Needs Download pins on."),
                     SettingsIcons.DOWNLOADS);
+            // View has its own capability: a build without Pinterest's full-screen icon has no row for it.
+            if (build.contains(PatchFamily.LONG_PRESS_DOWNLOAD) && PatchFamily.Capability.LONG_PRESS_VIEW.installed()) {
+                actions.addPreference(mark(toggle(context, Settings.LONG_PRESS_VIEW, L10n.t("Long-press view"),
+                        L10n.t("Adds View to a grid pin's long-press menu. It shows the picture full screen without "
+                            + "opening the pin. Pinch or double-tap to zoom.")), SettingsIcons.SEARCH));
+            }
             // Their own hook: a build where the buttons' ids weren't found has no rows for them, and
             // Long-press download still works.
             if (build.contains(PatchFamily.LONG_PRESS_DOWNLOAD) && PatchFamily.Capability.LONG_PRESS_CHOICES.installed()) {
@@ -436,6 +458,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SEND,
                         L10n.t("Hide Send in the long-press menu"), L10n.t("Takes Pinterest's Send button out of a grid "
                             + "pin's long-press menu. Sharing from the pin itself still works.")), SettingsIcons.BLOCK));
+                actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SEND_APP,
+                        L10n.t("Hide Send with an app in the long-press menu"), L10n.t("Takes the button that sends a pin "
+                            + "straight to WhatsApp or the app you last shared with out of a grid pin's long-press menu. "
+                            + "Send still lists every app.")), SettingsIcons.BLOCK));
                 actions.addPreference(mark(longPressChoice(context, Settings.LONG_PRESS_HIDE_SEARCH,
                         L10n.t("Hide Search image in the long-press menu"), L10n.t("Takes Pinterest's Search image button "
                             + "out of a grid pin's long-press menu. The lens on a pin you open still searches.")), SettingsIcons.BLOCK));
@@ -472,7 +498,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
                         + "controls stay. The change shows the next time the bar updates."), SettingsIcons.BLOCK);
             // Each surface has its own hook and its own switch, so a build where Pinterest's bottom bar, comments,
-            // pin menu or Save to sheet wasn't found has no row for it, and the rows it does have keep their own words.
+            // pin menu, Save to sheet, other sheets or board and profile buttons weren't found has no row for them,
+            // and the rows it does have keep their own words.
             if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BOTTOM_BAR.installed()) {
                 ui.addPreference(mark(toggle(context, Settings.BLACK_BOTTOM_BAR, L10n.t("Black bottom bar"),
                         L10n.t("In dark mode, paints the bottom bar pure black to match the page, which also saves a "
@@ -493,6 +520,20 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                 ui.addPreference(mark(toggle(context, Settings.BLACK_SAVE_SHEET, L10n.t("Black Save to sheet"),
                         L10n.t("In dark mode, paints the sheet that lists your boards when you save a pin pure black. "
                             + "Light mode stays as it is. The change shows the next time you save a pin.")),
+                        SettingsIcons.DARK_MODE));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_SHEETS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_SHEETS, L10n.t("Black menus and sheets"),
+                        L10n.t("In dark mode, paints the other menus and sheets that slide up pure black, such as Create and "
+                            + "a board's sort and options menus. Light mode stays as it is. The change shows the next time "
+                            + "you open one.")),
+                        SettingsIcons.DARK_MODE));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_BOARDS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_BOARDS, L10n.t("Black board and profile buttons"),
+                        L10n.t("In dark mode, paints the gray bar that floats over a board and the filter buttons on your "
+                            + "profile pure black, along with the empty cover on Edit board. Light mode stays as it is. The "
+                            + "change shows the next time you open a board or your profile.")),
                         SettingsIcons.DARK_MODE));
             }
             patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_BACK,
@@ -543,6 +584,26 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         SettingsIcons.TOOLS));
                 ui.addPreference(mark(new SaveButtonColorPreference(context), SettingsIcons.DARK_MODE));
             }
+            patchToggle(ui, context, build, PatchFamily.HIDE_CREATOR_NAME, Settings.HIDE_CREATOR_NAME,
+                    L10n.t("Hide creator name on pins"),
+                    L10n.t("Hides the creator's name and badge under a pin you open. Their picture stays and still "
+                        + "opens their profile. The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS,
+                    L10n.t("Hide related pins"),
+                    L10n.t("Leaves the grid of more pins out from under a pin you open, so it doesn't load. "
+                        + "The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.CUSTOM_SAVE_SOUND, Settings.CUSTOM_SAVE_SOUND,
+                    L10n.t("Custom save sound"),
+                    L10n.t("Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound "
+                        + "picked, Pinterest's plays."), SettingsIcons.BELL);
+            if (build.contains(PatchFamily.CUSTOM_SAVE_SOUND)) {
+                ui.addPreference(mark(new SaveSoundPreference(this, context), SettingsIcons.BELL));
+            }
+            patchToggle(ui, context, build, PatchFamily.CUSTOM_SPLASH_LOGO, Settings.CUSTOM_SPLASH_LOGO,
+                    L10n.t("Custom splash logo"),
+                    L10n.t("Shows the logo picked when patching on the screen you see while Pinterest starts, "
+                        + "instead of Pinterest's. Android 13 and newer. It shows from the next start."),
+                    SettingsIcons.OPENING);
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
                     L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "
@@ -586,6 +647,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Turns down Pinterest's \"Got a minute?\" survey invite before it pops up, the way Maybe later "
                         + "does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An "
                         + "invite that's already open stays."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.HIDE_POPUP_BANNERS, Settings.HIDE_POPUP_BANNERS,
+                    L10n.t("Hide pop-up banners"),
+                    L10n.t("Closes the banners Pinterest pops up over your feed, such as \"Shop recommended merchants\", the way their X does, so that one doesn't come back. A banner that's already open stays."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
                     L10n.t("Hide save toasts"),
                     L10n.t("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
@@ -1374,13 +1438,13 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
 
     /**
      * A switch for one of Pinterest's long-press buttons. Turning on the last of the three while
-     * Long-press download is off would leave a menu with nothing in it, which keeps Pinterest's
-     * whole menu instead, so a toast says so then.
+     * Long-press download and Long-press view are off would leave a menu with nothing in it, which
+     * keeps Pinterest's whole menu instead, so a toast says so then.
      */
     static SwitchPreference longPressChoice(Context context, BooleanSetting setting, String title, String summary) {
         SwitchPreference row = toggle(context, setting, title, summary);
         row.setOnPreferenceChangeListener((changed, value) -> {
-            if (Boolean.TRUE.equals(value) && !Settings.LONG_PRESS_DOWNLOAD.savedValue()) {
+            if (Boolean.TRUE.equals(value) && !Settings.LONG_PRESS_DOWNLOAD.savedValue() && !Settings.LONG_PRESS_VIEW.savedValue()) {
                 boolean rest = true;
                 for (BooleanSetting other : new BooleanSetting[]{Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND,
                         Settings.LONG_PRESS_HIDE_SEARCH}) {

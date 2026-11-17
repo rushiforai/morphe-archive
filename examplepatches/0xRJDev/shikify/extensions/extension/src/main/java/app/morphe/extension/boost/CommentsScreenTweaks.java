@@ -25,12 +25,12 @@ public final class CommentsScreenTweaks {
     private static final WeakHashMap<View,Row> ROWS=new WeakHashMap<>();
     private static final WeakHashMap<View,Controller> SCREENS=new WeakHashMap<>();
     private CommentsScreenTweaks() { }
-    public static void bindComment(Object holder){bind(holder,"c0",false);}
+    public static void bindComment(Object holder){bind(holder,"b0",false);}
     public static void bindLoadMore(Object holder){
         if(holder==null)return;
         for(Class<?> type=holder.getClass();type!=null;type=type.getSuperclass())if(type.getName().equals("com.rubenmayayo.reddit.ui.adapters.LoadMoreViewHolder")){bind(holder,"R",false);return;}
     }
-    public static void bindPost(Object holder){bind(holder,"b0",true);}
+    public static void bindPost(Object holder){bind(holder,"h0",true);}
     private static void bind(Object holder,String field,boolean post){
         Object value=CommentsChromeTweaks.field(holder,"a");if(!(value instanceof View))return;
         View view=(View)value;Row row=ROWS.get(view);
@@ -51,7 +51,7 @@ public final class CommentsScreenTweaks {
         TextView text=(TextView)label;text.setBackground(null);text.setBackgroundTintList(null);
         text.setPaddingRelative(0,dp(row,4),dp(row,12),dp(row,4));text.setMinHeight(dp(row,40));text.setGravity(android.view.Gravity.CENTER_VERTICAL);
         text.setTextColor(MaterialYouTweaks.color(row.getContext(),"colorPrimary",android.R.attr.colorAccent));
-        Object count=CommentsChromeTweaks.field(model,"W"),kind=CommentsChromeTweaks.field(model,"X");
+        Object count=CommentsChromeTweaks.field(model,"V"),kind=CommentsChromeTweaks.field(model,"W");
         if(Integer.valueOf(0).equals(kind) && count instanceof Integer){
             int id=row.getResources().getIdentifier("shikify_view_more","string",row.getContext().getPackageName());
             if(id!=0)text.setText(row.getResources().getString(id,count));
@@ -77,7 +77,7 @@ public final class CommentsScreenTweaks {
         boolean comment=false;
         for(Class<?> type=value.getClass();type!=null;type=type.getSuperclass())if(type.getName().equals("com.rubenmayayo.reddit.models.reddit.CommentViewModel")){comment=true;break;}
         if(!comment)return -1;
-        Object result=CommentsChromeTweaks.field(value,"R");return result instanceof Integer ? (Integer)result:-1;
+        Object result=CommentsChromeTweaks.field(value,"Q");return result instanceof Integer ? (Integer)result:-1;
     }
     private static final class Controller implements ViewTreeObserver.OnPreDrawListener,ViewTreeObserver.OnGlobalLayoutListener,View.OnAttachStateChangeListener {
         WeakReference<Object> fragment;
@@ -104,7 +104,7 @@ public final class CommentsScreenTweaks {
             return true;
         }
         void observe(Object owner) {
-            Object next=CommentsChromeTweaks.field(owner,"C"),old=adapter==null ? null:adapter.get();
+            Object next=CommentsChromeTweaks.field(owner,"B"),old=adapter==null ? null:adapter.get();
             if(next==old)return;
             unobserve();dirty=true;structural=true;
             if(next==null)return;
@@ -145,7 +145,7 @@ public final class CommentsScreenTweaks {
         boolean visible(Object model){
             try {
                 Class<?> type=model.getClass();java.lang.reflect.Field field=visibilityFields.get(type);
-                if(field==null){field=type.getField("S");field.setAccessible(true);visibilityFields.put(type,field);}
+                if(field==null){field=type.getField("R");field.setAccessible(true);visibilityFields.put(type,field);}
                 return field.getBoolean(model);
             }catch(ReflectiveOperationException | RuntimeException ignored){return true;}
         }
@@ -171,7 +171,7 @@ public final class CommentsScreenTweaks {
         }
         boolean sync(){
             Object owner=fragment.get();if(owner==null)return false;
-            Object data=CommentsChromeTweaks.field(owner,"B");if(!(data instanceof List))return false;
+            Object data=CommentsChromeTweaks.field(owner,"A");if(!(data instanceof List))return false;
             observe(owner);List<?> list=(List<?>)data;
             if(dirty || dataset==null || dataset.get()!=list || snapshot.length!=list.size()) {
                 if(structural || dataset==null || dataset.get()!=list || snapshot.length!=list.size() || !contentSame(list))refresh(list);
@@ -195,7 +195,7 @@ public final class CommentsScreenTweaks {
             return true;
         }
     }
-    /** Exact native observer ABI, checked before applying to Boost 1.14.3. */
+    /** Exact native observer ABI, checked before applying to Boost 1.14.4. */
     public static final class DatasetObserver extends RecyclerView$g {
         final WeakReference<Controller> controller;
         DatasetObserver(Controller owner){controller=new WeakReference<>(owner);}

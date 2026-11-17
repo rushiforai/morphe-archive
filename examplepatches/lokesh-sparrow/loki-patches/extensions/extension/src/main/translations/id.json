@@ -140,5 +140,8 @@
   "Hide games": "Sembunyikan game",
   "LinkedIn's daily puzzle games in the Me panel, search and feed.": "Game puzzle harian LinkedIn di panel Saya, pencarian, dan feed.",
   "AMOLED black": "Hitam AMOLED",
-  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Hitam asli, bukan abu-abu gelap, di mode gelap. Layar AMOLED mematikan piksel hitam sehingga hemat baterai. Buka ulang LinkedIn untuk menerapkan."
+  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Hitam asli, bukan abu-abu gelap, di mode gelap. Layar AMOLED mematikan piksel hitam sehingga hemat baterai. Buka ulang LinkedIn untuk menerapkan.",
+  "Don't remind me": "Jangan ingatkan lagi",
+  "microG RE battery reminder": "Pengingat baterai microG RE",
+  "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited.": "Mengingatkan saat Android membatasi microG RE di latar belakang. Notifikasi dan login Google lewat microG RE, jadi bisa terlambat atau gagal selama dibatasi."
 }

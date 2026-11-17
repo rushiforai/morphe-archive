@@ -1,5 +1,56 @@
 ## Unreleased
 
+## [1.37.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.0...v1.37.1) (2026-11-17)
+
+### Bug Fixes
+
+* **YouTube - Theme:** Apply selected colors to the feed and native settings on experimental 21.45.90,
+  including its Mainstage palette. Preserve Stock colors, player whites and foreground-disabled shades.
+* **YouTube - Navigation bar:** Honor edited orders, including Create in the middle, on newer layouts.
+  Show the native button order before editing; Reset or accepting that unchanged order returns to following
+  YouTube's order without storing an override. Recognize Create in both labeled and icon-only layouts.
+  Show “You” in the order editor while preserving existing saved `LIBRARY` values; this does not restore
+  the old Library tab.
+* **Music - Glass player and navigation bar:** Keep Library New above the glass player when native code
+  rewrites its margin. Verify clearance before drawing, preserve native Play-button animations and snackbar
+  spacing, and keep tracking controls when they are detached or hidden and shown again.
+
+## [1.37.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.36.0...v1.37.0) (2026-11-16)
+
+### Features
+
+* **Music - Smart Shuffle:** Mix playlist recommendations among your songs without delaying playback.
+  Touch and hold the playlist header's Shuffle button to turn Smart Shuffle on or off; a sparkle shows
+  when it is on. With native Shuffle enabled, start the playlist using Play or a song.
+  Suggested queue songs have a sparkle on the right, beside download checks. Keep adds a song to a playlist;
+  Dismiss removes only that queue entry. Android Auto labels these songs "Suggested".
+  Going offline removes unplayed suggestions but keeps the current song playing. No suggestions are fetched
+  or inserted offline, and downloaded-playlist playback is unchanged. Off by default; available on Music
+  9.15.51 and 9.40.51, with 9.45.51 experimental. Music 8.x and forced 6.20 skip the feature with a warning.
+
+### Bug Fixes
+
+* **Music - Settings shortcut:** Open the native settings list instead of a blank screen. Match the
+  shortcut gear to the selected Bold or Bold (stock size) icon style, using Music's native bold gear.
+* **YouTube / Music - GmsCore support:** Fix non-root patching on experimental YouTube 21.45.90 and
+  Music 9.45.51 by handling the updated Primes initialization check. Keep existing versions unchanged.
+* **YouTube - Seekbar components:** Prevent media-key and timestamp crashes when the player extension loads
+  before the activity context is attached. Preserve timestamp menus and double-tap remaining-time toggling.
+  Early resource and string lookups now use the application context until the activity is attached.
+  Resolve the wide-search icon and Watch Later drag-handle description only when their views are available.
+* **YouTube - Hide player flyout menu:** Recognize numeric icons in newer player settings menus,
+  including Sleep timer, Quality, Playback speed, Help, Stats for nerds and Listen with YouTube Music.
+  Keep older icon variants working, hide active captions and loop rows too, and make the Listening controls
+  toggle hide its own row without changing which controls the account can use.
+* **YouTube - Hide player flyout menu:** Add a Hide Additional settings / More switch. Hide More automatically
+  when all its child hide options are on, including Sleep timer, so it cannot open an empty sheet.
+  Keep More available when any child hide option is off.
+* **Music - Older versions:** Keep the accepted 8.04.51 browse client below Music 7.17 without changing
+  playback's own version. Propagate resolved themes into nested Elements on Music 6.20, restore its
+  native-supported multirow carousels, and supply playlist statistics' missing secondary text role.
+  Keep custom toolbar headers and skip incompatible navigation-icon remapping with a warning.
+  Music 8.x and 9.x behavior is unchanged.
+
 ## [1.36.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.35.0...v1.36.0) (2026-11-15)
 
 ### Features

@@ -28,8 +28,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val CRICFY_PKG = "com.cricfytv.sports"
-private const val CRICFY_VERSION = "7.4"
-private const val CRICFY_CODE = "54"
+private const val CRICFY_VERSION = "7.5"
+private const val CRICFY_CODE = "55"
 
 private const val MAIN_ACTIVITY_TYPE = "Lcom/android/vending/activities/MainActivity;"
 private const val ACTIVITY_MAIN_BINDING_TYPE = "Lcom/cricfytv/sports/databinding/ActivityMainBinding;"

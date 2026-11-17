@@ -42,6 +42,8 @@ public class MainTabsTest {
         Settings.COMPACT_TAB_BAR.resetToDefault();
         SettingReadsForTests.mend(Settings.HIDE_NEW_MESSAGE);
         Settings.HIDE_NEW_MESSAGE.resetToDefault();
+        SettingReadsForTests.mend(Settings.BAR_OUTLINE);
+        Settings.BAR_OUTLINE.resetToDefault();
         MainTabs.clearNewMessageButtonsForTests();
         HookStatus.clear();
     }
@@ -311,6 +313,56 @@ public class MainTabsTest {
         SettingsContextRule.withoutContext(() -> assertFalse(hidden(button)));
         SettingReadsForTests.breakReads(Settings.HIDE_NEW_MESSAGE);
         assertFalse(hidden(button));
+        assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
+    }
+
+    @Test public void theBarOutlineIsOffByDefaultAndTelegramsZeroStays() {
+        Object bar = new Object();
+        MainTabs.barGlass(bar);
+        assertFalse(Settings.BAR_OUTLINE.get());
+        assertEquals(0, MainTabs.barOutlineColor(bar));
+        assertEquals(0f, MainTabs.barOutlineWidth(bar), 0f);
+        assertFalse(report().contains("bar outline drawn"));
+    }
+
+    @Test public void onOnlyTheMainScreensBarGlassGetsATelegramBlueOutline() {
+        Settings.BAR_OUTLINE.save(true);
+        Object bar = new Object();
+        Object topPanel = new Object();
+        MainTabs.barGlass(bar);
+        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(bar));
+        float density = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
+        assertEquals(density, MainTabs.barOutlineWidth(bar), 0.001f);
+        assertTrue(report().contains("bar outline drawn"));
+        // Telegram's other glass asks the same kind of colors and keeps its own zero.
+        assertEquals(0, MainTabs.barOutlineColor(topPanel));
+        assertEquals(0f, MainTabs.barOutlineWidth(topPanel), 0f);
+        assertEquals(0, MainTabs.barOutlineColor(null));
+        MainTabs.barGlass(null);
+        // A main screen built again outlines its new bar as well.
+        Object rebuilt = new Object();
+        MainTabs.barGlass(rebuilt);
+        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(rebuilt));
+        Settings.BAR_OUTLINE.save(false);
+        assertEquals(0, MainTabs.barOutlineColor(bar));
+        assertEquals(0f, MainTabs.barOutlineWidth(rebuilt), 0f);
+    }
+
+    @Test public void pausingAnEarlyStartOrAnUnreadableSwitchLeavesTheBarPlain() {
+        Settings.BAR_OUTLINE.save(true);
+        Object bar = new Object();
+        MainTabs.barGlass(bar);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertEquals(reason.name(), 0, MainTabs.barOutlineColor(bar));
+            assertEquals(reason.name(), 0f, MainTabs.barOutlineWidth(bar), 0f);
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertEquals(0, MainTabs.barOutlineColor(bar)));
+        SettingReadsForTests.breakReads(Settings.BAR_OUTLINE);
+        assertEquals(0, MainTabs.barOutlineColor(bar));
+        assertEquals(0f, MainTabs.barOutlineWidth(bar), 0f);
         assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
     }
 }

@@ -5,8 +5,8 @@ import app.fakhradio.patches.shared.disableProviders
 import app.fakhradio.patches.shared.references
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import org.w3c.dom.Element
 
 /**
@@ -60,7 +60,7 @@ private val initAppHarbrFingerprint = Fingerprint(
 )
 
 /** Ad SDKs that start themselves from a content provider before `Application.onCreate`. */
-private val adSdksManifestPatch = resourcePatch {
+private val adSdksManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             manifest.disableProviders(
@@ -86,7 +86,7 @@ private val adSdksManifestPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val premiumUnlockPatch = bytecodePatch(
+val premiumUnlockPatch = patch(
     name = "Premium unlock",
     description = "Unlocks the lifetime premium client-side (no visual ads, music equalizer) and keeps the ad networks and AppHarbr from starting at all, so they cannot track in the background.",
     default = true,

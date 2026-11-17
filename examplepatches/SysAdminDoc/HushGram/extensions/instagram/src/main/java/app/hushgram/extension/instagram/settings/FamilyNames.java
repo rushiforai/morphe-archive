@@ -24,6 +24,7 @@ public final class FamilyNames {
     public static final String RESTORE_TRUST = "Restore trust on re-signed builds";
     public static final String REMOVE_AD_ID = "Remove the advertising ID";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
+    public static final String FEED_VIEW_HISTORY = "Don't send feed view history";
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
     public static final String STORY_TIME = "Show a story's exact time";
     public static final String STORY_MENTIONS = "See who a story mentions";
@@ -61,6 +62,7 @@ public final class FamilyNames {
     public static final String TYPING = "Hide that you're typing";
     public static final String ACTIVE_STATUS = "Hide your active status";
     public static final String LAST_ACTIVE = "Show when someone was last active";
+    public static final String SHORT_ACTIVE_NOW = "Shorter Active now";
     public static final String MESSAGES_LOCK = "Lock your messages";
     public static final String STORIES_TRAY = "Hide suggested stories";
     public static final String STORY_RING = "Story ring size";
@@ -118,6 +120,7 @@ public final class FamilyNames {
     public static final String PROFILE_BANNERS = "Hide profile banners";
     public static final String PROFILE_POSTS_LIST = "Profile posts as a list";
     public static final String PROFILE_GRID_JUMP = "Jump a profile's posts to a date";
+    public static final String PROFILE_REEL_SORT = "Sort reels on profiles";
     public static final String COMMENT_COPY = "Copy comment";
     public static final String COMMENT_PHOTO = "Save comment photo";
     public static final String PROFILE_PICTURE = "Save profile picture";
@@ -130,6 +133,7 @@ public final class FamilyNames {
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
     public static final String EDITS_LABEL = "Hide Made with Edits";
     public static final String FEED_SAVE = "Save in the post menu";
+    public static final String MENU_ITEMS = "Three-dot menu items";
     public static final String WATCH_AGAIN = "Watch again in the feed";
     public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
@@ -194,6 +198,10 @@ public final class FamilyNames {
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
     public static final String ASK_BEFORE_FOLLOW = "Ask before a follow";
+    public static final String SENT_FOLLOW_REQUESTS = "Sent follow requests";
     public static final String SAVE_TRAY = "Skip the collections tray";
     public static final String LIVE_SEEN = "View live anonymously";
+    public static final String VP9_VIDEO = "Ask for VP9 instead of AV1";
+    public static final String ONLINE_HISTORY = "Keep online history";
+    public static final String STORY_VIEWERS = "Keep story viewers";
 }

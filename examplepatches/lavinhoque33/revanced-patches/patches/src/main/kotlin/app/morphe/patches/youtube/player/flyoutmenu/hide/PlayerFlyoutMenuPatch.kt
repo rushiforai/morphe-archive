@@ -27,11 +27,14 @@ import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.video.information.VideoQualityFingerprint
 import app.morphe.patches.youtube.video.information.videoInformationPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.getFiveRegisters
 import app.morphe.util.insertLiteralOverride
 import app.morphe.util.insertLiteralOverrideAtInlinedSites
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PANELS_FILTER_CLASS_DESCRIPTOR =
     "$COMPONENTS_PATH/PlayerFlyoutMenuFilter;"
@@ -180,6 +183,25 @@ val playerFlyoutMenuPatch = bytecodePatch(
         }
 
         // endregion
+
+        PremiumControlsMenuItemFingerprint.matchOrNull()?.let { match ->
+            val visibilityIndex = match.instructionMatches.last().index
+            val visibilityInstruction = match.method.getInstruction<FiveRegisterInstruction>(visibilityIndex)
+            val visibleRegister = visibilityInstruction.registerD
+            val visibilityMethod = visibilityInstruction.getReference<MethodReference>()!!
+
+            match.method.replaceInstruction(
+                visibilityIndex,
+                "invoke-static { v$visibleRegister }, $PANELS_FILTER_CLASS_DESCRIPTOR->hidePremiumControlsMenu(Z)Z"
+            )
+            match.method.addInstructions(
+                visibilityIndex + 1,
+                """
+                    move-result v$visibleRegister
+                    invoke-virtual { v${visibilityInstruction.registerC}, v$visibleRegister }, $visibilityMethod
+                """
+            )
+        } ?: printWarn("Hide player flyout menu: native Listening controls row not found; Elements filtering retained.")
 
         addLithoFilter(PANELS_FILTER_CLASS_DESCRIPTOR)
 

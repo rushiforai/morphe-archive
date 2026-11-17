@@ -73,6 +73,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SAVED_PINS =
             new BooleanSetting("hushpinterest_hide_saved_pins", FALSE);
     /**
+     * Pins you've saved or own leave search results and the More to explore pins under a pin, on Filter
+     * feed's switch (#34). Those requests only ask for the field that says so while this is on. Off to start.
+     */
+    public static final BooleanSetting HIDE_SAVED_PINS_ELSEWHERE =
+            new BooleanSetting("hushpinterest_hide_saved_pins_elsewhere", FALSE);
+    /**
      * Pinterest's own suggestion rows leave Home, on Filter feed's switch: the "More ideas for your
      * board" card, the "Inspired by your interests" row, and the "See more like this?" bubble on a
      * pin. Off to start.
@@ -88,6 +94,12 @@ public class Settings extends BaseSettings {
     /** Home keeps its pins when you come back to it. Pull-to-refresh still loads new ones. Off to start. */
     public static final BooleanSetting KEEP_HOME_FEED =
             new BooleanSetting("hushpinterest_keep_home_feed", FALSE);
+    /**
+     * Back on a Home scrolled down leaves the way it does at the top, instead of jumping to the top
+     * and loading new pins first (#36). Keep Home feed's patch, its own switch. Off to start.
+     */
+    public static final BooleanSetting BACK_LEAVES_HOME =
+            new BooleanSetting("hushpinterest_back_leaves_home", FALSE);
     /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
             new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);
@@ -130,6 +142,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =
             new BooleanSetting("hushpinterest_long_press_download", FALSE);
+    /** View in the long-press menu (#37): the pin's picture full screen, without opening the pin. */
+    public static final BooleanSetting LONG_PRESS_VIEW =
+            new BooleanSetting("hushpinterest_long_press_view", FALSE);
     /** Pinterest's own long-press buttons, each taken out of the menu by its switch. All start off. */
     public static final BooleanSetting LONG_PRESS_HIDE_SAVE =
             new BooleanSetting("hushpinterest_long_press_hide_save", FALSE);
@@ -137,6 +152,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_long_press_hide_send", FALSE);
     public static final BooleanSetting LONG_PRESS_HIDE_SEARCH =
             new BooleanSetting("hushpinterest_long_press_hide_search", FALSE);
+    /** The button that sends straight to WhatsApp or the app last shared with (#35). */
+    public static final BooleanSetting LONG_PRESS_HIDE_SEND_APP =
+            new BooleanSetting("hushpinterest_long_press_hide_send_app", FALSE);
     public static final BooleanSetting EXTERNAL_BROWSER =
             new BooleanSetting("hushpinterest_external_browser", FALSE);
     public static final BooleanSetting SYSTEM_SHARE =
@@ -164,6 +182,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_black_pin_menu", FALSE);
     public static final BooleanSetting BLACK_SAVE_SHEET =
             new BooleanSetting("hushpinterest_black_save_sheet", FALSE);
+    public static final BooleanSetting BLACK_SHEETS =
+            new BooleanSetting("hushpinterest_black_sheets", FALSE);
+    public static final BooleanSetting BLACK_BOARDS =
+            new BooleanSetting("hushpinterest_black_boards", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_BACK =
             new BooleanSetting("hushpinterest_hide_closeup_back", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_LENS =
@@ -205,6 +227,21 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
     public static final BooleanSetting HIDE_SURVEY_PROMPTS =
             new BooleanSetting("hushpinterest_hide_survey_prompts", FALSE);
+    public static final BooleanSetting HIDE_POPUP_BANNERS =
+            new BooleanSetting("hushpinterest_hide_popup_banners", FALSE);
+    public static final BooleanSetting HIDE_RELATED_PINS =
+            new BooleanSetting("hushpinterest_hide_related_pins", FALSE);
+    public static final BooleanSetting HIDE_CREATOR_NAME =
+            new BooleanSetting("hushpinterest_hide_creator_name", FALSE);
+    public static final BooleanSetting CUSTOM_SAVE_SOUND =
+            new BooleanSetting("hushpinterest_custom_save_sound", FALSE);
+    /**
+     * The logo picked when patching on the screen Android shows while Pinterest starts, on Android
+     * 13 and newer ({@link app.hushpinterest.extension.pinterest.ui.SplashLogo}). Android keeps the
+     * answer, so a change shows from the next start. Off to start.
+     */
+    public static final BooleanSetting CUSTOM_SPLASH_LOGO =
+            new BooleanSetting("hushpinterest_custom_splash_logo", FALSE, true);
     public static final BooleanSetting HIDE_SAVE_TOASTS =
             new BooleanSetting("hushpinterest_hide_save_toasts", FALSE);
     public static final BooleanSetting ORIGINAL_IMAGES =

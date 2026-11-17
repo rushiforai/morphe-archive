@@ -357,12 +357,38 @@ Saved.	Guardado.
 The emoji next to the chat list title will change.	El emoji junto al título de la lista de chats va a cambiar.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Holiday look all year that draws the emoji after the chat list title.
 emoji next to the chat list title	el emoji junto al título de la lista de chats
+# context: Look and feel page switch title, below Emoji next to the chat list title. When on, the person's own text takes the place of Telegram's name (its logo) at the top of the chat list.
+Your own chat list title	Título propio para la lista de chats
+# context: Summary under the Your own chat list title switch. The text is drawn in the title's own bold font and theme color.
+Shows text of your choice in place of Telegram's name at the top of the chat list, in the title's own font and color. It stays on this phone. Restart Telegram to see the change.	Muestra un texto que tú elijas en lugar del nombre de Telegram, arriba en la lista de chats, con la fuente y el color del título. Se queda en este teléfono. Reinicia Telegram para ver el cambio.
+# context: Look and feel page row title below the Your own chat list title switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s".
+Text for the chat list title	Texto del título de la lista de chats
+# context: Summary under the Text for the chat list title row while nothing is saved. Your own chat list title is the switch above it.
+Type what shows in place of Telegram's name while Your own chat list title is on. Empty keeps Telegram's name.	Escribe lo que aparece en lugar del nombre de Telegram mientras Título propio para la lista de chats está activado. Vacío deja el nombre de Telegram.
+# context: Summary under the Text for the chat list title row once something is saved. %1$s is the text the person saved. Your own chat list title is the switch above it.
+%1$s shows in place of Telegram's name while Your own chat list title is on. Tap to change it.	%1$s aparece en lugar del nombre de Telegram mientras Título propio para la lista de chats está activado. Toca para cambiarlo.
+# context: Label and hint of the one text field in the Text for the chat list title editor dialog.
+A short name	Un nombre corto
+# context: Instructions at the top of the Text for the chat list title editor dialog. Your own chat list title is the switch on the same page.
+Shown in place of Telegram's name at the top of the chat list while Your own chat list title is on, in the title's own font and color. It stays on this phone, so nothing goes to Telegram. Leave it empty to keep Telegram's name, and restart Telegram to see a change.	Aparece en lugar del nombre de Telegram, arriba en la lista de chats, mientras Título propio para la lista de chats está activado, con la fuente y el color del título. Se queda en este teléfono, así que nada va a Telegram. Déjalo vacío para mantener el nombre de Telegram y reinicia Telegram para ver el cambio.
+# context: Error under the field and toast when the chat list title text is too long to save. Must fit two short toast lines.
+That's too long. Try a shorter name.	Es demasiado largo. Prueba un nombre más corto.
+# context: Error under the field and toast when saving the chat list title text failed. Must fit two short toast lines.
+Couldn't save the title. Try again in a moment.	No se guardó el título. Inténtalo en un momento.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that puts the person's own text in place of Telegram's name at the top of the chat list.
+your own chat list title	el título propio de la lista de chats
 Use system font	Usar fuente del sistema
 Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	El texto en negrita, cursiva y de código usa la fuente de tu teléfono en lugar de la integrada en Telegram. Reinicia Telegram para ver el cambio.
 AMOLED black	Negro AMOLED
 Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Los temas Noche y Oscuro usan pantallas de negro puro. Los globos de mensajes y los menús conservan sus colores. Reinicia Telegram para ver el cambio.
 Hide translate bar	Ocultar barra de traducción
 Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Los chats en otro idioma dejan de mostrar la barra de traducción arriba. Traducir pasa al menú del chat, y un chat que estás traduciendo conserva su barra.
+# context: Conversations page switch title, below Hide translate bar. It hides the bar under a chat's top bar that shows the pinned message (Telegram's PinnedMessage strings).
+Hide pinned message bar	Ocultar barra de mensajes fijados
+# context: Summary under the Hide pinned message bar switch. The counter is the multi-pin indicator and the list button opens all pinned messages.
+The bar under a chat's top bar that shows pinned messages is gone, along with its counter and list button. Messages stay pinned and nothing is marked as read.	La barra bajo la barra superior del chat que muestra los mensajes fijados desaparece, junto con su contador y su botón de lista. Los mensajes siguen fijados y nada se marca como leído.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide translate bar that hides the pinned message bar in chats.
+pinned message bar in chats	barra de mensajes fijados en los chats
 Exact numbers	Números exactos
 Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Los recuentos de miembros, suscriptores, vistas, respuestas y reacciones se muestran completos, como 12.345 en lugar de 12,3 K.
 Reveal spoilers	Mostrar spoilers
@@ -440,6 +466,9 @@ Messages others delete stay in your chat on this phone, marked deleted next to t
 Show deleted in red	Mostrar eliminado en rojo
 # context: that switch's summary. "deleted" is the label shown next to the time, "Keep deleted messages" the name of the switch above it.
 The deleted label next to a kept message's time turns red, so it stands out in the chat. Works with Keep deleted messages on.	La etiqueta eliminado junto a la hora de un mensaje conservado se pone roja, para que destaque en el chat. Funciona con Conservar los mensajes eliminados activado.
+# context: Keep deleted messages sub-switch that also keeps your own messages when a chat is deleted for both sides.
+Keep my messages too	Conservar también mis mensajes
+When someone deletes a whole chat for both of you, your own messages stay here along with theirs. So do messages you delete on another of your devices. Works with Keep deleted messages on.	Cuando alguien elimina un chat entero para los dos, tus propios mensajes se quedan aquí junto con los suyos. Lo mismo pasa con los mensajes que eliminas en otro de tus dispositivos. Funciona con Conservar los mensajes eliminados activado.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that draws the deleted label in red.
 red deleted label	la etiqueta eliminado en rojo
 # context: an action row under Keep deleted messages; a tap deletes every message that switch kept
@@ -453,6 +482,16 @@ Removing %1$d kept messages.	Eliminando %1$d mensajes conservados.
 # context: the notice once Telegram has finished removing them, with how many went
 Removed %1$d kept message.	Se eliminó %1$d mensaje conservado.
 Removed %1$d kept messages.	Se eliminaron %1$d mensajes conservados.
+# context: A row under Clear kept messages on the Keep deleted messages page (#91). A tap lists how long a kept deleted message stays on the phone before it's removed: Never, 1 day, 7 days, 30 days, 90 days.
+Remove kept messages after	Quitar los mensajes conservados tras
+# context: Line under Remove kept messages after when it's set to Never. Clear kept messages is the name of the row above it.
+Kept messages stay until you clear them.	Los mensajes conservados se quedan hasta que los borres.
+# context: Line under Remove kept messages after once a number of days is picked, singular. The days count from when the other person deleted the message.
+Kept messages are removed %1$d day after they were deleted.	Los mensajes conservados se quitan %1$d día después de que se borraran.
+# context: The same line, plural.
+Kept messages are removed %1$d days after they were deleted.	Los mensajes conservados se quitan %1$d días después de que se borraran.
+# context: The first choice in the Remove kept messages after list, and how a settings file's preview names it: kept messages are never removed on their own.
+Never	Nunca
 # context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
 Keep edit history	Conservar el historial de ediciones
 # context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
@@ -467,6 +506,22 @@ Keep view-once and timed media	Conservar medios de una sola vista y temporales
 View-once and timed photos, videos and voice messages someone sends you stay in the chat after you open them, with no timer. The sender doesn't see them opened. Secret chats work as usual.	Las fotos, videos y mensajes de voz de una sola vista o temporales que alguien te envía se quedan en el chat después de abrirlos, sin temporizador. Quien los envió no ve que los abriste. Los chats secretos funcionan como siempre.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps view-once and timed media.
 view-once and timed media	los medios de una sola vista y temporales
+# context: a fifth switch under Keep deleted messages (#82). Turned on, messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still goes on their own timer. Same secret chat term as Also save from secret chats.
+Keep self-destructing secret chat messages	Conservar mensajes temporales de chats secretos
+# context: that switch's summary. "They aren't told" means the other person gets no notice that the messages were kept.
+Messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still disappears on their own timer, and they aren't told.	Los mensajes, fotos y videos de los chats secretos se quedan en este teléfono cuando se acaba su temporizador de autodestrucción. La copia de la otra persona igual desaparece con su propio temporizador, y no se le avisa.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps self-destructing secret chat messages.
+self-destructing secret chat messages	los mensajes temporales de chats secretos
+# context: a sixth switch under Keep deleted messages (#71). Turned on, a group or channel that removes you or bans you stays in the chat list with the messages this phone already saved, and opens read-only. Same removed and banned terms Telegram uses for a member an admin takes out.
+Keep chats you're removed from	Conservar chats de los que te expulsan
+# context: that switch's summary. "Let it go" means deleting the kept chat from the chat list removes it for good, from the list and from this phone.
+When a group or channel removes or bans you, it stays in your chats with what this phone saved, and you can still open and scroll it. Delete it from the chat list to let it go.	Cuando un grupo o canal te expulsa o te bloquea, se queda en tus chats con lo que guardó este teléfono, y puedes seguir abriéndolo y desplazándote por él. Bórralo de la lista de chats para quitarlo del todo.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps chats you're removed from.
+chats you're removed from	los chats de los que te expulsan
+# context: Toast when you open a chat Keep chats you're removed from kept, in place of Telegram's alert that the chat can't be opened. Short, two lines at most.
+You were removed. This is what's saved on this phone.	Te expulsaron. Esto es lo que guardó este teléfono.
+# context: Name of the list Keep chats you're removed from keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats you were removed from	Chats de los que te expulsaron
 Forgets the earlier text this phone kept for edited messages, in every account.	Olvida el texto anterior que este teléfono conservó de los mensajes editados, en todas las cuentas.
 # context: the notice after that tap when nothing was kept. A toast: two short lines at most.
 There's no edit history to clear.	No hay historial de ediciones para borrar.
@@ -490,10 +545,24 @@ Lots to translate at once. The rest will follow.	Mucho para traducir a la vez. E
 Turn chat translation on again. It's now set per account.	Vuelve a activar la traducción de chats. Ahora va por cuenta.
 Ask before sending a GIF	Preguntar antes de enviar un GIF
 Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Pregunta Enviar o Cancelar antes de que un GIF que tocas entre en un chat. Cancelar lo descarta. Los GIF programados salen sin preguntar.
-Ask before sending a voice or video message	Preguntar antes de enviar un mensaje de voz o de video
-Asks Send or Cancel before a voice or video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Pregunta Enviar o Cancelar antes de que salga un mensaje de voz o de video que grabaste. La grabación se pausa primero, y Cancelar la deja en pausa, lista para reproducir, borrar o enviar.
+# context: Title of the switch on the Conversations page, next to Ask before sending a GIF (#79), that asks before a recorded voice message goes out
+Ask before sending a voice message	Preguntar antes de enviar un mensaje de voz
+# context: Summary of the Ask before sending a voice message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a voice message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Pregunta Enviar o Cancelar antes de que salga un mensaje de voz que grabaste. La grabación se pausa primero, y Cancelar la deja en pausa, lista para reproducir, borrar o enviar.
+# context: Title of the switch on the Conversations page (#79) that asks before a recorded round video message (Telegram's video in a circle) goes out
+Ask before sending a round video message	Preguntar antes de enviar un mensaje de video redondo
+# context: Summary of the Ask before sending a round video message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a round video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Pregunta Enviar o Cancelar antes de que salga un mensaje de video redondo que grabaste. La grabación se pausa primero, y Cancelar la deja en pausa, lista para reproducir, borrar o enviar.
+# context: Title of the switch on the Conversations page (#79) that asks before a typed text message goes out
+Ask before sending a message	Preguntar antes de enviar un mensaje
+# context: Summary of the Ask before sending a message switch. Send and Cancel are the dialog's buttons; silent messages are the ones sent without sound from the send button's menu
+Asks Send or Cancel before the send button or the keyboard's send key sends what you typed. Cancel leaves the text as it was. Scheduled and silent messages, edits and forwards go out without asking.	Pregunta Enviar o Cancelar antes de que el botón de enviar o la tecla de enviar del teclado envíe lo que escribiste. Cancelar deja el texto como estaba. Los mensajes programados y silenciosos, las ediciones y los reenvíos salen sin preguntar.
 Ask before starting a call	Preguntar antes de iniciar una llamada
 Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Pregunta Llamar o Cancelar antes de que el botón de llamada de un chat o de un perfil inicie una llamada.
+# context: Title of the switch on the Conversations page (#79) that asks before you join a group's voice chat or a channel's live stream
+Ask before joining a voice chat	Preguntar antes de unirte a un chat de voz
+# context: Summary of the Ask before joining a voice chat switch. Join and Cancel are the dialog's buttons
+Asks Join or Cancel before you join a group's voice chat or a channel's live stream. Starting a new one doesn't ask.	Pregunta Unirse o Cancelar antes de que te unas al chat de voz de un grupo o a la transmisión en directo de un canal. Iniciar uno nuevo no pregunta.
 Send sticker	Enviar sticker
 Send this sticker to this chat?	¿Enviar este sticker a este chat?
 Send GIF	Enviar GIF
@@ -507,6 +576,20 @@ Start a call	Iniciar una llamada
 Start a voice call?	¿Iniciar una llamada de voz?
 Start a video call?	¿Iniciar una videollamada?
 Call	Llamar
+# context: Title of the dialog that asks before a typed message goes out (#79)
+Send message	Enviar mensaje
+# context: The question in that dialog, above its Send and Cancel buttons
+Send this message to this chat?	¿Enviar este mensaje a este chat?
+# context: Title of the dialog that asks before you join a group's voice chat (#79)
+Join voice chat	Unirse al chat de voz
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this voice chat?	¿Unirse a este chat de voz?
+# context: Title of the dialog that asks before you join a channel's live stream (#79)
+Join live stream	Unirse a la transmisión en directo
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this live stream?	¿Unirse a esta transmisión en directo?
+# context: The button in those two dialogs that joins the voice chat or live stream
+Join	Unirse
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	eliminado
 Add Copy photo to the message menu	Añadir Copiar foto al menú de mensajes
@@ -525,6 +608,16 @@ Original sender ID: %1$s	ID del remitente original: %1$s
 Originally sent: %1$s	Enviado originalmente: %1$s
 File data center: %1$s	Centro de datos del archivo: %1$s
 File size: %1$s	Tamaño del archivo: %1$s
+# context: a line in Message details (#87): the attached file's name as it was sent
+File name: %1$s	Nombre del archivo: %1$s
+# context: a line in Message details (#87): the file's MIME type, such as video/mp4. Keep the word MIME as is
+MIME type: %1$s	Tipo MIME: %1$s
+# context: a line in Message details (#87): a photo's or video's size in pixels, width x height, such as 1920x1080
+Resolution: %1$s	Resolución: %1$s
+# context: a line in Message details (#87): a song's, voice message's or video's length, such as 1:02:09
+Duration: %1$s	Duración: %1$s
+# context: a line in Message details (#87): the file's average bitrate in kilobits a second, worked out from its size and length. %1$s is a whole number
+Bitrate: %1$s kbps	Tasa de bits: %1$s kbps
 Copy	Copiar
 Message details copied	Detalles del mensaje copiados
 Add Quick forward to the message menu	Añadir Reenvío rápido al menú de mensajes
@@ -738,11 +831,14 @@ Each file or song you download also goes to Download/Telegram on your phone, whe
 # context: a second switch under Save downloaded files (#29). Turned on, it also copies files from chats whose owner turned on Telegram's content protection. Secret chats stay excluded.
 Also save from chats that don't allow saving	Guardar también de chats que no permiten guardar
 # context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
-With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	Con Guardar archivos descargados activado, también se copian los archivos de chats cuyo dueño desactivó el guardado. Úsalo solo donde al dueño le parezca bien que guardes una copia, porque se salta su ajuste. Los chats secretos siguen quedándose en Telegram.
+With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats need Also save from secret chats too.	Con Guardar archivos descargados activado, también se copian los archivos de chats cuyo dueño desactivó el guardado. Úsalo solo donde al dueño le parezca bien que guardes una copia, porque se salta su ajuste. Los chats secretos necesitan además Guardar también de chats secretos.
 # context: a third switch under Save downloaded files (#9). Turned on, it also copies view-once and self-destructing (timed) photos, videos, voice and video messages. Secret chats stay excluded.
 Also save view-once and timed media	Guardar también medios de una sola vista y temporales
 # context: that switch's summary, a warning that it goes past the sender's choice to have the media disappear. "Save downloaded files" is the name of the first switch.
-With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.	Con Guardar archivos descargados activado, las fotos, videos, mensajes de voz y videomensajes de una sola vista o autodestructivos también se copian a Download/Telegram al descargarse. Quien los envió quería que desaparecieran, así que úsalo solo donde le parezca bien que guardes una copia. Los chats secretos siguen quedándose en Telegram.
+With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret chats too.	Con Guardar archivos descargados activado, las fotos, videos, mensajes de voz y videomensajes de una sola vista o autodestructivos también se copian a Download/Telegram al descargarse. Quien los envió quería que desaparecieran, así que úsalo solo donde le parezca bien que guardes una copia. Los chats secretos necesitan además Guardar también de chats secretos.
+# context: a fourth switch under Save downloaded files (#82). Turned on, it also copies files, photos and videos from Telegram secret chats, on top of Also save from chats that don't allow saving. The names in it are the switches above it and the message menu item Save to Downloads.
+Also save from secret chats	Guardar también de chats secretos
+Works with Also save from chats that don't allow saving on. Files, photos and videos from secret chats get copied too, and the message menu's Save to Downloads shows up there. Their view-once and timed media also need Also save view-once and timed media. A secret chat is meant to stay on your two phones, so only use it where the other person is fine with that.	Funciona con Guardar también de chats que no permiten guardar activado. Los archivos, fotos y videos de los chats secretos también se copian, y Guardar en Descargas aparece ahí en el menú del mensaje. Sus medios de una sola vista y temporales necesitan además Guardar también medios de una sola vista y temporales. Un chat secreto está pensado para quedarse solo en sus dos teléfonos, así que úsalo solo donde a la otra persona le parezca bien.
 # context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
 Folders by chat type	Carpetas por tipo de chat
 # context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
@@ -1013,7 +1109,7 @@ Couldn't read your chats.	No se pudieron leer tus chats.
 # context: Toast when Chats to hide is tapped and the account has no chats
 You don't have any chats yet.	Todavía no tienes chats.
 # context: Toast when the ticked chats couldn't be written to the phone's storage
-Couldn't save the chats. Try again in a moment.	No se pudieron guardar los chats. Inténtalo de nuevo en un momento.
+Couldn't save the chats. Try again in a moment.	No se guardaron los chats. Inténtalo en un momento.
 # context: Item in the chat list's long press menu (the three dots, under Block). It hides the selected chats from the chat list
 Hide from chat list	Ocultar de la lista de chats
 # context: Toast after the long press menu's Hide from chat list hid the selected chats
@@ -1161,7 +1257,10 @@ Puts Save to Gallery in a story's three-dot menu without Premium, stories that d
 Save to Gallery in stories	«Guardar en la galería» en historias
 # context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
 Allow screenshots in chats that don't allow saving	Permitir capturas de pantalla en chats que no permiten guardar
-Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Las capturas y la grabación de pantalla funcionan en esos chats, sus fotos, perfiles e historias. Telegram no avisa a nadie. Los chats secretos, los medios de una sola vista y la pantalla del código de acceso siguen bloqueados.
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats need Also allow screenshots in secret chats. View-once media and the passcode screen stay blocked.	Las capturas y la grabación de pantalla funcionan en esos chats, sus fotos, perfiles e historias. Telegram no avisa a nadie. Los chats secretos necesitan Permitir capturas también en chats secretos. Los medios de una sola vista y la pantalla del código de acceso siguen bloqueados.
+# context: Switch under Allow screenshots in chats that don't allow saving (#82). Turned on with it, screenshots and screen recording work in secret chats, their photo viewer and profile too. Telegram sends the other person a screenshot notice unless the Suppress screenshot notification patch is on. View-once media keeps its own block.
+Also allow screenshots in secret chats	Permitir capturas también en chats secretos
+Works with Allow screenshots in chats that don't allow saving on. Secret chats, their photos and profiles can be captured too. Telegram tells the other person when you take one, unless Suppress screenshot notification is on. Their view-once media stays blocked.	Funciona con Permitir capturas de pantalla en chats que no permiten guardar activado. Los chats secretos, sus fotos y perfiles también se pueden capturar. Telegram avisa a la otra persona cuando haces una, salvo que Ocultar el aviso de captura de pantalla esté activado. Sus medios de una sola vista siguen bloqueados.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
 screenshots in chats that don't allow saving	las capturas de pantalla en chats que no permiten guardar
 # context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
@@ -1399,6 +1498,20 @@ Start videos without sound	Iniciar los videos sin sonido
 A video you open plays muted until you press a volume key. Round videos keep their sound.	Un video que abres se reproduce sin sonido hasta que pulsas una tecla de volumen. Los videos redondos conservan su sonido.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
 videos starting without sound	iniciar los videos sin sonido
+# context: a switch under Keep videos muted on volume keys (#79). With it on, Telegram's video viewer menu offers a choice of audio track and subtitles.
+Audio track and subtitles	Pista de audio y subtítulos
+# context: that switch's summary. Audio track and Subtitles are the names of the two rows it adds to the menu that opens from the three dots in Telegram's video viewer.
+A video's settings menu gets Audio track when the video has more than one, and Subtitles when it has any. The subtitles you pick show over the video.	El menú de ajustes de un video muestra Pista de audio cuando el video tiene más de una, y Subtítulos cuando tiene alguno. Los subtítulos que elijas aparecen sobre el video.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets you pick a video's audio track and subtitles.
+audio track and subtitle choice	elegir la pista de audio y los subtítulos
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which audio track (language) of a video plays.
+Audio track	Pista de audio
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which subtitles show over a video.
+Subtitles	Subtítulos
+# context: the first choice in the Audio track list. Telegram's player picks the audio track itself.
+Automatic	Automático
+# context: a name for an audio or subtitle track that has no language or label. %1$d is its place in the list, starting at 1.
+Track %1$d	Pista %1$d
 # context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
 Ghost mode button	Botón del Modo fantasma
 # context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
@@ -1536,7 +1649,7 @@ No rules yet.	Aún no hay reglas.
 %1$s to %2$s, media only	%1$s a %2$s, solo multimedia
 Add rule	Añadir regla
 Tap a rule to remove it	Toca una regla para quitarla
-Couldn't save the rules. Try again in a moment.	No se pudieron guardar las reglas. Inténtalo de nuevo en un momento.
+Couldn't save the rules. Try again in a moment.	No se guardaron las reglas. Inténtalo en un momento.
 Rule removed	Regla quitada
 A rule needs two chats.	Una regla necesita dos chats.
 Forward new messages from	Reenviar mensajes nuevos de
@@ -1762,6 +1875,12 @@ Add Delete for them to the message menu	Añadir Eliminar para los demás al men�
 Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Añade Eliminar para los demás a tus propios mensajes en chats y grupos. El mensaje se elimina para todos los demás y se queda en este teléfono, marcado como eliminado. Borrar los mensajes conservados también lo quita de aquí.
 # context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
 Deleted for them, kept here.	Eliminado para los demás, guardado aquí.
+# context: Title of the switch on the Conversations page under Add Repeat to the message menu (#83). Also delete for is the checkbox in Telegram's delete messages dialog, "Also delete for [name]" (key DeleteMessagesOptionAlso on translations.telegram.org). Telegram's Spanish label is "Eliminar también para %1$s", written here with the name left out as an ellipsis
+Check Also delete for by default	Eliminar también para… marcado de forma predeterminada
+# context: Summary of the Check Also delete for by default switch. Also delete for is the checkbox in Telegram's delete messages dialog (key DeleteMessagesOptionAlso), offered only in a chat with one person. Telegram's Spanish label is "Eliminar también para %1$s", written here with the name left out as an ellipsis
+When you delete messages in a chat with a person, Telegram's Also delete for box starts checked, so they're deleted for both of you. Uncheck it to delete them just for you.	Al eliminar mensajes en un chat con una persona, la casilla Eliminar también para… de Telegram ya aparece marcada, así que se eliminan para los dos. Desmárcala para eliminarlos solo para ti.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Check Also delete for by default switch (key DeleteMessagesOptionAlso). Telegram's Spanish label is "Eliminar también para %1$s", written here with the name left out as an ellipsis
+checking Also delete for by default	marcar de forma predeterminada Eliminar también para…
 # context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
 Lyrics	Letra
 # context: Line in the lyrics panel while the song's lyrics load
@@ -1784,6 +1903,10 @@ Dates on your profile songs	Fechas en las canciones de tu perfil
 Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	Las canciones que añadas a tu perfil a partir de ahora muestran el día en que las añadiste, después del artista. Las fechas se guardan solo en este teléfono.
 # context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
 dates on your profile songs	fechas en las canciones del perfil
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before a typed message goes out (#79)
+asking before a typed message goes out	la pregunta antes de que salga un mensaje escrito
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before you join a voice chat or live stream (#79)
+asking before you join a voice chat	la pregunta antes de unirte a un chat de voz
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
 Open chat	Abrir chat
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
@@ -1917,3 +2040,333 @@ Skip between voice messages	Saltar entre mensajes de voz
 Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Siguiente y anterior en los auriculares, en el auto, en la notificación, en la pantalla de bloqueo y en el reproductor de música completo pasan entre los mensajes de voz de un chat, como hacen con las canciones.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
 skipping between voice messages	saltar entre mensajes de voz
+# context: Row title on the Privacy page (#79), under Don't notify contacts, and the title of its dialog. Active sessions is the list under Settings > Devices in Telegram, so use Telegram's own word for it in your language
+Device in Active sessions	Dispositivo en Sesiones activas
+# context: Summary under that row. %1$s is the device name and %2$s the system version your other phones and computers show for this one, for example samsungSM-S901U and SDK 36
+Your other sessions see %1$s, %2$s.	Tus otras sesiones ven %1$s, %2$s.
+# context: Instructions at the top of that dialog. Settings and Devices are Telegram's own menu names, so use Telegram's words in your language. Each box left empty sends what Telegram would send anyway
+Settings > Devices on your other phones and computers shows this phone with these. Leave a box empty for what Telegram sends, and restart Telegram after a change.	Ajustes > Dispositivos en tus otros teléfonos y computadoras muestra este teléfono con estos datos. Deja un campo vacío para usar lo que envía Telegram y reinicia Telegram después de un cambio.
+# context: Label over the first box in that dialog, the name your other sessions show for this phone
+Device name	Nombre del dispositivo
+# context: Label over the second box in that dialog, shown beside the device name, for example SDK 36
+System version	Versión del sistema
+# context: Shown when saving the device name and system version didn't work
+Couldn't save the device. Try again in a moment.	No se pudo guardar el dispositivo. Inténtalo de nuevo en un momento.
+# context: Lowercase noun phrase naming the Device in Active sessions row (#79) in the patch status list
+the device in Active sessions	el dispositivo en Sesiones activas
+# context: Item in a message's long-press menu (#79) while Ghost mode keeps the chat's read receipts back. It tells the sender this message, and the ones before it, were read
+Send read receipt	Enviar confirmación de lectura
+# context: Shown once the read receipt for that message has gone out
+Read receipt sent.	Confirmación de lectura enviada.
+# context: Shown when the read receipt for that message couldn't go out
+Couldn't send the read receipt. Try again.	No se pudo enviar la confirmación de lectura. Inténtalo de nuevo.
+# context: Row in a person's profile menu (#79), under the ID row. %1$s is a month and year such as "March 2016", already in the phone's language. It's an estimate worked out from the user ID
+Registered about %1$s	Registrado hacia %1$s
+# context: Row in a person's profile menu (#79) for an account newer than every known point. %1$s is a month and year such as "September 2026", already in the phone's language
+Registered after %1$s	Registrado después de %1$s
+# context: Spoken label of a profile menu row that copies its own text when tapped. %1$s is the row's text
+Copy %1$s	Copiar %1$s
+# context: Short message after the registration month row in a profile menu was tapped and its text copied
+Registration date copied	Fecha de registro copiada
+# context: Title of a switch under Show user and chat IDs (#79). It adds about when a person's account was made to their profile menu
+Show when an account was made	Mostrar cuándo se creó una cuenta
+# context: Summary under the Show when an account was made switch
+A person's profile menu also shows about which month they joined Telegram, worked out from their user ID. It's an estimate, and nothing is asked of Telegram. Bots, groups and channels get none.	El menú del perfil de una persona también muestra en qué mes se unió a Telegram, más o menos, calculado a partir de su ID de usuario. Es una estimación y no se le pide nada a Telegram. Los bots, grupos y canales no la tienen.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows about when an account was made
+account registration dates	fechas de registro de las cuentas
+# context: Second line of a row in a group's member list (#79). %1$s is Telegram's own text there, such as "last seen recently" or "online", and %2$s is the date and time the person joined the group, already written the way the phone writes dates
+%1$s · joined %2$s	%1$s · se unió el %2$s
+# context: Title of a switch under Show user and chat IDs (#79). It adds when each person joined to a group's member lists
+Show when members joined	Mostrar cuándo se unieron los miembros
+# context: Summary under the Show when members joined switch. Members is the title of Telegram's page listing a group's members (Telegram key ChannelMembers); last seen is the text Telegram shows under a person's name
+A group's member lists, on its profile and its Members page, also show when each person joined, next to their last seen. The date comes with the list, so nothing more is asked of Telegram. Admins and the owner keep their role.	Las listas de miembros de un grupo, en su perfil y en su página Miembros, también muestran cuándo se unió cada persona, junto a su última conexión. La fecha llega con la lista, así que no se le pide nada más a Telegram. Los administradores y el propietario conservan su rol.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when each person joined a group
+member join dates	fechas de ingreso de los miembros
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Pin chats on this phone is on (#79). It pins the selected chats on this phone only, without Telegram's own pin
+Pin on this phone	Fijar en este teléfono
+# context: Item in the chat list's long press menu in place of Pin on this phone when every selected chat is already pinned that way (#79). It takes them off this phone's pins
+Unpin on this phone	Desfijar en este teléfono
+# context: Toast after Pin on this phone. All Chats is Telegram's name for the first folder tab (Telegram key FilterAllChats); use the name Telegram shows in that language. Two short lines at most
+Pinned in All Chats on this phone.	Fijado en Todos los chats en este teléfono.
+# context: Toast after Unpin on this phone. Two short lines at most
+Unpinned on this phone.	Desfijado en este teléfono.
+# context: Toast when Pin on this phone would go past the limit. %1$d is the most chats one phone keeps pinned this way, 20 today. Two short lines at most
+You can pin up to %1$d chats on this phone.	Puedes fijar hasta %1$d chats en este teléfono.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#79). With it on, the long press menu offers Pin on this phone
+Pin chats on this phone	Fijar chats en este teléfono
+# context: Summary of Pin chats on this phone. Pin on this phone is the long press menu item above; All Chats is Telegram's first folder tab (Telegram key FilterAllChats); the pin limit is how many chats Telegram lets you pin
+Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and Telegram's pin limit stay as they are.	Añade Fijar en este teléfono al menú que abre una pulsación larga en la lista de chats. Esos chats quedan justo debajo de tus chats fijados en Todos los chats, los más recientes primero. No se envía nada a Telegram, así que tus otros dispositivos y el límite de chats fijados de Telegram no cambian.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that pins chats on this phone only
+chats pinned on this phone	los chats fijados en este teléfono
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#89). With it on, chat pictures (avatars) in the chat list show at the size picked under Avatar size, a percent of Telegram's own size
+Change avatar size	Cambiar el tamaño de los avatares
+# context: Summary of Change avatar size. The size is picked in the Avatar size row right below it; each chat list row keeps its height and the picture shrinks or grows around its own center
+Chat pictures in the chat list show at the size you pick below. Each row keeps its height, and the picture stays centered where Telegram puts it.	Las fotos de los chats en la lista de chats se muestran al tamaño que elijas abajo. Cada fila mantiene su altura y la foto queda centrada donde Telegram la pone.
+# context: Row title and dialog title. The person picks the chat list's avatar size as a percent of Telegram's own size (70%, 80%, 90%, 110% or 120%); the row's summary reads "%1$s of Telegram's size"
+Avatar size	Tamaño de los avatares
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that changes the size of chat pictures in the chat list
+avatar size in the chat list	el tamaño de los avatares en la lista de chats
+# context: Name of the list Pin on this phone keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats pinned on this phone	Chats fijados en este teléfono
+# context: Count of chats in the import preview, singular form. %1$d is the number
+%1$d chat	%1$d chat
+# context: Count of chats in the import preview, plural form. %1$d is the number
+%1$d chats	%1$d chats
+# context: Item at the end of the menu that opens from the top of the chat list (New Group, Saved Messages and so on), shown while Do Not Disturb in the chat list menu is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn on Do Not Disturb	Activar No molestar
+# context: The same chat list menu item while Do Not Disturb is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn off Do Not Disturb	Desactivar No molestar
+# context: Toast after Turn on Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is on.	No molestar está activado.
+# context: Toast after Turn off Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is off.	No molestar está desactivado.
+# context: Switch title on the Chat list page under Proxy in the chat list menu, off by default (#79). With it on, the menu at the top of the chat list gets a Do Not Disturb item. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb in the chat list menu	No molestar en el menú de la lista de chats
+# context: Summary of Do Not Disturb in the chat list menu. The menu is the one that opens from the top of the chat list; a message notification is the one Telegram posts for a new message; calls still ring
+Adds Do Not Disturb to the menu at the top of the chat list. While it's on, no message notification shows or makes a sound, and messages still arrive. Calls ring as usual.	Añade No molestar al menú de arriba de la lista de chats. Mientras está activado, ninguna notificación de mensaje aparece ni suena, y los mensajes siguen llegando. Las llamadas suenan como siempre.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Do Not Disturb item that Proxy in the chat list menu adds to the menu at the top of the chat list. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb menu item	el elemento No molestar del menú
+# context: Privacy page switch under Draft link previews. It makes the preview of a link you send come from another site, the way the rules in Link preview rules say
+Fix link previews	Arreglar vistas previas de enlaces
+# context: Line under the Fix link previews switch. fixupx.com and x.com are web sites and stay as they are
+When you send a link to a site in your rules, its preview comes from the other site the rule names, like fixupx.com for x.com. Your message keeps the link you typed.	Cuando envías un enlace a un sitio de tus reglas, su vista previa viene del otro sitio que indica la regla, como fixupx.com para x.com. Tu mensaje conserva el enlace que escribiste.
+# context: Privacy page row title under the Fix link previews switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s"
+Link preview rules	Reglas de vistas previas de enlaces
+# context: Summary of the Link preview rules row when it holds no rules. x.com -> fixupx.com is a rule as typed and stays as it is
+No rules yet. Add one per line, like x.com/*/status -> fixupx.com.	Aún no hay reglas. Añade una por línea, como x.com/*/status -> fixupx.com.
+# context: Summary of the Link preview rules row with the number of rules. Fix link previews is the name of the switch above it
+Rules: %1$s. Fix link previews follows these for the links you send.	Reglas: %1$s. Arreglar vistas previas de enlaces las sigue con los enlaces que envías.
+# context: Hint and label of the box in the Link preview rules dialog, where each line is one rule. x.com -> fixupx.com stays as it is
+One rule per line, like x.com/*/status -> fixupx.com	Una regla por línea, como x.com/*/status -> fixupx.com
+# context: Note in the Link preview rules dialog. The arrow is the -> typed between two sites; *. and the sites stay as they are
+Each line is a site, an arrow and the site its previews come from. Put *. in front of both to cover subdomains too, like *.tiktok.com -> *.kktiktok.com. A path after the first site covers only links that start with it, * standing for any one part, like x.com/*/status -> fixupx.com. Lines that aren't rules are left out.	Cada línea es un sitio, una flecha y el sitio del que vienen sus vistas previas. Pon *. delante de ambos para cubrir también los subdominios, como *.tiktok.com -> *.kktiktok.com. Una ruta después del primer sitio cubre solo los enlaces que empiezan así, con * en lugar de cualquier parte, como x.com/*/status -> fixupx.com. Las líneas que no son reglas se omiten.
+# context: Button in the Link preview rules dialog, next to Save and Cancel. It puts the starting rules back in the box. Short
+Default rules	Reglas predeterminadas
+# context: Toast when the rules typed in Link preview rules are too long to keep. Two short lines at most.
+Too many rules to keep. Take some out.	Demasiadas reglas. Quita algunas.
+# context: Toast after saving Link preview rules when some lines weren't rules; %1$s is how many were left out. Two short lines at most.
+Lines left out: %1$s. They aren't rules.	Líneas omitidas: %1$s. No son reglas.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Draft link previews that points a sent link's preview at another site
+link preview rules	reglas de vistas previas de enlaces
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's one
+%1$d rule	%1$d regla
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's more than one
+%1$d rules	%1$d reglas
+# context: Playback page switch under Save downloaded files. It gives APK and EXE files their own icon and shows a downloaded PDF's first page or a video's frame as the file's picture
+File icons and thumbnails	Iconos y miniaturas de archivos
+# context: Line under the File icons and thumbnails switch. APK, EXE and PDF are file types and stay as they are. Shared media is the page of a chat's photos, files and links
+APK and EXE files get their own icon in chats and in Shared media. Once downloaded, a PDF shows its first page and a video a frame from it. Files with a thumbnail from Telegram keep it.	Los archivos APK y EXE tienen su propio icono en los chats y en los archivos compartidos. Una vez descargado, un PDF muestra su primera página y un video un fotograma. Los archivos con miniatura de Telegram la conservan.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in chat bubbles
+file icons and thumbnails in chats	iconos y miniaturas de archivos en los chats
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in a chat's Shared media page
+file icons and thumbnails in Shared media	iconos y miniaturas en los archivos compartidos
+# context: Playback page switch under Save downloaded files, off by default (#79). With it on, a file Telegram already has on the phone shows as downloaded instead of with a download button.
+Recognize files you already have	Reconocer los archivos que ya tienes
+# context: Line under the Recognize files you already have switch. Keep Telegram's files in internal storage is the name of another switch on the same page, so use its translation.
+A file Telegram already downloaded, in another account for example, shows as downloaded here too when its folders hold one with the same name and size. With Keep Telegram's files in internal storage on, files from before a reinstall count too.	Un archivo que Telegram ya descargó, por ejemplo en otra cuenta, aparece como descargado aquí también cuando sus carpetas tienen uno con el mismo nombre y tamaño. Con Guardar los archivos de Telegram en el almacenamiento interno activado, también cuentan los archivos de antes de reinstalar.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that shows files already on the phone as downloaded.
+how files you already have show up	cómo se muestran los archivos que ya tienes
+# context: Switch title on the Look and feel page under AMOLED black, off by default (#88). It shows a picture from the gallery behind Telegram's list screens.
+Picture behind the lists	Imagen detrás de las listas
+# context: Summary of Picture behind the lists. Settings is Telegram's own Settings screen; built-in themes are the ones Telegram ships (Day, Classic, Night, Dark), not a theme installed from a file.
+Shows a picture from your gallery behind the chat list, Settings, profiles and the other lists. Chats keep their wallpaper, and menus and dialogs stay solid. Works with Telegram's built-in themes.	Muestra una imagen de tu galería detrás de la lista de chats, Ajustes, los perfiles y las demás listas. Los chats conservan su fondo, y los menús y diálogos siguen opacos. Funciona con los temas integrados de Telegram.
+# context: Row title under Picture behind the lists. A tap picks the picture from the gallery, or changes how dim it is.
+Background picture	Imagen de fondo
+# context: Summary of the Background picture row before a picture is picked. Must fit two short lines.
+No picture yet. Tap to pick one.	Aún no hay imagen. Toca para elegir una.
+# context: Summary of the Background picture row once a picture is saved. %1$s is a percentage like 40%. Must fit two short lines.
+Dimmed by %1$s. Tap to change it.	Oscurecida un %1$s. Toca para cambiarlo.
+# context: Title of the dialog that lists how much the background picture is dimmed (20%, 40%, 60%, 80%).
+Dim the picture	Oscurecer la imagen
+# context: Toast when the dim picked for the background picture could not be saved. Must fit two short toast lines.
+Couldn't save the dim. Try again in a moment.	No se guardó. Inténtalo en un momento.
+# context: Button in the Dim the picture dialog that opens the gallery to pick a different background picture.
+Choose another picture	Elegir otra imagen
+# context: Button in the Dim the picture dialog. It deletes the background picture and turns Picture behind the lists off at once.
+Remove background	Quitar el fondo
+# context: Toast after Remove background. Must fit two short toast lines.
+Background removed.	Fondo quitado.
+# context: Toast when no app on the phone can pick a picture. Must fit two short toast lines.
+This phone has no gallery picker.	Este teléfono no tiene selector de galería.
+# context: Toast when the file picked for a background picture can't be read as a picture. Must fit two short toast lines.
+That file isn't a picture.	Ese archivo no es una imagen.
+# context: Toast when the file picked for a background picture is over 40 MB. Must fit two short toast lines.
+That picture is too large.	Esa imagen es demasiado grande.
+# context: Toast when copying the picked background picture into Telegram's files failed. Must fit two short toast lines.
+Couldn't save the picture. Try again.	No se guardó la imagen. Inténtalo de nuevo.
+# context: Toast once the picked picture is saved and shows behind the lists. Must fit two short toast lines.
+Background picture saved.	Imagen de fondo guardada.
+# context: Label in the settings import preview, as in "Background dim: 40% to 60%". It names how much the background picture is dimmed.
+Background dim	Oscurecimiento del fondo
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of AMOLED black that shows a gallery picture behind the list screens.
+a picture behind the lists	una imagen detrás de las listas
+# context: Row title on the Look and feel page under Your own chat list title (#86), and the label in the settings import preview, as in "Chat list banner: None to Ocean". A tap paints the chat list's top bar with two colors or a picture from the gallery.
+Chat list banner	Banner de la lista de chats
+# context: Name of a Chat list banner gradient, pink fading into violet. A color mood, not a time of day setting.
+Dusk	Atardecer
+# context: Name of a Chat list banner gradient, blue fading into sea green.
+Ocean	Océano
+# context: Name of a Chat list banner gradient, green fading into olive.
+Forest	Bosque
+# context: Name of a Chat list banner gradient, orange fading into red, like glowing coals.
+Ember	Brasa
+# context: Name of a Chat list banner gradient, two cool grays like slate stone.
+Slate	Pizarra
+# context: What the Chat list banner row and the import preview call a banner made from a picture the person picked from the gallery.
+Your picture	Tu imagen
+# context: Last choice in the Chat list banner list. Picking it opens the phone's gallery when no picture is saved yet.
+Picture from your gallery	Imagen de tu galería
+# context: Summary of the Chat list banner row while no banner is set. Must fit two short lines.
+None. Tap to pick colors or a picture.	Ninguno. Toca para elegir colores o una imagen.
+# context: Toast after None is picked for the Chat list banner. The bar looks like Telegram's own again. Must fit two short toast lines.
+Banner removed.	Banner quitado.
+# context: Toast once the picture picked for the Chat list banner is saved and shows on the chat list's top bar. Must fit two short toast lines.
+Banner picture saved.	Imagen del banner guardada.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that paints the chat list's top bar with colors or a picture.
+the chat list banner	el banner de la lista de chats
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Bookmark in the message menu and the Bookmarks page
+bookmarking messages	guardar marcadores de mensajes
+# context: Item in a message's long-press menu. It saves a bookmark of that message on this phone only, to open again later from the Bookmarks page
+Bookmark	Guardar marcador
+# context: Item in a message's long-press menu when that message already has a bookmark. It removes the bookmark from this phone
+Remove bookmark	Quitar marcador
+# context: Toast after Bookmark in the message menu saves the message. Must fit two short toast lines
+Bookmarked.	Marcador guardado.
+# context: Toast after Remove bookmark in the message menu, or Remove on the Bookmarks page. Must fit two short toast lines
+Bookmark removed.	Marcador quitado.
+# context: Toast when a bookmark couldn't be saved or removed on this phone. Must fit two short toast lines
+Couldn't save the bookmark. Try again.	No se guardó el marcador. Inténtalo de nuevo.
+# context: Toast when Bookmark is tapped while the Bookmarks page is full. %1$d is the most it keeps (100). Must fit two short toast lines
+You can keep up to %1$d bookmarks.	Puedes guardar hasta %1$d marcadores.
+# context: Sender name on the Bookmarks page for a message you sent yourself, as in "You: see you at 5"
+You	Tú
+# context: Preview on the Bookmarks page for a bookmarked photo with no caption
+Photo	Foto
+# context: Preview on the Bookmarks page for a bookmarked video with no caption
+Video	Video
+# context: Preview on the Bookmarks page for a bookmarked message with no text, picture or file name (a sticker, poll or location)
+Message	Mensaje
+# context: A bookmark's preview on the Bookmarks page. %1$s is who sent the message, %2$s is the start of its text
+%1$s: %2$s	%1$s: %2$s
+# context: Toast when a bookmark on the Bookmarks page belongs to a Telegram account that's no longer signed in on this phone. Must fit two short toast lines
+That account isn't signed in here.	Esa cuenta no tiene la sesión iniciada aquí.
+# context: Toast when a bookmark on the Bookmarks page is in a chat this phone no longer has. Must fit two short toast lines
+That chat isn't on this phone anymore.	Ese chat ya no está en este teléfono.
+# context: Toast when a bookmark on the Bookmarks page is in a group or channel you've left. Must fit two short toast lines
+You're not in that chat anymore.	Ya no estás en ese chat.
+# context: Toast when a bookmarked message is no longer stored on this phone. The chat still opens. Must fit two short toast lines
+That message isn't on this phone anymore.	Ese mensaje ya no está en este teléfono.
+# context: Title of the Bookmarks page, its row on the Conversations page and in the side menu, and the line for them in a settings import preview
+Bookmarks	Marcadores
+# context: What the Bookmarks page shows while it's empty. Bookmark is the message menu item (use its translation)
+No bookmarks yet. Long-press a message and tap Bookmark.	Aún no hay marcadores. Mantén pulsado un mensaje y toca Guardar marcador.
+# context: Button on each row of the Bookmarks page that removes that bookmark
+Remove	Quitar
+# context: Title of the switch on the Conversations page that adds Bookmark to a message's long-press menu. Bookmark is the menu item (use its translation)
+Add Bookmark to the message menu	Añadir Guardar marcador al menú del mensaje
+# context: Summary of the Add Bookmark to the message menu switch. Bookmark is the menu item and Bookmarks the page (use their translations)
+Adds Bookmark to any message, post, photo, video or file. Bookmarks stay on this phone only. Tap one on the Bookmarks page to open its chat at that message.	Añade Guardar marcador a cualquier mensaje, publicación, foto, video o archivo. Los marcadores se quedan solo en este teléfono. Toca uno en la página Marcadores para abrir su chat en ese mensaje.
+# context: Summary of the Bookmarks row on the Conversations page, which opens the Bookmarks page
+Every message you bookmarked, newest first. Tap one to open it, or long-press it to remove it.	Cada mensaje con marcador, el más reciente primero. Toca uno para abrirlo o mantenlo pulsado para quitarlo.
+# context: Count of bookmarks in the settings import preview, singular form. %1$d is the number
+%1$d bookmark	%1$d marcador
+# context: Count of bookmarks in the settings import preview, plural form. %1$d is the number
+%1$d bookmarks	%1$d marcadores
+# context: Chat list page switch title, under Hide Contacts tab. When on, the bar at the bottom of the main screen (Chats, Contacts, Calls or Settings, Profile) gets a thin outline in Telegram's blue.
+Outline the bottom bar	Contorno en la barra inferior
+# context: Summary under that switch. Telegram blue is Telegram's own light blue brand color. The black background is AMOLED black or any dark theme.
+Draws a thin Telegram blue line around the bar at the bottom of the main screen, so it stands out on a black background. Restart Telegram to see the change.	Dibuja una línea fina azul Telegram alrededor de la barra inferior de la pantalla principal, para que destaque sobre un fondo negro. Reinicia Telegram para ver el cambio.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Contacts tab that outlines the bottom bar.
+bottom bar outline	contorno de la barra inferior
+# context: Title of a switch under Show user and chat IDs (#79). It adds the date and time a forwarded message was originally sent to the header of that message in a chat
+Show when forwards were first sent	Mostrar cuándo se envió primero lo reenviado
+# context: Summary under the Show when forwards were first sent switch. Forwarded from is Telegram's own header on a forwarded message (Telegram key ForwardedFrom); use Telegram's wording for it
+A forwarded message's header also shows the date and time it was first sent, after Forwarded from. The date comes with the message, so nothing more is asked of Telegram.	La cabecera de un mensaje reenviado también muestra la fecha y la hora en que se envió por primera vez, después de Reenviado de. La fecha viene con el mensaje, así que no se le pide nada más a Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when a forwarded message was first sent
+forward dates	fechas de los reenvíos
+# context: Title of a row under the Use system font switch (#79). A tap picks a font file (.ttf or .otf) from the phone, or changes or removes the one picked
+Font file	Archivo de fuente
+# context: Summary under the Font file row when no font file is picked yet. Use system font is the switch above it
+No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.	Aún no hay archivo de fuente. Toca para elegir un archivo .ttf u .otf para todo el texto de Telegram.
+# context: Summary under the Font file row once a font file is picked. %1$s is the file's name, such as Inter.ttf. Use system font is the switch above it
+%1$s, used for all of Telegram's text while Use system font is on. Tap to change it.	%1$s, para todo el texto de Telegram mientras «Usar fuente del sistema» esté activado. Toca para cambiarla.
+# context: Button in the dialog the Font file row opens once a font is picked. It opens the file picker again
+Choose another font	Elegir otra fuente
+# context: Button in the dialog the Font file row opens once a font is picked. It deletes the font file so Telegram's text goes back to its usual font after a restart
+Remove font	Quitar la fuente
+# context: Short message after Remove font
+Font removed.	Fuente quitada.
+# context: Short message when the file picked for Font file can't be read as a font
+That file isn't a font.	Ese archivo no es una fuente.
+# context: Short message when the file picked for Font file is over the size HushTelegram copies
+That font file is too large.	Ese archivo de fuente es demasiado grande.
+# context: Short message when copying the picked font file failed
+Couldn't save the font. Try again.	No se guardó la fuente. Inténtalo de nuevo.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Use system font that draws Telegram's text in a font file you picked
+a font file of your own	un archivo de fuente propio
+# context: Item in the menu at the top of a group or channel the user owns or manages, and the title of its switch on the Chats page under My messages. It opens a list of Telegram's admin screens
+Admin tools	Herramientas de admin
+# context: Summary of the Admin tools switch. Recent Actions and Invite Links are Telegram's own screen names; use Telegram's translations of them
+A group or channel you own or manage gets Admin tools in its menu at the top. It opens Recent Actions, the member lists and Invite Links, as far as your rights there go.	Un grupo o canal que posees o administras tiene Herramientas de admin en su menú de arriba. Abre Acciones recientes, las listas de miembros y Enlaces de invitación, hasta donde lleguen tus permisos ahí.
+# context: Toast when Admin tools is tapped in a chat where none of its screens can open
+Couldn't open admin tools here.	No se pudieron abrir las herramientas de admin aquí.
+# context: Row in the Admin tools list. Telegram's own name for the admin log screen (its key EventLog); Telegram's translation
+Recent Actions	Acciones recientes
+# context: Row in the Admin tools list for a group. Telegram's own name for the member list (its key ChannelMembers); Telegram's translation
+Members	Miembros
+# context: Row in the Admin tools list for a channel. Telegram's own name for the subscriber list (its key ChannelSubscribers); Telegram's translation
+Subscribers	Suscriptores
+# context: Row in the Admin tools list for a group. Telegram's own name for the group permissions screen (its key ChannelPermissions); Telegram's translation
+Permissions	Permisos
+# context: Row in the Admin tools list for a channel. Telegram's own name for the removed users list (its key ChannelBlacklist); Telegram's translation
+Removed Users	Usuarios expulsados
+# context: Row in the Admin tools list. Telegram's own name for the invite links screen (its key InviteLinks); Telegram's translation
+Invite Links	Enlaces de invitación
+# context: Name of the Telegram chat folder the Admin folder switch makes, shown as a tab above the chat list and on the user's other devices. Telegram allows at most 12 characters
+Admin	Admin
+# context: Switch title on the Folders by chat type page, off by default. It makes a Telegram folder named Admin with the chats the user owns or manages
+Admin folder	Carpeta Admin
+# context: Summary of the Admin folder switch. Admin is the folder's name
+Turning this on makes an Admin folder with the groups and channels you own or manage, and keeps it up to date as that changes. Turning it off removes it, unless you renamed or changed it.	Al activarlo se crea una carpeta Admin con los grupos y canales que posees o administras, y se mantiene al día cuando eso cambia. Al desactivarlo se elimina, salvo que la hayas renombrado o cambiado.
+# context: Toast when the Admin folder switch is turned on but the user owns or manages no group or channel; the switch goes back off
+You don't manage any groups or channels yet.	Todavía no administras grupos ni canales.
+# context: Toast after Telegram made the Admin folder
+Made the Admin folder.	Carpeta Admin creada.
+# context: Toast after Telegram made the Admin folder when the user manages more chats than a folder can hold
+Made the Admin folder. Some chats didn't fit.	Carpeta Admin creada. Algunos chats no cupieron.
+# context: Toast after the Admin folder switch was turned off and Telegram removed the folder
+Removed the Admin folder.	Carpeta Admin eliminada.
+# context: Toast when the Admin folder switch is turned off but the user renamed or edited the folder, so it isn't removed
+You changed the Admin folder, so it stays.	Cambiaste la carpeta Admin, así que se queda.
+# context: Toast when Telegram refused to make the Admin folder; the switch goes back off
+Telegram didn't make the folder. Try again later.	Telegram no creó la carpeta. Inténtalo más tarde.
+# context: Toast when Telegram refused to remove the Admin folder; the switch goes back on
+Telegram kept the Admin folder. Try again later.	Telegram mantuvo la carpeta Admin. Inténtalo más tarde.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of My messages that adds Admin tools to the menu at the top of a group or channel
+admin tools in a chat's menu	las herramientas de admin en el menú de un chat
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Folders by chat type that makes the Admin folder
+the Admin folder	la carpeta Admin
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record
+Voice changer	Cambiador de voz
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: no change
+Off	Desactivado
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a baby's voice
+Baby	Bebé
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a woman's voice
+Woman	Mujer
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a man's voice
+Man	Hombre
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a deep, echoing voice
+Horror movie	Película de terror
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a robot's voice
+Robot	Robot
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Play voice messages one at a time that changes how the voice messages you record sound
+the voice changer	el cambiador de voz
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Edit a copy in the message menu, which opens a chat photo in Telegram's photo editor
+editing a copy of a photo	editar una copia de una foto
+# context: Item in a photo message's long-press menu. It opens a copy of the photo in Telegram's photo editor, and sending it sends the edited copy to the chat
+Edit a copy	Editar una copia
+# context: Switch title in HushTelegram settings that adds Edit a copy to a photo message's long-press menu
+Add Edit a copy to the message menu	Añadir Editar una copia al menú del mensaje
+# context: Summary under the Edit a copy switch in HushTelegram settings
+Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. Sending it sends the edited copy to the chat. The photo in the chat stays as it was.	Abre una foto de un chat en el editor de fotos de Telegram, donde puedes dibujar, añadir texto o difuminar partes. Al enviarla, se envía la copia editada al chat. La foto del chat queda como estaba.

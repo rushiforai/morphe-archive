@@ -1,3 +1,21 @@
+## [1.22.1](https://github.com/sqzass/lustx-patches/compare/v1.22.0...v1.22.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **Postparty:** fix fingerprint for the ending ([8593b01](https://github.com/sqzass/lustx-patches/commit/8593b017e432093a8bcc44841c8b8bdcdae2d882))
+
+## [1.22.0](https://github.com/sqzass/lustx-patches/compare/v1.21.0...v1.22.0) (2026-11-16)
+
+### ✨ New Features
+
+* **decompile.py:** add more aliases for keeping input apks after processing ([2dc0b87](https://github.com/sqzass/lustx-patches/commit/2dc0b87c4344b93a8ab0df802fcb8461a6de8cac))
+* **Postparty:** add `Remove clip bumper` patch. ([989c056](https://github.com/sqzass/lustx-patches/commit/989c056b0fce5d0b5f7b50b09a30903122b78a1a))
+
+### 🐛 Bug Fixes
+
+* **Postparty:** lint issues ([af25dbc](https://github.com/sqzass/lustx-patches/commit/af25dbc693ddfda107cb75037fdaede1e0e72ef7))
+* **Postparty:** should build now ([6a369c1](https://github.com/sqzass/lustx-patches/commit/6a369c1e3196d8b53f9f9b016d2aab2543f2d746))
+
 ## [1.21.0](https://github.com/sqzass/lustx-patches/compare/v1.20.0...v1.21.0) (2026-11-16)
 
 ### ✨ New Features

@@ -75,6 +75,7 @@ val viewStoriesAnonymouslyPatch =
                 )
             }
 
+            runCatching {
             val consumed = ConsumedStoryFingerprint.instructionMatches
             val reelParentClass = ConsumedStoryFingerprint.originalMethod.parameterTypes[1].toString()
             val excludedItemPredicate = consumed[0].methodReference
@@ -256,6 +257,9 @@ val viewStoriesAnonymouslyPatch =
                 )
             }
 
+            }
+
+            runCatching {
             val requestInterface = ExecutorSchedulerFingerprint.originalMethod.parameterTypes.first().toString()
             val wrapperType = ExecutorSchedulerFingerprint.instructionMatches.last()
                 .instruction.getReference<TypeReference>()!!.type
@@ -280,6 +284,7 @@ val viewStoriesAnonymouslyPatch =
                     delegatedRunIndex + 2,
                     "invoke-static {v$requestRegister}, $STORY_SEEN_SCOPE_DESCRIPTOR->complete(Ljava/lang/Object;)V",
                 )
+            }
             }
 
                         }

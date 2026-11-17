@@ -40,16 +40,27 @@ import app.morphe.util.names.origString
 import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
-/** The five places the questions stand, the call sites that move, the stubs that run the stock work again, and the runtime. */
+/** The places the questions stand, the call sites that move, the stubs that run the stock work again, and the runtime. */
 class SendConfirmFixtureTest {
     private val callParameters = listOf(
         "Lorg/telegram/tgnet/TLRPC\$User;", "Z", "Z", "Landroid/app/Activity;", "Lorg/telegram/tgnet/TLRPC\$UserFull;",
         "Lorg/telegram/messenger/AccountInstance;",
     )
+    private val chat = "Lorg/telegram/tgnet/TLRPC\$Chat;"
+    private val voip = "Lorg/telegram/messenger/voip/VoIPService;"
+    private val textLength = "Ljava/lang/CharSequence;->length()I"
     private val fixed = setOf(
         "Lorg/telegram/ui/Components/ChatActivityEnterView;", "Lorg/telegram/messenger/MediaController;", "Lorg/telegram/ui/LaunchActivity;",
-        CALLBACK,
+        CALLBACK, chat, voip,
     )
+
+    /** Telegram's join of a voice chat: the chat, its invite hash, whether it starts one, a join-as flag, the window, the screen and the account. */
+    private fun isJoin(m: Method): Boolean {
+        val params = m.origParameterTypes
+        return AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && params.size == 7 &&
+            params.take(5) == listOf(chat, "Ljava/lang/String;", "Z", "Ljava/lang/Boolean;", "Landroid/app/Activity;") &&
+            params[5].startsWith("Lorg/telegram/ui/ActionBar/") && params[6] == "Lorg/telegram/messenger/AccountInstance;"
+    }
 
     private val WIDE_GOTOS = setOf(Opcode.GOTO_16, Opcode.GOTO_32)
 
@@ -61,6 +72,7 @@ class SendConfirmFixtureTest {
         val params = m.origParameterTypes
         val instance = !com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(m.accessFlags)
         if (!instance && m.origReturnType == "V" && params == callParameters) return true
+        if (isJoin(m)) return true
         if (instance && m.origReturnType == "V" && params == listOf(
                 "Landroid/view/View;", "Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/Object;", "Z", "I", "I",
                 "Lorg/telegram/messenger/MediaController\$PhotoEntry;", "Z",
@@ -77,7 +89,10 @@ class SendConfirmFixtureTest {
             val name = build.name
             val found = FixtureDex.classesWhere(build, { true }) { wanted(it) }
             // The interfaces they implement hold the round video recorder's, which the pause is called through.
-            val hosts = (FixtureDex.classes(build, fixed + found.flatMap { it.interfaces }).values + found).distinctBy { it.type }.map(ImmutableClassDef::of)
+            // The screen a voice chat is joined from, which the join's stub casts to.
+            val screens = found.flatMap { it.methods }.filter(::isJoin).map { it.origParameterTypes[5] }
+            val hosts = (FixtureDex.classes(build, fixed + screens + found.flatMap { it.interfaces }).values + found).distinctBy { it.type }.map(ImmutableClassDef::of)
+            val joinBefore = ImmutableMethod.of(hosts.flatMap { it.methods }.single(::isJoin))
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val site = context.resolveSendConfirm()
             assertEquals("$name: the chat bar's sticker send", "Lorg/telegram/ui/Components/ChatActivityEnterView;", site.sticker.definingClass)
@@ -181,7 +196,36 @@ class SendConfirmFixtureTest {
                 at
             }
             assertTrue("$name: two places", asks.distinct().size == 2)
-            val hooked = asks.flatMap { it until it + 4 }.toSet()
+
+            // A typed message: the question right after the send's test that the text, checked and
+            // trimmed, isn't empty, so an empty one (a forward alone) goes on without it.
+            val textHook = if (r8Send) "textReordered" else "text"
+            val textAt = barGated.indexOfFirst { it.controlRef()?.startsWith("$SEND_CONFIRM->$textHook(") == true }
+            assertTrue("$name: the typed message's question in the chat bar's send", textAt > 0)
+            assertTrue("$name text: the answer comes back as a boolean", barGated[textAt].controlRef()!!.endsWith(")Z"))
+            assertEquals("$name text: this and every parameter", (barTop - 7 until barTop).toList(), barGated[textAt].namedRegisters())
+            assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN), barGated.subList(textAt + 1, textAt + 4).map { it.opcode })
+            val textAnswer = barGated[textAt + 1].namedRegisters().single()
+            assertTrue("$name text: a local", textAnswer < barTop - 7)
+            assertEquals("$name text: returned as the send returns", List(3) { listOf(textAnswer) },
+                barGated.subList(textAt + 1, textAt + 4).map { it.namedRegisters() })
+            assertEquals("$name text: Send goes on to the send", setOf(textAt + 3, textAt + 4), barFlow.normal[textAt + 2].toSet())
+            assertEquals("$name text: right after the test of the text's length", listOf<Any?>(textLength, Opcode.MOVE_RESULT, Opcode.IF_EQZ),
+                listOf(barGated[textAt - 3].controlRef(), barGated[textAt - 2].opcode, barGated[textAt - 1].opcode))
+            assertEquals("$name text: of that length", barGated[textAt - 2].namedRegisters(), barGated[textAt - 1].namedRegisters())
+            assertTrue("$name text: only the test falls into it", barFlow.normal.withIndex().none { (from, to) -> from != textAt - 1 && textAt in to })
+            // The first length taken after Telegram checked the text against the account's limit.
+            val limit = (0 until textAt).lastOrNull { i ->
+                barGated[i].call()?.let { c ->
+                    c.origDefiningClass == "Lorg/telegram/ui/Components/ChatActivityEnterView;" && c.origReturnType == "Z" &&
+                        c.origParameterTypes.size == 4 && c.origParameterTypes[0] == "I" && c.origParameterTypes[1] == "J" &&
+                        c.origParameterTypes[3] == "Ljava/lang/CharSequence;"
+                } == true
+            } ?: -1
+            assertTrue("$name text: after the length limit's check", limit in 0 until textAt - 3)
+            assertTrue("$name text: the first length after it", (limit + 1 until textAt - 3).none { barGated[it].controlRef() == textLength })
+            assertTrue("$name: three places", (asks + textAt).distinct().size == 3)
+            val hooked = (asks + textAt).flatMap { it until it + 4 }.toSet()
             assertEquals("$name: the chat bar's send as it was", kept(barBefore.controlBody()),
                 kept(barGated.filterIndexed { i, _ -> i !in hooked }))
 
@@ -199,6 +243,22 @@ class SendConfirmFixtureTest {
             }
             assertEquals("$name: the header call is the only start of a call in its method", 1,
                 before.getValue("header").controlBody().count { it.controlRef() == site.startCall })
+
+            // Joining a voice chat: the extension's question with every parameter in front of
+            // Telegram's own join, which every Join button, link and banner goes through.
+            val joinStock = joinBefore.controlBody().filter { it.opcode != Opcode.NOP }
+            val joined = context.tgMutableClassDefBy(joinBefore.definingClass).methods.single { signature(it) == signature(joinBefore) }
+            val joinGated = joined.controlBody().filter { it.opcode != Opcode.NOP }
+            val joinTop = joined.implementation!!.registerCount
+            assertEquals("$name join: four instructions", joinStock.size + 4, joinGated.size)
+            assertEquals(listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID), joinGated.take(4).map { it.opcode })
+            assertEquals("$name join: the extension's join",
+                "$SEND_CONFIRM->join(Ljava/lang/Object;Ljava/lang/Object;ILjava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z",
+                joinGated[0].controlRef())
+            assertEquals("$name join: every parameter", (joinTop - 7 until joinTop).toList(), joinGated[0].namedRegisters())
+            assertEquals("$name join: the answer in a local", listOf(listOf(0), listOf(0)), joinGated.subList(1, 3).map { it.namedRegisters() })
+            assertEquals("$name join: Join goes on to Telegram's own", setOf(3, 4), ControlFlow.of(joined).normal[2].toSet())
+            for (i in joinStock.indices) assertEquals("$name join: stock $i", joinStock[i].shape(), joinGated[i + 4].shape())
 
             val stub = { n: String -> context.tgMutableClassDefBy(SEND_CONFIRM).methods.single { it.origName == n }.controlBody() }
             val again = { n: String, target: Method, words: Int ->
@@ -262,15 +322,15 @@ class SendConfirmFixtureTest {
                 assertEquals("$name $n", ref, call.controlRef())
                 assertEquals("$name $n: the controller and its view-once flag", registers, call.namedRegisters())
             }
-            val chat = context.tgMutableClassDefBy(site.video.definingClass)
-            assertTrue("$name: the chat implements the recorder", site.recorder in chat.origInterfaces)
+            val chatScreen = context.tgMutableClassDefBy(site.video.definingClass)
+            assertTrue("$name: the chat implements the recorder", site.recorder in chatScreen.origInterfaces)
             assertTrue("$name: a paused check and a pause", site.videoPaused.endsWith("()Z") && site.pauseVideo.endsWith("()V"))
             for ((n, ref, registers) in listOf(Triple("videoPaused", site.videoPaused, listOf(1)), Triple("pauseVideo", site.pauseVideo, listOf(0)))) {
                 val body = stub(n)
                 assertEquals("$name $n: the chat as the recorder", listOf(Opcode.CHECK_CAST, site.recorder), listOf(body[0].opcode, body[0].controlRef()))
                 assertEquals("$name $n", listOf(Opcode.INVOKE_INTERFACE, ref, registers), listOf(body[1].opcode, body[1].controlRef(), body[1].namedRegisters()))
                 val own = ref.substringAfter("->")
-                assertTrue("$name $n: the chat's own $own", chat.methods.any { signature(it).substringAfter("->") == own && it.implementation != null })
+                assertTrue("$name $n: the chat's own $own", chatScreen.methods.any { signature(it).substringAfter("->") == own && it.implementation != null })
             }
             val start = stub("startCall").single { it.opcode == Opcode.INVOKE_STATIC_RANGE }
             assertEquals(site.startCall, start.controlRef())
@@ -280,8 +340,24 @@ class SendConfirmFixtureTest {
             assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID), resume.map { it.opcode })
             assertEquals("$name: the strip's callback again", "$CALLBACK->run(Ljava/lang/Object;)V", resume[1].controlRef())
             assertEquals(listOf(0, 1), resume[1].namedRegisters())
-            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "askBeforeSending" }.controlBody()
-            assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            val rejoin = stub("resumeJoin")
+            val rejoinCall = rejoin.single { it.opcode == Opcode.INVOKE_STATIC_RANGE }
+            assertEquals("$name resumeJoin: Telegram's own join again", signature(joinBefore), (rejoinCall as ReferenceInstruction).reference.toString())
+            assertEquals("$name resumeJoin: its arguments, as the extension holds them", (0..6).toList(), rejoinCall.namedRegisters())
+            assertEquals("$name resumeJoin: each object cast to its type, the flag left as it is", listOf(0, 1, 3, 4, 5, 6),
+                rejoin.filter { it.opcode == Opcode.CHECK_CAST }.map { it.namedRegisters().single() })
+            assertEquals("$name ongoingCall", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN,
+                Opcode.CONST_4, Opcode.RETURN), stub("ongoingCall").map { it.opcode })
+            assertEquals("$name ongoingCall: the call going on now", "$voip->getSharedInstance()$voip", stub("ongoingCall").first().controlRef())
+            for ((n, field, opcode) in listOf(Triple("chatId", "$chat->id:J", Opcode.IGET_WIDE), Triple("channel", "$chat->broadcast:Z", Opcode.IGET_BOOLEAN))) {
+                val read = stub(n)
+                assertEquals("$name $n", listOf(Opcode.CHECK_CAST, opcode), read.take(2).map { it.opcode })
+                assertEquals("$name $n: the chat's own field", field, read[1].controlRef())
+            }
+            for (method in listOf("askBeforeSending", "askBeforeText", "askBeforeJoin")) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == method }.controlBody()
+                assertEquals("$name $method", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
         }
     }
 
@@ -294,6 +370,82 @@ class SendConfirmFixtureTest {
             ImmutableMethodImplementation(3, emptyList(), null, null),
         ),
     ).apply { addInstructionsWithLabels(0, body.trimIndent()) }
+
+    private val limitCheck = "Lorg/telegram/ui/Components/ChatActivityEnterView;->C(IJLorg/telegram/ui/ActionBar/BaseFragment;Ljava/lang/CharSequence;)Z"
+
+    /** A send that takes the text in p0, with four locals. */
+    private fun sender(body: String) = MutableMethod(
+        ImmutableMethod(
+            "Lcom/example/Bar;", "send", listOf(ImmutableMethodParameter("Ljava/lang/CharSequence;", null, null)), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(5, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, body.trimIndent()) }
+
+    private val checked = """
+        const/4 v0, 0x0
+        const-wide/16 v1, 0x0
+        const/4 v3, 0x0
+        invoke-static {v0, v1, v2, v3, p0}, $limitCheck
+        move-result v0
+        if-eqz v0, :go
+        return-void
+        :go
+    """.trimIndent()
+
+    @Test fun `the send of typed text starts only right after the test that the checked text is there`() {
+        assertEquals("right after the test", listOf(10), textStarts(sender("""
+            $checked
+            invoke-interface {p0}, $textLength
+            move-result v0
+            if-eqz v0, :none
+            invoke-static {p0}, Lcom/example/Log;->keep(Ljava/lang/Object;)V
+            :none
+            return-void
+        """)))
+        assertEquals("no check against the length limit first", emptyList<Int>(), textStarts(sender("""
+            invoke-interface {p0}, $textLength
+            move-result v0
+            if-eqz v0, :none
+            invoke-static {p0}, Lcom/example/Log;->keep(Ljava/lang/Object;)V
+            :none
+            return-void
+        """)))
+        assertEquals("a jump onto the send would skip the question", emptyList<Int>(), textStarts(sender("""
+            $checked
+            invoke-interface {p0}, $textLength
+            move-result v0
+            if-eqz v0, :none
+            :again
+            invoke-static {p0}, Lcom/example/Log;->keep(Ljava/lang/Object;)V
+            :none
+            const/4 v1, 0x0
+            if-eqz v1, :again
+            return-void
+        """)))
+        assertEquals("the test reads another register", emptyList<Int>(), textStarts(sender("""
+            $checked
+            invoke-interface {p0}, $textLength
+            move-result v0
+            if-eqz v1, :none
+            invoke-static {p0}, Lcom/example/Log;->keep(Ljava/lang/Object;)V
+            :none
+            return-void
+        """)))
+        assertEquals("the first length after the check isn't the empty test", emptyList<Int>(), textStarts(sender("""
+            $checked
+            invoke-interface {p0}, $textLength
+            move-result v0
+            const/4 v1, 0x0
+            if-le v0, v1, :none
+            invoke-interface {p0}, $textLength
+            move-result v0
+            if-eqz v0, :none
+            invoke-static {p0}, Lcom/example/Log;->keep(Ljava/lang/Object;)V
+            :none
+            return-void
+        """)))
+    }
 
     @Test fun `the send of a clip starts only where its null test alone leads`() {
         assertEquals("right after the test", listOf(3), previewStarts(bar("""

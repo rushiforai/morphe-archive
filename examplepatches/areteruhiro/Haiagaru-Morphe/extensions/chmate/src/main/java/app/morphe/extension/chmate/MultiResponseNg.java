@@ -53,7 +53,13 @@ public final class MultiResponseNg {
     }
     public static void menu(Object fragment,Menu menu){
         if(menu==null)return;
+        for(int i=0;i<menu.size();i++){
+            MenuItem search=menu.getItem(i);
+            if("検索".contentEquals(search.getTitle()==null?"":search.getTitle())
+                    &&!ThreadSearchOptions.menuEnabled(ThreadSearchOptions.MENU_SEARCH))search.setVisible(false);
+        }
         MenuItem item=menu.findItem(MENU);if(item==null)item=menu.add(0,MENU,0,"レス複数選択");
+        item.setVisible(ThreadSearchOptions.menuEnabled(ThreadSearchOptions.MENU_SELECTION));
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{open(fragment);return true;});
     }
     public static boolean click(Object fragment,int action){

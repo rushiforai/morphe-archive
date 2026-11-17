@@ -388,7 +388,7 @@ class HiddenChatsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val refs = menuContext(build).also { it.requireHiddenChatsRuntime() }.resolveHideMenu().refs!!
-            val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type }
+            val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
             assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             val stubs = context.tgMutableClassDefBy(HIDDEN_CHATS).methods.associateBy { it.name }
@@ -423,6 +423,10 @@ class HiddenChatsFixtureTest {
                 val calls = body.mapNotNull { it.ref() }
                 for (reference in want.second) assertTrue("$name: $stub reaches $reference", reference in calls)
             }
+            // Pin on this phone reads the selection straight off the chat list the menu hooks hand it.
+            val selectedOf = context.tgMutableClassDefBy(LOCAL_PINS).methods.single { it.name == "selectedOf" }.body()
+            assertEquals("$name: selectedOf", listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT), selectedOf.map { it.opcode })
+            assertEquals("$name: selectedOf", listOf(refs.selected.substringBefore("->"), refs.selected), selectedOf.take(2).map { it.ref() })
             // sortDialogs(null): the argument is a zero.
             val resort = stubs.getValue("resort").body()
             val call = resort.single { it.ref() == sort }
@@ -437,6 +441,7 @@ class HiddenChatsFixtureTest {
             assertEquals(1L, statusOf(context, "hiddenChats"))
             assertEquals(1L, statusOf(context, "hiddenUnread"))
             assertEquals(1L, statusOf(context, "sortByDate"))
+            assertEquals(1L, statusOf(context, "localPins"))
             assertEquals(1L, statusOf(context, "hiddenPasscode"))
             assertEquals(1L, statusOf(context, "adminChats"))
             assertEquals(1L, statusOf(context, "hiddenAccounts"))
@@ -469,7 +474,7 @@ class HiddenChatsFixtureTest {
             val refs = menuContext(build).also { it.requireHiddenChatsRuntime() }.resolveHideMenu().refs!!
             // 13.2 merged every action bar's click handler into one class most screens make, so the other slices
             // bring it along; it's left out by its more-menu ids.
-            val hosts = (folderCounterHosts(build) + menuHosts(build, clicks = false) + allChatsPlaceHosts(build) + accountListHosts(build))
+            val hosts = (folderCounterHosts(build) + menuHosts(build, clicks = false) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build))
                 .distinctBy { it.type }.filterNot { cls -> cls.methods.any { m ->
                     m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
                         m.body().mapNotNull { (it as? NarrowLiteralInstruction)?.narrowLiteral }.containsAll(listOf(0x6c, 0x6d, 0x6e, -1))
@@ -484,10 +489,39 @@ class HiddenChatsFixtureTest {
             val stubs = context.tgMutableClassDefBy(HIDDEN_CHATS).methods.associateBy { it.name }
             assertTrue("$name: addMenuItem stays a stub", stubs.getValue("addMenuItem").body().none { it.ref() == refs.addSubItem })
             assertTrue("$name: selectedChats stays a stub", stubs.getValue("selectedChats").body().none { it.ref() == refs.selected })
+            // Pin on this phone rides on the item, so it's left out with it and adds no warning of its own.
+            assertEquals(0L, statusOf(context, "localPins"))
+            assertTrue("$name: selectedOf stays a stub", context.tgMutableClassDefBy(LOCAL_PINS).methods.single { it.name == "selectedOf" }
+                .body().none { it.ref() == refs.selected })
             for (hook in listOf(MENU_ITEM, MENU_SHOWN, MENU_CHOICE)) {
                 val calls = hosts.filter { !it.origType.startsWith("Lapp/hushtelegram/") }
                     .sumOf { cls -> context.tgMutableClassDefBy(cls.type).methods.sumOf { m -> m.body().count { it.ref() == hook } } }
                 assertEquals("$name: $hook", 0, calls)
+            }
+        }
+    }
+
+    @Test fun `a selection stub that changed leaves only Pin on this phone out`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val extension = ExtensionDex.classes().map { cls ->
+                if (cls.type != LOCAL_PINS) cls
+                else ImmutableClassDef(cls.type, cls.accessFlags, cls.superclass, cls.interfaces, cls.sourceFile,
+                    cls.annotations, cls.fields, cls.methods.filter { it.name != "selectedOf" })
+            }
+            val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type }
+            val context = PatchContexts.of((extension + hosts).distinctBy { it.type })
+            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            assertEquals("$name: $warnings", 1, warnings.size)
+            assertTrue("$name: ${warnings.single()}", "selectedOf runtime hook" in warnings.single() && "without Pin on this phone" in warnings.single())
+            assertEquals(0L, statusOf(context, "localPins"))
+            // Everything it rides on goes in as before.
+            assertEquals(1L, statusOf(context, "hiddenChats"))
+            assertEquals(1L, statusOf(context, "sortByDate"))
+            for (hook in listOf(MENU_ITEM, MENU_SHOWN, MENU_CHOICE)) {
+                val calls = hosts.filter { !it.origType.startsWith("Lapp/hushtelegram/") }
+                    .sumOf { cls -> context.tgMutableClassDefBy(cls.type).methods.sumOf { m -> m.body().count { it.ref() == hook } } }
+                assertEquals("$name: $hook", 1, calls)
             }
         }
     }
@@ -556,7 +590,7 @@ class HiddenChatsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build)).distinctBy { it.type }
-            val context = PatchContexts.of((ExtensionDex.classes() + hosts + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type })
             val storage = context.tgMutableClassDefBy(STORAGE)
             // A reworded query: which rows the walk reads is no longer clear.
             val calc = storage.methods.single { it.origName == "calcUnreadCounters" }

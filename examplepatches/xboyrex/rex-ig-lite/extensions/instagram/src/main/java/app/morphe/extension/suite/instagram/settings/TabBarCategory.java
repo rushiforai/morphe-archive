@@ -142,7 +142,7 @@ final class TabBarCategory {
                 SliderRow tintRow = glassOpacityRow(context);
                 preview.follow(tintRow, GlassPreview.TINT);
                 glass.addPreference(tintRow);
-                glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_LIQUID, L10n.t("Liquid glass look"),
+                glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_LIQUID, L10n.t("AMOLED blur look"),
                         slowsOlderPhones(L10n.t("Rounds the pill and its highlight and puts Search in a glass circle of its own. Scrolling "
                                 + "a list down shrinks the bar to the tab you're on and Search, unless Hide the tab bar as "
                                 + "you scroll is on. Restart Instagram after changing it."))));
@@ -156,7 +156,7 @@ final class TabBarCategory {
                         L10n.t("Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart "
                                 + "Instagram after changing it.")));
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_SHRINK_ON_SCROLL, L10n.t("Shrink the pill as you scroll"),
-                        L10n.t("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up "
+                        L10n.t("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up "
                                 + "or changing tab brings it back to full size. Hide the tab bar as you scroll takes over "
                                 + "when it's on. Restart Instagram after changing it.")));
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_HAPTICS, L10n.t("Haptics on the tab bar"),

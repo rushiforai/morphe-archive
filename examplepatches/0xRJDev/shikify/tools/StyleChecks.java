@@ -60,6 +60,9 @@ public final class StyleChecks {
         Configuration config=new Configuration(base.getResources().getConfiguration());
         config.uiMode=(config.uiMode & ~Configuration.UI_MODE_NIGHT_MASK)|(dark ? Configuration.UI_MODE_NIGHT_YES:Configuration.UI_MODE_NIGHT_NO);
         Resources res=new Resources(assets,base.getResources().getDisplayMetrics(),config);
+        Field resourceLoader=Resources.class.getDeclaredField("mClassLoader");
+        resourceLoader.setAccessible(true);
+        resourceLoader.set(res,loader);
         ContextWrapper wrapper=new ContextWrapper(base) {
             @Override public Resources getResources(){return res;}
             @Override public AssetManager getAssets(){return assets;}

@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-16.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -69,6 +69,7 @@ import app.morphe.patches.music.utils.settings.addPreferenceWithIntent
 import app.morphe.patches.music.utils.settings.addSwitchPreference
 import app.morphe.patches.music.utils.settings.addTextPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.REGISTER_TEMPLATE_REPLACEMENT
 import app.morphe.util.findMutableClassOrThrow
 import app.morphe.util.findMutableMethodOf
@@ -79,6 +80,7 @@ import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.replaceLiteralInstructionCall
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -89,6 +91,21 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val FLAG = "android:layout_weight"
 private const val RESOURCE_FILE_PATH = "res/layout/image_with_text_tab.xml"
+
+internal fun supportsNavigationThemeIconMaps(versionName: String, fields: Iterable<Field>): Boolean {
+    if (versionName >= "7.17.00") return true
+
+    var matchingMaps = 0
+    for (field in fields) {
+        if (field.type != "Ljava/util/EnumMap;") continue
+
+        when (field.name) {
+            "b", "c", "e", "f" -> matchingMaps++
+        }
+    }
+
+    return matchingMaps == 4
+}
 
 private val navigationBarComponentsResourcePatch = resourcePatch(
     description = "navigationBarComponentsResourcePatch"
@@ -131,12 +148,18 @@ val navigationBarComponentsPatch = bytecodePatch(
             ?: findMutableClassOrThrow(ThemeMapHelperFingerprint.method.definingClass).methods.first {
                 it.name == "<init>"
             }
-        findMutableClassOrThrow(themeMethod.definingClass).findMutableMethodOf(themeMethod).apply {
-            val returnIndex = indexOfFirstInstructionOrThrow(Opcode.RETURN_VOID)
-            addInstruction(
-                returnIndex,
-                "invoke-static/range {p0 .. p0}, $NAVIGATION_CLASS_DESCRIPTOR->onThemeClassInit(Ljava/lang/Object;)V"
-            )
+        val themeClass = findMutableClassOrThrow(themeMethod.definingClass)
+        if (supportsNavigationThemeIconMaps(packageMetadata.versionName, themeClass.fields)) {
+            themeClass.findMutableMethodOf(themeMethod).apply {
+                val returnIndex = indexOfFirstInstructionOrThrow(Opcode.RETURN_VOID)
+                addInstruction(
+                    returnIndex,
+                    "invoke-static/range {p0 .. p0}, " +
+                            "$NAVIGATION_CLASS_DESCRIPTOR->onThemeClassInit(Ljava/lang/Object;)V"
+                )
+            }
+        } else {
+            printWarn("Skipping navigation icon remapping: this legacy Music theme lacks the b/c/e/f icon maps.")
         }
 
         /**

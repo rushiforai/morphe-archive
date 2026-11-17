@@ -76,7 +76,7 @@ public final class PredictiveBackTweaks {
                 try { name = activity.getClass().getMethod("onBackPressed").getDeclaringClass().getName(); }
                 catch (ReflectiveOperationException error) { name = "unknown"; }
                 handler = name;
-                usesDrawer = name.equals("uj0") || name.equals(UI+"submissions.subreddit.SubredditBaseActivity") ||
+                usesDrawer = name.equals("xj0") || name.equals(UI+"submissions.subreddit.SubredditBaseActivity") ||
                     name.equals(UI+"submissions.subreddit.MainActivity");
                 preferences = name.equals(UI+"submissions.subreddit.MainActivity")
                     ? PreferenceManager.getDefaultSharedPreferences(activity) : null;
@@ -118,7 +118,7 @@ public final class PredictiveBackTweaks {
                 if (focusedMediaControls(activity) != null) return true;
                 if (usesDrawer) {
                     if (drawerOpen(CommentsChromeTweaks.field(activity, "c")) ||
-                            drawerOpen(CommentsChromeTweaks.field(activity, "i0"))) return true;
+                            drawerOpen(CommentsChromeTweaks.field(activity, "k0"))) return true;
                     return preferences != null && activity.isTaskRoot() &&
                         (preferences.getBoolean("pref_ask_exit", true) ||
                          preferences.getBoolean("pref_double_exit", true));
@@ -134,13 +134,13 @@ public final class PredictiveBackTweaks {
                     return web instanceof WebView && ((WebView) web).canGoBack();
                 }
                 if (handler.equals(UI+"search.MultiPickSubredditActivity")) {
-                    Object adapter = CommentsChromeTweaks.field(activity, "I");
+                    Object adapter = CommentsChromeTweaks.field(activity, "H");
                     Object selection = CommentsChromeTweaks.field(adapter, "b");
                     return !(selection instanceof Collection) || !((Collection<?>) selection).isEmpty();
                 }
                 // These original handlers contain only default navigation and exit animations.
-                if (handler.equals("gh") || handler.equals("ai0") || handler.equals("gq1") ||
-                    handler.equals("ny") || handler.equals("android.app.Activity") ||
+                if (handler.equals("hh") || handler.equals("di0") || handler.equals("lq1") ||
+                    handler.equals("qy") || handler.equals("android.app.Activity") ||
                     handler.equals(UI+"activities.BillingActivity") ||
                     handler.equals(UI+"activities.BillingProActivity") ||
                     handler.equals(UI+"activities.PremiumActivity")) return false;
@@ -158,7 +158,7 @@ public final class PredictiveBackTweaks {
                 if (!(value instanceof View) || !value.getClass().getSimpleName().equals("UniversalMediaController"))
                     return null;
                 View controls = (View) value;
-                return controls.hasFocus() && Boolean.TRUE.equals(CommentsChromeTweaks.field(controls, "z"))
+                return controls.hasFocus() && Boolean.TRUE.equals(CommentsChromeTweaks.field(controls, "y"))
                     ? controls : null;
             }
             static boolean drawerOpen(Object controller) throws ReflectiveOperationException {
@@ -168,7 +168,7 @@ public final class PredictiveBackTweaks {
                 Object panel = CommentsChromeTweaks.field(builder, "l");
                 Object gravity = CommentsChromeTweaks.field(builder, "q");
                 if (!(drawer instanceof View) || panel == null || !(gravity instanceof Integer)) return false;
-                // Exact read-only operations from Boost's uj0.g1, excluding its close() side effect.
+                // Exact read-only operations from Boost's xj0.g1, excluding its close() side effect.
                 if (findDrawer == null) {
                     findDrawer = drawer.getClass().getMethod("f", int.class);
                     drawerVisible = drawer.getClass().getMethod("m", View.class);

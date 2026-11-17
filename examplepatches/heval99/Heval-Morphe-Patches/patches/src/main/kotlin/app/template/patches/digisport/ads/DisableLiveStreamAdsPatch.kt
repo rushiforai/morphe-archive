@@ -1,7 +1,7 @@
 package app.template.patches.digisport.ads
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_DIGISPORT
 
 // Live channels with an enabled IMA DAI balancer play as an ssai:// IMA DAI item, with the ads

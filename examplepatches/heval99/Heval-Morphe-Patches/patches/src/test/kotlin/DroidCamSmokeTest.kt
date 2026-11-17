@@ -1,3 +1,4 @@
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -28,7 +29,7 @@ class DroidCamSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "8.2",
+            version = "10.0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -55,8 +56,39 @@ class DroidCamSmokeTest {
         assertAllReturnEarly(classes, "Lcom/applovin/mediation/ads/MaxAdView;", "loadAd", "startAutoRefresh")
         assertAllReturnEarly(classes, "Lcom/applovin/mediation/ads/MaxInterstitialAd;", "loadAd", "showAd")
         assertAllReturnEarly(classes, "Lcom/applovin/mediation/ads/MaxRewardedAd;", "loadAd", "showAd")
-        assertAllReturnEarly(classes, "Lcom/google/android/gms/ads/interstitial/InterstitialAd;", "load")
-        assertMobileAdsStaticsNeutralised(classes.type("Lcom/google/android/gms/ads/MobileAds;"))
+        // 10.0 renamed the GMA public methods to unicode, so the GMA loads (any concrete void taking an
+        // AdRequest) and the MobileAds statics are found by shape.
+        val gma = "Lcom/google/android/gms/ads/"
+        val adRequest = gma + "AdRequest;"
+        val managerRequest = gma + "admanager/AdManagerAdRequest;"
+        val shapes = listOf(
+            // class, request type, must be static
+            Triple(gma + "BaseAdView;", adRequest, false),
+            Triple(gma + "admanager/AdManagerAdView;", managerRequest, false),
+            Triple(gma + "AdLoader;", adRequest, false),
+            Triple(gma + "interstitial/InterstitialAd;", adRequest, true),
+            Triple(gma + "rewarded/RewardedAd;", adRequest, true),
+            Triple(gma + "rewardedinterstitial/RewardedInterstitialAd;", adRequest, true),
+            Triple(gma + "appopen/AppOpenAd;", adRequest, true),
+        )
+        for ((owner, request, static) in shapes) {
+            val loads = classes.type(owner).methods.filter { m ->
+                !m.name.startsWith("<") && m.returnType == "V" && m.implementation != null &&
+                    AccessFlags.STATIC.isSet(m.accessFlags) == static &&
+                    m.parameterTypes.any { it.toString() == request }
+            }
+            assertTrue(loads.isNotEmpty(), "$owner has no ${if (static) "static " else ""}load taking $request")
+            loads.forEach { assertReturnsEarlyVoid(it, "$owner->${it.name}", diagnostics) }
+        }
+        val mobileAds = classes.type(gma + "MobileAds;")
+        val init = mobileAds.methods.filter { m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
+                m.parameterTypes.map { it.toString() } ==
+                listOf("Landroid/content/Context;", gma + "initialization/OnInitializationCompleteListener;")
+        }
+        assertTrue(init.isNotEmpty(), "MobileAds has no initialize(Context, listener)")
+        init.forEach { assertReturnsEarlyVoid(it, "MobileAds.initialize", diagnostics) }
+        assertMobileAdsStaticsNeutralised(mobileAds, required = emptyList())
         assertMaxAdViewHidden(classes)
     }
 }

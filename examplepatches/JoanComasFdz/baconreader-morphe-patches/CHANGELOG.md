@@ -1,3 +1,14 @@
+## [1.10.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.9.0...v1.10.0) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** skip loading an image whose screen closed, instead of showing "load failed" ([8aad952](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8aad952d28d7c76286890cc686cb00fa9a487ace)), closes [JoanComasFdz/baconreader-morphe-patches#145](https://github.com/JoanComasFdz/baconreader-morphe-patches/issues/145)
+
+### ✨ New Features
+
+* **baconreader:** add Export and import settings, which saves BaconReader's and the patches' settings to a YAML file and restores them ([0554434](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/055443412e85ea4cc8fee179b681ee0f97f8cd03))
+* **baconreader:** leave BaconReader's analytics key and cache flag out of the exported settings ([c6f2ee9](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c6f2ee97d41fb584f0f0bf008b8a17029a94f686))
+
 ## [1.9.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.2...v1.9.0) (2026-11-12)
 
 ### 🐛 Bug Fixes

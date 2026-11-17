@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.util.findFreeRegister
+import app.morphe.patcher.util.findFreeRegister
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS

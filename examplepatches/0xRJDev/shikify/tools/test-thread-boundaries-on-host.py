@@ -26,8 +26,8 @@ group.write_text('package android.view; public class ViewGroup extends View { '
                  'public ViewGroup(){} public ViewGroup(android.content.Context context){} '
                  'public int getChildCount(){return 0;} public View getChildAt(int index){return null;} }\n')
 models.write_text('package com.rubenmayayo.reddit.models.reddit;\n'
-                  'public class CommentViewModel { public int R; public boolean S=true; '
-                  'public CommentViewModel(int level){R=level;} }\n')
+                  'public class CommentViewModel { public int Q; public boolean R=true; '
+                  'public CommentViewModel(int level){Q=level;} }\n')
 toolbar.write_text('package androidx.appcompat.widget;\n'
                    'public abstract class Toolbar extends android.view.ViewGroup { '
                    'public Toolbar(android.content.Context context){super(context);} }\n')

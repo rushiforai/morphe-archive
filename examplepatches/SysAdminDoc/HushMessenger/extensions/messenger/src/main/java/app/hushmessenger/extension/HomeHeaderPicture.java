@@ -46,11 +46,17 @@ final class HomeHeaderPicture {
      * file, one that stops halfway and a pick that was given up on all leave [target] as it was.
      */
     static void copy(InputStream input, File target, java.util.function.BooleanSupplier wanted) throws Refused {
+        copy(input, target, wanted, MAX_WIDTH, MAX_HEIGHT, HomeHeader::forget);
+    }
+
+    /** As {@link #copy(InputStream, File, java.util.function.BooleanSupplier)}, for a picture of another size and owner. */
+    static void copy(InputStream input, File target, java.util.function.BooleanSupplier wanted,
+            int maxWidth, int maxHeight, Runnable forget) throws Refused {
         if (input == null) throw new Refused(Refusal.UNREADABLE, "No stream to read");
-        File partial = new File(target.getParentFile(), PARTIAL);
+        File partial = partial(target);
         boolean kept = false;
         try {
-            Bitmap picture = shrink(readAll(input));
+            Bitmap picture = shrink(readAll(input), maxWidth, maxHeight);
             try {
                 write(picture, partial);
             } finally {
@@ -64,7 +70,7 @@ final class HomeHeaderPicture {
                 throw new Refused(Refusal.NOT_SAVED, failure.getClass().getSimpleName());
             }
             kept = true;
-            HomeHeader.forget();
+            forget.run();
         } finally {
             try {
                 input.close();
@@ -85,13 +91,22 @@ final class HomeHeaderPicture {
         }
     }
 
+    /** Where a picture is written before it takes [target]'s place in one rename. */
+    static File partial(File target) {
+        return new File(target.getParentFile(), target.getName() + ".part");
+    }
+
     /** Writes [bytes] back as the saved copy, whole or not at all, the way a pick does. */
     static boolean restore(byte[] bytes, File target) {
-        File partial = new File(target.getParentFile(), PARTIAL);
+        return restore(bytes, target, HomeHeader::forget);
+    }
+
+    static boolean restore(byte[] bytes, File target, Runnable forget) {
+        File partial = partial(target);
         try {
             Files.write(partial.toPath(), bytes);
             Files.move(partial.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            HomeHeader.forget();
+            forget.run();
             return true;
         } catch (IOException | RuntimeException failure) {
             android.util.Log.w("HushMessenger", "Can't put the header picture back: " + failure.getClass().getSimpleName());
@@ -102,26 +117,38 @@ final class HomeHeaderPicture {
 
     /** Takes the picture away, so the words or Messenger's wordmark show again. False when the copy wouldn't go. */
     static boolean remove(File target) {
+        return remove(target, HomeHeader::forget);
+    }
+
+    static boolean remove(File target, Runnable forget) {
         boolean gone = !target.exists() || target.delete();
-        HomeHeader.forget();
+        forget.run();
         return gone;
     }
 
     /** The largest size that fits {@link #MAX_WIDTH} by {@link #MAX_HEIGHT} with the picture's shape, never larger than it came. */
     static int[] fit(int width, int height) {
-        float scale = Math.min(1f, Math.min(MAX_WIDTH / (float) width, MAX_HEIGHT / (float) height));
+        return fit(width, height, MAX_WIDTH, MAX_HEIGHT);
+    }
+
+    static int[] fit(int width, int height, int maxWidth, int maxHeight) {
+        float scale = Math.min(1f, Math.min(maxWidth / (float) width, maxHeight / (float) height));
         return new int[] {Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))};
     }
 
     /** [bytes] decoded at the size {@link #fit} gives, turned the way the camera wrote it. An animated picture gives its first frame. */
     static Bitmap shrink(byte[] bytes) throws Refused {
+        return shrink(bytes, MAX_WIDTH, MAX_HEIGHT);
+    }
+
+    static Bitmap shrink(byte[] bytes, int maxWidth, int maxHeight) throws Refused {
         Bitmap picture;
         try {
             picture = ImageDecoder.decodeBitmap(ImageDecoder.createSource(ByteBuffer.wrap(bytes)), (decoder, info, source) -> {
                 // A software bitmap, so it can be written out as a PNG.
                 decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
                 Size size = info.getSize();
-                int[] kept = fit(size.getWidth(), size.getHeight());
+                int[] kept = fit(size.getWidth(), size.getHeight(), maxWidth, maxHeight);
                 if (kept[0] != size.getWidth() || kept[1] != size.getHeight()) decoder.setTargetSize(kept[0], kept[1]);
             });
         } catch (IOException | RuntimeException error) {

@@ -1,0 +1,4 @@
+LK7/s;->d()V
+Lcom/dynanic/ultimea/MainActivity;->onCreate(Landroid/os/Bundle;)V
+Lh6/J0;->g(Lh6/J0;Lorg/json/JSONObject;)LB5/a;
+Lio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JI)V

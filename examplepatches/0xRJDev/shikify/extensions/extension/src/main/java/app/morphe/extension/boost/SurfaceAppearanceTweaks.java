@@ -116,6 +116,24 @@ public final class SurfaceAppearanceTweaks {
         // Opaque native media windows use the platform transition; no content animator.
         return null;
     }
+    private static java.lang.reflect.Method navigationMenu;
+    /** Shows or hides the bottom bar's Subscriptions button. Boost finds its buttons by id, so a hidden one is simply skipped. */
+    static void subscriptionsButton(View nav){
+        boolean show=SurfaceSettingsActivity.enabled(nav.getContext(),"nav_subscriptions",true);
+        Object applied=nav.getTag(SUBSCRIPTIONS_TAG);
+        if(applied!=null && (Boolean)applied==show)return;
+        try{
+            if(navigationMenu==null)navigationMenu=Class.forName("com.google.android.material.navigation.NavigationBarView",false,nav.getContext().getClassLoader()).getMethod("getMenu");
+            if(!navigationMenu.getDeclaringClass().isInstance(nav))return;
+            android.view.Menu menu=(android.view.Menu)navigationMenu.invoke(nav);
+            int id=nav.getResources().getIdentifier("item_subs","id",nav.getContext().getPackageName());
+            android.view.MenuItem item=id==0 ? null:menu.findItem(id);
+            if(item==null)return;
+            item.setVisible(show);nav.setTag(SUBSCRIPTIONS_TAG,show);
+        }catch(ReflectiveOperationException | RuntimeException error){
+        }
+    }
+    private static final int SUBSCRIPTIONS_TAG=0x7f5f0005;
     static View find(View root,String name){int id=Ids.view(root,name);return id==0 ? null:root.findViewById(id);}
     static View view(Object object,String field){Object result=CommentsChromeTweaks.field(object,field);return result instanceof View ? (View)result:null;}
     static int number(SharedPreferences prefs,String key,int fallback,int min,int max){
@@ -158,6 +176,7 @@ public final class SurfaceAppearanceTweaks {
         final WeakReference<View> decor;
         final SharedPreferences preferences;
         final boolean media;
+        final View.OnApplyWindowInsetsListener navigationInsetsListener=this::navigationInsets;
         final ArrayList<Layer> layers=new ArrayList<>();
         WeakReference<ViewTreeObserver> observer;
         WeakReference<View> appBar,bottom,protection,toolbar;
@@ -188,6 +207,8 @@ public final class SurfaceAppearanceTweaks {
         int appliedOpacity=-1;
         boolean active,prepared,disposed,tinted;
         int tintAttempts;
+        /** Set when the bottom bar's padding changes, so drawing waits for its new layout. */
+        boolean navigationLayoutChanged;
         Screen(Activity activity,boolean media){
             owner=new WeakReference<>(activity);
             decor=new WeakReference<>(activity.getWindow().getDecorView());
@@ -260,7 +281,7 @@ public final class SurfaceAppearanceTweaks {
             }else{add(bar);add(view(activity,"collapsingToolbarLayout"));}
             View header=find(root,"header_content");
             if(!media && header!=null && activity.getClass().getName().equals("com.rubenmayayo.reddit.ui.submissions.subreddit.SubredditActivity"))try{
-                compactFlag=activity.getClass().getDeclaredField("F0");compactFlag.setAccessible(true);headerContent=new WeakReference<>(header);
+                compactFlag=activity.getClass().getDeclaredField("J0");compactFlag.setAccessible(true);headerContent=new WeakReference<>(header);
             }catch(ReflectiveOperationException ignored){}
             if(extraChrome(activity.getClass().getName()))unifiedChrome=new UnifiedChromeTweaks.Screen(activity,root);
             add(tools);add(nav);prepared=true;
@@ -369,7 +390,7 @@ public final class SurfaceAppearanceTweaks {
         void unwatchCollapse(){
             View bar=appBar==null ? null:appBar.get();
             if(bar!=null && collapseListener!=null){
-                Object listeners=CommentsChromeTweaks.field(bar,"C");
+                Object listeners=CommentsChromeTweaks.field(bar,"B");
                 if(listeners instanceof java.util.List)((java.util.List<?>)listeners).remove(collapseListener);
             }
             collapseListener=null;
@@ -445,10 +466,18 @@ public final class SurfaceAppearanceTweaks {
             if(view instanceof android.widget.ImageButton){((android.widget.ImageButton)view).setImageTintList(tint);Haptics.tap(view);}
             else if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int index=0;index<group.getChildCount();index++)tintButtons(group.getChildAt(index),tint);}
         }
+        private WindowInsets navigationInsets(View nav,WindowInsets insets){
+            updateBounds(insets);
+            return insets;
+        }
         void updateBounds(){
+            updateBounds(null);
+        }
+        void updateBounds(WindowInsets insets){
             View root=decor.get();
             if(root==null || status==null)return;
-            WindowInsets insets=root.getRootWindowInsets();
+            WindowInsets rootInsets=root.getRootWindowInsets();
+            if(rootInsets!=null)insets=rootInsets;
             int top=0,bottom=0;
             if(insets!=null){
                 if(Build.VERSION.SDK_INT>=30){
@@ -475,6 +504,8 @@ public final class SurfaceAppearanceTweaks {
                     }
                 }
                 if(nav!=null){
+                    subscriptionsButton(nav);
+                    nav.setOnApplyWindowInsetsListener(navigationInsetsListener);
                     float density=root.getResources().getDisplayMetrics().density;int horizontal=Math.round(16*density),gap=Math.round(12*density);
                     if(feedPill==null)feedPill=pillBackground(root.getContext(),MaterialYouTweaks.color(root.getContext(),"colorSurfaceContainerHigh",android.R.attr.colorBackground),40);
                     if(Build.VERSION.SDK_INT>=31 && active && feedBlurEnabled){
@@ -494,7 +525,11 @@ public final class SurfaceAppearanceTweaks {
                         if(nav.getBackground()!=feedPill)nav.setBackground(feedPill);
                     }
                     nav.setClipToOutline(true);
-                    if(nav.getPaddingBottom()!=0)nav.setPaddingRelative(nav.getPaddingStart(),nav.getPaddingTop(),nav.getPaddingEnd(),0);pressNavigation(nav);
+                    if(nav.getPaddingBottom()!=0){
+                        nav.setPaddingRelative(nav.getPaddingStart(),nav.getPaddingTop(),nav.getPaddingEnd(),0);
+                        navigationLayoutChanged=true;
+                    }
+                    pressNavigation(nav);
                     if(nav.getLayoutParams() instanceof ViewGroup.MarginLayoutParams){
                         ViewGroup.MarginLayoutParams params=(ViewGroup.MarginLayoutParams)nav.getLayoutParams();
                         int safeLeft=0,safeRight=0;
@@ -503,6 +538,10 @@ public final class SurfaceAppearanceTweaks {
                             safeRight=insets.getSystemWindowInsetRight();
                         }
                         int left=horizontal+safeLeft,right=horizontal+safeRight,below=gap+bottom;
+                        // Without the Subscriptions button, the pill keeps each button's width and stays centred.
+                        if(!SurfaceSettingsActivity.enabled(nav.getContext(),"nav_subscriptions",true) && root.getWidth()>0){
+                            int extra=(root.getWidth()-left-right)/10;left+=extra;right+=extra;
+                        }
                         if(params.leftMargin!=left || params.rightMargin!=right || params.bottomMargin!=below){
                             params.leftMargin=left;
                             params.rightMargin=right;
@@ -510,6 +549,7 @@ public final class SurfaceAppearanceTweaks {
                             params.setMarginEnd(right);
                             params.bottomMargin=below;
                             nav.setLayoutParams(params);
+                            navigationLayoutChanged=true;
                         }
                     }
                 }
@@ -530,7 +570,7 @@ public final class SurfaceAppearanceTweaks {
             }
             if(!media && corner==null){
                 View menu=find(root,"menu");
-                Object button=CommentsChromeTweaks.field(menu,"z");
+                Object button=CommentsChromeTweaks.field(menu,"y");
                 if(menu!=null && menu.getClass().getName().equals("com.rubenmayayo.reddit.ui.customviews.fab.FloatingActionMenu") && button instanceof View)corner=new UnifiedChromeTweaks.Corner(root,menu,(View)button,feedBlurEnabled);
             }
             if(active && corner!=null)corner.start();
@@ -562,9 +602,12 @@ public final class SurfaceAppearanceTweaks {
             }
             if(active && headerGradient!=null && headerGradient.enabled)headerGradient.position(statusHeight);
             if(active && mediaTop!=null)mediaTop.update();
-            if(active && unifiedChrome!=null)unifiedChrome.frame();if(active && drawer!=null){drawer.update();if(headerGradient!=null)headerGradient.statusAlpha(1-drawer.open());}
+            if(active && unifiedChrome!=null)unifiedChrome.frame();if(active && drawer!=null){drawer.update();if(headerGradient!=null)headerGradient.statusEdge(drawer.edge(),drawer.open());}
             if(active && !tinted && compactFlag!=null && headerGradient!=null)tintHeader();
-            return true;
+            View nav=media || bottom==null ? null:bottom.get();
+            boolean ready=!navigationLayoutChanged || nav==null || !nav.isShown() || !nav.isLayoutRequested();
+            navigationLayoutChanged=false;
+            return ready;
         }
     }
     static final class Layer {final WeakReference<View> view;Layer(View view){this.view=new WeakReference<>(view);}}

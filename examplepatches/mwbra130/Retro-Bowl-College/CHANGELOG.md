@@ -1,3 +1,177 @@
+## [1.79.22](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.21...v1.79.22) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* correct OLX dex descriptors (root-level classes, no defpackage prefix) so fingerprints match ([3de3e9f](https://github.com/mwbra130/Retro-Bowl-College/commit/3de3e9f697c3c7da4498eda5fa5569b3f793ffec))
+* correct OLX dex descriptors (root-level classes, no defpackage prefix) so fingerprints match ([b549923](https://github.com/mwbra130/Retro-Bowl-College/commit/b549923ae26410ebec9e02772373d9a1b14fcb0e))
+* correct OLX dex descriptors (root-level classes, no defpackage prefix) so fingerprints match ([dee1379](https://github.com/mwbra130/Retro-Bowl-College/commit/dee1379ad112137dc6e8ed09ac2d3cc263356701))
+* fix OLX fingerprints (drop strings criterion) and Plain listings smali (if-nez null checks, external keep label) ([95c8a44](https://github.com/mwbra130/Retro-Bowl-College/commit/95c8a448c5963d2943ffc100b97158fb978e7662))
+* fix OLX fingerprints (drop strings criterion) and Plain listings smali (if-nez null checks, external keep label) ([9741382](https://github.com/mwbra130/Retro-Bowl-College/commit/9741382ce6b2db46042b8dc744d7ff8f0bb136e0))
+* **moises:** add Enable Pro, Bypass PairIP signature check and Remove telemetry patches for Moises 2.141.0 ([4fc8eea](https://github.com/mwbra130/Retro-Bowl-College/commit/4fc8eea46037820b83f8827ab4b7d29bb20b01b2))
+
+## [1.79.21](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.20...v1.79.21) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* add OLX Pakistan patch set (plain listings only, remove ads, remove telemetry) ([30c81c2](https://github.com/mwbra130/Retro-Bowl-College/commit/30c81c23ba0e64137712a9b4c8cd5dc2b9055325))
+* add OLX Pakistan patch set (plain listings only, remove ads, remove telemetry) ([ce7a26f](https://github.com/mwbra130/Retro-Bowl-College/commit/ce7a26fefcc6f0bffa78659b399f7e9f9d2a3693))
+* add OLX Pakistan patch set (plain listings only, remove ads, remove telemetry) ([a9f0f2a](https://github.com/mwbra130/Retro-Bowl-College/commit/a9f0f2a2d6e998ef8399422c03999b0dd14fc3ab))
+* add OLX Pakistan patch set (plain listings only, remove ads, remove telemetry) ([a34759c](https://github.com/mwbra130/Retro-Bowl-College/commit/a34759c41406a713083e106a19c63e83a5416a0d))
+* add OLX Pakistan patch set (plain listings only, remove ads, remove telemetry) ([535d577](https://github.com/mwbra130/Retro-Bowl-College/commit/535d5772e8c06a08fd6e4e57fe10cf38494e27ef))
+
+## [1.79.20](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.19...v1.79.20) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **luminar:** make the Enable Lifetime store helper public static ([2c17bf2](https://github.com/mwbra130/Retro-Bowl-College/commit/2c17bf24bd92a41ce9524242f34d887115f25af5))
+
+## [1.79.19](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.18...v1.79.19) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **forscanlite:** move FORScan Lite to Testing (native signer wall at init) ([527fe5f](https://github.com/mwbra130/Retro-Bowl-College/commit/527fe5f24845be80c270d26a0680eb8dc4b6649d))
+
+## [1.79.18](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.17...v1.79.18) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **luminar:** force Lifetime at the store write points in Enable Lifetime ([88a22fc](https://github.com/mwbra130/Retro-Bowl-College/commit/88a22fca35f139ec4c5c105f248181d27a17e94c))
+
+## [1.79.17](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.16...v1.79.17) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **forscanlite:** add FORScan Lite license + telemetry patches (1.5.31) ([24ce33a](https://github.com/mwbra130/Retro-Bowl-College/commit/24ce33aaae3620af13d70b913da176e8af97efc3))
+* **forscanlite:** add FORScan Lite license + telemetry patches (1.5.31) ([deebeb1](https://github.com/mwbra130/Retro-Bowl-College/commit/deebeb13a8d4f49b912c1692ea3c8b93f20f111a))
+* **forscanlite:** add FORScan Lite license + telemetry patches (1.5.31) ([0b3d0b9](https://github.com/mwbra130/Retro-Bowl-College/commit/0b3d0b95a620729152c7cd2e90e703be7edaf4c4))
+* **forscanlite:** add FORScan Lite license + telemetry patches (1.5.31) ([df8b8f3](https://github.com/mwbra130/Retro-Bowl-College/commit/df8b8f32573ad8d7384965125c31ff6791a24f26))
+* **forscanlite:** appIconColor literal must be Int, not Long ([6e9eb20](https://github.com/mwbra130/Retro-Bowl-College/commit/6e9eb208739025f45ed7afcbedd9a0f5a3f7ae33))
+* **forscanlite:** appIconColor must be 0xRRGGBB (no alpha byte) ([8510fd0](https://github.com/mwbra130/Retro-Bowl-College/commit/8510fd02889a3f67c5d0f037cf6523c037b3107f))
+
+## [1.79.16](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.15...v1.79.16) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **callrecorder:** move Call Recorder to Testing (very unstable, experimental) ([8ac3d3f](https://github.com/mwbra130/Retro-Bowl-College/commit/8ac3d3f26af931a4f0f60bd246365dc2faddb3d4))
+* **luminar:** add Enable Lifetime, Bypass PairIP license check and Remove telemetry patches for Luminar 4.6 ([84af475](https://github.com/mwbra130/Retro-Bowl-College/commit/84af4751b62c56da473c131dffc91093e97f79a0))
+
+## [1.79.15](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.14...v1.79.15) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** pin the subscription model getters and present the Business banner in the paywall ([6f60bd9](https://github.com/mwbra130/Retro-Bowl-College/commit/6f60bd9d9d104a591fb3bca7bf6a910565a792d7))
+
+## [1.79.14](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.13...v1.79.14) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** pin the prefs funnel so every read of the business flag returns true ([84810bf](https://github.com/mwbra130/Retro-Bowl-College/commit/84810bfc124f43aafb1fba847b54ac23147486fb))
+
+## [1.79.13](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.12...v1.79.13) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** correct field reference syntax in the Business clinit pin ([53f2db0](https://github.com/mwbra130/Retro-Bowl-College/commit/53f2db02677b74eccd402750075a9e91db4a24d1))
+
+## [1.79.12](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.11...v1.79.12) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** pin Enable Business at the read side so business state actually appears ([19f97e7](https://github.com/mwbra130/Retro-Bowl-College/commit/19f97e702c46bc39f4e3f355cefb548545b0cf40))
+
+## [1.79.11](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.10...v1.79.11) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **callrecorder:** retarget patches to 3.6.9; 3.7.8 native payload cannot run re-signed ([b7fa96b](https://github.com/mwbra130/Retro-Bowl-College/commit/b7fa96b2638bd1e5cb55466146685a5bec9c5507))
+* **callrecorder:** retarget patches to 3.6.9; 3.7.8 native payload cannot run re-signed ([e719ea0](https://github.com/mwbra130/Retro-Bowl-College/commit/e719ea0d9a3dcff0b5e2bafb5551d71809fe70da))
+* **callrecorder:** retarget patches to 3.6.9; 3.7.8 native payload cannot run re-signed ([0ef8c58](https://github.com/mwbra130/Retro-Bowl-College/commit/0ef8c58eaa343460cc7d2d587f26b8d92c359db1))
+* **callrecorder:** retarget patches to 3.6.9; 3.7.8 native payload cannot run re-signed ([418fc59](https://github.com/mwbra130/Retro-Bowl-College/commit/418fc59f7337d1a5082e2657df872b2c42c1da77))
+
+## [1.79.10](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.9...v1.79.10) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** resolve Plus fingerprints in patch context for the shared pin helper ([cc829d7](https://github.com/mwbra130/Retro-Bowl-College/commit/cc829d7bf7b95492a50a07a49dde3ab8db7b3a95))
+* **timemark:** split Enable Business patch, runtime OSM location picker in settings tab ([a183bc2](https://github.com/mwbra130/Retro-Bowl-College/commit/a183bc2b0a3c2c1ae6bff1e9cf19aae9a5d51262))
+
+## [1.79.9](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.8...v1.79.9) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** build the location spoof writes as builder instructions ([e325448](https://github.com/mwbra130/Retro-Bowl-College/commit/e32544899df64e3aad808f056f46325667fdd5f4))
+
+## [1.79.8](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.7...v1.79.8) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** address the location fix as p1 so the spoof writes land ([b4ebdea](https://github.com/mwbra130/Retro-Bowl-College/commit/b4ebdead048c0108b6340b499bd78bacb9afa31c))
+
+## [1.79.7](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.6...v1.79.7) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** make Remove telemetry bytecode-only (stock manifest breaks XML parsing) ([bf4b5ce](https://github.com/mwbra130/Retro-Bowl-College/commit/bf4b5ce28216501566e628a9cb417f0415fc57c6))
+
+## [1.79.6](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.5...v1.79.6) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** use long-suffixed const-wide literals in Timemark patches ([59c7760](https://github.com/mwbra130/Retro-Bowl-College/commit/59c77607ab3fe876e736cc2befd5b0d6a5de0b91))
+
+## [1.79.5](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.4...v1.79.5) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **timemark:** add Timemark Plus unlock, watermark location spoof and telemetry removal ([e76b468](https://github.com/mwbra130/Retro-Bowl-College/commit/e76b4685096bed125237f038acfa029cb6b4505e))
+
+## [1.79.4](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.3...v1.79.4) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **callrecorder:** add App state writer fingerprint for Call Recorder ([bf6200f](https://github.com/mwbra130/Retro-Bowl-College/commit/bf6200f8f999d6f7d6c79ef10301230bb4e30da4))
+* **callrecorder:** add Call Recorder 3.7.8 compatibility ([d964862](https://github.com/mwbra130/Retro-Bowl-College/commit/d9648623e492eb853f0beb6fd1cbb78176768a23))
+* **callrecorder:** add Enable Lifetime patch for Call Recorder 3.7.8 ([ef75957](https://github.com/mwbra130/Retro-Bowl-College/commit/ef75957696ab5fff01dd125892ddda0392cee5c7))
+* **callrecorder:** add Remove telemetry patch for Call Recorder 3.7.8 ([926811e](https://github.com/mwbra130/Retro-Bowl-College/commit/926811eb1d9191f2063fb75161977e108250ba09))
+
+## [1.79.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.2...v1.79.3) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **contentcam:** add Remove telemetry patch for ContentCam 2.8.0 ([891d113](https://github.com/mwbra130/Retro-Bowl-College/commit/891d1134e405e4ef2399b47917eb95339687612a))
+* **drapes:** add Remove telemetry patch for Drapes 3.9.3 ([e4da769](https://github.com/mwbra130/Retro-Bowl-College/commit/e4da7695d66e68e216f73a163b68c9e9fdeaa661))
+
+## [1.79.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.1...v1.79.2) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **appfinder:** add Remove telemetry patch ([637b85e](https://github.com/mwbra130/Retro-Bowl-College/commit/637b85e66c3f29b64fc2c3603dc9ff5ab8b6519d))
+* **drapes:** correct field reference syntax in Enable Pro smali ([1834e93](https://github.com/mwbra130/Retro-Bowl-College/commit/1834e93eb4ba7c556a6ee096e2f2a1c69ec6b9b5))
+
+## [1.79.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.79.0...v1.79.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **contentcam:** add Enable Premium and Bypass PairIP license check patches for ContentCam 2.8.0 ([53b3a5b](https://github.com/mwbra130/Retro-Bowl-College/commit/53b3a5b89556c9a01b0012a11c018f5f34b83e3b))
+* **drapes:** add Enable Pro and PairIP license check bypass for Drapes 3.9.3 ([f9377ca](https://github.com/mwbra130/Retro-Bowl-College/commit/f9377ca66647ca0854e01265dbbf942ee4eaf492))
+* **drapes:** add Enable Pro and PairIP license check bypass for Drapes 3.9.3 ([c7c54b5](https://github.com/mwbra130/Retro-Bowl-College/commit/c7c54b50336e536208c01dd422d706862f2ab75e))
+* **drapes:** add Enable Pro and PairIP license check bypass for Drapes 3.9.3 ([4f8bc50](https://github.com/mwbra130/Retro-Bowl-College/commit/4f8bc502caf9b7ca3c6e3e503494a5b3b6745561))
+* **drapes:** add Enable Pro and PairIP license check bypass for Drapes 3.9.3 ([024d6b2](https://github.com/mwbra130/Retro-Bowl-College/commit/024d6b2306123c1a7d40ac0bbb5a42cb789055d1))
+
+## [1.79.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.78.0...v1.79.0) (2026-11-16)
+
+### ✨ New Features
+
+* **appfinder:** add Enable Professional patch for App Finder 1.5.1 ([e0cda7b](https://github.com/mwbra130/Retro-Bowl-College/commit/e0cda7ba11042abdc7e36fe050dede685203b81f))
+
+## [1.78.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.6...v1.78.0) (2026-11-16)
+
+### ✨ New Features
+
+* **vpngate:** add Enable premium patch for VPN Gate 20261111 ([860cb38](https://github.com/mwbra130/Retro-Bowl-College/commit/860cb383d6c4c852299ef9c7936de68e8a51fd09))
+* **vpngate:** add Enable premium patch for VPN Gate 20261111 ([af6b3aa](https://github.com/mwbra130/Retro-Bowl-College/commit/af6b3aabe6db277c317f33e9d48c26ab3f446d17))
+* **vpngate:** add Enable premium patch for VPN Gate 20261111 ([4cccbc5](https://github.com/mwbra130/Retro-Bowl-College/commit/4cccbc51fd9b90410b4fec690eed29f44fbfabeb))
+
 ## [1.77.6](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.77.5...v1.77.6) (2026-11-15)
 
 ### 🐛 Bug Fixes

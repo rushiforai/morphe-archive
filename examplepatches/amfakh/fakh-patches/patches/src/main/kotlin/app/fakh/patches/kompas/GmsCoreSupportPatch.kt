@@ -4,7 +4,7 @@ import app.fakh.patches.kompas.shared.Constants.COMPATIBILITY_KOMPAS
 import app.fakh.patches.shared.gms.gmsCoreSupportResourcePatch
 import app.fakh.patches.shared.gms.redirectToGmsCore
 import app.fakh.patches.shared.gms.warnWithoutGmsCore
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val KOMPAS_PACKAGE = "com.ertanto.kompas.official"
 
@@ -17,7 +17,7 @@ private const val KOMPAS_SIGNATURE = "1f88d9fb04dd756302cc1804f335676079f9100f"
  * from Play services. GmsCore presents the original certificate instead.
  */
 @Suppress("unused")
-val gmsCoreSupportPatch = bytecodePatch(
+val gmsCoreSupportPatch = patch(
     name = "GmsCore support",
     description = "Makes \"Login dengan Google\" work by signing in through microG RE (GmsCore) instead of Google " +
         "Play services. Needs microG RE installed and signed in to a Google account.",

@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
-
 
 package app.morphe.extension.instagram.patches.devFlags;
 
@@ -30,25 +29,44 @@ public class HookFlags {
     }
 
     private static void adsFlags() {
-//        BOOL_FLAGS.put("58206::0", false); //is_acp_enabled
-//        BOOL_FLAGS.put("72396::0", false); //is_mae_exclusion_feed_enabled
-//        BOOL_FLAGS.put("78046::0", false); //is_mae_exclusion_feed_enabled
-//        BOOL_FLAGS.put("78046::9", false); //enable_no_invalidation_reason_for_mae_exclusion
-//        BOOL_FLAGS.put("79181::0", false); //ig_reels_ads_1x2_explore_halc_android::is_enabled
-        BOOL_FLAGS.put("110800::0", false); //ig_android_controller_migration::use_v2_controller Removed in version 435.0.0.0.2
-        BOOL_FLAGS.put("114983", false); //ig_stories_restyle_midcard
-        BOOL_FLAGS.put("95150", false); //ig_stories_music_midcard
-        BOOL_FLAGS.put("84366::12", false); //ig_stories_ayt_midcard::enable_add_yours
-        BOOL_FLAGS.put("120110", false); //ig_android_scroll_break
-        BOOL_FLAGS.put("105778", false); //ig_android_restyle_post_cap_promo_dialog
+        if (Pref.disableAds() || Pref.hideReelsAndStoriesAdPods()) {
+            BOOL_FLAGS.put("110800::0", false);
+            BOOL_FLAGS.put("114983", false); //ig_stories_restyle_midcard
+            BOOL_FLAGS.put("95150", false); //ig_stories_music_midcard
+            BOOL_FLAGS.put("84366::12", false); //ig_stories_ayt_midcard::enable_add_yours
+            BOOL_FLAGS.put("120110", false); //ig_android_scroll_break
+            BOOL_FLAGS.put("105778", false); //ig_android_restyle_post_cap_promo_dialog
+            BOOL_FLAGS.put("79181::0", false); //ig_reels_ads_1x2_explore_halc_android::is_enabled
+        }
     }
 
-    // Thanks to @brosssh
     private static void suggestedContentFlags() {
-        BOOL_FLAGS.put("111509::3", false); //ig_search_ta_nullstate_suggestions::is_android_enabled
-        BOOL_FLAGS.put("82771::0", false); //igx_foundation_litho_stories_tray::is_litho_stories_tray_enabled
-//        BOOL_FLAGS.put("109730", false); //ig_android_ai_discovery_menu
-//        BOOL_FLAGS.put("80654", false); //ig_meta_ai_cdd_reels_viewer
+        if (Pref.hideSuggestedContent()) {
+            BOOL_FLAGS.put("111509::3", false); //ig_search_ta_nullstate_suggestions::is_android_enabled
+            BOOL_FLAGS.put("82771::0", false); //igx_foundation_litho_stories_tray::is_litho_stories_tray_enabled
+        }
+    }
+
+    private static void videoAndUploadFlags() {
+        if (Pref.holdVideoFastForward()) {
+            BOOL_FLAGS.put("88112::0", true); // feed & reels 2x hold speed
+            BOOL_FLAGS.put("88112::1", true);
+        }
+        if (Pref.startFeedVideosMuted()) {
+            BOOL_FLAGS.put("84910::0", false); // start feed videos muted
+        }
+        if (Pref.highQualityUpload()) {
+            BOOL_FLAGS.put("83164::1", true); // high quality media upload
+            LONG_FLAGS.put("83164::2", 50_000_000L);
+        }
+        if (Pref.upload60FpsStories()) {
+            BOOL_FLAGS.put("83164::0", true); // 60fps story & camera encoding
+            LONG_FLAGS.put("83164::3", 60L);
+        }
+        if (Pref.extendedStoryDuration()) {
+            BOOL_FLAGS.put("85201::0", true); // extended 60s+ story duration
+            LONG_FLAGS.put("85201::1", 180L);
+        }
     }
 
     private static void profileActionBarFlags() {
@@ -67,8 +85,8 @@ public class HookFlags {
         }
     }
 
-    private static void addRecommendedFlags(){
-        if(SettingsStatus.recommendedFlags) {
+    private static void addRecommendedFlags() {
+        if (SettingsStatus.recommendedFlags) {
             Map<String, Boolean> recFlags = FlagsSharedPref.getAll();
             BOOL_FLAGS.putAll(recFlags);
             Map<String, Long> recLongFlags = FlagsSharedPref.getAllLong();
@@ -77,9 +95,12 @@ public class HookFlags {
     }
 
     public static void load() {
+        BOOL_FLAGS.clear();
+        LONG_FLAGS.clear();
         try { simpleOverflowMenuFlags(); } catch (Throwable ignored) {}
         try { adsFlags(); } catch (Throwable ignored) {}
         try { suggestedContentFlags(); } catch (Throwable ignored) {}
+        try { videoAndUploadFlags(); } catch (Throwable ignored) {}
         try { profileActionBarFlags(); } catch (Throwable ignored) {}
         try { mainFeedActionBarFlags(); } catch (Throwable ignored) {}
         try { addRecommendedFlags(); } catch (Throwable ignored) {}
@@ -88,12 +109,9 @@ public class HookFlags {
     public static Boolean handleBoolFlags(long mobileConfigSpecifier) {
         try {
             DeveloperOptionsItem developerOptionsItem = new DeveloperOptionsItem(mobileConfigSpecifier);
-            // Sometimes I want to block all the subflags inside a universal ID.
-            // In which case I would only add the universal ID in the BOOL_MAP map.
-            // If a boolean value is found then it will return else it will check for for the usual config ID
             String universalId = developerOptionsItem.getUniversalId();
             Boolean universalFlag = BOOL_FLAGS.getOrDefault(universalId, null);
-            if(universalFlag!=null) return universalFlag;
+            if (universalFlag != null) return universalFlag;
 
             String configId = developerOptionsItem.getConfigId();
             return BOOL_FLAGS.getOrDefault(configId, null);
@@ -103,14 +121,12 @@ public class HookFlags {
         return null;
     }
 
-    // mobileConfig has no dedicated int type, hence the integer-valued flags (counts, limits) are stored and returned.
-    // as long instead of boolean
     public static Long handleLongFlags(long mobileConfigSpecifier) {
         try {
             DeveloperOptionsItem developerOptionsItem = new DeveloperOptionsItem(mobileConfigSpecifier);
             String universalId = developerOptionsItem.getUniversalId();
             Long universalFlag = LONG_FLAGS.getOrDefault(universalId, null);
-            if(universalFlag!=null) return universalFlag;
+            if (universalFlag != null) return universalFlag;
 
             String configId = developerOptionsItem.getConfigId();
             return LONG_FLAGS.getOrDefault(configId, null);
@@ -119,5 +135,4 @@ public class HookFlags {
         }
         return null;
     }
-
 }

@@ -56,7 +56,7 @@ final class LightweightSetup {
     static void controls(Activity activity,LinearLayout root){
         Button apply=new Button(activity);apply.setText("広告だけの設定プリセットを適用（準備版）");root.addView(apply);
         TextView help=new TextView(activity);
-        help.setText("追加機能の設定をまとめてオフにします。元の設定へ戻せます。ローカル自動バックアップの設定は維持します。クラッシュ防止処理とChMate標準機能は残ります。再起動後に反映します。");root.addView(help);
+        help.setText("広告削除と「5ch.netのリンクを5ch.ioに変換」を有効にし、ほかの追加機能をオフにします。元の設定へ戻せます。ローカル自動バックアップの設定は維持します。クラッシュ防止処理とChMate標準機能は残ります。再起動後に反映します。");root.addView(help);
         Button restore=new Button(activity);restore.setText("プリセット適用前の設定に戻す");root.addView(restore);
         restore.setEnabled(activity.getSharedPreferences(STORE,0).contains(SNAPSHOT));
         apply.setOnClickListener(v->new HaiagaruDialog.Builder(activity).setTitle("広告だけの設定に変更")

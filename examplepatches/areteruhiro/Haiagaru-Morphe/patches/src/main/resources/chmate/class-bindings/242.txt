@@ -835,3 +835,6 @@ Lo/setCompoundDrawables;
 Lo/setDropDownWidth;
 Lo/setOnFitSystemWindowsListener;
 Lo/setExpandActivityOverflowButtonContentDescription;
+
+[SiteMomentumSort]
+Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel$r8lambda7IJBVrN0sHyidCAZufWEJFc7yY;

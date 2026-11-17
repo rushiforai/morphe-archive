@@ -12,7 +12,7 @@ build version, MPP payload, historical tags, or published releases.
 - Upgrade `actions/upload-artifact` from Node.js 20-based v4 to Node.js
   24-based v7.0.2; retain two-day retention, fail-on-missing behavior,
   and the original MPP/source archive names and paths.
-- Use `actions/checkout` v7.0.1, `setup-java` v6.2.0,
+- Use `actions/checkout` v7.0.1, `setup-java` v6.3.0,
   `setup-node` v7.1.0, and `attest-build-provenance` v4.2.2.
   Hosted runners satisfy the Node.js 24 runtime requirement.
 - Disable persisted checkout credentials in read-only jobs; keep them only

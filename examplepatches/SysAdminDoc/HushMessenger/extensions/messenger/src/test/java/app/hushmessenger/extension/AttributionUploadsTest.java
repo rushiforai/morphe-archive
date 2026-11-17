@@ -51,7 +51,7 @@ public class AttributionUploadsTest {
         assertTrue(Settings.installed.contains("attribution_uploads"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("attribution_uploads")).findFirst().orElseThrow();
         assertEquals("Stop ad attribution uploads", row[1]);
-        assertEquals("privacy", row[3]);
+        assertEquals("tracking", row[3]);
         assertFalse(Settings.preferences.contains("attribution_uploads"));
         assertFalse(Settings.wouldUse("attribution_uploads"));
     }

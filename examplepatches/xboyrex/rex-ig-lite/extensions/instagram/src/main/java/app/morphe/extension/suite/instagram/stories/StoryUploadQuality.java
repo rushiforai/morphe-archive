@@ -9,6 +9,7 @@ import android.media.MediaCodecList;
 import android.media.MediaFormat;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Utils;
 import app.morphe.extension.suite.shared.diagnostics.HookStatus;
@@ -134,7 +135,7 @@ public final class StoryUploadQuality {
         try {
             HookStatus.invoked(FamilyNames.STORY_UPLOAD_QUALITY);
             if (instagram <= 0 || !covered(shareType)) return instagram;
-            UploadBitrate choice = Settings.UPLOAD_VIDEO_BITRATE.get();
+            UploadBitrate choice = Pref.highQualityUpload() ? UploadBitrate.MBPS_50 : Settings.UPLOAD_VIDEO_BITRATE.get();
             if (choice == null || choice == UploadBitrate.INSTAGRAM) return instagram;
             int wanted = choice.bitsPerSecond();
             if (wanted <= instagram) return instagram;
@@ -158,7 +159,7 @@ public final class StoryUploadQuality {
         try {
             HookStatus.invoked(FamilyNames.STORY_UPLOAD_QUALITY);
             if (!covered(shareType)) return instagram;
-            UploadResolution choice = Settings.UPLOAD_VIDEO_RESOLUTION.get();
+            UploadResolution choice = Pref.highQualityUpload() ? UploadResolution.P2160 : Settings.UPLOAD_VIDEO_RESOLUTION.get();
             if (choice == null || choice.width <= instagram) return instagram;
             HookStatus.counted(FamilyNames.STORY_UPLOAD_QUALITY, RAISED_RESOLUTION);
             WANTED.set(choice.width);
@@ -215,7 +216,7 @@ public final class StoryUploadQuality {
             if (server <= 0 || !covered(shareType)) return server;
             int serverWidth = shortSide != 0 ? server : server * 9 / 16;
             lastWidth = serverWidth;
-            UploadResolution choice = Settings.UPLOAD_VIDEO_RESOLUTION.get();
+            UploadResolution choice = Pref.highQualityUpload() ? UploadResolution.P2160 : Settings.UPLOAD_VIDEO_RESOLUTION.get();
             if (choice == null || choice.width <= serverWidth) return server;
             Encoder phone = encoder();
             if (phone == null) return server;
@@ -246,7 +247,7 @@ public final class StoryUploadQuality {
         try {
             HookStatus.invoked(FamilyNames.STORY_UPLOAD_QUALITY);
             if (!covered(shareType)) return instagram;
-            UploadFrameRate choice = Settings.UPLOAD_FRAME_RATE.get();
+            UploadFrameRate choice = Pref.upload60FpsStories() ? UploadFrameRate.FPS_60 : Settings.UPLOAD_FRAME_RATE.get();
             if (choice == null || choice.fps <= instagram) return instagram;
             int fps = choice.fps;
             if (fps > UploadFrameRate.FPS_60.fps) {
@@ -271,8 +272,8 @@ public final class StoryUploadQuality {
     public static int photoQuality(int instagram) {
         try {
             HookStatus.invoked(FamilyNames.STORY_UPLOAD_QUALITY);
-            if (instagram <= 0 || !Utils.settingsReady() || !Settings.UPLOAD_STORIES_AT_FULL_QUALITY.get()) return instagram;
-            UploadPhotoQuality choice = Settings.UPLOAD_PHOTO_QUALITY.get();
+            if (instagram <= 0 || (!Pref.highQualityUpload() && (!Utils.settingsReady() || !Settings.UPLOAD_STORIES_AT_FULL_QUALITY.get()))) return instagram;
+            UploadPhotoQuality choice = Pref.highQualityUpload() ? UploadPhotoQuality.Q100 : Settings.UPLOAD_PHOTO_QUALITY.get();
             if (choice == null || choice.percent <= instagram) return instagram;
             HookStatus.counted(FamilyNames.STORY_UPLOAD_QUALITY, RAISED_PHOTO);
             return choice.percent;
@@ -292,8 +293,8 @@ public final class StoryUploadQuality {
     public static int photoTier(int edge, int instagram) {
         try {
             HookStatus.invoked(FamilyNames.STORY_UPLOAD_QUALITY);
-            if (instagram != 0 || !Utils.settingsReady() || !Settings.UPLOAD_STORIES_AT_FULL_QUALITY.get()) return instagram;
-            UploadPhotoSize choice = Settings.UPLOAD_PHOTO_SIZE.get();
+            if (instagram != 0 || (!Pref.highQualityUpload() && (!Utils.settingsReady() || !Settings.UPLOAD_STORIES_AT_FULL_QUALITY.get()))) return instagram;
+            UploadPhotoSize choice = Pref.highQualityUpload() ? UploadPhotoSize.E4096 : Settings.UPLOAD_PHOTO_SIZE.get();
             if (choice == null || choice.edge < edge) return instagram;
             if (choice.edge == edge) HookStatus.counted(FamilyNames.STORY_UPLOAD_QUALITY, RAISED_PHOTO_SIZE);
             return 1;
@@ -305,6 +306,7 @@ public final class StoryUploadQuality {
 
     /** Whether the switch is on and covers an upload of this share type: a story, or any with Stories, posts and reels. */
     private static boolean covered(Object shareType) {
+        if (Pref.highQualityUpload() || Pref.upload60FpsStories()) return true;
         if (!(shareType instanceof Enum)) return false;
         if (!Utils.settingsReady() || !Settings.UPLOAD_STORIES_AT_FULL_QUALITY.get()) return false;
         if (STORY.equals(((Enum<?>) shareType).name())) return true;
@@ -359,5 +361,9 @@ public final class StoryUploadQuality {
         encoderRead = false;
         lastWidth = UploadResolution.P1080.width;
         WANTED.remove();
+    }
+
+    public static int maxStoryDurationMs(int defaultDurationMs) {
+        return Pref.extendedStoryDuration() ? Math.max(defaultDurationMs, 180_000) : defaultDurationMs;
     }
 }

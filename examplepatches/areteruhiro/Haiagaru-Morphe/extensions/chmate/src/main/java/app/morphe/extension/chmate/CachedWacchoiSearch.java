@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 /** A non-overlay control inside the native cached-log search screen. */
 public final class CachedWacchoiSearch {
+    static final String CONTROLS="cachedSearchAdditionalControlsEnabled";
     private static final String KEY = "cachedWacchoiSuffixOnly";
     private static final String PREFS = "haiagaru.cached-wacchoi-search";
     private static final int REFRESH_TAG = 0x48690b55;
@@ -27,6 +28,7 @@ public final class CachedWacchoiSearch {
 
     public static View wrap(Object fragment, View nativeView) {
         if (nativeView == null) return null;
+        if(!SettingsProfiles.prefs(nativeView.getContext()).getBoolean(CONTROLS,true))return nativeView;
         try {
             Context context = nativeView.getContext();
             LinearLayout root = new LinearLayout(context); root.setOrientation(LinearLayout.VERTICAL);
@@ -155,64 +157,21 @@ public final class CachedWacchoiSearch {
     }
 
     private static void keepBesideSearchOptions(FrameLayout page, View nativeView, CheckBox toggle,Query query) {
-        final LinearLayout wrapper=(LinearLayout)page.getParent();
-        final Runnable[] pulse = new Runnable[1];
-        pulse[0] = () -> {
-            if (!page.isAttachedToWindow()) return;
-            try{toggle.setEnabled(toggle.isChecked()||CachedWacchoiQuery.suffix(query.get())!=null);}
-            catch(Exception error){toggle.setEnabled(false);}
-            Rect body = findTextBounds(nativeView, "本文");
-            boolean bodyAnchor = body != null;
-            if (body == null) body = findTextBounds(nativeView, "ヘッダー");
-            boolean placed = false;
-            if (body != null && page.getWidth() > 0 && page.getHeight() > 0) {
-                if (!"下4桁".contentEquals(toggle.getText())) toggle.setText("下4桁");
-                int[] pageLocation = new int[2]; page.getLocationOnScreen(pageLocation);
-                Rect visible = new Rect(); page.getGlobalVisibleRect(visible);
-                toggle.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-                int width = Math.max(Math.round(64 * page.getResources().getDisplayMetrics().density), toggle.getMeasuredWidth());
-                int height = Math.round(48 * page.getResources().getDisplayMetrics().density);
-                int margin = Math.round(6 * page.getResources().getDisplayMetrics().density);
-                int left = bodyAnchor ? body.right - pageLocation[0] + margin
-                        : page.getWidth() - width - margin;
-                int top = body.centerY() - pageLocation[1] - height / 2;
-                int screenLeft = pageLocation[0] + left;
-                int screenTop = pageLocation[1] + top;
-                Rect target = new Rect(screenLeft, screenTop, screenLeft + width, screenTop + height);
-                if (visible.contains(target) && left + width <= page.getWidth() - margin
-                        && top >= 0 && top + height <= page.getHeight()) {
-                    ViewGroup parent = (ViewGroup) toggle.getParent();
-                    if (parent != page) {
-                        if (parent != null) parent.removeView(toggle);
-                        page.addView(toggle, new FrameLayout.LayoutParams(width, height,
-                                android.view.Gravity.TOP | android.view.Gravity.LEFT));
-                    }
-                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) toggle.getLayoutParams();
-                    if (params.leftMargin != left || params.topMargin != top) {
-                        params.leftMargin = left; params.topMargin = top; toggle.setLayoutParams(params);
-                    }
-                    toggle.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                    toggle.setVisibility(View.VISIBLE);
-                    placed = true;
-                }
-            }
-            if (!placed) {
-                if (!"ワッチョイを下4桁で検索".contentEquals(toggle.getText()))
-                    toggle.setText("ワッチョイを下4桁で検索");
-                ViewGroup parent=(ViewGroup)toggle.getParent();
-                if(parent!=wrapper){
-                    if(parent!=null)parent.removeView(toggle);
-                    wrapper.addView(toggle,new LinearLayout.LayoutParams(-1,Math.round(48*page.getResources().getDisplayMetrics().density)));
-                }
-                toggle.setBackgroundColor(HaiagaruUi.toolTabHeaderColors(toggle.getContext())[0]);
-                toggle.setVisibility(View.VISIBLE);
-            }
-            page.postDelayed(pulse[0], 500L);
+        // Keep the control in its own stable row. Walking Compose accessibility
+        // nodes every 500 ms rebuilds semantics during typing and stalls the IME.
+        toggle.setText("ワッチョイを下4桁で検索");
+        toggle.setVisibility(View.VISIBLE);
+        final Runnable[] pulse=new Runnable[1];
+        pulse[0]=()->{
+            if(!page.isAttachedToWindow())return;
+            try{boolean enabled=toggle.isChecked()||CachedWacchoiQuery.suffix(query.get())!=null;
+                if(toggle.isEnabled()!=enabled)toggle.setEnabled(enabled);
+            }catch(Exception error){toggle.setEnabled(false);}
+            page.postDelayed(pulse[0],500L);
         };
-        page.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            public void onViewAttachedToWindow(View view) { view.post(pulse[0]); }
-            public void onViewDetachedFromWindow(View view) { view.removeCallbacks(pulse[0]); }
+        page.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
+            public void onViewAttachedToWindow(View view){view.removeCallbacks(pulse[0]);view.post(pulse[0]);}
+            public void onViewDetachedFromWindow(View view){view.removeCallbacks(pulse[0]);}
         });
         page.post(pulse[0]);
     }

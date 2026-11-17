@@ -4,18 +4,29 @@
  */
 package app.morphe.patches.instagram.reels.skip
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesLoading
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.flags.FlagLoad
 import app.morphe.patches.instagram.misc.flags.answerFlagLoads
 import app.morphe.patches.instagram.misc.flags.findFlagLoads
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val PATCH = "Double tap to skip on Reels"
 internal const val REEL_SKIP = "$EXTENSION_PACKAGE/reels/ReelSkip;"
@@ -27,27 +38,45 @@ internal const val EDGE_DOUBLE = "$REEL_SKIP->edgeDouble(D)D"
 
 /**
  * Whether a reel gets double tap to skip, read by DoubleTapToSkipUseCase_getUiState for each reel
- * (05KP.A0V on 454's 386014758). Off on the accounts that don't have it, which is most of them.
+ * (08LX.A0R on 456's 386214574; 455 had 0x81123c00016519, 454 0x811254000164c9). Off on the accounts that don't have it,
+ * which is most of them.
  */
-internal const val SKIP_FLAG = 0x811254000164c9L
+internal const val SKIP_FLAG = 0x81121700016542L
 
 /**
  * How far a double tap skips, in seconds: read where the gesture navigator works out a double tap
- * (ClipsGestureNavigator_onDoubleTapToSkip, 0DXI.invoke on 386014758) and again by the use case.
+ * (ClipsGestureNavigator_onDoubleTapToSkip) and again by the use case. 455 had 0x84123c00020472, and
+ * the edge below 0x84123c00000471. 454 had 0x84125400020474 and 0x84125400000473.
  */
-internal const val SECONDS_FLAG = 0x84125400020474L
+internal const val SECONDS_FLAG = 0x8412170002047cL
 
 /** How wide the strip along each edge is, as a share of the reel's width. Read by the navigator alone. */
-internal const val EDGE_FLAG = 0x84125400000473L
+internal const val EDGE_FLAG = 0x8412170000047bL
 
 /** What a fraction is read as: a float on some 454 builds, a double on others. */
 private val FRACTION = setOf("F", "D")
+
+/** Told the way each double tap skip went, so the arrows can show it (#691). */
+internal const val SKIPPED = "$REEL_SKIP->skipped(Ljava/lang/Object;)V"
+
+/** The names the way a skip went keeps through Redex, which the extension tells the sides by. */
+internal val SKIP_WAYS = listOf("FORWARD", "BACKWARD")
+
+/**
+ * The gesture navigator's double tap case, the one method reading [EDGE_FLAG] (0JfN.invoke on 456's
+ * 386214574, 0IwA.invoke on 386214562; 455 also traced ClipsGestureNavigator_doubleTapToSkipDirection
+ * there, which 456 dropped), found by [type], [name] and its [parameters], and the two fields, one
+ * per way, it reads after the seek ([fields], as references).
+ */
+internal class SkipTurns(val type: String, val name: String, val parameters: List<String>, val returnType: String, val fields: Set<String>)
 
 /**
  * Turns on Instagram's own double tap to skip on Reels, which it keeps behind a server flag, and
  * answers its two numbers: 10 seconds a skip, and strips a third of the reel wide unless
  * Instagram's own leave a middle for the like. Read on each reel and each double tap, so a change
- * shows on the next reel. In the default selection with its switch off.
+ * shows on the next reel. Instagram shows nothing when it skips, so the way each skip went also goes
+ * to the extension, which flashes the feed's arrows on that side (#691). In the default selection
+ * with its switch off.
  */
 @Suppress("unused")
 val doubleTapSkipReelsPatch = bytecodePatch(
@@ -62,7 +91,9 @@ val doubleTapSkipReelsPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("reelDoubleTapSkip")
+        val turns = findSkipTurns()
         skipReels()
+        showSkipTurns(turns)
         enableStatus("reelDoubleTapSkip")
     }
 }
@@ -73,6 +104,94 @@ internal fun BytecodePatchContext.skipReels() {
 }
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+
+/**
+ * Where the gesture navigator says which way a double tap skipped: the one method reading
+ * [EDGE_FLAG], which only the navigator's double tap case reads, and in it, on the way on from that
+ * read, one read each of two constants of an enum naming [SKIP_WAYS]. Each read is the navigator's
+ * answer, read right after it seeks, and nothing may jump onto it. The navigator is a merged lambda
+ * whose other cases the flag's read never reaches. Fails before anything changes when any of it
+ * isn't so.
+ */
+internal fun BytecodePatchContext.findSkipTurns(): SkipTurns {
+    val holders = classesLoading(EDGE_FLAG).flatMap { it.methods }.filter { it.edgeLoads().isNotEmpty() }
+    val method = holders.singleOrNull() ?: refuse(
+        "expected one method reading ${EDGE_FLAG.toString(16)}, the strip a double tap skips by, found " +
+            if (holders.isEmpty()) "none" else holders.joinToString { "${it.definingClass}->${it.name}" },
+    )
+    val reads = turnReads(method)
+    val fields = reads.map { it.second }
+    if (reads.size != 2 || fields.toSet().size != 2) {
+        refuse("expected ${method.definingClass}->${method.name} to read the two ways a skip goes once each, found $fields")
+    }
+    return SkipTurns(method.definingClass, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType, fields.toSet())
+}
+
+/** Where this method loads [EDGE_FLAG], which answering the flag leaves in place. */
+private fun Method.edgeLoads(): List<Int> {
+    val code = implementation?.instructions?.toList() ?: return emptyList()
+    return code.indices.filter {
+        code[it].opcode == Opcode.CONST_WIDE && (code[it] as WideLiteralInstruction).wideLiteral == EDGE_FLAG
+    }
+}
+
+/**
+ * Each read in [method], on the way on from its read of [EDGE_FLAG], of a constant of an enum
+ * whose initializer names [SKIP_WAYS], as its index and field. One something jumps onto fails.
+ */
+private fun BytecodePatchContext.turnReads(method: Method): List<Pair<Int, String>> {
+    val code = method.implementation?.instructions?.toList() ?: refuse("${method.definingClass}->${method.name} has no body")
+    val edge = method.edgeLoads()
+    if (edge.isEmpty()) refuse("${method.definingClass}->${method.name} doesn't read ${EDGE_FLAG.toString(16)} itself")
+    val flow = ControlFlow.of(method)
+    val reached = mutableSetOf<Int>()
+    val pending = ArrayDeque(edge)
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (reached.add(at)) pending += flow.normal[at]
+    }
+    val ways = mutableMapOf<String, Boolean>()
+    fun isWay(type: String): Boolean = ways.getOrPut(type) {
+        val enum = classDefByOrNull(type) ?: return@getOrPut false
+        enum.superclass == "Ljava/lang/Enum;" && enum.methods.any { initializer ->
+            initializer.name == "<clinit>" && SKIP_WAYS.all { loadsString(initializer, it) }
+        }
+    }
+    val jumpedOnto = method.jumpTargets()
+    return reached.sorted().mapNotNull { at ->
+        if (code[at].opcode != Opcode.SGET_OBJECT) return@mapNotNull null
+        val field = (code[at] as ReferenceInstruction).reference as FieldReference
+        if (field.type != field.definingClass || !isWay(field.type)) return@mapNotNull null
+        if (at in jumpedOnto) refuse("${method.definingClass}->${method.name} jumps onto its read of ${field.name}, so the arrows would be skipped")
+        at to "${field.definingClass}->${field.name}:${field.type}"
+    }
+}
+
+/**
+ * Hands the way each skip went to [SKIPPED], just before the navigator reads it for its answer,
+ * reading it once more into the same register. Run after the flags are answered, which writes into
+ * the same method, so the reads are found again there.
+ */
+internal fun BytecodePatchContext.showSkipTurns(turns: SkipTurns) {
+    val method = mutableClassDefBy(turns.type).methods.single {
+        it.name == turns.name && it.returnType == turns.returnType && it.parameterTypes.map(CharSequence::toString) == turns.parameters
+    }
+    val reads = turnReads(method)
+    if (reads.map { it.second }.toSet() != turns.fields || reads.size != 2) {
+        refuse("${turns.type}->${turns.name} no longer reads ${turns.fields} once each after the flags were answered")
+    }
+    val code = method.implementation!!.instructions.toList()
+    reads.sortedByDescending { it.first }.forEach { (at, field) ->
+        val register = (code[at] as OneRegisterInstruction).registerA
+        method.addInstructions(
+            at,
+            """
+                sget-object v$register, $field
+                invoke-static/range { v$register .. v$register }, $SKIPPED
+            """,
+        )
+    }
+}
 
 /**
  * Every read of [SKIP_FLAG], [SECONDS_FLAG] and [EDGE_FLAG], each with the hook that answers it.

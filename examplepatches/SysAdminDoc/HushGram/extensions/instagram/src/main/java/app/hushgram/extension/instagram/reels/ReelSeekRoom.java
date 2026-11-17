@@ -37,7 +37,7 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * land on the caption (#633). Instagram's touch strip for the bar comes too ({@link #touches}). Off when
  * HushGram is paused or the settings aren't ready, when anything lifted is put back.
  */
-final class ReelSeekRoom {
+public final class ReelSeekRoom {
     /** How often, at most, a playing bar is measured. */
     static final long LOOK_MS = 300;
 
@@ -125,13 +125,31 @@ final class ReelSeekRoom {
     static void keep(View holder, boolean ready, int bottom, int window, int strip) {
         Held held = HELD.get(holder);
         if (held == null) return;
+        // Instagram laid the holder out again and took the lift away with it, so there's none left to take
+        // back. Taking it back anyway pushed a hidden bar down into the strip, where it stayed (#694).
+        if (held.lift != 0 && holder.getTranslationY() != held.wrote) held.lift = 0;
         if (!ready) {
             if (held.lift != 0) move(holder, held, 0);
             return;
         }
-        // Instagram laid the holder out again and took the lift away with it.
-        if (held.lift != 0 && holder.getTranslationY() != held.wrote) held.lift = 0;
         move(holder, held, liftFor(bottom + held.lift, window, strip));
+    }
+
+    /**
+     * Whether [view] is a seek bar's holder or row this has up, with no translation under the lift but this
+     * one. The floating glass pill raises the same row for the reels it knows, and takes such a lift over
+     * rather than leaving it be as Instagram's (#704). Once it has, the next look finds the translation
+     * rewritten and lets go of the lift ({@link #keep(View, boolean, int, int, int)}). Main thread only.
+     */
+    public static boolean holdsUp(View view) {
+        Held held = HELD.get(view);
+        return held != null && held.lift != 0 && held.wrote == -held.lift && view.getTranslationY() == held.wrote;
+    }
+
+    /** Whether [view] is a band over the bar that this has scrolled up as far as the bar ({@link #along}). Main thread only. */
+    public static boolean scrollsUp(View view) {
+        Integer ours = SCROLLED.get(view);
+        return ours != null && ours != 0 && view.getScrollY() == ours;
     }
 
     private static void move(View holder, Held held, int lift) {

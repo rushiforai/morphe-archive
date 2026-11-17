@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -17,6 +17,7 @@ import android.widget.ListView;
 
 public class NavigationBarPreference extends Preference {
     private final Context context;
+    private View rowView;
 
     public NavigationBarPreference(Context context) {
         super(context);
@@ -25,6 +26,10 @@ public class NavigationBarPreference extends Preference {
 
     @Override
     protected void onClick() {
+        if (rowView != null) {
+            RexHaptics.tap(rowView);
+            InstagramPreferenceStyle.pulseRowIcon(rowView);
+        }
         Context dialogContext = InstagramPreferenceStyle.dialogContext(context);
         NavigationBarAdapter adapter = new NavigationBarAdapter(dialogContext);
         AlertDialog dialog = new AlertDialog.Builder(dialogContext)
@@ -35,6 +40,7 @@ public class NavigationBarPreference extends Preference {
                 .setPositiveButton(android.R.string.ok, null)
                 .create();
         dialog.setOnShowListener(ignored -> {
+            RexDialogs.styleSystemPreferenceDialog(dialog, dialogContext);
             ListView listView = dialog.getListView();
             adapter.attachListView(listView);
             listView.setOnTouchListener(adapter::onListTouch);
@@ -60,14 +66,19 @@ public class NavigationBarPreference extends Preference {
 
     @Override
     protected View onCreateView(ViewGroup parent) {
-        return InstagramPreferenceStyle.createPreferenceView(
+        View view = InstagramPreferenceStyle.createPreferenceView(
                 context,
-                InstagramPreferenceStyle.TRAILING_CHEVRON
+                InstagramPreferenceStyle.TRAILING_CHEVRON,
+                ButtonPref.iconResourceNameForKey(getKey())
         );
+        rowView = view;
+        return view;
     }
 
     @Override
     protected void onBindView(View view) {
+        rowView = view;
         InstagramPreferenceStyle.bindText(this, view);
+        InstagramPreferenceStyle.bindIcon(view, ButtonPref.iconResourceNameForKey(getKey()));
     }
 }

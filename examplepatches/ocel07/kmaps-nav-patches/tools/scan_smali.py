@@ -155,23 +155,46 @@ def main():
                 smap[c] = s
     pk = [p.strip('/') + '/' for p in a.pkg.split(',') if p]     # package prefixes (sub-packages included)
     exact = set()                                                 # scope packages: that directory only
+    exact_cls = set()                                             # scope classes of the default package
     if a.scope:
         pats = [l.strip() for l in open(a.scope, encoding='utf-8') if l.strip() and not l.startswith('#')]
         pk += [p[4:].strip('/') + '/' for p in pats if p.startswith('pkg:')]
-        srcpats = [p for p in pats if not p.startswith('pkg:')]
+        mods = [p[7:] for p in pats if p.startswith('module:')]
+        srcpats = [p for p in pats if not p.startswith(('pkg:', 'module:'))]
+        scope_src = {s for s in set(smap.values()) if any(fnmatch.fnmatchcase(s, p) for p in srcpats)}
+        if mods:
+            # Kotlin internal members carry the module name ('foo$library_release'): every source file with such a
+            # class belongs to that module, which also catches files whose names are new in this app version
+            mod_re = re.compile(r'\$(?:' + '|'.join(mods) + r')\b')
+            for root in a.root:
+                for dex in sorted(os.listdir(root)):
+                    base = os.path.join(root, dex)
+                    for dp, dn, fn in os.walk(base):
+                        rel = os.path.relpath(dp, base).replace(os.sep, '/') + '/'
+                        rel = '' if rel == './' else rel
+                        for f in fn:
+                            c = rel + f[:-6]
+                            if f.endswith('.smali') and c in smap and smap[c] not in scope_src and \
+                                    mod_re.search(open(os.path.join(dp, f), encoding='utf-8', errors='replace').read()):
+                                scope_src.add(smap[c])
         # obfuscated packages are short ('io/'): match the exact directory, not as a prefix of io/realm/...
-        exact = {c.rsplit('/', 1)[0] + '/' for c, s in smap.items()
-                 if '/' in c and any(fnmatch.fnmatchcase(s, p) for p in srcpats)}
-    if not pk and not exact:
+        exact = {c.rsplit('/', 1)[0] + '/' for c, s in smap.items() if '/' in c and s in scope_src}
+        # R8 may flatten obfuscated classes into the default package ('heb'): scope those class by class
+        exact_cls = {c for c, s in smap.items() if '/' not in c and s in scope_src}
+        print(len(scope_src), 'source files in scope,', len(exact), 'packages,', len(exact_cls), 'default-package classes')
+    if not pk and not exact and not exact_cls:
         sys.exit('nothing to scan: give --pkg and/or --scope')
     pkgs = tuple(sorted(set(pk))) or ('\0',)
 
     def in_scope_dir(rel):
-        return rel.startswith(pkgs) or rel in exact
+        return rel.startswith(pkgs) or rel in exact or (rel == '' and bool(exact_cls))
+
+    def in_scope(cls):
+        return cls in exact_cls if '/' not in cls else in_scope_dir(cls.rsplit('/', 1)[0] + '/')
     raw = []
 
     def emit(kind, dex, cls, mname, desc, detail, info, src):
-        if not in_scope_dir(cls.rsplit('/', 1)[0] + '/') and kind not in ('LOCREQ', 'NMEA', 'NMEA_CALL'):
+        if not in_scope(cls) and kind not in ('LOCREQ', 'NMEA', 'NMEA_CALL'):
             return
         raw.append((kind, cls, desc, detail, dex, mname, info, src.replace('\t', ' ')))
 
@@ -205,6 +228,7 @@ def main():
             for dp, dn, fn in os.walk(base):
                 dn.sort()
                 rel = os.path.relpath(dp, base).replace(os.sep, '/') + '/'
+                rel = '' if rel == './' else rel          # default package
                 if not in_scope_dir(rel) and not a.locreq_all:
                     continue
                 for f in sorted(fn):
@@ -224,6 +248,7 @@ def main():
                 for dp, dn, fn in os.walk(base):
                     dn.sort()
                     rel = os.path.relpath(dp, base).replace(os.sep, '/') + '/'
+                    rel = '' if rel == './' else rel
                     for f in sorted(fn):
                         if not f.endswith('.smali'):
                             continue

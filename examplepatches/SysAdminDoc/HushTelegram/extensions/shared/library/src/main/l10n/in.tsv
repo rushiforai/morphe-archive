@@ -357,12 +357,38 @@ Saved.	Tersimpan.
 The emoji next to the chat list title will change.	Emoji di samping judul daftar obrolan akan berubah.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Holiday look all year that draws the emoji after the chat list title.
 emoji next to the chat list title	emoji di samping judul daftar obrolan
+# context: Look and feel page switch title, below Emoji next to the chat list title. When on, the person's own text takes the place of Telegram's name (its logo) at the top of the chat list.
+Your own chat list title	Judul daftar obrolan sendiri
+# context: Summary under the Your own chat list title switch. The text is drawn in the title's own bold font and theme color.
+Shows text of your choice in place of Telegram's name at the top of the chat list, in the title's own font and color. It stays on this phone. Restart Telegram to see the change.	Menampilkan teks pilihan Anda sebagai pengganti nama Telegram di bagian atas daftar obrolan, dengan huruf dan warna judul itu sendiri. Ini hanya ada di ponsel ini. Mulai ulang Telegram untuk melihat perubahannya.
+# context: Look and feel page row title below the Your own chat list title switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s".
+Text for the chat list title	Teks untuk judul daftar obrolan
+# context: Summary under the Text for the chat list title row while nothing is saved. Your own chat list title is the switch above it.
+Type what shows in place of Telegram's name while Your own chat list title is on. Empty keeps Telegram's name.	Ketik apa yang tampil sebagai pengganti nama Telegram selama Judul daftar obrolan sendiri aktif. Jika kosong, nama Telegram tetap tampil.
+# context: Summary under the Text for the chat list title row once something is saved. %1$s is the text the person saved. Your own chat list title is the switch above it.
+%1$s shows in place of Telegram's name while Your own chat list title is on. Tap to change it.	%1$s tampil sebagai pengganti nama Telegram selama Judul daftar obrolan sendiri aktif. Ketuk untuk mengubahnya.
+# context: Label and hint of the one text field in the Text for the chat list title editor dialog.
+A short name	Nama pendek
+# context: Instructions at the top of the Text for the chat list title editor dialog. Your own chat list title is the switch on the same page.
+Shown in place of Telegram's name at the top of the chat list while Your own chat list title is on, in the title's own font and color. It stays on this phone, so nothing goes to Telegram. Leave it empty to keep Telegram's name, and restart Telegram to see a change.	Tampil sebagai pengganti nama Telegram di bagian atas daftar obrolan selama Judul daftar obrolan sendiri aktif, dengan huruf dan warna judul itu sendiri. Ini tetap di ponsel ini, jadi tidak ada yang dikirim ke Telegram. Kosongkan untuk mempertahankan nama Telegram, lalu mulai ulang Telegram untuk melihat perubahannya.
+# context: Error under the field and toast when the chat list title text is too long to save. Must fit two short toast lines.
+That's too long. Try a shorter name.	Terlalu panjang. Coba nama yang lebih pendek.
+# context: Error under the field and toast when saving the chat list title text failed. Must fit two short toast lines.
+Couldn't save the title. Try again in a moment.	Judul tidak tersimpan. Coba lagi sebentar lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that puts the person's own text in place of Telegram's name at the top of the chat list.
+your own chat list title	judul daftar obrolan sendiri
 Use system font	Gunakan font sistem
 Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	Teks tebal, miring, dan kode memakai font ponsel Anda, bukan font bawaan Telegram. Mulai ulang Telegram untuk melihat perubahannya.
 AMOLED black	Hitam AMOLED
 Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Tema Malam dan Gelap memakai layar hitam pekat. Gelembung pesan dan menu tetap berwarna. Mulai ulang Telegram untuk melihat perubahannya.
 Hide translate bar	Sembunyikan bilah terjemahan
 Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Obrolan dalam bahasa lain tidak lagi menampilkan bilah terjemahan di bagian atas. Terjemahkan pindah ke menu obrolan, dan obrolan yang sedang Anda terjemahkan tetap menampilkan bilahnya.
+# context: Conversations page switch title, below Hide translate bar. It hides the bar under a chat's top bar that shows the pinned message (Telegram's PinnedMessage strings).
+Hide pinned message bar	Sembunyikan bilah pesan yang disematkan
+# context: Summary under the Hide pinned message bar switch. The counter is the multi-pin indicator and the list button opens all pinned messages.
+The bar under a chat's top bar that shows pinned messages is gone, along with its counter and list button. Messages stay pinned and nothing is marked as read.	Bilah di bawah bilah atas obrolan yang menampilkan pesan yang disematkan hilang, bersama penghitung dan tombol daftarnya. Pesan tetap disematkan dan tidak ada yang ditandai sudah dibaca.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide translate bar that hides the pinned message bar in chats.
+pinned message bar in chats	bilah pesan yang disematkan di obrolan
 Exact numbers	Angka lengkap
 Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Jumlah anggota, pelanggan, tayangan, balasan, dan reaksi ditampilkan lengkap, misalnya 12.345 dan bukan 12,3 rb.
 Reveal spoilers	Tampilkan spoiler
@@ -440,6 +466,9 @@ Messages others delete stay in your chat on this phone, marked deleted next to t
 Show deleted in red	Tampilkan dihapus dengan warna merah
 # context: that switch's summary. "deleted" is the label shown next to the time, "Keep deleted messages" the name of the switch above it.
 The deleted label next to a kept message's time turns red, so it stands out in the chat. Works with Keep deleted messages on.	Label dihapus di samping waktu pesan yang disimpan berubah merah, jadi lebih mudah terlihat di obrolan. Berfungsi saat Simpan pesan yang dihapus aktif.
+# context: Keep deleted messages sub-switch that also keeps your own messages when a chat is deleted for both sides.
+Keep my messages too	Simpan juga pesan saya
+When someone deletes a whole chat for both of you, your own messages stay here along with theirs. So do messages you delete on another of your devices. Works with Keep deleted messages on.	Saat seseorang menghapus seluruh obrolan untuk kalian berdua, pesan Anda sendiri tetap ada di sini bersama pesannya. Begitu juga pesan yang Anda hapus di perangkat Anda yang lain. Berfungsi saat Simpan pesan yang dihapus aktif.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that draws the deleted label in red.
 red deleted label	label dihapus berwarna merah
 # context: an action row under Keep deleted messages; a tap deletes every message that switch kept
@@ -453,6 +482,16 @@ Removing %1$d kept messages.	Menghapus %1$d pesan yang disimpan.
 # context: the notice once Telegram has finished removing them, with how many went
 Removed %1$d kept message.	%1$d pesan yang disimpan telah dihapus.
 Removed %1$d kept messages.	%1$d pesan yang disimpan telah dihapus.
+# context: A row under Clear kept messages on the Keep deleted messages page (#91). A tap lists how long a kept deleted message stays on the phone before it's removed: Never, 1 day, 7 days, 30 days, 90 days.
+Remove kept messages after	Hapus pesan yang disimpan setelah
+# context: Line under Remove kept messages after when it's set to Never. Clear kept messages is the name of the row above it.
+Kept messages stay until you clear them.	Pesan yang disimpan tetap ada sampai Anda menghapusnya.
+# context: Line under Remove kept messages after once a number of days is picked, singular. The days count from when the other person deleted the message.
+Kept messages are removed %1$d day after they were deleted.	Pesan yang disimpan dihapus %1$d hari setelah pesan itu dihapus.
+# context: The same line, plural.
+Kept messages are removed %1$d days after they were deleted.	Pesan yang disimpan dihapus %1$d hari setelah pesan itu dihapus.
+# context: The first choice in the Remove kept messages after list, and how a settings file's preview names it: kept messages are never removed on their own.
+Never	Tidak pernah
 # context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
 Keep edit history	Simpan riwayat edit
 # context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
@@ -467,6 +506,22 @@ Keep view-once and timed media	Simpan media sekali lihat dan berwaktu
 View-once and timed photos, videos and voice messages someone sends you stay in the chat after you open them, with no timer. The sender doesn't see them opened. Secret chats work as usual.	Foto, video, dan pesan suara sekali lihat atau berwaktu yang dikirim orang kepada Anda tetap ada di obrolan setelah Anda membukanya, tanpa penghitung waktu. Pengirim tidak melihat bahwa Anda membukanya. Obrolan rahasia berfungsi seperti biasa.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps view-once and timed media.
 view-once and timed media	media sekali lihat dan berwaktu
+# context: a fifth switch under Keep deleted messages (#82). Turned on, messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still goes on their own timer. Same secret chat term as Also save from secret chats.
+Keep self-destructing secret chat messages	Simpan pesan hancur otomatis di obrolan rahasia
+# context: that switch's summary. "They aren't told" means the other person gets no notice that the messages were kept.
+Messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still disappears on their own timer, and they aren't told.	Pesan, foto, dan video di obrolan rahasia tetap ada di ponsel ini saat penghitung waktu hancur otomatisnya habis. Salinan milik orang lain tetap hilang sesuai penghitung waktunya sendiri, dan mereka tidak diberi tahu.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps self-destructing secret chat messages.
+self-destructing secret chat messages	pesan hancur otomatis di obrolan rahasia
+# context: a sixth switch under Keep deleted messages (#71). Turned on, a group or channel that removes you or bans you stays in the chat list with the messages this phone already saved, and opens read-only. Same removed and banned terms Telegram uses for a member an admin takes out.
+Keep chats you're removed from	Simpan obrolan tempat Anda dikeluarkan
+# context: that switch's summary. "Let it go" means deleting the kept chat from the chat list removes it for good, from the list and from this phone.
+When a group or channel removes or bans you, it stays in your chats with what this phone saved, and you can still open and scroll it. Delete it from the chat list to let it go.	Saat grup atau saluran mengeluarkan atau memblokir Anda, obrolannya tetap ada di daftar obrolan Anda dengan isi yang disimpan ponsel ini, dan Anda masih bisa membuka serta menggulirnya. Hapus dari daftar obrolan untuk membuangnya sepenuhnya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps chats you're removed from.
+chats you're removed from	obrolan tempat Anda dikeluarkan
+# context: Toast when you open a chat Keep chats you're removed from kept, in place of Telegram's alert that the chat can't be opened. Short, two lines at most.
+You were removed. This is what's saved on this phone.	Anda dikeluarkan. Ini yang tersimpan di ponsel ini.
+# context: Name of the list Keep chats you're removed from keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats you were removed from	Obrolan tempat Anda dikeluarkan
 Forgets the earlier text this phone kept for edited messages, in every account.	Melupakan teks lama yang disimpan ponsel ini untuk pesan yang diedit, di setiap akun.
 # context: the notice after that tap when nothing was kept. A toast: two short lines at most.
 There's no edit history to clear.	Tidak ada riwayat edit untuk dihapus.
@@ -490,10 +545,24 @@ Lots to translate at once. The rest will follow.	Banyak yang diterjemahkan sekal
 Turn chat translation on again. It's now set per account.	Nyalakan lagi terjemahan obrolan. Sekarang diatur per akun.
 Ask before sending a GIF	Tanya dulu sebelum mengirim GIF
 Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Menanyakan Kirim atau Batal sebelum GIF yang Anda ketuk masuk ke obrolan. Batal membuangnya. GIF terjadwal terkirim tanpa bertanya.
-Ask before sending a voice or video message	Tanya dulu sebelum mengirim pesan suara atau video
-Asks Send or Cancel before a voice or video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Menanyakan Kirim atau Batal sebelum pesan suara atau video yang Anda rekam terkirim. Rekaman dijeda dulu, dan Batal membiarkannya terjeda, siap diputar, dihapus, atau dikirim.
+# context: Title of the switch on the Conversations page, next to Ask before sending a GIF (#79), that asks before a recorded voice message goes out
+Ask before sending a voice message	Tanya dulu sebelum mengirim pesan suara
+# context: Summary of the Ask before sending a voice message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a voice message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Menanyakan Kirim atau Batal sebelum pesan suara yang Anda rekam terkirim. Rekaman dijeda dulu, dan Batal membiarkannya terjeda, siap diputar, dihapus, atau dikirim.
+# context: Title of the switch on the Conversations page (#79) that asks before a recorded round video message (Telegram's video in a circle) goes out
+Ask before sending a round video message	Tanya dulu sebelum mengirim pesan video bulat
+# context: Summary of the Ask before sending a round video message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a round video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Menanyakan Kirim atau Batal sebelum pesan video bulat yang Anda rekam terkirim. Rekaman dijeda dulu, dan Batal membiarkannya terjeda, siap diputar, dihapus, atau dikirim.
+# context: Title of the switch on the Conversations page (#79) that asks before a typed text message goes out
+Ask before sending a message	Tanya dulu sebelum mengirim pesan
+# context: Summary of the Ask before sending a message switch. Send and Cancel are the dialog's buttons; silent messages are the ones sent without sound from the send button's menu
+Asks Send or Cancel before the send button or the keyboard's send key sends what you typed. Cancel leaves the text as it was. Scheduled and silent messages, edits and forwards go out without asking.	Menanyakan Kirim atau Batal sebelum tombol kirim atau tombol kirim di keyboard mengirim yang Anda ketik. Batal membiarkan teksnya seperti semula. Pesan terjadwal dan senyap, suntingan, serta terusan terkirim tanpa bertanya.
 Ask before starting a call	Tanya dulu sebelum memulai panggilan
 Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Menanyakan Panggil atau Batal sebelum tombol panggilan di obrolan atau profil memulai panggilan.
+# context: Title of the switch on the Conversations page (#79) that asks before you join a group's voice chat or a channel's live stream
+Ask before joining a voice chat	Tanya dulu sebelum bergabung ke obrolan suara
+# context: Summary of the Ask before joining a voice chat switch. Join and Cancel are the dialog's buttons
+Asks Join or Cancel before you join a group's voice chat or a channel's live stream. Starting a new one doesn't ask.	Menanyakan Gabung atau Batal sebelum Anda bergabung ke obrolan suara grup atau siaran langsung kanal. Memulai yang baru tidak bertanya.
 Send sticker	Kirim stiker
 Send this sticker to this chat?	Kirim stiker ini ke obrolan ini?
 Send GIF	Kirim GIF
@@ -507,6 +576,20 @@ Start a call	Mulai panggilan
 Start a voice call?	Mulai panggilan suara?
 Start a video call?	Mulai panggilan video?
 Call	Panggil
+# context: Title of the dialog that asks before a typed message goes out (#79)
+Send message	Kirim pesan
+# context: The question in that dialog, above its Send and Cancel buttons
+Send this message to this chat?	Kirim pesan ini ke obrolan ini?
+# context: Title of the dialog that asks before you join a group's voice chat (#79)
+Join voice chat	Gabung obrolan suara
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this voice chat?	Bergabung ke obrolan suara ini?
+# context: Title of the dialog that asks before you join a channel's live stream (#79)
+Join live stream	Gabung siaran langsung
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this live stream?	Bergabung ke siaran langsung ini?
+# context: The button in those two dialogs that joins the voice chat or live stream
+Join	Gabung
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	dihapus
 Add Copy photo to the message menu	Tambahkan Salin foto ke menu pesan
@@ -525,6 +608,16 @@ Original sender ID: %1$s	ID pengirim asli: %1$s
 Originally sent: %1$s	Awalnya dikirim: %1$s
 File data center: %1$s	Pusat data file: %1$s
 File size: %1$s	Ukuran file: %1$s
+# context: a line in Message details (#87): the attached file's name as it was sent
+File name: %1$s	Nama file: %1$s
+# context: a line in Message details (#87): the file's MIME type, such as video/mp4. Keep the word MIME as is
+MIME type: %1$s	Tipe MIME: %1$s
+# context: a line in Message details (#87): a photo's or video's size in pixels, width x height, such as 1920x1080
+Resolution: %1$s	Resolusi: %1$s
+# context: a line in Message details (#87): a song's, voice message's or video's length, such as 1:02:09
+Duration: %1$s	Durasi: %1$s
+# context: a line in Message details (#87): the file's average bitrate in kilobits a second, worked out from its size and length. %1$s is a whole number
+Bitrate: %1$s kbps	Laju bit: %1$s kbps
 Copy	Salin
 Message details copied	Detail pesan disalin
 Add Quick forward to the message menu	Tambahkan Teruskan cepat ke menu pesan
@@ -738,11 +831,14 @@ Each file or song you download also goes to Download/Telegram on your phone, whe
 # context: a second switch under Save downloaded files (#29). Turned on, it also copies files from chats whose owner turned on Telegram's content protection. Secret chats stay excluded.
 Also save from chats that don't allow saving	Simpan juga dari obrolan yang tidak mengizinkan penyimpanan
 # context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
-With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	Saat Simpan file yang diunduh aktif, file dari obrolan yang pemiliknya mematikan penyimpanan juga ikut disalin. Pakai hanya jika pemiliknya tidak keberatan kamu menyimpan salinan, karena ini melewati pengaturannya. Obrolan rahasia tetap di Telegram.
+With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats need Also save from secret chats too.	Saat Simpan file yang diunduh aktif, file dari obrolan yang pemiliknya mematikan penyimpanan juga ikut disalin. Pakai hanya jika pemiliknya tidak keberatan kamu menyimpan salinan, karena ini melewati pengaturannya. Obrolan rahasia juga perlu Simpan juga dari obrolan rahasia.
 # context: a third switch under Save downloaded files (#9). Turned on, it also copies view-once and self-destructing (timed) photos, videos, voice and video messages. Secret chats stay excluded.
 Also save view-once and timed media	Simpan juga media sekali lihat dan berwaktu
 # context: that switch's summary, a warning that it goes past the sender's choice to have the media disappear. "Save downloaded files" is the name of the first switch.
-With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.	Saat Simpan file yang diunduh aktif, foto, video, pesan suara, dan pesan video sekali lihat atau yang bisa hancur sendiri juga disalin ke Download/Telegram saat diunduh. Pengirimnya ingin media itu hilang, jadi pakai hanya jika dia tidak keberatan kamu menyimpan salinan. Obrolan rahasia tetap di Telegram.
+With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret chats too.	Saat Simpan file yang diunduh aktif, foto, video, pesan suara, dan pesan video sekali lihat atau yang bisa hancur sendiri juga disalin ke Download/Telegram saat diunduh. Pengirimnya ingin media itu hilang, jadi pakai hanya jika dia tidak keberatan kamu menyimpan salinan. Obrolan rahasia juga perlu Simpan juga dari obrolan rahasia.
+# context: a fourth switch under Save downloaded files (#82). Turned on, it also copies files, photos and videos from Telegram secret chats, on top of Also save from chats that don't allow saving. The names in it are the switches above it and the message menu item Save to Downloads.
+Also save from secret chats	Simpan juga dari obrolan rahasia
+Works with Also save from chats that don't allow saving on. Files, photos and videos from secret chats get copied too, and the message menu's Save to Downloads shows up there. Their view-once and timed media also need Also save view-once and timed media. A secret chat is meant to stay on your two phones, so only use it where the other person is fine with that.	Berfungsi saat Simpan juga dari obrolan yang tidak mengizinkan penyimpanan aktif. File, foto, dan video dari obrolan rahasia juga ikut disalin, dan Simpan ke Unduhan muncul di menu pesan di sana. Media sekali lihat dan berwaktunya juga perlu Simpan juga media sekali lihat dan berwaktu. Obrolan rahasia dimaksudkan hanya ada di dua ponsel kalian, jadi pakai hanya jika orang itu tidak keberatan.
 # context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
 Folders by chat type	Folder menurut jenis obrolan
 # context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
@@ -1013,7 +1109,7 @@ Couldn't read your chats.	Obrolan Anda tidak dapat dibaca.
 # context: Toast when Chats to hide is tapped and the account has no chats
 You don't have any chats yet.	Anda belum punya obrolan.
 # context: Toast when the ticked chats couldn't be written to the phone's storage
-Couldn't save the chats. Try again in a moment.	Obrolan tidak dapat disimpan. Coba lagi sebentar lagi.
+Couldn't save the chats. Try again in a moment.	Obrolan gagal disimpan. Coba lagi sebentar lagi.
 # context: Item in the chat list's long press menu (the three dots, under Block). It hides the selected chats from the chat list
 Hide from chat list	Sembunyikan dari daftar obrolan
 # context: Toast after the long press menu's Hide from chat list hid the selected chats
@@ -1161,7 +1257,10 @@ Puts Save to Gallery in a story's three-dot menu without Premium, stories that d
 Save to Gallery in stories	Simpan ke Galeri di Cerita
 # context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
 Allow screenshots in chats that don't allow saving	Izinkan tangkapan layar di obrolan yang tidak mengizinkan penyimpanan
-Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Tangkapan layar dan rekaman layar berfungsi di obrolan tersebut, beserta foto, profil, dan ceritanya. Telegram tidak memberi tahu siapa pun. Obrolan rahasia, media sekali lihat, dan layar kode sandi tetap diblokir.
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats need Also allow screenshots in secret chats. View-once media and the passcode screen stay blocked.	Tangkapan layar dan rekaman layar berfungsi di obrolan tersebut, beserta foto, profil, dan ceritanya. Telegram tidak memberi tahu siapa pun. Obrolan rahasia memerlukan Izinkan juga tangkapan layar di obrolan rahasia. Media sekali lihat dan layar kode sandi tetap diblokir.
+# context: Switch under Allow screenshots in chats that don't allow saving (#82). Turned on with it, screenshots and screen recording work in secret chats, their photo viewer and profile too. Telegram sends the other person a screenshot notice unless the Suppress screenshot notification patch is on. View-once media keeps its own block.
+Also allow screenshots in secret chats	Izinkan juga tangkapan layar di obrolan rahasia
+Works with Allow screenshots in chats that don't allow saving on. Secret chats, their photos and profiles can be captured too. Telegram tells the other person when you take one, unless Suppress screenshot notification is on. Their view-once media stays blocked.	Berfungsi saat Izinkan tangkapan layar di obrolan yang tidak mengizinkan penyimpanan aktif. Obrolan rahasia, beserta foto dan profilnya, juga bisa ditangkap. Telegram memberi tahu orang lain itu saat kamu mengambilnya, kecuali Sembunyikan notifikasi tangkapan layar aktif. Media sekali lihatnya tetap diblokir.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
 screenshots in chats that don't allow saving	tangkapan layar di obrolan yang tidak mengizinkan penyimpanan
 # context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
@@ -1399,6 +1498,20 @@ Start videos without sound	Mulai video tanpa suara
 A video you open plays muted until you press a volume key. Round videos keep their sound.	Video yang kamu buka diputar tanpa suara sampai kamu menekan tombol volume. Video bulat tetap bersuara.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
 videos starting without sound	memulai video tanpa suara
+# context: a switch under Keep videos muted on volume keys (#79). With it on, Telegram's video viewer menu offers a choice of audio track and subtitles.
+Audio track and subtitles	Trek audio dan subtitel
+# context: that switch's summary. Audio track and Subtitles are the names of the two rows it adds to the menu that opens from the three dots in Telegram's video viewer.
+A video's settings menu gets Audio track when the video has more than one, and Subtitles when it has any. The subtitles you pick show over the video.	Menu pengaturan video mendapat Trek audio jika video punya lebih dari satu, dan Subtitel jika ada. Subtitel yang kamu pilih tampil di atas video.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets you pick a video's audio track and subtitles.
+audio track and subtitle choice	memilih trek audio dan subtitel
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which audio track (language) of a video plays.
+Audio track	Trek audio
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which subtitles show over a video.
+Subtitles	Subtitel
+# context: the first choice in the Audio track list. Telegram's player picks the audio track itself.
+Automatic	Otomatis
+# context: a name for an audio or subtitle track that has no language or label. %1$d is its place in the list, starting at 1.
+Track %1$d	Trek %1$d
 # context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
 Ghost mode button	Tombol Mode hantu
 # context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
@@ -1536,7 +1649,7 @@ No rules yet.	Belum ada aturan.
 %1$s to %2$s, media only	%1$s ke %2$s, hanya media
 Add rule	Tambah aturan
 Tap a rule to remove it	Ketuk aturan untuk menghapusnya
-Couldn't save the rules. Try again in a moment.	Aturan tidak dapat disimpan. Coba lagi sebentar lagi.
+Couldn't save the rules. Try again in a moment.	Aturan tidak tersimpan. Coba lagi sebentar lagi.
 Rule removed	Aturan dihapus
 A rule needs two chats.	Aturan butuh dua obrolan.
 Forward new messages from	Teruskan pesan baru dari
@@ -1762,6 +1875,12 @@ Add Delete for them to the message menu	Tambahkan Hapus untuk orang lain ke menu
 Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Menambahkan Hapus untuk orang lain pada pesan Anda sendiri di chat dan grup. Pesan dihapus untuk semua orang lain dan tetap ada di ponsel ini, ditandai dihapus. Hapus pesan yang disimpan juga menghapusnya di sini.
 # context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
 Deleted for them, kept here.	Dihapus untuk orang lain, tetap di sini.
+# context: Title of the switch on the Conversations page under Add Repeat to the message menu (#83). Also delete for is the checkbox in Telegram's delete messages dialog, "Also delete for [name]" (key DeleteMessagesOptionAlso on translations.telegram.org). Telegram's Indonesian label is "Hapus juga untuk %1$s", written here with the name left out as an ellipsis
+Check Also delete for by default	Centang Hapus juga untuk… secara default
+# context: Summary of the Check Also delete for by default switch. Also delete for is the checkbox in Telegram's delete messages dialog (key DeleteMessagesOptionAlso), offered only in a chat with one person. Telegram's Indonesian label is "Hapus juga untuk %1$s", written here with the name left out as an ellipsis
+When you delete messages in a chat with a person, Telegram's Also delete for box starts checked, so they're deleted for both of you. Uncheck it to delete them just for you.	Saat Anda menghapus pesan di chat dengan seseorang, kotak Hapus juga untuk… dari Telegram sudah dicentang, jadi pesan dihapus untuk Anda berdua. Hapus centangnya untuk menghapus hanya untuk Anda.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Check Also delete for by default switch (key DeleteMessagesOptionAlso). Telegram's Indonesian label is "Hapus juga untuk %1$s", written here with the name left out as an ellipsis
+checking Also delete for by default	mencentang Hapus juga untuk… secara default
 # context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
 Lyrics	Lirik
 # context: Line in the lyrics panel while the song's lyrics load
@@ -1784,6 +1903,10 @@ Dates on your profile songs	Tanggal di lagu profil Anda
 Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	Lagu yang Anda tambahkan ke profil mulai sekarang menampilkan hari Anda menambahkannya, setelah nama artis. Tanggalnya hanya disimpan di ponsel ini.
 # context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
 dates on your profile songs	tanggal di lagu profil
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before a typed message goes out (#79)
+asking before a typed message goes out	pertanyaan sebelum pesan yang diketik terkirim
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before you join a voice chat or live stream (#79)
+asking before you join a voice chat	pertanyaan sebelum Anda bergabung ke obrolan suara
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
 Open chat	Buka chat
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
@@ -1917,3 +2040,333 @@ Skip between voice messages	Lompat antar pesan suara
 Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Tombol berikutnya dan sebelumnya di headphone, di mobil, di notifikasi, di layar kunci, dan di pemutar musik penuh berpindah antar pesan suara dalam obrolan, seperti pada lagu.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
 skipping between voice messages	lompat antar pesan suara
+# context: Row title on the Privacy page (#79), under Don't notify contacts, and the title of its dialog. Active sessions is the list under Settings > Devices in Telegram, so use Telegram's own word for it in your language
+Device in Active sessions	Perangkat di Sesi aktif
+# context: Summary under that row. %1$s is the device name and %2$s the system version your other phones and computers show for this one, for example samsungSM-S901U and SDK 36
+Your other sessions see %1$s, %2$s.	Sesi Anda yang lain melihat %1$s, %2$s.
+# context: Instructions at the top of that dialog. Settings and Devices are Telegram's own menu names, so use Telegram's words in your language. Each box left empty sends what Telegram would send anyway
+Settings > Devices on your other phones and computers shows this phone with these. Leave a box empty for what Telegram sends, and restart Telegram after a change.	Pengaturan > Perangkat di ponsel dan komputer Anda yang lain menampilkan ponsel ini dengan data ini. Biarkan kotak kosong untuk memakai yang dikirim Telegram, dan mulai ulang Telegram setelah perubahan.
+# context: Label over the first box in that dialog, the name your other sessions show for this phone
+Device name	Nama perangkat
+# context: Label over the second box in that dialog, shown beside the device name, for example SDK 36
+System version	Versi sistem
+# context: Shown when saving the device name and system version didn't work
+Couldn't save the device. Try again in a moment.	Perangkat tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: Lowercase noun phrase naming the Device in Active sessions row (#79) in the patch status list
+the device in Active sessions	perangkat di Sesi aktif
+# context: Item in a message's long-press menu (#79) while Ghost mode keeps the chat's read receipts back. It tells the sender this message, and the ones before it, were read
+Send read receipt	Kirim laporan dibaca
+# context: Shown once the read receipt for that message has gone out
+Read receipt sent.	Laporan dibaca terkirim.
+# context: Shown when the read receipt for that message couldn't go out
+Couldn't send the read receipt. Try again.	Laporan dibaca tidak dapat dikirim. Coba lagi.
+# context: Row in a person's profile menu (#79), under the ID row. %1$s is a month and year such as "March 2016", already in the phone's language. It's an estimate worked out from the user ID
+Registered about %1$s	Terdaftar sekitar %1$s
+# context: Row in a person's profile menu (#79) for an account newer than every known point. %1$s is a month and year such as "September 2026", already in the phone's language
+Registered after %1$s	Terdaftar setelah %1$s
+# context: Spoken label of a profile menu row that copies its own text when tapped. %1$s is the row's text
+Copy %1$s	Salin %1$s
+# context: Short message after the registration month row in a profile menu was tapped and its text copied
+Registration date copied	Tanggal pendaftaran disalin
+# context: Title of a switch under Show user and chat IDs (#79). It adds about when a person's account was made to their profile menu
+Show when an account was made	Tampilkan kapan akun dibuat
+# context: Summary under the Show when an account was made switch
+A person's profile menu also shows about which month they joined Telegram, worked out from their user ID. It's an estimate, and nothing is asked of Telegram. Bots, groups and channels get none.	Menu profil seseorang juga menampilkan kira-kira bulan apa ia bergabung dengan Telegram, dihitung dari ID penggunanya. Ini hanya perkiraan, dan Telegram tidak dimintai apa pun. Bot, grup, dan kanal tidak mendapatkannya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows about when an account was made
+account registration dates	tanggal pendaftaran akun
+# context: Second line of a row in a group's member list (#79). %1$s is Telegram's own text there, such as "last seen recently" or "online", and %2$s is the date and time the person joined the group, already written the way the phone writes dates
+%1$s · joined %2$s	%1$s · bergabung %2$s
+# context: Title of a switch under Show user and chat IDs (#79). It adds when each person joined to a group's member lists
+Show when members joined	Tampilkan kapan anggota bergabung
+# context: Summary under the Show when members joined switch. Members is the title of Telegram's page listing a group's members (Telegram key ChannelMembers); last seen is the text Telegram shows under a person's name
+A group's member lists, on its profile and its Members page, also show when each person joined, next to their last seen. The date comes with the list, so nothing more is asked of Telegram. Admins and the owner keep their role.	Daftar anggota grup, di profilnya dan di halaman Anggota, juga menampilkan kapan setiap orang bergabung, di samping terakhir dilihat. Tanggalnya ikut bersama daftar, jadi Telegram tidak dimintai apa pun lagi. Admin dan pemilik tetap menampilkan perannya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when each person joined a group
+member join dates	tanggal bergabung anggota
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Pin chats on this phone is on (#79). It pins the selected chats on this phone only, without Telegram's own pin
+Pin on this phone	Sematkan di ponsel ini
+# context: Item in the chat list's long press menu in place of Pin on this phone when every selected chat is already pinned that way (#79). It takes them off this phone's pins
+Unpin on this phone	Lepas sematan di ponsel ini
+# context: Toast after Pin on this phone. All Chats is Telegram's name for the first folder tab (Telegram key FilterAllChats); use the name Telegram shows in that language. Two short lines at most
+Pinned in All Chats on this phone.	Disematkan di Semua Obrolan di ponsel ini.
+# context: Toast after Unpin on this phone. Two short lines at most
+Unpinned on this phone.	Sematan di ponsel ini dilepas.
+# context: Toast when Pin on this phone would go past the limit. %1$d is the most chats one phone keeps pinned this way, 20 today. Two short lines at most
+You can pin up to %1$d chats on this phone.	Anda bisa menyematkan hingga %1$d chat di ponsel ini.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#79). With it on, the long press menu offers Pin on this phone
+Pin chats on this phone	Sematkan chat di ponsel ini
+# context: Summary of Pin chats on this phone. Pin on this phone is the long press menu item above; All Chats is Telegram's first folder tab (Telegram key FilterAllChats); the pin limit is how many chats Telegram lets you pin
+Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and Telegram's pin limit stay as they are.	Menambahkan Sematkan di ponsel ini ke menu tekan lama di daftar obrolan. Chat itu berada tepat di bawah chat yang Anda sematkan di Semua Obrolan, yang terbaru lebih dulu. Tidak ada yang dikirim ke Telegram, jadi perangkat Anda yang lain dan batas sematan Telegram tetap seperti biasa.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that pins chats on this phone only
+chats pinned on this phone	chat yang disematkan di ponsel ini
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#89). With it on, chat pictures (avatars) in the chat list show at the size picked under Avatar size, a percent of Telegram's own size
+Change avatar size	Ubah ukuran avatar
+# context: Summary of Change avatar size. The size is picked in the Avatar size row right below it; each chat list row keeps its height and the picture shrinks or grows around its own center
+Chat pictures in the chat list show at the size you pick below. Each row keeps its height, and the picture stays centered where Telegram puts it.	Foto chat di daftar chat tampil dengan ukuran yang kamu pilih di bawah. Setiap baris tetap setinggi semula, dan fotonya tetap di tengah tempat Telegram menaruhnya.
+# context: Row title and dialog title. The person picks the chat list's avatar size as a percent of Telegram's own size (70%, 80%, 90%, 110% or 120%); the row's summary reads "%1$s of Telegram's size"
+Avatar size	Ukuran avatar
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that changes the size of chat pictures in the chat list
+avatar size in the chat list	ukuran avatar di daftar chat
+# context: Name of the list Pin on this phone keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats pinned on this phone	Chat yang disematkan di ponsel ini
+# context: Count of chats in the import preview, singular form. %1$d is the number
+%1$d chat	%1$d chat
+# context: Count of chats in the import preview, plural form. %1$d is the number
+%1$d chats	%1$d chat
+# context: Item at the end of the menu that opens from the top of the chat list (New Group, Saved Messages and so on), shown while Do Not Disturb in the chat list menu is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn on Do Not Disturb	Aktifkan Jangan Ganggu
+# context: The same chat list menu item while Do Not Disturb is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn off Do Not Disturb	Nonaktifkan Jangan Ganggu
+# context: Toast after Turn on Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is on.	Jangan Ganggu aktif.
+# context: Toast after Turn off Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is off.	Jangan Ganggu nonaktif.
+# context: Switch title on the Chat list page under Proxy in the chat list menu, off by default (#79). With it on, the menu at the top of the chat list gets a Do Not Disturb item. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb in the chat list menu	Jangan Ganggu di menu daftar obrolan
+# context: Summary of Do Not Disturb in the chat list menu. The menu is the one that opens from the top of the chat list; a message notification is the one Telegram posts for a new message; calls still ring
+Adds Do Not Disturb to the menu at the top of the chat list. While it's on, no message notification shows or makes a sound, and messages still arrive. Calls ring as usual.	Menambahkan Jangan Ganggu ke menu di atas daftar obrolan. Selama aktif, tidak ada notifikasi pesan yang muncul atau berbunyi, dan pesan tetap masuk. Panggilan tetap berdering seperti biasa.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Do Not Disturb item that Proxy in the chat list menu adds to the menu at the top of the chat list. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb menu item	item menu Jangan Ganggu
+# context: Privacy page switch under Draft link previews. It makes the preview of a link you send come from another site, the way the rules in Link preview rules say
+Fix link previews	Perbaiki pratinjau tautan
+# context: Line under the Fix link previews switch. fixupx.com and x.com are web sites and stay as they are
+When you send a link to a site in your rules, its preview comes from the other site the rule names, like fixupx.com for x.com. Your message keeps the link you typed.	Saat Anda mengirim tautan ke situs dalam aturan Anda, pratinjaunya diambil dari situs lain yang disebut aturan itu, misalnya fixupx.com untuk x.com. Pesan Anda tetap memuat tautan yang Anda ketik.
+# context: Privacy page row title under the Fix link previews switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s"
+Link preview rules	Aturan pratinjau tautan
+# context: Summary of the Link preview rules row when it holds no rules. x.com -> fixupx.com is a rule as typed and stays as it is
+No rules yet. Add one per line, like x.com/*/status -> fixupx.com.	Belum ada aturan. Tambahkan satu per baris, misalnya x.com/*/status -> fixupx.com.
+# context: Summary of the Link preview rules row with the number of rules. Fix link previews is the name of the switch above it
+Rules: %1$s. Fix link previews follows these for the links you send.	Aturan: %1$s. Perbaiki pratinjau tautan mengikutinya untuk tautan yang Anda kirim.
+# context: Hint and label of the box in the Link preview rules dialog, where each line is one rule. x.com -> fixupx.com stays as it is
+One rule per line, like x.com/*/status -> fixupx.com	Satu aturan per baris, misalnya x.com/*/status -> fixupx.com
+# context: Note in the Link preview rules dialog. The arrow is the -> typed between two sites; *. and the sites stay as they are
+Each line is a site, an arrow and the site its previews come from. Put *. in front of both to cover subdomains too, like *.tiktok.com -> *.kktiktok.com. A path after the first site covers only links that start with it, * standing for any one part, like x.com/*/status -> fixupx.com. Lines that aren't rules are left out.	Setiap baris berisi situs, tanda panah, dan situs asal pratinjaunya. Tambahkan *. di depan keduanya untuk mencakup subdomain juga, misalnya *.tiktok.com -> *.kktiktok.com. Jalur setelah situs pertama hanya mencakup tautan yang diawali dengannya, dengan * untuk satu bagian apa pun, misalnya x.com/*/status -> fixupx.com. Baris yang bukan aturan dilewati.
+# context: Button in the Link preview rules dialog, next to Save and Cancel. It puts the starting rules back in the box. Short
+Default rules	Aturan bawaan
+# context: Toast when the rules typed in Link preview rules are too long to keep. Two short lines at most.
+Too many rules to keep. Take some out.	Terlalu banyak aturan. Hapus beberapa.
+# context: Toast after saving Link preview rules when some lines weren't rules; %1$s is how many were left out. Two short lines at most.
+Lines left out: %1$s. They aren't rules.	Baris yang dilewati: %1$s. Itu bukan aturan.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Draft link previews that points a sent link's preview at another site
+link preview rules	aturan pratinjau tautan
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's one
+%1$d rule	%1$d aturan
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's more than one
+%1$d rules	%1$d aturan
+# context: Playback page switch under Save downloaded files. It gives APK and EXE files their own icon and shows a downloaded PDF's first page or a video's frame as the file's picture
+File icons and thumbnails	Ikon dan thumbnail file
+# context: Line under the File icons and thumbnails switch. APK, EXE and PDF are file types and stay as they are. Shared media is the page of a chat's photos, files and links
+APK and EXE files get their own icon in chats and in Shared media. Once downloaded, a PDF shows its first page and a video a frame from it. Files with a thumbnail from Telegram keep it.	File APK dan EXE mendapat ikon sendiri di chat dan di media bersama. Setelah diunduh, PDF menampilkan halaman pertamanya dan video menampilkan satu bingkai darinya. File yang punya thumbnail dari Telegram tetap memakainya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in chat bubbles
+file icons and thumbnails in chats	ikon dan thumbnail file di chat
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in a chat's Shared media page
+file icons and thumbnails in Shared media	ikon dan thumbnail file di media bersama
+# context: Playback page switch under Save downloaded files, off by default (#79). With it on, a file Telegram already has on the phone shows as downloaded instead of with a download button.
+Recognize files you already have	Kenali file yang sudah kamu punya
+# context: Line under the Recognize files you already have switch. Keep Telegram's files in internal storage is the name of another switch on the same page, so use its translation.
+A file Telegram already downloaded, in another account for example, shows as downloaded here too when its folders hold one with the same name and size. With Keep Telegram's files in internal storage on, files from before a reinstall count too.	File yang sudah diunduh Telegram, misalnya di akun lain, juga tampil sebagai terunduh di sini jika foldernya berisi file dengan nama dan ukuran yang sama. Dengan Simpan file Telegram di penyimpanan internal aktif, file dari sebelum instal ulang juga dihitung.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that shows files already on the phone as downloaded.
+how files you already have show up	cara file yang sudah kamu punya ditampilkan
+# context: Switch title on the Look and feel page under AMOLED black, off by default (#88). It shows a picture from the gallery behind Telegram's list screens.
+Picture behind the lists	Gambar di balik daftar
+# context: Summary of Picture behind the lists. Settings is Telegram's own Settings screen; built-in themes are the ones Telegram ships (Day, Classic, Night, Dark), not a theme installed from a file.
+Shows a picture from your gallery behind the chat list, Settings, profiles and the other lists. Chats keep their wallpaper, and menus and dialogs stay solid. Works with Telegram's built-in themes.	Menampilkan gambar dari galeri Anda di balik daftar obrolan, Pengaturan, profil, dan daftar lainnya. Obrolan tetap memakai wallpaper-nya, serta menu dan dialog tetap pekat. Berfungsi dengan tema bawaan Telegram.
+# context: Row title under Picture behind the lists. A tap picks the picture from the gallery, or changes how dim it is.
+Background picture	Gambar latar
+# context: Summary of the Background picture row before a picture is picked. Must fit two short lines.
+No picture yet. Tap to pick one.	Belum ada gambar. Ketuk untuk memilih.
+# context: Summary of the Background picture row once a picture is saved. %1$s is a percentage like 40%. Must fit two short lines.
+Dimmed by %1$s. Tap to change it.	Diredupkan %1$s. Ketuk untuk mengubahnya.
+# context: Title of the dialog that lists how much the background picture is dimmed (20%, 40%, 60%, 80%).
+Dim the picture	Redupkan gambar
+# context: Toast when the dim picked for the background picture could not be saved. Must fit two short toast lines.
+Couldn't save the dim. Try again in a moment.	Redup tidak tersimpan. Coba lagi sebentar lagi.
+# context: Button in the Dim the picture dialog that opens the gallery to pick a different background picture.
+Choose another picture	Pilih gambar lain
+# context: Button in the Dim the picture dialog. It deletes the background picture and turns Picture behind the lists off at once.
+Remove background	Hapus latar
+# context: Toast after Remove background. Must fit two short toast lines.
+Background removed.	Latar dihapus.
+# context: Toast when no app on the phone can pick a picture. Must fit two short toast lines.
+This phone has no gallery picker.	Ponsel ini tidak punya pemilih galeri.
+# context: Toast when the file picked for a background picture can't be read as a picture. Must fit two short toast lines.
+That file isn't a picture.	File itu bukan gambar.
+# context: Toast when the file picked for a background picture is over 40 MB. Must fit two short toast lines.
+That picture is too large.	Gambar itu terlalu besar.
+# context: Toast when copying the picked background picture into Telegram's files failed. Must fit two short toast lines.
+Couldn't save the picture. Try again.	Gambar tidak tersimpan. Coba lagi.
+# context: Toast once the picked picture is saved and shows behind the lists. Must fit two short toast lines.
+Background picture saved.	Gambar latar disimpan.
+# context: Label in the settings import preview, as in "Background dim: 40% to 60%". It names how much the background picture is dimmed.
+Background dim	Redup latar
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of AMOLED black that shows a gallery picture behind the list screens.
+a picture behind the lists	gambar di balik daftar
+# context: Row title on the Look and feel page under Your own chat list title (#86), and the label in the settings import preview, as in "Chat list banner: None to Ocean". A tap paints the chat list's top bar with two colors or a picture from the gallery.
+Chat list banner	Banner daftar obrolan
+# context: Name of a Chat list banner gradient, pink fading into violet. A color mood, not a time of day setting.
+Dusk	Senja
+# context: Name of a Chat list banner gradient, blue fading into sea green.
+Ocean	Samudra
+# context: Name of a Chat list banner gradient, green fading into olive.
+Forest	Hutan
+# context: Name of a Chat list banner gradient, orange fading into red, like glowing coals.
+Ember	Bara
+# context: Name of a Chat list banner gradient, two cool grays like slate stone.
+Slate	Batu sabak
+# context: What the Chat list banner row and the import preview call a banner made from a picture the person picked from the gallery.
+Your picture	Gambar Anda
+# context: Last choice in the Chat list banner list. Picking it opens the phone's gallery when no picture is saved yet.
+Picture from your gallery	Gambar dari galeri Anda
+# context: Summary of the Chat list banner row while no banner is set. Must fit two short lines.
+None. Tap to pick colors or a picture.	Tidak ada. Ketuk untuk memilih warna atau gambar.
+# context: Toast after None is picked for the Chat list banner. The bar looks like Telegram's own again. Must fit two short toast lines.
+Banner removed.	Banner dihapus.
+# context: Toast once the picture picked for the Chat list banner is saved and shows on the chat list's top bar. Must fit two short toast lines.
+Banner picture saved.	Gambar banner disimpan.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that paints the chat list's top bar with colors or a picture.
+the chat list banner	banner daftar obrolan
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Bookmark in the message menu and the Bookmarks page
+bookmarking messages	menyimpan markah pesan
+# context: Item in a message's long-press menu. It saves a bookmark of that message on this phone only, to open again later from the Bookmarks page
+Bookmark	Simpan markah
+# context: Item in a message's long-press menu when that message already has a bookmark. It removes the bookmark from this phone
+Remove bookmark	Hapus markah
+# context: Toast after Bookmark in the message menu saves the message. Must fit two short toast lines
+Bookmarked.	Markah disimpan.
+# context: Toast after Remove bookmark in the message menu, or Remove on the Bookmarks page. Must fit two short toast lines
+Bookmark removed.	Markah dihapus.
+# context: Toast when a bookmark couldn't be saved or removed on this phone. Must fit two short toast lines
+Couldn't save the bookmark. Try again.	Markah tidak tersimpan. Coba lagi.
+# context: Toast when Bookmark is tapped while the Bookmarks page is full. %1$d is the most it keeps (100). Must fit two short toast lines
+You can keep up to %1$d bookmarks.	Kamu bisa menyimpan hingga %1$d markah.
+# context: Sender name on the Bookmarks page for a message you sent yourself, as in "You: see you at 5"
+You	Kamu
+# context: Preview on the Bookmarks page for a bookmarked photo with no caption
+Photo	Foto
+# context: Preview on the Bookmarks page for a bookmarked video with no caption
+Video	Video
+# context: Preview on the Bookmarks page for a bookmarked message with no text, picture or file name (a sticker, poll or location)
+Message	Pesan
+# context: A bookmark's preview on the Bookmarks page. %1$s is who sent the message, %2$s is the start of its text
+%1$s: %2$s	%1$s: %2$s
+# context: Toast when a bookmark on the Bookmarks page belongs to a Telegram account that's no longer signed in on this phone. Must fit two short toast lines
+That account isn't signed in here.	Akun itu tidak masuk di sini.
+# context: Toast when a bookmark on the Bookmarks page is in a chat this phone no longer has. Must fit two short toast lines
+That chat isn't on this phone anymore.	Chat itu sudah tidak ada di ponsel ini.
+# context: Toast when a bookmark on the Bookmarks page is in a group or channel you've left. Must fit two short toast lines
+You're not in that chat anymore.	Kamu sudah tidak ada di chat itu.
+# context: Toast when a bookmarked message is no longer stored on this phone. The chat still opens. Must fit two short toast lines
+That message isn't on this phone anymore.	Pesan itu sudah tidak ada di ponsel ini.
+# context: Title of the Bookmarks page, its row on the Conversations page and in the side menu, and the line for them in a settings import preview
+Bookmarks	Markah
+# context: What the Bookmarks page shows while it's empty. Bookmark is the message menu item (use its translation)
+No bookmarks yet. Long-press a message and tap Bookmark.	Belum ada markah. Tekan lama sebuah pesan, lalu ketuk Simpan markah.
+# context: Button on each row of the Bookmarks page that removes that bookmark
+Remove	Hapus
+# context: Title of the switch on the Conversations page that adds Bookmark to a message's long-press menu. Bookmark is the menu item (use its translation)
+Add Bookmark to the message menu	Tambahkan Simpan markah ke menu pesan
+# context: Summary of the Add Bookmark to the message menu switch. Bookmark is the menu item and Bookmarks the page (use their translations)
+Adds Bookmark to any message, post, photo, video or file. Bookmarks stay on this phone only. Tap one on the Bookmarks page to open its chat at that message.	Menambahkan Simpan markah ke pesan, postingan, foto, video, atau file apa pun. Markah hanya tersimpan di ponsel ini. Ketuk salah satunya di halaman Markah untuk membuka chat-nya di pesan itu.
+# context: Summary of the Bookmarks row on the Conversations page, which opens the Bookmarks page
+Every message you bookmarked, newest first. Tap one to open it, or long-press it to remove it.	Setiap pesan yang kamu simpan sebagai markah, yang terbaru dulu. Ketuk untuk membukanya, atau tekan lama untuk menghapusnya.
+# context: Count of bookmarks in the settings import preview, singular form. %1$d is the number
+%1$d bookmark	%1$d markah
+# context: Count of bookmarks in the settings import preview, plural form. %1$d is the number
+%1$d bookmarks	%1$d markah
+# context: Chat list page switch title, under Hide Contacts tab. When on, the bar at the bottom of the main screen (Chats, Contacts, Calls or Settings, Profile) gets a thin outline in Telegram's blue.
+Outline the bottom bar	Garis tepi bilah bawah
+# context: Summary under that switch. Telegram blue is Telegram's own light blue brand color. The black background is AMOLED black or any dark theme.
+Draws a thin Telegram blue line around the bar at the bottom of the main screen, so it stands out on a black background. Restart Telegram to see the change.	Menggambar garis tipis berwarna biru Telegram di sekeliling bilah di bagian bawah layar utama, agar menonjol di latar hitam. Mulai ulang Telegram untuk melihat perubahannya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Contacts tab that outlines the bottom bar.
+bottom bar outline	garis tepi bilah bawah
+# context: Title of a switch under Show user and chat IDs (#79). It adds the date and time a forwarded message was originally sent to the header of that message in a chat
+Show when forwards were first sent	Tampilkan kapan pesan terusan pertama dikirim
+# context: Summary under the Show when forwards were first sent switch. Forwarded from is Telegram's own header on a forwarded message (Telegram key ForwardedFrom); use Telegram's wording for it
+A forwarded message's header also shows the date and time it was first sent, after Forwarded from. The date comes with the message, so nothing more is asked of Telegram.	Judul pesan yang diteruskan juga menampilkan tanggal dan waktu pesan itu pertama kali dikirim, setelah Diteruskan dari. Tanggalnya ikut bersama pesan, jadi tidak ada lagi yang diminta dari Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when a forwarded message was first sent
+forward dates	tanggal pesan terusan
+# context: Title of a row under the Use system font switch (#79). A tap picks a font file (.ttf or .otf) from the phone, or changes or removes the one picked
+Font file	File font
+# context: Summary under the Font file row when no font file is picked yet. Use system font is the switch above it
+No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.	Belum ada file font. Ketuk untuk memilih file .ttf atau .otf untuk semua teks Telegram.
+# context: Summary under the Font file row once a font file is picked. %1$s is the file's name, such as Inter.ttf. Use system font is the switch above it
+%1$s, used for all of Telegram's text while Use system font is on. Tap to change it.	%1$s, dipakai untuk semua teks Telegram selama Gunakan font sistem aktif. Ketuk untuk menggantinya.
+# context: Button in the dialog the Font file row opens once a font is picked. It opens the file picker again
+Choose another font	Pilih font lain
+# context: Button in the dialog the Font file row opens once a font is picked. It deletes the font file so Telegram's text goes back to its usual font after a restart
+Remove font	Hapus font
+# context: Short message after Remove font
+Font removed.	Font dihapus.
+# context: Short message when the file picked for Font file can't be read as a font
+That file isn't a font.	File itu bukan font.
+# context: Short message when the file picked for Font file is over the size HushTelegram copies
+That font file is too large.	File font itu terlalu besar.
+# context: Short message when copying the picked font file failed
+Couldn't save the font. Try again.	Font tidak tersimpan. Coba lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Use system font that draws Telegram's text in a font file you picked
+a font file of your own	file font milik sendiri
+# context: Item in the menu at the top of a group or channel the user owns or manages, and the title of its switch on the Chats page under My messages. It opens a list of Telegram's admin screens
+Admin tools	Alat admin
+# context: Summary of the Admin tools switch. Recent Actions and Invite Links are Telegram's own screen names; use Telegram's translations of them
+A group or channel you own or manage gets Admin tools in its menu at the top. It opens Recent Actions, the member lists and Invite Links, as far as your rights there go.	Grup atau kanal yang kamu miliki atau kelola mendapat Alat admin di menu atasnya. Dari sana terbuka Tindakan Terkini, daftar anggota, dan Tautan Undangan, sejauh hakmu di sana.
+# context: Toast when Admin tools is tapped in a chat where none of its screens can open
+Couldn't open admin tools here.	Alat admin tidak bisa dibuka di sini.
+# context: Row in the Admin tools list. Telegram's own name for the admin log screen (its key EventLog); Telegram's translation
+Recent Actions	Tindakan Terkini
+# context: Row in the Admin tools list for a group. Telegram's own name for the member list (its key ChannelMembers); Telegram's translation
+Members	Anggota
+# context: Row in the Admin tools list for a channel. Telegram's own name for the subscriber list (its key ChannelSubscribers); Telegram's translation
+Subscribers	Pelanggan
+# context: Row in the Admin tools list for a group. Telegram's own name for the group permissions screen (its key ChannelPermissions); Telegram's translation
+Permissions	Perizinan
+# context: Row in the Admin tools list for a channel. Telegram's own name for the removed users list (its key ChannelBlacklist); Telegram's translation
+Removed Users	Daftar Blokir
+# context: Row in the Admin tools list. Telegram's own name for the invite links screen (its key InviteLinks); Telegram's translation
+Invite Links	Tautan Undangan
+# context: Name of the Telegram chat folder the Admin folder switch makes, shown as a tab above the chat list and on the user's other devices. Telegram allows at most 12 characters
+Admin	Admin
+# context: Switch title on the Folders by chat type page, off by default. It makes a Telegram folder named Admin with the chats the user owns or manages
+Admin folder	Folder Admin
+# context: Summary of the Admin folder switch. Admin is the folder's name
+Turning this on makes an Admin folder with the groups and channels you own or manage, and keeps it up to date as that changes. Turning it off removes it, unless you renamed or changed it.	Saat dinyalakan, folder Admin dibuat berisi grup dan kanal yang kamu miliki atau kelola, dan terus diperbarui saat itu berubah. Saat dimatikan, folder itu dihapus, kecuali kamu sudah mengganti nama atau mengubahnya.
+# context: Toast when the Admin folder switch is turned on but the user owns or manages no group or channel; the switch goes back off
+You don't manage any groups or channels yet.	Kamu belum mengelola grup atau kanal apa pun.
+# context: Toast after Telegram made the Admin folder
+Made the Admin folder.	Folder Admin dibuat.
+# context: Toast after Telegram made the Admin folder when the user manages more chats than a folder can hold
+Made the Admin folder. Some chats didn't fit.	Folder Admin dibuat. Beberapa chat tidak muat.
+# context: Toast after the Admin folder switch was turned off and Telegram removed the folder
+Removed the Admin folder.	Folder Admin dihapus.
+# context: Toast when the Admin folder switch is turned off but the user renamed or edited the folder, so it isn't removed
+You changed the Admin folder, so it stays.	Kamu sudah mengubah folder Admin, jadi folder itu tetap ada.
+# context: Toast when Telegram refused to make the Admin folder; the switch goes back off
+Telegram didn't make the folder. Try again later.	Telegram tidak membuat folder itu. Coba lagi nanti.
+# context: Toast when Telegram refused to remove the Admin folder; the switch goes back on
+Telegram kept the Admin folder. Try again later.	Telegram tetap menyimpan folder Admin. Coba lagi nanti.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of My messages that adds Admin tools to the menu at the top of a group or channel
+admin tools in a chat's menu	alat admin di menu chat
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Folders by chat type that makes the Admin folder
+the Admin folder	folder Admin
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record
+Voice changer	Pengubah suara
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: no change
+Off	Mati
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a baby's voice
+Baby	Bayi
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a woman's voice
+Woman	Wanita
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a man's voice
+Man	Pria
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a deep, echoing voice
+Horror movie	Film horor
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a robot's voice
+Robot	Robot
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Play voice messages one at a time that changes how the voice messages you record sound
+the voice changer	pengubah suara
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Edit a copy in the message menu, which opens a chat photo in Telegram's photo editor
+editing a copy of a photo	mengedit salinan foto
+# context: Item in a photo message's long-press menu. It opens a copy of the photo in Telegram's photo editor, and sending it sends the edited copy to the chat
+Edit a copy	Edit salinan
+# context: Switch title in HushTelegram settings that adds Edit a copy to a photo message's long-press menu
+Add Edit a copy to the message menu	Tambahkan Edit salinan ke menu pesan
+# context: Summary under the Edit a copy switch in HushTelegram settings
+Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. Sending it sends the edited copy to the chat. The photo in the chat stays as it was.	Membuka foto dari chat di editor foto Telegram, tempat kamu bisa menggambar, menambahkan teks, atau mengaburkan bagian. Saat dikirim, salinan yang sudah diedit masuk ke chat. Foto di chat tetap seperti semula.

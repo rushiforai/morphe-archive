@@ -359,6 +359,8 @@ Clear preset,清除预设
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.",清晰的屏幕隐藏了 LIVE 的聊天、礼物和按钮，因此只有流显示。 TikTok 仅将其放入某些房间的菜单中。这将其添加到其他内容中.
 Keep clear screen in the next LIVE,在下一个 LIVE 中保持清屏
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.",滑到下一个 LIVE 时，聊天、礼物和按钮会重新显示。此设置会让清屏在各个房间之间保持开启，直到你关闭它.
+Offer full screen in more LIVEs,在更多 LIVE 中提供全屏
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok 只在从电脑或共享屏幕直播的 LIVE 中显示全屏按钮。开启后，其他画面为横屏的 LIVE 也会显示它.
 Clear search,清除搜索
 Recent searches,最近搜索
 Clear search history,清除搜索记录
@@ -2397,6 +2399,8 @@ search suggestions,搜索建议
 AI chat,AI 聊天
 AI Tako,AI Tako
 save photos,保存照片
+download button,下载按钮 下载
+"It's in %1$s, under %2$s. Tap to go there.",在%1$s的%2$s中。点击前往.
 Lock the feed at set times,在设定时间锁定信息流
 "The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.",信息流会在这些时间按手机时钟自动锁定。像这样填写日期和时间：Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00。不写日期表示每天。结束早于开始的时间段会跨过午夜.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,无法读取 %1$s。请像 Mon-Fri 21:00-07:00 这样填写日期和时间.
@@ -2722,3 +2726,41 @@ Account country on profiles,个人资料上的账号国家/地区
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.",个人资料的分享面板会多一个“账号国家/地区”按钮。它会向 TikTok 询问该账号所在的位置，或其最新视频的发布地.
 Account country,账号国家/地区
 Videos posted from %1$s,视频发布地：%1$s
+Long-press Profile for Activity center,长按“个人主页”打开活动中心
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.",按住“个人主页”选项卡可打开 TikTok 的活动中心。点击“个人主页”仍像以前一样工作。开启长按“个人主页”打开观看历史时，由它接管该操作.
+Share the video after a save,保存后分享视频
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.",视频一保存（包括视频快拍），就用该文件打开 Android 的分享面板，方便你直接发送到 WhatsApp、Telegram 或其他任何应用。一起保存的所选视频仍显示平常的提示.
+Caption spot in Clear display,清晰显示时的字幕位置
+Where TikTok shows it,TikTok 显示的位置
+"Lower, near the bottom",更低，靠近底部
+Crop and stretch to fill the screen,裁剪并拉伸以填满屏幕
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.",以“填满”一半的裁剪和“拉伸”一半的拉伸铺满整个窗口，两者都不易察觉。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
+Watch LIVEs unseen,隐身观看 LIVE
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,你不会出现在你打开的 LIVE 的观众列表中。在 LIVE 中点按眼睛图标，让主播看到你。需要开启幽灵模式.
+The host can see you,主播能看到你
+Let the host see you,让主播看到你
+Couldn't tell which LIVE this is. Open it again.,无法判断这是哪个 LIVE。请再打开一次.
+The host can already see you in this LIVE,主播已经能在这个 LIVE 中看到你
+Letting the host see you,正在让主播看到你
+The host can see you now,主播现在能看到你
+The host sees you next time you open it,下次你打开时主播就会看到你
+Couldn't reach TikTok. Open this LIVE again.,无法连接 TikTok。请重新打开这个 LIVE.
+LIVE name alerts,LIVE 点名提醒
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.",当有人在 LIVE 中提到你的名字时提醒你，包括聊天消息，以及在开启字幕的直播间里被大声说出。TikTok 通知开启时会收到通知，关闭时会在直播间显示横幅.
+Names to listen for,要留意的名字
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.",你的用户名和 TikTok 名字已经在列表里。添加别人称呼你的其他名字，用逗号分隔.
+Your name came up in a LIVE,有人在 LIVE 中提到了你的名字
+Listen for your name,收听你的名字
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.",也会收听 LIVE 的声音，这样在没有字幕的直播间里，有人大声说出你的名字也算数。收听由你手机自带的语音识别完成，使用 TikTok 的麦克风权限。它只听 LIVE 的声音，不过 Android 会显示麦克风圆点，而且会多用一点流量.
+Needs Android 13 or newer.,需要 Android 13 或更高版本.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,已关闭：这台手机的语音识别只能听到麦克风。关闭后再打开即可重试.
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.",这台手机没有语音识别。在 Android 的语音输入设置里选择一个，然后重新打开 LIVE.
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.",TikTok 需要麦克风权限才能使用语音识别。在 Android 的应用设置里允许，然后重新打开 LIVE.
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.",语音识别没有适用于你手机语言的模型。在 Android 的语音设置里下载一个，然后重新打开 LIVE.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,语音识别在上一个 LIVE 里一直失败。重新打开 LIVE 即可重试.
+Save the photo posts as one video?,将照片帖子保存为一个视频?
+One video,一个视频
+One per post,每个帖子一个
+Keep the middle unstretched,保持中间不拉伸
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.",铺满整个窗口，并让视频中间保持原本的形状。两侧会裁掉一点，只有顶部和底部会被拉伸。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
+Visual search on paused videos,在暂停的视频上使用视觉搜索

@@ -49,6 +49,7 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.BooleanSetting;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
+import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 
 /**
@@ -84,6 +85,9 @@ public class PatchFamilyTest {
         Settings.MENTION_BY_ID.resetToDefault();
         Settings.SHOW_LOCAL_IDS.resetToDefault();
         Settings.PROFILE_DATA_CENTER.resetToDefault();
+        Settings.REGISTRATION_DATE.resetToDefault();
+        Settings.MEMBER_JOIN_DATES.resetToDefault();
+        Settings.FORWARD_DATES.resetToDefault();
         Settings.SPECIAL_CONTACTS.resetToDefault();
         Settings.DISABLE_DOUBLE_TAP_REACTIONS.resetToDefault();
         Settings.HIDE_REACTION_ROWS.resetToDefault();
@@ -93,7 +97,10 @@ public class PatchFamilyTest {
         Settings.HIDE_GREETING_STICKERS.resetToDefault();
         Settings.USE_SYSTEM_FONT.resetToDefault();
         Settings.AMOLED_BLACK.resetToDefault();
+        Settings.LIST_BACKGROUND.resetToDefault();
+        Settings.LIST_BACKGROUND_DIM.resetToDefault();
         Settings.HIDE_TRANSLATE_BAR.resetToDefault();
+        Settings.HIDE_PINNED_BAR.resetToDefault();
         Settings.EXACT_NUMBERS.resetToDefault();
         Settings.REVEAL_SPOILERS.resetToDefault();
         Settings.REVEAL_MENU.resetToDefault();
@@ -103,6 +110,7 @@ public class PatchFamilyTest {
         Settings.VIDEO_EITHER_LANDSCAPE.resetToDefault();
         Settings.VIDEO_ONLY_FROM_BUTTON.resetToDefault();
         Settings.VIDEO_STARTS_SILENT.resetToDefault();
+        Settings.VIDEO_TRACKS.resetToDefault();
         Settings.SWIPE_BACK_ON_PROFILES.resetToDefault();
         Settings.HIDE_PHONE_NUMBER.resetToDefault();
         Settings.MESSAGE_SECONDS.resetToDefault();
@@ -115,6 +123,8 @@ public class PatchFamilyTest {
         Settings.HIDDEN_CHATS.resetToDefault();
         Settings.SORT_BY_DATE.resetToDefault();
         Settings.SORT_OLDEST_FIRST.resetToDefault();
+        Settings.LOCAL_PINS.resetToDefault();
+        Settings.LOCAL_PINNED_CHATS.resetToDefault();
         Settings.HIDDEN_CHATS_PASSCODE.resetToDefault();
         Settings.ADMIN_CHATS.resetToDefault();
         Settings.FORWARD_HIDE_SENDER.resetToDefault();
@@ -135,6 +145,9 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_REPEAT.resetToDefault();
         Settings.KEEP_DELETED_MESSAGES.resetToDefault();
         Settings.RED_DELETED_LABEL.resetToDefault();
+        Settings.KEEP_OWN_DELETED.resetToDefault();
+        Settings.KEEP_SECRET_TIMED.resetToDefault();
+        Settings.KEEP_REMOVED_CHATS.resetToDefault();
         Settings.ASK_BEFORE_STICKER.resetToDefault();
         Settings.OUTSIDE_TRANSLATE.resetToDefault();
         Settings.HIDE_CHANNEL_BUTTONS.resetToDefault();
@@ -152,6 +165,7 @@ public class PatchFamilyTest {
         Settings.SAVE_DOWNLOADS.resetToDefault();
         Settings.SAVE_RESTRICTED_DOWNLOADS.resetToDefault();
         Settings.SAVE_TIMED_MEDIA.resetToDefault();
+        Settings.SAVE_SECRET_CHATS.resetToDefault();
         Settings.CHAT_TYPE_FOLDERS.resetToDefault();
         Settings.UNIFIED_PUSH.resetToDefault();
         Settings.REACTION_ALERTS.resetToDefault();
@@ -159,6 +173,7 @@ public class PatchFamilyTest {
         Settings.CROP_GUARD.resetToDefault();
         Settings.CAPTION_ORDER.resetToDefault();
         Settings.PROXY_MENU.resetToDefault();
+        Settings.DND_MENU.resetToDefault();
         Settings.FREE_PROXIES.resetToDefault();
         Settings.SIGN_IN_PROXY.resetToDefault();
         Settings.MY_MESSAGES.resetToDefault();
@@ -170,7 +185,10 @@ public class PatchFamilyTest {
         Settings.BOT_TOKEN_SIGN_IN.resetToDefault();
         Settings.ASK_BEFORE_GIF.resetToDefault();
         Settings.ASK_BEFORE_VOICE_VIDEO.resetToDefault();
+        Settings.ASK_BEFORE_ROUND_VIDEO.resetToDefault();
+        Settings.ASK_BEFORE_MESSAGE.resetToDefault();
         Settings.ASK_BEFORE_CALL.resetToDefault();
+        Settings.ASK_BEFORE_JOIN.resetToDefault();
         Settings.MESSAGE_MENU_COPY_PHOTO.resetToDefault();
         Settings.MESSAGE_MENU_DETAILS.resetToDefault();
         Settings.MESSAGE_MENU_QUICK_FORWARD.resetToDefault();
@@ -179,6 +197,7 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_FORWARD_COPY.resetToDefault();
         Settings.STORY_SAVE_BUTTON.resetToDefault();
         Settings.ALLOW_SCREENSHOTS.resetToDefault();
+        Settings.SECRET_CHAT_SCREENSHOTS.resetToDefault();
         Settings.MESSAGE_MENU_FAST_FORWARD.resetToDefault();
         Settings.MESSAGE_MENU_FORWARD_SAVED.resetToDefault();
         Settings.MESSAGE_MENU_SAVE_COVER.resetToDefault();
@@ -187,9 +206,12 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_HIDE.resetToDefault();
         Settings.MESSAGE_MENU_PLAIN_FORWARD.resetToDefault();
         Settings.MESSAGE_MENU_DELETE_FOR_THEM.resetToDefault();
+        Settings.MESSAGE_MENU_BOOKMARKS.resetToDefault();
+        Settings.MESSAGE_MENU_EDIT_COPY.resetToDefault();
         Settings.SELECT_BETWEEN.resetToDefault();
         Settings.SELECTION_SCREENSHOT.resetToDefault();
         Settings.SELECT_ALL.resetToDefault();
+        Settings.ALSO_DELETE_CHECKED.resetToDefault();
         HookStatus.clear();
     }
 
@@ -349,7 +371,7 @@ public class PatchFamilyTest {
         assertEquals("hideContactsTab", family.statusMethod);
         // The compact bar and the side menu start off too and work with or without the first.
         assertEquals(Arrays.asList(Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU,
-                Settings.HIDE_NEW_MESSAGE), family.switches);
+                Settings.HIDE_NEW_MESSAGE, Settings.BAR_OUTLINE), family.switches);
         for (BooleanSetting setting : family.switches) assertFalse(setting.key, setting.defaultValue);
         // Telegram builds the bar with the main screen, so a change to it shows after a restart.
         assertTrue(Settings.HIDE_CONTACTS_TAB.rebootApp);
@@ -358,60 +380,113 @@ public class PatchFamilyTest {
         assertFalse(Settings.SIDE_MENU.rebootApp);
         // The pencil button is set up when the chat list is built, so hiding it needs one too.
         assertTrue(Settings.HIDE_NEW_MESSAGE.rebootApp);
+        // The bar's glass reads its outline when the main screen is built, so it needs one as well.
+        assertTrue(Settings.BAR_OUTLINE.rebootApp);
         assertEquals(EnumSet.of(PatchFamily.Capability.COMPACT_TAB_BAR, PatchFamily.Capability.SIDE_MENU,
-                PatchFamily.Capability.HIDE_NEW_MESSAGE), family.expectedCapabilities());
+                PatchFamily.Capability.HIDE_NEW_MESSAGE, PatchFamily.Capability.BAR_OUTLINE), family.expectedCapabilities());
         assertOnItsPage(family);
         // The bar sits under the chat list, beside its folder switches.
         assertEquals(PatchFamily.Page.CHAT_LIST, PatchFamily.Page.of(family));
     }
 
     @Test
-    public void holidayLookCarriesTheTitleEmojiBesideItsOneSwitch() {
+    public void holidayLookCarriesTheTitleEmojiAndTheOwnTitleBesideItsSwitches() {
         PatchFamily family = PatchFamily.HOLIDAY_LOOK;
         assertEquals("Holiday look all year", family.patchName);
         assertEquals("holidayLook", family.statusMethod);
-        // The emoji is text, not a switch: Pause reaches it through its own empty paused value.
-        assertEquals(Collections.singletonList(Settings.HOLIDAY_LOOK), family.switches);
-        assertEquals(EnumSet.of(PatchFamily.Capability.TITLE_EMOJI), family.expectedCapabilities());
+        // The emoji and the title's text are text, not switches: Pause reaches them through their own
+        // empty paused values. The own title has a switch of its own, off by default.
+        assertEquals(Arrays.asList(Settings.HOLIDAY_LOOK, Settings.CHAT_LIST_TITLE), family.switches);
+        assertEquals(EnumSet.of(PatchFamily.Capability.TITLE_EMOJI, PatchFamily.Capability.CHAT_LIST_TITLE,
+                        PatchFamily.Capability.CHAT_LIST_BANNER),
+                family.expectedCapabilities());
         assertEquals("titleEmoji", PatchFamily.Capability.TITLE_EMOJI.statusMethod);
+        assertEquals("chatListTitle", PatchFamily.Capability.CHAT_LIST_TITLE.statusMethod);
+        // The chat list banner (#86) is a choice, not a switch: empty is Telegram's own bar, and it shows at once.
+        assertEquals("chatListBanner", PatchFamily.Capability.CHAT_LIST_BANNER.statusMethod);
+        assertEquals("", Settings.CHAT_LIST_BANNER.defaultValue);
+        assertFalse(Settings.CHAT_LIST_BANNER.rebootApp);
         assertEquals("", Settings.TITLE_EMOJI.defaultValue);
+        assertEquals(Boolean.FALSE, Settings.CHAT_LIST_TITLE.defaultValue);
+        assertEquals("", Settings.CHAT_LIST_TITLE_TEXT.defaultValue);
         // The chat list builds its title once, so new text shows after a restart.
         assertTrue(Settings.TITLE_EMOJI.rebootApp);
+        assertTrue(Settings.CHAT_LIST_TITLE.rebootApp);
+        assertTrue(Settings.CHAT_LIST_TITLE_TEXT.rebootApp);
         assertOnItsPage(family);
         assertEquals(PatchFamily.Page.LOOK, PatchFamily.Page.of(family));
     }
 
     @Test
-    public void askBeforeSendingHasFourOwnOffByDefaultSwitchesThatApplyAtOnce() {
+    public void askBeforeSendingHasSevenOwnOffByDefaultSwitchesThatApplyAtOnce() {
         PatchFamily family = PatchFamily.ASK_BEFORE_STICKER;
         assertEquals("Ask before sending a sticker", family.patchName);
-        assertEquals(Arrays.asList(Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL), family.switches);
+        assertEquals(Arrays.asList(Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO,
+                Settings.ASK_BEFORE_ROUND_VIDEO, Settings.ASK_BEFORE_MESSAGE, Settings.ASK_BEFORE_CALL, Settings.ASK_BEFORE_JOIN), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertTrue(family.expectedCapabilities().isEmpty());
+        // The typed message's and the join's questions each back only their own row.
+        assertEquals(EnumSet.of(PatchFamily.Capability.ASK_TEXT, PatchFamily.Capability.ASK_JOIN), family.expectedCapabilities());
+        assertEquals("askBeforeText", PatchFamily.Capability.ASK_TEXT.statusMethod);
+        assertEquals("askBeforeJoin", PatchFamily.Capability.ASK_JOIN.statusMethod);
+        assertTrue(PatchFamily.Capability.ASK_TEXT.rowOnly);
+        assertTrue(PatchFamily.Capability.ASK_JOIN.rowOnly);
         assertOnItsPage(family);
+    }
+
+    @Test
+    public void aVoiceMessageQuestionTurnedOnBeforeTheSplitAsksAboutRoundVideosTooOnce() {
+        try {
+            Setting.preferences.removeKey(Settings.ROUND_VIDEO_CARRIED);
+            Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+            Settings.carryRoundVideo();
+            assertTrue("the one switch used to ask about both", Settings.ASK_BEFORE_ROUND_VIDEO.get());
+            assertTrue(Setting.preferences.getBoolean(Settings.ROUND_VIDEO_CARRIED, false));
+            // Turned off afterwards, it stays off: the carry runs once.
+            Settings.ASK_BEFORE_ROUND_VIDEO.save(false);
+            Settings.carryRoundVideo();
+            assertFalse(Settings.ASK_BEFORE_ROUND_VIDEO.get());
+
+            // With the voice question off nothing turns on, and the carry is done all the same.
+            Setting.preferences.removeKey(Settings.ROUND_VIDEO_CARRIED);
+            Settings.ASK_BEFORE_VOICE_VIDEO.save(false);
+            Settings.carryRoundVideo();
+            assertFalse(Settings.ASK_BEFORE_ROUND_VIDEO.get());
+            assertTrue(Setting.preferences.getBoolean(Settings.ROUND_VIDEO_CARRIED, false));
+            Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+            Settings.carryRoundVideo();
+            assertFalse("turned on later, the voice question stays its own", Settings.ASK_BEFORE_ROUND_VIDEO.get());
+        } finally {
+            Setting.preferences.removeKey(Settings.ROUND_VIDEO_CARRIED);
+            Settings.ASK_BEFORE_VOICE_VIDEO.resetToDefault();
+            Settings.ASK_BEFORE_ROUND_VIDEO.resetToDefault();
+        }
     }
 
     @Test
     public void keepDeletedMessagesHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.KEEP_DELETED_MESSAGES;
         assertEquals("Keep deleted messages", family.patchName);
-        // The second switch, the red label, starts off too and shows at the next measuring. The third,
-        // the edit history, starts off and keeps from the next edit on. The fourth, timed media, starts off
-        // and holds the next timed media you open.
-        assertEquals(Arrays.asList(Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
-                Settings.KEEP_TIMED_MEDIA), family.switches);
+        // The second switch, the red label, starts off too and shows at the next measuring. The third, your
+        // own messages, starts off and keeps from the next deletion on. The edit history starts off and keeps
+        // from the next edit on. Timed media starts off and holds the next timed media you open. Secret chat
+        // timers start off and keep what's due from the next timer on. Chats you're removed from start off and
+        // are kept from the next removal on.
+        assertEquals(Arrays.asList(Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_OWN_DELETED, Settings.KEEP_EDIT_HISTORY,
+                Settings.KEEP_TIMED_MEDIA, Settings.KEEP_SECRET_TIMED, Settings.KEEP_REMOVED_CHATS), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.RED_DELETED_LABEL, PatchFamily.Capability.EDIT_HISTORY,
-                PatchFamily.Capability.TIMED_MEDIA), family.expectedCapabilities());
+                PatchFamily.Capability.TIMED_MEDIA, PatchFamily.Capability.SECRET_TIMED, PatchFamily.Capability.REMOVED_CHATS), family.expectedCapabilities());
         assertEquals("redDeletedLabel", PatchFamily.Capability.RED_DELETED_LABEL.statusMethod);
         assertEquals("keepEditHistory", PatchFamily.Capability.EDIT_HISTORY.statusMethod);
         assertEquals("keepTimedMedia", PatchFamily.Capability.TIMED_MEDIA.statusMethod);
+        assertEquals("keepSecretTimed", PatchFamily.Capability.SECRET_TIMED.statusMethod);
+        assertEquals("keepRemovedChats", PatchFamily.Capability.REMOVED_CHATS.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -420,7 +495,7 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.MESSAGE_MENU_REPEAT;
         assertEquals("Add Repeat to the message menu", family.patchName);
         assertEquals(Arrays.asList(Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
-                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL), family.switches);
+                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.MESSAGE_MENU_BOOKMARKS, Settings.MESSAGE_MENU_EDIT_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SECRET_CHAT_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL, Settings.ALSO_DELETE_CHECKED), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
@@ -428,9 +503,13 @@ public class PatchFamilyTest {
         assertEquals(EnumSet.of(PatchFamily.Capability.COPY_SELECTION, PatchFamily.Capability.STORY_SAVE,
                 PatchFamily.Capability.SCREENSHOTS, PatchFamily.Capability.SELECT_BETWEEN, PatchFamily.Capability.SELECTION_SCREENSHOT, PatchFamily.Capability.SELECT_ALL,
                 PatchFamily.Capability.SHARED_MEDIA_SELECT_ALL,
-                PatchFamily.Capability.HIDE_FOR_ME),
+                PatchFamily.Capability.HIDE_FOR_ME, PatchFamily.Capability.ALSO_DELETE_CHECKED, PatchFamily.Capability.BOOKMARKS,
+                PatchFamily.Capability.PHOTO_EDIT),
                 family.expectedCapabilities());
         assertEquals("hideForMe", PatchFamily.Capability.HIDE_FOR_ME.statusMethod);
+        assertEquals("bookmarks", PatchFamily.Capability.BOOKMARKS.statusMethod);
+        assertEquals("photoEdit", PatchFamily.Capability.PHOTO_EDIT.statusMethod);
+        assertEquals("alsoDeleteChecked", PatchFamily.Capability.ALSO_DELETE_CHECKED.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -548,10 +627,14 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.PROXY_MENU;
         assertEquals("Proxy in the chat list menu", family.patchName);
         assertEquals("proxyMenu", family.statusMethod);
-        assertEquals(Collections.singletonList(Settings.PROXY_MENU), family.switches);
+        assertEquals(Arrays.asList(Settings.PROXY_MENU, Settings.DND_MENU), family.switches);
         assertFalse(Settings.PROXY_MENU.defaultValue);
         assertFalse(Settings.PROXY_MENU.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        // Do Not Disturb's switch starts off and applies at once; the item comes from its own capability.
+        assertFalse(Settings.DND_MENU.defaultValue);
+        assertFalse(Settings.DND_MENU.rebootApp);
+        assertEquals(EnumSet.of(PatchFamily.Capability.DO_NOT_DISTURB), family.expectedCapabilities());
+        assertEquals("doNotDisturb", PatchFamily.Capability.DO_NOT_DISTURB.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -578,10 +661,12 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.MY_MESSAGES;
         assertEquals("My messages", family.patchName);
         assertEquals("myMessages", family.statusMethod);
-        assertEquals(Collections.singletonList(Settings.MY_MESSAGES), family.switches);
+        assertEquals(Arrays.asList(Settings.MY_MESSAGES, Settings.ADMIN_TOOLS), family.switches);
         assertFalse(Settings.MY_MESSAGES.defaultValue);
         assertFalse(Settings.MY_MESSAGES.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertFalse(Settings.ADMIN_TOOLS.defaultValue);
+        assertFalse(Settings.ADMIN_TOOLS.rebootApp);
+        assertEquals(EnumSet.of(PatchFamily.Capability.ADMIN_TOOLS), family.expectedCapabilities());
         assertEquals(PatchFamily.Page.CONVERSATIONS, PatchFamily.Page.of(family));
         assertOnItsPage(family);
     }
@@ -704,20 +789,26 @@ public class PatchFamilyTest {
         assertEquals("Save downloaded files", family.patchName);
         assertEquals("saveDownloads", family.statusMethod);
         // The second switch lets chats that don't allow saving through and the third view-once and timed media (#9),
-        // so they start off like the first.
+        // and the fourth secret chats on top of the second (#82), so they start off like the first.
         // The storage folder switch (#7) moves Telegram's own folder at startup, so it starts off and needs a restart.
+        // File icons and thumbnails (#79) only changes how files look, so it starts off and applies at once,
+        // and so does Recognize files you already have (#79), read each time Telegram looks up a file's path.
         assertEquals(Arrays.asList(Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA,
-                Settings.STORAGE_FOLDER), family.switches);
+                Settings.SAVE_SECRET_CHATS, Settings.STORAGE_FOLDER, Settings.FILE_ICONS, Settings.KNOWN_FILES), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
-            // Each finished download reads the first three switches, so they need no restart.
+            // Each finished download reads the first four switches, so they need no restart.
             assertEquals(setting.key, setting == Settings.STORAGE_FOLDER, setting.rebootApp);
         }
         // The gallery folder choice (#30) and the storage folder (#7) ride on this patch as its tracked targets,
         // and both start on Telegram's folders.
-        assertEquals(EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER, PatchFamily.Capability.STORAGE_FOLDER),
+        assertEquals(EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER, PatchFamily.Capability.STORAGE_FOLDER,
+                PatchFamily.Capability.FILE_ICONS_CHAT, PatchFamily.Capability.FILE_ICONS_SHARED, PatchFamily.Capability.KNOWN_FILES),
                 family.expectedCapabilities());
         assertEquals("storageFolder", PatchFamily.Capability.STORAGE_FOLDER.statusMethod);
+        assertEquals("knownFiles", PatchFamily.Capability.KNOWN_FILES.statusMethod);
+        assertEquals("fileIconsChat", PatchFamily.Capability.FILE_ICONS_CHAT.statusMethod);
+        assertEquals("fileIconsShared", PatchFamily.Capability.FILE_ICONS_SHARED.statusMethod);
         assertEquals("galleryFolder", PatchFamily.Capability.GALLERY_FOLDER.statusMethod);
         assertEquals("", Settings.GALLERY_FOLDER.defaultValue);
         assertFalse(Settings.GALLERY_FOLDER.rebootApp);
@@ -730,12 +821,14 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.CHAT_TYPE_FOLDERS;
         assertEquals("Folders by chat type", family.patchName);
         assertEquals("chatTypeFolders", family.statusMethod);
-        assertEquals(Collections.singletonList(Settings.CHAT_TYPE_FOLDERS), family.switches);
+        assertEquals(Arrays.asList(Settings.CHAT_TYPE_FOLDERS, Settings.ADMIN_FOLDER), family.switches);
         assertFalse(Settings.CHAT_TYPE_FOLDERS.defaultValue);
+        assertFalse(Settings.ADMIN_FOLDER.defaultValue);
+        assertFalse(Settings.ADMIN_FOLDER.rebootApp);
         // Flipping the switch makes or removes the folders then and there, so no restart is needed.
         assertFalse(Settings.CHAT_TYPE_FOLDERS.rebootApp);
         assertNull(family.staysWhilePaused);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertEquals(EnumSet.of(PatchFamily.Capability.ADMIN_FOLDER), family.expectedCapabilities());
         assertOnItsPage(family);
         assertEquals(PatchFamily.Page.CHAT_LIST, PatchFamily.Page.of(family));
     }
@@ -814,7 +907,7 @@ public class PatchFamilyTest {
         assertEquals("Hide folder tab counters", family.patchName);
         // The folder the chat list opens on and the hidden chats start off too, and each works with or without the others.
         assertEquals(Arrays.asList(Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS,
-                Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE, Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS), family.switches);
+                Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.LOCAL_PINS, Settings.HIDDEN_CHATS_PASSCODE, Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS, Settings.CHAT_LIST_AVATAR), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             // The counters change at once, the folder pick is for the next chat list, and the hidden
@@ -826,16 +919,18 @@ public class PatchFamilyTest {
                     || setting == Settings.FOLDER_TAB_ICONS, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDE_ALL_CHATS, PatchFamily.Capability.ALL_CHATS_PLACE,
-                PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE, PatchFamily.Capability.ADMIN_CHATS, PatchFamily.Capability.FIT_TABS, PatchFamily.Capability.TAB_ICONS, PatchFamily.Capability.HIDDEN_ACCOUNTS, PatchFamily.Capability.HIDDEN_PASSCODE, PatchFamily.Capability.HIDDEN_UNREAD), family.expectedCapabilities());
+                PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE, PatchFamily.Capability.LOCAL_PINS, PatchFamily.Capability.ADMIN_CHATS, PatchFamily.Capability.FIT_TABS, PatchFamily.Capability.TAB_ICONS, PatchFamily.Capability.HIDDEN_ACCOUNTS, PatchFamily.Capability.HIDDEN_PASSCODE, PatchFamily.Capability.HIDDEN_UNREAD, PatchFamily.Capability.CHAT_LIST_AVATAR), family.expectedCapabilities());
         assertEquals("launchFolder", PatchFamily.Capability.LAUNCH_FOLDER.statusMethod);
         assertEquals("hideAllChats", PatchFamily.Capability.HIDE_ALL_CHATS.statusMethod);
         assertEquals("allChatsPlace", PatchFamily.Capability.ALL_CHATS_PLACE.statusMethod);
         assertEquals("hiddenChats", PatchFamily.Capability.HIDDEN_CHATS.statusMethod);
         assertEquals("sortByDate", PatchFamily.Capability.SORT_BY_DATE.statusMethod);
+        assertEquals("localPins", PatchFamily.Capability.LOCAL_PINS.statusMethod);
         assertEquals("adminChats", PatchFamily.Capability.ADMIN_CHATS.statusMethod);
         assertEquals("hiddenAccounts", PatchFamily.Capability.HIDDEN_ACCOUNTS.statusMethod);
         assertEquals("hiddenPasscode", PatchFamily.Capability.HIDDEN_PASSCODE.statusMethod);
         assertEquals("hiddenUnread", PatchFamily.Capability.HIDDEN_UNREAD.statusMethod);
+        assertEquals("chatListAvatar", PatchFamily.Capability.CHAT_LIST_AVATAR.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -872,7 +967,10 @@ public class PatchFamilyTest {
             // Each play asks again, so both apply at once.
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.LOCKED_VOICE), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.LOCKED_VOICE, PatchFamily.Capability.VOICE_CHANGER), family.expectedCapabilities());
+        // The voice is a choice, not a switch, and each recording reads it as it starts.
+        assertEquals("", Settings.VOICE_CHANGER.defaultValue);
+        assertFalse(Settings.VOICE_CHANGER.rebootApp);
         assertOnItsPage(family);
     }
 
@@ -984,15 +1082,16 @@ public class PatchFamilyTest {
     public void keepVideosMutedHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.KEEP_VIDEOS_MUTED;
         assertEquals("Keep videos muted on volume keys", family.patchName);
-        assertEquals(Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT), family.switches);
-        for (BooleanSetting setting : Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT)) {
+        assertEquals(Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS), family.switches);
+        for (BooleanSetting setting : Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS)) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE, PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON,
-                PatchFamily.Capability.VIDEO_STARTS_SILENT), family.expectedCapabilities());
+                PatchFamily.Capability.VIDEO_STARTS_SILENT, PatchFamily.Capability.VIDEO_TRACKS), family.expectedCapabilities());
         assertEquals("videoOnlyFromButton", PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON.statusMethod);
         assertEquals("videoStartsSilent", PatchFamily.Capability.VIDEO_STARTS_SILENT.statusMethod);
+        assertEquals("videoTracks", PatchFamily.Capability.VIDEO_TRACKS.statusMethod);
         assertEquals("videoEitherLandscape", PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE.statusMethod);
         assertOnItsPage(family);
     }
@@ -1090,7 +1189,7 @@ public class PatchFamilyTest {
                         PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL, PatchFamily.Capability.DUAL_CAMERA_REPORTS,
                         PatchFamily.Capability.GHOST_MODE, PatchFamily.Capability.RECEIVE_ONLY, PatchFamily.Capability.POWER_OFF_ACCOUNTS,
                         PatchFamily.Capability.INSTANT_LOCK, PatchFamily.Capability.QUIET_SIGN_UP,
-                        PatchFamily.Capability.DELETE_ACCOUNT),
+                        PatchFamily.Capability.SESSION_DEVICE, PatchFamily.Capability.DELETE_ACCOUNT),
                 PatchFamily.DISABLE_ANALYTICS.expectedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
@@ -1125,10 +1224,14 @@ public class PatchFamilyTest {
     public void translateBarHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.HIDE_TRANSLATE_BAR;
         assertEquals("Hide translate bar", family.patchName);
-        assertEquals(Collections.singletonList(Settings.HIDE_TRANSLATE_BAR), family.switches);
-        assertFalse(Settings.HIDE_TRANSLATE_BAR.defaultValue);
-        assertFalse(Settings.HIDE_TRANSLATE_BAR.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        // The pinned message bar sits in the same chat screen and has its own switch.
+        assertEquals(Arrays.asList(Settings.HIDE_TRANSLATE_BAR, Settings.HIDE_PINNED_BAR), family.switches);
+        for (BooleanSetting setting : family.switches) {
+            assertFalse(setting.key, setting.defaultValue);
+            assertFalse(setting.key, setting.rebootApp);
+        }
+        assertEquals(EnumSet.of(PatchFamily.Capability.HIDE_PINNED_BAR), family.expectedCapabilities());
+        assertEquals("hidePinnedBar", PatchFamily.Capability.HIDE_PINNED_BAR.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1136,10 +1239,15 @@ public class PatchFamilyTest {
     public void amoledBlackHasItsOwnOffByDefaultSwitchThatWaitsForARestart() {
         PatchFamily family = PatchFamily.AMOLED_BLACK;
         assertEquals("AMOLED black", family.patchName);
-        assertEquals(Collections.singletonList(Settings.AMOLED_BLACK), family.switches);
+        // The picture behind the lists (#88) rides along under the same patch and shows at once.
+        assertEquals(Arrays.asList(Settings.AMOLED_BLACK, Settings.LIST_BACKGROUND), family.switches);
         assertFalse(Settings.AMOLED_BLACK.defaultValue);
         assertTrue(Settings.AMOLED_BLACK.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertFalse(Settings.LIST_BACKGROUND.defaultValue);
+        assertFalse(Settings.LIST_BACKGROUND.rebootApp);
+        assertEquals(40, (int) Settings.LIST_BACKGROUND_DIM.defaultValue);
+        assertEquals(EnumSet.of(PatchFamily.Capability.LIST_BACKGROUND), family.expectedCapabilities());
+        assertEquals("listBackground", PatchFamily.Capability.LIST_BACKGROUND.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1150,7 +1258,11 @@ public class PatchFamilyTest {
         assertEquals(Collections.singletonList(Settings.USE_SYSTEM_FONT), family.switches);
         assertFalse(Settings.USE_SYSTEM_FONT.defaultValue);
         assertTrue(Settings.USE_SYSTEM_FONT.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        // A font file of your own is the part a build can miss when Telegram builds its text another way (#79).
+        assertEquals(EnumSet.of(PatchFamily.Capability.CUSTOM_FONT), family.expectedCapabilities());
+        assertEquals("customFont", PatchFamily.Capability.CUSTOM_FONT.statusMethod);
+        assertEquals("", Settings.CUSTOM_FONT.defaultValue);
+        assertTrue("the font is handed out once per start", Settings.CUSTOM_FONT.rebootApp);
         assertOnItsPage(family);
     }
 
@@ -1168,14 +1280,15 @@ public class PatchFamilyTest {
     public void localControlsHaveIndependentOffByDefaultSwitchesAndExactCoverageWhilePaused() {
         Map<PatchFamily, Set<PatchFamily.Capability>> expected = new LinkedHashMap<>();
         expected.put(PatchFamily.NORMAL_PASTE, EnumSet.of(PatchFamily.Capability.COMPOSE_PLAIN_PASTE, PatchFamily.Capability.CAPTION_PLAIN_PASTE, PatchFamily.Capability.MENTION_BY_ID));
-        expected.put(PatchFamily.SHOW_LOCAL_IDS, EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS));
+        expected.put(PatchFamily.SHOW_LOCAL_IDS, EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS,
+                PatchFamily.Capability.REGISTRATION_DATE, PatchFamily.Capability.MEMBER_JOIN_DATES, PatchFamily.Capability.FORWARD_DATES));
         expected.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, EnumSet.of(PatchFamily.Capability.CHAT_DOUBLE_TAP_REACTION, PatchFamily.Capability.PREVIEW_DOUBLE_TAP_REACTION, PatchFamily.Capability.REACTION_ROWS, PatchFamily.Capability.REACTION_PICKER, PatchFamily.Capability.REACTION_SELECTION, PatchFamily.Capability.EMOJI_PACK_NOTE));
         PatchFamily.inBuildForTests = expected.keySet();
         for (Map.Entry<PatchFamily, Set<PatchFamily.Capability>> entry : expected.entrySet()) {
             PatchFamily family = entry.getKey();
             assertEquals(entry.getValue(), family.expectedCapabilities());
-            // Show user and chat IDs carries switches for the profile's data center and Special contacts, and Use normal paste one for mentions.
-            assertEquals(family == PatchFamily.SHOW_LOCAL_IDS ? 3 : family == PatchFamily.NORMAL_PASTE ? 2 : family == PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS ? 4 : 1, family.switches.size());
+            // Show user and chat IDs carries switches for the profile's data center, registration month, member join dates, forward dates and Special contacts, and Use normal paste one for mentions.
+            assertEquals(family == PatchFamily.SHOW_LOCAL_IDS ? 6 : family == PatchFamily.NORMAL_PASTE ? 2 : family == PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS ? 4 : 1, family.switches.size());
             // Double-tap reactions also carries the reaction row and picker switches.
             for (BooleanSetting setting : family.switches) assertFalse(setting.key, setting.defaultValue);
             for (PatchFamily.Capability only : entry.getValue()) {
@@ -1306,7 +1419,7 @@ public class PatchFamilyTest {
                         + "Suppress screenshot notification, Unlock Premium features, Bypass channel restrictions, "
                         + "Bypass integrity check, Auto-forwarding rules, Never send an uncropped photo, Keep captions with their photos, Proxy in the chat list menu, Free proxies, My messages, Text direction, Lyrics and song dates, Chat preview buttons",
                 "Hide ads coverage: channel ads, video ads, search ads",
-                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"),
+                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"),
                 running);
 
         // Every family in this build has a switch, but the line still has room, after the switch's
@@ -1336,7 +1449,7 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.READ_METRICS);
         List<String> running = PatchFamily.reportLines(build, false);
         assertTrue(running.toString(), running.contains("Hide ads coverage: channel ads; missing: video ads, search ads"));
-        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"));
+        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"));
         Settings.HIDE_ADS.save(false);
         Settings.DISABLE_ANALYTICS.save(false);
         List<String> disabled = PatchFamily.reportLines(build, false);
@@ -1346,7 +1459,7 @@ public class PatchFamilyTest {
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
         assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
-        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"));
+        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"));
     }
 
     /** A target that only adds its own row leaves the switch working, so its description and report say so. */
@@ -1362,7 +1475,8 @@ public class PatchFamilyTest {
         List<String> report = PatchFamily.reportLines(build, false);
         assertTrue(report.toString(), report.contains(
                 "Save downloaded files coverage: switch only; missing: gallery folder for saved photos and videos, "
-                        + "Telegram's own files in internal storage"));
+                        + "Telegram's own files in internal storage, file icons and thumbnails in chats, "
+                        + "file icons and thumbnails in Shared media, how files you already have show up"));
         assertTrue(report.toString(), report.contains(
                 "Faster downloads coverage: switch only; missing: automatic downloads on Data Saver, uploads, download manager, "
                         + "photos and videos in their best quality"));
@@ -1372,7 +1486,8 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.DATA_SAVER_DOWNLOADS);
         report = PatchFamily.reportLines(build, false);
         assertTrue(report.toString(), report.contains("Save downloaded files coverage: gallery folder for saved photos and videos; "
-                + "missing: Telegram's own files in internal storage"));
+                + "missing: Telegram's own files in internal storage, file icons and thumbnails in chats, "
+                + "file icons and thumbnails in Shared media, how files you already have show up"));
         assertTrue(report.toString(), report.contains("Faster downloads coverage: automatic downloads on Data Saver; missing: uploads, download manager, "
                 + "photos and videos in their best quality"));
     }

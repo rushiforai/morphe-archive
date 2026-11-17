@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -152,6 +155,27 @@ public final class CallCaptions {
 
     static boolean sameLanguage(String one, String other) {
         return Locale.forLanguageTag(one).getLanguage().equals(Locale.forLanguageTag(other).getLanguage());
+    }
+
+    /**
+     * Every language the phone itself knows that [listed] doesn't already offer, by name. What the recognizer and the
+     * translator report leaves languages out that they handle once asked (#159 asked for Tagalog, which the platform
+     * carries as "fil", Filipino, with no "tl" locale at all), so the language sheets offer these as well and let the
+     * phone answer for itself.
+     */
+    static List<String> others(Collection<String> listed) {
+        Set<String> known = new HashSet<>();
+        for (String language : listed) {
+            if (language != null && !language.isEmpty()) known.add(Locale.forLanguageTag(language).getLanguage());
+        }
+        List<String> found = new ArrayList<>();
+        for (Locale locale : Locale.getAvailableLocales()) {
+            String language = locale.getLanguage();
+            if (language.isEmpty() || !known.add(language)) continue;
+            found.add(Locale.forLanguageTag(language).toLanguageTag());
+        }
+        Collections.sort(found, (one, other) -> name(one).compareToIgnoreCase(name(other)));
+        return found;
     }
 
     /** "Spanish (Mexico)", in the phone's language. */

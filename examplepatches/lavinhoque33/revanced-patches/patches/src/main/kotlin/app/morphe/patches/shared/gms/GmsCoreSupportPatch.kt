@@ -6,6 +6,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-16.
  */
 
 package app.morphe.patches.shared.gms
@@ -28,6 +30,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.shared.extension.Constants.PATCHES_PATH
 import app.morphe.patches.shared.gms.Constants.ACTIONS
@@ -72,6 +75,20 @@ private const val CLONE_PACKAGE_NAME_YOUTUBE_MUSIC = "bill.youtube.music"
 private const val DEFAULT_PACKAGE_NAME_YOUTUBE_MUSIC = "anddea.youtube.music"
 internal const val ORIGINAL_PACKAGE_NAME_YOUTUBE_MUSIC =
     "com.google.android.apps.youtube.music"
+
+internal fun MutableMethod.disablePrimesConfigurationCheck() {
+    val exceptionIndex = indexOfFirstInstructionReversedOrThrow {
+        opcode == Opcode.NEW_INSTANCE &&
+                (this as? ReferenceInstruction)?.reference?.toString() == "Ljava/lang/IllegalStateException;"
+    }
+    val branchIndex = indexOfFirstInstructionReversedOrThrow(exceptionIndex) {
+        opcode == Opcode.IF_EQZ || opcode == Opcode.IF_NEZ
+    }
+    val register = getInstruction<OneRegisterInstruction>(branchIndex).registerA
+
+    // Both layouts accept true: IF_EQZ falls through; IF_NEZ jumps over the exception.
+    addInstruction(branchIndex, "const/4 v$register, 0x1")
+}
 
 /**
  * A patch that allows patched Google apps to run without root and under a different package name
@@ -297,19 +314,7 @@ fun gmsCoreSupportPatch(
                     primesBackgroundInitializationFingerprint,
                     primesLifecycleEventFingerprint
                 ).forEach { fingerprint ->
-                    fingerprint.method.apply {
-                        val exceptionIndex = indexOfFirstInstructionReversedOrThrow {
-                            opcode == Opcode.NEW_INSTANCE &&
-                                    (this as? ReferenceInstruction)?.reference?.toString() == "Ljava/lang/IllegalStateException;"
-                        }
-                        val index =
-                            indexOfFirstInstructionReversedOrThrow(exceptionIndex, Opcode.IF_EQZ)
-                        val register = getInstruction<OneRegisterInstruction>(index).registerA
-                        addInstruction(
-                            index,
-                            "const/4 v$register, 0x1"
-                        )
-                    }
+                    fingerprint.method.disablePrimesConfigurationCheck()
                 }
 
                 primesApiFingerprint.classDef.methods.filter { method ->

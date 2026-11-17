@@ -195,6 +195,63 @@ public class TabListTest {
         assertNotNull(Settings.hookErrors.get(Settings.SHOW_PEOPLE_TAB));
     }
 
+    /** 587's enum with the settings tab Messenger's own gate keeps out of most bars (#184). */
+    enum SettingsBar { INBOX, PEOPLE, JEWEL, MORE, ME_SETTING }
+
+    private static List<SettingsBar> withoutSettings() {
+        return new ArrayList<>(List.of(SettingsBar.INBOX, SettingsBar.PEOPLE, SettingsBar.JEWEL, SettingsBar.MORE));
+    }
+
+    @Test public void showSettingsTabPutsMessengersSettingsTabAtTheEndOfTheBar() {
+        List<SettingsBar> stock = withoutSettings();
+        assertSame("Off leaves Messenger's bar alone", stock, Settings.visibleTabs(stock));
+        assertNull(Settings.hookErrors.get(Settings.SHOW_SETTINGS_TAB));
+
+        restart();
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, true).commit();
+        assertEquals(List.of(SettingsBar.INBOX, SettingsBar.PEOPLE, SettingsBar.JEWEL, SettingsBar.MORE, SettingsBar.ME_SETTING),
+            Settings.visibleTabs(withoutSettings()));
+        assertTrue(Settings.lastActive(Settings.SHOW_SETTINGS_TAB) > 0);
+        assertTrue(Settings.hookErrors.isEmpty());
+
+        Settings.activeAt.clear();
+        List<SettingsBar> already = new ArrayList<>(Arrays.asList(SettingsBar.values()));
+        assertSame("A bar that already has it keeps Messenger's own list", already, Settings.visibleTabs(already));
+        assertNull("Nothing was added, so it isn't a use", Settings.activeAt.get(Settings.SHOW_SETTINGS_TAB));
+    }
+
+    @Test public void theSettingsTabGoesOnTheEndWithOtherSwitchesTakingTheirOwnTabs() {
+        restart();
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, true).putBoolean("tab_notifications", true).commit();
+        assertEquals(List.of(SettingsBar.INBOX, SettingsBar.PEOPLE, SettingsBar.MORE, SettingsBar.ME_SETTING),
+            Settings.visibleTabs(withoutSettings()));
+        assertTrue(Settings.lastActive("tab_notifications") > 0);
+        assertTrue(Settings.lastActive(Settings.SHOW_SETTINGS_TAB) > 0);
+    }
+
+    @Test public void showSettingsTabHoldsItsAnswerUntilARestart() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, true).commit();
+        assertTrue(Settings.visibleTabs(withoutSettings()).contains(SettingsBar.ME_SETTING));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, false).commit();
+        assertTrue("The bar keeps the tab it counted first", Settings.visibleTabs(withoutSettings()).contains(SettingsBar.ME_SETTING));
+        assertEquals(Boolean.TRUE, Settings.heldUntilRestart(Settings.SHOW_SETTINGS_TAB));
+
+        restart();
+        assertFalse(Settings.visibleTabs(withoutSettings()).contains(SettingsBar.ME_SETTING));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, true).putBoolean("paused", true).commit();
+        restart();
+        assertFalse("Pause takes it away after the restart", Settings.visibleTabs(withoutSettings()).contains(SettingsBar.ME_SETTING));
+    }
+
+    @Test public void withNoSettingsTabToAddTheBarStaysAsBuiltAndTheRowSaysSo() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_SETTINGS_TAB, true).commit();
+        List<Tab> noConstant = bar();
+        assertSame(noConstant, Settings.visibleTabs(noConstant));
+        assertEquals(List.of(Tab.values()), noConstant);
+        assertNotNull(Settings.hookErrors.get(Settings.SHOW_SETTINGS_TAB));
+        assertNull(Settings.activeAt.get(Settings.SHOW_SETTINGS_TAB));
+    }
+
     @Test public void somethingThatIsntATabConstantStays() {
         Settings.preferences.edit().putBoolean("tab_people", true).commit();
         List<Object> odd = new ArrayList<>(Arrays.asList("PEOPLE", null, Tab.PEOPLE));

@@ -105,6 +105,7 @@ val keepDeletedPatch = bytecodePatch(
     execute {
         val plan = resolveKeepDeleted()
         val timed = resolveKeepTimedMedia()
+        val secretTimed = resolveKeepSecretTimed()
         // Assembled on copies first, so a refusal leaves the app untouched.
         val measure = MutableMethod(ImmutableMethod.of(plan.measure))
         plan.applyTo(MutableMethod(ImmutableMethod.of(plan.updates)), MutableMethod(ImmutableMethod.of(plan.push)),
@@ -125,6 +126,20 @@ val keepDeletedPatch = bytecodePatch(
             enableCapability("keepTimedMedia")
         } else {
             patchLog.warning("Keep deleted messages: ${timed.missing}. The patch goes on without Keep view-once and timed media.")
+        }
+        if (secretTimed.missing == null) {
+            applyKeepSecretTimed(secretTimed)
+            enableCapability("keepSecretTimed")
+        } else {
+            patchLog.warning("Keep deleted messages: ${secretTimed.missing}. The patch goes on without Keep self-destructing secret chat messages.")
+        }
+        // Found once everything above is in, so its places are read as they now are; it changes nothing it can't finish.
+        val removed = resolveKeepRemovedChats()
+        if (removed.missing == null) {
+            applyKeepRemovedChats(removed)
+            enableCapability("keepRemovedChats")
+        } else {
+            patchLog.warning("Keep deleted messages: ${removed.missing}. The patch goes on without Keep chats you're removed from.")
         }
         enableStatus("keepDeleted")
     }

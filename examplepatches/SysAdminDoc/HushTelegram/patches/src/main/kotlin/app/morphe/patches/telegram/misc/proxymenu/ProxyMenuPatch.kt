@@ -6,14 +6,17 @@ package app.morphe.patches.telegram.misc.proxymenu
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.commerce.MENU_NEIGHBORS
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.localcontrols.Mention
@@ -48,6 +51,10 @@ private const val PROXY_ROW_LABEL = "hush_proxy_row"
  * `proxy_enabled` with a `proxy_ip`, or `MessagesController.blockedCountry` with a saved proxy in
  * `SharedConfig.proxyList`. The patch asks the extension right before the blockedCountry read, and
  * true jumps to the row's add, where both of Telegram's own paths arrive. Off by default.
+ *
+ * Its second switch, Do Not Disturb in the chat list menu (#79), adds an item where the menu shows
+ * and holds message notifications and the in-chat sound while it's on; see [DoNotDisturbSites].
+ * Those hooks go in only when all of them can, and Proxy goes on without them otherwise.
  */
 @Suppress("unused")
 val proxyMenuPatch = bytecodePatch(
@@ -62,6 +69,18 @@ val proxyMenuPatch = bytecodePatch(
     execute {
         val site = resolveProxyMenu()
         val free = site.method.freeLocalsAt(PATCH, site.read, 1, listOf(site.row)).single()
+        val quiet = try {
+            resolveDoNotDisturb(site).also { writeDoNotDisturbStub(it) }
+        } catch (refused: PatchException) {
+            refused.message ?: "the Do Not Disturb sites changed"
+        }
+        if (quiet is DoNotDisturbSites) {
+            // Below the Proxy hook in the same method, so it goes in first and the read keeps its place.
+            quiet.apply()
+            enableCapability("doNotDisturb")
+        } else {
+            patchLog.warning("$PATCH: $quiet. Proxy goes on without Do Not Disturb.")
+        }
         site.method.addInstructionsWithLabels(
             site.read,
             """
@@ -76,8 +95,11 @@ val proxyMenuPatch = bytecodePatch(
     }
 }
 
-/** The chat list's menu, its blockedCountry read at [read], and [row], the first instruction of the Proxy row's add. */
-internal class ProxyMenuSite(val method: MutableMethod, val read: Int, val row: Int)
+/**
+ * The chat list's menu, its blockedCountry read at [read], [row], the first instruction of the Proxy
+ * row's add, and [show], where the menu shows, which the checks skip to without a Proxy row.
+ */
+internal class ProxyMenuSite(val method: MutableMethod, val read: Int, val row: Int, val show: Int)
 
 internal fun BytecodePatchContext.resolveProxyMenu(): ProxyMenuSite {
     requireStatusMethod("proxyMenu")
@@ -123,5 +145,5 @@ internal fun BytecodePatchContext.resolveProxyMenu(): ProxyMenuSite {
         flow.normal[read - 1] == listOf(read), "the chat list menu's blocked country read has another way in")
     controlShape(body.indices.any { at -> at !in read..saved && row in flow.normal[at] },
         "the chat list menu's Proxy row is no longer shared with the proxy_enabled path")
-    return ProxyMenuSite(method, read, row)
+    return ProxyMenuSite(method, read, row, skip)
 }

@@ -12,18 +12,13 @@ import static app.morphe.extension.instagram.utils.IgStr.str;
 import java.util.ArrayList;
 import java.util.List;
 import android.content.Context;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.HashMap;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.rex.ObjectBrowser;
 
-import app.morphe.extension.instagram.patches.Links;
 import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.entity.Entity;
@@ -31,7 +26,7 @@ import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.patches.download.DownloadUtils;
 import app.morphe.extension.instagram.patches.feed.MoreOptionsOnPostPatch;
-import app.morphe.extension.instagram.settings.ActivityHook;
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
 
 import com.instagram.feed.media.mediaoption.MediaOption$Option;
 import com.instagram.common.session.UserSession;
@@ -62,10 +57,8 @@ public class FeedButton {
         if(additionalButtonListSize > 0) {
             int originalLength = originalArray.length;
 
-            // Create a new array that can hold the existing value as well as newly added buttons.
             MediaOption$Option[] newButtonArray = new MediaOption$Option[additionalButtonListSize + originalLength];
 
-            // Copy elements from the old array to the new array.
             System.arraycopy(originalArray, 0, newButtonArray, 0, originalLength);
 
             for(MediaOption$Option button : additionalButtonsList){
@@ -73,7 +66,6 @@ public class FeedButton {
             }
             return newButtonArray;
         }
-        // Returns the original array as a fallback.
         return originalArray;
     }
 
@@ -154,6 +146,7 @@ public class FeedButton {
 
     public static void customButtonOnClick(MediaOption$Option pressedButton, UserSession userSession, Context context, Object mediaObject, int currentMediaIndex){
         try{
+            RexHaptics.tap(context);
             if(pressedButton.equals(MediaOption$Option.REX_DEBUG)) {
                 ObjectBrowser.browseObject(context, new MediaData(mediaObject, userSession));
 

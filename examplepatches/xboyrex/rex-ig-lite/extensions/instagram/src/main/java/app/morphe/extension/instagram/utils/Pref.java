@@ -621,4 +621,89 @@ public class Pref {
             return 3;
         }
     }
+
+    // ---- Wired consumers for all 16 audited switches & aliases ----
+
+    public static boolean hideViewOnceSeen() {
+        return SharedPref.getBooleanPref(Settings.HIDE_VIEW_ONCE_SEEN) || Pref.getTurnOnAllGhostModes();
+    }
+
+    public static boolean ghostInstants() {
+        return SharedPref.getBooleanPref(Settings.GHOST_INSTANTS) || Pref.getTurnOnAllGhostModes();
+    }
+
+    public static boolean hideAudioSeen() {
+        return SharedPref.getBooleanPref(Settings.HIDE_AUDIO_SEEN)
+                || SharedPref.getBooleanPref(Settings.LISTEN_VOICE_NOTE_SECRETLY)
+                || Pref.getTurnOnAllGhostModes();
+    }
+
+    public static boolean dndMode() {
+        return SharedPref.getBooleanPref(Settings.DND_MODE)
+                || SharedPref.getBooleanPref(Settings.DND_MODE_ENABLED);
+    }
+
+    public static boolean hideReelsAndStoriesAdPods() {
+        return SharedPref.getBooleanPref(Settings.HIDE_REELS_AND_STORIES_AD_PODS);
+    }
+
+    public static boolean disableAnalytics() {
+        return SharedPref.getBooleanPref(Settings.DISABLE_ANALYTICS)
+                || SharedPref.getBooleanPref(Settings.DISABLE_ANALYTICS_TRACKER);
+    }
+
+    public static boolean restoreTrustSpoof() {
+        return SharedPref.getBooleanPref(Settings.RESTORE_TRUST_SPOOF);
+    }
+
+    public static boolean holdVideoFastForward() {
+        return SharedPref.getBooleanPref(Settings.HOLD_VIDEO_FAST_FORWARD);
+    }
+
+    public static boolean startFeedVideosMuted() {
+        return SharedPref.getBooleanPref(Settings.START_FEED_VIDEOS_MUTED);
+    }
+
+    public static boolean disableReelsLooping() {
+        return SharedPref.getBooleanPref(Settings.DISABLE_REELS_LOOPING);
+    }
+
+    public static boolean playStorySoundAutomatically() {
+        return SharedPref.getBooleanPref(Settings.PLAY_STORY_SOUND_AUTOMATICALLY)
+                || SharedPref.getBooleanPref(Settings.FORCE_STORY_SOUND);
+    }
+
+    public static boolean storyMentionIcon() {
+        return SharedPref.getBooleanPref(Settings.STORY_MENTION_ICON);
+    }
+
+    public static boolean highQualityUpload() {
+        return SharedPref.getBooleanPref(Settings.HIGH_QUALITY_UPLOAD)
+                || SharedPref.getBooleanPref(Settings.ENHANCE_STORY_UPLOAD_QUALITY);
+    }
+
+    public static boolean upload60FpsStories() {
+        return SharedPref.getBooleanPref(Settings.UPLOAD_60FPS_STORIES);
+    }
+
+    public static boolean extendedStoryDuration() {
+        return SharedPref.getBooleanPref(Settings.EXTENDED_STORY_DURATION);
+    }
+
+    public static boolean customChatWallpaper() {
+        return SharedPref.getBooleanPref(Settings.CUSTOM_CHAT_WALLPAPER)
+                || SharedPref.getBooleanPref(Settings.CHAT_CUSTOM_BG_ENABLED);
+    }
+
+    public static boolean reelsFloatingToolbar() {
+        return SharedPref.getBooleanPref(Settings.REELS_FLOATING_TOOLBAR);
+    }
+
+    public static boolean storyFiltersMaster() {
+        return SharedPref.getBooleanPref(Settings.STORY_FILTERS_MASTER) && SettingsStatus.storyFilters;
+    }
+
+    public static boolean longPressPostOptions() {
+        return SharedPref.getBooleanPref(Settings.LONG_PRESS_POST_OPTIONS);
+    }
 }

@@ -42,6 +42,32 @@ buildscript {
 }
 
 plugins {
-    id("app.morphe.patches") version "2.1.0"
+    id("app.morphe.patches") version "2.1.1"
 }
 
+// Apply dependency security upgrades to all project and plugin classpaths,
+// not only the settings script and the :patches project. The Gradle graph
+// submission resolves extension and tooling configurations independently.
+val securityBuildDeps = mapOf(
+    "org.bouncycastle:bcprov-jdk18on" to "1.87",
+    "org.bouncycastle:bcpkix-jdk18on" to "1.87",
+    "org.bouncycastle:bcutil-jdk18on" to "1.87",
+    "com.google.guava:guava" to "33.8.0-jre",
+    "org.apache.commons:commons-lang3" to "3.22.0",
+    "org.apache.httpcomponents:httpclient" to "4.5.14",
+    "org.bitbucket.b_c:jose4j" to "0.9.7",
+    "org.jdom:jdom2" to "2.0.6.1"
+)
+gradle.beforeProject {
+    val targets = securityBuildDeps
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            targets["${requested.group}:${requested.name}"]?.let { useVersion(it) }
+        }
+    }
+    buildscript.configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            targets["${requested.group}:${requested.name}"]?.let { useVersion(it) }
+        }
+    }
+}

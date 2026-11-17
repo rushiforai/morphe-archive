@@ -500,6 +500,10 @@ Hide Like on comments	Ẩn Thích ở bình luận
 Takes Like off the row under comments. Reply and the reaction count stay.	Bỏ nút Thích khỏi hàng dưới bình luận. Trả lời và số lượt bày tỏ cảm xúc vẫn giữ nguyên.
 Hide Reply on comments	Ẩn Trả lời ở bình luận
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Bỏ nút Trả lời khỏi hàng dưới bình luận. Xem phản hồi, Thích và số lượt bày tỏ cảm xúc vẫn giữ nguyên.
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	Ẩn huy hiệu như Fan cứng trong bình luận
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	Bỏ Fan cứng, Người đăng ký và các huy hiệu khác khỏi tên người bình luận. Tên và bình luận vẫn giữ nguyên.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Chỉ Thích
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1060,6 +1064,26 @@ Dark box behind open captions	Nền tối sau chú thích đang mở
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Chú thích thước phim đang mở nằm trên một khung tối, giống phụ đề, để dễ đọc trên video sáng. Thay đổi áp dụng từ thước phim tiếp theo.
 Dark box behind folded captions	Nền tối sau chú thích đang thu gọn
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Chú thích thước phim đang thu gọn, loại ngắn có Xem thêm ở cuối, nằm trên cùng khung tối đó. Bật cả hai để mọi chú thích đều có khung. Thay đổi áp dụng từ thước phim tiếp theo.
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	Nền tối sau tên trên thước phim
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	Tên ở cuối thước phim nằm trên cùng khung tối đó, nên dễ đọc trên video sáng. Thay đổi áp dụng từ thước phim tiếp theo.
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	Độ tối của khung
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Độ tối của khung sau chú thích và tên, tính theo phần trăm, từ %1$s đến %2$s. Để trống để dùng %3$s.
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	Khung tối có độ đen %1$s phần trăm. Nhập một số để thay đổi.
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	Khung tối có độ đen %1$s phần trăm.
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	Viền khung mềm
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	Khung tối mờ dần ở viền thay vì kết thúc sắc nét. Thay đổi áp dụng từ thước phim hoặc tin tiếp theo.
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	Nền tối sau tên trong tin
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	Tên trong hàng tin và trên tin đang mở nằm trên một khung tối, nên tin sáng màu không che mất tên. Độ tối của khung trong Reels và Watch đặt mức tối. Thay đổi áp dụng vào lần tới tin được tải.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Xem ai đã chia sẻ
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Thêm Xem ai đã chia sẻ vào menu của bài viết. Mục này mở danh sách của Facebook gồm những người đã chia sẻ bài viết.
@@ -2281,6 +2305,8 @@ Playback speed	Tốc độ phát
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Thêm vào video bảng tin các nút lùi hoặc tới 10 giây, giống trình phát của chính Facebook. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Thêm vào video bảng tin một nút hiển thị tốc độ. Mỗi lần nhấn chuyển sang tốc độ tiếp theo: 1x, 1.25x, 1.5x, 2x, rồi 0.5x. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Hiển thị thời gian đã xem ở đầu trái thanh tua của video bảng tin, và thời gian còn lại ở đầu phải. Cần bật Thanh tua trên video bảng tin.
+Full length on the seek bar	Tổng thời lượng trên thanh tua
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	Hiển thị tổng thời lượng của video bảng tin ở đầu phải thanh tua, thay cho thời gian còn lại. Cần bật Thời gian trên thanh tua.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Thêm nút vào video bảng tin để mở video trong trình phát đầy đủ của Facebook, với mọi nút điều khiển. Video trực tiếp cũng có nút này. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	Nút trình phát đầy đủ cạnh nút loa
@@ -2299,6 +2325,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Đưa thanh tua của video bảng tin xuống gần cạnh dưới hơn, cùng với nút loa và nút người được gắn thẻ của Facebook. Cần bật Thanh tua trên video bảng tin.
 Seek bar on the bottom edge	Thanh tua ở cạnh dưới
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Đặt thanh tua của video bảng tin ngay trên cạnh dưới, để không vướng khi bạn cuộn. Nút loa và nút người được gắn thẻ của Facebook dời lên nằm phía trên nó. Được ưu tiên hơn Hạ thấp thanh tua và nút loa. Cần bật Thanh tua trên video bảng tin.
+Thin line seek bar	Thanh tua dạng đường mảnh
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Hiển thị thanh tua của video bảng tin thành một đường mảnh ngay trên cạnh dưới, giống của Instagram, không có chấm hay thời gian cho đến khi bạn kéo nó. Video trực tiếp cũng có khi còn tua lại được. Thả tay ở đầu phải để quay về trực tiếp. Nút loa và nút người được gắn thẻ của Facebook dời lên nằm phía trên nó. Cần bật Thanh tua trên video bảng tin.
 Feed video position	Vị trí video bảng tin
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Màu huy hiệu
@@ -2740,6 +2768,10 @@ Not found yet	Chưa tìm thấy
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	Biểu tượng kính lúp ở đầu phần bình luận mở ô tìm kiếm để tìm các bình luận có từ của bạn.
 Open shared reels on their own	Mở reel được chia sẻ riêng lẻ
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Reel bạn mở từ liên kết trong ứng dụng khác hoặc từ cuộc trò chuyện sẽ phát riêng, không có reel nào khác để vuốt sau nó.
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	Ẩn cửa sổ Thêm bạn bè trên reel được chia sẻ
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	Khi bạn mở reel từ người chưa là bạn bè, cửa sổ đề nghị thêm họ làm bạn bè sẽ không hiện lên nữa. Thay đổi có hiệu lực từ reel được chia sẻ tiếp theo.
 Light bars on the Reels tab	Thanh sáng trên tab Reels
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	Ở chế độ sáng, tab Reels giữ thanh trạng thái, thanh trên cùng và thanh tab sáng giống các tab khác, thay vì chuyển chúng sang tối.
 Bar opacity	Độ mờ đục của thanh
@@ -2873,3 +2905,19 @@ Clear mode	Chế độ xem gọn
 Scroll to next reel automatically	Tự động cuộn đến thước phim tiếp theo
 Transcript	Bản chép lời
 Audio and language	Âm thanh và ngôn ngữ
+Reset settings	Đặt lại cài đặt
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	Đưa mọi công tắc và lựa chọn mà Xuất cài đặt lưu về như lúc mới cài. Tạm dừng, Ghi nhật ký gỡ lỗi và kiểm tra cập nhật vẫn giữ nguyên.
+Undo the reset	Hoàn tác đặt lại
+Brings back the switches and choices you had before the last reset.	Đưa lại các công tắc và lựa chọn bạn có trước lần đặt lại gần nhất.
+Couldn't reset the settings. Nothing was changed.	Không thể đặt lại cài đặt. Không có gì thay đổi.
+Your settings already match a new install.	Cài đặt của bạn đã giống như lúc mới cài.
+Resetting settings	Đang đặt lại cài đặt
+Settings reset. Undo the reset puts yours back.	Đã đặt lại cài đặt. Hoàn tác đặt lại sẽ đưa cài đặt của bạn trở lại.
+Couldn't undo the reset. Nothing was changed.	Không thể hoàn tác đặt lại. Không có gì thay đổi.
+Putting your settings back	Đang đưa cài đặt của bạn trở lại
+Your settings are back the way they were before the reset.	Cài đặt của bạn đã trở lại như trước khi đặt lại.
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	Không thể hoàn tất, và cũng không thể khôi phục cài đặt cũ của bạn. Hãy kiểm tra các công tắc trên màn hình này.
+Show every reaction on comments	Hiện mọi biểu cảm trên bình luận
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	Ở chỗ Facebook chỉ hiện biểu cảm nhiều nhất của bình luận cạnh số lượng, vẫn giữ Thích, Trả lời và mọi biểu cảm. Thay đổi hiển thị trên các bình luận hiện ra sau đó.
+Move seen stories to the end	Chuyển tin đã xem xuống cuối
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	Tin bạn đã xem chuyển xuống cuối khay tin, sau những tin bạn chưa xem. Khi Ẩn tin đã xem đang bật, tùy chọn đó được áp dụng trước. Áp dụng khi Facebook tải lại khay tin lần sau.

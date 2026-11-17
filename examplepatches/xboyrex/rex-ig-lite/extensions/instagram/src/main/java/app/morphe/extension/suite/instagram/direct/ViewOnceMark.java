@@ -18,6 +18,7 @@ import android.view.View;
 import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Utils;
 import app.morphe.extension.suite.shared.diagnostics.HookStatus;
@@ -76,7 +77,7 @@ public final class ViewOnceMark {
     }
 
     private static boolean switchedOn() {
-        return Utils.settingsReady() && Settings.MARK_VIEW_ONCE.get();
+        return Pref.hideViewOnceSeen() || (Utils.settingsReady() && Settings.MARK_VIEW_ONCE.get());
     }
 
     /** Instagram's view once icon, or null when this build has no resource by that name. */

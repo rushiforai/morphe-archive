@@ -7,8 +7,10 @@ import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
 import org.w3c.dom.Element
 
 /**
@@ -41,7 +43,7 @@ private val isVipFingerprint = Fingerprint(
  * `Application.onCreate`. Facebook also logs app events (its own analytics)
  * from the same init.
  */
-private val adSdksManifestPatch = resourcePatch {
+private val adSdksManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             manifest.disableProviders(
@@ -54,7 +56,7 @@ private val adSdksManifestPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val premiumUnlockPatch = bytecodePatch(
+val premiumUnlockPatch = patch(
     name = "Premium unlock",
     description = "Unlocks premium on your phone (no ads, every premium feature), stops the Play license check " +
         "from closing the app, and keeps the ad SDK from starting so it cannot load ads or track in the background.",

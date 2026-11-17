@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.disney.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.splitByBundle
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -22,5 +23,8 @@ object Constants {
             AppTarget("26.20.0+rc3-2026.11.02"),
             AppTarget(version = "26.20.0+rc2-2026.10.28", versionCode = 179321403, description = "Phone build"),
         )
+    ).splitByBundle(
+        phoneDescription = "The Disney+ phone app. The Android TV build of the same version crashes on a phone.",
+        tvDescription = "The Disney+ app. Patch the build with version code 1793662190.",
     )
 }

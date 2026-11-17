@@ -41,7 +41,13 @@ DEV_LABEL = "dev pre-release"
 TESTING_LABEL = "testing on dev"
 APP_UPDATE_PREFIX = "App update: "
 INCOMPLETE_LABEL = "incomplete"
-FORMS_DIR = ".github/ISSUE_TEMPLATE"
+# tv-morphe-patches runs this script from a checkout of this repository, with
+# its own forms, which have no "Phone or Android TV build" field.
+FORMS_DIR = os.environ.get("TRIAGE_FORMS_DIR", ".github/ISSUE_TEMPLATE")
+DEFAULT_BUILD = os.environ.get("TRIAGE_DEFAULT_BUILD", "")
+# The repository that takes Android TV reports ("owner/name"), set here from the
+# TV_SOURCE variable. Empty in tv-morphe-patches itself.
+TV_REPO = os.environ.get("TRIAGE_TV_REPO", "")
 # A heading that only one form has, which tells the forms apart.
 FORM_MARKERS = {"Morphe Manager's message": "0-version-or-build.yml", "What happened": "1-bug-report.yml", "What could be better": "2-enhancement.yml",
                 "What the patch should do": "3-new-app-or-patch.yml", "Topic": "4-something-else.yml"}
@@ -192,9 +198,16 @@ def is_tv(description):
 def evaluate(fields, apps):
     """None when the report matches a supported target or cannot be checked, else what is wrong."""
     app, version = fields.get("App"), fields.get("App version")
+    build = fields.get("Phone or Android TV build") or DEFAULT_BUILD
+    # The forms list "Apple TV", and the patches name the TV entry "Apple TV (Android TV)".
+    if app and build.startswith("Android TV") and f"{app} (Android TV)" in apps:
+        app = f"{app} (Android TV)"
     if not app or not version or app not in apps:
         return None
     versions = apps[app]
+    has_tv_target = any(is_tv(d) for e in versions.values() for d in e["descriptions"])
+    if TV_REPO and build.startswith("Android TV") and has_tv_target:
+        return {"kind": "tv", "app": app, "version": version.strip(), "versions": versions}
     match = next((v for v in versions if v.lower() == version.strip().lower()), None)
     if match is None:
         return {"kind": "version", "app": app, "version": version.strip(), "versions": versions}
@@ -203,7 +216,6 @@ def evaluate(fields, apps):
     if code.isdigit() and entry["codes"] and int(code) not in entry["codes"]:
         return {"kind": "build", "app": app, "version": match, "versions": versions,
                 "reason": f"its version code is `{code}`"}
-    build = fields.get("Phone or Android TV build") or ""
     descriptions = entry["descriptions"]
     if descriptions and build.startswith("Android TV") and not any(is_tv(d) for d in descriptions):
         return {"kind": "build", "app": app, "version": match, "versions": versions,
@@ -230,7 +242,21 @@ def version_line(version, entry):
     return f"- `{version}`" + (f": {'; '.join(details)}" if details else "")
 
 
+def tv_comment(problem):
+    repo = TV_REPO
+    return (f"The Android TV patches, including {problem['app']}, now come from a separate patch source, "
+            f"[{repo}](https://github.com/{repo}). The dev pre-releases of this source no longer include them, "
+            f"and the main releases will stop including them after version 1.1.\n\n"
+            f"Please [add that source](https://morphe.software/add-source?github={repo}) in Morphe Manager, "
+            f"as [its instructions](https://github.com/{repo}#readme) describe, and patch the app again with "
+            f"it. If the problem "
+            f"still happens, report it at https://github.com/{repo}/issues and close this issue. An issue with "
+            f"the `{LABEL}` label closes after 7 days without an update.")
+
+
 def comment(problem):
+    if problem["kind"] == "tv":
+        return tv_comment(problem)
     supported = "\n".join(version_line(v, e) for v, e in sorted(problem["versions"].items()))
     if problem["kind"] == "version":
         opening = (f"The patches do not support {problem['app']} `{problem['version']}`, so this report "

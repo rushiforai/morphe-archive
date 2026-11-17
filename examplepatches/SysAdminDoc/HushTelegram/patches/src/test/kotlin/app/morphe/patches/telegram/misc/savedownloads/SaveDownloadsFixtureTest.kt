@@ -48,7 +48,7 @@ private val downloadExtras = HashMap<String, Set<String>>()
  * The classes the save-downloads resolvers read on [build] besides the named hosts: FileLoader's
  * operation callback, where the build inlines the delegate's call; the delegate, an anonymous class
  * ImageLoader names where it hands FileLoader its delegate; and the classes MediaController creates,
- * where the build moves Save to Gallery's lambdas.
+ * where the build moves Save to Gallery's lambdas; and the file cells whose icons the patch hooks.
  */
 internal fun downloadHosts(build: File): Set<String> = synchronized(downloadExtras) {
     downloadExtras.getOrPut(build.path) {
@@ -56,7 +56,7 @@ internal fun downloadHosts(build: File): Set<String> = synchronized(downloadExtr
         FixtureDex.namedBy(build) {
             setOf(FILE_LOADER_OPERATIONS) + named.getValue(IMAGE_LOADER).delegateCandidates() +
                 named.getValue(GALLERY_MEDIA_CONTROLLER).createdTypes()
-        }
+        } + fileIconHosts(build)
     }
 }
 

@@ -32,7 +32,7 @@ private fun Method.lastRegister(): Int = implementation!!.registerCount - 1
  */
 internal fun applyDnsFilterFallback(apk: File, workDir: File, pkg: String, version: String): List<ClassDef> {
     val root = repoRoot()
-    val patches: Set<Patch<*>> = loadAllPatches(newestPatchBundle(root))
+    val patches: Set<Patch> = loadAllPatches(newestPatchBundle(root))
     val dnsFilter = patches.single { it.name == DNS_FILTER && it.compatibility.orEmpty().any { c -> c.packageName == pkg } }
     assertEquals(setOf("dohUrl", "customDohUrl", "dohMode"), dnsFilter.options.keys, "$pkg DNS filter options")
     assertEquals(DEFAULT_DOH_URL, dnsFilter.options["dohUrl"]?.default, "$pkg DNS filter default resolver")

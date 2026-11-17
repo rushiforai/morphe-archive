@@ -1,6 +1,7 @@
 // Sofascore helpers for Patch settings: the "Patch settings" row on the Settings screen and the
 // runtime hooks of the Sofascore features (modal queue, match tabs, sports list, hidden countries and competitions, animation speed,
-// widget refresh). Builds
+// widget refresh, keep screen on and the screenshot prompt in ScreenCalm, clean shared links in ShareLinks
+// and ShareLinkCleaner). Builds
 // extensions/sofascore.mpe; the Heval Controls core is compileOnly (the host patch merges
 // extensions/hevalcontrols.mpe), so this .mpe never carries a second copy of it.
 // See docs/heval-controls.md.
@@ -15,7 +16,7 @@ android {
 dependencies {
     compileOnly(project(":extensions:hevalcontrols:core"))
 
-    // JVM unit tests of the pure-Java picker helpers (CountryIconsTest, CompetitionFilterTest): .\gradlew :extensions:sofascore:testDebugUnitTest
+    // JVM unit tests of the pure-Java picker helpers (CountryIconsTest, CompetitionFilterTest, ShareLinkCleanerTest): .\gradlew :extensions:sofascore:testDebugUnitTest
     testImplementation(project(":extensions:hevalcontrols:core"))
     testImplementation(libs.junit)
 }

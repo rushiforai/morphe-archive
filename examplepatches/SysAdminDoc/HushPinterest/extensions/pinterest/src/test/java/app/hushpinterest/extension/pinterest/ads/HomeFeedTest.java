@@ -41,6 +41,7 @@ public class HomeFeedTest {
     public void restore() {
         PauseForTests.resume();
         Settings.KEEP_HOME_FEED.resetToDefault();
+        Settings.BACK_LEAVES_HOME.resetToDefault();
         HookStatus.clear();
     }
 
@@ -95,5 +96,32 @@ public class HomeFeedTest {
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(HomeFeed.holdResumeRefresh(HomeFeed.AWAY_MS + 1));
         assertFalse(HomeFeed.holdHomeRefresh(null, 1));
+    }
+
+    /** #36: off to start, Back on a scrolled-down Home jumps to the top and refreshes as Pinterest wrote it. */
+    @Test public void backJumpsToTheTopUntilItsSwitchIsOn() {
+        assertFalse(Settings.BACK_LEAVES_HOME.get());
+        assertFalse(HomeFeed.leave());
+        // Keep Home feed's own switch doesn't turn it on.
+        Settings.KEEP_HOME_FEED.save(true);
+        assertFalse(HomeFeed.leave());
+        assertFalse(line(), line().contains("Back left Home"));
+    }
+
+    @Test public void onBackLeavesHomeWithKeepHomeFeedOnOrOff() {
+        Settings.BACK_LEAVES_HOME.save(true);
+        assertTrue(HomeFeed.leave());
+        Settings.KEEP_HOME_FEED.save(true);
+        assertTrue(HomeFeed.leave());
+        assertTrue(line(), line().contains("Back left Home"));
+        // The two holds still answer to Keep Home feed alone.
+        Settings.KEEP_HOME_FEED.save(false);
+        assertFalse(HomeFeed.holdHomeRefresh(null, 1));
+    }
+
+    @Test public void pausedBackJumpsToTheTop() {
+        Settings.BACK_LEAVES_HOME.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(HomeFeed.leave());
     }
 }

@@ -409,6 +409,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_seen_stories", FALSE);
 
     /**
+     * The buckets of the Stories tray you've watched move to its end, after the ones you haven't, each
+     * group in Facebook's order (#489). Hide seen stories goes first, so with it on they leave instead.
+     * Off until you turn it on.
+     */
+    public static final BooleanSetting SEEN_STORIES_LAST =
+            new BooleanSetting("hushfacebook_seen_stories_last", FALSE);
+
+    /**
      * The other way round from {@link #HIDE_SEEN_STORIES} (#340): the Stories tray keeps only the
      * buckets you've watched, and Hide seen stories waits while this is on. Off until you turn it on.
      */
@@ -1044,6 +1052,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_shared_reels_alone", FALSE);
 
     /**
+     * Opening a reel someone who isn't your friend shared no longer brings up the "[Name] shared this
+     * reel. Add him as a friend" sheet over it
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#hideSharedReelFriendSheet}, #486).
+     * Off by default. A change shows from the next shared reel.
+     */
+    public static final BooleanSetting HIDE_SHARED_REEL_FRIEND_SHEET =
+            new BooleanSetting("hushfacebook_hide_shared_reel_friend_sheet", FALSE);
+
+    /**
      * Watch again at the end of a feed video plays it again where it is instead of opening it in
      * the Reels viewer ({@link app.morphe.extension.facebook.reels.WatchAgain}, #403). Off by
      * default. A change shows on the next tap.
@@ -1449,8 +1466,9 @@ public class Settings extends BaseSettings {
 
     /**
      * Holding a video for 2x draws no pill at all: no speed, no "Release to lock" and no "Locked at 2x
-     * speed" (#289). The hold and its lock work as before. Works without {@link #HOLD_REEL_FOR_2X}.
-     * Starts off.
+     * speed" (#289). Feed videos skip Facebook's "2x speed" tip, and on accounts with Facebook's own
+     * feed video hold, the "2x speed" chip that hold draws (#343). The hold and its lock work as
+     * before. Works without {@link #HOLD_REEL_FOR_2X}. Starts off.
      */
     public static final BooleanSetting HIDE_2X_POPUPS =
             new BooleanSetting("hushfacebook_hide_2x_popups", FALSE);
@@ -1600,6 +1618,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_comment_reply_button", FALSE);
 
     /**
+     * Commenters' names lose their badges, Top fan, Subscriber and the rest
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #485). The name, the time
+     * and the comment stay. Off by default. A change shows on comments drawn after it.
+     */
+    public static final BooleanSetting HIDE_COMMENTER_BADGES =
+            new BooleanSetting("hushfacebook_hide_commenter_badges", FALSE);
+
+    /**
      * The thumbs-down under a comment becomes a Block button that opens Facebook's own block
      * sheet for the commenter, confirmation included
      * ({@link app.morphe.extension.facebook.comments.CommentBlock}, #271). Off by default. A
@@ -1641,6 +1667,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_INCOMING_COMMENT_TYPING =
             new BooleanSetting("hushfacebook_hide_incoming_comment_typing", FALSE);
+
+    /**
+     * The row under a comment keeps Like, Reply and every reaction beside the count, where Facebook
+     * would draw its newer row with only the top reaction: Facebook's picks of the newer row are
+     * answered no, in the comment actions plugin
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions#topReactionOnly}), the check
+     * the feed's inline comments and an open post's comment list share
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions#topReactionCheck}) and the
+     * comment list's row layout
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions#topReactionLayout}), and
+     * the older row's cap of one icon beside the count is answered no
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions#topReactionIcons}), #241.
+     * Off by default.
+     */
+    public static final BooleanSetting SHOW_EVERY_COMMENT_REACTION =
+            new BooleanSetting("hushfacebook_show_every_comment_reaction", FALSE);
 
     /**
      * The "3 new comments" pill that shows while a comment list is open never shows: its text is
@@ -1822,6 +1864,20 @@ public class Settings extends BaseSettings {
             };
 
     /**
+     * With {@link #FEED_VIDEO_SEEK_BAR} on, the bar is a thin line flush with the video's bottom
+     * edge, as on Instagram, with no thumb or times until a drag, and a live video that can be
+     * rewound gets it too. It sits on the edge as {@link #FEED_VIDEO_SEEK_BAR_EDGE} does (#431).
+     * Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_SEEK_BAR_THIN =
+            new BooleanSetting("hushfacebook_feed_video_seek_bar_thin", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
      * A seek bar along the bottom of a video story, where {@link #STORY_PROGRESS_BAR} draws, which
      * makes way for it. A drag holds the story and the let go moves it there (#386). Starts off.
      */
@@ -1910,6 +1966,18 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_VIDEO_SEEK_BAR_TIMES =
             new BooleanSetting("hushfacebook_feed_video_seek_bar_times", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
+     * With {@link #FEED_VIDEO_SEEK_BAR_TIMES} on, the bar's right end shows the video's whole length
+     * in place of the time left (#487). Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_SEEK_BAR_LENGTH =
+            new BooleanSetting("hushfacebook_feed_video_seek_bar_length", FALSE) {
                 @Override
                 protected void onValueChanged() {
                     FeedVideoControls.settingsChanged();
@@ -2397,6 +2465,13 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting SEEN_MENU_TILES =
             new StringSetting("hushfacebook_seen_menu_tiles", "");
+
+    /**
+     * The settings file as it stood just before the last Reset settings, which Undo the reset
+     * applies, or blank when there's nothing to undo. Never in a settings file of its own.
+     */
+    public static final StringSetting RESET_UNDO =
+            new StringSetting("hushfacebook_reset_undo", "");
 
     /**
      * The share sheet's Send to group button, which makes a new group chat of the people picked,
@@ -3328,6 +3403,37 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DIM_FOLDED_REEL_CAPTIONS =
             new BooleanSetting("hushfacebook_dim_folded_reel_captions", FALSE);
+
+    /**
+     * The name at the bottom of a reel sits on the caption's dark box (#490,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop#forReelName}). Feed posts' names keep
+     * Facebook's look. A change shows from the next reel.
+     */
+    public static final BooleanSetting DIM_REEL_NAMES =
+            new BooleanSetting("hushfacebook_dim_reel_names", FALSE);
+
+    /**
+     * Names in the stories row and on an open story sit on the caption's dark box (#490,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop#forStoryName}). A change shows the
+     * next time the stories load.
+     */
+    public static final BooleanSetting DIM_STORY_NAMES =
+            new BooleanSetting("hushfacebook_dim_story_names", FALSE);
+
+    /**
+     * How dark every dark box behind captions and names is, a percent, digits only, blank for the
+     * subtitle black (#490, {@link app.morphe.extension.facebook.feed.CaptionBackdrop#darknessPercent}).
+     * Not a switch. Read as each box is made.
+     */
+    public static final StringSetting TEXT_BOX_DARKNESS =
+            new StringSetting("hushfacebook_text_box_darkness", "");
+
+    /**
+     * The dark boxes fade out past their edges instead of ending sharp (#490,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop.SoftBox}). Read as each box is made.
+     */
+    public static final BooleanSetting SOFT_TEXT_BOXES =
+            new BooleanSetting("hushfacebook_soft_text_boxes", FALSE);
 
     /**
      * A post in another language gets a Translate line under its text, and a tap sends the text to

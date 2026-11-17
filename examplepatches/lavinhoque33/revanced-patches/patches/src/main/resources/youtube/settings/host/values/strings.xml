@@ -1763,6 +1763,10 @@ Words with uppercase letters in the middle must be entered with the casing (ie: 
     <string name="revanced_hide_player_flyout_menu_ambient_mode_summary_off">Ambient mode menu is shown</string>
     <string name="revanced_hide_player_flyout_menu_ambient_mode_summary_on">Ambient mode menu is hidden</string>
     <string name="revanced_hide_player_flyout_menu_ambient_mode_title">Hide Ambient mode menu</string>
+    <string name="morphe_hide_player_flyout_additional_settings_title">Hide \'Additional settings\' / More menu</string>
+    <string name="morphe_hide_player_flyout_additional_settings_summary">
+        Also hidden automatically when every option below is hidden
+    </string>
     <string name="revanced_hide_player_flyout_menu_audio_track_summary_off">Audio track menu is shown</string>
     <string name="revanced_hide_player_flyout_menu_audio_track_summary_on">Audio track menu is hidden</string>
     <string name="revanced_hide_player_flyout_menu_audio_track_title">Hide Audio track menu</string>
@@ -2281,6 +2285,7 @@ Miniplayer can be dragged off-screen to the left or right"</string>
     <string name="revanced_navigation_bar_order_hide">Hide %s</string>
     <string name="revanced_navigation_bar_order_instructions">Tap an item to show or hide it, and drag its handle to reorder. Create and Notifications share a slot. Explore is available only in supported YouTube layouts</string>
     <string name="revanced_navigation_bar_order_show">Show %s</string>
+    <string name="revanced_navigation_bar_order_you">You</string>
     <string name="revanced_navigation_bar_visibility_instructions">Tap an item to show or hide it. Create and Notifications share a slot. Changes apply after restarting</string>
     <string name="revanced_open_links_externally_summary_off">Opens links in in-app browser</string>
     <string name="revanced_open_links_externally_summary_on">Opens links in external browser</string>

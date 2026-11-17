@@ -1,3 +1,46 @@
+## [2.12.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.1...v2.12.0) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **playfy:** stop leaving the splash spinner up on Android 13+ ([92382d6](https://github.com/ginDoki19/GinArena-patch/commit/92382d6409f905787f63bc4b724dd9e83395ea14))
+* **readme:** verify every anchor against GitHub's own renderer ([8665d37](https://github.com/ginDoki19/GinArena-patch/commit/8665d3786f3101f29b817cd45e3bbbc3bccbdc73))
+
+### ✨ New Features
+
+* **cricfy:** support 7.5 and drop 7.4 ([29d781b](https://github.com/ginDoki19/GinArena-patch/commit/29d781b8d4f7696772c2a1509f865b7aeee1b809))
+* **cricfy:** suppress the CashRaven consent prompt ([79c5ad1](https://github.com/ginDoki19/GinArena-patch/commit/79c5ad1a71545d304440be978978beb18b4e6e5d))
+* **daylio:** support 1.72.0 with promo, tracking and MicroG patches ([a4b8c8f](https://github.com/ginDoki19/GinArena-patch/commit/a4b8c8f80612568ab815a03faa08f1a3a98082d9))
+
+## [2.12.0-dev.3](https://github.com/ginDoki19/GinArena-patch/compare/v2.12.0-dev.2...v2.12.0-dev.3) (2026-11-17)
+
+### ✨ New Features
+
+* **cricfy:** suppress the CashRaven consent prompt ([79c5ad1](https://github.com/ginDoki19/GinArena-patch/commit/79c5ad1a71545d304440be978978beb18b4e6e5d))
+
+## [2.12.0-dev.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.12.0-dev.1...v2.12.0-dev.2) (2026-11-17)
+
+### ✨ New Features
+
+* **cricfy:** support 7.5 and drop 7.4 ([29d781b](https://github.com/ginDoki19/GinArena-patch/commit/29d781b8d4f7696772c2a1509f865b7aeee1b809))
+
+## [2.12.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.2-dev.2...v2.12.0-dev.1) (2026-11-17)
+
+### ✨ New Features
+
+* **daylio:** support 1.72.0 with promo, tracking and MicroG patches ([a4b8c8f](https://github.com/ginDoki19/GinArena-patch/commit/a4b8c8f80612568ab815a03faa08f1a3a98082d9))
+
+## [2.11.2-dev.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.2-dev.1...v2.11.2-dev.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **playfy:** stop leaving the splash spinner up on Android 13+ ([92382d6](https://github.com/ginDoki19/GinArena-patch/commit/92382d6409f905787f63bc4b724dd9e83395ea14))
+
+## [2.11.2-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.1...v2.11.2-dev.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **readme:** verify every anchor against GitHub's own renderer ([8665d37](https://github.com/ginDoki19/GinArena-patch/commit/8665d3786f3101f29b817cd45e3bbbc3bccbdc73))
+
 ## [2.11.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.0...v2.11.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

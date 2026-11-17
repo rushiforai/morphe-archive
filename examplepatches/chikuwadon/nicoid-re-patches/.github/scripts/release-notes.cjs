@@ -5,7 +5,7 @@ module.exports.generateNotes = async (options, context) => {
   const notePath = path.join(context.cwd, '.github/release-notes', 'v' + version + '.md');
   const notes = fs.existsSync(notePath)
     ? fs.readFileSync(notePath, 'utf8')
-    : await require('@semantic-release/release-notes-generator').generateNotes(options, context);
+    : await import('./release-notes-modern.mjs').then(({generateNotes}) => generateNotes(options, context));
   // Morphe needs a dated version heading and app-scoped * bullets for update detection.
   const body = notes.replace(/^#{1,3}\s+\[?v?\d[^\n]*\n+/, '')
     .replace(/^[-*]\s+(?:\*\*[^*]+:\*\*\s*)?/gm, '* **nicoid:** ');

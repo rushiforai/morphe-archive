@@ -12,10 +12,27 @@ public final class HomeThreadOrder {
     public static final int DRAG_TAG=0x48690135;
     public interface DragOrder { boolean move(int from,int to); void togglePin(int position); boolean pinned(int position); }
     static final String PREFS="haiagaru.home-thread-order";
+    static final String ENABLED="homeThreadCustomOrderEnabled";
+    static final String KEYWORD_MENU="homeKeywordDisplayNameMenu";
+    static boolean enabled(){Context c=Haiagaru.applicationContextForExtension();return c==null||SettingsProfiles.prefs(c).getBoolean(ENABLED,true);}
     private static final int MENU=0x48690133;
     private static final Map<Integer,List<?>> latest=new HashMap<>();
     private static final Map<Object,Integer> modes=new WeakHashMap<>();
     private static final ThreadLocal<Integer> sortingMode=new ThreadLocal<>();
+    private static final Map<Integer,RankOrder> rankCache=new HashMap<>();
+    private static final class RankOrder {
+        final String json;final Map<String,Integer> ranks;
+        RankOrder(String json,Map<String,Integer> ranks){this.json=json;this.ranks=ranks;}
+    }
+    private static Map<String,Integer> ranks(int mode){
+        int key=Math.abs(mode);String json=prefs().getString("order:"+key,"[]");
+        synchronized(rankCache){
+            RankOrder cached=rankCache.get(key);if(cached!=null&&Objects.equals(cached.json,json))return cached.ranks;
+            Map<String,Integer> ranks=new HashMap<>();
+            try{JSONArray order=new JSONArray(json);for(int i=0;i<order.length();i++)ranks.put(order.getString(i),i);}catch(JSONException ignored){}
+            rankCache.put(key,new RankOrder(json,Collections.unmodifiableMap(ranks)));return ranks;
+        }
+    }
     public static void selected(Object owner,int mode){
         synchronized(modes){modes.put(owner,Math.abs(mode));}
         sortingMode.set(Math.abs(mode));
@@ -56,9 +73,9 @@ public final class HomeThreadOrder {
         try{Object b=NativeFields.find(row.getClass(),board).get(row);long thread=NativeFields.find(row.getClass(),id).getLong(row);return b==null||thread<=0?null:b.toString()+"\n"+thread;}catch(Exception unavailable){return null;}
     }
     static List<?> apply(List<?> source,int mode){
-        if(source==null||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
+        if(source==null||!enabled()||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
         synchronized(latest){latest.put(mode,new ArrayList<>(source));}
-        Map<String,Integer> ranks=new HashMap<>();try{JSONArray order=new JSONArray(prefs().getString("order:"+Math.abs(mode),"[]"));for(int i=0;i<order.length();i++)ranks.put(order.getString(i),i);}catch(JSONException ignored){}
+        Map<String,Integer> ranks=ranks(mode);
         Set<String> pinned=prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet());if(ranks.isEmpty()&&pinned.isEmpty())return source;
         ArrayList<Object> movable=new ArrayList<>();
         Map<Object,String> keys=new IdentityHashMap<>();
@@ -78,12 +95,17 @@ public final class HomeThreadOrder {
         return result;
     }
     public static void menu(Object fragment,Menu menu){
+        ResponseNotes.homeMenu(fragment,menu);
         GlobalSearchHome.menu(fragment,menu);
         if(menu!=null&&menu.findItem(0x48690139)==null){
             menu.add(Menu.NONE,0x48690139,Menu.NONE,"キーワードの表示名を設定")
                 .setOnMenuItemClickListener(item->{DisplayNames.showKeywords(Haiagaru.toolbarActivity(fragment));return true;});
         }
-        if(menu==null)return;MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{show(Haiagaru.toolbarActivity(fragment),mode(fragment));return true;});}item.setVisible(target(mode(fragment)));
+        if(menu!=null&&menu.findItem(0x48690139)!=null){
+            Context context=Haiagaru.applicationContextForExtension();
+            menu.findItem(0x48690139).setVisible(context!=null&&SettingsProfiles.prefs(context).getBoolean(KEYWORD_MENU,false));
+        }
+        if(menu==null)return;MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{show(Haiagaru.toolbarActivity(fragment),mode(fragment));return true;});}item.setVisible(enabled()&&target(mode(fragment)));
     }
     static void show(Activity activity,final int mode){
         if(activity==null||activity.isFinishing())return;List<?> source;synchronized(latest){source=latest.get(mode);}

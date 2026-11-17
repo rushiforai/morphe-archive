@@ -2,7 +2,7 @@ package app.template.patches.boxbox.misc.telemetry
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_BOXBOX
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.Method
 
 // Stable class name: the measurement dynamite loader looks this local service up by name.

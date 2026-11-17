@@ -123,7 +123,9 @@ public class PausedHooksTest {
     public void restore() {
         PauseForTests.resume();
         for (BooleanSetting setting : settingsSwitches()) setting.resetToDefault();
+        Settings.CHAT_LIST_TITLE_TEXT.resetToDefault();
         ReleaseCheckForTests.forget();
+        app.hushtelegram.extension.telegram.misc.DoNotDisturbForTests.forget();
     }
 
     /**
@@ -182,7 +184,8 @@ public class PausedHooksTest {
                 app.hushtelegram.extension.telegram.misc.CallRecorderForTests::takesAFrameAfterATap,
                 app.hushtelegram.extension.telegram.misc.CallRecorderForTests::addsARecordButton));
         // An unsent message's link preview is never asked for, on any compose surface, its draft
-        // stays off Telegram's server, and what's typed in search stays here too.
+        // stays off Telegram's server, what's typed in search stays here too, and a sent link's
+        // preview comes from the site its rule names.
         probes.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, Arrays.asList(
                 app.hushtelegram.extension.telegram.misc.DraftPreviews::skipChatPreview,
                 app.hushtelegram.extension.telegram.misc.DraftPreviews::skipSharePreview,
@@ -195,7 +198,8 @@ public class PausedHooksTest {
                 () -> !"none".equals(app.hushtelegram.extension.telegram.misc.LocalSearch.emptyText("none")),
                 () -> app.hushtelegram.extension.telegram.misc.LocalSearch.keepsText("cat"),
                 () -> app.hushtelegram.extension.telegram.misc.LocalSearch.phones(new Object(), "+15551234",
-                        true, true, true, true, false, 0, true, 0, 7, 0L, null)));
+                        true, true, true, true, false, 0, true, 0, 7, 0L, null),
+                app.hushtelegram.extension.telegram.misc.LinkPreviewRulesForTests::on));
         // Search's Apps tab neither loads nor draws the Popular apps list, and search keeps to your
         // own chats: no public tab, lookup, account match or hashtag posts, and Downloads opens
         // where it now sits.
@@ -254,26 +258,46 @@ public class PausedHooksTest {
         probes.put(PatchFamily.QUIET_CONTACTS_NAG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsNag.skipAsk(declinedContactsPrompt()),
                 () -> app.hushtelegram.extension.telegram.misc.ContactsNag.hideBadge(declinedContactsPrompt())));
-        // Telegram's holiday check skips its date test and shows the New Year look.
-        probes.put(PatchFamily.HOLIDAY_LOOK, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.HolidayLook.mode() == app.hushtelegram.extension.telegram.misc.HolidayLook.SHOW));
+        // Telegram's holiday check skips its date test and shows the New Year look, and the chat
+        // list's title shows the person's own text in place of Telegram's name.
+        Settings.CHAT_LIST_TITLE_TEXT.save("Mine");
+        probes.put(PatchFamily.HOLIDAY_LOOK, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.HolidayLook.mode() == app.hushtelegram.extension.telegram.misc.HolidayLook.SHOW,
+                () -> {
+                    android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder("Telegram");
+                    app.hushtelegram.extension.telegram.misc.TitleEmoji.decorate(title);
+                    return !"Telegram".contentEquals(title);
+                }));
         // Telegram's medium font file is answered with the phone's own face, and so is the variable
         // monospace face Wallet builds itself.
         probes.put(PatchFamily.USE_SYSTEM_FONT, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.SystemFont.typeface("fonts/rmedium.ttf") != null,
                 () -> app.hushtelegram.extension.telegram.misc.SystemFont.built("fonts/rmono_var.ttf",
                         android.graphics.Typeface.DEFAULT) != android.graphics.Typeface.DEFAULT));
-        // Night's window color, as Telegram reads it from the theme file, turns black.
-        probes.put(PatchFamily.AMOLED_BLACK, Collections.singletonList(() -> {
+        // Night's window color, as Telegram reads it from the theme file, turns black, and with a
+        // picture saved the list pages' color comes back marked for the picture to show through.
+        probes.put(PatchFamily.AMOLED_BLACK, Arrays.asList(() -> {
             app.hushtelegram.extension.telegram.misc.BlackThemeForTests.useStandInIds();
             android.util.SparseIntArray night = new android.util.SparseIntArray();
             night.put(1, 0xFF181819);
             app.hushtelegram.extension.telegram.misc.BlackTheme.loaded("night.attheme", night);
             return night.get(1) == 0xFF000000;
+        }, () -> {
+            android.content.Context context = RuntimeEnvironment.getApplication();
+            try {
+                app.hushtelegram.extension.telegram.misc.ListBackgroundForTests.keepPicture(context);
+                app.hushtelegram.extension.telegram.misc.ListBackgroundForTests.useIds();
+                app.hushtelegram.extension.telegram.misc.ListBackground.refreshing();
+                return app.hushtelegram.extension.telegram.misc.ListBackground.mark(1, 0xFFFFFFFF) != 0xFFFFFFFF;
+            } finally {
+                app.hushtelegram.extension.telegram.misc.ListBackgroundForTests.forget(context);
+            }
         }));
-        // A chat that isn't being translated answers that its translate bar is hidden.
-        probes.put(PatchFamily.HIDE_TRANSLATE_BAR, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.TranslateBar.hidden(new Object(), 42L)));
+        // A chat that isn't being translated answers that its translate bar is hidden, and the
+        // pinned message bar answers hidden too.
+        probes.put(PatchFamily.HIDE_TRANSLATE_BAR, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.TranslateBar.hidden(new Object(), 42L),
+                app.hushtelegram.extension.telegram.misc.TranslateBar::pinnedBarHidden));
         // A count comes back written in full.
         probes.put(PatchFamily.EXACT_NUMBERS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ExactNumbers.format(12345, null) != null));
@@ -337,11 +361,12 @@ public class PausedHooksTest {
                 () -> app.hushtelegram.extension.telegram.misc.MediaQuality.hdPhoto(false),
                 () -> app.hushtelegram.extension.telegram.misc.MediaQuality.videoLimit(0x3e800000L) < 0));
         // A finished file from a message is queued for a copy in Download/Telegram, and so are one from
-        // a chat that doesn't allow saving and a view-once photo.
+        // a chat that doesn't allow saving and a view-once photo. An APK in Shared media gets its own icon.
         probes.put(PatchFamily.SAVE_DOWNLOADS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesACopy(),
                 () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesARestrictedCopy(),
-                () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesATimedCopy()));
+                () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesATimedCopy(),
+                () -> app.hushtelegram.extension.telegram.misc.FileIconsForTests.on()));
         // Flipping the switch on asks Telegram for the folders.
         probes.put(PatchFamily.CHAT_TYPE_FOLDERS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ChatTypeFoldersForTests.asksForFolders()));
@@ -385,12 +410,16 @@ public class PausedHooksTest {
         probes.put(PatchFamily.KEEP_DELETED_MESSAGES, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.KeepDeleted.on(),
                 () -> app.hushtelegram.extension.telegram.misc.KeepDeletedForTests.paintsRed()));
-        // A sticker, a GIF, a voice or video message and a call each ask first, under their own switches.
+        // A sticker, a GIF, a voice message, a round video message, a typed message, a call and a
+        // voice chat's join each ask first, under their own switches.
         probes.put(PatchFamily.ASK_BEFORE_STICKER, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.stickerOn(),
                 () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.gifOn(),
-                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.voiceVideoOn(),
-                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.callOn()));
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.voiceOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.roundVideoOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.messageOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.callOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.joinOn()));
         // Translation only works while the switch is on.
         probes.put(PatchFamily.OUTSIDE_TRANSLATE, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests.active()));
@@ -407,7 +436,8 @@ public class PausedHooksTest {
         probes.put(PatchFamily.HIDE_CONTACTS_TAB, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.MainTabs.blocksSwipe(0, true),
                 () -> app.hushtelegram.extension.telegram.misc.MainTabs.barHeight(72) != 72,
-                () -> app.hushtelegram.extension.telegram.misc.MainTabsForTests.hidesNewMessage()));
+                () -> app.hushtelegram.extension.telegram.misc.MainTabsForTests.hidesNewMessage(),
+                () -> app.hushtelegram.extension.telegram.misc.MainTabsForTests.outlinesBar()));
         // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
         probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),
@@ -488,8 +518,12 @@ public class PausedHooksTest {
             order.remove(0);
             return app.hushtelegram.extension.telegram.misc.CaptionOrder.after(order, 0) != null;
         }));
-        probes.put(PatchFamily.PROXY_MENU, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.ProxyMenu.show(1)));
+        // Proxy stays where Telegram puts it, and Do Not Disturb, tapped on, holds no notification or sound.
+        app.hushtelegram.extension.telegram.misc.DoNotDisturbForTests.on(true);
+        probes.put(PatchFamily.PROXY_MENU, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.ProxyMenu.show(1),
+                app.hushtelegram.extension.telegram.misc.DoNotDisturb::quiet,
+                () -> !app.hushtelegram.extension.telegram.misc.DoNotDisturb.chatSound(1)));
         probes.put(PatchFamily.FREE_PROXIES, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.FreeProxies.signInButton(1)));
         probes.put(PatchFamily.MY_MESSAGES, Collections.singletonList(

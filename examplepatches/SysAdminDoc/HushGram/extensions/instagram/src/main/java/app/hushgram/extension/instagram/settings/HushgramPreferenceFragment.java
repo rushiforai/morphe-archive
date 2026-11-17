@@ -93,11 +93,13 @@ import java.util.regex.Pattern;
 import app.hushgram.extension.instagram.direct.CallBlockMode;
 import app.hushgram.extension.instagram.direct.ChatAccounts;
 import app.hushgram.extension.instagram.direct.ChatLocks;
+import app.hushgram.extension.instagram.direct.CollectionLocks;
 import app.hushgram.extension.instagram.direct.HiddenChats;
 import app.hushgram.extension.instagram.direct.PinnedChats;
 import app.hushgram.extension.instagram.direct.LockDelay;
 import app.hushgram.extension.instagram.direct.MessageBox;
 import app.hushgram.extension.instagram.direct.MessagesLock;
+import app.hushgram.extension.instagram.direct.OnlineHistory;
 import app.hushgram.extension.instagram.direct.PinLock;
 import app.hushgram.extension.instagram.direct.UnlockWith;
 import app.hushgram.extension.instagram.download.DownloadQuality;
@@ -109,6 +111,8 @@ import app.hushgram.extension.instagram.feed.AmbientSpeed;
 import app.hushgram.extension.instagram.feed.AmbientSpread;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
+import app.hushgram.extension.instagram.feed.MenuItems;
+import app.hushgram.extension.instagram.feed.FeedSeekShape;
 import app.hushgram.extension.instagram.feed.OverlayLook;
 import app.hushgram.extension.instagram.feed.SeekShape;
 import app.hushgram.extension.instagram.misc.CustomIcon;
@@ -129,6 +133,8 @@ import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.UploadBitrate;
 import app.hushgram.extension.instagram.stories.UploadScope;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
+import app.hushgram.extension.instagram.stories.StoryViewers;
+import app.hushgram.extension.instagram.stories.StoryRingThickness;
 import app.hushgram.extension.instagram.stories.StoryMentionsLook;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
 import app.hushgram.extension.instagram.stories.TrayBadge;
@@ -164,6 +170,7 @@ import app.hushgram.extension.instagram.reels.TabBarLayoutChoice;
 import app.hushgram.extension.instagram.reels.TabOrder;
 import app.hushgram.extension.instagram.download.DownloadHistory;
 import app.hushgram.extension.instagram.profile.Unfollowers;
+import app.hushgram.extension.instagram.profile.SentRequests;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.PostDetails;
 import app.hushgram.extension.instagram.download.HoldFingers;
@@ -185,6 +192,7 @@ import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.IntegerSetting;
 import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.settings.EnumSetting;
+import app.hushgram.extension.shared.settings.StringSetting;
 import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushgram.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.hushgram.extension.shared.settings.preference.ExportDiagnosticReportPreference;
@@ -227,10 +235,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String CLEAR_VIEWING_HISTORY = "hushgram_clear_viewing_history";
     static final String PROFILE_HISTORY_ROW = "hushgram_profile_history_row";
     static final String CLEAR_PROFILE_HISTORY = "hushgram_clear_profile_history";
+    static final String ONLINE_HISTORY_ROW = "hushgram_online_history_row";
+    static final String CLEAR_ONLINE_HISTORY = "hushgram_clear_online_history";
+    static final String STORY_VIEWERS_ROW = "hushgram_story_viewers_row";
+    static final String CLEAR_STORY_VIEWERS = "hushgram_clear_story_viewers";
     static final String SAVED_PROFILES_ROW = "hushgram_saved_profiles_row";
     static final String CLEAR_UNFOLLOWERS = "hushgram_clear_unfollowers";
+    /** The row listing the follow requests still waiting, and the row that forgets them. */
+    static final String SENT_REQUESTS_ROW = "hushgram_sent_requests_row";
+    static final String CLEAR_SENT_REQUESTS = "hushgram_clear_sent_requests";
     /** The row that lists the chats locked one at a time. */
     static final String LOCKED_CHATS_ROW = "hushgram_locked_chats_row";
+    /** The row that lists the Saved collections locked one at a time. */
+    static final String LOCKED_COLLECTIONS_ROW = "hushgram_locked_collections_row";
     /** The row that lists the chats hidden one at a time. */
     static final String HIDDEN_CHATS_ROW = "hushgram_hidden_chats_row";
     /** The row that lists the chats pinned to the top of the inbox. */
@@ -825,7 +842,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 for (PatchFamily family : build) {
                     boolean belongs = family.switches.stream().anyMatch(setting -> setting.key.equals(key));
                     belongs |= family == PatchFamily.STORY_RING && (Settings.STORY_RING_SCALE.key.equals(key)
-                            || Settings.STORY_RING_COLOR.key.equals(key));
+                            || Settings.STORY_RING_COLOR.key.equals(key) || Settings.STORY_RING_THICKNESS.key.equals(key)
+                            || Settings.STORY_RING_CUSTOM.key.equals(key) || Settings.STORY_RING_CUSTOM_END.key.equals(key));
                     belongs |= family == PatchFamily.ROUNDED_POST_CORNERS && Settings.ROUNDED_CORNER_SIZE.key.equals(key);
                     belongs |= family == PatchFamily.AMBIENT_LIGHT && (Settings.AMBIENT_LIGHT_SPREAD.key.equals(key)
                             || Settings.AMBIENT_LIGHT_SPEED.key.equals(key) || Settings.AMBIENT_LIGHT_BLEND.key.equals(key));
@@ -849,10 +867,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.CAROUSEL_ARROWS && Settings.CAROUSEL_PILL_LOOK.key.equals(key);
                     belongs |= family == PatchFamily.FEED_SEEK_BAR && (Settings.FEED_SEEK_BAR_LOOK.key.equals(key)
                             || Settings.SEEK_BAR_SHAPE.key.equals(key)
+                            || Settings.FEED_SEEK_SHAPE.key.equals(key)
                             || Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOUBLE_TAP_SKIP
                             && Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key.equals(key);
                     belongs |= family == PatchFamily.FEED_AUTO_SCROLL && Settings.FEED_AUTO_SCROLL_SECONDS.key.equals(key);
+                    belongs |= family == PatchFamily.MEDIA_CACHE && (Settings.MEDIA_CACHE_LIMIT_MB.key.equals(key)
+                            || CLEAR_MEDIA_CACHE_NOW.equals(key));
                     belongs |= family == PatchFamily.STORY_SEEK_BAR && (Settings.STORY_SEEK_BAR_LOOK.key.equals(key)
                             || Settings.STORY_SEEK_BAR_POSITION.key.equals(key));
                     belongs |= family == PatchFamily.REEL_POST_TIME && (Settings.REEL_POST_TIME_SECONDS.key.equals(key)
@@ -866,6 +887,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)
                             || Settings.GLASS_TAB_BAR_HEIGHT.key.equals(key) || Settings.GLASS_TAB_BAR_LIFT.key.equals(key)
                             || Settings.GLASS_TAB_BAR_CORNERS.key.equals(key) || Settings.GLASS_TAB_BAR_REELS_HIDE.key.equals(key));
+                    belongs |= family == PatchFamily.GLASS_CHAT && (Settings.GLASS_CHAT_TOP_BAR_OPACITY.key.equals(key)
+                            || Settings.GLASS_CHAT_BOX_OPACITY.key.equals(key));
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && (Settings.HOLD_TO_DOWNLOAD.key.equals(key)
                             || Settings.HOLD_FINGERS.key.equals(key) || Settings.HOLD_TIME.key.equals(key)
                             || Settings.FEED_DOWNLOAD_BUTTON.key.equals(key) || Settings.FEED_DOWNLOAD_ALL_PAGES.key.equals(key)
@@ -886,7 +909,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || HIDDEN_SOUNDS_ROW.equals(key));
                     belongs |= family == PatchFamily.ACCENT_COLOR && (Settings.ACCENT_HUE.key.equals(key)
                             || Settings.ACCENT_CUSTOM.key.equals(key));
-                    belongs |= family == PatchFamily.FONT && Settings.FONT.key.equals(key);
+                    belongs |= family == PatchFamily.FONT && (Settings.FONT.key.equals(key)
+                            || Settings.TEXT_SIZE.key.equals(key));
+                    belongs |= family == PatchFamily.HEADER_TEXT && (Settings.HEADER_TEXT_CENTER.key.equals(key)
+                            || Settings.HEADER_TEXT_FONT.key.equals(key));
                     belongs |= family == PatchFamily.EMOJI_STYLE && Settings.EMOJI_FONT.key.equals(key);
                     belongs |= family == PatchFamily.STORY_FONTS && STORY_FONTS_ROW.equals(key);
                     belongs |= family == PatchFamily.APP_ICON && Settings.APP_ICON.key.equals(key);
@@ -896,6 +922,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.PROFILE_TABS && (Settings.HIDDEN_PROFILE_TABS.key.equals(key)
                             || Settings.HIDDEN_OWN_PROFILE_TABS.key.equals(key));
                     belongs |= family == PatchFamily.MESSAGE_BOX && Settings.HIDDEN_MESSAGE_BOX_BUTTONS.key.equals(key);
+                    belongs |= family == PatchFamily.MENU_ITEMS && Settings.HIDDEN_MENU_ITEMS.key.equals(key);
                     belongs |= family == PatchFamily.REELS_TAB
                             && (Settings.START_TAB.key.equals(key) || Settings.TAB_ORDER.key.equals(key)
                             || Settings.TAB_ICON_SIZE.key.equals(key));
@@ -913,10 +940,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.UPLOAD_PHOTO_SIZE.key.equals(key));
                     belongs |= family == PatchFamily.STORY_PRIORITY && Settings.STORY_PRIORITY_ACCOUNTS.key.equals(key);
                     belongs |= family == PatchFamily.CALL_BLOCKER
-                            && (Settings.CALL_BLOCK_MODE.key.equals(key) || Settings.CALL_BLOCK_ACCOUNTS.key.equals(key));
+                            && (Settings.CALL_BLOCK_MODE.key.equals(key) || Settings.CALL_BLOCK_ACCOUNTS.key.equals(key)
+                            || Settings.CALL_BLOCK_DECLINE.key.equals(key));
                     belongs |= family == PatchFamily.MESSAGES_LOCK
                             && (Settings.LOCK_AGAIN.key.equals(key) || LOCKED_CHATS_ROW.equals(key)
-                            || HIDDEN_CHATS_ROW.equals(key) || PINNED_CHATS_ROW.equals(key) || Settings.UNLOCK_WITH.key.equals(key)
+                            || LOCKED_COLLECTIONS_ROW.equals(key) || HIDDEN_CHATS_ROW.equals(key) || PINNED_CHATS_ROW.equals(key) || Settings.UNLOCK_WITH.key.equals(key)
                             || CHANGE_PIN_ROW.equals(key));
                     belongs |= family == PatchFamily.RESUME_LONG_VIDEOS && row == clearPositions;
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.STORY_DOWNLOAD
@@ -933,6 +961,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.PROFILE_PICTURE
                             && (PROFILE_HISTORY_ROW.equals(key) || CLEAR_PROFILE_HISTORY.equals(key)
                             || SAVED_PROFILES_ROW.equals(key) || Settings.SAVED_PROFILES_TAB_TARGET.key.equals(key));
+                    belongs |= family == PatchFamily.ONLINE_HISTORY
+                            && (ONLINE_HISTORY_ROW.equals(key) || CLEAR_ONLINE_HISTORY.equals(key));
+                    belongs |= family == PatchFamily.STORY_VIEWERS
+                            && (STORY_VIEWERS_ROW.equals(key) || CLEAR_STORY_VIEWERS.equals(key));
+                    belongs |= family == PatchFamily.SENT_FOLLOW_REQUESTS
+                            && (SENT_REQUESTS_ROW.equals(key) || CLEAR_SENT_REQUESTS.equals(key));
                     belongs |= family == PatchFamily.FOLLOWING_FEED && Settings.FAVORITES_TAB_TARGET.key.equals(key);
                     belongs |= family == PatchFamily.RESTORE_TRUST && L10n.t("Instagram accepts this build").equals(row.getTitle());
                     belongs |= family == PatchFamily.REMOVE_AD_ID && L10n.t("Advertising ID removed").equals(row.getTitle());
@@ -1447,6 +1481,96 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         });
     }
 
+    /** The row under Feed that opens the list of items to keep in the three-dot menus (#697, #707). */
+    Row menuItemsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(Settings.HIDDEN_MENU_ITEMS.key);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Items in the three-dot menus"));
+        row.setSummary(menuItemsSummary(Settings.HIDDEN_MENU_ITEMS.savedValue()));
+        row.setOnPreferenceClickListener(tapped -> {
+            pickMenuItems(row);
+            return true;
+        });
+        return row;
+    }
+
+    /** What the items left out in [saved] do, for the row's summary. */
+    static String menuItemsSummary(String saved) {
+        Set<String> hidden = MenuItems.parse(saved);
+        List<String> labels = new ArrayList<>();
+        for (String name : MenuItems.OFFERED) {
+            if (hidden.contains(name)) labels.add(L10n.isolate(menuItemLabel(name)));
+        }
+        if (labels.isEmpty()) {
+            return L10n.t("Every item shows. Untick the ones you don't want in the menus behind the three dots on "
+                    + "posts, reels and stories.");
+        }
+        String left = String.join(", ", labels);
+        return L10n.f("Left off the three-dot menus: %1$s.", left);
+    }
+
+    /** What the three-dot menu list calls the item the setting names [name]. */
+    static String menuItemLabel(String name) {
+        switch (name) {
+            case "REPORT":
+                return L10n.t("Report");
+            case "MUTE":
+                return L10n.t("Mute");
+            case "UNFOLLOW":
+                return L10n.t("Unfollow");
+            case "NOT_INTERESTED":
+                return L10n.t("Not interested");
+            case "INTERESTED":
+                return L10n.t("Interested");
+            case "WHY":
+                return L10n.t("Why you're seeing this post");
+            case "PLAYBACK_SPEED":
+                return L10n.t("Playback speed");
+            default:
+                return L10n.t("Playback");
+        }
+    }
+
+    /**
+     * Each item the three-dot menus can leave out, ticked while it shows. A change saves at once and
+     * shows the next time a menu opens.
+     */
+    void pickMenuItems(Row row) {
+        Context context = getActivity();
+        if (context == null) return;
+        Set<String> hidden = new LinkedHashSet<>(MenuItems.parse(Settings.HIDDEN_MENU_ITEMS.savedValue()));
+        List<String> names = MenuItems.OFFERED;
+        CharSequence[] labels = new CharSequence[names.size()];
+        boolean[] shown = new boolean[names.size()];
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = menuItemLabel(names.get(i));
+            shown[i] = !hidden.contains(names.get(i));
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Items in the three-dot menus"));
+        builder.setMultiChoiceItems(labels, shown, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                setChecked((AlertDialog) dialog, which, !hidden.contains(names.get(which)));
+                return;
+            }
+            if (on) hidden.remove(names.get(which));
+            else hidden.add(names.get(which));
+            Settings.HIDDEN_MENU_ITEMS.save(MenuItems.join(hidden));
+            row.setSummary(menuItemsSummary(Settings.HIDDEN_MENU_ITEMS.savedValue()));
+        });
+        AlertDialog dialog = show(builder.setNeutralButton(L10n.t("Show all"), null)
+                .setPositiveButton(L10n.t("OK"), null));
+        if (dialog == null) return;
+        // A click listener of its own, so Show all ticks every item without closing the list.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
+            hidden.clear();
+            Settings.HIDDEN_MENU_ITEMS.save("");
+            row.setSummary(menuItemsSummary(""));
+            for (int i = 0; i < names.size(); i++) dialog.getListView().setItemChecked(i, true);
+        });
+    }
+
     /** The row under Profiles that opens the list of tabs to show on your own profile (#296). */
     Row ownProfileTabsRow(Context context) {
         return profileTabsRow(context, true);
@@ -1501,6 +1625,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** What the profile tabs list calls the tab Instagram keys [key]. */
     static String profileTabLabel(String key) {
         switch (key) {
+            case "profile_fan_club_grid":
+                return L10n.t("Subscriptions");
             case "profile_clips":
                 return L10n.t("Reels");
             case "profile_reposts":
@@ -1956,6 +2082,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Whether the Saved profiles page may change its list now, an account or a folder. The settings lock holds it too. */
     static boolean savedProfilesChangeAllowed(Preference row) {
+        return allowMutation(row, false);
+    }
+
+    /** Whether the Sent follow requests page may take an account off its list now. The settings lock holds it, as it holds Clear. */
+    static boolean sentRequestsChangeAllowed(Preference row) {
         return allowMutation(row, false);
     }
 
@@ -3807,6 +3938,88 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         MessagesLock.confirmChatsThen(activity, unlock);
     }
 
+    /** The row that opens the list of Saved collections locked one at a time (#678). */
+    Row lockedCollectionsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(LOCKED_COLLECTIONS_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Locked collections"));
+        row.setSummary(L10n.t("Lock single collections in Saved. A locked collection opens only once you unlock it the "
+                + "way Unlock with says. Saving a post to it never asks."));
+        row.setOnPreferenceClickListener(tapped -> {
+            showLockedCollections();
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The locked collections of the account you're signed in to, each with a check, and the
+     * collection you opened last on it above them when it isn't on the list, as Locked chats lists
+     * chats. Unchecking one asks first while anything is locked.
+     */
+    private void showLockedCollections() {
+        Context context = getActivity();
+        if (context == null) return;
+        // The collection you open next is learned by name for this list, even with nothing locked.
+        CollectionLocks.lookForNames();
+        String account = ChatAccounts.active();
+        List<String> collections = new ArrayList<>(CollectionLocks.names(account));
+        String last = CollectionLocks.lastOpened(account);
+        int offered = last == null ? 0 : 1;
+        if (last != null) collections.add(0, last);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Locked collections"));
+        if (collections.isEmpty()) {
+            builder.setMessage(L10n.t("Open a collection in Saved, then come back here to lock it."));
+        } else {
+            CharSequence[] names = new CharSequence[collections.size()];
+            boolean[] locked = new boolean[collections.size()];
+            for (int i = 0; i < names.length; i++) {
+                boolean offer = i < offered;
+                names[i] = offer ? L10n.f("%1$s (opened last)", collections.get(i)) : collections.get(i);
+                locked[i] = !offer;
+            }
+            builder.setMultiChoiceItems(names, locked, (dialog, which, checked) ->
+                    lockCollection((AlertDialog) dialog, account, collections.get(which), which, checked));
+        }
+        show(builder.setPositiveButton(L10n.t("OK"), null));
+    }
+
+    private void lockCollection(AlertDialog dialog, String account, String name, int position, boolean lock) {
+        if (!allowMutation()) {
+            setChecked(dialog, position, !lock);
+            return;
+        }
+        if (lock) {
+            if (!CollectionLocks.add(account, name)) {
+                notSaved(dialog, position, false);
+                return;
+            }
+            Utils.showToastShort(L10n.f("%1$s is locked", L10n.isolate(name)));
+            return;
+        }
+        Runnable unlock = () -> {
+            if (!allowMutation()) {
+                setChecked(dialog, position, true);
+                return;
+            }
+            if (!CollectionLocks.remove(account, name)) {
+                notSaved(dialog, position, true);
+                return;
+            }
+            Utils.showToastShort(L10n.f("%1$s is unlocked", L10n.isolate(name)));
+            setChecked(dialog, position, false);
+        };
+        Activity activity = getActivity();
+        if (activity == null) {
+            setChecked(dialog, position, true);
+            return;
+        }
+        // Stays checked until the phone's lock says it's you, if anything is locked.
+        setChecked(dialog, position, true);
+        MessagesLock.confirmCollectionsThen(activity, unlock);
+    }
+
     /** The row that opens the list of chats hidden one at a time. */
     Row hiddenChatsRow(Context context) {
         Row row = new Row(context);
@@ -4474,6 +4687,36 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    /** What Clear now does, the summary its row starts with. */
+    static String clearMediaCacheSummary() {
+        return L10n.t("Deletes the saved photos Instagram keeps to show again, whatever their size, "
+                + "and the saved videos the next time it starts.");
+    }
+
+    /**
+     * Adds how much Instagram's saved photos and videos take up now under what Clear now does (#713),
+     * read off the main thread since it walks the cache folders. A row that already says what a clear
+     * freed keeps saying that.
+     */
+    static void showMediaCacheSize(Preference row) {
+        Context context = row.getContext();
+        Utils.runOnBackgroundThread(() -> {
+            String size = L10n.isolate(Formatter.formatShortFileSize(context, MediaCache.size(context)));
+            String shown = clearMediaCacheSummary() + "\n" + L10n.f("Saved photos and videos take up %1$s now.", size);
+            Utils.runOnMainThread(() -> {
+                if (clearMediaCacheSummary().contentEquals(String.valueOf(row.getSummary()))) row.setSummary(shown);
+            });
+        });
+    }
+
+    /** How big Instagram's saved photos and videos may get before Clear the media cache empties them, in MB (#713). */
+    static SliderRow mediaCacheLimitRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.MEDIA_CACHE_LIMIT_MB, 100, L10n.t("%1$d MB"));
+        row.setTitle(L10n.t("Cache size limit"));
+        row.setText(String.valueOf(Settings.MEDIA_CACHE_LIMIT_MB.savedValue()));
+        return row;
+    }
+
     /** How many of the newest unfollowers the list row shows. */
     static final int UNFOLLOWERS_SHOWN = 50;
 
@@ -4750,6 +4993,158 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    /** How many of the newest online changes the settings row names. Its page has them all. */
+    static final int ONLINE_HISTORY_SHOWN = 3;
+
+    /**
+     * The row with the newest times people in your messages came online or went offline. Read off
+     * the main thread, so it says so until it's read. Tapping it opens them all on a page.
+     */
+    static Preference onlineHistoryRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(ONLINE_HISTORY_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Online history"));
+        row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            OnlineHistoryPage.open(tapped.getContext(), tapped);
+            return true;
+        });
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = onlineHistorySummary(OnlineHistory.events(application), System.currentTimeMillis());
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(onlineHistorySummary(OnlineHistory.events(application), System.currentTimeMillis()));
+        }
+        return mark(row, SettingsIcons.UPDATES);
+    }
+
+    /** What the online history row says for [events], newest first, at [now]. */
+    static String onlineHistorySummary(List<OnlineHistory.Event> events, long now) {
+        if (events.isEmpty()) {
+            return L10n.t("Nothing here yet. With Keep online history on, the times people in your messages "
+                    + "come online and go offline show up here.");
+        }
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (OnlineHistory.Event event : events) {
+            if (shown == ONLINE_HISTORY_SHOWN) break;
+            text.append(onlineName(event)).append(": ").append(onlineChangeLabel(event, now)).append('\n');
+            shown++;
+        }
+        text.append(L10n.f("Tap to see all %1$d, or search them.", events.size()));
+        return text.toString().trim();
+    }
+
+    /** Who [event] is about: their username, or a stand-in when Instagram never gave it. */
+    static String onlineName(OnlineHistory.Event event) {
+        return event.username.isEmpty() ? L10n.t("Unknown account") : "@" + event.username;
+    }
+
+    /** Whether [event] came online or went offline, and how long ago, without whose it was. */
+    static String onlineChangeLabel(OnlineHistory.Event event, long now) {
+        String ago = android.text.format.DateUtils.getRelativeTimeSpanString(event.time, now,
+                android.text.format.DateUtils.MINUTE_IN_MILLIS).toString();
+        return event.online ? L10n.f("Came online, %s", ago) : L10n.f("Went offline, %s", ago);
+    }
+
+    /** Forgets the online history off the main thread, says so, and empties [list]. */
+    static void clearOnlineHistory(Preference row, Preference list) {
+        clearOnlineHistory(row, list, null);
+    }
+
+    /** {@link #clearOnlineHistory(Preference, Preference)}, running [after] once it's gone. */
+    static void clearOnlineHistory(Preference row, Preference list, @Nullable Runnable after) {
+        if (!allowMutation(row, true)) return;
+        Context context = row.getContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
+            boolean cleared = OnlineHistory.clear(context);
+            Utils.runOnMainThread(() -> {
+                if (cleared) {
+                    Utils.showToastShort(L10n.t("Online history cleared."));
+                    list.setSummary(onlineHistorySummary(java.util.Collections.emptyList(), System.currentTimeMillis()));
+                    if (after != null) after.run();
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't clear the online history. Try again."));
+                }
+            });
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't clear the online history. Try again."));
+        }
+    }
+
+    /**
+     * The row saying how many of your stories have their viewers kept, and since when. Read off the
+     * main thread, so it says so until it's read. Tapping it opens them on a page.
+     */
+    static Preference storyViewersRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(STORY_VIEWERS_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Story viewers"));
+        row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            StoryViewersPage.open(tapped.getContext(), tapped);
+            return true;
+        });
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = storyViewersSummary(application, StoryViewers.summary(application, 0, java.util.Collections.emptyMap()));
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(storyViewersSummary(application, StoryViewers.summary(application, 0, java.util.Collections.emptyMap())));
+        }
+        return mark(row, SettingsIcons.UPDATES);
+    }
+
+    /** What the story viewers row says for [kept]. */
+    static String storyViewersSummary(Context context, StoryViewers.Summary kept) {
+        if (kept.stories.isEmpty()) {
+            return L10n.t("Nothing here yet. With Keep story viewers on, open who viewed one of your stories "
+                    + "in Instagram and the list is kept here.");
+        }
+        int flags = android.text.format.DateUtils.FORMAT_SHOW_DATE | android.text.format.DateUtils.FORMAT_ABBREV_MONTH;
+        int count = kept.stories.size();
+        return L10n.quantity(context, count,
+                "%1$d story kept since %2$s. Tap to see who viewed it and who has no view recorded.",
+                "%1$d stories kept since %2$s. Tap to see who viewed each one and who has no view recorded.",
+                count, android.text.format.DateUtils.formatDateTime(context, kept.since, flags));
+    }
+
+    /** Forgets the story viewers off the main thread, says so, and empties [list]. */
+    static void clearStoryViewers(Preference row, Preference list) {
+        clearStoryViewers(row, list, null);
+    }
+
+    /** {@link #clearStoryViewers(Preference, Preference)}, running [after] once they're gone. */
+    static void clearStoryViewers(Preference row, Preference list, @Nullable Runnable after) {
+        if (!allowMutation(row, true)) return;
+        Context context = row.getContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
+            boolean cleared = StoryViewers.clear(context);
+            Utils.runOnMainThread(() -> {
+                if (cleared) {
+                    Utils.showToastShort(L10n.t("Story viewers cleared."));
+                    list.setSummary(storyViewersSummary(context, StoryViewers.summary(context, 0, java.util.Collections.emptyMap())));
+                    if (after != null) after.run();
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't clear the story viewers. Try again."));
+                }
+            });
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't clear the story viewers. Try again."));
+        }
+    }
+
     /** How many of the newest saved accounts the settings row names. Its page has them all. */
     static final int SAVED_PROFILES_SHOWN = 3;
 
@@ -4798,6 +5193,76 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         text.append(L10n.f("Tap to see all %1$d, or search them.", profiles.size()));
         return text.toString().trim();
+    }
+
+    /** How many of the newest waiting requests the settings row names. Its page has them all. */
+    static final int SENT_REQUESTS_SHOWN = 3;
+
+    /**
+     * The row naming the newest follow requests still waiting, for the account signed in. Read off
+     * the main thread, so it says so until it's read. Tapping it opens them all on a page.
+     */
+    static Preference sentRequestsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(SENT_REQUESTS_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Your sent requests"));
+        row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            SentRequestsPage.open(tapped.getContext(), tapped);
+            return true;
+        });
+        readSentRequests(row);
+        return mark(row, SettingsIcons.PERSON);
+    }
+
+    /** Names the newest waiting requests on [row], read off the main thread. */
+    static void readSentRequests(Preference row) {
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = sentRequestsSummary(SentRequests.all(SentRequests.shownOwner()));
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(sentRequestsSummary(SentRequests.all(SentRequests.shownOwner())));
+        }
+    }
+
+    /** What the Your sent requests row says for [requests], newest first. */
+    static String sentRequestsSummary(List<SentRequests.Request> requests) {
+        if (requests.isEmpty()) {
+            return L10n.t("No requests waiting. With Sent follow requests on, a request you send, or one whose "
+                    + "follow button you see, shows up here.");
+        }
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (SentRequests.Request request : requests) {
+            if (shown == SENT_REQUESTS_SHOWN) break;
+            text.append('@').append(request.username).append('\n');
+            shown++;
+        }
+        text.append(L10n.f("Tap to see all %1$d, or search them.", requests.size()));
+        return text.toString().trim();
+    }
+
+    /** Forgets every account's waiting requests off the main thread, says so, and empties [list]. */
+    static void clearSentRequests(Preference row, Preference list) {
+        if (!allowMutation(row, true)) return;
+        if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
+            boolean cleared = SentRequests.clear();
+            Utils.runOnMainThread(() -> {
+                if (cleared) {
+                    Utils.showToastShort(L10n.t("Sent requests cleared."));
+                    list.setSummary(sentRequestsSummary(java.util.Collections.emptyList()));
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't clear the sent requests. Try again."));
+                }
+            });
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't clear the sent requests. Try again."));
+        }
     }
 
     /** Forgets the profile history off the main thread, says so, and empties [list]. */
@@ -5225,7 +5690,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         + "A reel that's paused still plays on a tap.");
             case KEEP_PLAYING:
                 return L10n.t("A tap on a playing reel does nothing, so a stray touch doesn't stop it. "
-                        + "A reel that's paused still plays on a tap.");
+                        + "A tap right on the play icon still pauses it, and a paused reel plays on a tap.");
             default:
                 return L10n.t("A tap on a reel does what Instagram does.");
         }
@@ -5307,6 +5772,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
+    /** How strong the tint of a chat's glass top bar or message bar is, from a slider in percent of its own look (#688). */
+    static SliderRow chatGlassTintRow(Context context, IntegerSetting setting, String title) {
+        SliderRow row = new SliderRow(context, setting, 5, L10n.t("%1$d%%"));
+        row.setTitle(title);
+        row.setText(String.valueOf(setting.savedValue()));
+        return row;
+    }
+
     /** How hard the pill bends what's behind its edge, liquid or not, from a slider in percent of the standard bend (#391). */
     static SliderRow glassRefractRow(Context context) {
         SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_REFRACT_STRENGTH, 10, L10n.t("%1$d%%"));
@@ -5328,6 +5801,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         SliderRow row = new SliderRow(context, Settings.REEL_CAP_BREAK, 5, L10n.t("%1$d minutes in the background"));
         row.setTitle(L10n.t("Time away before swiping comes back"));
         row.setText(String.valueOf(Settings.REEL_CAP_BREAK.savedValue()));
+        return row;
+    }
+
+    /** How big Instagram's text draws, from a slider in percent of the phone's own text size (#682). */
+    static SliderRow textSizeRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.TEXT_SIZE, 5, L10n.t("%1$d%%"));
+        row.setTitle(L10n.t("Text size"));
+        row.setText(String.valueOf(Settings.TEXT_SIZE.savedValue()));
         return row;
     }
 
@@ -6578,6 +7059,31 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
+    /**
+     * The shape of the seek bar on feed videos alone (#567), right under Seek bar shape: the same as
+     * every other bar to start, or one of the shapes for the feed only. Its values are the choices' own names.
+     */
+    static ChoiceRow<FeedSeekShape> feedSeekShapeRow(Context context) {
+        String title = L10n.t("Feed seek bar shape");
+        ChoiceRow<FeedSeekShape> row = new ChoiceRow<>(context, Settings.FEED_SEEK_SHAPE, FeedSeekShape.values(), new String[] {
+                L10n.t("Feed videos use the shape picked in Seek bar shape."),
+                L10n.t("The bar and round handle you know, on feed videos only."),
+                L10n.t("A thin line with no handle on the bottom edge of feed videos, which grows while you drag it."),
+                L10n.t("A thicker rounded bar with no handle, on feed videos only."),
+                L10n.t("A rounded bar split by a tall handle, on feed videos only."),
+                L10n.t("A wavy line for the part played, with a tall handle, on feed videos only."),
+        }, L10n.t("Turn on Seek bar on feed videos or its button to use this choice."));
+        fill(row, Settings.FEED_SEEK_SHAPE, FeedSeekShape.values(), new String[] {
+                L10n.t("Same as Seek bar shape"),
+                L10n.t("Standard"),
+                L10n.t("Thin line"),
+                L10n.t("Rounded"),
+                L10n.t("Expressive"),
+                L10n.t("Wave"),
+        }, title);
+        return row;
+    }
+
     /** Sets [row] up to choose among [choices], called [labels] in the list, with their own names as its values. */
     private static <E extends Enum<E>> void fill(ChoiceRow<E> row, EnumSetting<E> setting, E[] choices, String[] labels, String title) {
         row.setKey(setting.key);
@@ -6791,9 +7297,75 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Orange");
             case GOLD:
                 return L10n.t("Gold");
+            case CUSTOM:
+                return L10n.t("Custom");
             default:
                 return L10n.t("Instagram's colors");
         }
+    }
+
+    /**
+     * The color typed for Custom under Ring color (#696), saved as #RRGGBB. What isn't a color is
+     * refused under the field. Saving one picks Custom in the Ring color list too, so it takes one
+     * step.
+     */
+    static StoryRingCustomRow storyRingCustomRow(Context context) {
+        StoryRingCustomRow row = new StoryRingCustomRow(context, Settings.STORY_RING_CUSTOM, "#4A6B82");
+        row.setTitle(L10n.t("Custom ring color"));
+        row.setDialogTitle(L10n.t("Custom ring color"));
+        row.setDialogMessage(L10n.t("A color as six hex digits, like #4A6B82. Saving it picks Custom under "
+                + "Ring color. Restart Instagram to see it."));
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            if (CustomAccent.normalize(typed == null ? "" : typed.toString()) == null) return false;
+            Preference color = preference.getPreferenceManager() == null ? null
+                    : preference.getPreferenceManager().findPreference(Settings.STORY_RING_COLOR.key);
+            if (color instanceof StoryRingColorRow) ((StoryRingColorRow) color).setValue(StoryRingColor.CUSTOM.name());
+            else Settings.STORY_RING_COLOR.save(StoryRingColor.CUSTOM);
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The color Custom's ring fades into (#696), saved as #RRGGBB, or empty for one solid color.
+     * What isn't a color is refused under the field.
+     */
+    static StoryRingCustomRow storyRingCustomEndRow(Context context) {
+        StoryRingCustomRow row = new StoryRingCustomRow(context, Settings.STORY_RING_CUSTOM_END, "#FF8A00");
+        row.setTitle(L10n.t("Custom ring end color"));
+        row.setDialogTitle(L10n.t("Custom ring end color"));
+        row.setDialogMessage(L10n.t("A second color as six hex digits, like #FF8A00, that the ring fades into. "
+                + "Leave it empty for one solid color. Restart Instagram to see it."));
+        return row;
+    }
+
+    /**
+     * How thick the story rings are drawn (#528). Its values are the setting's own names, and its
+     * summary is the thickness chosen.
+     */
+    static StoryRingThicknessRow storyRingThicknessRow(Context context) {
+        StoryRingThicknessRow row = new StoryRingThicknessRow(context);
+        row.setKey(Settings.STORY_RING_THICKNESS.key);
+        row.setTitle(L10n.t("Ring thickness"));
+        row.setDialogTitle(L10n.t("Ring thickness"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        StoryRingThickness[] choices = StoryRingThickness.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = storyRingThicknessLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.STORY_RING_THICKNESS.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [thickness]: its share in Instagram's language's percent format, or Instagram's own. */
+    static String storyRingThicknessLabel(StoryRingThickness thickness) {
+        if (thickness == StoryRingThickness.INSTAGRAM) return L10n.t("Instagram's thickness");
+        return NumberFormat.getPercentInstance(L10n.locale()).format(thickness.percent() / 100.0);
     }
 
     /**
@@ -6890,6 +7462,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             ((StoryRingRow) preference).showSummary();
         } else if (preference instanceof StoryRingColorRow) {
             ((StoryRingColorRow) preference).showSummary();
+        } else if (preference instanceof StoryRingThicknessRow) {
+            ((StoryRingThicknessRow) preference).showSummary();
+        } else if (preference instanceof StoryRingCustomRow) {
+            ((StoryRingCustomRow) preference).showSummary();
         } else if (preference instanceof LikeAnimationRow) {
             ((LikeAnimationRow) preference).showSummary();
         } else if (preference instanceof GlassReelsHideRow) {
@@ -6943,6 +7519,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             ((StoryRingRow) listPreference).showSummary();
         } else if (listPreference instanceof StoryRingColorRow) {
             ((StoryRingColorRow) listPreference).showSummary();
+        } else if (listPreference instanceof StoryRingThicknessRow) {
+            ((StoryRingThicknessRow) listPreference).showSummary();
         } else if (listPreference instanceof LikeAnimationRow) {
             ((LikeAnimationRow) listPreference).showSummary();
         } else if (listPreference instanceof GlassReelsHideRow) {
@@ -7123,6 +7701,34 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         field.setHint(L10n.t("Your words"));
         field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(HeaderText.MAX_LENGTH * 2)});
         row.setText(Settings.HEADER_TEXT.savedValue());
+        return row;
+    }
+
+    /**
+     * The font the Home header's words draw in (#688). Its values are the fonts' own names. Your font
+     * is offered only with the Change the font patch in the build, which picks it.
+     */
+    static ChoiceRow<HeaderText.Font> headerFontRow(Context context, boolean yourFont) {
+        HeaderText.Font[] all = HeaderText.Font.values();
+        HeaderText.Font[] fonts = yourFont ? all : Arrays.copyOf(all, all.length - 1);
+        String[] summaries = {
+                L10n.t("The bold font the words have always had."),
+                L10n.t("The phone's font at its regular weight."),
+                L10n.t("A bold font with serifs, like a newspaper's."),
+                L10n.t("Joined-up handwriting."),
+                L10n.t("Every letter the same width, like a typewriter."),
+                L10n.t("The font picked under Font, in bold. Bold while Instagram's own is picked there."),
+        };
+        String[] labels = {
+                L10n.t("Bold"),
+                L10n.t("Regular"),
+                L10n.t("Serif"),
+                L10n.t("Script"),
+                L10n.t("Monospace"),
+                L10n.t("Your font"),
+        };
+        ChoiceRow<HeaderText.Font> row = new ChoiceRow<>(context, Settings.HEADER_TEXT_FONT, fonts, summaries, null);
+        fill(row, Settings.HEADER_TEXT_FONT, fonts, Arrays.copyOf(labels, fonts.length), L10n.t("Header text font"));
         return row;
     }
 
@@ -9973,6 +10579,116 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         protected void showDialog(Bundle state) {
             super.showDialog(state);
             if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The story ring thickness's row. Its summary is the thickness chosen, or what to turn on while
+     * the switch above it is off, and it answers that summary itself as the ring size's row does.
+     */
+    static final class StoryRingThicknessRow extends ListPreference {
+        @Nullable
+        private String summary;
+
+        StoryRingThicknessRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            StoryRingThickness thickness = StoryRingThickness.INSTAGRAM;
+            for (StoryRingThickness candidate : StoryRingThickness.values()) {
+                if (candidate.name().equals(getValue())) thickness = candidate;
+            }
+            summary = Settings.STORY_RING_THICKNESS.isAvailable()
+                    ? storyRingThicknessLabel(thickness)
+                    : L10n.t("Turn on Story ring size to use this choice.");
+            setSummary(summary);
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return summary != null ? summary : super.getSummary();
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * A color typed for Custom under Ring color (#696): the one the ring starts from, or the one it
+     * fades into. Its summary is the color saved, that none is yet, or what to turn on while the
+     * switch above it is off. Only the end color may be left empty.
+     */
+    static final class StoryRingCustomRow extends ValidatedEditRow {
+        private final StringSetting setting;
+
+        StoryRingCustomRow(Context context, StringSetting setting, String hint) {
+            super(context);
+            this.setting = setting;
+            setKey(setting.key);
+            setPositiveButtonText(L10n.t("Save"));
+            setNegativeButtonText(L10n.t("Cancel"));
+            EditText field = getEditText();
+            field.setSingleLine(true);
+            field.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+            field.setTextDirection(View.TEXT_DIRECTION_LTR);
+            field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+            field.setHint(hint);
+            setText(setting.savedValue());
+        }
+
+        private boolean end() {
+            return setting == Settings.STORY_RING_CUSTOM_END;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            showSummary();
+        }
+
+        void showSummary() {
+            if (setting == null) return;
+            String color = CustomAccent.normalize(getText());
+            if (!setting.isAvailable()) setSummary(L10n.t("Turn on Story ring size to use this choice."));
+            else if (color != null) setSummary(color);
+            else if (end()) setSummary(L10n.t("None. The ring is one solid color."));
+            else setSummary(L10n.t("None yet. Custom keeps Instagram's colors until you type one."));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        @Override String validatedValue(String typed) {
+            if (end() && (typed == null || typed.trim().isEmpty())) return "";
+            return CustomAccent.normalize(typed);
+        }
+
+        @Override String validationError() {
+            return L10n.t("That isn't a color. Try #4A6B82.");
         }
     }
 

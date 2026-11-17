@@ -183,7 +183,7 @@ private fun isMeasure(m: Method) = m.origName == "onMeasure" && !AccessFlags.STA
     m.parameterTypes.map(CharSequence::toString) == listOf("I", "I") && m.controlBody().isNotEmpty()
 
 /** A virtual call of a void [name] taking [parameters]. */
-private fun Instruction.calls(name: String, parameters: List<String>) = opcode == Opcode.INVOKE_VIRTUAL && call()?.let { c ->
+internal fun Instruction.calls(name: String, parameters: List<String>) = opcode == Opcode.INVOKE_VIRTUAL && call()?.let { c ->
     c.origName == name && c.parameterTypes.map(CharSequence::toString) == parameters && c.origReturnType == "V"
 } == true
 

@@ -227,7 +227,7 @@ public final class GalleryBottomActionsTweaks {
         }
         void shareGallery(){
             try{
-                Activity activity=CommentsChromeTweaks.activity(root.getContext());Object models=CommentsChromeTweaks.field(activity,"A"),pager=CommentsChromeTweaks.field(activity,"viewPager");
+                Activity activity=CommentsChromeTweaks.activity(root.getContext());Object models=CommentsChromeTweaks.field(activity,"z"),pager=CommentsChromeTweaks.field(activity,"viewPager");
                 if(!(models instanceof java.util.List) || pager==null)return;
                 int index=(Integer)pager.getClass().getMethod("getCurrentItem").invoke(pager);java.util.List<?> images=(java.util.List<?>)models;if(index<0 || index>=images.size())return;
                 Object model=images.get(index);String url=(String)model.getClass().getMethod("getDownloadUrl").invoke(model);if(url==null || url.isEmpty())return;
@@ -259,6 +259,7 @@ public final class GalleryBottomActionsTweaks {
         Object value = CommentsChromeTweaks.field(activity, "toolbar");
         if (!(value instanceof Toolbar)) return;
         Toolbar toolbar = (Toolbar) value;
+        underStatusBar(toolbar);
         // Menu inflation happens later. The pre-draw listener sees Fragment menu additions too.
         View root = activity.getWindow().getDecorView().findViewById(android.R.id.content);
         if (!(root instanceof FrameLayout) || root.findViewWithTag(PANEL_TAG+".gallery") != null) return;
@@ -267,6 +268,30 @@ public final class GalleryBottomActionsTweaks {
         } catch (RuntimeException | LinkageError e) {
         }
     }
+    /**
+     * The gallery's root fits the system windows, so its images stop below a black status bar
+     * while a single image runs underneath it. Let the images run under the status bar too and
+     * move only the toolbar down by its height. The other insets stay as padding on the root,
+     * and the pages get none.
+     */
+    static void underStatusBar(Toolbar toolbar) {
+        if (!(toolbar.getParent() instanceof ViewGroup) || !(toolbar.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup album = (ViewGroup) toolbar.getParent();
+        if (album.getTag(EDGE_TAG) != null) return;
+        album.setTag(EDGE_TAG, Boolean.TRUE);
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) toolbar.getLayoutParams();
+        int base = params.topMargin;
+        album.setFitsSystemWindows(false);
+        album.setOnApplyWindowInsetsListener((view, insets) -> {
+            view.setPadding(insets.getSystemWindowInsetLeft(), 0, insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            int top = base + insets.getSystemWindowInsetTop();
+            if (params.topMargin != top) { params.topMargin = top; toolbar.setLayoutParams(params); }
+            // Each page also fits the system windows and would pad itself below the status bar again.
+            return insets.consumeSystemWindowInsets();
+        });
+        album.requestApplyInsets();
+    }
+    private static final int EDGE_TAG = 0x7f5f0007;
     /** Native menu and format chooser stay in charge; only the visible button moves to the bottom row. */
     public static void onVideoResume(Object instance) {
         if(!(instance instanceof Activity))return;

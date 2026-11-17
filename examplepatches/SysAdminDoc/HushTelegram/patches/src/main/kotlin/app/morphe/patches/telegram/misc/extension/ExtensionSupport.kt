@@ -86,9 +86,10 @@ private fun BytecodePatchContext.statusMethod(name: String): MutableMethod {
  * Gives the extension's static stub [name] in [type] the body [smali], which has [registers]
  * registers in all, its parameters the last of them. A stub answers nothing in the extension's own
  * source because what it calls is one of the app's obfuscated names, found when you patch. It keeps
- * its name, signature and access, so the extension's calls to it run [smali] from then on.
+ * its name, signature and access, so the extension's calls to it run [smali] from then on. With
+ * [install] false the body is only built and checked, so a refusal comes before the app changes.
  */
-internal fun BytecodePatchContext.writeStub(type: String, name: String, registers: Int, smali: String) {
+internal fun BytecodePatchContext.writeStub(type: String, name: String, registers: Int, smali: String, install: Boolean = true) {
     val classDef = tgMutableClassDefBy(type)
     val stub = classDef.methods.singleOrNull { it.origName == name && AccessFlags.STATIC.isSet(it.accessFlags) }
         ?: throw PatchException("$type has no single static stub named $name")
@@ -112,6 +113,7 @@ internal fun BytecodePatchContext.writeStub(type: String, name: String, register
         listOf("its body can't be checked: ${unreadable.message}")
     }
     if (refusals.isNotEmpty()) throw PatchException("$type->$name would fail Android's verifier: ${refusals.joinToString("; ")}")
+    if (!install) return
     classDef.methods.remove(stub)
     classDef.methods.add(body)
 }

@@ -5,11 +5,13 @@
 package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.content.Context;
 import android.os.Looper;
 
 import org.junit.After;
@@ -35,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
+import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.Settings;
 
@@ -106,8 +109,11 @@ public class ProtectedForwardTest {
 
         @Override public boolean sendFile(int account, long dialog, String path, String mime, String caption) {
             sent.add("file " + new File(path).getName() + " " + mime + " " + caption);
+            paths.add(path);
             return true;
         }
+
+        final List<String> paths = new ArrayList<>();
     }
 
     private FakeTelegram telegram;
@@ -199,6 +205,28 @@ public class ProtectedForwardTest {
 
         assertEquals(Arrays.asList("file 123_456.ogg " + MessageMenu.mimeOf("123_456.ogg") + " null",
                 "file Report.pdf application/pdf notes"), telegram.sent);
+    }
+
+    /**
+     * Telegram's file send refuses a path inside the app's private folder ("Unsupported attachment",
+     * #94), so the renamed copy has to sit in the cache on shared storage.
+     */
+    @Test public void aFileGoesOutFromOutsideTheAppsPrivateFolder() throws IOException {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        Message pdf = new Message(9, true, null);
+        pdf.documentName = "hush-protected-test.pdf";
+        pdf.file = file("2_77.pdf");
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(pdf)), CHANNEL));
+
+        Context context = Utils.getContext();
+        File sent = new File(telegram.paths.get(0)).getCanonicalFile();
+        String data = context.getDataDir().getCanonicalPath() + File.separator;
+        String shared = context.getExternalCacheDir().getCanonicalPath() + File.separator;
+        assertFalse(sent + " is inside " + data, sent.getPath().startsWith(data));
+        assertTrue(sent + " is outside " + shared, sent.getPath().startsWith(shared));
+        assertEquals("hush-protected-test.pdf", sent.getName());
+        assertTrue(sent.isFile());
     }
 
     @Test public void aPhotoNotOnThePhoneAsksToOpenItFirst() {

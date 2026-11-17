@@ -53,10 +53,11 @@ class FeedAutoScrollHookTest {
     }
 
     /**
-     * On 454.0.0.54.77's arm64 build 386014758 the patch finds the feed player 07jT (a 0JAM, through
-     * 07Jd) by its progress callback, and its Foo(I)V and FLO()V, the ones IgVideoPlayerImpl (04Te)
-     * calls on its listener from Foq, which loads "Playback looping ", and FLQ, which loads "Playback
-     * completed ". Each build has its own names.
+     * On 456.0.0.53.78's arm64 build 386214574 the patch finds the feed player 03hQ by its progress
+     * callback, and its G01(I)V and FVn()V, the ones IgVideoPlayerImpl (03Hj) calls on its listener
+     * (a 0Hfo, which 03hQ's superclass 00i5 is) from G03, which loads "Playback looping ", and FVp,
+     * which loads "Playback completed ".
+     * Each build has its own names.
      */
     @Test
     fun eachDeclaredBuildHooksThePlayerTheListAndTheTouch() {
@@ -65,10 +66,10 @@ class FeedAutoScrollHookTest {
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
                 val sites = builds(classes(bundle), bundle.name)
-                if (bundle.name.contains("386014758")) {
+                if (bundle.name.contains("386214574")) {
                     assertEquals(
                         "${bundle.name}: the player and its callbacks for a video starting over and ending",
-                        listOf("LX/07jT;", "Foo", "FLO"),
+                        listOf("LX/03hQ;", "G01", "FVn"),
                         listOf(sites.player, sites.looped, sites.ended),
                     )
                 }

@@ -77,6 +77,8 @@ public class SaveDownloadsTest {
         Settings.SAVE_RESTRICTED_DOWNLOADS.resetToDefault();
         SettingReadsForTests.mend(Settings.SAVE_TIMED_MEDIA);
         Settings.SAVE_TIMED_MEDIA.resetToDefault();
+        SettingReadsForTests.mend(Settings.SAVE_SECRET_CHATS);
+        Settings.SAVE_SECRET_CHATS.resetToDefault();
         SettingReadsForTests.mend(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
         SettingReadsForTests.mend(Settings.SAVE_KINDS_LEFT_OUT);
@@ -366,7 +368,7 @@ public class SaveDownloadsTest {
                 Message.photo(new Document("-5012_33.jpg", null), false, false));
         SaveDownloads.fileLoaded(0, "4_88.mp4", downloaded("4_88.mp4", "v"),
                 Message.video(new Document("4_88.mp4", "lesson.mp4"), false));
-        // A secret chat never lets anything out.
+        // A secret chat's stays put while Also save from secret chats is off.
         SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "p"),
                 Message.photo(new Document("-5012_33.jpg", null), true, true));
         assertTrue(downloads.rows.isEmpty());
@@ -417,6 +419,55 @@ public class SaveDownloadsTest {
         String report = String.join("\n", HookStatus.report());
         assertTrue(report.contains("saving not allowed"));
         assertFalse(report.contains(SaveDownloads.RESTRICTED));
+    }
+
+    // #82: Also save from secret chats, on top of the second switch.
+
+    @Test public void theSecretChatsSwitchLetsASecretChatsFilesPhotosAndVideosThrough() throws IOException {
+        assertFalse(Settings.SAVE_SECRET_CHATS.get());
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        Settings.SAVE_SECRET_CHATS.save(true);
+        ByteArrayOutputStream file = bodyOf(1);
+        SaveDownloads.fileLoaded(0, "2_51.pdf", downloaded("2_51.pdf", "secret pdf"),
+                new Message(new Document("2_51.pdf", "report.pdf"), true, true, true));
+        ByteArrayOutputStream photo = bodyOf(2);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "secret photo"),
+                Message.photo(new Document("-5012_33.jpg", null), true, true));
+        assertEquals("report.pdf", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("secret pdf", file.toString(StandardCharsets.UTF_8.name()));
+        assertEquals("-5012_33.jpg", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("secret photo", photo.toString(StandardCharsets.UTF_8.name()));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains(SaveDownloads.SECRET + " 2"));
+        assertFalse(report.contains(SaveDownloads.KEPT));
+    }
+
+    @Test public void theSecretChatsSwitchNeedsTheSecondSwitchToo() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_SECRET_CHATS.save(true);
+        SaveDownloads.fileLoaded(0, "2_51.pdf", downloaded("2_51.pdf", "pdf"),
+                new Message(new Document("2_51.pdf", "report.pdf"), true, true, true));
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "p"),
+                Message.photo(new Document("-5012_33.jpg", null), true, true));
+        assertTrue(downloads.rows.isEmpty());
+        assertFalse(String.join("\n", HookStatus.report()).contains(SaveDownloads.SECRET));
+    }
+
+    @Test public void turningTheSecretChatsSwitchOffWhileACopyIsWrittenRemovesTheHiddenEntry() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        Settings.SAVE_SECRET_CHATS.save(true);
+        Shadows.shadowOf(context().getContentResolver()).registerOutputStream(downloads.uriFor(1), new OutputStream() {
+            @Override public void write(int b) {
+                Settings.SAVE_SECRET_CHATS.save(false);
+            }
+        });
+        SaveDownloads.fileLoaded(0, "2_51.pdf", downloaded("2_51.pdf", "pdf"),
+                new Message(new Document("2_51.pdf", "report.pdf"), true, true, true));
+        assertEquals(1, downloads.pendingInserts);
+        assertTrue("the hidden entry stayed behind", downloads.rows.isEmpty());
+        assertFalse(receipts().contains("2_51.pdf"));
     }
 
     @Test public void turningTheSecondSwitchOffDropsOnlyTheWaitingCopiesItLetThrough() throws IOException {
@@ -674,7 +725,7 @@ public class SaveDownloadsTest {
         assertEquals("report.pdf", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
     }
 
-    @Test public void aSecretChatsTimedMediaStaysInTelegramWithEverySwitchOn() throws Exception {
+    @Test public void aSecretChatsTimedMediaStaysInTelegramWithoutTheSecretChatsSwitch() throws Exception {
         Settings.SAVE_DOWNLOADS.save(true);
         Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
         Settings.SAVE_TIMED_MEDIA.save(true);
@@ -686,6 +737,24 @@ public class SaveDownloadsTest {
         String report = String.join("\n", HookStatus.report());
         assertTrue(report.contains(SaveDownloads.KEPT + " 2"));
         assertFalse(report.contains(SaveDownloads.TIMED));
+    }
+
+    @Test public void aSecretChatsTimedPhotoIsDecryptedWithTheSecretChatsSwitchOnAndTheSecondToo() throws Exception {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_TIMED_MEDIA.save(true);
+        Settings.SAVE_SECRET_CHATS.save(true);
+        byte[] photo = media(300);
+        Message secret = Message.timedPhoto(new Document("-5012_33.jpg", null), false, true);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", encrypted("-5012_33.jpg", photo), secret);
+        // A secret chat never allows saving, so the second switch has to be on as well.
+        assertTrue(downloads.rows.isEmpty());
+
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        ByteArrayOutputStream body = bodyOf(1);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", encrypted("-5012_33.jpg", photo), secret);
+        assertEquals("-5012_33.jpg", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertArrayEquals(photo, body.toByteArray());
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.TIMED));
     }
 
     @Test public void timedMediaFromAChatThatDoesntAllowSavingNeedsTheSecondSwitchToo() throws Exception {

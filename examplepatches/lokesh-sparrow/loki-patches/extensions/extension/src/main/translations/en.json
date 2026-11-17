@@ -188,5 +188,8 @@
   "microG RE is not running in the background, so Google sign-in may fail. Your phone may stop it; the website explains how to allow it.": "microG RE is not running in the background, so Google sign-in may fail. Your phone may stop it; the website explains how to allow it.",
   "Open settings": "Open settings",
   "Open website": "Open website",
-  "Not now": "Not now"
+  "Not now": "Not now",
+  "Don't remind me": "Don't remind me",
+  "microG RE battery reminder": "microG RE battery reminder",
+  "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited.": "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited."
 }

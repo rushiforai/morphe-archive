@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.util.ReferenceUtil
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import com.reandroid.arsc.chunk.TableBlock
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.zip.ZipFile
@@ -101,6 +102,9 @@ private const val HIDE_POOR_NETWORK_WARNING = "truecaller.hide_poor_network_warn
 private const val SWAP_CALL_BUTTONS = "truecaller.swap_call_buttons"
 private const val SWAP_CALL_LAYOUTS = "Lapp/template/extension/truecaller/SwapCallButtons;"
 private const val DISABLE_WHO_VIEWED_ME = "truecaller.disable_who_viewed_me"
+private const val HIDE_INBOX_CARDS = "truecaller.hide_inbox_cards"
+private const val TAP_CALL_HISTORY = "truecaller.tap_call_history_to_call"
+private const val BANNER_ITEM = "Lcom/truecaller/messaging/messaginglist/v2/model/BannerItem;"
 
 // Disable telemetry step 8: first-party reporting toggles, off in every resolver.
 private val TELEMETRY_TOGGLE_KEYS = listOf(
@@ -140,6 +144,8 @@ private val HEVAL_FEATURES = listOf(
 // false).
 private val OPT_IN_FEATURES = listOf(
     Triple("Disable Who viewed me", DISABLE_WHO_VIEWED_ME, "Privacy"),
+    Triple("Hide inbox cards", HIDE_INBOX_CARDS, "Promotions & nags"),
+    Triple("Tap call history to call", TAP_CALL_HISTORY, "Call log & search"),
 )
 
 // "Hide profile menu items" (#120): five switches in one patch, all off by default, no restart.
@@ -175,6 +181,8 @@ class TruecallerSmokeTest {
     private fun Method.strings() = instructions().mapNotNull { it.stringOrNull() }
 
     private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+
+    private fun Instruction.typeOrNull(): String? = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
 
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
 
@@ -273,8 +281,8 @@ class TruecallerSmokeTest {
         check(jump == target) { "$label: the $featureId skip gate jumps to $jump, expected $target" }
     }
 
-    private fun assertHevalControls(byType: Map<String, ClassDef>, allPatches: Set<Patch<*>>) {
-        // 1. The extension classes (core, screen, init provider, the Settings row helper) are merged.
+    private fun assertHevalControls(byType: Map<String, ClassDef>, allPatches: Set<Patch>) {
+        //1. The extension classes (core, screen, init provider, the Settings row helper) are merged.
         for (type in listOf(HEVAL_SETTINGS_CLASS, "${HEVAL_EXTENSION}Registry;", "${HEVAL_EXTENSION}InitProvider;",
             "${HEVAL_EXTENSION}ui/HevalControlsActivity;", TRUECALLER_CONTROLS_ENTRY)) {
             check(type in byType) { "$type is not in the patched dex" }
@@ -391,6 +399,8 @@ class TruecallerSmokeTest {
                 "Disable call button haptics",
                 "Hide poor network warning",
                 "Disable Who viewed me",
+                "Hide inbox cards",
+                "Tap call history to call",
                 PROFILE_MENU_PATCH,
                 "GmsCore support",
                 "Spoof signature",
@@ -409,6 +419,7 @@ class TruecallerSmokeTest {
         assertDisableUpdatePrompts(classes)
         assertFeatureToggles(classes)
         assertReferralGate(classes)
+        assertFeedbackCardGates(classes)
         assertHiddenTabs(classes)
         assertHideMessagesTab(classes)
         assertHiddenSettingsRows(classes)
@@ -421,13 +432,85 @@ class TruecallerSmokeTest {
         assertShowCallerNumber(classes, byType, apk)
         assertHideCallLogFilters(classes, byType)
         assertHideListItems(classes)
+        assertHideInboxCards(classes, allPatches)
+        assertTapCallHistoryToCall(classes)
         assertSwapCallButtons(classes, byType)
         assertDisableCallButtonHaptics(classes, byType)
         assertHidePoorNetworkWarning(classes, apk)
-        assertHideProfileMenuItems(classes, byType, allPatches)
+        assertHideProfileMenuItems(classes, byType, allPatches, apk)
         // onGetCredential tests isAvailableOnDevice(int) in this build, so the routing applies.
         assertGmsCoreSupport(classes, workDir, PKG, TRUECALLER_INIT, SIGNATURE_SHA1, expectCredentialRouting = true)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
+    }
+
+    /**
+     * Tap call history to call: in the revamped call log's event dispatcher (found by its instance-of
+     * ItemClick plus a ViewProfile construction), the ItemClick case's `if-eqz selection` is preceded
+     * by the gate and a (id, false) call of the view model's call method, which then jumps to the
+     * instruction after the branch (the selection-mode path), so ViewProfile is skipped.
+     */
+    private fun assertTapCallHistoryToCall(classes: List<ClassDef>) {
+        val label = "Tap call history to call"
+        val string = "Ljava/lang/String;"
+        val itemClick = classes.singleMethod("ItemClick toString") { _, m ->
+            m.name == "toString" && m.strings().any { it.startsWith("ItemClick(id=") }
+        }.first.type
+        val viewProfiles = classes.filter { cls ->
+            cls.methods.any { m -> m.name == "toString" && m.strings().any { it.startsWith("ViewProfile(normalisedNumber=") } }
+        }.map { it.type }.toSet()
+        check(viewProfiles.isNotEmpty()) { "no ViewProfile class" }
+        val (viewModel, callMethod) = classes.singleMethod("call log call method") { _, m ->
+            m.returnType == "V" && m.params() == listOf(string, "Z") &&
+                m.instructions().any { it.opcode == Opcode.SGET_OBJECT && it.field()?.name == "CALLBACK" }
+        }
+        val (dispatcherClass, dispatcher) = classes.singleMethod("call log event dispatcher") { _, m ->
+            m.name == "invoke" && m.returnType == "Ljava/lang/Object;" && m.params() == listOf("Ljava/lang/Object;") &&
+                m.instructions().let { insns ->
+                    insns.any { it.opcode == Opcode.INSTANCE_OF && it.typeOrNull() == itemClick } &&
+                        insns.any { it.opcode == Opcode.NEW_INSTANCE && it.typeOrNull() in viewProfiles }
+                }
+        }
+        val where = "${dispatcherClass.type}.${dispatcher.name}"
+        val insns = dispatcher.instructions()
+        val test = insns.indexOfFirst { it.opcode == Opcode.INSTANCE_OF && it.typeOrNull() == itemClick }
+        val caseEnd = (test + 1 until insns.size).first { insns[it].opcode == Opcode.INSTANCE_OF }
+        val selectionCall = (test + 1 until caseEnd).first { index ->
+            val call = insns[index].call()
+            insns[index].opcode == Opcode.INVOKE_VIRTUAL && call?.definingClass == viewModel.type &&
+                call.returnType == "Z" && call.params() == listOf(string)
+        }
+        val selection = (insns[selectionCall + 1] as OneRegisterInstruction).registerA
+        val invoke = insns[selectionCall] as FiveRegisterInstruction
+        check(insns[selectionCall + 1].opcode == Opcode.MOVE_RESULT) { "$where: the selection result is not kept" }
+
+        // if-nez selection -> the original if-eqz (selection mode keeps the stock branch).
+        val original = selectionCall + 10
+        check(insns[selectionCall + 2].opcode == Opcode.IF_NEZ && (insns[selectionCall + 2] as OneRegisterInstruction).registerA == selection &&
+            insns.branchTarget(selectionCall + 2) == original
+        ) { "$where: the selection result is not tested for the stock path before the gate" }
+        // The gate: isEnabled(feature) on the same register, if-eqz -> the original if-eqz.
+        check(assertGate(dispatcher, TAP_CALL_HISTORY, where, at = selectionCall + 3) == original) { "$where: the feature gate does not fall back to the stock branch" }
+        check((insns[selectionCall + 3] as OneRegisterInstruction).registerA == selection) { "$where: the gate uses another register than the selection result" }
+        // const/4 selection, 0; view model.call(id, selection) with the selection check's receiver and id.
+        check(insns[selectionCall + 7].opcode == Opcode.CONST_4 && (insns[selectionCall + 7] as OneRegisterInstruction).registerA == selection &&
+            (insns[selectionCall + 7] as NarrowLiteralInstruction).narrowLiteral == 0
+        ) { "$where: the call does not pass false" }
+        val invokeD = insns[selectionCall + 8]
+        check(invokeD.opcode == Opcode.INVOKE_VIRTUAL && invokeD.call()?.definingClass == viewModel.type && invokeD.call()?.name == callMethod.name &&
+            invokeD.call()?.params() == listOf(string, "Z") &&
+            (invokeD as FiveRegisterInstruction).let { it.registerC == invoke.registerC && it.registerD == invoke.registerD && it.registerE == selection }
+        ) { "$where: the gate does not call ${callMethod.name}(id, false) on the call log view model" }
+        // Then it jumps past the original branch, to where the stock case goes when selecting.
+        check(insns[selectionCall + 9].opcode == Opcode.GOTO_16 && insns.branchTarget(selectionCall + 9) == selectionCall + 11) {
+            "$where: the call does not jump to the instruction after the stock branch"
+        }
+        val stock = insns[original]
+        check(stock.opcode == Opcode.IF_EQZ && (stock as OneRegisterInstruction).registerA == selection) { "$where: the stock branch on the selection result is gone" }
+        // The stock path still builds ViewProfile in this case (after the branch's target, before the next event type).
+        val profile = (original + 1 until insns.size).firstOrNull { insns[it].opcode == Opcode.INSTANCE_OF || (insns[it].opcode == Opcode.NEW_INSTANCE && insns[it].typeOrNull() in viewProfiles) }
+        check(profile != null && insns[profile].opcode == Opcode.NEW_INSTANCE) { "$where: the ItemClick case no longer builds ViewProfile for the stock path" }
+        // The call method is untouched.
+        check(callMethod.instructions().none { it.call()?.definingClass == HEVAL_SETTINGS_CLASS }) { "${callMethod.name} was changed" }
     }
 
     private fun assertEnablePremium(classes: List<ClassDef>, byType: Map<String, ClassDef>) {
@@ -1006,6 +1089,22 @@ class TruecallerSmokeTest {
         }
         check(insns.drop(stock).mapNotNull { it.stringOrNull() }.containsAll(keys)) { "$label lost its stock code" }
         check(insns.count { it.call()?.definingClass == HEVAL_SETTINGS_CLASS } == 1) { "$label has more than one Heval Controls gate" }
+    }
+
+    private fun assertFeedbackCardGates(classes: List<ClassDef>) {
+        // Hide promotions step 4: the Share and Invite card checks on FeedbackItemView.DisplaySource
+        // start with the feature's gate (patched path answers false) and keep their stock code;
+        // shouldShowFeedback (rate us) stays untouched.
+        val cls = classes.single { it.type == "Lcom/truecaller/ui/components/FeedbackItemView\$DisplaySource;" }
+        for (name in listOf("shouldShowShare", "shouldShowInviteFriends")) {
+            val m = cls.methods.single { it.name == name && it.parameters.isEmpty() && it.returnType == "Z" }
+            val label = "${cls.type}.$name"
+            val stock = assertGate(m, HIDE_PROMOTIONS, label)
+            check(m.instructions().subList(stock - 2, stock).isReturnZero()) { "$label does not answer false after the Hide promotions gate" }
+            check(m.instructions().size > stock) { "$label lost its stock code" }
+        }
+        val feedback = cls.methods.single { it.name == "shouldShowFeedback" }
+        check(feedback.instructions().none { it.call()?.definingClass == HEVAL_SETTINGS_CLASS }) { "shouldShowFeedback must stay stock" }
     }
 
     private fun assertHiddenTabs(classes: List<ClassDef>) {
@@ -2024,7 +2123,76 @@ class TruecallerSmokeTest {
         }
     }
 
-    private fun assertHideProfileMenuItems(classes: List<ClassDef>, byType: Map<String, ClassDef>, allPatches: Set<Patch<*>>) {
+    private fun assertHideInboxCards(classes: List<ClassDef>, allPatches: Set<Patch>) {
+        // "Hide inbox cards": the Messages inbox builder (found by its banner keys and the BannerItem
+        // filter calls, as the patch does) checks ArrayList.isEmpty() on the filtered banner list
+        // right before the card carousel (spacer, item keyed 1111111, spacer). The skip gate sits
+        // right before that if-nez and jumps to its target, past the carousel; the other banners'
+        // keys are all outside the skipped range, and the gate id occurs nowhere else.
+        val (cls, builder) = classes.singleMethod("inbox list builder") { _, m ->
+            val strings = m.strings()
+            m.name == "invoke" && m.returnType == "Ljava/lang/Object;" && m.params() == listOf("Ljava/lang/Object;") &&
+                "filteringMessagesBanner" in strings && m.instructions().any { it.call()?.definingClass == BANNER_ITEM }
+        }
+        val label = "${cls.type}.${builder.name} (inbox cards)"
+        for (name in listOf("Hide inbox cards", "Disable Who viewed me")) {
+            val patch = allPatches.single { p -> p.name == name && p.compatibility.orEmpty().any { it.packageName == PKG } }
+            check(!patch.default) { "$name is selected by default" }
+        }
+        val insns = builder.instructions()
+        val isEmpty = insns.indices.filter {
+            insns[it].call()?.let { c -> c.definingClass == "Ljava/util/ArrayList;" && c.name == "isEmpty" } == true
+        }.singleOrNull() ?: error("$label does not call ArrayList.isEmpty() exactly once")
+        check(insns[isEmpty + 1].opcode == Opcode.MOVE_RESULT) { "$label: isEmpty() result is not moved" }
+        val resultRegister = (insns[isEmpty + 1] as OneRegisterInstruction).registerA
+        // The gate: const-string, isEnabled, move-result, if-nez (4 instructions), then the stock if-nez.
+        val guard = isEmpty + 6
+        check(insns[guard].opcode == Opcode.IF_NEZ && (insns[guard] as OneRegisterInstruction).registerA == resultRegister) {
+            "$label: the carousel guard is not an if-nez on the isEmpty() result right after the gate; got ${insns[guard].opcode}"
+        }
+        val target = insns.branchTarget(guard)
+        assertSkipGate(builder, HIDE_INBOX_CARDS, guard, target, label)
+        val gateRegister = (insns[isEmpty + 2] as OneRegisterInstruction).registerA
+        check(gateRegister != resultRegister) { "$label: the gate overwrites the isEmpty() result register v$resultRegister" }
+
+        // The skipped range is the carousel only: its Integer key and a static void item call, none
+        // of the other banner keys or the conversations' items.
+        val skipped = guard + 1 until target
+        check(skipped.any { (insns[it] as? NarrowLiteralInstruction)?.narrowLiteral == 1111111 }) { "$label: the carousel key 1111111 is not skipped" }
+        check(skipped.any { insns[it].call()?.let { c -> c.definingClass == "Ljava/lang/Integer;" && c.name == "valueOf" } == true }) {
+            "$label: the carousel key is not boxed inside the skipped range"
+        }
+        val boxedAt = skipped.first { insns[it].call()?.let { c -> c.definingClass == "Ljava/lang/Integer;" && c.name == "valueOf" } == true }
+        check(insns[boxedAt + 1].opcode == Opcode.MOVE_RESULT_OBJECT) { "$label: the boxed key is not moved to a register" }
+        val keyRegister = (insns[boxedAt + 1] as OneRegisterInstruction).registerA
+        val itemCall = skipped.first { it > boxedAt + 1 && insns[it].opcode == Opcode.INVOKE_STATIC && insns[it].call()?.returnType == "V" }
+        check(insns[itemCall].arguments()?.contains(keyRegister) == true) { "$label: the item call does not take the boxed key in v$keyRegister" }
+        // Exactly one item helper call (the keyed item); the two spacers are another static void helper.
+        val itemHelper = insns[itemCall].call()
+        check(skipped.count { insns[it].opcode == Opcode.INVOKE_STATIC && insns[it].call() == itemHelper } == 1) {
+            "$label: the skipped range does not hold exactly one item helper call"
+        }
+        check(skipped.count { insns[it].opcode == Opcode.INVOKE_STATIC && insns[it].call()?.returnType == "V" } == 3) {
+            "$label: the skipped range is not spacer + item + spacer (3 static void calls)"
+        }
+        check(skipped.none { insns[it].stringOrNull() != null }) { "$label: the skipped range holds a keyed item" }
+        for (key in listOf("FraudModelUserOnboardBanner", "OverrideCategoryBanner", "filteringMessagesBanner")) {
+            val at = insns.indexOfFirst { it.stringOrNull() == key }
+            check(at in 0 until guard - 5) { "$label: \"$key\" is not an untouched item before the carousel gate" }
+        }
+        for (key in listOf("messageSyncStateBanner", "markAllAsReadUndoBanner", "markAllAsReadBanner")) {
+            val at = insns.indexOfFirst { it.stringOrNull() == key }
+            check(at >= target) { "$label: \"$key\" is not an item after the carousel" }
+        }
+        // Only one gate on this feature, in this one method.
+        val gates = classes.flatMap { c ->
+            c.methods.filter { m -> m.instructions().any { it.stringOrNull() == HIDE_INBOX_CARDS } }.map { c.type to it.name }
+        }
+        check(gates.size == 1 && gates.single().first == cls.type) { "The $HIDE_INBOX_CARDS gate is in $gates, expected only $label" }
+        check(builder.instructions().count { it.stringOrNull() == HIDE_INBOX_CARDS } == 1) { "$label has more than one inbox cards gate" }
+    }
+
+    private fun assertHideProfileMenuItems(classes: List<ClassDef>, byType: Map<String, ClassDef>, allPatches: Set<Patch>, apk: File) {
         val patch = allPatches.single { p -> p.name == PROFILE_MENU_PATCH && p.compatibility.orEmpty().any { it.packageName == PKG } }
         check(!patch.default) { "$PROFILE_MENU_PATCH is selected by default" }
         fun isEnabledCall(insn: Instruction?, register: Int) = insn?.call()?.let {
@@ -2125,12 +2293,11 @@ class TruecallerSmokeTest {
         }
         val titleRes = stateField(enabledClass, enabledToString, "titleRes", "I")
         val stateType = enabledClass.interfaces.single()
-        val publicXml = workDir.walkTopDown().firstOrNull { it.name == "public.xml" && it.parentFile.name == "values" }
-            ?: error("no decoded res/values/public.xml under $workDir")
-        val publics = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(publicXml).documentElement
-            .getElementsByTagName("public").let { list -> (0 until list.length).map { list.item(it) as Element } }
+        // Patcher 2.3.0 no longer writes a decoded res/values/public.xml, so read the ids from the
+        // stock resources.arsc (the patch resolves them with resourceId the same way).
+        val table = ZipFile(apk).use { zip -> zip.getInputStream(zip.getEntry("resources.arsc")).use { TableBlock.load(it) } }
         val titleIds = listOf("usershome_premium_section_premium_member", "usershome_premium_section_upgrade_to_premium").map { name ->
-            publics.single { it.getAttribute("type") == "string" && it.getAttribute("name") == name }.getAttribute("id").removePrefix("0x").toLong(16).toInt()
+            (table.getLocalResource("string", name) ?: error("string/$name is not in resources.arsc")).resourceId
         }
         val renderers = classes.methodsWhere { _, m ->
             AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.params().firstOrNull() == stateType &&

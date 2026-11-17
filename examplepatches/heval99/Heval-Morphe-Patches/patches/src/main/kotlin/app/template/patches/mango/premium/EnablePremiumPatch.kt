@@ -67,7 +67,17 @@ val enablePremiumPatch = bytecodePatch(
 
         // The Pro flow: the first field the constructor stores after the contains result is the
         // StateFlow seeded with it (Boolean.valueOf(zContains) -> flow factory -> iput-object).
-        val flowStore = insns.drop(index + 2).take(8).firstOrNull { it.opcode == Opcode.IPUT_OBJECT }
+        // 1.68 puts an unrelated boolean computation and its iput-boolean between the contains
+        // result and the seed, so start at the Boolean.valueOf(Z) call that consumes the result
+        // register rather than at a fixed distance from the contains call.
+        val moveRegister = (move as OneRegisterInstruction).registerA
+        val seedCall = (index + 2..minOf(insns.lastIndex, index + 30)).firstOrNull {
+            val call = insns[it].methodRef()
+            insns[it].opcode == Opcode.INVOKE_STATIC && call?.definingClass == "Ljava/lang/Boolean;" &&
+                call.name == "valueOf" && call.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
+                (insns[it] as FiveRegisterInstruction).registerC == moveRegister
+        } ?: throw PatchException("${client.type}.<init>: no Boolean.valueOf of the Set.contains result")
+        val flowStore = insns.drop(seedCall + 1).take(6).firstOrNull { it.opcode == Opcode.IPUT_OBJECT }
         val flowField = flowStore?.fieldRef()
             ?: throw PatchException("${client.type}.<init>: no field store after the Pro seed")
         if (flowField.definingClass != client.type) {

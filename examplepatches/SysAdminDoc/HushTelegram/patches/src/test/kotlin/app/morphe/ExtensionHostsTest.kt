@@ -179,11 +179,11 @@ class ExtensionHostsTest {
          * AI service's address until the person types another (the one they type isn't in the code).
          * ko-fi.com is the Support HushTelegram row, opened in the browser. raw.githubusercontent.com
          * and cdn.jsdelivr.net are where Free proxies downloads its public proxy lists. lrclib.net is
-         * where Lyrics looks a song up.
+         * where Lyrics looks a song up. t.me is the channel page Open on the web opens in the browser.
          */
         val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "127.0.0.1",
             "translate.googleapis.com", "api.openai.com", "ko-fi.com", "raw.githubusercontent.com", "cdn.jsdelivr.net",
-            "lrclib.net")
+            "lrclib.net", "t.me")
         const val RELEASE_CHECK =
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/ReleaseCheck.java"
         const val FIREBASE_HEADER =

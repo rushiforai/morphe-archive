@@ -4,8 +4,9 @@ import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /**
  * The composables of the floating Rovo Chat button: the entry point `MainActivity` calls over every tab, the fading
@@ -57,7 +58,7 @@ private fun MutableMethod.hideWhileEnabled() {
 }
 
 @Suppress("unused")
-val hideRovoButtonPatch = bytecodePatch(
+val hideRovoButtonPatch = patch(
     name = "Hide Rovo button",
     description = "Removes the floating Rovo Chat button, the Rovo icon in the issue header and the Rovo \"Answers\" block in search.",
     default = true,

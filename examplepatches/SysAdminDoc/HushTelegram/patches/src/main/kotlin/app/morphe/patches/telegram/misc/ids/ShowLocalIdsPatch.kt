@@ -54,8 +54,14 @@ val showLocalIdsPatch = bytecodePatch(
     execute {
         val plan = resolveLocalIds()
         resolveProfileDc()
+        // The registration month is optional too: it needs a user to say whether it's a bot.
+        val registrationMissing = registrationDateMissing()
         // Special contacts is optional: found before anything changes, put in after the rest.
         val (special, specialMissing) = resolveSpecialContacts()
+        // So are member join dates, rehearsed on copies of every method they change.
+        val (joinDates, joinDatesMissing) = resolveMemberJoinDates()
+        // And forward dates, in the two places a bubble writes Forwarded from.
+        val (forwardDates, forwardDatesMissing) = resolveForwardDates()
         plan.insert(MutableMethod(ImmutableMethod.of(plan.method)))
         val runtime = tgMutableClassDefBy(LOCAL_IDS)
         // Compile both bridges before changing any host method, runtime body or build flag.
@@ -71,11 +77,31 @@ val showLocalIdsPatch = bytecodePatch(
         writeProfileDc()
         plan.insert(plan.method)
         enableCapability("profileLocalIds")
+        if (registrationMissing == null) {
+            writeRegistrationDate()
+            enableCapability("registrationDate")
+        } else {
+            patchLog.warning("Show user and chat IDs: $registrationMissing. The patch goes on without registration dates.")
+        }
         if (special != null) {
             special.applyTo()
             enableCapability("specialContacts")
         } else {
             patchLog.warning("Show user and chat IDs: $specialMissing. The patch goes on without Special contacts.")
+        }
+        if (joinDates != null) {
+            writeJoinDates()
+            joinDates.applyTo()
+            enableCapability("memberJoinDates")
+        } else {
+            patchLog.warning("Show user and chat IDs: $joinDatesMissing. The patch goes on without member join dates.")
+        }
+        if (forwardDates != null) {
+            writeForwardDates()
+            forwardDates.applyTo()
+            enableCapability("forwardDates")
+        } else {
+            patchLog.warning("Show user and chat IDs: $forwardDatesMissing. The patch goes on without forward dates.")
         }
         enableStatus("showLocalIds")
     }
@@ -110,7 +136,7 @@ internal data class LocalIdsPlan(
 }
 
 internal fun BytecodePatchContext.resolveLocalIds(): LocalIdsPlan {
-    listOf("showLocalIds", "profileLocalIds").forEach(::requireStatusMethod)
+    listOf("showLocalIds", "profileLocalIds", "registrationDate", "memberJoinDates", "forwardDates").forEach(::requireStatusMethod)
     controlHook(LOCAL_IDS, "addToProfile", listOf("Landroid/view/View;", "J", "J"), "V")
     controlHook(LOCAL_IDS, "nativeAddRow", listOf("Ljava/lang/Object;", "Ljava/lang/String;"), "Landroid/view/View;")
     controlHook(LOCAL_IDS, "nativeDismiss", listOf("Ljava/lang/Object;"), "V")

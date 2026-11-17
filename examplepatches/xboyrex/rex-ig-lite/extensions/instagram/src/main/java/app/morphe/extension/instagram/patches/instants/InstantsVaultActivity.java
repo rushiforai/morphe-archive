@@ -823,10 +823,9 @@ public final class InstantsVaultActivity {
             };
 
             CharSequence saved = savedOn(row);
-            new android.app.AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(activity))
-                    .setTitle(saved == null ? str("rex_download_options") : saved)
-                    .setItems(options, onPick)
-                    .show();
+            java.util.List<String> lbls = java.util.Arrays.asList(options[0].toString(), options[1].toString(), options[2].toString());
+            java.util.List<String> ics = java.util.Arrays.asList("download", "external-link", "link");
+            app.morphe.extension.instagram.settings.preference.widgets.RexDialogs.showSemanticMenuDialog(activity, "bolt", (saved == null ? str("rex_download_options") : saved.toString()), lbls, ics, onPick, null);
         }
 
         private void download(String[] row, String url, boolean isVideo, long clickedAtMillis) throws Exception {

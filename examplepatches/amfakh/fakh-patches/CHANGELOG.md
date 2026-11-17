@@ -1,3 +1,36 @@
+## [2.1.0](https://github.com/amfakh/fakh-patches/compare/v2.0.0...v2.1.0) (2026-11-17)
+
+### New Features
+
+* **LinkedIn:** add Keep feed on reopen to stay where you left the feed ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** add Post menu items: Copy text, Download photos and videos, Save document as PDF ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** add Tap to hide in viewers for videos and documents ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** add Material icons in the navigation bar, off by default ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** add Dark app icon, off by default ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** Navigation bar can hide the Post, Video and News tabs ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** Swipe between tabs switches between Grow and Catch up first ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* Smart Life, Tuya Smart and BARDI Smart Home get Swipe between tabs ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+
+### Bug Fixes
+
+* **LinkedIn:** downloaded GIFs are saved as .gif and show in the gallery ([23fcd54](https://github.com/amfakh/fakh-patches/commit/23fcd542db6a4109f391650695fe0b7112bf59a8))
+
+## [2.0.0](https://github.com/amfakh/fakh-patches/compare/v1.22.5...v2.0.0) (2026-11-17)
+
+### Breaking Changes
+
+* the bundle is built for Morphe patcher 2.3.0 and needs Morphe Manager 2.5.0 or newer, older Managers (2.0 to 2.4) cannot load it ([2a3a543](https://github.com/amfakh/fakh-patches/commit/2a3a5434ff0db9a80d6b6f97398a79eafd3c8d5e))
+
+### Performance Improvements
+
+* patching takes about 25% less time ([2a3a543](https://github.com/amfakh/fakh-patches/commit/2a3a5434ff0db9a80d6b6f97398a79eafd3c8d5e))
+
+## [1.22.5](https://github.com/amfakh/fakh-patches/compare/v1.22.4...v1.22.5) (2026-11-17)
+
+### Updated App Support
+
+* **Tuya Smart:** add support for `7.13.0` and `7.13.3`, next to `7.12.3` and `7.12.6` ([bc1f9f1](https://github.com/amfakh/fakh-patches/commit/bc1f9f11f6e5964c9fdf93723c12626f6ac94cf1))
+
 ## [1.22.4](https://github.com/amfakh/fakh-patches/compare/v1.22.3...v1.22.4) (2026-11-16)
 
 ### Bug Fixes

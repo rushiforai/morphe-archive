@@ -6,7 +6,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
@@ -23,7 +23,7 @@ private val maxSplashTimeFingerprint = Fingerprint(
 )
 
 @Suppress("unused")
-val fasterStartupPatch = bytecodePatch(
+val fasterStartupPatch = patch(
     name = "Faster startup",
     description = "Stops the splash screen from waiting up to 5 seconds on the Firebase Remote Config fetch. The fetch still finishes in the background.",
     default = true,

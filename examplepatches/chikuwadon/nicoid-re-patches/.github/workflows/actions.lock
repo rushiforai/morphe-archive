@@ -5,27 +5,27 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/codeql-advanced.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'github/codeql-action@33d7b85da1a04171e211befe2c739303b9a4c066'
     '.github/workflows/dependency-submission.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c'
     '.github/workflows/private-build.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
         - 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
     '.github/workflows/release.yml':
         - 'actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8'
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
     '.github/workflows/sync-release-notes.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
     '.github/workflows/verify-main.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
-        - 'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
 dependencies:
     'actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8':
@@ -45,9 +45,9 @@ dependencies:
         commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
         owner_id: 44036562
         repo_id: 197814629
-    'actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78':
-        ref: 'v6.2.0'
-        commit: 'sha1-77dd5b2ce225ea11469928ac317850245a74ae78'
+    'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880':
+        ref: 'v6.3.0'
+        commit: 'sha1-d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         owner_id: 44036562
         repo_id: 196057608
     'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1':

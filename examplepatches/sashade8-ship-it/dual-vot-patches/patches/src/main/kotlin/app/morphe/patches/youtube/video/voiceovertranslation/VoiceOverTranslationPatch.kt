@@ -47,7 +47,6 @@ private val voiceOverTranslationResourcePatch = patch {
     }
 }
 
-@Suppress("unused")
 val voiceOverTranslationPatch = patch(
     name = "Voice over translation",
     description = "Adds additional voice over languages using text-to-speech synchronized to the video playback.",

@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.plex.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.splitByBundle
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -12,5 +13,8 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xE5A00D,
         targets = listOf(AppTarget("2026.22.0")),
+    ).splitByBundle(
+        phoneDescription = "The Plex app for phones.",
+        tvDescription = "The Plex app.",
     )
 }

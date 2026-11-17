@@ -3,7 +3,7 @@ package app.template.patches.bluemail.ads
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BLUEMAIL
 import app.template.patches.shared.addInstructionsChecked
 

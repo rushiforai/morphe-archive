@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.AccessFlags.STATIC
 import semicoloncolonel.mobilestream.patches.peacock.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // Peacock 7.10.20 signs in on its own when it detects an Xfinity home network
 // ("HBA", home-based authentication). HbaSignInUseCaseImpl (p5e in 7.10.20)
@@ -32,7 +33,7 @@ val disableHomeNetworkSignInPatch = bytecodePatch(
     name = "Disable Xfinity auto sign-in",
     description = "Stops the app from signing in on its own on an Xfinity home network.",
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
 
     execute {
         // The OutsideHbaNetwork object's singleton instance field.

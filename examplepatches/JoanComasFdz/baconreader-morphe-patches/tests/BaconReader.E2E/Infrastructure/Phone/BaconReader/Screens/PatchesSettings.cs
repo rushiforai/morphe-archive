@@ -160,6 +160,35 @@ public sealed class PatchesSettings(AndroidDriver driver)
                 .FirstOrDefault();
     }
 
+    /// <summary>Taps <paramref name="action"/>'s row, which runs it.</summary>
+    public Task ClickAsync(PatchesAction action) => OnScreen.PressAsync(driver, Titled(action.ToShownText()));
+
+    /// <summary>Scrolls the screen until <paramref name="action"/>'s title shows: the Backup section is near its end.</summary>
+    public Task ScrollToAsync(PatchesAction action) =>
+        OnScreen.ScrollToAsync(driver, List, Titled(action.ToShownText()), $"The row \"{action.ToShownText()}\"");
+
+    /// <summary>Waits until <paramref name="action"/>'s title shows: the screen is back after what the action opened.</summary>
+    public Task WaitUntilShownAsync(PatchesAction action) =>
+        Waiting.UntilShownAsync(driver, Titled(action.ToShownText()), TimeSpan.FromSeconds(10), $"The row \"{action.ToShownText()}\"");
+
+    /// <summary>The rows that run something under <paramref name="section"/>'s title, top to bottom, as far as the screen shows them.</summary>
+    public Task<PatchesActionsSnapshot> ReadActionsAsync(PatchesSection section) =>
+        OnScreen.ReadAsync(driver, () =>
+        {
+            var header = driver.FindElements(Titled(section.ToShownText())).Where(found => found.Displayed).OrderBy(found => found.Location.Y).FirstOrDefault();
+            return new PatchesActionsSnapshot(
+                section,
+                header is null
+                    ? []
+                    : [
+                        .. PatchesActionShowing.Listed
+                            .Select(action => (action, title: driver.FindElements(Titled(action.ToShownText())).FirstOrDefault(title => title.Displayed && title.Location.Y > header.Location.Y)))
+                            .Where(found => found.title is not null)
+                            .OrderBy(found => found.title!.Location.Y)
+                            .Select(found => found.action),
+                    ]);
+        });
+
     /// <summary>Whether <paramref name="setting"/>'s title shows under <paramref name="section"/>'s, on the screen.</summary>
     public Task<PatchSettingPlaceSnapshot> ReadPlaceAsync(PatchSetting setting, PatchesSection section) =>
         OnScreen.ReadAsync(driver, () => new PatchSettingPlaceSnapshot(setting, section, SettingIn(setting, section) is not null));
@@ -187,3 +216,6 @@ public sealed record PatchSettingPlaceSnapshot(PatchSetting Setting, PatchesSect
 
 /// <summary>Whether a setting's switch is on.</summary>
 public sealed record PatchSettingSwitchSnapshot(PatchSetting Setting, bool On);
+
+/// <summary>The rows that run something under a section's title, top to bottom.</summary>
+public sealed record PatchesActionsSnapshot(PatchesSection Section, ImmutableArray<PatchesAction> Actions);

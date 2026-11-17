@@ -1,7 +1,11 @@
 package app.hushmessenger.extension;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Looper;
 import android.view.View;
+import android.view.WindowManager;
 import app.hushmessenger.extension.MarkReadButtonTest.DetailsButton;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,10 +15,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
+import org.robolectric.shadows.ShadowDialog;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -220,6 +227,66 @@ public class CallConfirmTest {
         assertFalse(CallConfirm.isTapListener(Runnable.class));
         assertFalse(CallConfirm.isTapListener(View.OnTouchListener.class));
         assertFalse(CallConfirm.isTapListener(Counting.class));
+    }
+
+    /** The question Messenger's own call button gets in a chat: an ordinary dialog, and Call runs its tap. */
+    @Test public void theQuestionGoesUpOverTheChat() {
+        on(true);
+        CallConfirm.asker = shown;
+        Counting tap = new Counting();
+        Spec audio = new Spec("audio_call_button", tap, null);
+        CallConfirm.guard(new ArrayList<>(Collections.singletonList(audio)));
+        Activity chat = Robolectric.buildActivity(Activity.class).setup().get();
+        audio.click.onClick(new View(chat));
+        AlertDialog question = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertTrue(question.isShowing());
+        assertEquals(WindowManager.LayoutParams.TYPE_APPLICATION, question.getWindow().getAttributes().type);
+        assertEquals(0, tap.taps);
+        answer(question, AlertDialog.BUTTON_POSITIVE);
+        assertEquals(1, tap.taps);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /**
+     * #172: a chat head draws from Messenger's own service, where no activity holds a window for a dialog, so the
+     * question never reached the screen and the call rang anyway. It goes up over other apps there instead.
+     */
+    @Test public void theQuestionGoesUpInAChatHeadToo() {
+        on(true);
+        CallConfirm.asker = shown;
+        Counting tap = new Counting();
+        Spec call = new Spec(CallConfirm.VIDEO_TAG, tap, null);
+        CallConfirm.guard(new ArrayList<>(Collections.singletonList(call)));
+        // The application context a chat head's window leads to, with no activity anywhere up the chain.
+        assertNull(ChatJump.activity(view.getContext()));
+        call.click.onClick(view);
+        AlertDialog question = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertTrue(question.isShowing());
+        assertEquals(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, question.getWindow().getAttributes().type);
+        assertEquals(0, tap.taps);
+        answer(question, AlertDialog.BUTTON_POSITIVE);
+        assertEquals(1, tap.taps);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** Cancel in a chat head leaves the call alone, the same as it does in a chat. */
+    @Test public void cancelInAChatHeadLeavesTheCall() {
+        on(true);
+        CallConfirm.asker = shown;
+        Counting tap = new Counting();
+        Spec call = new Spec("audio_call_button", tap, null);
+        CallConfirm.guard(new ArrayList<>(Collections.singletonList(call)));
+        call.click.onClick(view);
+        AlertDialog question = (AlertDialog) ShadowDialog.getLatestDialog();
+        answer(question, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(0, tap.taps);
+        assertFalse(question.isShowing());
+    }
+
+    /** Presses a dialog button and lets the answer reach the listener. */
+    private static void answer(AlertDialog question, int button) {
+        question.getButton(button).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
 
     @Test public void aQuestionThatCantGoUpLetsTheCallThroughAndSaysWhy() {

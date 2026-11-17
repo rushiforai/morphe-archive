@@ -6,7 +6,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 private const val PKG = "dk.tv2.nyhedscenter"
-private const val VERSION = "2026.10-10188:RELEASE"
+private const val VERSION = "2026.11-10189:RELEASE"
 
 private val GMA_HOOKS = mapOf(
     "Lcom/google/android/gms/ads/BaseAdView;" to listOf("loadAd"),

@@ -27,6 +27,8 @@ public class AutoReplyTest {
     private static final String REPLY_ACTION = "app.hushmessenger.test.REPLY";
     private final long[] now = {1_000_000};
     private final List<Runnable> queued = new ArrayList<>();
+    /** How long each queued task was asked to wait, in the order they were queued. */
+    private final List<Long> delays = new ArrayList<>();
     private AutoReply.Scheduler realScheduler;
     private Context context;
     private NotificationManager manager;
@@ -40,7 +42,10 @@ public class AutoReplyTest {
         CrashGuard.resetForTests();
         CrashGuard.onProcessStart(context);
         realScheduler = AutoReply.scheduler;
-        AutoReply.scheduler = (task, delayMs) -> queued.add(task);
+        AutoReply.scheduler = (task, delayMs) -> {
+            queued.add(task);
+            delays.add(delayMs);
+        };
         AutoReply.forgetQueued();
         AutoReply.clock = () -> now[0];
         Settings.preferences.edit().putBoolean(AutoReply.KEY, true).commit();
@@ -54,11 +59,19 @@ public class AutoReplyTest {
         AutoReply.forgetQueued();
     }
 
-    /** Runs what's queued now. Anything those tasks queue in turn waits for the next call. */
+    /** Runs what's queued now, moving the clock on by what each task was asked to wait. Tasks they queue wait for the next call. */
     private void runQueued() {
         List<Runnable> due = new ArrayList<>(queued);
+        long waited = delays.isEmpty() ? 0 : delays.get(delays.size() - 1);
         queued.clear();
+        delays.clear();
+        now[0] += waited;
         for (Runnable task : due) task.run();
+    }
+
+    /** Runs the queue until nothing is left, so a message that never gets a notification reaches its deadline. */
+    private void runUntilQuiet() {
+        for (int pass = 0; pass < 64 && !queued.isEmpty(); pass++) runQueued();
     }
 
     private void replies(boolean groups, String... whenThenReply) {
@@ -283,14 +296,14 @@ public class AutoReplyTest {
         assertEquals(0, AutoReply.pending());
     }
 
-    /** Canceled on the retry too: nothing is sent, nothing waits, and no cooldown is left behind. */
+    /** Canceled every time it looks: nothing is sent, nothing waits, and no cooldown is left behind. */
     @Test public void aRetryThatIsCanceledAgainGivesUpCleanly() {
         replies(false, "", "Away");
         notification(CHAT).cancel();
         AutoReply.received("hello", CHAT, "mid.1");
         runQueued();
         notification(CHAT).cancel();
-        runQueued();
+        runUntilQuiet();
         assertNull(sent());
         assertTrue(queued.isEmpty());
         assertEquals(0, AutoReply.pending());
@@ -323,14 +336,43 @@ public class AutoReplyTest {
         for (int i = 0; i < AutoReply.MAX_PENDING + 10; i++) AutoReply.received("m" + i, CHAT, "mid." + i);
         assertEquals(AutoReply.MAX_PENDING, queued.size());
         assertEquals(AutoReply.MAX_PENDING, AutoReply.pending());
-        // No notification yet: each one waits once more and keeps its place.
+        // No notification yet: each one keeps its place while it waits for one.
         runQueued();
         assertEquals(AutoReply.MAX_PENDING, AutoReply.pending());
-        runQueued();
+        runUntilQuiet();
         assertEquals(0, AutoReply.pending());
         assertNull(sent());
         AutoReply.received("later", CHAT, "mid.later");
         assertEquals(1, queued.size());
+    }
+
+    /** #182: the answer used to sit out a fixed wait. It now looks almost at once and sends on the first look. */
+    @Test public void aReplyGoesOutOnTheFirstLookWhenTheNotificationIsAlreadyUp() {
+        replies(false, "", "Away");
+        notification(CHAT);
+        AutoReply.received("hello", CHAT, "mid.1");
+        assertEquals(1, delays.size());
+        assertTrue("waited " + delays.get(0) + "ms before even looking", delays.get(0) <= 300);
+        runQueued();
+        assertEquals("Away", sent());
+        assertTrue(queued.isEmpty());
+        assertEquals(0, AutoReply.pending());
+    }
+
+    /** #182: while the notification is still coming it looks again on a short beat, not after seconds. */
+    @Test public void aMessageWaitingForItsNotificationIsLookedAtAgainOnAShortBeat() {
+        replies(false, "", "Away");
+        AutoReply.received("hello", CHAT, "mid.1");
+        runQueued();
+        assertEquals(1, delays.size());
+        assertTrue("waited " + delays.get(0) + "ms before looking again", delays.get(0) <= 500);
+        assertEquals(1, AutoReply.pending());
+        // Past the deadline it stops looking instead of waiting on a notification that never came.
+        long started = now[0];
+        runUntilQuiet();
+        assertEquals(0, AutoReply.pending());
+        assertNull(sent());
+        assertTrue(now[0] - started >= AutoReply.GIVE_UP_MS - AutoReply.FIRST_MS - AutoReply.RECHECK_MS);
     }
 
     @Test public void aRetryWaitsForTheNotificationAndAnswersOnce() {

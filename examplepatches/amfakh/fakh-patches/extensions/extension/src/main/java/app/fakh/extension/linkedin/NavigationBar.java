@@ -3,6 +3,8 @@ package app.fakh.extension.linkedin;
 import android.view.View;
 import android.view.ViewGroup;
 
+import app.fakh.extension.shared.SwipeTabs;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,10 @@ import java.util.WeakHashMap;
  */
 public final class NavigationBar {
     /** HomeTabInfo constants that can be hidden. Home always stays: it is the screen the app opens on. */
-    private static final String[] HIDEABLE_TABS = {"MORE", "JOBS", "RELATIONSHIPS", "NOTIFICATIONS"};
+    private static final String[] HIDEABLE_TABS = {"MORE", "JOBS", "RELATIONSHIPS", "NOTIFICATIONS", "POST", "VIDEO",
+            "NEWS"};
+    /** Tabs only some accounts get. The settings list them once LinkedIn has offered them. */
+    private static final String[] OPTIONAL_TABS = {"POST", "VIDEO", "NEWS"};
     private static final String[] BADGE_VIEWS = {
             "slim_notification_badge_determinate_frame_layout_next",
             "slim_notification_badge_determinate_frame_layout_current",
@@ -35,15 +40,36 @@ public final class NavigationBar {
         if (tabs == null) return tabs;
         try {
             Class<?> info = Class.forName("com.linkedin.android.home.HomeTabInfo");
+            rememberOptionalTabs(info, tabs);
             List<Object> result = new ArrayList<>(tabs);
             boolean changed = false;
             for (String name : HIDEABLE_TABS) {
-                if (Settings.tabHidden(name)) changed |= result.remove(info.getField(name).get(null));
+                if (!Settings.tabHidden(name)) continue;
+                try {
+                    changed |= result.remove(info.getField(name).get(null));
+                } catch (NoSuchFieldException e) {
+                    // A tab this version of LinkedIn does not have.
+                }
             }
             return changed ? result : tabs;
         } catch (Throwable t) {
             Diagnostics.error("filterTabs failed", t);
             return tabs;
+        }
+    }
+
+    /** Stores which of the optional tabs LinkedIn offers, before any is hidden. */
+    private static void rememberOptionalTabs(Class<?> info, List<Object> tabs) throws IllegalAccessException {
+        StringBuilder offered = new StringBuilder();
+        for (String name : OPTIONAL_TABS) {
+            try {
+                if (tabs.contains(info.getField(name).get(null))) offered.append(name).append(',');
+            } catch (NoSuchFieldException e) {
+                // A tab this version of LinkedIn does not have.
+            }
+        }
+        if (!offered.toString().equals(Settings.getString(Settings.OFFERED_TABS, ""))) {
+            Settings.setString(Settings.OFFERED_TABS, offered.toString());
         }
     }
 
@@ -69,7 +95,34 @@ public final class NavigationBar {
             ViewGroup tabs = (ViewGroup) row;
             if (prepared.put(tabs, true) == null) {
                 if (Settings.glassNavigationBar()) GlassNavigationBar.install(bar, tabs);
-                if (Settings.isSwipeTabsIncluded()) SwipeTabs.install(bar, tabs);
+                if (Settings.isSwipeTabsIncluded()) {
+                    SwipeTabs.install(bar, tabs, new SwipeTabs.Host() {
+                        @Override
+                        public boolean enabled() {
+                            return Settings.swipeTabs();
+                        }
+
+                        @Override
+                        public View content(View bar) {
+                            return child(bar.getRootView(), "home_nav_item_fragment_container");
+                        }
+
+                        @Override
+                        public float menuEdgeDp() {
+                            return 28;
+                        }
+
+                        @Override
+                        public void log(String message) {
+                            Settings.debugLog(message);
+                        }
+
+                        @Override
+                        public void error(String message, Throwable failure) {
+                            Diagnostics.error(message, failure);
+                        }
+                    });
+                }
                 tabs.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> arrange(bar, tabs));
             }
             arrange(bar, tabs);

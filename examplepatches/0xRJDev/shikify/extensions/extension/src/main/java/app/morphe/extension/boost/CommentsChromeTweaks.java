@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/** Mappings verified against the official Boost 1.14.3 APK (SHA-256 in README). */
+/** Mappings verified against the official Boost 1.14.4 APK (SHA-256 in README). */
 public final class CommentsChromeTweaks {
     private static final WeakHashMap<View, WeakReference<Header>> HEADERS = new WeakHashMap<>();
     // App classes live for the process lifetime. Cache absent fields too: repeated
@@ -41,7 +41,7 @@ public final class CommentsChromeTweaks {
             if (!(toolbar instanceof Toolbar)) return;
             // Boost renames RecyclerView nested types and LinearLayoutManager methods.
             // Never link extension bytecode against the unobfuscated AndroidX APIs.
-            Object manager = field(fragment, "D");
+            Object manager = field(fragment, "C");
             if (manager == null) return;
             Header header = new Header(fragment, recycler, (Toolbar) toolbar, manager);
             HEADERS.put(recycler, new WeakReference<>(header));
@@ -111,13 +111,13 @@ public final class CommentsChromeTweaks {
         final View.OnClickListener openSubreddit = this::openSubreddit;
         void openSubreddit(View view) {
             Object submission = field(fragment, "c");
-            if (submission == null || TextUtils.isEmpty(string(submission, "S"))) return;
+            if (submission == null || TextUtils.isEmpty(string(submission, "R"))) return;
             try {
                 ClassLoader loader = submission.getClass().getClassLoader();
                 Class<?> model = Class.forName("com.rubenmayayo.reddit.models.reddit.SubscriptionViewModel", true, loader);
                 Class<?> post = Class.forName("com.rubenmayayo.reddit.models.reddit.SubmissionModel", true, loader);
                 Object subscription = model.getConstructor(post).newInstance(submission);
-                Class.forName("az1", true, loader).getMethod("G", Context.class, model)
+                Class.forName("gz1", true, loader).getMethod("G", Context.class, model)
                     .invoke(null, toolbar.getContext(), subscription);
             } catch (Exception | LinkageError error) {
             }
@@ -143,8 +143,8 @@ public final class CommentsChromeTweaks {
                 if (!collapsed || !TextUtils.equals(toolbar.getSubtitle(), appliedSubtitle))
                     originalSubtitle = toolbar.getSubtitle();
                 Object submission = field(fragment, "c");
-                String title = string(submission, "a0");
-                String subreddit = string(submission, "S");
+                String title = string(submission, "Z");
+                String subreddit = string(submission, "R");
                 boolean beyond = !TextUtils.isEmpty(title) && !TextUtils.isEmpty(subreddit);
                 if (beyond) {
                     if (!subreddit.equals(lastSubreddit)) {

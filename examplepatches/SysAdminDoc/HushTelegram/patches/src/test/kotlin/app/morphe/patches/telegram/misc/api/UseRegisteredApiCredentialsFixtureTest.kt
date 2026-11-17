@@ -9,7 +9,12 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patches.telegram.misc.analytics.INIT_VERSION_PARAMETER
+import app.morphe.patches.telegram.misc.analytics.SESSION_DEVICE_VERSION
+import app.morphe.patches.telegram.misc.analytics.resolveSessionDevice
+import app.morphe.patches.telegram.misc.extension.parameterRegister
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -408,6 +413,34 @@ class UseRegisteredApiCredentialsFixtureTest {
             val method = plan.connectionInitializer
             val index = method.instructions().indices.single { method.instructions()[it].call()?.origName == "native_init" }
             method.addInstruction(index, "const v${method.instructions()[index].namedRegisters()[3]}, 0x1")
+        }
+    }
+
+    @Test
+    fun `the session device's build number hook keeps the version intact for the tag on every declared build`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of(hosts(build))
+            // Disable analytics goes first in a real run, since the patcher takes patches by name.
+            context.resolveSessionDevice().apply()
+            val plan = context.resolveApiCredentials()
+            withOptions(ID, HASH) { useRegisteredApiCredentialsPatch.execute(context) }
+            val connection = plan.connectionInitializer.instructions()
+            assertEquals("${build.name}: the build number hook stays at init's top", SESSION_DEVICE_VERSION,
+                (connection[4] as ReferenceInstruction).reference.origString())
+            assertEquals(Opcode.MOVE_RESULT, connection[5].opcode)
+            assertEquals("${build.name}: the tag still goes on the version", listOf(plan.versionRegister, plan.versionRegister, plan.apiRegister),
+                connection[plan.nativeCall].namedRegisters())
+            assertEquals(Opcode.XOR_INT, connection[plan.nativeCall].opcode)
+            assertEquals("native_init", connection[plan.nativeCall + 4].call()?.name)
+        }
+    }
+
+    @Test
+    fun `a build number hook from anywhere but the session device still refuses`() {
+        refusal { _, plan ->
+            val version = plan.connectionInitializer.parameterRegister(INIT_VERSION_PARAMETER)
+            plan.connectionInitializer.addInstructions(0, "invoke-static/range {$version .. $version}, " +
+                "Lapp/hushtelegram/extension/telegram/misc/Other;->version(I)I\nmove-result $version")
         }
     }
 

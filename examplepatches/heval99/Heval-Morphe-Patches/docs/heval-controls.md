@@ -39,6 +39,8 @@ HushMessenger analysis, is kept outside the repo; this page is the developer gui
 - [Truecaller features](#truecaller-features)
 - [Sofascore features](#sofascore-features)
 - [FotMob features](#fotmob-features)
+- [Flashscore features](#flashscore-features)
+- [Samsung Keyboard features](#samsung-keyboard-features)
 - [App-specific Java helpers](#app-specific-java-helpers)
 - [List settings (pickers)](#list-settings-pickers)
 - [What cannot be toggled at runtime](#what-cannot-be-toggled-at-runtime)
@@ -89,6 +91,15 @@ be silently ignored.
    `Application.attachBaseContext`): it returns the feature's registered default, and does not
    cache that answer. The engine starts in `InitProvider.onCreate`. If a hook runs first, the
    engine starts lazily through `ActivityThread.currentApplication()`.
+   **Before the first unlock** (2026-11-14): a direct-boot-aware host (Samsung Keyboard's
+   `HoneyBoardService`) can run before credential-encrypted storage exists. While
+   `UserManager.isUserUnlocked()` is false (API 24+, checked at most once a second), `init` publishes
+   nothing and every answer is the registered default; the engine starts on the first call after
+   unlock. Before this, a hook running on the lock screen saved a failed snapshot and every
+   switch stayed at stock until the process died. Unlocked processes are unchanged. Two
+   consequences: until the first unlock the user's saved choices are not read (the defaults apply
+   on the lock-screen keyboard), and a process that started locked does not arm the crash guard
+   (the next, unlocked process does).
 2. **Engine failure** (the settings could not be read), **global pause** or **safe mode**: it
    returns `false` for every feature.
 3. **Unknown id**, an unsupported registry, or a **dependency** that is off, missing or cyclic:
@@ -278,12 +289,12 @@ The usual rules still apply (AGENTS.md):
 ## Truecaller features
 
 Truecaller 26.42.5 (2026-11-03). Every converted switch defaults on; its Manager patch keeps its
-name, description and default. The profile menu switches (marked "off") start off. A shipped id is
+name, description and default. The switches marked "off" (the profile menu rows, Hide inbox cards, Tap call history to call) start off. A shipped id is
 never renamed.
 
 | Feature id | Patch | Restart | Gated sites |
 |---|---|---|---|
-| `truecaller.hide_promotions` | Hide promotions | yes | toggle overrides, referral context gate at index 0 (answers false) |
+| `truecaller.hide_promotions` | Hide promotions | yes | toggle overrides, referral context gate at index 0 (answers false), FeedbackItemView.DisplaySource shouldShowShare / shouldShowInviteFriends at index 0 (answer false, 2026-11-16) |
 | `truecaller.disable_nags` | Disable nags | no | toggle overrides |
 | `truecaller.disable_who_viewed_me` | Disable Who viewed me (off) | no | toggle override |
 | `truecaller.disable_auto_launch` | Disable auto-launch | no | toggle override |
@@ -302,6 +313,8 @@ never renamed.
 | `truecaller.hide_call_log_filters` | Hide call log filters | yes | filter row composable and filter setter (index 0) |
 | `truecaller.hide_frequent_contacts` | Hide frequently called contacts | no | LazyColumn item skip |
 | `truecaller.hide_important_senders` | Hide important senders | no | LazyColumn item skip |
+| `truecaller.hide_inbox_cards` | Hide inbox cards (off) | no | carousel skip in the Messages inbox builder |
+| `truecaller.tap_call_history_to_call` | Tap call history to call (off) | no | ItemClick case of the call log event dispatcher (gate before the selection branch) |
 | `truecaller.disable_call_button_haptics` | Disable call button haptics | no | haptic dispatch skips, drag progress (value helper) |
 | `truecaller.swap_call_buttons` | Swap call answer and decline buttons | no | offsets and call style check (value helpers), notification layouts |
 | `truecaller.hide_profile_premium_banner` | Hide profile menu items (off) | no | row state renderers (Enabled -> Disabled helper) |
@@ -324,6 +337,32 @@ server-written SharedPreferences, which toggle overrides cannot reach). Disable 
 invalid-profile reminder ("featureInvalidProfileNotification"). Disable Who viewed me is opt-in and
 starts off: it reads "featureWhoViewedMe" as off, which stops the app reporting your views of other
 profiles and removes the feature; "No profile view notifications" only silences the notification.
+
+Hide inbox cards (#150, 2026-11-12, Truecaller 26.44.6, smoke test and CLI only) is opt-in and
+starts off, category Promotions & nags, no restart. The Messages inbox is a Compose list whose
+builder emits the fraud onboarding, override category and "filtering messages" banners, then one
+card carousel (BannerItem objects of 11 types), then the sync state and mark-all-as-read banners
+and the conversations. The carousel sits behind an `ArrayList.isEmpty()` check on the banner list
+filtered by the current filter and `isCleared()`; `addHevalSkip` before that `if-nez` jumps over
+the carousel (spacer, item keyed 1111111, spacer) while the switch is on, so nothing else in the
+inbox changes. The patch pins exactly one item helper call inside the skipped block and checks
+that it takes the boxed key, so a build that adds another item to the carousel fails the patch.
+Every card type goes with it: the notification-permission, passcode-lock, urgent-message,
+update-app and advanced-block cards, the Inbox cleaner cards (OTP, offer, spam, fraud) and the
+low-spam-protection warnings. None of the 11 types is a default-SMS-app or core-permission
+prompt, but the notification-permission card and the spam protection warnings are hidden too.
+The switch is read each time the list rebuilds. `skipLazyListItem` is not used because the item
+key is an Integer.
+
+Tap call history to call (#158, 2026-11-14, Truecaller 26.44.6, smoke test and CLI only) is opt-in
+and starts off, category Call log & search, no restart. The revamped call log sends every row event
+(ItemClick, LongClick, DeleteClick, PrimaryActionClick, AvatarClick) to one R8-merged Function1
+dispatcher. In its ItemClick case the view model's selection check (true ends the case) runs
+before the profile is opened by building ViewProfile. Before the `if-eqz` on that result, the patch
+adds: stay on the stock branch when selecting; otherwise, while the switch is on, call the view
+model's `(String id, boolean video)` call method with `(id, false)` (the one the call button
+uses, so the SIM choice and the voicemail callback report are the same) and jump to the branch's
+selection path, so ViewProfile is not built. A row without an entry or number does nothing, as in stock.
 
 Hide call log filters is marked restart because its row is a composable: an open call log screen
 keeps the row it composed until the screen composes it again. Swap call answer and decline buttons
@@ -363,6 +402,30 @@ switches: each switch is registered only when its anchor exists in the app. Swit
 | `sofascore.spoiler_widget` | Spoiler-free mode | on | no | the widget row builder's return (`maskWidgetRow`) |
 | `sofascore.spoiler_events` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the match page item |
 | `sofascore.spoiler_competitions` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the competition page item |
+| `sofascore.keep_screen_on` | Keep screen on | off | no | EventActivity `onResume()V` and `onPause()V` (index 0, `ScreenCalm.keepScreenOn` / `releaseScreen`) |
+| `sofascore.clean_share_links` | Clean shared links | on | no | the image share helper's text argument (`ShareLinks.cleanShareText`), the four `appendQueryParameter` calls of the highlight link builder (`ShareLinks.appendQueryParameter`) |
+| `sofascore.disable_screenshot_prompt` | Disable screenshot prompt | on | no | every `SharedPreferences.getBoolean` read of `PREF_SCREENSHOT_DO_NOT_SHOW_AGAIN` (`ScreenCalm.screenshotPromptHidden`) |
+| `sofascore.compact_match_lists` | Compact match lists | off | build-time only | `res/layout/list_event_row.xml` (read-only "Applied at patch time" row) |
+
+Comfort batch (2026-11-12, Sofascore 26.11.03, smoke test and CLI run only, not run on a device).
+Keep screen on adds `FLAG_KEEP_SCREEN_ON` to the match page's window in `onResume` while the switch is
+on and always clears it in `onPause`, so a change applies the next time the page resumes. Clean shared
+links rewrites the tracking short links the app adds to shared images (`https://app.sofascore.com/nixz/<id>`,
+with or without a leading space) to `https://www.sofascore.com`, and skips the four `utm_*` parameters the
+app appends to highlight links; every other text and link, the fantasy invite link included, is returned
+untouched (`ShareLinkCleaner`, pure Java, covered by `ShareLinkCleanerTest`; the link must not follow a word
+character or one of `/.:?&=#%+-`, and the id is letters, digits, `_` and `-` only, so punctuation after the
+link stays). A cleaned link points to the plain Sofascore homepage and no longer carries the match target the
+tracking link had. Disable screenshot prompt
+answers true to the app's "do not show again" preference at all its reads (the match page and league
+page `onStart`, which then never register the screenshot callback, and the callback itself), so the
+button's own write is untouched and the switch can turn the prompt back on; the registration happens in
+`onStart`, so a change applies the next time a page starts. Compact match lists is an opt-in resource
+patch: it checks, then lowers the dp values of the one match row layout (root `minHeight` 56 to 44 and
+`paddingVertical` 4 to 2, the first team name's top margin 6 to 3, the second team name's top margin 4 to 2
+and bottom margins 6 to 3, the action area height 48 to 40, which shrinks the bell button's touch area to
+40 dp, below the usual 48 dp target) and fails if any stock value differs; the time
+column, the 72 dp guideline and the action area width are checked and left alone.
 
 AMOLED black (2026-11-09, `sofascore.amoled_black`, build-time only) is an opt-in resource patch (the night values of
 `surface_1` and `surface_P`); the Patch settings screen shows it as a read-only "Applied at patch time" row
@@ -507,6 +570,96 @@ resources: its resource part only adds the `HevalSystemFontOverlay` styles, and
 activity hooks are registered from `FotMobApp.onCreate`. Not converted: Disable ads, Disable
 telemetry, Enable FotMob+, GmsCore support and Spoof signature.
 
+## Flashscore features
+
+Flashscore 26.11.6 (2026-11-14, stage A1; smoke-tested and CLI-patched, not run on a device). The
+"Patch settings" row is added by `flashscore/controls/FlashscoreControlsRowPatch.kt`. Every switch is on
+once its patch is selected unless the table says off; the Manager names and descriptions did not change.
+
+| Feature id | Name | Category | Default | Restart | Gated sites |
+|---|---|---|---|---|---|
+| `flashscore.animations_off` | Turn off animations | Display | off | yes | `AnimationSpeed` (animator scale and transitions) |
+| `flashscore.animations_fast` | Faster animations | Display | off | yes | `AnimationSpeed` (half the animator scale) |
+| `flashscore.block_marketing_notifications` | Block marketing notifications | Notifications | on | no | the push handler drops promotional "INFO" pushes |
+| `flashscore.hide_betting` | Hide betting content | Betting and promotions | on | yes | remote-config odds and GAMBLE_RESPONSIBLY keys, the ODDS tab filter, the isAgeVerified stores, the sponsored and bonus strip constructors |
+| `flashscore.hide_match_polls` | Hide match polls | Match page | on | yes | remote-config MATCH_POLL_ENABLED (the MATCH_POLL zone of the match page) |
+| `flashscore.hide_news` | Hide news | News | on | yes | remote-config MATCH_LIST_FS_NEWS, FLASHSCORE_NEWS_ENABLED (news in league match lists) and NEWS_ENABLED (NEWS tab on team pages) |
+| `flashscore.amoled_black` | AMOLED black | Display | off (Manager patch, default off) | n/a | build-time only: a read-only "Applied at patch time" row, no switch |
+| `flashscore.spoiler_free` | Spoiler-free mode | Scores and spoilers | on | no | master switch: the long-press dialog on match list rows |
+| `flashscore.spoiler_notifications` | Hide alerts for marked matches | Scores and spoilers | on | no | `isValid` of HandlerEventDuel/NoDuel/Report answers false for a marked event id |
+| `flashscore.spoiler_lists` | Hide scores in match lists | Scores and spoilers | on | no | the duel row binder: `SpoilerFree.unmaskRow` first, `maskRow` before the return |
+| `flashscore.spoiler_events` | Marked matches (list) | Scores and spoilers | empty | no | the marked event ids; remove one or clear the list to show scores again |
+| `flashscore.hide_competitions` | Hide competitions | Leagues and countries | on (Manager patch, default off) | no | the "Hide this competition" row-dialog entry and `CompetitionFilter.filterEvents` in the event filter (`"FILTER_EVENTS: "` method) |
+| `flashscore.hidden_competitions` | Hidden competitions (list) | Leagues and countries | empty | no | competition template ids labelled "prefix · league name"; remove one or clear the list to show its matches again |
+
+The three remote-config switches (betting, polls, news) share one gated helper chain on the config value
+class: with the switch off the helper takes the stock path, so the app sees the server value. Only the
+keys traced to a visible element are gated; BREAKING_NEWS, NEWS_INFO_BOX_ENABLED and PREMIUM_OFFERS are not.
+
+AMOLED black (2026-11-14, `flashscore.amoled_black`, build-time only) is an opt-in resource patch like Sofascore's and
+365Scores': it rewrites eleven night values of `res/values-night/colors.xml` to `#000000` (background_primary,
+_dualTone, _secondary, _dialog, _highlight, _input, _base, navigationHeader_primary, modalContent_primary, and the
+tab_bg and event_info_background_non_live night entries, which referenced background_supportBlack). Light values,
+borders_*, dividers_*, highlights_* and the elevated `#0f2d37`/`#213d46` fills are untouched. Two colors that followed the recolored ones are a border and a divider and get a night entry with the stock shade: `participant_logo_border` (`#0f2d37`) and `fs_support_1` (`#001e28`). It is not a runtime switch
+because the Compose screens resolve colors through R8-renamed token classes; the Patch settings screen shows a
+read-only row. Run on a device: NOT_RUN.
+
+Spoiler-free mode (2026-11-14, stage B1, `flashscore/spoiler/SpoilerFreeModePatch.kt`, `SpoilerFree` in
+`extensions/flashscore`) follows Sofascore's and FotMob's: the same name, category, master switch with
+per-surface switches that depend on it, and a "Marked matches" list kept on the phone. Flashscore has no
+overflow menu on the list rows, so marking is a long press on a match row (stock sets no long-click
+listener there; the listener is only installed while the master switch is on, and after the switch is
+turned off it is removed on the row's next bind). A long-clickable view takes the whole touch, so where the
+row root has no click listener of its own (the bare binder path; the wrapper path sets one), the patch also
+adds a click listener that hands the tap to the list's item click (`AbsListView.performItemClick`, else the
+parent's click), so a tap still opens the match; it never replaces an existing listener and is taken back
+with the long press. The dialog offers "Hide score and alerts" or "Show score" for that match;
+the action list is built in one place so a later "Hide this competition" entry (stage B2) can be added.
+When the list holds 500 matches, marking another one shows a toast that the list is full and can be
+trimmed or cleared in Patch settings. For a marked match the row first shows a dash in the two score
+cells, empties the penalties, sets, part and stage (FT/AET/Pen) cells and hides the winner indicators and
+the win/lose icon; then, each step on its own so a later failure never leaves the score visible, it hides
+the extra row (aggregate or "Penalties 5-4") and the red-card counts, gives both names the binder's
+no-winner text appearance and puts back the plain row background (no goal highlight). The stage-time
+cell (kick-off time or live minute) is left. The binder calls `unmaskRow` before the stock code, which
+undoes the last mask, so recycled rows stay stock. R8 names (the row's EventModel and its event-id field,
+the highlighter view, the no-winner style) are resolved at patch time and written into stub accessors in
+`SpoilerFree`; the kept getters and fields it calls by reflection are checked to be public. Not covered
+yet: the odds row, the live minute, the match page header and tabs, the Compose match rows on team and
+competition pages, score updates made outside the row binder, and FCM notifications that the system
+shows by itself. Run on a device: NOT_RUN.
+
+Hide competitions (2026-11-14, stage B2, `flashscore/competitions/HideCompetitionsPatch.kt`,
+`CompetitionFilter` in `extensions/flashscore`) follows Sofascore's and FotMob's: the same Manager name
+and default (off), the same category, and a list the user edits or clears in Patch settings. Unlike
+those, the user picks a competition from a match row: the long-press dialog (now the unnamed
+`flashscoreMatchRowPatch` in `spoiler/MatchRowHooks.kt`, shared by both patches, so either works
+alone) offers "Hide this competition" or "Show this competition" while the switch is on, next to the
+spoiler-free entry when that switch is on too. The filter is the app's event filter (the only method
+with the string "FILTER_EVENTS: ", 26.11.6 `nz4.s()`), which every match list (Today/Live, Favourites,
+sports, custom) reads its events through; right after it casts its list filter out of a field, before
+it sorts, `CompetitionFilter.filterEvents(filter, list)` removes the events of hidden competitions from
+the fresh list, so a league's header goes with them. The hook is not placed before each return because
+the method overwrites p0 (the filter) on one path; the cast point is the one site where the list and
+the filter are both live and that every return passes. The Favourites list (filter type named
+`FILTER_MYFS`) is never filtered, so starred matches stay there; FotMob keeps favourites too, Sofascore
+does not. The key is the league's template id (the id Flashscore keeps pinned leagues under, e.g.
+`1_8bP2bXmH`; the app's own LeagueRowModel calls it tournamentTemplateId, next to the season's
+tournamentId and the stage's tournamentStageId), which stays the same across seasons and stages, so
+another "Africa Cup of Nations" header that stays visible should be a different competition
+template (for example the finals rather than the qualification; not checked on a device). The picker label is the header's
+prefix and name ("AFRICA · Africa Cup of Nations - Qualification", feed keys NAME_PART_1 and
+NAME_PART_2; the feed's NAME is empty for list leagues, which is why the first emulator run saved the
+key as its label; a hidden league's label is re-reported once per process when its matches are
+filtered, which corrects such entries). The league id (`<sportId>;<header>`,
+whose header can name a stage) is only the fallback when an event has no template id, and both forms are
+checked and removed. The list is read on every list rebuild, so no restart is needed, but the lists cache
+their filtered events until they reload and no safe refresh trigger was found, so the dialog says the
+change applies when the list reloads. R8 names (event entity, event model, league holder, league and its
+id/template/name fields, the filter's type field) are resolved at patch time into stub accessors. Not
+covered: team and competition pages, the Compose lists, search, the widget and notifications. Run on a
+device: NOT_RUN.
+
 ## 365Scores features
 
 365Scores 15.0.0 (2026-11-09). The entry point is a "Patch settings" row at the end of the Settings
@@ -549,6 +702,72 @@ picker yet. AMOLED black (`scores365.amoled_black`, build-time only) is shown as
 reason as on Sofascore: the app picks its dark colors by name in code and layouts and its themes have only three
 attributes. Not converted: Disable ads, Enable Premium, Disable update prompts, GmsCore support and
 Spoof signature.
+
+## Samsung Keyboard features
+
+Samsung Keyboard 5.9.40.75 (2026-11-14). The entry point is a "Patch settings" item in the overflow
+menu of the keyboard's settings screens (`samsungkeyboard/controls/SamsungKeyboardControls.kt`):
+`HoneyBoardSettingsFragment.onCreateOptionsMenu` adds the item (`HevalControlsEntry.addItem`, order
+1000, skipped when `HevalControlsActivity` is not installed) and `onOptionsItemSelected` asks
+`HevalControlsEntry.handles` first. Both hooks pass `Fragment.getContext()`. The fragment backs every
+settings page, so the item shows in each page's menu. Under "Change package name" the host's
+provider moves with the other authorities (`app.heval.honeyboard.hevalcontrols`). Categories: Clipboard,
+Typing & gestures, Toolbar, Privacy, Appearance.
+
+| Feature id | Patch | Default | Restart | Gated sites |
+|---|---|---|---|---|
+| `samsungkeyboard.swipe_dismiss` | Swipe down to dismiss | on | no | `HoneyBoardLayout.onInterceptTouchEvent` (`SwipeDismiss.intercept`): a downward swipe that starts on the suggestion strip or toolbar hides the keyboard |
+
+Stage 1b (2026-11-14) converted the other feature and privacy patches (24 registry features in all: 9 switches and
+15 choice entries). The Manager patch names, descriptions and defaults did not change; a converted patch's runtime
+switch starts on (its effect equals the patch's old effect), so applying a patch behaves as before until the user
+changes it. A patch option (clipboard size, columns, toolbar items) now only decides which choice starts on. The
+accepted option values are the same as before: Toolbar items 8, 9, 10, 11 or 12; Clipboard columns 1 to 6; Clipboard
+history size any number of 1 or more (the presets 100, 200, 500 and 1000 are listed in Manager, and any other number
+gets its own switch `samsungkeyboard.clipboard_size_<n>` sorted in with the presets, so one more registry entry).
+
+| Feature id | Patch | Default | Restart | Gated sites |
+|---|---|---|---|---|
+| `samsungkeyboard.swipe_cursor` | Swipe cursor control | on | yes | the cursor-control flag store in the features `<clinit>` (`(Z)Z` value helper `morpheHevalSwipeCursor`) |
+| `samsungkeyboard.one_handed` | One-handed keyboard | on | yes | the one-handed flag store in the same `<clinit>` (`morpheHevalOneHanded`) |
+| `samsungkeyboard.key_vibration` | Restore key vibration | on | yes | the vibration flag store in the same `<clinit>` (`morpheHevalKeyVibration`) |
+| `samsungkeyboard.autofill_any_field` | Autofill in any field | on | no | the `CharSequence.length()` result before its `if-lez` (`(I)I` helper `morpheHevalAutofillLength`, returns 0 while on) |
+| `samsungkeyboard.always_incognito` | Always incognito (row "Always use incognito mode") | on | no | index 0 of the keyboard's incognito check (`hevalReturnEarly(id, true)`) |
+| `samsungkeyboard.no_gif_tracking` | No GIF tracking | on | no | index 0 of the GIPHY pingback sender and of the Tenor register (gate, then return nothing) |
+| `samsungkeyboard.always_giphy` | Always use GIPHY | on | no | every int return of the provider choice (`Gifs.giphyFirst`) and the language of the notices (`Gifs.noticeLanguage`) |
+| `samsungkeyboard.gifs_every_region` | Show GIFs in every region | on | yes | the CSC `SemCscFeature.getString` answer for the GIF board (`Gifs.gifRegion`) |
+| `samsungkeyboard.clipboard_size_<100\|200\|500\|1000>` | Bigger clipboard history | the Manager option (200) | yes | the cap's `sput` in its `<clinit>` (a `(I)I` helper in the cap's class passes the Manager's non-preset size to `Choices.clipboardCap(II)I`; 0 for a preset) |
+| `samsungkeyboard.clipboard_columns_<1..6>` | Clipboard columns | the Manager option (3) | no | start of `ClipboardViewModel.getColCount` (`Choices.clipboardColumns`, -1 means stock) |
+| `samsungkeyboard.toolbar_items_<8..12>` | Toolbar item count | the Manager option (8) | yes | every int return of the toolbar cap (`Choices.toolbarItems`; only a 7 or 8 is replaced, the 4 of the small modes stays) |
+
+**Number choices.** The registry has only on/off switches, so a number is a choice group (see
+[Settings screen](#settings-screen)): one switch per value, all in one category and sharing a `choice` title
+(Clipboard history size, Clipboard columns, Toolbar items in the top row). The screen shows one row whose dialog
+offers "Normal" plus one entry per value. "Normal" (every switch off) is the keyboard's own value, which is not the
+same as the patch's old default (stock keeps its own 7/8 toolbar items and its own clipboard cap). The Manager option
+decides which switch starts on. `Choices` in `extensions/samsungkeyboard` (`controls` package) asks each switch in
+turn and returns the first value that is on, or the keyboard's own value; its ids and values must match the lists in
+`features/FeaturePatches.kt` (the smoke test checks the registry); the one id it cannot list, a non-preset clipboard
+size, is handed in by the patch. A saved "Normal" survives, because picking it writes
+every switch off.
+
+**Read-once flags and direct boot.** The three floating-feature flags and the clipboard cap are stored by static
+initializers, once per process, so those features are marked restart-required and their gates are evaluated when the
+class loads. The app is directBootAware: a read-once flag whose class loads before the first unlock (swipe cursor,
+one-handed, key vibration, GIF region, clipboard size) keeps its registered default until the keyboard process
+restarts, because the engine only starts after unlock. This is not a regression against the old always-on patches. The
+CSC read for GIFs and the toolbar cap are also treated as restart-required. The clipboard enforcer's empty-list guard
+(an `ArrayList.isEmpty()` check before `get(0)`, which only avoids an exception) is not behind a switch.
+
+**Re-patching.** A choice the user saved on the Patch settings screen wins over a different Manager option: the option
+only sets the registered default, and the saved choice is kept.
+
+**Always incognito.** The only incognito row is "Always use incognito mode" (samsungkeyboard.always_incognito): the
+keyboard's own incognito check answers yes.
+
+Build time only, not shown on the screen (nothing to switch): Disable telemetry, Stop remote updates, Remove internet
+permission, Change package name, Change app name and Enable non-One UI ROM support (manifest, resource and
+wholesale-return edits; see [What cannot be toggled at runtime](#what-cannot-be-toggled-at-runtime)). Not run on a device.
 
 ## App-specific Java helpers
 

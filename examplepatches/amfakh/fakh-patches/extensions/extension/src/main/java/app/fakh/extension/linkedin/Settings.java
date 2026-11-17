@@ -40,6 +40,9 @@ public final class Settings {
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
     static final String SWIPE_TABS = "swipe_tabs";
     static final String COPY_TEXT = "copy_text";
+    static final String KEEP_FEED = "keep_feed";
+    static final String VIEWER_TAP_TO_HIDE = "viewer_tap_to_hide";
+    static final String POST_MENU = "post_menu";
     static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
     static final String LIQUID_GLASS = "liquid_glass";
     static final String ALWAYS_SHOW_NAVIGATION_BAR = "always_show_navigation_bar";
@@ -48,6 +51,11 @@ public final class Settings {
     static final String SHOW_TAB_JOBS = "show_tab_jobs";
     static final String SHOW_TAB_NETWORK = "show_tab_network";
     static final String SHOW_TAB_NOTIFICATIONS = "show_tab_notifications";
+    static final String SHOW_TAB_POST = "show_tab_post";
+    static final String SHOW_TAB_VIDEO = "show_tab_video";
+    static final String SHOW_TAB_NEWS = "show_tab_news";
+    /** The optional tabs (Post, Video, News) LinkedIn last offered, each followed by a comma (NavigationBar). */
+    static final String OFFERED_TABS = "offered_tabs";
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
     static final String PITCH_BLACK = "pitch_black";
@@ -188,9 +196,20 @@ public final class Settings {
                 return isNavigationBarIncluded() && !get(SHOW_TAB_NETWORK, true);
             case "NOTIFICATIONS":
                 return isNavigationBarIncluded() && !get(SHOW_TAB_NOTIFICATIONS, true);
+            case "POST":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_POST, true);
+            case "VIDEO":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_VIDEO, true);
+            case "NEWS":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_NEWS, true);
             default:
                 return false;
         }
+    }
+
+    /** Whether LinkedIn offered the optional tab, named by its constant in HomeTabInfo, the last time it built the bar. */
+    static boolean tabOffered(String tab) {
+        return getString(OFFERED_TABS, "").contains(tab + ",");
     }
 
     static boolean materialYou() {
@@ -314,6 +333,30 @@ public final class Settings {
 
     static boolean copyText() {
         return isCopyTextIncluded() && get(COPY_TEXT, true);
+    }
+
+    public static boolean isKeepFeedIncluded() {
+        return false;
+    }
+
+    static boolean keepFeed() {
+        return isKeepFeedIncluded() && get(KEEP_FEED, true);
+    }
+
+    public static boolean isViewerTapToHideIncluded() {
+        return false;
+    }
+
+    static boolean viewerTapToHide() {
+        return isViewerTapToHideIncluded() && get(VIEWER_TAP_TO_HIDE, true);
+    }
+
+    public static boolean isPostMenuIncluded() {
+        return false;
+    }
+
+    static boolean postMenu() {
+        return isPostMenuIncluded() && get(POST_MENU, true);
     }
 
     public static boolean isMessagingIncluded() {

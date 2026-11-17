@@ -2,10 +2,10 @@ package app.template.patches.bleacherreport.ads
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.bleacherreport.shared.insns
 import app.template.patches.bleacherreport.shared.methodRef
-import app.template.patches.bleacherreport.shared.resultFailureCall
+import app.template.patches.bleacherreport.shared.returnFailureSmali
 import app.template.patches.bleacherreport.shared.returnUnit
 import app.template.patches.bleacherreport.shared.single
 import app.template.patches.bleacherreport.shared.shortCircuitLaunchTask
@@ -30,15 +30,25 @@ val disableAdsPatch = bytecodePatch(
         // Result.failure(AdConfigException). Every caller checks for the failure and places no ad.
         // The exception and the Result.failure call are copied from that existing branch.
         val adConfig = single(AdConfigFingerprint, "AdConfigFingerprint").method
-        val failure = adConfig.resultFailureCall()
         val adConfigException = adConfig.insns().let { insns ->
-            val call = insns.indexOfFirst { it.methodRef()?.smali() == failure.smali() }
-            val created = insns.getOrNull(call - 2)
-            val constructed = insns.getOrNull(call - 1)?.methodRef()
-            val type = ((created as? ReferenceInstruction)?.reference as? TypeReference)?.type
-            if (created?.opcode != Opcode.NEW_INSTANCE || type == null || constructed?.definingClass != type ||
-                constructed.name != "<init>" || constructed.parameterTypes.isNotEmpty()
-            ) {
+            // The exception is built right before the failure Result: either the Result.failure
+            // call or the inlined Result.Failure constructor (11.14.0.35).
+            val call = insns.indexOfFirst {
+                val ref = it.methodRef() ?: return@indexOfFirst false
+                ref.definingClass.startsWith("Lkotlin/") && ref.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;") &&
+                    ((it.opcode == Opcode.INVOKE_STATIC && ref.returnType.startsWith("L")) || (it.opcode == Opcode.INVOKE_DIRECT && ref.name == "<init>"))
+            }
+            // The nearest earlier "new-instance T; invoke-direct T.<init>()V" with T outside kotlin.
+            val type = (1 until call).reversed().firstNotNullOfOrNull { i ->
+                val created = insns[i]
+                val type = ((created as? ReferenceInstruction)?.reference as? TypeReference)?.type
+                val constructed = insns[i + 1].methodRef()
+                type?.takeIf {
+                    created.opcode == Opcode.NEW_INSTANCE && !it.startsWith("Lkotlin/") && insns[i + 1].opcode == Opcode.INVOKE_DIRECT &&
+                        constructed?.definingClass == it && constructed.name == "<init>" && constructed.parameterTypes.isEmpty()
+                }
+            }
+            if (call < 0 || type == null) {
                 throw PatchException("Disable ads: getFeaturesAdConfig no longer builds Result.failure(AdConfigException())")
             }
             type
@@ -48,15 +58,12 @@ val disableAdsPatch = bytecodePatch(
             """
                 new-instance v0, $adConfigException
                 invoke-direct {v0}, $adConfigException-><init>()V
-                invoke-static {v0}, ${failure.smali()}
-                move-result-object v0
-                return-object v0
+                ${adConfig.returnFailureSmali(0, "v0", "v1")}
             """,
         )
 
         // 2. The feed ad inserter gets no ad slots and no alerted ad, so it returns the content
-        // alone. p2 and p5 are above v15 (11.12.0.33: .locals 12, p2 = v14, p5 = v17), hence the
-        // 8-bit forms.
+        // alone. p5 is above v15 (11.14.0.35: .locals 11, p2 = v13, p5 = v16), hence the 8-bit forms.
         single(AdContentInserterFingerprint, "AdContentInserterFingerprint").method.addInstructionsChecked(
             0,
             """
@@ -77,9 +84,7 @@ val disableAdsPatch = bytecodePatch(
                 new-instance v0, Ljava/lang/IllegalArgumentException;
                 const-string v1, "Ad Unit is missing"
                 invoke-direct {v0, v1}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
-                invoke-static {v0}, ${splash.resultFailureCall(missing).smali()}
-                move-result-object v0
-                return-object v0
+                ${splash.returnFailureSmali(missing, "v0", "v1")}
             """,
         )
         single(AmazonAdsInitFingerprint, "AmazonAdsInitFingerprint").method.returnUnit()

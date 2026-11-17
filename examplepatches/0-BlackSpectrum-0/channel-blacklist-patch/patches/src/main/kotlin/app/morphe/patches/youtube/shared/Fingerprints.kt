@@ -77,7 +77,9 @@ internal object EngagementPanelControllerFingerprint : Fingerprint(
         methodCall(smali = "Lj$/util/Optional;->orElse(Ljava/lang/Object;)Ljava/lang/Object;"),
         opcode(opcode = Opcode.CHECK_CAST, location = MatchAfterWithin(4)),
         opcode(opcode = Opcode.IF_EQZ, location = MatchAfterImmediately()),
-        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        // Not immediately: the engagement panel hook inserts its code before this instruction,
+        // and the fingerprint must still match the changed method.
+        opcode(opcode = Opcode.IGET_OBJECT, location = MatchAfterWithin(4)),
         literal(45615449L),
         methodCall(smali = "Ljava/util/ArrayDeque;->iterator()Ljava/util/Iterator;"),
         fieldAccess(
@@ -137,14 +139,12 @@ internal object PlayerTypeEnumFingerprint : Fingerprint(
 )
 
 // 21.41+ YouTubePlayerOverlaysLayout is no longer a player type listener.
-internal fun getPlayerTypeFingerprint() = object : Fingerprint(
+internal object PlayerTypeFingerprint : Fingerprint(
     definingClass = "Lcom/google/android/apps/youtube/app/player/YouTubePlayerViewNotForReflection;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf(
-        PlayerTypeEnumFingerprint.originalClassDef.type
-    )
-) {}
+    parameters = { listOf(PlayerTypeEnumFingerprint.originalClassDef.type) }
+)
 
 internal object YouTubeMainActivityConstructorFingerprint : Fingerprint(
     definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,

@@ -1,24 +1,33 @@
-name: Build & Release xboyrex Patches (.mpp)
+name: Build & Release Rex IG Lite Patches (.mpp)
 
 on:
   push:
-    branches: [ main, master, dev ]
+    branches:
+      - main
+      - master
+      - dev
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
   workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: write
   packages: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
-    name: Compile & Release xboyrex (.mpp)
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    name: Compile, Test & Release Rex IG Lite (.mpp)
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -40,96 +49,142 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      - name: Build Morphe Patches Bundle (.mpp) with Android DEX (classes.dex)
+      - name: Run Read-Only Static & Structural Audit Suite
+        run: python3 scripts/verify_rex_ig_lite.py
+
+      - name: Compile Extensions, Validate String Resources & Build Morphe Bundle (.mpp)
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./gradlew build :patches:generatePatchesList --no-daemon
-          ./gradlew :patches:buildAndroid --rerun-tasks --no-daemon
-          rm -f patches/build/libs/*-sources.mpp patches/build/libs/*-javadoc.mpp
-          MPP_FILE=$(ls patches/build/libs/patches-*.mpp | head -n 1)
-          echo "Verifying classes.dex inside $MPP_FILE..."
-          unzip -l "$MPP_FILE" | grep -E "classes.*\.dex|\.mpe|MANIFEST\.MF"
-          unzip -l "$MPP_FILE" | grep -q "classes.dex"
+          ./gradlew :patches:checkStringResources build :patches:generatePatchesList --no-daemon --stacktrace
+          ./gradlew :patches:buildAndroid --rerun-tasks --no-daemon --stacktrace
+          echo "=== Verifying built .mpp artifact contains compiled Android extension classes.dex ==="
+          MPP_CHECK=$(find patches/build/libs -maxdepth 1 -name "*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          if [ -z "$MPP_CHECK" ]; then
+            echo "::error::No .mpp artifact produced in patches/build/libs"
+            exit 1
+          fi
+          JAR_LIST=$(jar tf "$MPP_CHECK")
+          echo "$JAR_LIST" | sed -n '1,30p'
+          if ! echo "$JAR_LIST" | grep -q "\.dex$"; then
+            echo "::error::CRITICAL: Built .mpp does not contain compiled Android extension (.dex)!"
+            exit 1
+          fi
+          echo "Verified: $MPP_CHECK contains compiled Android extension DEX."
 
-      - name: Upload Compiled .mpp Artifact
+      - name: Upload Lint Reports (Always)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: xboyrex-patches-mpp
-          path: patches/build/libs/patches-*.mpp
-          if-no-files-found: error
+          name: android-lint-reports-${{ github.run_id }}
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/intermediates/lint_intermediate_text_report/**/lint-results-*.txt
+            build/reports/problems/problems-report.html
+          if-no-files-found: ignore
+          retention-days: 7
 
-      - name: Publish GitHub Release & Update Morphe Bundle JSON
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      - name: Upload Compiled .mpp Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rex-ig-lite-patches-mpp
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+            patches-bundle.json
+            README.md
+
+      - name: Publish GitHub Release First & Then Sync Bundle Metadata (Main & Dev)
+        if: success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
-          TAG="v${VERSION}"
-          MPP_FILE=$(ls patches/build/libs/patches-*.mpp | grep -v 'sources' | grep -v 'javadoc' | head -n 1)
-          if [ -z "$MPP_FILE" ]; then
-            echo "No .mpp file found!"
+          VERSION=$(grep -E '^version\s*=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Missing version property in gradle.properties"
             exit 1
           fi
-          ASSET_NAME="patches-${VERSION}.mpp"
-          cp "$MPP_FILE" "$ASSET_NAME"
+          TAG="v${VERSION}"
+          TARGET_BRANCH="${GITHUB_REF_NAME}"
+
+          MPP_FILE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          if [ -z "$MPP_FILE" ]; then
+            echo "::error::Compiled .mpp file not found in patches/build/libs/"
+            ls -la patches/build/libs/ || true
+            exit 1
+          fi
+
+          MPP_FILENAME=$(basename "$MPP_FILE")
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${MPP_FILENAME}"
+
+          if [ -f "patches/build/patches-list.json" ]; then
+            cp "patches/build/patches-list.json" ./patches-list.json
+          fi
+          python3 scripts/verify_rex_ig_lite.py --populate-categories
+          python3 scripts/verify_rex_ig_lite.py
+
+          COUNTS=$(python3 -c '
+          import json
+          with open("patches-list.json") as f:
+              patches = json.load(f).get("patches", [])
+          named = [p for p in patches if p.get("name") and p.get("name") != "<init>"]
+          pkgs_of = lambda p: [cp.get("packageName") for cp in (p.get("compatiblePackages") or []) if isinstance(cp, dict)] if isinstance(p.get("compatiblePackages"), list) else list((p.get("compatiblePackages") or {}).keys())
+          ig = sum(1 for p in named if "com.instagram.android" in pkgs_of(p) and "com.twitter.android" not in pkgs_of(p))
+          tw = sum(1 for p in named if "com.twitter.android" in pkgs_of(p) and "com.instagram.android" not in pkgs_of(p))
+          sh = sum(1 for p in named if "com.instagram.android" in pkgs_of(p) and "com.twitter.android" in pkgs_of(p))
+          print(f"{len(named)} named patches ({ig} Instagram-only, {tw} X-only, {sh} shared; {len(patches)} total manifest entries)")
+          ')
 
           CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S")
-          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ASSET_NAME}"
-          export VERSION CREATED_AT DOWNLOAD_URL
-
-          python3 - <<'PYCODE'
-          import json
-          import os
-
-          version = os.environ["VERSION"]
-          created_at = os.environ["CREATED_AT"]
-          download_url = os.environ["DOWNLOAD_URL"]
-
-          data = {
-              "created_at": created_at,
-              "description": (
-                  f"## v{version} — xboyrex Unified Liquid Glass Instagram & X Patch Suite\n\n"
-                  "- 161 Unified Patches (87 Instagram + 74 X/Twitter) by Mayank (@xboyrex)\n"
-                  "- SakuraTunes-style Liquid Glass About UI + Real-Time Gaussian Blur\n"
-                  "- Zero-Prompt MediaStore Direct Download on Redmi/HyperOS"
-              ),
-              "download_url": download_url,
-              "signature_download_url": "",
-              "version": version,
+          python3 -c "
+          import json, re
+          bundle = {
+              'created_at': '${CREATED_AT}',
+              'description': 'Rex IG Lite Patches v${VERSION} by xboyrex (${COUNTS})',
+              'download_url': '${DOWNLOAD_URL}',
+              'signature_download_url': '',
+              'version': '${VERSION}'
           }
-          for out_name in ("patches-bundle.json", "bundle.json"):
-              with open(out_name, "w") as f:
-                  json.dump(data, f, indent=2)
+          with open('patches-bundle.json', 'w') as f:
+              json.dump(bundle, f, indent=2)
+              f.write('\n')
+          with open('README.md', 'r') as f:
+              readme = f.read()
+          readme = re.sub(r'release-v[0-9]+\.[0-9]+\.[0-9]+-88C2CE', 'release-v${VERSION}-88C2CE', readme)
+          with open('README.md', 'w') as f:
+              f.write(readme)
+          "
 
-          if os.path.exists("patches-list.json"):
-              with open("patches-list.json", "r") as f:
-                  plist = json.load(f)
-              plist["version"] = version
-              with open("patches-list.json", "w") as f:
-                  json.dump(plist, f, indent=2)
-          PYCODE
+          RELEASE_NOTES="## Rex IG Lite v${VERSION} — by xboyrex
 
-          RELEASE_FILES=("$ASSET_NAME" "patches-bundle.json" "bundle.json")
-          if [ -f "patches-list.json" ]; then
-            RELEASE_FILES+=("patches-list.json")
-          fi
+          - **Patch Bundle**: \`${MPP_FILENAME}\`
+          - **Total Manifest Count**: ${COUNTS}
+          - **Quick Add in Morphe**: [Add Rex IG Lite to Morphe](https://morphe.software/add-source?github=${{ github.repository }})
+          - **Bundle Endpoint**: \`https://raw.githubusercontent.com/${{ github.repository }}/main/patches-bundle.json\`"
 
+          # Upload the GitHub Release asset FIRST so DOWNLOAD_URL is immediately live before patches-bundle.json is pushed!
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${RELEASE_FILES[@]}" --clobber
+            gh release upload "$TAG" "$MPP_FILE" ./patches-bundle.json ./patches-list.json --clobber
+            gh release edit "$TAG" --title "Rex IG Lite ${TAG}" --notes "$RELEASE_NOTES" --latest
           else
-            gh release create "$TAG" "${RELEASE_FILES[@]}" \
-              --title "xboyrex Patches ${TAG}" \
-              --notes "Automated xboyrex (.mpp) Android DEX patch bundle release (${TAG}) by Mayank (@xboyrex)."
+            gh release create "$TAG" "$MPP_FILE" ./patches-bundle.json ./patches-list.json \
+              --title "Rex IG Lite ${TAG}" \
+              --notes "$RELEASE_NOTES" \
+              --latest
           fi
-
-          rm -f bundle.json "$ASSET_NAME"
 
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add patches-bundle.json patches-list.json
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(bundle): update patches-bundle.json and patches-list.json for ${TAG} [skip ci]"
-            git push origin HEAD:main
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json README.md
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(release): update patches-bundle.json and patches-list.json for ${TAG} [skip ci]"
+            git pull --rebase --autostash origin "${TARGET_BRANCH}"
+            git push origin HEAD:"${TARGET_BRANCH}"
+            git push origin HEAD:refs/heads/dev --force
+            git fetch origin "${TARGET_BRANCH}"
+            git diff --exit-code "origin/${TARGET_BRANCH}" -- patches-bundle.json patches-list.json README.md
+          else
+            git push origin HEAD:refs/heads/dev --force || true
           fi

@@ -3,33 +3,52 @@ package semicoloncolonel.mobilestream.extension.retailmenot.privacy;
 import android.util.Log;
 
 /**
- * RetailMeNot: answers every location permission check and request with
- * "denied".
+ * RetailMeNot: answers location permission checks and requests with "denied".
  *
  * Expo's PermissionsService asks this class first. A denied check makes
  * expo-location refuse to read a position, and a denied request returns
  * without showing Android's permission dialog. The permissions stay in the
  * manifest, because Expo rejects any call about a permission the manifest
- * does not declare.
+ * does not declare, and the app's root screen then fails to load.
+ *
+ * Two patches turn this on. "Remove location access" denies every location
+ * permission; "Block background location" denies only background location.
  */
 @SuppressWarnings("unused")
 public final class LocationBlocker {
     private static final String TAG = "MSP-LOCATION";
+    private static final String FINE = "android.permission.ACCESS_FINE_LOCATION";
+    private static final String COARSE = "android.permission.ACCESS_COARSE_LOCATION";
+    private static final String BACKGROUND = "android.permission.ACCESS_BACKGROUND_LOCATION";
 
     private LocationBlocker() {
     }
 
-    /** True for the permissions this patch keeps from the app. */
+    /** Overwritten to return true by "Remove location access". */
+    public static boolean blockForeground() {
+        return false;
+    }
+
+    /** Overwritten to return true by "Remove location access" and "Block background location". */
+    public static boolean blockBackground() {
+        return false;
+    }
+
+    /** True for the permissions the enabled patches keep from the app. */
     public static boolean isBlocked(String permission) {
-        return "android.permission.ACCESS_FINE_LOCATION".equals(permission)
-                || "android.permission.ACCESS_COARSE_LOCATION".equals(permission)
-                || "android.permission.ACCESS_BACKGROUND_LOCATION".equals(permission);
+        if (BACKGROUND.equals(permission)) {
+            return blockBackground();
+        }
+        if (FINE.equals(permission) || COARSE.equals(permission)) {
+            return blockForeground();
+        }
+        return false;
     }
 
     /**
      * Denied results for a request made only of blocked permissions, or null
      * to let the request through. A mixed request goes through unchanged, and
-     * its location part still reads as denied through isBlocked.
+     * its blocked part still reads as denied through isBlocked.
      */
     public static int[] deniedResults(String[] permissions) {
         if (permissions == null || permissions.length == 0) {

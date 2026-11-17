@@ -756,7 +756,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_REPORT = new BooleanSetting("revanced_hide_player_flyout_menu_report", FALSE);
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_SLEEP_TIMER = new BooleanSetting("revanced_hide_player_flyout_menu_sleep_timer", FALSE);
 
-    public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_ADDITIONAL_SETTINGS = new BooleanSetting("revanced_hide_player_flyout_menu_additional_settings", FALSE);
+    public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_ADDITIONAL_SETTINGS =
+            new BooleanSetting("morphe_hide_player_flyout_additional_settings", FALSE);
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_AMBIENT = new BooleanSetting("revanced_hide_player_flyout_menu_ambient_mode", FALSE);
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_HELP = new BooleanSetting("revanced_hide_player_flyout_menu_help", TRUE);
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_MENU_LOOP = new BooleanSetting("revanced_hide_player_flyout_menu_loop_video", FALSE);

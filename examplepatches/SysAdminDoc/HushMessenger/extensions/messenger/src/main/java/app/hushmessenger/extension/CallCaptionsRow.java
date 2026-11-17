@@ -7,12 +7,16 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The language buttons under Live captions on calls (#159): which language the other people speak, and which one the
  * captions show. Each opens a sheet of what the phone has, and a choice saves the moment it's tapped.
  */
 final class CallCaptionsRow {
+    /** The row that opens the rest of the phone's languages. No language tag reads like this. */
+    private static final String OTHER = "other";
     private final SettingsActivity page;
     private Button heard, shown;
     private SettingsDialog open;
@@ -56,11 +60,16 @@ final class CallCaptionsRow {
             RadioGroup group = group("call_captions_heard_choices");
             choice(group, "", page.text.get("call_captions_phone_language", CallCaptions.name(java.util.Locale.getDefault().toLanguageTag())),
                 now.isEmpty(), () -> picked(CallCaptions.HEARD_LANGUAGE, "", null));
+            List<String> listed = new ArrayList<>(installed);
             for (String language : installed) choice(group, language, CallCaptions.name(language), language.equalsIgnoreCase(now),
                 () -> picked(CallCaptions.HEARD_LANGUAGE, language, null));
-            if (more != null) for (String language : more) choice(group, language,
-                page.text.get("call_captions_download", CallCaptions.name(language)), language.equalsIgnoreCase(now),
-                () -> picked(CallCaptions.HEARD_LANGUAGE, language, language));
+            if (more != null) for (String language : more) {
+                listed.add(language);
+                choice(group, language, page.text.get("call_captions_download", CallCaptions.name(language)),
+                    language.equalsIgnoreCase(now), () -> picked(CallCaptions.HEARD_LANGUAGE, language, language));
+            }
+            choice(group, OTHER, page.text.get("call_captions_other"), false,
+                () -> pickOther(sheet, CallCaptions.HEARD_LANGUAGE, listed, true));
             page.ui.add(sheet.body, group, 0);
         });
     }
@@ -80,8 +89,26 @@ final class CallCaptionsRow {
                 now.isEmpty(), () -> picked(CallCaptions.SHOWN_LANGUAGE, "", null));
             for (String language : targets) choice(group, language, CallCaptions.name(language), language.equalsIgnoreCase(now),
                 () -> picked(CallCaptions.SHOWN_LANGUAGE, language, null));
+            choice(group, OTHER, page.text.get("call_captions_other"), false,
+                () -> pickOther(sheet, CallCaptions.SHOWN_LANGUAGE, targets, false));
             page.ui.add(sheet.body, group, targets.isEmpty() ? 12 : 0);
         });
+    }
+
+    /**
+     * The same sheet again, holding every other language the phone knows (#159). What the recognizer and the translator
+     * report leaves out languages they turn out to handle, so a pick here saves that language and the phone answers for
+     * itself: a heard language fetches its model first, and a shown language the phone can't translate into leaves
+     * captions as spoken, which the call says.
+     */
+    private void pickOther(SettingsDialog sheet, String key, List<String> listed, boolean download) {
+        if (open != sheet) return;
+        sheet.body.removeAllViews();
+        String now = saved(key);
+        RadioGroup group = group("call_captions_other_choices");
+        for (String language : CallCaptions.others(listed)) choice(group, language, CallCaptions.name(language),
+            language.equalsIgnoreCase(now), () -> picked(key, language, download ? language : null));
+        page.ui.add(sheet.body, group, 0);
     }
 
     /** A sheet saying it's looking, or null when one is already open. */

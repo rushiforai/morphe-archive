@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Logger;
 import app.morphe.extension.suite.shared.Utils;
@@ -124,7 +125,7 @@ public final class StorySound {
                 if (!Boolean.TRUE.equals(turnedOn.get(viewer))) return 0;
                 turnedOn.remove(viewer);
             }
-            if (!Utils.settingsReady() || !Settings.START_STORIES_WITH_SOUND.get() || !phoneAllowsSound()) return 0;
+            if ((!Pref.playStorySoundAutomatically() && (!Utils.settingsReady() || !Settings.START_STORIES_WITH_SOUND.get())) || !phoneAllowsSound()) return 0;
             synchronized (StorySound.class) {
                 turnedOn.put(viewer, Boolean.FALSE);
             }
@@ -150,7 +151,7 @@ public final class StorySound {
     public static int startWithSound(Object viewer) {
         try {
             HookStatus.invoked(FamilyNames.STORY_SOUND);
-            if (viewer == null || !Utils.settingsReady() || !Settings.START_STORIES_WITH_SOUND.get()) return 0;
+            if (viewer == null || (!Pref.playStorySoundAutomatically() && (!Utils.settingsReady() || !Settings.START_STORIES_WITH_SOUND.get()))) return 0;
             if (!phoneAllowsSound()) return 0;
             HookStatus.counted(FamilyNames.STORY_SOUND, STARTED);
             Logger.printDebug(() -> "Story viewer: starting with sound");

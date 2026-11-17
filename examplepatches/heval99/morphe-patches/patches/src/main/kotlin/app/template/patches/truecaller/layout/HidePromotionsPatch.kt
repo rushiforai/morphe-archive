@@ -17,7 +17,7 @@ val hidePromotionsPatch = truecallerControls.featurePatch(
     HevalFeature(
         id = FEATURE,
         name = "Hide promotions",
-        description = "Hides promo banners, referral offers and Who viewed me promos.",
+        description = "Hides promo banners, referral offers, share and invite cards and Who viewed me promos.",
         category = TruecallerControlsCategory.PROMOTIONS,
         restartRequired = true,
     ),
@@ -62,4 +62,11 @@ val hidePromotionsPatch = truecallerControls.featurePatch(
         )
     }
     referralGates.single().method.hevalReturnEarly(FEATURE, false)
+
+    // 4. The "Share Truecaller with your friends and enjoy Premium" and invite cards above the Search
+    // history (issue #163, 2026-11-16) are picked by FeedbackItemView.DisplaySource, not by the
+    // referral gate: both checks read SharedPreferences. They answer false; the "rate us" card
+    // (shouldShowFeedback) is left stock.
+    FeedbackShareCardFingerprint.method.hevalReturnEarly(FEATURE, false)
+    FeedbackInviteCardFingerprint.method.hevalReturnEarly(FEATURE, false)
 }

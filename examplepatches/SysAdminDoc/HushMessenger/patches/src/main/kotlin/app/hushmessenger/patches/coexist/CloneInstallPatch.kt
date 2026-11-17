@@ -337,7 +337,7 @@ internal fun findCloneSites(classes: Iterable<ClassDef>, pools: Set<String> = ow
         if (calls.isEmpty() && !pinned) emptyList() else (if (pinned) listOf(method.hookId()) else emptyList()) + calls.map { "${method.hookId()}@$it" }
     }.toSet()
 
-private const val ATTACHMENT_CHECK = "->A00(Ljava/lang/String;)Z"
+internal const val ATTACHMENT_CHECK = "->A00(Ljava/lang/String;)Z"
 private const val BROADCAST = "->A00(Landroid/content/Intent;Landroid/content/Context;)V"
 private const val NOTIFICATION = "(Landroid/os/Bundle;)"
 private const val CLICK = "->onClick(Landroid/view/View;)V"

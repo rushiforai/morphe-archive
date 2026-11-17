@@ -1,0 +1,67 @@
+name: Source audit
+
+# Checks, for each phone app, what Google Play and APKPure serve: the version,
+# one APK or a base with splits, and which APK holds the native libraries for
+# which ABIs. The report shows which apps break when patched from a single APK
+# or from APKPure, for the "Get it from" column in docs/apps.md.
+#
+# It downloads but never installs or patches anything. Run it by hand, or by
+# pushing to the source-audit branch (a manually run workflow has to exist on
+# the default branch first).
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Comma-separated packages to check (empty for every phone app)'
+        required: false
+        default: ''
+  push:
+    branches: [source-audit]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit download sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$HOME/bin"
+          gh release download 1.1.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
+          chmod +x "$HOME/bin/apkeep"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          echo "AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)" >> "$GITHUB_ENV"
+
+      - name: Audit
+        env:
+          ONLY: ${{ inputs.only }}
+          # The throwaway Google account, not in any beta program, that the app
+          # update check also uses.
+          PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
+          PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
+        run: python .github/scripts/source_audit.py --out source-audit --only "$ONLY" --aapt2 "$AAPT2"
+
+      - name: Summary
+        if: always()
+        run: cat source-audit/source-audit.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-audit
+          path: source-audit

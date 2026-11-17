@@ -49,11 +49,9 @@ dependencies {
     // Required due to smali, or build fails. Can be removed once smali is bumped.
     implementation(libs.guava)
 
-    implementation(libs.morphe.patches.library)
-
     patchListGeneratorClasspath(libs.gson)
 
-    // Android API stubs defined here.
+    compileOnly(libs.morphe.patches.library) // <-- MUST be compileOnly
     compileOnly(project(":patches:stub"))
 
     testImplementation(kotlin("test"))

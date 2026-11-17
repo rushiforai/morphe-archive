@@ -37,8 +37,6 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
 
-import app.morphe.extension.shared.settings.BooleanSetting;
-import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.PackageUtils;
 import app.morphe.extension.shared.utils.ResourceUtils;
@@ -105,55 +103,6 @@ public class ExtendedUtils extends PackageUtils {
 
         Settings.HIDE_PREVIEW_COMMENT_OLD_METHOD.save(enabled && !newMethod);
         Settings.HIDE_PREVIEW_COMMENT_NEW_METHOD.save(enabled && newMethod);
-    }
-
-    private static final Setting<?>[] additionalSettings = {
-            Settings.HIDE_PLAYER_FLYOUT_MENU_AMBIENT,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_HELP,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_LOOP,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_PIP,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_PREMIUM_CONTROLS,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_STABLE_VOLUME,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_STATS_FOR_NERDS,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_WATCH_IN_VR,
-            Settings.HIDE_PLAYER_FLYOUT_MENU_YT_MUSIC,
-            Settings.SPOOF_APP_VERSION,
-            Settings.SPOOF_APP_VERSION_TARGET
-    };
-
-    public static boolean anyMatchSetting(Setting<?> setting) {
-        for (Setting<?> s : additionalSettings) {
-            if (setting == s) return true;
-        }
-        return false;
-    }
-
-    public static void setPlayerFlyoutMenuAdditionalSettings() {
-        Settings.HIDE_PLAYER_FLYOUT_MENU_ADDITIONAL_SETTINGS.save(isAdditionalSettingsEnabled());
-    }
-
-    private static boolean isAdditionalSettingsEnabled() {
-        // In the old player flyout panels, the video quality icon and additional quality icon are the same
-        // Therefore, additional Settings should not be blocked in old player flyout panels
-        if (isSpoofingToLessThan("18.22.00"))
-            return false;
-
-        boolean additionalSettingsEnabled = true;
-        final BooleanSetting[] additionalSettings = {
-                Settings.HIDE_PLAYER_FLYOUT_MENU_AMBIENT,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_HELP,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_LOOP,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_PIP,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_PREMIUM_CONTROLS,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_STABLE_VOLUME,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_STATS_FOR_NERDS,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_WATCH_IN_VR,
-                Settings.HIDE_PLAYER_FLYOUT_MENU_YT_MUSIC,
-        };
-        for (BooleanSetting s : additionalSettings) {
-            additionalSettingsEnabled &= s.get();
-        }
-        return additionalSettingsEnabled;
     }
 
     public static LinearLayout prepareMainLayout(Context mContext) {

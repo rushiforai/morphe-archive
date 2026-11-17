@@ -1,11 +1,12 @@
 package app.fakh.patches.shared.firebase
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import org.w3c.dom.Element
 
 /** Firebase's own manifest switches for Analytics, Crashlytics, Performance and Sessions. */
-internal fun firebaseManifestPatch() = resourcePatch {
+internal fun firebaseManifestPatch() = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element

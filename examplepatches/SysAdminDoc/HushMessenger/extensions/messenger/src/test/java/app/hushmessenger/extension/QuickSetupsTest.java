@@ -88,7 +88,8 @@ public class QuickSetupsTest {
             root.findViewWithTag("tab_app").performClick();
             assertTrue(root.findViewWithTag("quick_setups").isShown());
             root.findViewWithTag("quick_privacy").performClick();
-            assertEquals("Changed 3 controls", ShadowToast.getTextOfLatestToast());
+            // Every Privacy control but analytics_uploads, which was already on.
+            assertEquals("Changed " + (QuickSetups.PRIVACY.size() - 1) + " controls", ShadowToast.getTextOfLatestToast());
             for (String key : QuickSetups.PRIVACY) {
                 assertTrue(key, Settings.preferences.getBoolean(key, false));
                 assertTrue(key, ((Switch) root.findViewWithTag(key)).isChecked());
@@ -96,7 +97,8 @@ public class QuickSetupsTest {
             root.findViewWithTag("quick_privacy").performClick();
             assertEquals("Nothing to change. Those controls were already set.", ShadowToast.getTextOfLatestToast());
             root.findViewWithTag("quick_defaults").performClick();
-            assertEquals("Changed 5 controls", ShadowToast.getTextOfLatestToast());
+            // The Privacy controls back off, and typing with them.
+            assertEquals("Changed " + (QuickSetups.PRIVACY.size() + 1) + " controls", ShadowToast.getTextOfLatestToast());
             for (String key : controls()) assertFalse(key, Settings.preferences.getBoolean(key, false));
             // Pause isn't a control, so it stays as it was.
             assertTrue(Settings.preferences.getBoolean("paused", false));

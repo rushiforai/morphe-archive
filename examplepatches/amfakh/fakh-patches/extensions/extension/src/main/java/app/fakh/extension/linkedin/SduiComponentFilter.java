@@ -36,17 +36,28 @@ public final class SduiComponentFilter {
 
     /**
      * Called with every SDUI component before it is transformed; returns it or an edited copy. Focus mode blanks the
-     * counts of the like, comment and repost buttons, Expand posts opens the post text, and the Settings screen gets
-     * the Fakh Patches row.
+     * counts of the like, comment and repost buttons, Expand posts opens the post text, Tap to hide in viewers edits
+     * the video viewer, Post menu items adds rows to a post's ⋯ menu, and the Settings screen gets the Fakh Patches
+     * row.
      */
     public static Object rewrite(Object component) {
         component = SduiSettingsEntry.inject(component);
         boolean focusMode = Settings.focusMode();
         boolean expandPosts = Settings.expandPosts();
-        if (!focusMode && !expandPosts) return component;
+        boolean viewer = Settings.viewerTapToHide();
+        boolean postMenu = Settings.postMenu();
+        if (!focusMode && !expandPosts && !viewer && !postMenu) return component;
         try {
             Object viewTracking = Proto.is(component, "hasViewTracking") ? Proto.call(component, "getViewTracking") : null;
             String viewName = Proto.string(viewTracking, "getViewName");
+            if (viewer && ViewerChrome.CONTAINER.equals(viewName)) {
+                return ViewerChrome.rewrite(component, Proto.string(component, "getObservabilityViewName"),
+                        payload(component));
+            }
+            // Only the feed's control (⋯) menu page and its rows carry the template Post menu items copies.
+            if (postMenu && viewName.startsWith(PostMenu.CONTROL_MENU)) {
+                return PostMenu.inject(component, payload(component));
+            }
             boolean counts = focusMode && COUNT_BUTTONS.contains(viewName);
             boolean commentary = expandPosts && viewName.equals("feed-commentary");
             if (!counts && !commentary) return component;
@@ -90,8 +101,12 @@ public final class SduiComponentFilter {
             if (MoreMenu.MORE_SCREEN.equals(screenName)) MoreMenu.capture(payload(component));
 
             switch (viewName) {
-                case "feed-full-update":
-                    return hideFeedUpdate(component, viewTracking);
+                case "feed-full-update": {
+                    // One serialization of the post serves both Post menu items and the filters.
+                    byte[] post = Settings.postMenu() ? payload(component) : null;
+                    if (post != null) PostMenu.remember(post);
+                    return hideFeedUpdate(component, viewTracking, post);
+                }
                 case "job-card":
                     return hidePromotedJob(component);
                 case "multiphoto-viewer":
@@ -185,7 +200,8 @@ public final class SduiComponentFilter {
         if (loggedViewNames.add(sb.toString())) Settings.debugLog(sb.toString());
     }
 
-    private static boolean hideFeedUpdate(Object component, Object viewTracking) {
+    /** [post] is the post's payload when it was already read, or null. */
+    private static boolean hideFeedUpdate(Object component, Object viewTracking, byte[] post) {
         boolean ads = Settings.hideAds();
         boolean suggested = Settings.hideSuggested();
         boolean celebrations = Settings.hideCelebrations();
@@ -198,7 +214,7 @@ public final class SduiComponentFilter {
             return false;
         }
 
-        byte[] payload = payload(component);
+        byte[] payload = post != null ? post : payload(component);
         if (Settings.debug()) logChildNames(payload);
         if (shortLinks && ProtoScanner.containsAscii(payload, ShortLinkResolver.PREFIX)) {
             for (String s : ProtoScanner.scan(payload).strings) {

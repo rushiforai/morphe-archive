@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.shared.Constants.COMPATIBILITY_MONEFY
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 
 /** The fingerprint's only match. Several would mean the shape drifted, so that fails too. */
 private fun BytecodePatchContext.single(fingerprint: Fingerprint, label: String): MutableMethod {

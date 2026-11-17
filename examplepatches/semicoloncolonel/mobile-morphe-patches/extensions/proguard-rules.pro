@@ -12,6 +12,7 @@
     # Overwritten by patches, so R8 must not fold its constant answer.
     public static boolean keepBraze();
     public static boolean blockResumeTracking();
+    public static boolean incognitoReading();
     public static *** openConnection(java.net.URL);
     public static java.net.InetAddress[] lookup(java.lang.String);
     public static void install(okhttp3.OkHttpClient$Builder);
@@ -22,6 +23,9 @@
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker$BlockInterceptor { *; }
 -keep class semicoloncolonel.mobilestream.extension.yttvshell.TvScripts {
     public static void setWebContents(java.lang.Object);
+    public static void setWebContentsFromObserver(java.lang.Object);
+    public static void onObserverNavigation(java.lang.Object);
+    public static void onObserverDocument(java.lang.Object);
     public static void onPageEvent(java.lang.String);
     public static void onTitle(java.lang.String);
 }
@@ -32,7 +36,7 @@
     public static java.io.InputStream filter(java.io.InputStream);
 }
 
-# Shared "Hide device identifiers" (opt-in). getSecureString replaces
+# Shared "Hide device identifiers" (opt-in), Android ID option. getSecureString replaces
 # Settings.Secure.getString at app call sites via injected invoke-static.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.DeviceIdSpoofer {
     public static java.lang.String getSecureString(android.content.ContentResolver, java.lang.String);
@@ -59,10 +63,10 @@
     public static void maybeSkipAux(java.lang.Object, java.util.List);
 }
 
-# Shared "Report Wi-Fi connection" / "Hide VPN connection" (opt-in). Every
+# "Hide device identifiers", Report Wi-Fi connection / VPN connection options. Every
 # public static method replaces a framework call at app call sites via
 # injected invoke-static, and reportWifi / hideVpn are overwritten by the
-# patches, so R8 must keep them as they are and not fold their result.
+# options, so R8 must keep them as they are and not fold their result.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.NetworkStateSpoofer {
     public static *;
 }
@@ -93,9 +97,9 @@
     public static java.util.List filterFeed(java.util.List);
 }
 
-# Shared "Spoof carrier" (opt-in). Every public static method replaces a
+# "Hide device identifiers", Carrier option. Every public static method replaces a
 # framework call at app call sites via injected invoke-static, and
-# carrierName() is overwritten by the patch, so R8 must keep them as they are.
+# carrierName() is overwritten by the option, so R8 must keep them as they are.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.CarrierSpoofer {
     public static *;
 }
@@ -114,8 +118,8 @@
     public static java.net.URL filterJsRequestUrl(java.net.URL);
 }
 
-# Shared "Hide Wi-Fi networks" / "Block Bluetooth scanning" / "Hide cell
-# tower info" (opt-in). Every public static method replaces a framework call
+# "Hide device identifiers", Nearby Wi-Fi networks / Bluetooth scanning / Cell
+# tower info options. Every public static method replaces a framework call
 # at app call sites via injected invoke-static, so R8 must keep them as they are.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.NearbyHider {
     public static *;
@@ -204,6 +208,11 @@
 # the patch, so R8 must keep them as they are and not fold their result.
 -keep class semicoloncolonel.mobilestream.extension.xumo.XumoLiveMask { public static *; }
 
+# Shared "Translate ad break screen". translate() is overwritten by the patch,
+# so R8 must keep it and not fold its constant answer.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.AdBreakText {
+    private static boolean translate();
+}
 
 # YouTube TV — "Mask live ad breaks". cuepoints() is called only from injected
 # smali in the cue-point callback.
@@ -330,4 +339,65 @@
 }
 -keep class semicoloncolonel.mobilestream.extension.yahoofinance.ArticleCleanup {
     public static *;
+}
+
+-keep class semicoloncolonel.mobilestream.extension.hulutv.nativehook.NativeHookLoader {
+    public static void load();
+}
+
+# Netflix — "Bypass tamper protection". load() is called only from injected
+# smali at the top of the Application's attachBaseContext.
+-keep class semicoloncolonel.mobilestream.extension.netflix.bypass.NetflixBypassLoader {
+    public static void load();
+}
+
+# Netflix — "Browse hidden categories" / "Surprise me". The activities are
+# referenced only from the manifest, so R8 must keep them.
+-keep class semicoloncolonel.mobilestream.extension.netflix.categories.HiddenCategoriesActivity { *; }
+-keep class semicoloncolonel.mobilestream.extension.netflix.categories.SurpriseMeActivity { *; }
+
+-keep class semicoloncolonel.mobilestream.extension.hulutv.privacy.NativeTrackerLoader {
+    public static void load();
+}
+
+# Called from smali by the Reject tracking consent patch.
+-keep class semicoloncolonel.mobilestream.extension.shared.privacy.ConsentRejecter {
+    public static boolean reject(java.lang.Object, boolean);
+}
+
+# Prime Video Android TV ad-strip loader — only injected smali calls it.
+-keep class semicoloncolonel.mobilestream.extension.primevideotv.PrimeVideoHookLoader {
+    public static void load();
+}
+
+# TvSourceNotice is named only in the manifest, as a provider, so R8 must keep it.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.TvSourceNotice { *; }
+
+# Koupon — "Keep new-user promo codes" and "Block analytics & tracking". These
+# methods are called only from injected smali via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.kouponai.misc.PromoWindow {
+    public static void beforeMultiGet(java.lang.Object, java.lang.Object);
+}
+-keep class semicoloncolonel.mobilestream.extension.kouponai.privacy.KouponBehaviorFilter {
+    public static java.lang.String filterJsRequestUrl(java.lang.String);
+    public static java.net.URL filterJsRequestUrl(java.net.URL);
+}
+-keep class semicoloncolonel.mobilestream.extension.kouponai.privacy.KouponTrackingFilter {
+    public static java.lang.String filterJsRequestUrl(java.lang.String);
+    public static java.net.URL filterJsRequestUrl(java.net.URL);
+}
+# Koupon — web page filter. intercept is called from an added
+# shouldInterceptRequest, onPage from the client's page callbacks, and the switches are overwritten by patches.
+-keep class semicoloncolonel.mobilestream.extension.kouponai.web.KouponWebFilter {
+    public static android.webkit.WebResourceResponse intercept(android.webkit.WebResourceRequest);
+    public static boolean blockTrackers();
+    public static boolean stopHistory();
+    public static boolean hideAi();
+    public static boolean hideTips();
+    public static boolean showCodes();
+    public static void onPage(android.webkit.WebView, java.lang.String);
+}
+
+-keep class semicoloncolonel.mobilestream.extension.flipp.GoogleConsent {
+    public static java.lang.Object register(java.lang.Object, java.lang.Object, java.lang.Object);
 }

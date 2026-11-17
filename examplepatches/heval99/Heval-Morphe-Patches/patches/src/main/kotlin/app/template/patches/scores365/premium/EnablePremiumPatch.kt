@@ -3,7 +3,7 @@ package app.template.patches.scores365.premium
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_365SCORES
 import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.Opcode

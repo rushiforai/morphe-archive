@@ -7,7 +7,7 @@ import app.fakh.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 
 /** MetricQueue.queueMetric(IMetricAdapter, Tracker, CustomTrackingEventBuilder, CopyOnWriteArraySet). */
@@ -19,7 +19,7 @@ private object QueueMetricFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val blockTrackingPatch = bytecodePatch(
+val blockTrackingPatch = patch(
     name = "Disable analytics",
     description = "Adds an option (off by default) to stop sending most LinkedIn analytics events.",
     default = true

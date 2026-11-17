@@ -26,10 +26,14 @@ import app.template.patches.sofascore.layout.HIDE_MATCH_CHAT
 import app.template.patches.sofascore.layout.MAIN_TAB_FEATURES
 import app.template.patches.sofascore.layout.MATCH_TAB_FEATURES
 import app.template.patches.sofascore.misc.animations.ANIMATION_FEATURES
+import app.template.patches.sofascore.misc.lists.COMPACT_MATCH_LISTS
 import app.template.patches.sofascore.misc.notifications.BLOCK_MARKETING_NOTIFICATIONS
 import app.template.patches.sofascore.misc.popups.PROMO_POPUP_FEATURES
 import app.template.patches.sofascore.misc.promo.PROMO_SECTION_FEATURES
 import app.template.patches.sofascore.misc.rating.DISABLE_RATING_PROMPTS
+import app.template.patches.sofascore.misc.screen.KEEP_SCREEN_ON
+import app.template.patches.sofascore.misc.screenshot.DISABLE_SCREENSHOT_PROMPT
+import app.template.patches.sofascore.misc.sharing.CLEAN_SHARE_LINKS
 import app.template.patches.sofascore.misc.theme.AMOLED_BLACK
 import app.template.patches.sofascore.misc.video.TURN_OFF_VIDEO_AUTOPLAY
 import app.template.patches.sofascore.misc.widget.SLOWER_WIDGET_REFRESH
@@ -199,7 +203,8 @@ class HevalControlsTest {
     @Test
     fun sofascoreRowsKeepTheirIdsAndArePlain() {
         val features = listOf(HIDE_AI_INSIGHTS, HIDE_MATCH_CHAT, HIDE_BETTING_CONTENT, HIDDEN_COUNTRIES, HIDDEN_COMPETITIONS,
-            BLOCK_MARKETING_NOTIFICATIONS, DISABLE_RATING_PROMPTS, AMOLED_BLACK, SLOWER_WIDGET_REFRESH, TURN_OFF_VIDEO_AUTOPLAY) +
+            BLOCK_MARKETING_NOTIFICATIONS, DISABLE_RATING_PROMPTS, AMOLED_BLACK, SLOWER_WIDGET_REFRESH, TURN_OFF_VIDEO_AUTOPLAY,
+            COMPACT_MATCH_LISTS, KEEP_SCREEN_ON, CLEAN_SHARE_LINKS, DISABLE_SCREENSHOT_PROMPT) +
             MAIN_TAB_FEATURES + MATCH_TAB_FEATURES.map { it.second } + SPORT_FEATURES.map { it.second } +
             PROMO_POPUP_FEATURES.map { it.second } + PROMO_SECTION_FEATURES.map { it.second } + ANIMATION_FEATURES + SPOILER_FEATURES
         val sports = listOf("football", "tennis", "basketball", "ice_hockey", "volleyball", "handball", "esports", "mma",
@@ -208,7 +213,8 @@ class HevalControlsTest {
         val shipped = listOf(
             "hide_ai_insights", "hide_match_chat", "hide_betting_content", "hidden_countries", "hidden_competitions",
             "block_marketing_notifications", "disable_rating_prompts", "amoled_black", "slower_widget_refresh",
-            "turn_off_video_autoplay", "animations_off", "animations_fast", "spoiler_free", "spoiler_notifications", "spoiler_lists", "spoiler_widget",
+            "turn_off_video_autoplay", "compact_match_lists", "keep_screen_on", "clean_share_links", "disable_screenshot_prompt",
+            "animations_off", "animations_fast", "spoiler_free", "spoiler_notifications", "spoiler_lists", "spoiler_widget",
             "spoiler_events", "spoiler_competitions",
         ) + listOf("favorites", "feed", "fantasy", "featured").map { "hide_main_tab_$it" } +
             listOf("commentary", "crowdsourcing", "media", "graphs", "standings", "cup_tree", "matches").map { "hide_tab_$it" } +

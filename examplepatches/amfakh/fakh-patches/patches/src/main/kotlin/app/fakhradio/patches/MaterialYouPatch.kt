@@ -10,8 +10,9 @@ import app.fakhradio.patches.shared.writeResourceFile
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -160,7 +161,7 @@ private val EQUALIZER_ICON = """
 """.trimIndent()
 
 /** Colors per Android version and theme, then shapes and spacing. */
-private val materialYouResourcePatch = resourcePatch {
+private val materialYouResourcePatch = patch {
     execute {
         writeColors("values-v34", LIGHT_SURFACES_V34)
         writeColors("values-v31", LIGHT_SURFACES_V31 + LIGHT_ACCENTS)
@@ -406,7 +407,7 @@ private const val NEUTRAL_0_ID = 2131100641
 private const val NEUTRAL_90_ID = 2131100650
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch = patch(
     name = "Material You",
     description = "Uses your wallpaper's colors (Android 12+) for the accent and the surfaces, in light and dark mode. " +
         "Rounder corners and wider spacing between items.",

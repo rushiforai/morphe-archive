@@ -2,7 +2,7 @@ package app.template.patches.yahoosports.ads
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_YAHOO_SPORTS
 import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.AccessFlags

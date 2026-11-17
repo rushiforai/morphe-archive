@@ -47,4 +47,8 @@ public final class IncludedPatches {
     public static boolean accountColors() {
         return false;
     }
+
+    public static boolean exportAndImportSettings() {
+        return false;
+    }
 }

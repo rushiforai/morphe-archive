@@ -6,7 +6,7 @@
   "patches": [
     {
       "name": "AMOLED black",
-      "description": "Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED screens. The comments sheet, a pin's menu and the Save to sheet that lists your boards can go black too, each with its own switch. Light mode stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
+      "description": "Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED screens. The comments sheet, a pin's menu, the Save to sheet that lists your boards, the other menus and sheets, and the buttons over boards and profiles can go black too, each with its own switch. Light mode stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
       "category": "Theme",
       "use": true,
       "dependencies": [
@@ -92,6 +92,89 @@
           "required": true,
           "type": "kotlin.String",
           "default": "HushPinterest",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Custom save sound",
+      "description": "Plays a sound file you pick on your phone when you save a pin, in place of Pinterest's chime. Pinterest's other sounds stay. Starts off. Pick the sound with Pick a save sound in HushPinterest settings > Interface, which turns the switch on for you.",
+      "category": "Theme",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Custom splash logo",
+      "description": "Shows a logo you pick on the screen you see while Pinterest starts, in place of Pinterest's, on Android 13 and newer. Pick the picture in the patch's Logo option when you patch. Leave it empty for HushPinterest's logo. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "category": "Theme",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "splashLogo",
+          "title": "Logo",
+          "description": "A PNG, JPEG or WebP picture, up to 2048 pixels a side. All of it shows, centered inside a circle, so a square picture with a clear background looks best. Leave it empty for HushPinterest's logo.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": null,
           "values": null
         }
       ]
@@ -280,7 +363,7 @@
     },
     {
       "name": "Filter feed",
-      "description": "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and boards, and pins you've already saved and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
+      "description": "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and boards, pins you've already saved out of your home feed, search and More to explore, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -676,6 +759,42 @@
       "options": []
     },
     {
+      "name": "Hide creator name on pins",
+      "description": "Hides the creator's name and badge under a pin you open and keeps their picture, which still opens their profile. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "category": "Pin page",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide header buttons",
       "description": "Hides the small icon buttons at the end of the top bar. Back buttons, text buttons and account controls stay. Good for a cleaner top bar. Starts off. Turn it on in HushPinterest settings > Interface.",
       "category": "Navigation",
@@ -715,6 +834,78 @@
       "name": "Hide navigation buttons",
       "description": "Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own switch. The Create and Notifications switches also cover those buttons at the top of Home. Home and Profile stay. Starts off. Turn them on in HushPinterest settings > Interface.",
       "category": "Navigation",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide pop-up banners",
+      "description": "Closes pop-up banners such as \"Shop recommended merchants\" the way their X does, so Pinterest records that you dismissed them. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide related pins",
+      "description": "Leaves the grid of related pins out from under a pin you open, so it doesn't load. The pin, its comments and its buttons stay. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "category": "Pin page",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -821,7 +1012,7 @@
     },
     {
       "name": "Hide shopping and product pins",
-      "description": "Hides shoppable pins, shopping stories and featured boards. Good if you want to browse ideas, not products. Starts off. Turn it on in HushPinterest settings > Feed.",
+      "description": "Hides shoppable pins, shopping stories, featured boards and the Shop the look section under a pin. Good if you want to browse ideas, not products. Starts off. Turn it on in HushPinterest settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1001,7 +1192,7 @@
     },
     {
       "name": "Keep Home feed",
-      "description": "Keeps your Home feed where you left it when you come back to Pinterest or to the Home tab, instead of loading new pins on its own. Pull down to refresh whenever you want new pins. Starts off. Turn it on in HushPinterest settings > Feed.",
+      "description": "Keeps your Home feed where you left it when you come back to Pinterest or to the Home tab, instead of loading new pins on its own. Pull down to refresh whenever you want new pins. A second switch lets Back leave Pinterest from a scrolled-down Home without jumping to the top first. Both start off. Turn them on in HushPinterest settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1037,7 +1228,7 @@
     },
     {
       "name": "Long-press download",
-      "description": "Adds a Download button to the menu you get when you long-press a pin in a grid, the round one and the newer list, so you can save a pin without opening it. Needs Download pins on too. Three more switches take Pinterest's Save, Send or Search image button out of that menu. All start off. Turn them on in HushPinterest settings > Pin actions.",
+      "description": "Adds a Download button to the menu you get when you long-press a pin in a grid, the round one and the newer list, so you can save a pin without opening it. Needs Download pins on too. Four more switches take Pinterest's Save, Send, Search image or Send with an app button out of that menu, and another adds View, which shows the pin's picture full screen. All start off. Turn them on in HushPinterest settings > Pin actions.",
       "category": "Downloads",
       "use": true,
       "dependencies": [

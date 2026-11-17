@@ -99,6 +99,33 @@ public sealed class Downloads(AndroidDriver driver)
             }
         });
 
+    /// <summary>Android's Downloads folder itself, where Android's file picker starts.</summary>
+    public const string Root = "/sdcard/Download";
+
+    /// <summary>
+    /// Puts <paramref name="name"/> in Downloads, a YAML file of the user's own that isn't a settings file, and takes
+    /// away the settings files a scenario before exported there. They go through Android's media index, which the file
+    /// picker lists: a file only deleted from the folder stays listed in it.
+    /// </summary>
+    public async Task HoldsAFileThatIsntASettingsFileAsync(string name)
+    {
+        await Commands.ShellAsync(
+            "content delete --uri content://media/external/file --where \"_display_name LIKE 'baconreader-settings-%'\" > /dev/null 2>&1; "
+            + $"rm -f {Root}/baconreader-settings-*.yaml {Root}/{name}; true");
+        await Commands.ShellAsync($"printf '# Shopping list\\nmilk: 2\\n' > {Root}/{name}");
+    }
+
+    /// <summary>The name "Export settings" gives today's file: baconreader-settings-&lt;the phone's date&gt;.yaml.</summary>
+    public async Task<string> ReadTodaysSettingsFileNameAsync() =>
+        $"baconreader-settings-{(await Commands.ShellAsync("date +%Y-%m-%d")).Trim()}.yaml";
+
+    /// <summary>
+    /// The settings file <paramref name="name"/> in Downloads, as "Export settings" wrote it. Not on the screen: read
+    /// through adb.
+    /// </summary>
+    public Task<SettingsFileSnapshot> ReadSettingsFileAsync(string name) =>
+        OnScreen.ReadAsync(driver, () => SettingsFileSnapshot.Parse(name, Commands.ShellAsync($"cat {Root}/{name} 2> /dev/null; true").GetAwaiter().GetResult()));
+
     /// <summary>What Downloads/BaconReader holds: each file's name and size.</summary>
     public Task<DownloadsSnapshot> ReadAsync() => OnScreen.ReadAsync(driver, () => new DownloadsSnapshot(ReadFiles()));
 
@@ -120,3 +147,37 @@ public sealed record SavedVideoSnapshot(string Name, bool HasVideo, bool HasSoun
 
 /// <summary>A file in Downloads/BaconReader: its name and its size in bytes.</summary>
 public sealed record SavedFile(string Name, long Size);
+
+/// <summary>
+/// A settings file in Downloads: its name, and the values of each of its maps (<c>baconreader</c>, <c>patches</c>,
+/// <c>account_colors</c>), as the file writes them, by key. Empty when the file isn't there.
+/// </summary>
+public sealed record SettingsFileSnapshot(string Name, ImmutableDictionary<string, ImmutableDictionary<string, string>> Maps)
+{
+    /// <summary>The maps of a settings file's <paramref name="text"/>: a top-level key and its indented "key: value" lines.</summary>
+    public static SettingsFileSnapshot Parse(string name, string text)
+    {
+        var maps = new Dictionary<string, Dictionary<string, string>>();
+        Dictionary<string, string>? current = null;
+        foreach (var line in text.Split('\n').Select(line => line.TrimEnd('\r')))
+        {
+            if (line.Length == 0 || line.StartsWith('#'))
+            {
+                continue;
+            }
+
+            var colon = line.IndexOf(": ", StringComparison.Ordinal);
+            var key = (colon < 0 ? line.TrimEnd(':') : line[..colon]).Trim();
+            if (!line.StartsWith(' '))
+            {
+                current = colon < 0 ? maps[key] = [] : null;
+            }
+            else if (current is not null && colon >= 0)
+            {
+                current[key] = line[(colon + 2)..];
+            }
+        }
+
+        return new SettingsFileSnapshot(name, maps.ToImmutableDictionary(map => map.Key, map => map.Value.ToImmutableDictionary()));
+    }
+}

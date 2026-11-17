@@ -1,23 +1,32 @@
 package app.template.patches.flashscore.misc.betting
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.template.patches.flashscore.controls.FlashscoreControlsCategory
+import app.template.patches.flashscore.controls.flashscoreControls
 import app.template.patches.flashscore.shared.ForcedConfigValue
 import app.template.patches.flashscore.shared.forceRemoteConfigValues
-import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.hevalcontrols.HevalFeature
+import app.template.patches.shared.hevalcontrols.addHevalGate
+import app.template.patches.shared.hevalcontrols.addHevalStockPath
+import app.template.patches.shared.hevalcontrols.addHevalValueHelper
+import app.template.patches.shared.hevalcontrols.featurePatch
+import app.template.patches.shared.hevalcontrols.filterThroughHevalHelper
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val BETTING_HELPER_NAME = "morpheBettingGet"
 private const val TABS_HELPER_NAME = "morpheWithoutOddsTab"
@@ -45,34 +54,79 @@ private val FORCED_KEYS = linkedMapOf(
     "DETAIL_ODDS_SUMMARY_IMAGES_DISABLED" to ForcedConfigValue.TRUE,
     "BONUS_PROMO_GIFT_ICON_URL" to ForcedConfigValue.EMPTY_STRING,
     "LEAGUE_DETAIL_HEADER_STRIP_SPORTS_ENABLED" to ForcedConfigValue.EMPTY_LIST,
+    // The "gamble responsibly" notices that go with the odds: blank text and no link, no titles.
+    "GAMBLE_RESPONSIBLY" to ForcedConfigValue.EMPTY_STRING,
+    "GAMBLE_RESPONSIBLY_BODY" to ForcedConfigValue.EMPTY_STRING,
+    "GAMBLE_RESPONSIBLY_TYPE" to ForcedConfigValue.EMPTY_STRING,
+    "GAMBLE_RESPONSIBLY_SUMMARY_PLACEMENT_TYPE" to ForcedConfigValue.EMPTY_STRING,
+    "GAMBLE_RESPONSIBLY_URL" to ForcedConfigValue.EMPTY_STRING,
+    "GAMBLE_RESPONSIBLY_TITLES" to ForcedConfigValue.EMPTY_LIST,
 )
 
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
+private const val STRIP_HELPER_NAME = "morpheHevalStrip"
+private const val AGE_VERIFIED_HELPER_NAME = "morpheHevalAgeVerified"
 
-/** Replaces every list parameter of this (ArrayList, ...) constructor with a new empty ArrayList. */
-private fun MutableMethod.replaceArrayListParameters() {
+internal val HIDE_BETTING = HevalFeature(
+    id = "flashscore.hide_betting",
+    calm = true,
+    name = "Hide betting content",
+    description = "Hides odds and betting offers.",
+    category = FlashscoreControlsCategory.BETTING,
+    // The odds keys are read once when the app builds its config, and the lists are built from them.
+    restartRequired = true,
+)
+
+/** The remote-config keys this feature forces, all behind the switch. */
+private val BETTING_GATES: Map<String, String> = FORCED_KEYS.keys.associateWith { HIDE_BETTING.id }
+
+/**
+ * Adds (once) a private static `(ArrayList)ArrayList` helper to [classDef]: a new empty ArrayList
+ * while the switch is on, the argument unchanged while it is off. It has its own registers, so the
+ * constructors that call it need no free local.
+ */
+private fun MutableClass.addStripHelper(): MethodReference {
+    val reference = ImmutableMethodReference(type, STRIP_HELPER_NAME, listOf(ARRAY_LIST), ARRAY_LIST)
+    if (methods.any { it.name == STRIP_HELPER_NAME }) return reference
+    val helper = ImmutableMethod(
+        type, STRIP_HELPER_NAME, listOf(ImmutableMethodParameter(ARRAY_LIST, null, null)), ARRAY_LIST,
+        AccessFlags.PRIVATE.value or AccessFlags.STATIC.value or AccessFlags.SYNTHETIC.value,
+        null, null, MutableMethodImplementation(2),
+    ).toMutable()
+    helper.addInstructionsChecked(0, "return-object p0")
+    helper.addHevalGate(HIDE_BETTING.id) { v ->
+        "new-instance $v, $ARRAY_LIST\ninvoke-direct {$v}, $ARRAY_LIST-><init>()V\nreturn-object $v"
+    }
+    methods.add(helper)
+    return reference
+}
+
+/**
+ * Passes every list parameter of this (ArrayList, ...) constructor through the class's strip helper
+ * first: with the switch on the original code sees empty lists, off it sees the real ones. A
+ * parameter register may be above v15: the call is `/range` and `move-result-object` takes 8 bits.
+ */
+private fun MutableMethod.emptyArrayListParameters(helper: MethodReference) {
     val smali = parameterTypes.indices.joinToString("\n") { i ->
-        """
-            new-instance p${i + 1}, $ARRAY_LIST
-            invoke-direct/range {p${i + 1} .. p${i + 1}}, $ARRAY_LIST-><init>()V
-        """.trimIndent()
+        "invoke-static/range {p${i + 1} .. p${i + 1}}, $helper\nmove-result-object p${i + 1}"
     }
     addInstructionsChecked(0, smali)
 }
 
 @Suppress("unused")
-val hideBettingContentPatch = bytecodePatch(
+val hideBettingContentPatch = flashscoreControls.featurePatch(
+    HIDE_BETTING,
     name = "Hide betting content",
     description = "Hides odds and betting content.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_FLASHSCORE)
-
     // The paid "Hide betting content" setting is dead code (its prefs are never written and the
     // toggle has no click handler), so this drives the app's own remote-config odds kill switch
     // instead: the odds-off UI is a state the app already supports for geo blocks and minors.
     // The "revive" bookmaker banners in AdvertZone are left to Disable ads.
-    execute {
+    // Every site below is behind the Patch settings switch flashscore.hide_betting (restart
+    // required: the config is read once per process); with it off the stock values run.
+    run {
         // ── 1. Remote config: answer the betting keys with the "odds off" values ───────────
         //
         //  The config value class's get() goes through a helper that answers these keys (see
@@ -85,6 +139,7 @@ val hideBettingContentPatch = bytecodePatch(
             helperName = BETTING_HELPER_NAME,
             forced = FORCED_KEYS,
             required = setOf(ODDS_ENABLE),
+            gates = BETTING_GATES,
         )
 
         // ── 2. Sponsored strip: never carries any bookmaker item ───────────────────────────
@@ -95,7 +150,8 @@ val hideBettingContentPatch = bytecodePatch(
         if (sponsoredConstructors.isEmpty()) {
             throw PatchException("SponsoredStripWidgetDTO has no ArrayList-only constructor")
         }
-        sponsoredConstructors.forEach { it.replaceArrayListParameters() }
+        val sponsoredHelper = mutableClassDefBy(SponsoredStripToStringFingerprint.classDef.type).addStripHelper()
+        sponsoredConstructors.forEach { it.emptyArrayListParameters(sponsoredHelper) }
 
         // ── 3. Bonus strip: no bonuses (26.10.2: summary and odds bonuses) ─────────────────
         val bonusConstructors = BonusStripToStringFingerprint.classDef.methods.filter {
@@ -105,7 +161,8 @@ val hideBettingContentPatch = bytecodePatch(
         if (bonusConstructors.isEmpty()) {
             throw PatchException("BonusStripWidgetDTO has no ArrayList-only constructor")
         }
-        bonusConstructors.forEach { it.replaceArrayListParameters() }
+        val bonusHelper = mutableClassDefBy(BonusStripToStringFingerprint.classDef.type).addStripHelper()
+        bonusConstructors.forEach { it.emptyArrayListParameters(bonusHelper) }
 
         // ── 4. League pages: no ODDS tab ───────────────────────────────────────────────────
         //
@@ -128,11 +185,13 @@ val hideBettingContentPatch = bytecodePatch(
                 TABS_HELPER_NAME,
                 listOf(ImmutableMethodParameter(SET, null, null)),
                 SET,
-                AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+                AccessFlags.PRIVATE.value or AccessFlags.STATIC.value or AccessFlags.SYNTHETIC.value,
                 null,
                 null,
                 MutableMethodImplementation(6),
             ).toMutable().apply {
+                // Added last (see the end of this block): while the switch is off the helper
+                // returns the stock tab set.
                 addInstructionsWithLabelsChecked(
                     0,
                     """
@@ -166,6 +225,8 @@ val hideBettingContentPatch = bytecodePatch(
                         return-object v0
                     """.trimIndent(),
                 )
+                // Off: hand the tab set back untouched (v0 is free at entry; p0 is the set).
+                addHevalStockPath(HIDE_BETTING.id) { _ -> "return-object p0" }
             },
         )
 
@@ -188,8 +249,10 @@ val hideBettingContentPatch = bytecodePatch(
         //
         //  The summary params' isAgeVerified (the boolean the toString prints after
         //  ", isAgeVerified=") only decides whether the outright odds widget is created. The
-        //  constructor loads false right before every store of that field, so the widget stays
-        //  Hidden. Age verification itself is not touched.
+        //  constructor passes the value through a (Z)Z helper right before every store of that field;
+        //  the helper answers false while the switch is on and the argument unchanged while it is
+        //  off, so the widget stays Hidden only while the switch is on and no free register is
+        //  needed at the stores. Age verification itself is not touched.
         val summaryParams = LeagueSummaryParamsToStringFingerprint.classDef
         val toStringInsns = LeagueSummaryParamsToStringFingerprint.method.implementation!!.instructions.toList()
         val labelIndex = toStringInsns.indexOfFirst {
@@ -202,13 +265,16 @@ val hideBettingContentPatch = bytecodePatch(
             ?: throw PatchException("${summaryParams.type}.toString() prints no isAgeVerified field")
 
         var forcedStores = 0
+        val ageHelper = mutableClassDefBy(summaryParams.type).addHevalValueHelper(
+            HIDE_BETTING.id, AGE_VERIFIED_HELPER_NAME, "Z",
+        ) { v -> "const/4 $v, 0x0\nreturn $v" }
         summaryParams.methods.filter { it.name == "<init>" && it.implementation != null }.forEach { constructor ->
             val stores = constructor.implementation!!.instructions.withIndex().filter { (_, insn) ->
                 insn.opcode == Opcode.IPUT_BOOLEAN && (insn as ReferenceInstruction).reference == ageVerifiedField
             }.map { (index, insn) -> index to (insn as OneRegisterInstruction).registerA }
             // Back to front, so the earlier indices stay valid.
             stores.reversed().forEach { (index, register) ->
-                constructor.addInstructionsChecked(index, "${if (register < 16) "const/4" else "const/16"} v$register, 0x0")
+                constructor.filterThroughHevalHelper(index, register, ageHelper)
             }
             forcedStores += stores.size
         }

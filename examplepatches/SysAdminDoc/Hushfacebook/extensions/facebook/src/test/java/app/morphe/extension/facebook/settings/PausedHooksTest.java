@@ -84,6 +84,7 @@ import app.morphe.extension.facebook.emoji.SystemEmoji;
 import app.morphe.extension.facebook.feed.AutoTranslationForTests;
 import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.FindFriendsCard;
+import app.morphe.extension.facebook.feed.ReturnRefreshForTests;
 import app.morphe.extension.facebook.feed.SeenPostsForTests;
 import app.morphe.extension.facebook.feed.SuggestedGroupsCard;
 import app.morphe.extension.facebook.feed.FeedsHeader;
@@ -123,6 +124,7 @@ import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.FrameStepForTests;
 import app.morphe.extension.facebook.media.PinchZoomForTests;
 import app.morphe.extension.facebook.media.ProgressBar;
+import app.morphe.extension.facebook.media.ProgressBarForTests;
 import app.morphe.extension.facebook.media.QualityChoiceForTests;
 import app.morphe.extension.facebook.media.SkipSilence;
 import app.morphe.extension.facebook.media.ReelSpeedForTests;
@@ -473,6 +475,8 @@ public class PausedHooksTest {
         // tab switch back to Home reaches.
         probes.put(PatchFamily.RETURN_REFRESH, Arrays.asList(
                 () -> {
+                    // Past the launch, whose checks go to Facebook whatever the switch says (#493).
+                    ReturnRefreshForTests.launched();
                     ReturnRefresh.uiHidden();
                     return ReturnRefresh.skip();
                 },
@@ -702,6 +706,8 @@ public class PausedHooksTest {
                 // A feed or search video's full-screen and picture-in-picture buttons (#478).
                 ReelDeclutter::hideFeedVideoFullscreen,
                 ReelDeclutter::hideFeedVideoPip,
+                // The Add friend sheet over a reel a non-friend shared (#486).
+                ReelDeclutter::hideSharedReelFriendSheet,
                 // The UP NEXT bar's lookup and the videos it hands out (#367), and its room (#375).
                 ReelDeclutter::skipUpNextFetch,
                 ReelDeclutter::hideUpNextVideos,
@@ -1043,6 +1049,7 @@ public class PausedHooksTest {
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
                 () -> CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS),
                 () -> CommentSheetOptions.holdsCommentReply(CommentSheetOptions.REPLY_PLUGIN),
+                CommentSheetOptions::hidesCommenterBadge,
                 () -> {
                     // Block button on comments keeps the dislike it redraws (#271).
                     Settings.COMMENT_BLOCK_BUTTON.save(false);
@@ -1225,11 +1232,12 @@ public class PausedHooksTest {
         probes.put(PatchFamily.KEEP_FEED_VIDEOS_MUTED, Arrays.asList(() -> !FeedSound.sessionSound(true),
                 () -> !FeedSound.soundChange(null, true, false), () -> FeedSound.viewerSoundTime(60_000L) != 60_000L));
         // A reel's bar is kept full size, a full-screen video sets no fade timer, a press off the
-        // bar's thumb is held as a tap to seek, the next reel's bar starts over, and a bar still in
-        // Facebook's thin look takes the kept look.
+        // bar's thumb is held as a tap to seek, the next reel's bar starts over, a bar still in
+        // Facebook's thin look takes the kept look, and the bar's seek on a live video goes through.
         probes.put(PatchFamily.PROGRESS_BAR, Arrays.asList(ProgressBar::keepsReelBar, ProgressBar::keepsControls,
                 ProgressBar::liftsFooter, ProgressBar::noFadedBar, PausedHooksTest::holdsATapOnTheBar,
-                PausedHooksTest::startsTheNextReelOver, PausedHooksTest::givesAThinBarTheKeptLook));
+                PausedHooksTest::startsTheNextReelOver, PausedHooksTest::givesAThinBarTheKeptLook,
+                PausedHooksTest::letsALiveSeekThrough, ProgressBarForTests::rewindsForTheBarsSeek));
         // A tab asked for shows without its slide.
         probes.put(PatchFamily.SCREEN_TRANSITIONS, Collections.singletonList(() -> !ScreenTransitionsForTests.slides()));
         // The app icon benefit is answered yes, at the provider's check and at the picker's own look,
@@ -1317,6 +1325,13 @@ public class PausedHooksTest {
     /** A scrubber still in Facebook's thin look, which an update would give the kept look. */
     private static boolean givesAThinBarTheKeptLook() {
         return ProgressBar.looksAgain(new android.widget.LinearLayout(RuntimeEnvironment.getApplication()));
+    }
+
+    /** A live video's seek request from the reel bar's release, which Facebook skips. */
+    private static boolean letsALiveSeekThrough() {
+        Object request = new Object();
+        ProgressBar.scrubberSeek(request);
+        return !ProgressBar.liveSeekRefused(1, request, new Object());
     }
 
     /** A comment sheet whose header holds a video, the reel above its comments, set up by Facebook. */

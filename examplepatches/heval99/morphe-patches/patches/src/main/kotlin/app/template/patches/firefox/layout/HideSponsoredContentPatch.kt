@@ -2,7 +2,7 @@ package app.template.patches.firefox.layout
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.firefox.shared.concreteMethod
 import app.template.patches.firefox.shared.firefoxClass
 import app.template.patches.firefox.shared.readClass

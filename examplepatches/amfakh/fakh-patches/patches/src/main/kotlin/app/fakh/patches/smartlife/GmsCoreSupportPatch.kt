@@ -7,7 +7,8 @@ import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.packageMetadata
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -40,7 +41,7 @@ private object FrameworkCredentialProviderFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val gmsCoreSupportPatch = bytecodePatch(
+val gmsCoreSupportPatch = patch(
     name = "GmsCore support",
     description = "Makes \"Sign in with Google\" work by signing in through microG RE (GmsCore) instead of Google Play " +
         "services. Needs microG RE installed and signed in to a Google account.",

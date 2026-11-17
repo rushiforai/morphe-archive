@@ -500,6 +500,10 @@ Hide Like on comments	Yorumlarda Beğen'i gizle
 Takes Like off the row under comments. Reply and the reaction count stay.	Yorumların altındaki satırdan Beğen'i kaldırır. Yanıtla ve tepki sayısı kalır.
 Hide Reply on comments	Yorumlarda Yanıtla'yı gizle
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Yorumların altındaki satırdan Yanıtla'yı kaldırır. Yanıtları gör, Beğen ve tepki sayısı kalır.
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	Yorumlarda En büyük hayran gibi rozetleri gizle
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	En büyük hayran, Abone ve diğer rozetleri yorum yapanların adlarından kaldırır. Ad ve yorum kalır.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Yalnızca Beğen
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1060,6 +1064,26 @@ Dark box behind open captions	Açılan açıklamaların arkasına koyu kutu
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Açılan bir reel açıklaması, altyazılar gibi koyu bir kutunun üstünde durur, böylece parlak bir videonun üzerinde kolayca okunur. Değişiklik bir sonraki reel'den itibaren geçerli olur.
 Dark box behind folded captions	Daraltılmış açıklamaların arkasına koyu kutu
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Sonunda devamı yazan kısa, daraltılmış bir reel açıklaması da aynı koyu kutunun üstünde durur. Her açıklama kutulu olsun diye ikisini de aç. Değişiklik bir sonraki reel'den itibaren geçerli olur.
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	Reel adlarının arkasına koyu kutu
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	Bir reel'in altındaki ad da aynı koyu kutunun üstünde durur, böylece parlak bir videonun üstünde kolayca okunur. Değişiklik bir sonraki reel'den itibaren geçerli olur.
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	Kutu koyuluğu
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Açıklamaların ve adların arkasındaki kutuların ne kadar koyu olduğu, yüzde olarak, %1$s ile %2$s arası. %3$s için boş bırak.
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	Koyu kutular yüzde %1$s siyah. Değiştirmek için bir sayı yaz.
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	Koyu kutular yüzde %1$s siyah.
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	Yumuşak kutu kenarları
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	Koyu kutular keskin bitmek yerine kenarlarında yavaşça kaybolur. Değişiklik bir sonraki reel'den ya da hikayeden itibaren geçerli olur.
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	Hikaye adlarının arkasına koyu kutu
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	Hikaye satırındaki ve açık bir hikayedeki adlar koyu bir kutunun üstünde durur, böylece parlak bir hikaye onları gizlemez. Ne kadar koyu olacağını Reels ve Watch altındaki Kutu koyuluğu belirler. Değişiklik hikayeler bir sonraki yüklendiğinde geçerli olur.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Kimlerin paylaştığını gör
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Bir gönderinin menüsüne Kimlerin paylaştığını gör ekler. Facebook'un gönderiyi paylaşan kişiler listesini açar.
@@ -2281,6 +2305,8 @@ Playback speed	Oynatma hızı
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Akış videolarına, Facebook'un kendi oynatıcısındaki gibi 10 saniye geri veya ileri atlayan düğmeler ekler. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Akış videolarına hızlarını gösteren bir düğme ekler. Her dokunuş bir sonrakine geçer: 1x, 1.25x, 1.5x, 2x, sonra 0.5x. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Bir akış videosunun ne kadarını izlediğinizi sarma çubuğunun sol ucunda, ne kadar kaldığını sağ ucunda gösterir. “Akış videolarında sarma çubuğu” açık olmalıdır.
+Full length on the seek bar	Sarma çubuğunda toplam süre
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	Bir akış videosunun toplam süresini, kalan süre yerine sarma çubuğunun sağ ucunda gösterir. “Sarma çubuğunda süreler” açık olmalıdır.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Akış videolarına, videoyu Facebook'un kendi tam oynatıcısında tüm denetimleriyle açan bir düğme ekler. Canlı videolarda da bulunur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	Tam oynatıcı düğmesi hoparlörün yanında
@@ -2299,6 +2325,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu, Facebook'un hoparlör ve etiketlenen kişiler düğmeleriyle birlikte alt kenara yaklaştırır. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Seek bar on the bottom edge	Sarma çubuğu alt kenarda
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu tam alt kenarına koyar, böylece kaydırırken yolunuza çıkmaz. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Sarma çubuğunu ve hoparlörü aşağı al” ayarından önce gelir. “Akış videolarında sarma çubuğu” açık olmalıdır.
+Thin line seek bar	İnce çizgi sarma çubuğu
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu, Instagram'daki gibi tam alt kenarında ince bir çizgi olarak gösterir. Siz sürükleyene kadar nokta ya da süre göstermez. Canlı videolarda da geri sarılabildikleri sürece görünür. Canlıya dönmek için en sağ uçta bırakın. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Feed video position	Akış videosu konumu
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Rozet rengi
@@ -2740,6 +2768,10 @@ Not found yet	Henüz bulunamadı
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	Yorumların üstündeki büyüteç, kelimelerinizi içeren yorumları bulan bir arama kutusu açar.
 Open shared reels on their own	Paylaşılan reel'leri tek başına aç
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Başka bir uygulamadaki bir bağlantıdan ya da bir sohbetten açtığın reel tek başına oynar, ardından kaydırılacak başka reel olmaz.
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	Paylaşılan reel'lerde Arkadaş ekle penceresini gizle
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	Henüz arkadaşın olmayan birinden gelen bir reel'i açtığında, onu eklemeni isteyen pencere artık açılmaz. Değişiklik bir sonraki paylaşılan reel'den itibaren görünür.
 Light bars on the Reels tab	Reels sekmesinde açık çubuklar
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	Açık modda Reels sekmesi, durum çubuğunu, üst çubuğu ve sekme çubuğunu karartmak yerine diğer sekmelerdeki gibi açık tutar.
 Bar opacity	Çubuk opaklığı
@@ -2873,3 +2905,19 @@ Clear mode	Sade mod
 Scroll to next reel automatically	Sonraki reels videosuna otomatik geç
 Transcript	Transkript
 Audio and language	Ses ve dil
+Reset settings	Ayarları sıfırla
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	Ayarları dışa aktar'ın kaydettiği her anahtarı ve seçimi yeni bir kurulumdaki hâline döndürür. Duraklat, Hata ayıklama günlüğü ve güncelleme denetimi olduğu gibi kalır.
+Undo the reset	Sıfırlamayı geri al
+Brings back the switches and choices you had before the last reset.	Son sıfırlamadan önceki anahtarlarını ve seçimlerini geri getirir.
+Couldn't reset the settings. Nothing was changed.	Ayarlar sıfırlanamadı. Hiçbir şey değiştirilmedi.
+Your settings already match a new install.	Ayarların zaten yeni bir kurulumla aynı.
+Resetting settings	Ayarlar sıfırlanıyor
+Settings reset. Undo the reset puts yours back.	Ayarlar sıfırlandı. Sıfırlamayı geri al seninkileri geri getirir.
+Couldn't undo the reset. Nothing was changed.	Sıfırlama geri alınamadı. Hiçbir şey değiştirilmedi.
+Putting your settings back	Ayarların geri getiriliyor
+Your settings are back the way they were before the reset.	Ayarların sıfırlamadan önceki hâline döndü.
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	Tamamlanamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
+Show every reaction on comments	Yorumlarda tüm tepkileri göster
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	Facebook bir yorumun sayısının yanında yalnızca en çok verilen tepkiyi gösterdiğinde, bunun yerine Beğen, Yanıtla ve tüm tepkiler kalır. Değişiklik, sonrasında gösterilen yorumlarda görünür.
+Move seen stories to the end	İzlenen hikayeleri sona taşı
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	İzlediğiniz hikayeler, Hikayeler çubuğunda izlemediklerinizin arkasına, sona geçer. İzlenen hikayeleri gizle açıkken önce o uygulanır. Facebook çubuğu bir sonraki yüklediğinde geçerli olur.

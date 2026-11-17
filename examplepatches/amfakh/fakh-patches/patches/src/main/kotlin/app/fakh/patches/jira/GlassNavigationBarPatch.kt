@@ -7,8 +7,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
 import com.android.tools.smali.dexlib2.Opcode
 
 /** The bar's constructor that takes a style attribute; the shorter ones chain into it. */
@@ -32,7 +33,7 @@ private val homeInsetsFingerprint = Fingerprint(
 )
 
 /** A taller bar: the space above and below the icon and label grows, which centers them in the capsule. */
-private val taller = resourcePatch {
+private val taller = patch {
     execute {
         document("res/values/dimens.xml").use { dimens ->
             val nodes = dimens.getElementsByTagName("dimen")
@@ -52,7 +53,7 @@ private val taller = resourcePatch {
 private const val EXTENSION = "Lapp/fakh/extension/jira/MaterialYou;"
 
 @Suppress("unused")
-val glassNavigationBarPatch = bytecodePatch(
+val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it.",
     default = true,

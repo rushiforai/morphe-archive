@@ -78,7 +78,7 @@ final class SideMenuPanel extends FrameLayout {
      * Telegram 13 draws its msg_message as an eye.
      */
     static final String[] ICONS = {"msg_openprofile", "msg_edit", "msg_contacts", "msg_calls", "msg_saved",
-            "msg_settings_old", "msg_archive", "msg_admins", "msg_settings", "msg_download"};
+            "msg_settings_old", "msg_archive", "msg_admins", "msg_settings", "msg_download", "msg_fave"};
 
     Object screen;
     final View scrim;
@@ -94,6 +94,7 @@ final class SideMenuPanel extends FrameLayout {
     View hushRow;
     View hushDivider;
     View downloadsRow;
+    View bookmarksRow;
     private final int touchSlop;
     private final int flingSpeed;
     private float progress;
@@ -168,6 +169,7 @@ final class SideMenuPanel extends FrameLayout {
             TextView added = row(labels[each.ordinal()], ICONS[each.ordinal()], each);
             if (each == SideMenu.Row.HUSH) hushRow = added;
             if (each == SideMenu.Row.DOWNLOADS) downloadsRow = added;
+            if (each == SideMenu.Row.BOOKMARKS) bookmarksRow = added;
             menu.addView(added);
         }
     }
@@ -184,6 +186,7 @@ final class SideMenuPanel extends FrameLayout {
         if (hushRow != null) hushRow.setVisibility(shown ? VISIBLE : GONE);
         if (hushDivider != null) hushDivider.setVisibility(shown ? VISIBLE : GONE);
         if (downloadsRow != null) downloadsRow.setVisibility(DownloadManager.rowShown() ? VISIBLE : GONE);
+        if (bookmarksRow != null) bookmarksRow.setVisibility(Bookmarks.rowShown() ? VISIBLE : GONE);
     }
 
     /** Shows the Administrators row while its switch is on, adding it the first time, and says what a tap does next. */

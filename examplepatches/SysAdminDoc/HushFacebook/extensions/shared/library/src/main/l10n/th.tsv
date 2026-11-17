@@ -500,6 +500,10 @@ Hide Like on comments	ซ่อน "ถูกใจ" ในความคิด
 Takes Like off the row under comments. Reply and the reaction count stay.	นำปุ่มถูกใจออกจากแถวใต้ความคิดเห็น โดยปุ่มตอบกลับและจำนวนความรู้สึกจะยังคงอยู่
 Hide Reply on comments	ซ่อน "ตอบกลับ" ในความคิดเห็น
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	นำปุ่มตอบกลับออกจากแถวใต้ความคิดเห็น โดย "ดูการตอบกลับ" ปุ่มถูกใจ และจำนวนความรู้สึกจะยังคงอยู่
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	ซ่อนป้ายอย่างแฟนตัวยงในความคิดเห็น
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	นำป้ายแฟนตัวยง ผู้สมัครสมาชิก และป้ายอื่นๆ ออกจากชื่อของผู้แสดงความคิดเห็น ชื่อและความคิดเห็นยังอยู่
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	เฉพาะ "ถูกใจ"
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1060,6 +1064,26 @@ Dark box behind open captions	กล่องสีเข้มด้านห�
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	คำบรรยาย Reels ที่เปิดอยู่จะอยู่บนกล่องสีเข้มคล้ายคำบรรยายภาพ ช่วยให้อ่านง่ายขึ้นบนวิดีโอที่มีความสว่าง การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
 Dark box behind folded captions	กล่องสีเข้มด้านหลังคำบรรยายที่ย่ออยู่
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	คำบรรยาย Reels ที่ย่ออยู่ ซึ่งเป็นแบบสั้นที่มีคำว่าเพิ่มเติมต่อท้าย จะอยู่บนกล่องสีเข้มแบบเดียวกัน เปิดทั้งสองสวิตช์เพื่อให้คำบรรยายทุกอันมีกล่อง การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	กล่องสีเข้มด้านหลังชื่อใน Reels
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	ชื่อที่ด้านล่างของ Reels จะอยู่บนกล่องสีเข้มเดียวกัน จึงอ่านง่ายบนวิดีโอที่สว่าง การเปลี่ยนแปลงจะมีผลตั้งแต่ Reels ถัดไป
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	ความเข้มของกล่อง
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	ความเข้มของกล่องด้านหลังคำบรรยายและชื่อ เป็นเปอร์เซ็นต์ ตั้งแต่ %1$s ถึง %2$s เว้นว่างไว้เพื่อใช้ %3$s
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	กล่องสีเข้มเป็นสีดำ %1$s เปอร์เซ็นต์ พิมพ์ตัวเลขเพื่อเปลี่ยน
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	กล่องสีเข้มเป็นสีดำ %1$s เปอร์เซ็นต์
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	ขอบกล่องแบบนุ่ม
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	กล่องสีเข้มจะค่อยๆ จางลงที่ขอบแทนที่จะตัดคม การเปลี่ยนแปลงจะมีผลตั้งแต่ Reels หรือสตอรี่ถัดไป
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	กล่องสีเข้มด้านหลังชื่อในสตอรี่
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	ชื่อในแถวสตอรี่และในสตอรี่ที่เปิดอยู่จะอยู่บนกล่องสีเข้ม สตอรี่ที่สว่างจึงไม่บังชื่อ ความเข้มของกล่องใน Reels และ Watch กำหนดว่าเข้มแค่ไหน จะมีผลเมื่อสตอรี่โหลดครั้งถัดไป
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	ดูว่าใครแชร์บ้าง
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	เพิ่ม "ดูว่าใครแชร์บ้าง" ในเมนูของโพสต์ เพื่อเปิดดูรายชื่อผู้ที่แชร์โพสต์บน Facebook
@@ -2281,6 +2305,8 @@ Playback speed	ความเร็วในการเล่น
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	เพิ่มปุ่มในวิดีโอบนฟีดที่ข้ามย้อนกลับหรือไปข้างหน้า 10 วินาที เช่นเดียวกับโปรแกรมเล่นของ Facebook เอง วิดีโอถ่ายทอดสดและโฆษณาจะยังคงใช้การควบคุมของตัวเอง หากเปิด "แตะเพื่อเล่น" ไว้ จะต้องเปิด "การควบคุมวิดีโอในฟีด" ด้วยเช่นกัน
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	เพิ่มปุ่มในวิดีโอบนฟีดเพื่อแสดงความเร็ว การแตะแต่ละครั้งจะเปลี่ยนเป็นระดับถัดไป: 1x, 1.25x, 1.5x, 2x แล้วตามด้วย 0.5x วิดีโอถ่ายทอดสดและโฆษณาจะยังคงใช้การควบคุมของตัวเอง หากเปิด "แตะเพื่อเล่น" ไว้ จะต้องเปิด "การควบคุมวิดีโอในฟีด" ด้วยเช่นกัน
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	แสดงเวลาที่เล่นไปแล้วของวิดีโอบนฟีดที่ด้านซ้ายของแถบเลื่อน และเวลาที่เหลืออยู่ที่ด้านขวา จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
+Full length on the seek bar	ความยาวทั้งหมดบนแถบเลื่อน
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	แสดงความยาวทั้งหมดของวิดีโอบนฟีดที่ด้านขวาของแถบเลื่อน แทนเวลาที่เหลืออยู่ จำเป็นต้องเปิด "เวลาบนแถบเลื่อน"
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	เพิ่มปุ่มในวิดีโอบนฟีดเพื่อเปิดวิดีโอในโปรแกรมเล่นแบบเต็มของ Facebook พร้อมการควบคุมทั้งหมด วิดีโอถ่ายทอดสดจะได้รับปุ่มนี้ด้วยเช่นกัน หากเปิด "แตะเพื่อเล่น" ไว้ จะต้องเปิด "การควบคุมวิดีโอในฟีด" ด้วยเช่นกัน
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	ปุ่มโปรแกรมเล่นแบบเต็มข้างลำโพง
@@ -2299,6 +2325,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	ย้ายแถบเลื่อนของวิดีโอบนฟีดให้ใกล้กับขอบด้านล่างมากขึ้น พร้อมกับปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
 Seek bar on the bottom edge	แถบเลื่อนที่ขอบด้านล่าง
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	ย้ายแถบเลื่อนของวิดีโอบนฟีดไปไว้ที่ขอบด้านล่างพอดี เพื่อไม่ให้เกะกะขณะที่คุณเลื่อนดู ปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จะเลื่อนขึ้นไปอยู่เหนือแถบเลื่อน การตั้งค่านี้มีผลเหนือกว่า "ลดระดับแถบเลื่อนและลำโพงลง" จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
+Thin line seek bar	แถบเลื่อนแบบเส้นบาง
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	แสดงแถบเลื่อนของวิดีโอบนฟีดเป็นเส้นบางที่ขอบด้านล่างพอดี แบบเดียวกับใน Instagram โดยไม่มีจุดหรือเวลาจนกว่าคุณจะลาก วิดีโอถ่ายทอดสดก็จะมีเส้นนี้ด้วยขณะที่ยังย้อนกลับได้ ปล่อยที่ด้านขวาสุดเพื่อกลับไปที่การถ่ายทอดสด ปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จะเลื่อนขึ้นไปอยู่เหนือแถบเลื่อน จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
 Feed video position	ตำแหน่งวิดีโอบนฟีด
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	สีของป้าย
@@ -2740,6 +2768,10 @@ Not found yet	ยังไม่พบ
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	แว่นขยายที่ด้านบนของความคิดเห็นจะเปิดช่องค้นหาเพื่อค้นหาความคิดเห็นที่มีคำของคุณ
 Open shared reels on their own	เปิด Reels ที่แชร์แยกต่างหาก
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Reel ที่คุณเปิดจากลิงก์ในแอปอื่นหรือจากแชทจะเล่นแยกต่างหาก โดยไม่มี Reels อื่นให้ปัดดูต่อหลังจากนั้น
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	ซ่อนป๊อปอัปเพิ่มเพื่อนใน Reels ที่แชร์
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	เมื่อคุณเปิด Reel จากคนที่ยังไม่ได้เป็นเพื่อนกับคุณ จะไม่มีหน้าต่างขอให้เพิ่มเขาเป็นเพื่อนขึ้นมาอีก การเปลี่ยนแปลงจะเห็นตั้งแต่ Reel ที่แชร์ถัดไป
 Light bars on the Reels tab	แถบสีสว่างในแท็บ Reels
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	ในโหมดสว่าง แท็บ Reels จะยังคงใช้แถบสถานะ แถบด้านบน และแถบแท็บสีสว่างเช่นเดียวกับแท็บอื่นๆ แทนที่จะเปลี่ยนเป็นสีเข้ม
 Bar opacity	ความทึบแสงของแถบ
@@ -2873,3 +2905,19 @@ Clear mode	โหมดหน้าจอโล่ง
 Scroll to next reel automatically	เลื่อนไปยัง Reels ถัดไปโดยอัตโนมัติ
 Transcript	ข้อความถอดเสียง
 Audio and language	เสียงและภาษา
+Reset settings	รีเซ็ตการตั้งค่า
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	คืนค่าสวิตช์และตัวเลือกทุกรายการที่ส่งออกการตั้งค่าบันทึกไว้ ให้เหมือนตอนติดตั้งใหม่ ส่วนการหยุดชั่วคราว การบันทึกข้อมูลดีบัก และการตรวจสอบการอัปเดตจะยังคงเหมือนเดิม
+Undo the reset	เลิกทำการรีเซ็ต
+Brings back the switches and choices you had before the last reset.	นำสวิตช์และตัวเลือกที่คุณมีก่อนการรีเซ็ตครั้งล่าสุดกลับมา
+Couldn't reset the settings. Nothing was changed.	ไม่สามารถรีเซ็ตการตั้งค่า ไม่มีการเปลี่ยนแปลงใดๆ
+Your settings already match a new install.	การตั้งค่าของคุณตรงกับการติดตั้งใหม่อยู่แล้ว
+Resetting settings	กำลังรีเซ็ตการตั้งค่า
+Settings reset. Undo the reset puts yours back.	รีเซ็ตการตั้งค่าแล้ว เลิกทำการรีเซ็ตจะนำการตั้งค่าของคุณกลับมา
+Couldn't undo the reset. Nothing was changed.	ไม่สามารถเลิกทำการรีเซ็ต ไม่มีการเปลี่ยนแปลงใดๆ
+Putting your settings back	กำลังนำการตั้งค่าของคุณกลับมา
+Your settings are back the way they were before the reset.	การตั้งค่าของคุณกลับเป็นเหมือนก่อนการรีเซ็ตแล้ว
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	ไม่สามารถทำให้เสร็จ และไม่สามารถกู้คืนการตั้งค่าเดิมของคุณได้ โปรดตรวจสอบสวิตช์บนหน้าจอนี้
+Show every reaction on comments	แสดงความรู้สึกทั้งหมดในความคิดเห็น
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	ในที่ที่ Facebook แสดงเฉพาะความรู้สึกอันดับต้นของความคิดเห็นข้างจำนวน จะคง "ถูกใจ" "ตอบกลับ" และความรู้สึกทั้งหมดไว้แทน การเปลี่ยนแปลงจะปรากฏในความคิดเห็นที่แสดงหลังจากนั้น
+Move seen stories to the end	ย้ายสตอรี่ที่ดูแล้วไปไว้ท้าย
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	สตอรี่ที่คุณดูแล้วจะย้ายไปอยู่ท้ายถาดสตอรี่ ต่อจากสตอรี่ที่คุณยังไม่ได้ดู ขณะที่เปิด "ซ่อนสตอรี่ที่ดูแล้ว" อยู่ ตัวเลือกนั้นจะมีผลก่อน จะมีผลเมื่อ Facebook โหลดถาดสตอรี่ในครั้งต่อไป

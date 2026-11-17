@@ -66,3 +66,15 @@ internal fun BytecodePatchContext.forEachMatchingMethod(
 /** The method takes these parameter types and returns [returnType]. */
 internal fun Method.hasSignature(returnType: String, vararg parameters: String) =
     this.returnType == returnType && parameterTypes.map { it.toString() } == parameters.toList()
+
+/**
+ * Smali that returns Kotlin's Unit from a suspend function, for making one
+ * return at once. R8 can rename Unit's INSTANCE field (WaPo 7.19.0 calls it
+ * "a"), so the field is looked up in the app instead of named.
+ */
+internal fun BytecodePatchContext.returnUnitSmali(): String {
+    val unit = classDefBy("Lkotlin/Unit;").fields.firstOrNull {
+        it.type == "Lkotlin/Unit;" && com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: throw PatchException("kotlin.Unit has no instance field")
+    return "sget-object v0, Lkotlin/Unit;->${unit.name}:Lkotlin/Unit;\nreturn-object v0"
+}

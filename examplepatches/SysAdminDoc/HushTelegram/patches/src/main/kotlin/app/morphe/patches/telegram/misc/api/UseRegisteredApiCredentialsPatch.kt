@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.telegram.misc.analytics.SESSION_DEVICE
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.util.ControlFlow
@@ -262,7 +263,10 @@ internal fun BytecodePatchContext.resolveApiCredentials(): ApiCredentialsPlan {
 
 private data class ApiAccess(val method: Method, val index: Int, val instruction: Instruction, val field: FieldReference)
 
-/** Reaching definitions on every normal and caught-exception path; moves preserve the source identity. */
+/**
+ * Reaching definitions on every normal and caught-exception path; moves preserve the source
+ * identity, and so does the session device's build number hook.
+ */
 private class ApiOrigins(method: Method) {
     private val body = method.instructions()
     private val flow = ControlFlow.of(method)
@@ -286,9 +290,8 @@ private class ApiOrigins(method: Method) {
                 val operands = instruction.namedRegisters()
                 val destination = operands.firstOrNull()
                 if (destination != null && destination in after.indices) {
-                    after[destination] = if (instruction.opcode.name.startsWith("move") &&
-                        !instruction.opcode.name.startsWith("move-result") && operands.size == 2)
-                        before[operands[1]] else setOf(at)
+                    after[destination] = if (instruction.opcode in REGISTER_MOVES && operands.size == 2)
+                        before[operands[1]] else keptBuildNumber(at)?.let { before[it] } ?: setOf(at)
                     if (instruction.opcode.setsWideRegister() && destination + 1 in after.indices) after[destination + 1] = after[destination]
                 }
             }
@@ -297,8 +300,24 @@ private class ApiOrigins(method: Method) {
         }
     }
     fun at(index: Int, register: Int): Set<Int> = states.getOrNull(index)?.getOrNull(register).orEmpty()
+
+    /**
+     * The register Disable analytics' build number hook read, when [at] takes its answer back.
+     * That hook only folds the saved session device into the number, so its answer is still the
+     * build number for the credentials' tag, and the patcher runs it first (patches go by name).
+     */
+    private fun keptBuildNumber(at: Int): Int? {
+        if (body[at].opcode != Opcode.MOVE_RESULT || at == 0) return null
+        val hook = body[at - 1]
+        val called = hook.call() ?: return null
+        if (hook.opcode != Opcode.INVOKE_STATIC_RANGE || called.origDefiningClass != SESSION_DEVICE ||
+            called.origName != "version" || called.origParameterTypes != listOf("I") || called.origReturnType != "I") return null
+        return hook.namedRegisters().singleOrNull()
+    }
 }
 
+private val REGISTER_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16,
+    Opcode.MOVE_WIDE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 private fun parameterToken(register: Int) = -register - 2
 private fun Method.parameterWords() = parameterTypes.sumOf { if (it == "J" || it == "D") 2 else 1 } +
     if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1

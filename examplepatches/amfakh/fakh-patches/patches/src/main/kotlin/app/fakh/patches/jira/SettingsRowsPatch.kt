@@ -2,8 +2,11 @@ package app.fakh.patches.jira
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.resourceFile
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -20,7 +23,7 @@ private const val ICON = """<?xml version="1.0" encoding="utf-8"?>
 """
 
 /** The title and icon of the Fakh Patches row, and the page it opens. */
-private val fakhPatchesPagePatch = resourcePatch {
+private val fakhPatchesPagePatch = patch {
     execute {
         document("res/values/strings.xml").use { strings ->
             val title = strings.createElement("string")
@@ -28,7 +31,7 @@ private val fakhPatchesPagePatch = resourcePatch {
             title.textContent = "Fakh Patches"
             strings.getElementsByTagName("resources").item(0).appendChild(title)
         }
-        get("res/drawable/fakh_ic_patches.xml").writeText(ICON)
+        resourceFile("res/drawable/fakh_ic_patches.xml").writeText(ICON)
         document("AndroidManifest.xml").use { manifest ->
             val activity = manifest.createElement("activity")
             activity.setAttribute("android:name", PAGE)
@@ -45,7 +48,7 @@ private val fakhPatchesPagePatch = resourcePatch {
  * SpacedItemsKt.a calls, that card first; the call to the extension goes after it and only reads the composer's
  * register. Patches that have a switch depend on this one.
  */
-val settingsRowsPatch = bytecodePatch {
+val settingsRowsPatch = patch {
     extendWith("extensions/extension.mpe")
     dependsOn(fakhPatchesPagePatch)
 

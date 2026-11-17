@@ -11,6 +11,6 @@ object Constants {
         description = "The NPR app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1A1A1A,
-        targets = listOf(AppTarget("7.10.0"))
+        targets = listOf(AppTarget("7.10.0"), AppTarget("7.11.0", versionCode = 140979))
     )
 }

@@ -21,7 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
     name = "Remove ads, proxy & restrictions",
-    description = "Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.4.",
+    description = "Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.5.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRICFY_TV)
@@ -69,7 +69,7 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         // 7.3 layout: strip the inline bootstrap span (init + forced optIn() + lifecycle hook)
         // from App.onCreate() while keeping Koin DI, Firebase Messaging, and Firebase
         // RemoteConfig ("cric_api2") intact.
-        // 7.4 layout: the bootstrap lives in its own no-arg App helper — stub it wholesale so
+        // 7.4+ layout: the bootstrap lives in its own App helper (7.4: a()V, 7.5: e(Context)V) — stub it so
         // the SDK instance is never created (all consumers null-check it before use).
         // Also supports idempotent re-patching if the input APK already had CashRaven removed.
         run {
@@ -130,7 +130,7 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         if (AppStartServicesFingerprint.matchOrNull() != null) {
             replaceMethodBody(AppStartServicesFingerprint.repairedMethod, "return-void")
         } else {
-            // 7.4 layout: no start-services helper exists. The service start is driven by an
+            // 7.4+ layout: no start-services helper exists. The service start is driven by an
             // activity-lifecycle callback that first checks the (now never-created) SDK instance
             // exists and is opted in, so it stays inert; the CashRavenService.onStartCommand
             // stub below kills any direct start regardless. Fail loudly if some future build
@@ -432,6 +432,96 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
                 val basePush = PushNotificationBaseFingerprint.originalMethod
                 if (basePush.containsStringLiteral("rtstv")) {
                     throw PushNotificationHandlerFingerprint.patchException()
+                }
+            }
+        }
+
+        // ====================================================================
+        // 3. Suppress the CashRaven consent prompt
+        // ====================================================================
+        //
+        // Stock 7.5 asks for bandwidth-sharing consent on EVERY launch, clean install included.
+        // `App.d` reads `cashraven_enabled` with a default of 1, and nothing in the app ever writes
+        // that preference (there is no putBoolean for it anywhere), so the default is what the
+        // branch always sees. `if-nez` branches on non-zero, so it always jumps over the quiet
+        // DISMISSED exit and always reaches `requestConsent`.
+        //
+        // Every CashRaven entry point is already neutralised above (App.e, the service, the boot
+        // receiver, the drawer item), so the prompt asks for permission to do something this build
+        // cannot do. Suppressing it is not a privacy change, it is removing a dead end.
+        //
+        // Rather than stubbing the whole method - `App.d` also delivers the update-check result that
+        // the same coroutine carries, and that must keep working - the value the branch tests is
+        // forced to zero, so it falls through to the app's own DISMISSED return. The listener
+        // callback on the way stays intact; jumping past it could hang the startup coroutine.
+        //
+        // Idempotent: an already-patched APK has the const/4 in place and is left alone.
+        // Fail loudly rather than silently shipping the dialog: a non-matching fingerprint used to
+        // leave App.d untouched and the build still reported success.
+        check(ConsentPromptFingerprint.matchOrNull() != null) {
+            "Could not locate the CashRaven consent method (App.d) — refusing to ship a build that " +
+                "still shows the bandwidth-sharing prompt on first launch."
+        }
+        run {
+            val consentMethod = ConsentPromptFingerprint.repairedMethod
+            val consentMatches = ConsentPromptFingerprint.instructionMatches
+            val compareIdx = consentMatches[1].index
+            val requestIdx = consentMatches[2].index
+
+            check(compareIdx < requestIdx) {
+                "Unexpected App.d layout: the consent branch ($compareIdx) must precede the " +
+                    "consent request ($requestIdx)."
+            }
+
+            val compare = consentMethod.instructions[compareIdx]
+
+            // Already patched? The guard we insert is a const/4 immediately before the branch, so
+            // re-patching the same APK finds it here and stops instead of stacking a second copy.
+            val preceding = consentMethod.instructions.getOrNull(compareIdx - 1)
+            val alreadyForced = preceding != null &&
+                preceding.opcode == Opcode.CONST_4 &&
+                (preceding as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                (preceding as OneRegisterInstruction).registerA ==
+                (compare as OneRegisterInstruction).registerA
+
+            if (compare.opcode == Opcode.IF_NEZ && !alreadyForced) {
+                // Locate the outcome register from the boolean read immediately before the branch,
+                // so the rewrite cannot silently stop matching if the register allocation changes.
+                val storedReg = (compare as OneRegisterInstruction).registerA
+                val readReg = ((compareIdx - 1) downTo maxOf(0, compareIdx - 4))
+                    .map { consentMethod.instructions[it] }
+                    .firstOrNull { it.opcode == Opcode.MOVE_RESULT }
+                    ?.let { (it as OneRegisterInstruction).registerA }
+
+                check(readReg == storedReg) {
+                    "Unexpected App.d consent branch: branching on v$storedReg but the stored " +
+                        "preference was read into v$readReg."
+                }
+
+                // Make the branch fall through to the dismissed return. Getting the constant right
+                // matters more than it looks: `if-nez` branches when the register is NOT zero, so
+                //   const/4 v, 1  -> branch taken  -> jumps to the ask path -> dialog shows
+                //   const/4 v, 0  -> falls through -> dismissed return     -> dialog suppressed
+                // A fresh install returns the default (1) from getBoolean("cashraven_enabled", 1),
+                // which is exactly why the prompt appears on a clean install in the first place.
+                //
+                // This is an INSERTION after the read, not a branch rewrite: re-pointing the branch
+                // at its own target skips past the dismissed block and lands back on the ask path
+                // (that first attempt changed nothing at all). The register is dead after this
+                // branch - the method reloads it from App->p at the next instruction - so
+                // overwriting it here is inert.
+                consentMethod.addInstructions(
+                    compareIdx,
+                    "const/4 v$storedReg, 0x0",
+                )
+
+                // Post-condition: the branch must now fall through into the dismissed return, and
+                // there must be no path from here that still reaches requestConsent.
+                check(consentMethod.instructions[compareIdx] is NarrowLiteralInstruction) {
+                    "The consent guard was not inserted; refusing to ship."
+                }
+                check(consentMethod.instructions[compareIdx + 1].opcode == Opcode.IF_NEZ) {
+                    "Unexpected App.d layout after the consent guard."
                 }
             }
         }

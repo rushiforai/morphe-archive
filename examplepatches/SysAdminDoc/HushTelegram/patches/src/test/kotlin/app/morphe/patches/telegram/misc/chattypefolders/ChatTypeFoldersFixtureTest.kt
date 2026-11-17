@@ -49,7 +49,8 @@ import app.morphe.util.names.tgMutableClassDefBy
 class ChatTypeFoldersFixtureTest {
     private val hosts = setOf(MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, CONNECTIONS, SERVER_FILTER, NEW_FILTER, TITLE,
         UPDATE_FILTER, UPDATE_ORDER, STORAGE, NOTIFICATIONS, "Lorg/telegram/messenger/support/LongSparseIntArray;",
-        REQUEST_DELEGATE, TL_ERROR, GET_FILTERS, SERVER_FILTERS)
+        REQUEST_DELEGATE, TL_ERROR, GET_FILTERS, SERVER_FILTERS, CHAT, DIALOG, "Lorg/telegram/tgnet/TLRPC\$InputPeer;",
+        "Lorg/telegram/tgnet/TLRPC\$TL_chatAdminRights;")
     private val stubs = listOf("selectedAccount", "signedIn", "userId", "foldersLoaded", "folderCount", "folderId",
         "folderFlags", "folderName", "folderChanges", "folderColor", "folderLimit", "requestDelegate", "errorText",
         "serverFolderColor", "createFolder", "addFolder", "deleteFolder", "dropFolder", "sendFolderOrder", "fetchFolders",
@@ -151,8 +152,51 @@ class ChatTypeFoldersFixtureTest {
     private fun BytecodePatchContext.method(name: String) = tgMutableClassDefBy(CHAT_TYPE_FOLDERS).method(name)
     private fun BytecodePatchContext.stub(name: String) = method(name).controlBody()
     private fun List<Instruction>.refs() = mapNotNull { it.controlRef() }
-    private fun BytecodePatchContext.status() =
-        (tgMutableClassDefBy(SETTINGS_STATUS).method("chatTypeFolders").controlBody().first() as WideLiteralInstruction).wideLiteral
+    private fun BytecodePatchContext.status(name: String = "chatTypeFolders") =
+        (tgMutableClassDefBy(SETTINGS_STATUS).method(name).controlBody().first() as WideLiteralInstruction).wideLiteral
+    private fun BytecodePatchContext.admin(name: String) = tgMutableClassDefBy(ADMIN_FOLDER).method(name)
+
+    /** The Admin folder's stubs: Telegram's loaded chats, your role in each, a folder's chats, its save and reload. */
+    private fun BytecodePatchContext.assertAdminFolder(name: String) {
+        val allDialogs = "$MESSAGES_CONTROLLER->allDialogs:Ljava/util/ArrayList;"
+        fun refs(stub: String) = admin(stub).controlBody().refs()
+        assertEquals("$name: dialogCount", listOf(CONTROLLER_INSTANCE, allDialogs, size), refs("dialogCount"))
+        assertEquals("$name: dialogId", listOf(CONTROLLER_INSTANCE, allDialogs, get, DIALOG, "$DIALOG->id:J"), refs("dialogId"))
+        // The chat by its id, which is the dialog id turned positive, then whether you left, made it or have rights there.
+        val role = admin("chatRole").controlBody()
+        assertEquals("$name: chatRole", listOf(CONTROLLER_INSTANCE, "Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;",
+            "$MESSAGES_CONTROLLER->getChat(Ljava/lang/Long;)$CHAT", "$CHAT->left:Z", "$CHAT->deactivated:Z", "$CHAT->monoforum:Z",
+            "$CHAT->creator:Z", "$CHAT->admin_rights:Lorg/telegram/tgnet/TLRPC\$TL_chatAdminRights;"), role.refs())
+        val negate = role.single { it.opcode == Opcode.NEG_LONG } as TwoRegisterInstruction
+        // The id is a long, so it takes the last two registers.
+        assertEquals("$name: chatRole id", admin("chatRole").implementation!!.registerCount - 2, negate.registerB)
+        assertEquals("$name: chatLimit", listOf(CONTROLLER_INSTANCE, USER_CONFIG_INSTANCE, IS_PREMIUM,
+            "$MESSAGES_CONTROLLER->dialogFiltersChatsLimitPremium:I", "$MESSAGES_CONTROLLER->dialogFiltersChatsLimitDefault:I"),
+            refs("chatLimit"))
+        assertEquals("$name: folderChats", listOf(CONTROLLER_INSTANCE, FILTERS_BY_ID, sparseGet, LOCAL_FILTER, LOCAL_ALWAYS),
+            refs("folderChats"))
+        // Each chat goes in as Telegram's input peer for it, then the update goes out with the reply handed in.
+        val save = admin("saveAdminFolder")
+        val body = save.controlBody()
+        assertEquals("$name: saveAdminFolder", listOf(NEW_FILTER, NEW_FILTER_INIT, FILTER_ID, TITLE, "$TITLE-><init>()V",
+            TITLE_TEXT, FILTER_TITLE, "$SERVER_FILTER->include_peers:Ljava/util/ArrayList;", CONTROLLER_INSTANCE,
+            "$MESSAGES_CONTROLLER->getInputPeer(J)Lorg/telegram/tgnet/TLRPC\$InputPeer;", "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z",
+            UPDATE_FILTER, UPDATE_INIT, UPDATE_ID, UPDATE_FLAGS, UPDATE_FLAGS, UPDATE_FILTER_FIELD, CONNECTIONS_INSTANCE,
+            REQUEST_DELEGATE, SEND_REQUEST), body.refs())
+        val read = body.single { it.opcode == Opcode.AGET_WIDE } as com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+        assertEquals("$name: saveAdminFolder chats", save.param(3), read.registerB)
+        assertEquals("$name: saveAdminFolder callback", save.param(4), body.single { it.controlRef() == SEND_REQUEST }.namedRegisters()[2])
+        // The Play build's reload takes a callback type R8 merged into a class the name table doesn't cover.
+        val reload = tgMutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.origName == "loadRemoteFilters" &&
+            it.parameterTypes.size == 2 && it.parameterTypes[0].toString() == "Z" }.origString()
+        assertEquals("$name: reloadFolders", listOf(CONTROLLER_INSTANCE, reload), refs("reloadFolders"))
+        for (stub in ADMIN_STUBS) {
+            val method = admin(stub)
+            for (instruction in method.controlBody()) {
+                assertTrue("$name: $stub ${instruction.opcode}", instruction.namedRegisters().all { it < method.implementation!!.registerCount })
+            }
+        }
+    }
 
     /** The register each parameter arrives in; none of these stubs takes a long. */
     private fun Method.param(index: Int) = implementation!!.registerCount - parameters.size + index
@@ -317,7 +361,24 @@ class ChatTypeFoldersFixtureTest {
                 }
             }
             assertEquals(1L, context.status())
+            context.assertAdminFolder(name)
+            assertEquals(name, 1L, context.status("adminFolder"))
         }
+    }
+
+    @Test fun `a build the Admin folder doesn't fit keeps Folders by chat type and says why`() {
+        val build = Fixtures.declaredBuilds().first()
+        val context = context(build)
+        val reload = context.tgMutableClassDefBy(MESSAGES_CONTROLLER).methods.single {
+            it.origName == "loadRemoteFilters" && it.origParameterTypes.size == 2
+        }
+        reload.accessFlags = reload.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
+        val untouched = ADMIN_STUBS.associateWith { stub -> context.admin(stub).controlBody().map { it.opcode } }
+        val warnings = PatchLogCapture.warnings { chatTypeFoldersPatch.execute(context) }
+        assertTrue(warnings.toString(), warnings.single().contains("loadRemoteFilters") && warnings.single().contains("without the Admin folder"))
+        assertEquals(1L, context.status())
+        assertEquals(0L, context.status("adminFolder"))
+        assertEquals(untouched, ADMIN_STUBS.associateWith { stub -> context.admin(stub).controlBody().map { it.opcode } })
     }
 
     /** Makes the bots bit something else, wherever this build keeps its starting value. */
@@ -383,5 +444,8 @@ class ChatTypeFoldersFixtureTest {
 
     private companion object {
         val saverCache = mutableMapOf<String, List<ClassDef>>()
+        const val CHAT = "Lorg/telegram/tgnet/TLRPC\$Chat;"
+        const val DIALOG = "Lorg/telegram/tgnet/TLRPC\$Dialog;"
+        val ADMIN_STUBS = listOf("dialogCount", "dialogId", "chatRole", "chatLimit", "folderChats", "saveAdminFolder", "reloadFolders")
     }
 }

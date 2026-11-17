@@ -7,6 +7,8 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-16.
  */
 
 package app.morphe.extension.youtube.patches;
@@ -48,8 +50,7 @@ public class WideSearchBarPatch {
     private static final boolean WIDE_SEARCHBAR_YOU_TAB_ENABLED =
             Settings.ENABLE_WIDE_SEARCH_BAR_IN_YOU_TAB.get();
     private static final int ID_YOUTUBE_LOGO = getIdentifier("youtube_logo", ResourceType.ID);
-    private static final int ID_SEARCH_ICON =
-            getIdentifier("revanced_settings_search_icon", ResourceType.DRAWABLE);
+    private static int searchIconId;
     private static final String SEARCH_HINT = ResourceUtils.getString("search_hint");
     private static final int DP115 = Utils.dipToPixels(115);
 
@@ -132,7 +133,11 @@ public class WideSearchBarPatch {
             searchBackground.setColor(backgroundColor);
             wideSearchBox.setBackground(searchBackground);
 
-            Drawable searchIcon = wideSearchBox.getContext().getDrawable(ID_SEARCH_ICON);
+            if (searchIconId == 0) {
+                searchIconId = ResourceUtils.getIdentifier("revanced_settings_search_icon",
+                        ResourceType.DRAWABLE, wideSearchBox.getContext());
+            }
+            Drawable searchIcon = searchIconId == 0 ? null : wideSearchBox.getContext().getDrawable(searchIconId);
             if (searchIcon != null) {
                 searchIcon = searchIcon.mutate();
                 searchIcon.setTint(textColor);

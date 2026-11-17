@@ -308,7 +308,9 @@ public final class L10n {
         String tag = tableFor(tags).tag;
         if (tag == null) return Locale.ENGLISH;
         int region = tag.indexOf("-r");
-        return region < 0 ? new Locale(tag) : new Locale(tag.substring(0, region), tag.substring(region + 2));
+        if (region >= 0) return new Locale(tag.substring(0, region), tag.substring(region + 2));
+        // A script table, zh-hans, is a language tag Locale reads whole.
+        return tag.indexOf('-') >= 0 ? Locale.forLanguageTag(tag) : new Locale(tag);
     }
 
     /**
@@ -327,6 +329,15 @@ public final class L10n {
             // A second region of a language already listed still counts: with Portugal's
             // Portuguese first and Brazil's second, the Brazilian table is the one that answers.
             String country = locale.getCountry();
+            if ("zh".equals(language)) {
+                // Chinese goes by script. Traditional is Hant, or Taiwan, Hong Kong or Macau with
+                // no script given. Everything else, plain zh included, reads Simplified, so
+                // zh-CN, zh-SG and zh-Hans-CN all find the zh-Hans table and Traditional keeps English.
+                String script = locale.getScript();
+                boolean traditional = "Hant".equalsIgnoreCase(script) || script.isEmpty()
+                        && ("TW".equalsIgnoreCase(country) || "HK".equalsIgnoreCase(country) || "MO".equalsIgnoreCase(country));
+                language = traditional ? "zh-hant" : "zh-hans";
+            }
             if (country == null || country.isEmpty()) {
                 // Telegram runs Português (Brasil) as plain "pt". Android reads a language with
                 // no region as its likely one, and so does this, while Portugal's stays its own.

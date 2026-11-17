@@ -52,7 +52,7 @@ import app.morphe.util.names.tgMutableClassDefBy
 import app.morphe.util.names.tgMutableClassDefByOrNull
 
 private const val MEDIA_DATA = "Lorg/telegram/messenger/MediaDataController;"
-private val FLAGS = listOf("disableDraftPreviews", "localDrafts", "localSearch") + DraftPreviewTarget.entries.map { it.capability }
+private val FLAGS = listOf("disableDraftPreviews", "localDrafts", "localSearch", "linkPreviewRules") + DraftPreviewTarget.entries.map { it.capability }
 
 /** The builders' classes and the classes they hand work to are the whole context; nothing else is a target. */
 class DisableDraftPreviewsFixtureTest {
@@ -240,6 +240,23 @@ class DisableDraftPreviewsFixtureTest {
         }
     }
 
+    /** Fix link previews is the one part a build may lack: the rest of the patch goes on and says so. */
+    @Test
+    fun `a build whose send has moved keeps the draft hooks and goes without Fix link previews`() {
+        val build = Fixtures.declaredBuilds().first()
+        val context = contextFor(build, withSend = false)
+        assertEquals("${build.name}: one warning, naming what's left out",
+            listOf("Disable draft link previews: SendMessagesHelper is missing. The patch goes on without Fix link previews."),
+            PatchLogCapture.warnings { disableDraftPreviewsPatch.execute(context) })
+        for (flag in FLAGS) {
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
+            assertEquals("${build.name}: $flag build fact", if (flag == "linkPreviewRules") 0 else 1,
+                (status[0] as NarrowLiteralInstruction).narrowLiteral)
+        }
+        assertTrue("${build.name}: the rules' stubs stay unwritten", context.tgMutableClassDefBy(LINK_PREVIEW_RULES).methods
+            .single { it.origName == "text" }.instructions().any { it.reference()?.contains("LinkPreviewRules\$Params") == true })
+    }
+
     @Test
     fun `the census has five compose builders, Browser and the received-preview refresh`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -305,7 +322,7 @@ class DisableDraftPreviewsFixtureTest {
     /** @return what the refusal said */
     private fun assertRefusedUntouched(build: String, case: String, context: BytecodePatchContext, hooks: Map<DraftPreviewTarget, DraftPreviewHook>): String {
         val before = hooks.mapValues { it.value.method.instructions().map(::operation) }
-        val uploads = listOf(MEDIA_DATA, LOCAL_DRAFTS).associateWith { owner -> methodOperations(context, owner) }
+        val uploads = listOf(MEDIA_DATA, LOCAL_DRAFTS, RULES_SEND_HELPER).associateWith { owner -> methodOperations(context, owner) }
         var refusal = ""
         try {
             disableDraftPreviewsPatch.execute(context)
@@ -349,8 +366,9 @@ class DisableDraftPreviewsFixtureTest {
     /**
      * Builder classes plus every class their builders and URL checks construct or read, so callbacks
      * and runnables resolve, the draft upload's class with the request it builds, and chat search.
+     * [withSend] adds the message send Fix link previews hooks.
      */
-    private fun contextFor(build: java.io.File): BytecodePatchContext {
+    private fun contextFor(build: java.io.File, withSend: Boolean = true): BytecodePatchContext {
         val owners = (FixtureDex.classesWhere(build, { true }) { it.constructs(WEB_PAGE_PREVIEW) } +
             FixtureDex.classesWhere(build, { true }) { it.constructs(SAVE_DRAFT) }).distinctBy(ClassDef::getType)
         val helpers = owners.flatMap { owner -> owner.methods.filter { method -> method.constructs(WEB_PAGE_PREVIEW) ||
@@ -365,7 +383,7 @@ class DisableDraftPreviewsFixtureTest {
         // 13.2 names a callback's run as its interface's, so the interfaces come along.
         val faces = FixtureDex.classes(build, helperClasses.flatMap { it.origInterfaces }.filter { it.startsWith("Lorg/telegram/") }.toSet()).values
         return PatchContexts.of((ExtensionDex.classes() + owners + helperClasses + faces +
-            localSearchHosts(build)).distinctBy(ClassDef::getType))
+            localSearchHosts(build) + (if (withSend) linkPreviewRulesClasses(build) else emptyList())).distinctBy(ClassDef::getType))
     }
 
     private fun BytecodePatchContext.excludedBuilders(): List<Method> {

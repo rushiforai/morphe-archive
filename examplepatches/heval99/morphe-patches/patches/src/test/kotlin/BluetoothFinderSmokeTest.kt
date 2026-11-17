@@ -35,7 +35,7 @@ class BluetoothFinderSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.9.3",
+            version = "1.9.4",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

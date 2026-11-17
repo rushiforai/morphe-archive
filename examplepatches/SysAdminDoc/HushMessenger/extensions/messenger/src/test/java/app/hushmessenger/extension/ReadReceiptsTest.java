@@ -136,6 +136,28 @@ public class ReadReceiptsTest {
         assertFalse(Settings.hideChatSeen(anotherSession, anotherThread));
     }
 
+    @Test public void deliveredIsOnlyHeldBackWhileBothSwitchesAreOn() {
+        assertFalse(Settings.hideDeliveryReceipts());
+        Settings.preferences.edit().putBoolean(Settings.HIDE_DELIVERED, true).commit();
+        assertFalse(Settings.hideDeliveryReceipts());
+        Settings.preferences.edit().putBoolean(KEY, true).commit();
+        assertTrue(Settings.hideDeliveryReceipts());
+        // A reply releases Seen for that one chat, which says nothing about the batch this phone owes.
+        Settings.noteMessageSent(session, thread);
+        assertTrue(Settings.hideDeliveryReceipts());
+        Settings.preferences.edit().putBoolean(KEY, false).commit();
+        assertFalse(Settings.hideDeliveryReceipts());
+        Settings.preferences.edit().putBoolean(KEY, true).putBoolean("paused", true).commit();
+        assertFalse(Settings.hideDeliveryReceipts());
+    }
+
+    @Test public void theDeliveredSwitchIsBackedUpUnderHideReadReceipts() {
+        assertEquals(KEY, Settings.SUB_SWITCHES.get(Settings.HIDE_DELIVERED));
+        assertTrue(Settings.installed.contains(KEY));
+        Settings.preferences.edit().putBoolean(Settings.HIDE_DELIVERED, true).commit();
+        assertTrue(ChoiceCodec.encode(Settings.preferences, Settings.installed).contains(Settings.HIDE_DELIVERED + "=true"));
+    }
+
     private static final class ThreadKey {
         private final String id;
 

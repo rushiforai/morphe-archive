@@ -5,9 +5,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -35,7 +35,7 @@ private val ORDER = listOf(
     // Home
     "fakh_hide_plus", "fakh_hide_recommended", "fakh_hide_ai_bar",
     // Navigation bar
-    "fakh_hide_explore", "fakh_hide_mall_tab", "fakh_hide_tab_labels",
+    "fakh_hide_explore", "fakh_hide_mall_tab", "fakh_hide_tab_labels", "fakh_swipe_tabs",
     // Me tab
     "fakh_hide_rewards", "fakh_hide_orders", "fakh_hide_ai_web", "fakh_hide_me_banner", "fakh_hide_app_mall",
     // Appearance
@@ -51,18 +51,18 @@ private const val ABOUT_ENTRY =
  * Lists the switch [key] on the Fakh Patches page, and the first time adds that page: a Fakh Patches row in its own
  * group above About, made from the About row's cell, and the page's activity in the manifest.
  */
-internal fun ResourcePatchContext.addSettingsSwitch(key: String) {
-    val switches = get(SWITCHES)
+internal fun addSettingsSwitch(key: String) {
+    val switches = resourceFile(SWITCHES)
     val listed = if (switches.exists()) switches.readLines().filter(String::isNotBlank) else emptyList()
     switches.writeText((listed + key).distinct().sortedBy(ORDER::indexOf).joinToString("\n"))
     if (listed.isNotEmpty()) return
 
-    val cells = get("assets/thingarchercell_config.json")
+    val cells = resourceFile("assets/thingarchercell_config.json")
     val cellsText = cells.readText()
     if (ABOUT_ENTRY !in cellsText) throw PatchException("Smart Life: the About cell was not found in thingarchercell_config.json")
     cells.writeText(cellsText.replace(ABOUT_ENTRY, "$ABOUT_ENTRY,${ABOUT_ENTRY.replace("personal_setting_about", ROW)}"))
 
-    val settings = get("assets/personal_setting_config_list.json")
+    val settings = resourceFile("assets/personal_setting_config_list.json")
     val text = settings.readText()
     val about = Regex("""\{\s*"name"\s*:\s*"personal_setting_private_group"""").find(text)
         ?: throw PatchException("Smart Life: the About group was not found in personal_setting_config_list.json")
@@ -90,7 +90,7 @@ private object AboutCellBindFingerprint : Fingerprint(
 )
 
 /** Turns the extra About row in Settings into the Fakh Patches row. */
-internal val settingsSwitchesPatch = bytecodePatch {
+internal val settingsSwitchesPatch = patch {
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -106,7 +106,7 @@ internal val settingsSwitchesPatch = bytecodePatch {
 }
 
 /** A patch that lists the switch [key] on the Fakh Patches page in Settings. */
-internal fun switchRow(key: String) = resourcePatch {
+internal fun switchRow(key: String) = patch {
     execute {
         addSettingsSwitch(key)
     }

@@ -58,8 +58,16 @@ import app.hushtelegram.extension.shared.settings.StringSetting;
 import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.shared.settings.preference.QuickSetups;
+import app.hushtelegram.extension.telegram.misc.ChatListAvatar;
+import app.hushtelegram.extension.telegram.misc.KeepRemoved;
+import app.hushtelegram.extension.telegram.misc.LinkPreviewRules;
+import app.hushtelegram.extension.telegram.misc.Bookmarks;
+import app.hushtelegram.extension.telegram.misc.ChatListBanner;
+import app.hushtelegram.extension.telegram.misc.ListBackground;
+import app.hushtelegram.extension.telegram.misc.LocalPins;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.RecordChats;
+import app.hushtelegram.extension.telegram.misc.VoiceChanger;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 
 /**
@@ -443,6 +451,10 @@ public class SettingsBackupPreference extends Preference {
             if (change.getKey() == Settings.TITLE_EMOJI) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Emoji next to the chat list title"),
                         TitleEmojiEditor.shown(Settings.TITLE_EMOJI.savedValue()), TitleEmojiEditor.shown((String) change.getValue())));
+            } else if (change.getKey() == Settings.CHAT_LIST_TITLE_TEXT) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Text for the chat list title"),
+                        TitleEmojiEditor.shown(Settings.CHAT_LIST_TITLE_TEXT.savedValue()),
+                        TitleEmojiEditor.shown((String) change.getValue())));
             } else if (change.getKey() == Settings.GALLERY_FOLDER) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Gallery folder"),
                         HushTelegramPreferenceFragment.galleryFolderLabel(Settings.GALLERY_FOLDER.savedValue()),
@@ -463,14 +475,43 @@ public class SettingsBackupPreference extends Preference {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Translate into"),
                         TranslateTargetPicker.label(Settings.TRANSLATE_TARGET.savedValue()),
                         TranslateTargetPicker.label((String) change.getValue())));
+            } else if (change.getKey() == Settings.VOICE_CHANGER) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Voice changer"),
+                        HushTelegramPreferenceFragment.voiceChangerLabel(Settings.VOICE_CHANGER.savedValue()),
+                        HushTelegramPreferenceFragment.voiceChangerLabel((String) change.getValue())));
             } else if (change.getKey() == Settings.RECORD_CALLS_WHICH) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Calls to record"),
                         HushTelegramPreferenceFragment.recordWhichLabel(RecordChats.scope()),
                         HushTelegramPreferenceFragment.recordWhichLabel((String) change.getValue())));
+            } else if (change.getKey() == Settings.LOCAL_PINNED_CHATS) {
+                // How many, not which: the ids are the person's own chats.
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Chats pinned on this phone"),
+                        chatCount(Settings.LOCAL_PINNED_CHATS.savedValue()), chatCount((String) change.getValue())));
+            } else if (change.getKey() == Settings.KEPT_REMOVED_CHATS) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Chats you were removed from"),
+                        keptCount(Settings.KEPT_REMOVED_CHATS.savedValue()), keptCount((String) change.getValue())));
+            } else if (change.getKey() == Settings.CHAT_LIST_BANNER) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Chat list banner"),
+                        HushTelegramPreferenceFragment.chatListBannerLabel(Settings.CHAT_LIST_BANNER.savedValue()),
+                        HushTelegramPreferenceFragment.chatListBannerLabel((String) change.getValue())));
             } else if (change.getKey() == Settings.RECORD_CALLS_KEEP_DAYS) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Keep recordings"),
                         HushTelegramPreferenceFragment.recordKeepShort(Settings.RECORD_CALLS_KEEP_DAYS.savedValue()),
                         HushTelegramPreferenceFragment.recordKeepShort((Integer) change.getValue())));
+            } else if (change.getKey() == Settings.KEEP_DELETED_DAYS) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Remove kept messages after"),
+                        HushTelegramPreferenceFragment.keptDaysShort(Settings.KEEP_DELETED_DAYS.savedValue()),
+                        HushTelegramPreferenceFragment.keptDaysShort((Integer) change.getValue())));
+            } else if (change.getKey() == Settings.LINK_PREVIEW_RULE_LIST) {
+                int before = LinkPreviewRules.saved().rules.size();
+                int after = LinkPreviewRules.parse((String) change.getValue()).rules.size();
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Link preview rules"),
+                        L10n.quantity(before, "%1$d rule", "%1$d rules", before),
+                        L10n.quantity(after, "%1$d rule", "%1$d rules", after)));
+            } else if (change.getKey() == Settings.BOOKMARKS) {
+                // How many, not which: they're the person's own messages.
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Bookmarks"),
+                        bookmarkCount(Settings.BOOKMARKS.savedValue()), bookmarkCount((String) change.getValue())));
             } else if (change.getKey() instanceof StringSetting) {
                 String title = L10n.t(change.getKey() == Settings.MESSAGE_FILTERS_GROUPS ? "Filters for groups" : "Filters for channels");
                 int count = MessageFilters.lines((String) change.getValue()).size();
@@ -480,9 +521,36 @@ public class SettingsBackupPreference extends Preference {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Sticker size"),
                         percent.format(StickerSize.percent(Settings.STICKER_SIZE.savedValue()) / 100.0),
                         percent.format(((Integer) change.getValue()) / 100.0)));
+            } else if (change.getKey() == Settings.CHAT_LIST_AVATAR_SIZE) {
+                NumberFormat percent = NumberFormat.getPercentInstance(L10n.locale());
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Avatar size"),
+                        percent.format(ChatListAvatar.percent(Settings.CHAT_LIST_AVATAR_SIZE.savedValue()) / 100.0),
+                        percent.format(((Integer) change.getValue()) / 100.0)));
+            } else if (change.getKey() == Settings.LIST_BACKGROUND_DIM) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Background dim"),
+                        HushTelegramPreferenceFragment.percent(Settings.LIST_BACKGROUND_DIM.savedValue()),
+                        HushTelegramPreferenceFragment.percent((Integer) change.getValue())));
             }
         }
         return lines;
+    }
+
+    /** "3 chats" for the chats pinned on this phone that [saved] holds. */
+    private static String chatCount(String saved) {
+        int count = LocalPins.count(saved);
+        return L10n.quantity(count, "%1$d chat", "%1$d chats", count);
+    }
+
+    /** "2 chats" for the chats Keep chats you're removed from kept that [saved] holds. */
+    private static String keptCount(String saved) {
+        int count = KeepRemoved.count(saved);
+        return L10n.quantity(count, "%1$d chat", "%1$d chats", count);
+    }
+
+    /** "3 bookmarks" for the bookmarks [saved] holds. */
+    private static String bookmarkCount(String saved) {
+        int count = Bookmarks.count(saved);
+        return L10n.quantity(count, "%1$d bookmark", "%1$d bookmarks", count);
     }
 
     /**
@@ -543,6 +611,11 @@ public class SettingsBackupPreference extends Preference {
                         // A row's own change notes the restart it owes. The import's skipped that,
                         // and the card went on saying every switch was working.
                         AbstractPreferenceFragment.noteRestartPending(before);
+                        // The picture behind the lists shows a change at once, as its own rows do.
+                        if (named.contains(Settings.LIST_BACKGROUND) || named.contains(Settings.LIST_BACKGROUND_DIM)) {
+                            ListBackground.changed();
+                        }
+                        if (named.contains(Settings.CHAT_LIST_BANNER)) ChatListBanner.changed();
                         importing(null);
                         finish(run);
                         if (result != null) tell(IMPORT, result);

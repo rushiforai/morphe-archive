@@ -4,7 +4,7 @@ import app.fakhradio.patches.shared.Constants.COMPATIBILITY_RADIO_ID
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val SERVICE = "Lcom/appgeneration/ituner/media/service2/MediaService2;"
 private const val SESSION = "Landroid/support/v4/media/session/MediaSessionCompat;"
@@ -25,7 +25,7 @@ private val setSessionStateFingerprint = Fingerprint(
 )
 
 @Suppress("unused")
-val nowPlayingMetadataPatch = bytecodePatch(
+val nowPlayingMetadataPatch = patch(
     name = "Song info in media notification",
     description = "Shows the song title and its album art in the media notification and the system media player, instead of the station name with no picture.",
     default = true,

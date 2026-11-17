@@ -381,6 +381,8 @@ Hide Add Yours cards between stories	스토리 사이의 'Add Yours' 카드 숨�
 Leaves out the Add Yours cards, like Popular Add Yours and Join a trending Add Yours, that Instagram puts between the stories you tap through. The stories themselves stay.	넘겨 보는 스토리 사이에 인스타그램이 넣는 인기 'Add Yours'나 트렌드 'Add Yours' 참여 같은 'Add Yours' 카드를 숨깁니다. 스토리는 그대로 남습니다.
 Download feed photos	피드 사진 다운로드
 The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	사진 게시물과 사진이 포함된 캐러셀에도 동일한 다운로드 기능을 추가합니다. Instagram에서 제공하는 가장 큰 사이즈로 저장할 수 있습니다
+Save photos at full size	사진을 원본 크기로 저장
+Download feed photos saves a photo at the size it was posted, not the 1080 pixel copy Instagram shows. Grid pictures load larger too, which uses more data. Restart Instagram to see the change.	피드 사진 다운로드가 Instagram이 보여 주는 1080픽셀 사본 대신 게시된 원래 크기로 사진을 저장합니다. 그리드 사진도 더 크게 불러오므로 데이터를 더 씁니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 the start-up fix for x86 devices	x86 기기에 대한 시작 문제 수정
 # context: toasts when a long press of Home gave up waiting on Instagram's developer options to load
 Pure black dark mode	순수 검정 어두운 모드
@@ -397,7 +399,9 @@ Leaves New group out of the share sheet, and the button that sends to the people
 Hide the search bar	검색창 숨기기
 Takes the search bar off the top of the share sheet. The people you can send to still show.	공유 시트 맨 위의 검색창을 없앱니다. 보낼 수 있는 사람들은 그대로 표시됩니다.
 Story ring size	스토리 링 사이즈
-Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Restart Instagram to see a change.	홈 상단 스토리 목록의 링을 아래에서 고른 크기로, 아직 보지 않은 스토리의 링을 아래에서 고른 색상으로 표시합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Hide rings outside the stories row	스토리 목록 밖의 링 숨기기
+Takes the story and live rings off profile pictures on posts, comments, reels and profiles. The pictures stay, and so do the rings in the stories row.	게시물, 댓글, 릴스, 프로필의 프로필 사진에서 스토리 링과 라이브 링을 없앱니다. 사진은 그대로 있고, 스토리 목록의 링도 그대로 있습니다.
+Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Story rings take the thickness below. Restart Instagram to see a change.	홈 상단 스토리 목록의 링을 아래에서 고른 크기로, 아직 보지 않은 스토리의 링을 아래에서 고른 색상으로 표시합니다. 스토리 링은 아래에서 고른 두께로 표시됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Ring size	링 사이즈
 Instagram's size	Instagram 사이즈
 The rings are the size Instagram picks for your screen.	스토리 링의 크기를 Instagram이 화면에 맞게 선택한 크기로 설정합니다
@@ -453,6 +457,9 @@ Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back 
 Open the profile's posts first	먼저 프로필 게시물을 여세요
 Still loading, try again	아직 로드 중입니다. 다시 시도하세요
 Going to that date	해당 날짜로 이동 중
+# context: Profiles settings; Reels is the reels tab on a profile, Latest and Most viewed are the two sorts Instagram's arrow next to it offers (#679)
+Sort reels on profiles	프로필의 릴스 정렬
+Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	모든 프로필의 릴스 옆에 화살표를 표시해, Instagram이 선택을 없앤 곳에서도 최신순 또는 조회수 많은 순으로 정렬할 수 있습니다.
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	릴스 사이에 표시되는 팔로우할 사람 및 크리에이터 추천 카드를 숨깁니다. 릴스 자체는 모두 정상적으로 재생됩니다
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	유료 광고 파트너십 라벨이 있는 릴스와 Instagram이 홍보됨으로 표시한 릴스를 제외합니다. 광고는 별도의 스위치가 있습니다.
 Turn on Start Home on Following to use this choice.	이 옵션을 사용하려면 ‘팔로잉에서 홈 시작’을 활성화하세요
@@ -567,6 +574,8 @@ Seek bar like DM videos	DM 동영상 같은 탐색 바
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	릴스에 채팅 속 동영상의 탐색 바를 씁니다. 재생되면서 흰색으로 바뀌는 얇은 회색 선에 크고 둥근 흰색 핸들이 붙습니다. 시간은 위쪽에 표시됩니다. 드래그해서 이동하세요. 릴스 탐색 바 크게도 켜져 있으면 이 스타일이 적용됩니다. 짧은 릴스에서도 바를 유지합니다.
 Seek bar on photos with music	음악이 있는 사진에 탐색 바 표시
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	사진과 노래로 된 릴스에 동영상 릴스와 같은 탐색 바와 시간이 표시되며 노래를 따라 움직입니다. 드래그하여 탐색하세요.
+Hide the seek bar on reels	릴스 탐색 바 숨기기
+Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	긴 릴스를 포함해 모든 릴스 하단의 탐색 바를 없앱니다. 릴스를 길게 누르면 다시 나타나 탐색할 수 있습니다. 재생바 유지와 위의 탐색 바 스타일이 우선합니다.
 Blur the bars around a reel	릴스 주변 막대 흐리게 처리
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	화면을 가득 채우지 않는 릴스는 검은 막대 대신 위아래에 자신의 흐릿한 복사본을 보여주고, 탭 바 아래의 띠와 시계 뒤의 영역에도 릴스가 흐릿하게 보입니다. 복사본은 릴스 전체 보기를 켰을 때처럼 릴스 주위에 빈 공간이 있을 때만 보입니다. 변경 후에는 릴스를 다시 여세요.
 A sideways swipe no longer moves you between Home, Reels and the other main tabs. Tap the tab bar instead. Stop swipe to create covers the camera.	옆으로 스와이프해도 더 이상 홈, 릴스, 다른 기본 탭 사이를 이동하지 않습니다. 대신 탭 바를 누르세요. 카메라는 스와이프하여 만들기 정지가 막아 줍니다.
@@ -771,7 +780,7 @@ That isn't a domain. Try one like example.com.	올바른 도메인이 아닙니�
 The heart plays %1$s when you double tap a post.	게시물을 두 번 탭하면 하트가 %1$s 애니메이션을 재생합니다.
 The heart that pops up when you double tap a post plays the animation you pick below. They're animations Instagram made for its Rings creators.	게시물을 두 번 탭하면 나타나는 하트가 아래에서 고른 애니메이션으로 재생됩니다. Instagram이 Rings 크리에이터를 위해 만든 애니메이션입니다.
 Turn on Change the like animation to use this choice.	이 선택을 사용하려면 좋아요 애니메이션 바꾸기를 켜세요.
-When Instagram has more than 500 MB of saved photos and videos, deletes the photos as you leave it and the videos the next time it starts. Your sign-in, drafts and settings stay.	Instagram에 저장된 사진과 동영상이 500MB를 넘으면, 앱에서 나갈 때 사진을, 다음 실행 때 동영상을 삭제합니다. 로그인 정보, 임시 저장 글, 설정은 그대로입니다.
+When Instagram's saved photos and videos pass the limit below, deletes the photos as you leave it and the videos the next time it starts. Your sign-in, drafts and settings stay.	Instagram에 저장된 사진과 동영상이 아래 한도를 넘으면, 앱에서 나갈 때 사진을, 다음 실행 때 동영상을 삭제합니다. 로그인 정보, 임시 저장 글, 설정은 그대로입니다.
 Ask before a like	좋아요 전에 묻기
 Ask before a refresh	새로고침 전에 묻기
 Continue	계속
@@ -831,7 +840,7 @@ Cancel saving this voice message	이 음성 메시지 저장 취소
 Download voice messages	음성 메시지 다운로드
 Following each other	서로 팔로우 중
 Hide the comment bar on reposted reels	다시 게시한 릴스의 댓글 창 숨기기
-Puts the answer in a chip under the profile's posts, followers and following counts instead, and says Following each other when you follow them too.	대신 프로필의 게시물, 팔로워, 팔로잉 수 아래에 칩으로 표시하고, 나도 그 계정을 팔로우하면 서로 팔로우 중이라고 표시합니다.
+Puts the answer in a chip under the profile's posts, followers and following counts instead, and says Following each other when you follow them too. Tap the chip to see everything else Instagram has said about you two, like Close Friends, mutes and restrictions.	대신 프로필의 게시물, 팔로워, 팔로잉 수 아래에 칩으로 표시하고, 나도 그 계정을 팔로우하면 서로 팔로우 중이라고 표시합니다. 칩을 탭하면 친한 친구, 음소거, 제한 등 Instagram이 두 사람에 대해 알려 준 나머지 정보를 모두 볼 수 있습니다.
 Saving a voice message	음성 메시지 저장 중
 Show it as a chip	칩으로 표시
 Follow label	팔로우 표시
@@ -845,7 +854,7 @@ The Add comment bar under a reel you open from a profile's reposts. The comment 
 Hide the comment bar on all reels	모든 릴스의 댓글 창 숨기기
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	릴스 탭을 포함한 모든 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
 Keep the comment bar's space	댓글 창 공간 유지
-Leaves an empty band where a hidden comment bar was on reels you open from a post or a profile, so the reel, its buttons and the seek bar don't move down.	게시물이나 프로필에서 연 릴스에서 숨긴 댓글 창 자리에 빈 띠를 남겨 릴스와 버튼, 탐색 바가 아래로 내려가지 않게 합니다.
+Leaves an empty black band where a hidden comment bar was on reels outside the Reels tab, like the ones you open from Explore or a profile, so the reel, its buttons and the seek bar don't move down.	릴스 탭 밖의 릴스, 예를 들어 탐색이나 프로필에서 연 릴스에서 숨긴 댓글 창 자리에 빈 검은 띠를 남겨 릴스와 버튼, 탐색 바가 아래로 내려가지 않게 합니다.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	다른 사람 프로필의 메뉴에 사용자 이름 복사와 소개 복사를 추가합니다. 각각 계정에 있는 텍스트를 그대로 복사합니다.
 Adds View profile picture to the menu on someone's profile. Opens their picture full screen at the largest size Instagram has, with pinch zoom and a Save button.	다른 사람 프로필의 메뉴에 프로필 사진 보기를 추가합니다. Instagram에 있는 가장 큰 크기의 사진을 전체 화면으로 열며, 손가락으로 확대할 수 있고 저장 버튼이 있습니다.
 Bio	소개
@@ -985,6 +994,12 @@ Unlock this chat	이 채팅 잠금 해제
 Locked chats	잠긴 채팅
 Lock single chats. A locked chat opens only once you unlock it the way Unlock with says, and its notifications say only that a message came.	채팅을 하나씩 잠급니다. 잠긴 채팅은 ‘잠금 해제 방법’에서 정한 방식으로 잠금을 해제해야 열리고, 알림에는 메시지가 왔다는 내용만 표시됩니다.
 Open a chat in Instagram, then come back here to lock it.	Instagram에서 채팅을 연 다음 여기로 돌아와 잠그세요.
+# context: Lock rows under Messages; a Saved collection is one of the folders Instagram's Saved keeps posts in. Unlock with is the row that picks the phone lock or a PIN (#678)
+This collection is locked	이 컬렉션은 잠겨 있습니다
+Unlock this collection	이 컬렉션 잠금 해제
+Locked collections	잠긴 컬렉션
+Lock single collections in Saved. A locked collection opens only once you unlock it the way Unlock with says. Saving a post to it never asks.	저장됨의 컬렉션을 하나씩 잠급니다. 잠긴 컬렉션은 ‘잠금 해제 방법’에서 정한 방식으로 잠금을 해제해야 열립니다. 게시물을 그 컬렉션에 저장할 때는 묻지 않습니다.
+Open a collection in Saved, then come back here to lock it.	저장됨에서 컬렉션을 연 다음 여기로 돌아와 잠그세요.
 %1$s (opened last)	%1$s (마지막으로 연 채팅)
 %1$s is locked	%1$s 잠김
 %1$s is unlocked	%1$s 잠금 해제됨
@@ -1067,7 +1082,7 @@ A tap on a reel pauses it, and another tap plays it again.	릴스를 탭하면 �
 A tap on a playing reel turns its sound off or on and keeps it playing. A reel that's paused still plays on a tap.	재생 중인 릴스를 탭하면 소리가 꺼지거나 켜지고 계속 재생됩니다. 일시정지된 릴스는 탭하면 재생됩니다.
 A tap on a reel does what Instagram does.	릴스를 탭하면 Instagram이 하는 대로 동작합니다.
 Keep playing	계속 재생
-A tap on a playing reel does nothing, so a stray touch doesn't stop it. A reel that's paused still plays on a tap.	재생 중인 릴스를 탭해도 아무 일도 일어나지 않아 실수로 닿아도 멈추지 않습니다. 일시정지된 릴스는 탭하면 재생됩니다.
+A tap on a playing reel does nothing, so a stray touch doesn't stop it. A tap right on the play icon still pauses it, and a paused reel plays on a tap.	재생 중인 릴스를 탭해도 아무 일도 일어나지 않아 실수로 닿아도 멈추지 않습니다. 재생 아이콘을 정확히 탭하면 일시정지되고, 일시정지된 릴스는 탭하면 재생됩니다.
 Keep reels muted on the volume keys	볼륨 키를 눌러도 릴스 음소거 유지
 Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.	볼륨 올리기는 휴대폰 볼륨을 그대로 올리지만, 음소거된 릴스는 직접 켤 때까지 음소거로 유지됩니다.
 Start stories with sound	스토리를 소리와 함께 시작
@@ -1129,6 +1144,8 @@ Never. Pick a time and the tab bar slides away once a reel has played that long 
 On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	릴스에서 %1$d초 동안 터치가 없으면 탭 바가 아래로 사라집니다. 다시 보려면 화면 아래쪽 가장자리를 탭하거나 탭을 바꾸거나 뒤로를 누르세요. 변경한 뒤에는 Instagram을 다시 시작하세요.
 Start feed videos with sound	피드 동영상을 소리와 함께 시작
 Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	홈의 동영상이 동영상의 스피커를 누른 것처럼 소리가 켜진 채로 재생됩니다. 하나를 음소거하면 이후 동영상도 음소거된 상태로 유지됩니다. 휴대전화의 벨소리 모드와 볼륨은 그대로 적용되므로 무음이거나 볼륨이 꺼져 있으면 조용한 상태로 유지됩니다.
+Start feed videos muted	피드 동영상을 음소거로 시작
+Videos on Home start silent, even after you turn the sound on in Reels, so reels keep their sound. Tap a video's speaker to hear that one. Wins over Start feed videos with sound.	릴스에서 소리를 켠 후에도 홈의 동영상은 음소거로 시작되므로 릴스는 소리를 유지합니다. 들으려는 동영상의 스피커를 누르세요. 피드 동영상을 소리와 함께 시작보다 우선합니다.
 Tap a feed video to pause it	피드 동영상을 탭하여 일시정지
 Tap the video playing in a feed to pause it in place instead of opening it in Reels, and tap it again to play it. Ads keep Instagram's own tap.	피드에서 재생 중인 동영상을 누르면 릴스에서 열리는 대신 일시정지되고, 다시 누르면 재생됩니다. 광고는 Instagram의 기본 동작을 그대로 따릅니다.
 Hold for 2x on feed videos	피드 동영상 길게 눌러 2배속
@@ -1193,7 +1210,7 @@ Show the Friends tab on Reels	릴스의 친구 탭 표시
 Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	계정에 친구 탭이 없었다면 릴스 탭 위쪽에 추가합니다. 내용은 그대로 Instagram에서 오므로 비어 있을 수 있습니다. 친구 탭 숨기기가 우선합니다.
 # context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
 Hold the Friends tab to pick friends	친구 탭을 길게 눌러 친구 선택
-Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	릴스의 친구 탭을 길게 눌러 지금까지 표시된 친구 중에서 고릅니다. 그러면 그 친구들이 좋아하거나 공유한 릴스만 남습니다. 해당 친구가 없는 페이지는 다음 페이지를 불러올 수 있도록 릴스 하나를 남깁니다.
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared.	릴스의 친구 탭을 길게 눌러 지금까지 표시된 친구 중에서 고릅니다. 그러면 그 친구들이 좋아하거나 공유한 릴스만 남습니다.
 Pick friends	친구 선택
 Open the Friends tab first.	먼저 친구 탭을 여세요.
 No friends to pick yet.	아직 고를 친구가 없어요.
@@ -1213,6 +1230,19 @@ At once	바로
 Tapping the video, double-tapping it to like, and Save and Download don't count as a touch, so the buttons stay faded.	동영상 탭, 두 번 탭해서 좋아요, 저장과 다운로드는 터치로 치지 않으므로 버튼이 흐린 채로 있습니다.
 Off. It can fade a reel's buttons while the screen sits untouched, so they don't burn into an OLED screen.	사용 안함. 화면을 터치하지 않는 동안 릴스 버튼을 흐리게 해서 OLED 화면에 번인이 생기지 않게 할 수 있습니다.
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	릴스 옆 버튼 열에서 저장 버튼과 그 아래 숫자를 없앱니다. 피드 게시물의 저장 버튼은 그대로 남습니다.
+# context: Reels settings: five switches after Hide the Save button on reels (#719), each taking only the number under one button in the column beside a reel; use the button names of the rows above
+Hide like counts on reels	릴스의 좋아요 수 숨기기
+Takes away the number under the heart beside a reel. The heart stays.	릴스 옆 하트 아래의 숫자를 없앱니다. 하트는 그대로 있습니다.
+Hide comment counts on reels	릴스의 댓글 수 숨기기
+Takes away the number under the Comment button beside a reel. The button stays.	릴스 옆 댓글 버튼 아래의 숫자를 없앱니다. 버튼은 그대로 있습니다.
+Hide repost counts on reels	릴스의 리포스트 수 숨기기
+Takes away the number under the Repost button beside a reel. The button stays.	릴스 옆 리포스트 버튼 아래의 숫자를 없앱니다. 버튼은 그대로 있습니다.
+Hide share counts on reels	릴스의 공유 수 숨기기
+Takes away the number under the Share button beside a reel. The button stays.	릴스 옆 공유 버튼 아래의 숫자를 없앱니다. 버튼은 그대로 있습니다.
+Hide save counts on reels	릴스의 저장 수 숨기기
+Takes away the number under the Save button beside a reel. The button stays.	릴스 옆 저장 버튼 아래의 숫자를 없앱니다. 버튼은 그대로 있습니다.
+Hide the pause icon on reels	릴스의 일시정지 아이콘 숨기기
+A paused reel shows just its frame, without the big pause icon and the sound button over it. Tap the reel to play it again.	일시정지한 릴스에 큰 일시정지 아이콘과 소리 버튼 없이 화면만 보입니다. 릴스를 탭하면 다시 재생됩니다.
 Keep clear mode on	클리어 모드 유지
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	릴스에서 Instagram의 클리어 모드를 켜면 다음 릴스도 클리어 모드로 열립니다. 클리어 모드를 직접 끄면 다음 릴스에는 버튼이 다시 표시됩니다.
 # context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
@@ -1256,6 +1286,9 @@ Under a name in your messages and in a chat, the exact time they were last on, l
 Active at %1$s	%1$s에 활동
 Active yesterday at %1$s	어제 %1$s에 활동
 Active %1$s at %2$s	%1$s %2$s에 활동
+# context: Messages settings; Active now is Instagram's presence label under a name in your messages and in a chat, shown for six and a half minutes after someone leaves (#683)
+Shorter Active now	지금 활동 중 짧게 표시
+Someone shows as Active now for one minute after they leave, like on the website, instead of six and a half. Restart Instagram to see the change.	웹사이트처럼 상대가 나간 뒤 6분 30초가 아니라 1분 동안만 지금 활동 중으로 표시됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Rounded corners on posts	게시물 모서리 둥글게
 Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	홈과 팔로잉에서 게시물의 사진, 동영상, 캐러셀 페이지 모서리를 둥글게 만듭니다. 변경한 뒤에 스크롤해서 보는 게시물부터 적용됩니다. 스토리, 프로필, 탐색은 그대로입니다.
 Corner size	모서리 크기
@@ -1303,6 +1336,7 @@ Hide the reply bar on reels from chats	채팅에서 연 릴스의 답장 창 숨
 The Reply to box under a reel you open from a chat, with its reactions and plus button. The chat's own message box stays.	채팅에서 연 릴스 아래의 답장 입력란과 반응, 더하기 버튼입니다. 채팅의 메시지 입력란은 그대로 남습니다.
 # context: Layout list title; it picks the font Instagram's text draws in
 Font	글꼴
+Text size	글자 크기
 # context: the three choices in the Font list
 Instagram's font	Instagram 글꼴
 Your phone's font	휴대전화 글꼴
@@ -1322,7 +1356,7 @@ Hide AI-labeled reels	AI 라벨이 있는 릴스 숨기기
 Leaves out reels that carry Instagram's own AI label. A reel without that label stays, even if AI made it.	Instagram 자체 AI 라벨이 붙은 릴스를 뺍니다. 그 라벨이 없는 릴스는 AI로 만들었더라도 그대로 둡니다.
 # context: Downloads switch under Download button on feed posts; on a carousel the icon saves every page instead of asking which
 Save every page without asking	묻지 않고 모든 페이지 저장
-On a carousel, the download icon saves all of its pages at once instead of asking.	캐러셀에서는 다운로드 아이콘이 묻지 않고 모든 페이지를 한 번에 저장합니다.
+On a carousel, the download icon saves all of its pages at once instead of asking. A photo with music saves as a photo.	캐러셀에서는 다운로드 아이콘이 묻지 않고 모든 페이지를 한 번에 저장합니다. 음악이 있는 사진은 사진으로 저장됩니다.
 # context: Reels switch Hide reels by caption words, its Blocked words list row and that row's summary; %1$d is how many words
 Hide reels by caption words	캡션 단어로 릴스 숨기기
 Also on Home	홈에도 적용
@@ -1399,6 +1433,9 @@ Scrolling a list down leaves the liquid pill as it is, every tab in place. Resta
 # context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
 Shrink the pill as you scroll	스크롤할 때 알약 줄이기
 With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	리퀴드 글래스 스타일이 꺼져 있을 때 목록을 아래로 스크롤하면 알약이 작아지고, 위로 스크롤하거나 탭을 바꾸면 원래 크기로 돌아옵니다. 스크롤할 때 탭 바 숨기기가 켜져 있으면 그 설정이 우선합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+# context: a switch under Glass tab bar (#720) that gives the standard pill (the one without the liquid look) the look of Android's own Material 3 bars, and its description. Material is Google's design name, keep it; Liquid glass look is the name of another switch
+Material look	머티리얼 스타일
+With Liquid glass look off, the pill looks like Android's own Material 3 bars. It's solid, with no blur, in your phone's colors on Android 12 and newer, and a round marker sits on the tab you're on. Restart Instagram after changing it.	리퀴드 글래스 스타일이 꺼져 있을 때 알약이 Android의 머티리얼 3 바처럼 보입니다. 흐림 없이 단색이고, Android 12 이상에서는 휴대폰 색상을 따르며, 지금 있는 탭에 둥근 표시가 놓입니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	가장자리에서 빛 굴절
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	알약의 가장자리가 실제 유리처럼 뒤에 있는 것을 굴절시켜, 가장자리 아래로 지나가는 것이 거꾸로 보입니다. Android 13 이상. 변경한 뒤에는 Instagram을 다시 시작하세요.
@@ -1455,11 +1492,17 @@ Left off your profile: %1$s. The grid of posts stays.	내 프로필에서 숨긴
 Left off other profiles: %1$s. The grid of posts stays.	다른 프로필에서 숨긴 탭: %1$s. 게시물 그리드는 그대로 남습니다.
 Reposts	리포스트
 Tagged	태그됨
+# context: Instagram's Subscriptions tab on a creator's profile, a choice in the Tabs on your profile and Tabs on other profiles lists under Profiles (#721), next to Reels, Reposts and Tagged. Use Instagram's own name for that tab
+Subscriptions	구독
 # context: Show all recent searches switch under Explore; See all is Instagram's own row under the recent searches
 Show all recent searches	최근 검색 모두 표시
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	검색창 아래에 처음 몇 개만이 아니라 최근 검색을 전부 보여 줍니다. 모두 보기와 각 줄의 x는 전과 똑같이 작동합니다.
 Hide the call buttons in chats	채팅에서 통화 버튼 숨기기
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	채팅 상단의 음성 통화 및 영상 통화 버튼을 없앱니다. 이름은 자리를 그대로 유지합니다. 끄면 다음에 채팅을 열 때 버튼이 다시 나타납니다.
+Hide Blend in chats	채팅에서 Blend 숨기기
+Takes the Blend button off the top of a chat. Turn it off and it's back the next time a chat opens.	채팅 상단의 Blend 버튼을 없앱니다. 끄면 다음에 채팅을 열 때 버튼이 다시 나타납니다.
+Hide the back button in chats	채팅에서 뒤로 버튼 숨기기
+Leaves the back arrow off the top left of a chat, and the picture and the name move over. Swipe back or use the phone's back button to leave the chat. Shows the next time a chat opens.	채팅 왼쪽 위의 뒤로 화살표를 없애고, 사진과 이름이 그 자리로 옮겨 갑니다. 채팅에서 나가려면 뒤로 스와이프하거나 휴대폰의 뒤로 버튼을 누르세요. 다음에 채팅을 열 때부터 적용됩니다.
 Hide the Community Standards reminder	커뮤니티 규정 알림 숨기기
 Takes the banner reminding you to be respectful off the bottom of a chat.	채팅 하단에 표시되는 서로 존중하라는 배너를 없앱니다.
 Buttons in the message box	메시지 입력창의 버튼
@@ -1559,6 +1602,8 @@ Pinch to zoom	두 손가락으로 확대
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	재생 중인 릴스를 사진처럼 두 손가락으로 확대합니다. 손가락을 떼면 원래대로 돌아갑니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Double tap to skip	두 번 탭하여 건너뛰기
 A double tap on the left side of a reel goes back, and on the right side it goes ahead, as far as Skip length says. A double tap in the middle still likes it. Reels no longer than that don't skip.	릴스 왼쪽을 두 번 탭하면 뒤로, 오른쪽을 두 번 탭하면 앞으로 건너뛰기 길이만큼 이동합니다. 가운데를 두 번 탭하면 그대로 좋아요가 눌립니다. 그보다 길지 않은 릴스는 건너뛰지 않습니다.
+Show the skip arrows	건너뛰기 화살표 표시
+Two arrows flash on the side you double tapped, with the seconds skipped under them, like on feed videos.	두 번 탭한 쪽에 화살표 두 개가 잠깐 나타나고, 그 아래에 건너뛴 초가 표시됩니다. 피드 동영상과 같습니다.
 Hide the 2x popup	2배속 팝업 숨기기
 Takes the 2x label off a reel while you hold it to play faster. The speed-up still works.	릴스를 길게 눌러 빠르게 재생하는 동안 2x 표시를 없앱니다. 빠른 재생은 그대로 작동합니다.
 Mute notification types	알림 유형 무음
@@ -1635,6 +1680,9 @@ Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, 
 # context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
 Copy text button on stories	스토리의 텍스트 복사 버튼
 Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	스토리 상단의 점 세 개 옆에 렌즈 아이콘을 추가합니다. 탭하면 지금 보이는 화면으로 Google 렌즈가 열려 텍스트를 선택하고 복사할 수 있습니다.
+# context: Stories settings switch (#647). It moves the Mark as seen and Download buttons from the top of a story to the bottom row, beside Instagram's own Like and Share buttons (use the app's labels).
+Story buttons at the bottom	스토리 버튼을 아래로
+Moves the Mark as seen and Download buttons to the bottom right of a story, next to Like and Share, where your thumb is. Stories without Like and Share keep them at the top.	읽음으로 표시 버튼과 다운로드 버튼을 스토리 오른쪽 아래, 좋아요와 공유 옆으로 옮겨 엄지로 누르기 쉽게 합니다. 좋아요와 공유가 없는 스토리에서는 위쪽에 그대로 둡니다.
 # context: the spoken label of that Lens icon, for screen readers
 Copy text	텍스트 복사
 # context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
@@ -1745,6 +1793,8 @@ Glass in chats	채팅 유리 효과
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	채팅 상단 바와 메시지 입력 바에 반투명 유리 효과를 주고 뒤로가기, 통화, 영상 버튼을 둥근 유리 원 위에 올립니다. 다음에 채팅을 열 때부터 적용됩니다. 흐림 효과는 Android 12 이상이 필요합니다.
 Glass top bar in chats	채팅 상단 바 유리 효과
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	끄면 채팅 상단 바가 Instagram 기본 모습 그대로 남고 뒤에 반투명 유리 띠가 생기지 않습니다. 둥근 유리 버튼과 유리 메시지 입력 바는 그대로 유지됩니다.
+Top bar tint in chats	채팅 상단 바 색조
+Message bar tint	메시지 입력 바 색조
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	조회수가 적은 릴스 숨기기
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	조회수나 좋아요 수가 아래 숫자보다 적은 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 숫자가 없는 릴스는 그대로 재생됩니다.
@@ -1776,6 +1826,21 @@ Home header text	홈 상단 문구
 # context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
 Your words	원하는 문구
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Instagram 로고 대신 홈 상단에 표시할 나만의 문구입니다. 최대 %1$d자까지 입력할 수 있습니다. 비워 두면 로고가 유지됩니다.
+Header text font	상단 문구 글꼴
+The bold font the words have always had.	지금까지 쓰던 굵은 글꼴입니다.
+The phone's font at its regular weight.	휴대폰 글꼴을 보통 굵기로 씁니다.
+A bold font with serifs, like a newspaper's.	신문처럼 세리프가 있는 굵은 글꼴입니다.
+Joined-up handwriting.	이어 쓴 손글씨체입니다.
+Every letter the same width, like a typewriter.	타자기처럼 모든 글자의 폭이 같습니다.
+The font picked under Font, in bold. Bold while Instagram's own is picked there.	글꼴에서 고른 글꼴을 굵게 씁니다. 그곳에서 Instagram 기본 글꼴을 고른 동안에는 굵은 글꼴입니다.
+Bold	굵게
+Regular	보통
+Serif	세리프
+Script	손글씨체
+Monospace	고정폭
+Your font	내 글꼴
+Center the header text	상단 문구 가운데 정렬
+Puts your words or picture in the middle of the top of Home instead of where Instagram puts its logo.	내 문구나 사진을 Instagram 로고 자리 대신 홈 상단 가운데에 놓습니다.
 Instagram's logo stays at the top of Home.	홈 상단에 Instagram 로고가 유지됩니다.
 The top of Home says %1$s.	홈 상단에 %1$s 문구가 표시됩니다.
 Home header picture	홈 상단 이미지
@@ -2036,6 +2101,9 @@ No call rings your phone. Callers just get no answer.	어떤 전화도 울리지
 Only people on your list ring your phone. Anyone else gets no answer.	목록에 있는 사람의 전화만 울립니다. 다른 사람은 응답을 받지 못합니다.
 People on your list don't ring your phone. Everyone else still does.	목록에 있는 사람의 전화는 울리지 않습니다. 다른 사람의 전화는 그대로 울립니다.
 Everyone can ring your phone, as usual.	평소처럼 누구나 전화할 수 있습니다.
+# context: Messages switch under Call blocker's rows; Decline is the button on Instagram's own incoming call notification, Who can call you is the row above (#578)
+Decline calls that don't ring	울리지 않는 전화 거절
+Calls kept quiet by Who can call you are also declined, the same as tapping Decline, instead of being left unanswered.	‘전화할 수 있는 사람’ 설정으로 울리지 않는 전화는 응답 없이 남겨지지 않고, 거절을 누른 것처럼 거절됩니다.
 # context: Seek bar shape and preview (#567, #586, #592)
 Seek bar shape	탐색 막대 모양
 Thin line	가는 선
@@ -2111,10 +2179,32 @@ Was @%1$s, %2$s	이전 이름 @%1$s, %2$s
 # context: a row on the Profile changes page; %s is Android's relative time of the change, like 2 days ago (#611)
 Old profile picture, %s	이전 프로필 사진, %s
 Old bio, %s	이전 소개, %s
+# context: long-press menu items on an old picture's row on the Profile changes page; View opens it full screen, Save puts it in the gallery (#611)
+View picture	사진 보기
+Save picture	사진 저장
+# context: a line on a Profile changes row; %1$s and %2$s are dates like Nov 3, 2026, the first and last day the old value was seen (#611)
+Seen from %1$s to %2$s	%1$s부터 %2$s까지 확인됨
+# context: the same line when both days are one date; %s is a date like Nov 3, 2026 (#611)
+Seen on %s	%s에 확인됨
 Clear profile history	프로필 기록 지우기
 Forgets every username, bio and picture on the list, for all your accounts. The switch stays as it is.	목록에 있는 모든 사용자 이름, 소개, 사진을 모든 계정에 대해 지웁니다. 스위치는 그대로 유지됩니다.
 Profile history cleared.	프로필 기록을 지웠습니다.
 Couldn't clear the profile history. Try again.	프로필 기록을 지우지 못했습니다. 다시 시도해 주세요.
+# context: switch in HushGram settings > Profiles; notes, on this phone, when people in your messages come online and go offline, from the active status Instagram already shows (#590)
+Keep online history	접속 기록 남기기
+Notes when people in your messages come online and go offline, from the active status Instagram already shows, on this phone only. Turn it off and it stops at once.	메시지에 있는 사람들이 언제 접속하고 접속을 끊는지 Instagram이 이미 보여 주는 활동 상태로 이 휴대폰에만 기록합니다. 끄면 바로 멈춥니다.
+# context: row and page title in HushGram settings > Profiles listing when people came online and went offline (#590)
+Online history	접속 기록
+Nothing here yet. With Keep online history on, the times people in your messages come online and go offline show up here.	아직 아무것도 없습니다. 접속 기록 남기기를 켜면 메시지에 있는 사람들이 접속하고 접속을 끊은 시간이 여기에 표시됩니다.
+# context: a row on the Online history page; %s is Android's relative time of the change, like 5 minutes ago (#590)
+Came online, %s	접속함, %s
+Went offline, %s	접속 끊김, %s
+# context: stands in for the username on an Online history row when Instagram never gave one (#590)
+Unknown account	알 수 없는 계정
+Clear online history	접속 기록 지우기
+Forgets everyone on the list, for all your accounts. The switch stays as it is.	목록에 있는 모든 사람을 모든 계정에 대해 지웁니다. 스위치는 그대로 유지됩니다.
+Online history cleared.	접속 기록을 지웠습니다.
+Couldn't clear the online history. Try again.	접속 기록을 지우지 못했습니다. 다시 시도해 주세요.
 # context: toast when a profile opened has a different username than last time; %s is the old username (#611)
 Used to be @%s	이전 이름 @%s
 # context: toast when a profile opened has a new profile picture and bio since last time (#611)
@@ -2207,6 +2297,28 @@ Follow @%1$s?	@%1$s님을 팔로우할까요?
 Follow this account?	이 계정을 팔로우할까요?
 # context: The question's confirm button; Instagram's own Follow button label (#631)
 Follow	팔로우
+# context: Profiles > title of the switch that lists the follow requests you sent that are still waiting, and of its page (#690)
+Sent follow requests	보낸 팔로우 요청
+# context: Profiles > summary of Sent follow requests; a follow button is Instagram's Follow, Requested or Following button (#690)
+Keeps a list of the accounts you've asked to follow that haven't let you in yet, from what their follow buttons show while this is on. Nothing extra is asked of Instagram, and the list stays on your phone.	팔로우를 요청했지만 아직 수락하지 않은 계정의 목록을, 이 기능이 켜져 있는 동안 팔로우 버튼에 표시된 내용으로 보관합니다. Instagram에 따로 요청하지 않으며 목록은 휴대폰에만 저장됩니다.
+# context: Profiles > title of the row that opens the list of sent follow requests still waiting (#690)
+Your sent requests	내가 보낸 요청
+# context: Profiles > summary of Your sent requests while the list is empty; Sent follow requests is the switch's title (#690)
+No requests waiting. With Sent follow requests on, a request you send, or one whose follow button you see, shows up here.	대기 중인 요청이 없습니다. ‘보낸 팔로우 요청’을 켜면 보낸 요청이나 팔로우 버튼에 보이는 요청이 여기에 표시됩니다.
+# context: Profiles > title of the row that forgets the sent follow requests list (#690)
+Clear sent requests	보낸 요청 지우기
+# context: Profiles > summary of Clear sent requests; the requests themselves aren't cancelled (#690)
+Forgets every request on the list, for all your accounts. The requests stay sent on Instagram.	모든 계정에서 목록의 요청을 모두 지웁니다. Instagram에 보낸 요청은 그대로 남습니다.
+# context: Toast after Clear sent requests; two lines of 28 characters at most (#690)
+Sent requests cleared.	보낸 요청을 지웠습니다.
+# context: Toast when Clear sent requests fails; two lines of 28 characters at most (#690)
+Couldn't clear the sent requests. Try again.	보낸 요청을 지우지 못했습니다. 다시 시도하세요.
+# context: Hint at the top of the Sent follow requests page; Instagram's Requested button cancels a request and asks first (#690)
+Tap an account to open its profile, where its follow button cancels the request. Instagram asks before it does.	계정을 누르면 프로필이 열리고, 거기서 팔로우 버튼으로 요청을 취소할 수 있습니다. Instagram이 취소 전에 확인합니다.
+# context: Long-press menu item on the Sent follow requests page; takes the account off HushGram's list only (#690)
+Remove from the list	목록에서 삭제
+# context: Toast after Remove from the list; %s is the account's username; two lines of 28 characters at most (#690)
+Removed @%s from the list	@%s 님을 목록에서 삭제했습니다
 # context: switch in HushGram settings > Reels; a reel link opened from outside Instagram plays the linked reel first instead of a reel Instagram kept on the phone (#606)
 Open reel links on that reel	릴스 링크를 해당 릴스로 열기
 A reel link opens on the reel it points to. Instagram doesn't play another reel it kept on your phone while that one loads.	릴스 링크를 열면 링크가 가리키는 릴스가 열립니다. 그 릴스를 불러오는 동안 Instagram이 휴대폰에 저장해 둔 다른 릴스를 재생하지 않습니다.
@@ -2241,3 +2353,151 @@ Time on each post	게시물당 시간
 Control the reel above comments	댓글 위 릴스 제어
 # context: Summary of Control the reel above comments (#665)
 With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	릴스 댓글이 열려 있을 때 위쪽 릴스를 탭하면 일시 정지하거나 재생하고, 길게 누르면 2배속으로 재생합니다. 댓글은 열린 채로 유지됩니다.
+# context: Reels settings: switch that keeps Instagram's "Locked at 2x speed" toast, and the one it shows when the lock ends, off a reel; the lock itself still works (#702, #552)
+Hide the speed lock message	속도 고정 메시지 숨기기
+# context: Summary of Hide the speed lock message (#702)
+Keeps the message Instagram shows when you lock a reel's speed, and when the lock ends, off the screen. The lock still works.	릴스 속도를 고정할 때와 고정이 끝날 때 Instagram이 보여 주는 메시지를 화면에 띄우지 않습니다. 고정은 그대로 작동합니다.
+Remove hidden data from saved photos	저장한 사진에서 숨겨진 데이터 제거
+Takes Meta's FBMD tracking tag out of each photo you save, along with any camera, place and time details. The picture and its colors stay the same. With Add the source on, the source still goes in afterward. JPEG photos only.	저장하는 사진마다 Meta의 FBMD 추적 태그와 카메라, 장소, 시간 정보를 제거합니다. 사진과 색상은 그대로입니다. ‘저장한 사진과 동영상에 출처 추가’를 켜 두면 출처는 그 뒤에 그대로 기록됩니다. JPEG 사진만 해당합니다.
+Ask for VP9 instead of AV1	AV1 대신 VP9 요청
+Tells Instagram your phone has no AV1 decoder, so reels and stories come as VP9 or H.264, both to watch and to save. Takes a restart.	휴대폰에 AV1 디코더가 없다고 Instagram에 알려서 릴스와 스토리를 VP9 또는 H.264로 받습니다. 보기와 저장 모두 해당합니다. 다시 시작해야 적용됩니다.
+# context: Summary of Show the skip arrows under Double tap to skip on feed videos in Feed settings (#562)
+Two arrows flash on the side you double tapped, with the seconds skipped under them.	두 번 탭한 쪽에 화살표 두 개가 잠깐 나타나고, 그 아래에 건너뛴 초가 표시됩니다.
+# context: Feed settings: choice under Seek bar shape that gives the seek bar on feed videos a shape of its own (#567)
+Feed seek bar shape	피드 탐색 막대 모양
+# context: Choice in Feed seek bar shape: feed videos follow the shape picked in Seek bar shape (#567)
+Same as Seek bar shape	탐색 막대 모양과 같게
+# context: Summary of Same as Seek bar shape in Feed seek bar shape (#567)
+Feed videos use the shape picked in Seek bar shape.	피드 동영상은 탐색 막대 모양에서 고른 모양을 사용합니다.
+# context: Summary of Standard in Feed seek bar shape (#567)
+The bar and round handle you know, on feed videos only.	익숙한 막대와 둥근 핸들이며, 피드 동영상에만 적용됩니다.
+# context: Summary of Thin line in Feed seek bar shape (#567)
+A thin line with no handle on the bottom edge of feed videos, which grows while you drag it.	피드 동영상 아래쪽 가장자리에 핸들 없는 가는 선이 표시되고, 드래그하는 동안 굵어집니다.
+# context: Summary of Rounded in Feed seek bar shape (#567)
+A thicker rounded bar with no handle, on feed videos only.	핸들 없는 더 두꺼운 둥근 막대이며, 피드 동영상에만 적용됩니다.
+# context: Summary of Expressive in Feed seek bar shape (#567)
+A rounded bar split by a tall handle, on feed videos only.	긴 핸들로 나뉜 둥근 막대이며, 피드 동영상에만 적용됩니다.
+# context: Summary of Wave in Feed seek bar shape (#567)
+A wavy line for the part played, with a tall handle, on feed videos only.	재생된 부분은 물결선으로 표시되고 긴 핸들이 있으며, 피드 동영상에만 적용됩니다.
+# context: Feed settings: a switch under Seek bar on feed videos that shows the time over the bar (#711)
+Time on the seek bar	탐색 막대에 시간 표시
+# context: Summary of Time on the seek bar; 0:12 / 0:45 is an example time, keep the digits as they are (#711)
+Shows the time played and the video's length over the seek bar on feed videos, like 0:12 / 0:45. Tap the time to see the time left instead.	피드 동영상의 탐색 막대 위에 재생한 시간과 동영상 길이를 0:12 / 0:45처럼 표시합니다. 시간을 탭하면 남은 시간이 표시됩니다.
+# context: Feed settings: a switch under Time on the seek bar that counts the time down instead (#711)
+Show the time left	남은 시간 표시
+# context: Summary of Show the time left; -0:33 / 0:45 is an example time, keep the digits and the minus sign as they are (#711)
+The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. A tap on the time switches back.	탐색 막대의 시간이 -0:33 / 0:45처럼 동영상의 남은 시간을 거꾸로 셉니다. 시간을 탭하면 다시 바뀝니다.
+# context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
+Taps on feed videos stay in the feed	피드 동영상을 탭해도 피드에 머물기
+# context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
+A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.	피드 동영상이나 동영상이 끝날 때 나오는 화면을 탭해도 더 이상 릴스에서 전체 화면으로 열리지 않습니다. 피드 동영상을 탭하여 일시정지는 그대로 동영상을 일시정지하고, 그 화면의 버튼도 그대로 작동합니다.
+# context: Item in Items in the three-dot menus under Feed: Instagram's Report row in the menus behind the three dots (#697)
+Report	신고
+# context: Item in Items in the three-dot menus under Feed: Instagram's Unfollow row (#697)
+Unfollow	팔로우 취소
+# context: Item in Items in the three-dot menus under Feed: Instagram's Interested row (#697)
+Interested	관심 있음
+# context: Item in Items in the three-dot menus under Feed: Instagram's Why you're seeing this post row (#697)
+Why you're seeing this post	이 게시물이 표시되는 이유
+# context: Title of the row under Feed that lists the items to keep in the menus behind the three dots on posts, reels and stories (#697, #707)
+Items in the three-dot menus	점 세 개 메뉴의 항목
+# context: Summary of Items in the three-dot menus under Feed while every item is ticked (#697, #707)
+Every item shows. Untick the ones you don't want in the menus behind the three dots on posts, reels and stories.	모든 항목이 표시됩니다. 게시물, 릴스, 스토리의 점 세 개 메뉴에서 원하지 않는 항목의 선택을 해제하세요.
+# context: Summary of Items in the three-dot menus under Feed naming the unticked items, which are joined with a comma (#697, #707)
+Left off the three-dot menus: %1$s.	점 세 개 메뉴에서 뺀 항목: %1$s.
+# context: Feed settings: a switch under Hold for 2x on feed videos that keeps a held feed video at 2x after the finger lifts (#552)
+Keep 2x after you let go	손을 떼도 2배속 유지
+# context: Summary of Keep 2x after you let go, a switch under Hold for 2x on feed videos (#552)
+A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	길게 눌러 2배속으로 재생한 피드 동영상은 손을 떼도 2배속으로 계속 재생됩니다. 다시 길게 누르면 보통 속도로 돌아갑니다.
+# context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
+Ring thickness	링 두께
+# context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)
+Instagram's thickness	Instagram 두께
+# context: Stories settings: title and dialog title of the row under Ring color where a hex color is typed for the Custom ring color (#696)
+Custom ring color	사용자 지정 링 색상
+# context: Stories settings: dialog text of Custom ring color; Custom and Ring color are the names of the choice and the list above it (#696)
+A color as six hex digits, like #4A6B82. Saving it picks Custom under Ring color. Restart Instagram to see it.	#4A6B82처럼 16진수 여섯 자리로 쓴 색상입니다. 저장하면 링 색상에서 사용자 지정이 선택됩니다. 보려면 Instagram을 다시 시작하세요.
+# context: Stories settings: summary of Custom ring color while no color is typed; Custom is the Ring color choice (#696)
+None yet. Custom keeps Instagram's colors until you type one.	아직 없습니다. 색상을 입력하기 전까지 사용자 지정은 Instagram 색상으로 남습니다.
+# context: Stories settings: title and dialog title of the row under Custom ring color for the second color the custom ring fades into (#696)
+Custom ring end color	사용자 지정 링 끝 색상
+# context: Stories settings: dialog text of Custom ring end color (#696)
+A second color as six hex digits, like #FF8A00, that the ring fades into. Leave it empty for one solid color. Restart Instagram to see it.	#FF8A00처럼 16진수 여섯 자리로 쓴 두 번째 색상으로, 링이 이 색으로 이어집니다. 단색으로 하려면 비워 두세요. 보려면 Instagram을 다시 시작하세요.
+# context: Stories settings: summary of Custom ring end color while it is empty (#696)
+None. The ring is one solid color.	없음. 링이 한 가지 단색입니다.
+# context: Profiles: title of the list a tap on the Show it as a chip chip opens (#698)
+Friendship status	친구 관계 상태
+# context: Profiles: the answer after a line in that list, "Follows you: Yes" (#698)
+Yes	예
+No	아니요
+# context: Profiles: one line per friendship flag in that list, followed by ": Yes" or ": No". Close Friends, Favorites and Instants are Instagram's own names (#698)
+You follow them	내가 팔로우하고 있음
+Asked to follow you	나에게 팔로우를 요청함
+You asked to follow them	내가 팔로우를 요청함
+On your Close Friends list	내 친한 친구 목록에 있음
+In your Favorites	내 즐겨찾기에 있음
+You restricted them	내가 제한함
+You blocked them	내가 차단함
+You hide your story from them	내 스토리를 숨기고 있음
+You muted their posts	내가 게시물을 음소거함
+You muted their story	내가 스토리를 음소거함
+You muted their notes	내가 메모를 음소거함
+You muted their notes on posts and reels	내가 게시물과 릴스의 메모를 음소거함
+You muted their reposts	내가 리포스트를 음소거함
+You muted their Instants	내가 Instants를 음소거함
+Their account is private	비공개 계정임
+You're subscribed to them	내가 구독 중임
+# context: Profiles: that list before Instagram has answered (#698)
+Instagram hasn't said anything about this account yet.	Instagram이 아직 이 계정에 대해 아무것도 알려 주지 않았습니다.
+This profile hasn't loaded its own answer yet, so this is only what Instagram keeps on the account.	이 프로필의 자체 응답이 아직 로드되지 않아 Instagram이 계정에 저장해 둔 정보만 표시합니다.
+# context: Profiles: heading over the flags in that list whose meaning isn't plain, shown under their raw names (#698)
+Other flags	기타 플래그
+Not sent for this profile	이 프로필에 대해 전송되지 않음
+# context: Profiles: switch under Keep profile history (#715)
+Save changed pictures to the gallery	바뀐 사진을 갤러리에 저장
+When a profile you open has a new picture, puts the old picture and the new one in your gallery, each once. Needs Keep profile history.	연 프로필의 사진이 바뀌었으면 이전 사진과 새 사진을 갤러리에 한 번씩 저장합니다. 프로필 기록 남기기가 필요합니다.
+# context: Storage: slider under Clear the media cache that picks how big the saved photos and videos can get (#713)
+Cache size limit	캐시 크기 한도
+# context: Storage: the Cache size limit slider's value; %1$d is a number of megabytes
+%1$d MB	%1$dMB
+# context: Storage: second line under Clear saved copies now; %1$s is a size such as 312 MB
+Saved photos and videos take up %1$s now.	현재 저장된 사진과 동영상 용량: %1$s
+# context: Tab bar: switch under Keep the pill full size, for the liquid look's bubble under a held finger (#705)
+Glass lens under your finger	손가락 아래 유리 렌즈
+Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the bubble swells and bends what's behind it harder, like glass under a fingertip. It eases back when you let go. The bend needs Blur behind the tab bar and Android 13 or newer. Restart Instagram after changing it.	리퀴드 글래스 알약의 버블을 손가락으로 누르고 있거나 탭 위로 밀면 버블이 커지고 뒤에 있는 화면을 더 강하게 굴절시킵니다. 손끝 아래의 유리처럼요. 손을 떼면 원래대로 돌아갑니다. 굴절에는 탭 바 뒤 흐림 효과와 Android 13 이상이 필요합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+# context: Keep story viewers, its Stories settings rows and the Story viewers page.
+Keep story viewers	스토리 조회자 보관
+Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	내 스토리를 누가 봤는지 열 때마다 그 목록이 이 휴대폰에 보관되고 팔로워 옆에 나란히 놓입니다. Instagram에 추가로 요청하는 것은 없습니다. 끄면 바로 멈춥니다.
+Story viewers	스토리 조회자
+Nothing here yet. With Keep story viewers on, open who viewed one of your stories in Instagram and the list is kept here.	아직 없습니다. 스토리 조회자 보관을 켠 상태에서 Instagram에서 내 스토리를 누가 봤는지 열면 목록이 여기에 보관됩니다.
+%1$d story kept since %2$s. Tap to see who viewed it and who has no view recorded.	%2$s부터 스토리 %1$d개를 보관했습니다. 누가 봤는지, 조회 기록이 없는 사람은 누구인지 보려면 누르세요.
+%1$d stories kept since %2$s. Tap to see who viewed each one and who has no view recorded.	%2$s부터 스토리 %1$d개를 보관했습니다. 각 스토리를 누가 봤는지, 조회 기록이 없는 사람은 누구인지 보려면 누르세요.
+Clear story viewers	스토리 조회자 지우기
+Forgets every story's viewers kept here. The switch stays as it is.	여기에 보관된 모든 스토리의 조회자를 지웁니다. 스위치는 그대로 둡니다.
+Story viewers cleared.	조회 목록을 지웠습니다.
+Couldn't clear the story viewers. Try again.	조회 목록을 지우지 못했습니다. 다시 시도해 주세요.
+Last 7 days	최근 7일
+Last 30 days	최근 30일
+Last 90 days	최근 90일
+All kept	보관된 전체
+Viewers	조회자
+No view recorded	조회 기록 없음
+Frequent	자주 봄
+Stories kept: %1$d. Viewers: %2$d.	보관된 스토리: %1$d. 조회자: %2$d.
+%1$d%% of your followers viewed at least one.	팔로워의 %1$d%%가 하나 이상 봤습니다.
+To see followers with no view recorded, turn on Recent unfollowers and open your Followers list once.	조회 기록이 없는 팔로워를 보려면 최근 언팔로우를 켜고 팔로워 목록을 한 번 여세요.
+Viewed this story	이 스토리를 봄
+Not on this story's list	이 스토리의 목록에 없음
+Stories viewed: %1$d of %2$d, the newest posted %3$s	본 스토리: %2$d개 중 %1$d개, 가장 최근 스토리는 %3$s 게시
+None in this period. The last story they viewed is from %s	이 기간에는 없음. 마지막으로 본 스토리는 %s 게시
+No view recorded since %s	%s 이후 조회 기록 없음
+Story from %s	%s 스토리
+Viewers kept: %1$d of %2$d	보관된 조회자: %1$d / %2$d
+Viewers: %1$d	조회자: %1$d
+Viewers: %1$d. Followers not on the list: %2$d	조회자: %1$d. 목록에 없는 팔로워: %2$d
+No stories kept in this period.	이 기간에 보관된 스토리가 없습니다.
+Every follower viewed at least one story in this period.	모든 팔로워가 이 기간에 스토리를 하나 이상 봤습니다.
+No one has viewed half of this period's stories yet.	아직 이 기간 스토리의 절반을 본 사람이 없습니다.
+# context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
+Don't send feed view history	피드 조회 기록 전송하지 않기
+Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	홈에서 어떤 게시물을 얼마나 오래 봤는지 Instagram에 알리지 않습니다. Instagram은 이 정보로 홈에 보여 줄 내용을 고릅니다. 이미 본 게시물이 다시 나올 수 있습니다.

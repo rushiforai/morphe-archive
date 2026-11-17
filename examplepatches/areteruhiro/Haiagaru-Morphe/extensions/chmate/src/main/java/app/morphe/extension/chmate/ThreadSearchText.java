@@ -3,6 +3,15 @@ package app.morphe.extension.chmate;
 import java.util.regex.*;
 /** Search-only projection and match highlighting; native response fields remain untouched. */
 public final class ThreadSearchText {
+    private static final Pattern ALWAYS=Pattern.compile(""),NEVER=Pattern.compile("(?!)");
+    private static final Pattern PLAIN_TERMS=Pattern.compile("[\\p{L}\\p{N}_:./+ -]+");
+    private static final java.util.Map<Object,Projection> PROJECTIONS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final java.util.Map<Pattern,String[]> WORDS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final class Projection {
+        final String body,name,header,id,text;final int mask;
+        Projection(String body,String name,String header,String id,int mask,String text){this.body=body;this.name=name;this.header=header;this.id=id;this.mask=mask;this.text=text;}
+        boolean matches(String b,String n,String h,String i,int m){return mask==m&&body.equals(b)&&name.equals(n)&&header.equals(h)&&id.equals(i);}
+    }
     private static final java.util.Map<Matcher,Pattern> SOURCES=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final java.util.Map<Matcher,CharSequence> HIGHLIGHTS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final java.util.Map<Pattern,java.util.List<Pattern>> SLIP_TERMS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
@@ -35,9 +44,15 @@ public final class ThreadSearchText {
             default:return "";
         }
         String body=read(response,fields[0]),name=read(response,fields[1]),header=read(response,fields[2]);
+        String idValue=read(response,fields[0].equals("c")?"h":fields[0].equals("d")?"j":"g");
+        int mask=(ThreadSearchOptions.enabled(ThreadSearchOptions.NAME)?1:0)
+                |(ThreadSearchOptions.enabled(ThreadSearchOptions.WACCHOI)?2:0)
+                |(ThreadSearchOptions.enabled(ThreadSearchOptions.ID)?4:0);
+        Projection cached=PROJECTIONS.get(response);
+        if(cached!=null&&cached.matches(body,name,header,idValue,mask))return cached.text;
         StringBuilder result=new StringBuilder(body).append('\n');
-        if(ThreadSearchOptions.enabled(ThreadSearchOptions.NAME))result.append(WACCHOI.matcher(name).replaceAll("")).append('\n');
-        if(ThreadSearchOptions.enabled(ThreadSearchOptions.WACCHOI)){
+        if((mask&1)!=0)result.append(WACCHOI.matcher(name).replaceAll("")).append('\n');
+        if((mask&2)!=0){
             String source=name+"\n"+header;
             Matcher matcher=WACCHOI.matcher(source);while(matcher.find()){
                 result.append(matcher.group()).append('\n');
@@ -49,12 +64,15 @@ public final class ThreadSearchText {
                 if(begin<matcher.start()||closing)result.append(source,begin,closing?end+1:end).append('\n');
             }
         }
-        if(ThreadSearchOptions.enabled(ThreadSearchOptions.ID)){
+        if((mask&4)!=0){
             Matcher matcher=ID.matcher(header);boolean found=false;
             while(matcher.find()){result.append("ID:").append(matcher.group(1)).append('\n');found=true;}
-            if(!found){String id=read(response,fields[0].equals("c")?"h":fields[0].equals("d")?"j":"g");if(!id.isEmpty())result.append(id.startsWith("ID:")?id:"ID:"+id).append('\n');}
+            if(!found&&!idValue.isEmpty())result.append(idValue.startsWith("ID:")?idValue:"ID:"+idValue).append('\n');
         }
-        return result.toString();
+        String projection=result.toString();
+        if(PROJECTIONS.size()>=4096)PROJECTIONS.clear();
+        PROJECTIONS.put(response,new Projection(body,name,header,idValue,mask,projection));
+        return projection;
     }
     private static String read(Object response,String field){try{Object value=ResponseArchiveEntry.field(response,field);return value==null?"":value.toString();}catch(ReflectiveOperationException ignored){return "";}}
     public static Matcher reset(Matcher original,Object response){
@@ -64,14 +82,16 @@ public final class ThreadSearchText {
         if (slipTerms != null) {
             boolean match = true;
             for (Pattern term : slipTerms) if (!term.matcher(body).find()) { match = false; break; }
-            Matcher result=Pattern.compile(match?"":"(?!)").matcher(body);SOURCES.put(result,source);return result;
+            Matcher result=(match?ALWAYS:NEVER).matcher(body);SOURCES.put(result,source);return result;
         }
         // Native regex remains the fallback. Plain multiword searches use AND across fields.
-        if(query.indexOf(' ')>=0&&query.matches("[\\p{L}\\p{N}_:./+ -]+")){
-            String[] terms=query.trim().split("(?i)\\s+(?:AND\\s+)?");boolean match=true;
+        if(query.indexOf(' ')>=0&&PLAIN_TERMS.matcher(query).matches()){
+            String[] terms=WORDS.get(source);
+            if(terms==null){terms=query.trim().toLowerCase(java.util.Locale.ROOT).split("(?i)\\s+(?:AND\\s+)?");WORDS.put(source,terms);}
+            boolean match=true;
             String value=body.toLowerCase(java.util.Locale.ROOT);
-            for(String term:terms)if(!value.contains(term.toLowerCase(java.util.Locale.ROOT))){match=false;break;}
-            Matcher result=Pattern.compile(match?"":"(?!)").matcher(body);SOURCES.put(result,source);return result;
+            for(String term:terms)if(!value.contains(term)){match=false;break;}
+            Matcher result=(match?ALWAYS:NEVER).matcher(body);SOURCES.put(result,source);return result;
         }
         Matcher result=source.matcher(body);return result;
     }

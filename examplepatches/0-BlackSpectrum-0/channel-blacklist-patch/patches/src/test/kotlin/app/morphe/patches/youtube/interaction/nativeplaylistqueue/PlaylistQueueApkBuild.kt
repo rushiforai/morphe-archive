@@ -39,6 +39,7 @@ import app.morphe.patches.youtube.misc.fix.videoactionbar.restoreOldVideoActionB
 import app.morphe.patches.youtube.misc.medianotification.mediaNotificationControlsPatchYouTube
 import app.morphe.patches.youtube.misc.playservice.is_21_32_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_44_or_greater
 import app.morphe.patches.youtube.misc.spoof.spoofVideoStreamsPatch
 import app.morphe.patches.youtube.video.quality.rememberVideoQualityPatch
 import app.morphe.patches.youtube.video.series.seriesTrackerPatch
@@ -111,6 +112,7 @@ fun main(arguments: Array<String>) {
             verifyNativeFullscreenActions(dexDir, mode != "unselected")
             verifyNativeQueueUndo(dexDir, mode != "unselected")
             verifyNativeMixTap(dexDir, mode != "unselected")
+            verifyNativePlaylistPaging(dexDir, mode != "unselected")
         }
     }
     // Disable only when isolating a known upstream validation failure; normal
@@ -131,6 +133,98 @@ fun main(arguments: Array<String>) {
     }
 }
 
+/** Check the emitted native request, scroll branch and intent replay contracts. */
+private fun verifyNativePlaylistPaging(directory: File, selected: Boolean) {
+    val classes = directory.listFiles()!!.filter { it.extension == "dex" }.flatMap { file ->
+        file.inputStream().buffered().use { DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it).classes.toList() }
+    }
+    val extension = EXTENSION_CLASS.removeSuffix(";")
+    val queuePackage = extension.substringBeforeLast('/')
+    fun implementors(type: String) = classes.filter { type in it.interfaces }
+    val sources = implementors($$"$$queuePackage/PlaylistPages$Source;")
+    val owners = implementors($$"$$extension$PagingOwner;")
+    val navigators = implementors($$"$$extension$PlaylistNavigator;")
+    val frames = implementors($$"$$extension$LoadingView;")
+    val actions = implementors($$"$$queuePackage/PlaylistCardSource$TapActions;")
+    val commands = implementors($$"$$queuePackage/PlaylistCardSource$TapCommand;")
+    if (!selected) {
+        check(listOf(sources, owners, navigators, frames, actions, commands).all { it.isEmpty() }) {
+            "Playlist paging bridges must not be installed when Native queue is unselected"
+        }
+        return
+    }
+    check(actions.size == 1 && commands.size == 1 && sources.size == 1 && owners.size == 1 && frames.size == 1)
+    fun calls(code: List<Instruction>) = code.mapIndexedNotNull { index, instruction ->
+        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { index to it }
+    }
+    val source = sources.single()
+    val request = source.methods.single { it.name == "patch_requestPlaylistPage" }.implementation!!.instructions.toList()
+    val transport = calls(request).single { it.second.returnType == "Lcom/google/common/util/concurrent/ListenableFuture;" }
+    check(request[transport.first + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+            request[transport.first + 2].opcode == Opcode.RETURN_OBJECT &&
+            (request[transport.first + 1] as OneRegisterInstruction).registerA ==
+            (request[transport.first + 2] as OneRegisterInstruction).registerA) {
+        "Return the actual native transport Future for cancellation, without a callback-holder substitute"
+    }
+    check(calls(request).none { it.second.definingClass == EXTENSION_CLASS }) {
+        "Read-only page requests must not publish watch responses or player transitions"
+    }
+    val owner = owners.single()
+    val list = owner.methods.single { it.name == "patch_getPlaylistList" }.implementation!!.instructions
+        .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }.single()
+    val hooks = classes.filter { !it.type.startsWith("Lapp/morphe/") }.flatMap { it.methods }.mapNotNull { method ->
+        val code = method.implementation?.instructions?.toList() ?: return@mapNotNull null
+        val hook = calls(code).singleOrNull { it.second.definingClass == EXTENSION_CLASS &&
+                it.second.name == "onNativePlaylistScroll" }?.first ?: return@mapNotNull null
+        val read = code[hook - 1]
+        check(read.opcode == Opcode.IGET_OBJECT && ((read as ReferenceInstruction).reference as FieldReference).type == list.type)
+        check((read as TwoRegisterInstruction).registerA == (code[hook] as RegisterRangeInstruction).startRegister) {
+            "Pass the exact native list owner from the scrolling controller"
+        }
+        val predicate = calls(code.take(hook)).last { it.second.returnType == "Z" &&
+                it.second.parameterTypes == listOf("Landroid/support/v7/widget/RecyclerView;") }.first
+        val branch = code[predicate + 2]
+        check(code[predicate + 1].opcode == Opcode.MOVE_RESULT && branch.opcode == Opcode.IF_EQZ)
+        val branchAddress = code.take(predicate + 2).sumOf { it.codeUnits }
+        val target = branchAddress + (branch as OffsetInstruction).codeOffset
+        check(target > code.take(hook).sumOf { it.codeUnits }) {
+            "The native near-end predicate must skip the injected request callback when false"
+        }
+        method
+    }
+    check(hooks.size == 1) { "Expected one native scroll trigger" }
+    check(navigators.size >= 2) { "Both service and direct native navigation paths need paging deferral" }
+    for (navigator in navigators) {
+        val replay = navigator.methods.single { it.name == "patch_resumePlaylistNavigation" }
+            .implementation!!.instructions.toList()
+        check(replay.size == 3 && replay[0].opcode == Opcode.CHECK_CAST && replay[2].opcode == Opcode.RETURN_VOID)
+        val native = (replay[1] as ReferenceInstruction).reference as MethodReference
+        val dispatch = navigator.methods.single { it.name == native.name && it.parameterTypes == native.parameterTypes }
+            .implementation!!.instructions.toList()
+        val hook = calls(dispatch).single { it.second.definingClass == EXTENSION_CLASS &&
+                it.second.name == "deferPlaylistNavigation" }.first
+        check(dispatch[hook + 1].opcode == Opcode.MOVE_RESULT && dispatch[hook + 2].opcode == Opcode.IF_EQZ &&
+                dispatch[hook + 3].opcode == Opcode.RETURN_VOID) {
+            "Defer before a native target is committed and replay the original native dispatch method"
+        }
+        val invoke = replay[1] as FiveRegisterInstruction
+        check(invoke.registerD == invoke.registerC + 1) { "Replay must pass the same request parameter" }
+    }
+    val frame = frames.single()
+    val loading = frame.methods.single { it.name == "patch_setPlaylistLoading" }.implementation!!.instructions.toList()
+    check(calls(loading).single().second.definingClass == frame.type &&
+            loading.filterIsInstance<NarrowLiteralInstruction>().map { it.narrowLiteral } == listOf(1, 2)) {
+        "Use the native loading frame's progress/content states"
+    }
+    val boundary = classes.flatMap { it.methods }.count { method ->
+        method.name != "patch_isPlaylistBoundary" && method.implementation?.instructions?.any {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "patch_isPlaylistBoundary"
+        } == true
+    }
+    check(boundary == 3) { "Descriptor, commit and availability must all respect unloaded rows" }
+    println("Native authenticated Future, stock scroll branch, loading frame and original-intent replay verified")
+}
+
 /** The dialog must consume navigation before context hooks invalidate the playing queue. */
 private fun verifyNativeMixTap(directory: File, selected: Boolean) {
     val hooks = directory.listFiles()!!.filter { it.extension == "dex" }.flatMap { file ->
@@ -139,7 +233,7 @@ private fun verifyNativeMixTap(directory: File, selected: Boolean) {
     }.mapNotNull { method ->
         val code = method.implementation?.instructions?.toList() ?: return@mapNotNull null
         val names = code.map { ((it as? ReferenceInstruction)?.reference as? MethodReference)
-            ?.takeIf { it.definingClass == EXTENSION_CLASS }?.name }
+            ?.takeIf { ref -> ref.definingClass == EXTENSION_CLASS }?.name }
         val intercept = names.indexOf("onQueueMixTap")
         if (intercept < 0) return@mapNotNull null
         check(names.indexOf("prepareQueueVideoCommand") in 0 until intercept &&
@@ -164,7 +258,7 @@ private fun verifyNativeFullscreenActions(directory: File, selected: Boolean) {
         }
     }
     val extension = "Lapp/morphe/extension/youtube/patches/queue/QueueFullscreenActions;"
-    val controllerInterface = "${extension.removeSuffix(";")}\$Controller;"
+    val controllerInterface = $$"$${extension.removeSuffix(";")}$Controller;"
     val controllers = classes.filter { controllerInterface in it.interfaces }
     if (!selected) {
         check(controllers.isEmpty()) { "Fullscreen queue UI bridge leaked into an unselected build" }
@@ -203,8 +297,8 @@ private fun verifyNativeRowMenuPaths(directory: File, selected: Boolean) {
         file.inputStream().buffered().use { DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it) }
     }
     val classes = dexFiles.flatMap { it.classes }
-    val queueRow = "${EXTENSION_CLASS.removeSuffix(";")}\$QueueRow;"
-    val videoIdInterface = "Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils\$FlyoutMenuVideoIdInterface;"
+    val queueRow = $$"$${EXTENSION_CLASS.removeSuffix(";")}$QueueRow;"
+    val videoIdInterface = $$"Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils$FlyoutMenuVideoIdInterface;"
     val extensionOwner = EXTENSION_CLASS.removePrefix("L").removeSuffix(";")
     val rowTypes = classes.filter { queueRow in it.interfaces }
     val menuOpenCalls = classes.flatMap { owner -> owner.methods.mapNotNull { method ->
@@ -225,7 +319,7 @@ private fun verifyNativeRowMenuPaths(directory: File, selected: Boolean) {
                 ?.let { Triple(owner, method, instructions) }
         }
     } }
-    val saveEndpointInterface = "Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions\$NativeEndpoint;"
+    val saveEndpointInterface = $$"Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions$NativeEndpoint;"
     val saveEndpoints = classes.filter { saveEndpointInterface in it.interfaces }
     val saveDispatches = classes.flatMap { it.methods }.mapNotNull { method ->
         val instructions = method.implementation?.instructions?.toList() ?: return@mapNotNull null
@@ -252,8 +346,8 @@ private fun verifyNativeRowMenuPaths(directory: File, selected: Boolean) {
         "Queue batch Save hooks must not modify the player's native Save paths"
     }
     println("Experimental batch Save hooks, endpoint bridge and shared row factories absent")
-    val batchEndpointInterface = "Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions\$Endpoint;"
-    val batchPickerInterface = "Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions\$Picker;"
+    val batchEndpointInterface = $$"Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions$Endpoint;"
+    val batchPickerInterface = $$"Lapp/morphe/extension/youtube/patches/queue/QueueSaveActions$Picker;"
     val batchEndpoints = classes.filter { batchEndpointInterface in it.interfaces }
     val batchPickers = classes.filter { batchPickerInterface in it.interfaces }
     val argumentTransfers = classes.flatMap { it.methods }.mapNotNull { method ->
@@ -332,7 +426,7 @@ private fun verifyNativeRowMenuPaths(directory: File, selected: Boolean) {
         val videoGetter = (watch[index - 2] as ReferenceInstruction).reference as MethodReference
         check(construction.returnType == videoGetter.definingClass)
     }
-    val feedbackInterface = "Lapp/morphe/extension/youtube/patches/queue/QueueSaveFeedback\$Callback;"
+    val feedbackInterface = $$"Lapp/morphe/extension/youtube/patches/queue/QueueSaveFeedback$Callback;"
     val feedbackCallbacks = classes.filter { feedbackInterface in it.interfaces }
     val feedbackHooks = classes.flatMap { it.methods }.mapNotNull { method ->
         val calls = method.implementation?.instructions?.filter {
@@ -430,7 +524,7 @@ private fun verifyNativeRowMenuPaths(directory: File, selected: Boolean) {
             "L$extensionOwner;->onRowMenuOpened(Ljava/util/Map;)V") == true
     }
     val openCall = openInstructions[openCallIndex] as FiveRegisterInstruction
-    val mapResult = openInstructions.getOrNull(openCallIndex - 1) as? com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+    val mapResult = openInstructions.getOrNull(openCallIndex - 1) as? OneRegisterInstruction
     val mapFactory = openInstructions.getOrNull(openCallIndex - 2) as? ReferenceInstruction
     val factoryReference = mapFactory?.reference as? MethodReference
     check(mapResult != null && openCallIndex >= 2 &&
@@ -536,7 +630,7 @@ private fun verifyNativeServiceDelegates(classes: List<ClassDef>, selected: Bool
     val requestType = navigate.parameterTypes.single()
     val directNavigators = classes.filter { owner ->
         owner.fields.any { it.type == playbackType } && owner.methods.any {
-            com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            AccessFlags.PUBLIC.isSet(it.accessFlags) &&
                     it.returnType == "V" && it.parameterTypes == listOf(requestType)
         }
     }
@@ -672,11 +766,11 @@ private fun verifyNativeQueueHeader(classes: List<ClassDef>, selected: Boolean) 
             (shuffle[visibility - 1] as NarrowLiteralInstruction).narrowLiteral == 0) {
         "Owned queue shuffle must be visible even when the native binder hides unsupported shuffle"
     }
-    val listenerCall = "Landroid/widget/ImageView;->setOnClickListener(Landroid/view/View\$OnClickListener;)V"
-    val listenerFields = header.fields.filter { it.type == "Landroid/view/View\$OnClickListener;" }
+    val listenerCall = $$"Landroid/widget/ImageView;->setOnClickListener(Landroid/view/View$OnClickListener;)V"
+    val listenerFields = header.fields.filter { it.type == $$"Landroid/view/View$OnClickListener;" }
     if (listenerFields.isNotEmpty()) {
         val listener = shuffle.mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
-            .single { it.type == "Landroid/view/View\$OnClickListener;" }
+            .single { it.type == $$"Landroid/view/View$OnClickListener;" }
         check(shuffle.any { (it as? ReferenceInstruction)?.reference?.toString() == listenerCall } &&
                 binder.indices.any { index -> (binder[index] as? ReferenceInstruction)?.reference == listener &&
                         (binder.getOrNull(index + 1) as? ReferenceInstruction)?.reference?.toString() == listenerCall }) {
@@ -701,10 +795,10 @@ private fun verifyNativePanelAssignment(directory: File, selected: Boolean) {
     verifyNativeServiceDelegates(dexFiles.flatMap { it.classes }, selected)
     verifyNativeQueueWindow(dexFiles.flatMap { it.classes }, selected)
     verifyNativeQueueHeader(dexFiles.flatMap { it.classes }, selected)
-    val playbackInterface = EXTENSION_CLASS.removeSuffix(";") + "\$NativePlayback;"
+    val playbackInterface = EXTENSION_CLASS.removeSuffix(";") + $$"$NativePlayback;"
     val owners = dexFiles.flatMap { it.classes }.filter { playbackInterface in it.interfaces }
     check(owners.size == if (selected) 1 else 0) { "Unexpected native playback bridge inclusion" }
-    val panelInterface = EXTENSION_CLASS.removeSuffix(";") + "\$QueuePanel;"
+    val panelInterface = EXTENSION_CLASS.removeSuffix(";") + $$"$QueuePanel;"
     val panels = dexFiles.flatMap { it.classes }.filter { panelInterface in it.interfaces }
     check(panels.size == if (selected) 1 else 0) { "Queue header ownership must be included only with this patch" }
     val shufflePresses = dexFiles.flatMap { it.classes }.filter { !it.type.startsWith("Lapp/morphe/") }
@@ -715,7 +809,7 @@ private fun verifyNativePanelAssignment(directory: File, selected: Boolean) {
     check(shufflePresses.size == if (selected) 1 else 0) {
         "Queue shuffle command must intercept one native listener only when selected"
     }
-    val transitionHook = "$EXTENSION_CLASS->onPlaybackTransition(${EXTENSION_CLASS.removeSuffix(";")}\$PlaylistController;)V"
+    val transitionHook = $$"$$EXTENSION_CLASS->onPlaybackTransition($${EXTENSION_CLASS.removeSuffix(";")}$PlaylistController;)V"
     val transitions = dexFiles.flatMap { it.classes }.filter { !it.type.startsWith("Lapp/morphe/") }
         .flatMap { it.methods }.filter { method -> method.implementation?.instructions?.any {
             (it as? ReferenceInstruction)?.reference?.toString() == transitionHook
@@ -770,7 +864,7 @@ private fun verifyNativePanelAssignment(directory: File, selected: Boolean) {
     val dispose = clearCalls.single { (_, reference) ->
         reference.name == "patch_disposeWithoutPlayback"
     }.first
-    check(releaseFlag >= 0 && releaseFlag < initialize && initialize < hydrate && hydrate < dispose) {
+    check(releaseFlag in 0..<initialize && initialize < hydrate && hydrate < dispose) {
         "Clear queue must release local interception, hydrate ordinary navigation, then dispose the old queue"
     }
     val guardedDispose = dexFiles.flatMap { it.classes }.flatMap { it.methods }
@@ -859,7 +953,7 @@ private fun verifyNativeQueueUndo(directory: File, selected: Boolean) {
             DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it).classes.toList()
         }
     }
-    val commandInterface = "Lapp/morphe/extension/youtube/patches/queue/QueueUndoActions\$Command;"
+    val commandInterface = $$"Lapp/morphe/extension/youtube/patches/queue/QueueUndoActions$Command;"
     val commandTypes = classes.filter { commandInterface in it.interfaces }
     val nativeMethods = classes.filter { !it.type.startsWith("Lapp/morphe/") }.flatMap { it.methods }
     val closeHook = "L$extensionOwner;->onQueuePlayerClosing()V"
@@ -887,13 +981,15 @@ private fun verifyNativeQueueUndo(directory: File, selected: Boolean) {
                     listOf("Landroid/view/MotionEvent;", "Landroid/view/MotionEvent;", "F", "F") ||
                     method.returnType == "V" && method.parameterTypes == listOf("Landroid/view/MotionEvent;", "F", "F")
         }
-        if (fling.name != "onFling") {
+        if (!is_21_44_or_greater && fling.name != "onFling") {
             check(nativeMethods.count { method -> method.name == "onFling" &&
                     method.implementation?.instructions?.any {
                         (it as? ReferenceInstruction)?.reference?.toString() == fling.toString()
                     } == true } == 1) { "Legacy accepted-dismiss helper must belong to the native fling callback" }
         }
-        val touch = closeHandlers.single { it.returnType == "Z" &&
+        val touch = if (is_21_44_or_greater) closeHandlers.single {
+            it.returnType == "V" && it.parameterTypes.isEmpty() && it.definingClass == fling.definingClass
+        } else closeHandlers.single { it.returnType == "Z" &&
                 it.parameterTypes == listOf("Landroid/view/View;", "Landroid/view/MotionEvent;") }
         for ((gesture, expectedCalls) in listOf(fling to if (is_21_32_or_greater) 1 else 2, touch to 1)) {
             val instructions = gesture.implementation!!.instructions.toList()
@@ -907,7 +1003,9 @@ private fun verifyNativeQueueUndo(directory: File, selected: Boolean) {
                     captures.all { instructions[it].opcode == Opcode.INVOKE_STATIC &&
                             (instructions[it] as FiveRegisterInstruction).registerCount == 0 } &&
                     dismissCalls.all { instructions[it].opcode == Opcode.INVOKE_VIRTUAL &&
-                            instructions[it + 1].opcode in if (gesture.returnType == "V") setOf(Opcode.RETURN_VOID)
+                            instructions[it + 1].opcode in if (gesture == touch && is_21_44_or_greater)
+                                setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+                            else if (gesture.returnType == "V") setOf(Opcode.RETURN_VOID)
                             else if (gesture == fling && is_21_32_or_greater) setOf(Opcode.RETURN)
                             else setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) }) {
                 "Accepted gesture dismissals must each capture Undo and keep their original continuation"

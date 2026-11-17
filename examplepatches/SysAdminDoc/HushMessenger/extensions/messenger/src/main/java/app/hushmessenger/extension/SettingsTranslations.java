@@ -27,6 +27,8 @@ final class SettingsTranslations {
         add("th", SettingsTextTh.TEXT);
         // Turkish is written the same everywhere, so one table covers tr-TR, tr-CY and any other region.
         add("tr", SettingsTextTr.TEXT);
+        // Spanish is close enough everywhere that one table covers es-ES, es-MX, es-AR and any other region.
+        add("es", SettingsTextEs.TEXT);
     }
 
     /** Refuses a table that gives one id twice, since the later line would quietly replace the earlier one. */

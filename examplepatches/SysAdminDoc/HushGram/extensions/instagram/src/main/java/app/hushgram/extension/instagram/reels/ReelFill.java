@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -56,8 +57,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Instagram's newer story viewer lays a story out only once its state has loaded, and for a reel
  * shared to a story that took about a second, so the card and its reply bar showed first (#618). The
  * story binder now asks as it binds ({@link #storyBound}) and lays out the whole screen right away.
- * A shared reel's frame is then kept at 9:16 across the screen's width ({@link #storyFrame}), since
- * filling the screen cut its sides off.
+ * A story sharing a reel or a feed post ({@link #sharesPost}) then has its frame kept at 9:16 across
+ * the screen's width ({@link #storyFrame}), since filling the screen cut its sides off.
  */
 public final class ReelFill {
     /**
@@ -82,20 +83,20 @@ public final class ReelFill {
     /** What a story laid out over the whole screen as it binds is counted under. */
     static final String COUNT_STORY_BOUND = "stories laid out as they open";
 
-    /** What a reel shared to a story and kept whole is counted under. */
-    static final String COUNT_SHARED_REEL = "shared reels kept whole in stories";
+    /** What a reel or post shared to a story and kept whole is counted under. */
+    static final String COUNT_SHARED_REEL = "shared posts kept whole in stories";
 
     /** The shape Instagram keeps a reel to on a foldable or large screen of another shape. */
     static final float REEL_SHAPE = 9f / 16f;
 
     /**
-     * Whether the story the binder last bound to each of the story viewer's item holders shares a reel.
+     * Whether the story the binder last bound to each of the story viewer's item holders shares a reel or post.
      * Weak, so a holder Instagram lets go of isn't kept.
      */
     static final Map<Object, Boolean> SHARED_REELS = Collections.synchronizedMap(new WeakHashMap<>());
 
     /**
-     * The story frames last laid out for a story that shares a reel, for a layout that comes from the
+     * The story frames last laid out for a story that shares a reel or post, for a layout that comes from the
      * newer story viewer's state with a holder the binder never saw. Weak, like {@link #SHARED_REELS}.
      */
     static final Map<View, Boolean> SHARED_FRAMES = Collections.synchronizedMap(new WeakHashMap<>());
@@ -119,6 +120,98 @@ public final class ReelFill {
             HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "reel fit", failure);
             return false;
         }
+    }
+
+    /** What a reel's cover and video narrowed to the reel's shape are counted under. */
+    static final String COUNT_FITTED_VIDEO = "reel videos kept to their shape";
+
+    /** What {@link #fittedWidth} answers for a view left at the width it has. */
+    static final int NO_FIT = -1;
+
+    /**
+     * The width each view narrowed by {@link #fitBox} had before, to give back when the view shows a
+     * post that fills the width or Show the whole reel goes off. Weak, so a view Instagram lets go of
+     * isn't kept.
+     */
+    static final Map<View, Integer> FITTED_WIDTHS = Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static volatile boolean loggedFittedVideo;
+
+    /**
+     * Asked by the reel video binder right before it sets its cover's and video's gravity (#681).
+     * True while Show the whole reel is on, or while a view still has a width to get back, so that
+     * {@link #fitBox} sees every bind it needs. False leaves the binder as Instagram wrote it, and so
+     * does anything that throws.
+     */
+    public static boolean fitVideo() {
+        try {
+            return (Utils.settingsReady() && Settings.FIT_REEL_SCREEN.get()) || !FITTED_WIDTHS.isEmpty();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "reel video fit", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Handed the reel binder's cover and video once it has sized them, the post's own width and
+     * height, and the viewer's width the binder gave the video. Instagram fits a reel only to that
+     * width, so a reel narrower than the viewer kept the viewer's whole box and was cut at the top and
+     * the bottom. With Show the whole reel on, a view wider than the post at its height is narrowed to
+     * the post's shape and the binder's gravity centers it. A view that needs no narrowing, or every
+     * view once the switch is off, gets back the width it had.
+     */
+    public static void fitBox(View[] views, Integer postWidth, Integer postHeight, int width) {
+        try {
+            if (views == null) return;
+            boolean fit = Utils.settingsReady() && Settings.FIT_REEL_SCREEN.get();
+            float shape = shapeOf(postWidth, postHeight);
+            boolean narrowed = false;
+            for (View view : views) {
+                if (view == null) continue;
+                ViewGroup.LayoutParams params = view.getLayoutParams();
+                if (params == null) continue;
+                int target = fit ? fittedWidth(width, params.height, shape) : NO_FIT;
+                if (target == NO_FIT) {
+                    Integer original = FITTED_WIDTHS.remove(view);
+                    if (original != null && original != params.width) {
+                        params.width = original;
+                        view.setLayoutParams(params);
+                    }
+                    continue;
+                }
+                if (!FITTED_WIDTHS.containsKey(view)) FITTED_WIDTHS.put(view, params.width);
+                if (params.width != target) {
+                    params.width = target;
+                    view.setLayoutParams(params);
+                }
+                narrowed = true;
+            }
+            if (!narrowed) return;
+            HookStatus.counted(FamilyNames.FULL_SCREEN_BARS, COUNT_FITTED_VIDEO);
+            if (!loggedFittedVideo) {
+                loggedFittedVideo = true;
+                Logger.printDebug(() -> "Reel video kept to its shape: " + postWidth + "x" + postHeight + " in a viewer " + width + " wide");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "reel video box", failure);
+        }
+    }
+
+    /** A post's shape, width over height, or NaN when either size is missing or not above zero. */
+    static float shapeOf(Integer width, Integer height) {
+        if (width == null || height == null || width <= 0 || height <= 0) return Float.NaN;
+        return width / (float) height;
+    }
+
+    /**
+     * How wide a view of the given height shows a post of the given shape whole: the height times the
+     * shape, when that's narrower than the viewer's width. {@link #NO_FIT} when the post fills the
+     * width at that height, or there's no width, height or shape to go on.
+     */
+    static int fittedWidth(int width, int height, float shape) {
+        if (width <= 0 || height <= 0 || !(shape > 0f) || Float.isInfinite(shape)) return NO_FIT;
+        int fitted = Math.round(height * shape);
+        return fitted > 0 && fitted < width ? fitted : NO_FIT;
     }
 
     /**
@@ -183,13 +276,28 @@ public final class ReelFill {
     }
 
     /**
+     * Asked by Instagram's story binder with the story's stickers that share a post or reel (#618), the
+     * list Instagram's own shared-reel check reads, which holds a reshared feed post as well as a
+     * reel. Non-zero when the story has one, so a reshared post keeps its whole frame like a shared
+     * reel. Zero for an empty list, anything that isn't one, and anything that throws.
+     */
+    public static int sharesPost(Object stickers) {
+        try {
+            return stickers instanceof Collection && !((Collection<?>) stickers).isEmpty() ? 1 : 0;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "story stickers", failure);
+            return 0;
+        }
+    }
+
+    /**
      * Asked first thing as Instagram's story binder binds a story to an item holder (#618), with the
-     * holder and whether the story shares a reel, non-zero for yes. Remembers that for
-     * {@link #storyFrame}. Non-zero when Stories fill the screen is on, and the binder then lays the
-     * whole screen out right away, before the story's first frame. Instagram's newer story viewer
-     * otherwise leaves that to its state, which for a shared reel arrives about a second later, and the
-     * card with its reply bar shows until then. Zero leaves the binder as it was, and so does anything
-     * that throws.
+     * holder and whether the story shares a reel or post ({@link #sharesPost}), non-zero for yes.
+     * Remembers that for {@link #storyFrame}. Non-zero when Stories fill the screen is on, and the
+     * binder then lays the whole screen out right away, before the story's first frame. Instagram's
+     * newer story viewer otherwise leaves that to its state, which for a shared reel arrives about a
+     * second later, and the card with its reply bar shows until then. Zero leaves the binder as it
+     * was, and so does anything that throws.
      */
     public static int storyBound(Object holder, int sharedReel) {
         try {
@@ -206,9 +314,10 @@ public final class ReelFill {
 
     /**
      * Asked each time Instagram lays a story out over the whole screen (#618), with the item holder and
-     * its story frame, the rounded frame the picture or video fills. With Stories fill the screen on
-     * and a story that shares a reel, the frame goes back to 9:16, as wide as the screen and centered
-     * with a band above and below, so the reel isn't cut at the sides. A screen wider than 9:16 gets
+     * its story frame, the rounded frame the picture or video fills, and again each time its second
+     * layout sizes that frame to the whole room, which comes right after. With Stories fill the screen on
+     * and a story that shares a reel or post, the frame goes back to 9:16, as wide as the screen and centered
+     * with a band above and below, so its sides aren't cut. A screen wider than 9:16 gets
      * the frame's full height instead. A holder the binder never saw goes by what the frame last
      * showed. Anything else, or anything that throws, leaves Instagram's whole-screen frame.
      */
@@ -243,7 +352,7 @@ public final class ReelFill {
             HookStatus.counted(FamilyNames.FULL_SCREEN_BARS, COUNT_SHARED_REEL);
             if (!loggedSharedReel) {
                 loggedSharedReel = true;
-                Logger.printDebug(() -> "Story fill: keeping a shared reel's whole frame");
+                Logger.printDebug(() -> "Story fill: keeping a shared post's whole frame");
             }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "shared reel frame", failure);

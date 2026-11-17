@@ -119,6 +119,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         autoReplyPictureRecipe = null
         galleryRoute = null
         galleryChatRoute = null
+        pasteRoute = null
         pinLimitGetters = emptySet()
         metaAiFlagGetters = emptySet()
         monospaceMakers = emptySet()
@@ -167,6 +168,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         EMOJI_SEARCH -> validateEmojiSearch()
         TAB_BADGES -> validateTabBadges()
         TAB_CONFIG -> validateTabConfig()
+        TAB_LABELS -> validateTabLabels()
+        TAB_ICONS -> validateTabIcons()
         FACEBOOK_BADGE -> validateFacebookBadge()
         FACEBOOK_PROFILE_HEADER -> validateProfileHeader()
         AI_MENTIONS -> validateAiMentions()
@@ -186,14 +189,18 @@ internal fun MutableMethod.validateHook(hook: String) {
         MESSAGE_ACTIONS_MORE -> validateMessageActionsMore()
         HIDE_READ_RECEIPTS -> validateChatSeen()
         REPLY_READ -> validateReplyRead()
+        DELIVERY_RECEIPT -> validateDeliveryReceipt()
         MARK_READ_BAR, HIDE_CALL_BAR -> validateMarkReadBar()
         CALL_BUTTON_BUILT -> validateCallButtonBuilt()
         HIDE_CALL_LISTS -> validateCallButtonLists()
         MARK_READ_CLICK -> validateMarkReadClick()
+        LOCAL_READ -> validateLocalRead()
         ANALYTICS_UPLOADS -> validateAnalyticsUpload()
         ATTRIBUTION_UPLOADS -> validateAttributionUpload()
         AD_EVENTS -> validateAdEvent()
+        DWELL_TRACKING -> validateDwellTracking()
         MQTT_TELEMETRY -> validateMqttTelemetry()
+        LINK_PLAYER -> validateLinkPlayer()
         PINNED_CHATS -> validatePinnedChatLimit()
         PIN_ROWS -> pinRowSummary() ?: throw PatchException("Messenger controls: the Pin row's check changed (${hookId()})")
         PIN_ASK -> if (!isPinAsk()) throw PatchException("Messenger controls: the pin call changed (${hookId()})")
@@ -224,10 +231,11 @@ internal fun MutableMethod.validateHook(hook: String) {
         STORY_RING -> validateStoryRing()
         QUIET_CALL_RING -> validateQuietCallRing()
         QUIET_CALL_NOTIFICATION -> validateQuietCallNotification()
+        QUIET_MODE -> validateQuietModeNotify()
         CAR_MESSAGES -> validateCarMessages()
         CAR_EXTENSION_GATE -> validateCarExtensionGate()
         LOCAL_CHAT_SEARCH -> validateLocalChatSearch()
-        CHAT_JUMP -> validateChatJump()
+        CHAT_JUMP, SECURE_CHAT, INVISIBLE_BUTTONS -> validateChatJump()
         CALL_RECORDING -> validateCallRecording()
         HOME_HEADER -> validateHomeHeader()
         TEXT_STYLE -> validateTextStyleField()
@@ -247,6 +255,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         MENU_BLUR -> validateMenuBlur()
         GALLERY_TEMP_FILE -> validateGalleryTempFile()
         GALLERY_TO_CHAT -> validateGalleryToChat()
+        PASTE_PHOTO -> validatePastePhoto()
         in CUSTOM_FONT_HOOKS -> validateCustomFont(hook)
         "avatar_tabs" -> validateKeyboardTabsInline()
         "typing_mailbox" -> validateOutgoingTyping()
@@ -292,10 +301,12 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "allow_screenshot" -> method.injectSwitch("$SETTINGS->allowScreenshot()Z", "0x0")
             HIDE_READ_RECEIPTS -> method.injectChatSeen()
             REPLY_READ -> method.injectReplyRead()
+            DELIVERY_RECEIPT -> method.injectDeliveryReceipt()
             MARK_READ_BAR, HIDE_CALL_BAR -> method.injectMarkReadBar()
             CALL_BUTTON_BUILT -> method.injectCallButtonBuilt()
             HIDE_CALL_LISTS -> method.injectCallButtonLists()
             MARK_READ_CLICK -> method.injectMarkReadClick()
+            LOCAL_READ -> method.injectLocalRead()
             "keep_unsent" -> method.injectKeepUnsent()
             "unsent_indicator" -> method.injectUnsentIndicator()
             "delta_unsent" -> method.injectDeltaUnsent()
@@ -305,6 +316,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             EMOJI_SEARCH -> method.injectEmojiSearch()
             TAB_BADGES -> method.injectTabBadges()
             TAB_CONFIG -> method.injectTabConfig()
+            TAB_LABELS -> method.injectTabLabels()
+            TAB_ICONS -> method.injectTabIcons()
             FACEBOOK_BADGE -> method.injectFacebookBadge()
             FACEBOOK_PROFILE_HEADER -> method.injectProfileHeader()
             AI_MENTIONS -> method.injectAiMentions()
@@ -324,7 +337,9 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             ANALYTICS_UPLOADS -> method.injectAnalyticsUpload()
             ATTRIBUTION_UPLOADS -> method.injectAttributionUpload()
             AD_EVENTS -> method.injectAdEvent()
+            DWELL_TRACKING -> method.injectDwellTracking()
             MQTT_TELEMETRY -> method.injectMqttTelemetry()
+            LINK_PLAYER -> method.injectLinkPlayer()
             PINNED_CHATS -> method.injectPinnedChatLimit()
             PIN_ROWS -> method.injectPinRow()
             PIN_ASK -> method.injectPinStep(PINNING_CALL)
@@ -354,10 +369,13 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             STORY_RING -> method.injectStoryRing()
             QUIET_CALL_RING -> method.injectQuietCallRing()
             QUIET_CALL_NOTIFICATION -> method.injectQuietCallNotification()
+            QUIET_MODE -> method.injectQuietModeNotify()
             CAR_MESSAGES -> method.injectCarMessages()
             CAR_EXTENSION_GATE -> method.injectCarExtensionGate()
             LOCAL_CHAT_SEARCH -> method.injectLocalChatSearch()
             CHAT_JUMP -> method.injectChatJump()
+            SECURE_CHAT -> method.injectSecureChat()
+            INVISIBLE_BUTTONS -> method.injectInvisibleButtons()
             CALL_RECORDING -> method.injectCallRecording()
             HOME_HEADER -> method.injectHomeHeader()
             TEXT_STYLE -> method.injectTextStyleField()
@@ -378,6 +396,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             MENU_BLUR -> method.injectMenuBlur()
             GALLERY_TEMP_FILE -> method.injectGalleryTempFile()
             GALLERY_TO_CHAT -> method.injectGalleryToChat()
+            PASTE_PHOTO -> method.injectPastePhoto()
             in CUSTOM_FONT_HOOKS -> method.injectCustomFont(hook)
             "avatar_tabs" -> method.injectKeyboardTabsInline()
             "typing_mailbox" -> method.injectOutgoingTyping()
@@ -620,22 +639,30 @@ val hideMomentsPatch = controlPatch("moments", "Hide Chat Moments", "Hides Chat 
 @Suppress("unused")
 val hideReelsBadgePatch = controlPatch("reels_badge", "Hide Reels badge", "Hides the Reels notification badge.", "Navigation")
 @Suppress("unused")
-val hidePeopleTabPatch = controlPatch("tab_people", "Hide People tab", "Hides the People tab in the bar at the bottom. Restart Messenger to see the tab go.", "Navigation", TAB_PEOPLE, TAB_CONFIG)
+val hidePeopleTabPatch = controlPatch("tab_people", "Hide People tab", "Hides the People tab in the bar at the bottom. Restart Messenger to see the tab go.", "Tab bar", TAB_PEOPLE, TAB_CONFIG)
 @Suppress("unused")
-val showPeopleTabPatch = controlPatch("tab_people_show", "Show People tab", "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Restart Messenger to see the tab.", "Navigation", TAB_CONFIG)
+val showPeopleTabPatch = controlPatch("tab_people_show", "Show People tab", "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Restart Messenger to see the tab.", "Tab bar", TAB_CONFIG)
 @Suppress("unused")
-val hideNotificationsTabPatch = controlPatch("tab_notifications", "Hide Notifications tab", "Hides the Notifications tab in the bar at the bottom. Restart Messenger to see the tab go.", "Navigation", TAB_NOTIFICATIONS, TAB_CONFIG)
+val showSettingsTabPatch = controlPatch("tab_settings_show", "Show settings tab", "Puts Messenger's own settings tab at the end of the bar at the bottom, with your picture on it, so your account settings are one tap away. Restart Messenger to see the tab.", "Tab bar", TAB_CONFIG)
 @Suppress("unused")
-val hideStoriesTabPatch = controlPatch("tab_stories", "Hide Stories tab", "Hides the Stories tab in the bar at the bottom. Restart Messenger to see the tab go.", "Navigation", TAB_CONFIG)
+val hideNotificationsTabPatch = controlPatch("tab_notifications", "Hide Notifications tab", "Hides the Notifications tab in the bar at the bottom. Restart Messenger to see the tab go.", "Tab bar", TAB_NOTIFICATIONS, TAB_CONFIG)
+@Suppress("unused")
+val hideStoriesTabPatch = controlPatch("tab_stories", "Hide Stories tab", "Hides the Stories tab in the bar at the bottom. Restart Messenger to see the tab go.", "Tab bar", TAB_CONFIG)
+@Suppress("unused")
+val hideTabLabelsPatch = controlPatch("hide_tab_labels", "Hide tab labels", "Takes the words off the tabs at the bottom and leaves the icons on their own. Screen readers still name every tab. Restart Messenger to see the change.",
+    "Tab bar", TAB_LABELS)
+@Suppress("unused")
+val tabIconsPatch = controlPatch("tab_icons", "Your own tab icons", "Swaps the icons in the bar at the bottom for plain outlined ones, and lets you put your own picture on any tab. Restart Messenger to see the change.",
+    "Tab bar", TAB_ICONS)
 @Suppress("unused")
 val hideTabBadgesPatch = controlPatch("tab_badges", "Hide tab badges", "Hides the red dots and counts on the tabs at the bottom and on the Facebook button at the top. Turn on Keep for any you still want. Restart Messenger to see the change.",
-    "Navigation", TAB_BADGES, FACEBOOK_BADGE)
+    "Tab bar", TAB_BADGES, FACEBOOK_BADGE)
 @Suppress("unused")
 val tabBarScrollAwayPatch = controlPatch("tab_bar_scroll_away", "Hide the tab bar while scrolling", "Slides the tab bar at the bottom out of the way as you scroll down your chats and brings it back when you scroll up. Restart Messenger to see the change.",
-    "Navigation", TAB_BAR_SCROLL_AWAY, TAB_BAR_OVERLAY)
+    "Tab bar", TAB_BAR_SCROLL_AWAY, TAB_BAR_OVERLAY)
 @Suppress("unused")
 val floatingTabBarPatch = controlPatch("floating_tab_bar", "Floating tab bar", "Switches the tab bar at the bottom to the floating style Messenger is trying out, which sits over your chats instead of below them. Messenger may keep its usual bar on some screens. Restart Messenger to see the change.",
-    "Navigation", FLOATING_TAB_BAR)
+    "Tab bar", FLOATING_TAB_BAR)
 @Suppress("unused")
 val holdStoriesPatch = controlPatch("story_hold", "Hold stories at the end", "Keeps a story on screen when it ends instead of moving on to the next one, so you go on with a tap or a swipe. Photos and videos both wait, and the last story stays open until you close it.", "Navigation")
 @Suppress("unused")
@@ -663,6 +690,10 @@ val hideEventPromptsPatch = controlPatch("event_prompts", "Hide event prompts", 
 val suppressTypingPatch = controlPatch("typing", "Hide typing indicator", "Stops Messenger from showing others when you're typing, even in end-to-end encrypted chats.", "Conversations", "typing", "typing_mailbox")
 @Suppress("unused")
 val externalBrowserPatch = controlPatch("external_browser", "Open web links externally", "Opens web links (http and https) in your default browser instead of inside Messenger. Other link types work as before.", "Links and bubbles", "browser")
+@Suppress("unused")
+val linkPlayerPatch = controlPatch("link_player", "Play video links in the chat",
+    "Plays a shared YouTube, TikTok, Instagram or Facebook video in a window over the chat instead of sending you to the app or the browser. The video comes from the site's own player, so nothing is downloaded and the window keeps no cookies. Shortened links (youtu.be aside), Facebook stories and anything that isn't a video page open the way they always did.",
+    "Links and bubbles")
 @Suppress("unused")
 val enableBubblesPatch = controlPatch("bubbles", "Allow chat bubbles", "Lets you pick Stock, Chat heads or Android bubbles for floating chats. Needs Android 11 or newer. Chat heads also needs Messenger's own Chat heads switch, and Android bubbles need Messenger's bubbles allowed in Android's notification settings.", "Links and bubbles", "bubbles", "bubble_mode")
 @Suppress("unused")
@@ -708,6 +739,10 @@ val quietIncomingCallsPatch = controlPatch("quiet_calls", "Quiet incoming calls"
     "Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. The call waits in the notification shade with Answer and Decline. A call you miss still shows in the chat. Only chosen chats keeps this to the chats you pick, and every other call rings. If the Facebook app is on your phone, it can still ring for the same call.", "Calls",
     QUIET_CALL_RING, QUIET_CALL_NOTIFICATION)
 @Suppress("unused")
+val quietModePatch = controlPatch("quiet_mode", "Quiet mode",
+    "A break from Messenger. Pick 15 minutes, an hour, two hours, eight hours or until you end it yourself, and nothing from Messenger makes a sound or vibrates for that long. Messages and calls still arrive and wait in the notification shade, so nothing goes missing. Every night, under it, does the same between two times you pick. Anyone on your Special contacts list still comes through.", "Notifications",
+    QUIET_MODE, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION)
+@Suppress("unused")
 val carMessagesPatch = controlPatch("car_messages", "Android Auto messages",
     "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read and shows Seen, even with Hide read receipts on.", "Conversations",
     CAR_MESSAGES, CAR_EXTENSION_GATE)
@@ -717,7 +752,7 @@ val localChatSearchPatch = controlPatch("local_chat_search", "Search saved messa
     manifest = { addLocalSearch() })
 @Suppress("unused")
 val chatJumpPatch = controlPatch("chat_jump", "Jump to the first message or a date",
-    "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load.", "Conversations",
+    "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. An arrow at the bottom left of a chat goes to its first message, and a long press on the arrow asks for a day. Tapping one of the dates between the messages opens the same day picker on that day. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load.", "Conversations",
     CHAT_JUMP)
 @Suppress("unused")
 val allowLandscapePatch = controlPatch("landscape", "Allow landscape",
@@ -748,33 +783,45 @@ val externalGalleryPatch = controlPatch("external_gallery", "Open your gallery a
 val galleryToChatPatch = controlPatch("gallery_to_chat", "Put gallery picks in the chat",
     "With Open your gallery app on, what you pick goes into the chat's message box the way Messenger's own gallery puts it there, instead of the editor or the Send to sheet. Nothing goes out until you tap Send.", "Photos and videos")
 @Suppress("unused")
+val pastePhotoPatch = controlPatch("paste_photo", "Paste a photo into the chat",
+    "A photo you paste into a chat goes into the chat's message box the way a pick from your gallery does, instead of going out on its own. Nothing is sent until you tap Send, so you can add a caption or change your mind. Pasted text and the keyboard's GIFs work as they did. Open the chat again after turning this on.", "Photos and videos")
+@Suppress("unused")
 val instantGalleryPatch = controlPatch("instant_gallery", "Send Instants from your gallery",
     "Tapping the shutter in Instants opens your phone's gallery app instead of taking a photo. The photo you pick goes out as the Instant, cut to the camera's shape. Back out of the gallery and nothing is sent.", "Photos and videos",
     manifest = { addInstantGallery() })
 @Suppress("unused")
 val stopAnalyticsUploadsPatch = controlPatch("analytics_uploads", "Stop analytics uploads",
-    "Stops the background services Messenger uses to upload usage statistics. It still records them on your phone, and they can upload after you turn this off.", "Privacy")
+    "Stops the background services Messenger uses to upload usage statistics. It still records them on your phone, and they can upload after you turn this off.", "Tracking")
 @Suppress("unused")
 val stopAttributionUploadsPatch = controlPatch("attribution_uploads", "Stop ad attribution uploads",
-    "Stops the job that reads your phone's advertising ID and sends it to Meta with your ad tracking setting. The ID itself doesn't change.", "Privacy")
+    "Stops the job that reads your phone's advertising ID and sends it to Meta with your ad tracking setting. The ID itself doesn't change.", "Tracking")
 @Suppress("unused")
 val stopAdEventsPatch = controlPatch("ad_events", "Stop inbox and ad link logging",
-    "Stops two reports Messenger logs. One says which part of your chat list was on screen, which Messenger files under inbox ads. The other says which ad brought you in when a link from an ad opens a chat.", "Privacy")
+    "Stops two reports Messenger logs. One says which part of your chat list was on screen, which Messenger files under inbox ads. The other says which ad brought you in when a link from an ad opens a chat.", "Tracking")
+@Suppress("unused")
+val stopDwellTrackingPatch = controlPatch("dwell_tracking", "Stop attention time logging",
+    "Stops the report Messenger files when you leave a screen, which says how long you looked at each thing on it, in what order, and how often you came back. It also stops the copy of those timings that goes onto Messenger's journey log.", "Tracking")
 @Suppress("unused")
 val stopMqttLoggingPatch = controlPatch("mqtt_telemetry", "Stop live connection logging",
-    "Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages, calls and active status keep working.", "Privacy")
+    "Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages, calls and active status keep working.", "Tracking")
 @Suppress("unused")
 val stopNearbyScansPatch = controlPatch("nearby_scans", "Stop nearby scans",
-    "Stops Messenger from reading the list of Wi-Fi networks around you, and hides the name and hardware address of the one you're connected to, the way Android does when Messenger can't see your location. Also stops the timer it can run while it's open to check your location and scan for Wi-Fi networks and Bluetooth devices.", "Privacy",
+    "Stops Messenger from reading the list of Wi-Fi networks around you, and hides the name and hardware address of the one you're connected to, the way Android does when Messenger can't see your location. Also stops the timer it can run while it's open to check your location and scan for Wi-Fi networks and Bluetooth devices.", "Tracking",
     NEARBY_SCANS, WIFI_IDENTITY)
 @Suppress("unused")
 val stopPhoneIdSyncPatch = controlPatch("phone_id_sync", "Stop app list and device ID sharing",
-    "Stops Messenger from going through the apps on your phone to find other Meta apps, and from asking them for the device ID Meta uses to link the apps on one phone. Messenger keeps the ID it already has.", "Privacy")
+    "Stops Messenger from going through the apps on your phone to find other Meta apps, and from asking them for the device ID Meta uses to link the apps on one phone. Messenger keeps the ID it already has.", "Tracking")
 @Suppress("unused")
 val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, such as view-once photos and Quicksnap, and stops screenshot notices. It doesn't add replay or saving.", "Privacy", "allow_screenshot", "screenshot_viewers")
 @Suppress("unused")
-val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself or replying in it marks it read and shows Seen, like Messenger does. Group chats aren't tested. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen.", "Privacy", HIDE_READ_RECEIPTS, REPLY_READ)
+val secureChatPatch = controlPatch("secure_chat", "Block screenshots in chats",
+    "Stops a screenshot or a screen recording of a chat you have open, on this phone, and leaves the chat out of the app switcher's preview. Android refuses the screenshot itself, so it works in every chat and not only the disappearing ones. A chat that was already open needs opening again. The person you're chatting with still has their own phone to screenshot on.",
+    "Privacy", SECURE_CHAT)
 @Suppress("unused")
+val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself or replying in it marks it read and shows Seen, like Messenger does. Group chats aren't tested. Hide Delivered, under it, also holds back the Delivered tick in ordinary chats. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen.", "Privacy", HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT)
+@Suppress("unused")
+val readChatsLocallyPatch = controlPatch("read_chats_locally", "Mark chats read on this phone", "Clears the unread look of a chat you've opened while Hide read receipts is on, so the chat list stops showing it bold with a count. Nothing goes to Messenger, so the other person still isn't told you read it. A new message in the chat brings the unread look back.", "Privacy", LOCAL_READ)
+
 val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put.", "Privacy", MARK_READ_BAR, MARK_READ_CLICK)
 @Suppress("unused")
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, marked [unsent]. In end-to-end encrypted chats it keeps the words Messenger already showed you, in the chat or a notification, until Messenger restarts. Group chats aren't tested.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent", UNSENT_RECALL, UNSENT_CLEAR)
@@ -783,7 +830,7 @@ val blockedListPicturesPatch = controlPatch("blocked_list_pictures", "Hide pictu
     "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay.", "Privacy")
 @Suppress("unused")
 val restrictedNotifyPatch = controlPatch("restricted_notify", "Notify for restricted chats",
-    "Chats with people you've restricted notify you like your other chats. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages.", "Privacy")
+    "Chats with people you've restricted notify you like your other chats. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages.", "Notifications")
 @Suppress("unused")
 val unlockAppIconsPatch = controlPatch("app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger still decides whether that setting shows for your account.", "Theme")
 @Suppress("unused")
@@ -805,6 +852,10 @@ val customFontPatch = controlPatch("custom_font", "Use your own font",
 val menuBlurPatch = controlPatch("menu_blur", "Blur behind menus",
     "Blurs the screen behind the menu you get when you press and hold a chat or a message, and behind Messenger's other pop-up menus and sheets, like on an iPhone. Needs Android 12 or newer.",
     "Theme", MENU_BLUR)
+@Suppress("unused")
+val invisibleButtonsPatch = controlPatch("invisible_buttons", "Invisible buttons",
+    "Picks buttons in a chat to draw at nothing while they keep their place, their size and what they do, so a tap still lands. Good for a button you keep hitting by mistake or one you'd rather not look at. Pick them in HushMessenger settings, where every button a chat has shown you is listed by the name a screen reader says for it.",
+    "Theme", INVISIBLE_BUTTONS)
 private var anonymousStoriesApplied = false
 
 private val anonymousStoriesResources = resourcePatch(description = "Record HushMessenger capability: anonymous_stories") {

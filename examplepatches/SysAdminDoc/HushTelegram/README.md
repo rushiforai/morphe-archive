@@ -189,7 +189,7 @@ HushTelegram collects nothing and has no server. It goes online by itself for fo
 - **Free proxies** downloads a public list of proxies from `raw.githubusercontent.com` (or its copy on `cdn.jsdelivr.net`) every 6 hours while it's on, and when you tap **Find free proxies now**. Add your own under **Your proxy lists** and it reads those instead, and only those. It then opens a plain connection to each proxy it tries, just to time it. Strangers run these proxies. Whoever runs the one Telegram connects through sees your IP address and when you use Telegram, though your messages stay encrypted. The switch and your list addresses never go in a settings file.
 - **Lyrics in the music player** searches `lrclib.net`, a free lyrics library with no account or key, when you tap Lyrics. Only the song's title and artist go out. What comes back is kept until Telegram closes, so reopening the same song doesn't ask again.
 
-The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`, and Support HushTelegram links to `ko-fi.com`. They open in your browser only when you tap one. Diagnostic reports leave out API IDs and hashes, but read one before you share it.
+The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`, and Support HushTelegram links to `ko-fi.com`. When a channel that banned you won't open, **Open on the web** in Telegram's alert shows its public posts on `t.me`. They all open in your browser only when you tap one. Diagnostic reports leave out API IDs and hashes, but read one before you share it.
 
 ## Supported Telegram builds
 

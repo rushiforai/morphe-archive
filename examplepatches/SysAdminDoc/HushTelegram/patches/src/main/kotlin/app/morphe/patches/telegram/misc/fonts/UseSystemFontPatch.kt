@@ -8,14 +8,17 @@ import app.morphe.util.names.addInstructions
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.localcontrols.Mention
@@ -78,6 +81,8 @@ val useSystemFontPatch = bytecodePatch(
     category("Theme")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
+    // Whether the font file's hooks checked out, for finalize to put them in.
+    var customFont = false
     execute {
         val site = resolveSystemFont()
         // Assembled on a copy first, so a refusal leaves the app untouched.
@@ -87,6 +92,30 @@ val useSystemFontPatch = bytecodePatch(
         // Later sites first, so an earlier insert doesn't move a later one in the same method.
         site.built.sortedByDescending { it.result }.forEach { it.insert(it.method) }
         enableStatus("useSystemFont")
+        // A font file of your own comes second: a build without it keeps the phone's font.
+        customFont = try {
+            resolveCustomFont()
+            true
+        } catch (unfit: PatchException) {
+            patchLog.warning("Use system font: ${unfit.message}. The patch goes on without a font file of your own.")
+            false
+        }
+    }
+    finalize {
+        // Every paint and text view Telegram builds takes the font file, so the hooks go in once
+        // every other patch has matched its code, and from a fresh look at the classes.
+        if (customFont) {
+            val hosts = customFontHosts()
+            val counts = fontSiteCounts(hosts)
+            if ((counts[FontSiteKind.PAINT] ?: 0) > 0 && (counts[FontSiteKind.VIEW] ?: 0) > 0) {
+                insertCustomFont(hosts)
+                enableCapability("customFont")
+            } else {
+                patchLog.warning("Use system font: Telegram no longer builds its text paints and views the known way. " +
+                    "The patch goes on without a font file of your own.")
+            }
+        }
+        customFont = false
     }
 }
 

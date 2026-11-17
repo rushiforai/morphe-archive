@@ -121,6 +121,9 @@ public class SettingsBackupTest {
         out.put("hushtelegram_chat_type_folders",
                 "Flipping it makes or removes folders on the Telegram account. An import would flip it "
                         + "without doing either, so it would say folders are there that aren't.");
+        out.put("hushtelegram_admin_folder",
+                "Flipping it makes or removes the Admin folder on the Telegram account, so an import would "
+                        + "flip it without doing either, the same as Folders by chat type.");
         out.put("hushtelegram_unified_push",
                 "On, it signs Telegram up with a push app at the next start and routes every wake-up through "
                         + "that app, picking the only one installed on its own. Like the release check, that's a "
@@ -151,6 +154,7 @@ public class SettingsBackupTest {
         for (StringSetting list : SettingsBackup.FILTER_LISTS) list.resetToDefault();
         for (IntegerSetting number : SettingsBackup.NUMBERS) number.resetToDefault();
         for (StringSetting text : SettingsBackup.TEXTS) text.resetToDefault();
+        Settings.BOOKMARKS.resetToDefault();
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         ShadowToast.reset();
         ShadowAlertDialog.reset();
@@ -172,6 +176,7 @@ public class SettingsBackupTest {
         for (StringSetting text : SettingsBackup.TEXTS) text.resetToDefault();
         // The release check stays out of every file, so the list above doesn't reach it.
         Settings.CHECK_FOR_RELEASES.resetToDefault();
+        Settings.BOOKMARKS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -210,35 +215,43 @@ public class SettingsBackupTest {
                     && setting != Settings.RECEIVE_ONLY_ACCOUNTS && setting != Settings.POWERED_OFF_ACCOUNTS
                     && setting != Settings.AUTO_FORWARDING_RULES
                     // The recordings folder is a permission this phone holds, which another phone can't use.
-                    && setting != Settings.RECORD_CALLS_FOLDER) notSwitches.add(setting.key);
+                    && setting != Settings.RECORD_CALLS_FOLDER
+                    // The device in Active sessions names this phone, so another phone doesn't take it.
+                    && setting != Settings.SESSION_DEVICE_NAME && setting != Settings.SESSION_SYSTEM_VERSION
+                    // Bookmarks travel as a list of their own, added to the phone's rather than in place of them.
+                    && setting != Settings.BOOKMARKS
+                    // The font file stays on this phone, so its name doesn't travel either.
+                    && setting != Settings.CUSTOM_FONT)
+                notSwitches.add(setting.key);
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MESSAGE_FILTERS_GROUPS, Settings.MESSAGE_FILTERS_CHANNELS), SettingsBackup.FILTER_LISTS);
-        assertEquals(Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.NUMBERS);
+        assertEquals(Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS, Settings.CHAT_LIST_AVATAR_SIZE, Settings.LIST_BACKGROUND_DIM,
+                Settings.KEEP_DELETED_DAYS), SettingsBackup.NUMBERS);
         assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME,
-                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH), SettingsBackup.TEXTS);
+                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH, Settings.CHAT_LIST_TITLE_TEXT, Settings.LOCAL_PINNED_CHATS, Settings.LINK_PREVIEW_RULE_LIST, Settings.KEPT_REMOVED_CHATS, Settings.CHAT_LIST_BANNER, Settings.VOICE_CHANGER), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES, Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS, Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS,
                         Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.DISABLE_SECRET_CHATS, Settings.HIDE_CONTACTS_BLOCK,
-                        Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.CHAT_PREVIEW_BUTTONS, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER,
-                        Settings.SPECIAL_CONTACTS, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER, Settings.HIDE_EMOJI_PACK_NOTE, Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK,
-                        Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.SWIPE_BACK_ON_PROFILES,
+                        Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.CHAT_PREVIEW_BUTTONS, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.REGISTRATION_DATE, Settings.MEMBER_JOIN_DATES, Settings.FORWARD_DATES,
+                        Settings.SPECIAL_CONTACTS, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER, Settings.HIDE_EMOJI_PACK_NOTE, Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.CHAT_LIST_TITLE, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.LIST_BACKGROUND,
+                        Settings.HIDE_TRANSLATE_BAR, Settings.HIDE_PINNED_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS, Settings.SWIPE_BACK_ON_PROFILES,
                         Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF,
-                        Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE,
-                        Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.VOICE_SKIP, Settings.LYRICS, Settings.SONG_DATES, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL,
+                        Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.LOCAL_PINS, Settings.HIDDEN_CHATS_PASSCODE,
+                        Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS, Settings.CHAT_LIST_AVATAR, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.VOICE_SKIP, Settings.LYRICS, Settings.SONG_DATES, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL,
                         Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.REACTION_SOUND, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE,
-                        Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
-                        Settings.KEEP_TIMED_MEDIA, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB,
-                        Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.TEST_SERVER_SIGN_IN, Settings.BOT_TOKEN_SIGN_IN,
+                        Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_OWN_DELETED, Settings.KEEP_EDIT_HISTORY,
+                        Settings.KEEP_TIMED_MEDIA, Settings.KEEP_SECRET_TIMED, Settings.KEEP_REMOVED_CHATS, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB,
+                        Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.BAR_OUTLINE, Settings.TEST_SERVER_SIGN_IN, Settings.BOT_TOKEN_SIGN_IN,
                         SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.FASTER_UPLOADS, Settings.DOWNLOAD_MANAGER, Settings.BEST_QUALITY_MEDIA, Settings.SAVE_DOWNLOADS,
-                        Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
-                        Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER,
-                        Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON, Settings.GHOST_READ_AFTER_SEND, Settings.GHOST_READS_BUTTON, Settings.GHOST_CHATS, Settings.FAKE_TYPING,
-                        Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.RECORD_CALLS_NOTIFY, Settings.RECORD_CALLS_OPUS, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH,
+                        Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.SAVE_SECRET_CHATS, Settings.STORAGE_FOLDER, Settings.FILE_ICONS, Settings.KNOWN_FILES, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_ROUND_VIDEO, Settings.ASK_BEFORE_MESSAGE, Settings.ASK_BEFORE_CALL, Settings.ASK_BEFORE_JOIN, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
+                        Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SECRET_CHAT_SCREENSHOTS, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER,
+                        Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.MESSAGE_MENU_BOOKMARKS, Settings.MESSAGE_MENU_EDIT_COPY, Settings.ALSO_DELETE_CHECKED, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON, Settings.GHOST_READ_AFTER_SEND, Settings.GHOST_READS_BUTTON, Settings.GHOST_CHATS, Settings.FAKE_TYPING,
+                        Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.RECORD_CALLS_NOTIFY, Settings.RECORD_CALLS_OPUS, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH, Settings.LINK_PREVIEW_RULES,
                         Settings.GALLERY_CAMERA_ON_TAP, Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING, Settings.SKIP_AUTOLOGIN, Settings.STRIP_LINK_COPY_PASTE, Settings.DISABLE_UPDATE_CHECKS, Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING,
                         Settings.SUPPRESS_SCREENSHOT_NOTIFICATION, Settings.UNLOCK_PREMIUM, Settings.BYPASS_CHANNEL_RESTRICTIONS,
                         Settings.OPEN_RESTRICTED_CHATS, Settings.BYPASS_INTEGRITY_CHECK, Settings.AUTO_FORWARDING, Settings.CROP_GUARD, Settings.CAPTION_ORDER, Settings.PROXY_MENU,
-                        Settings.SIGN_IN_PROXY, Settings.MY_MESSAGES, Settings.TEXT_DIRECTION),
+                        Settings.DND_MENU, Settings.SIGN_IN_PROXY, Settings.MY_MESSAGES, Settings.ADMIN_TOOLS, Settings.TEXT_DIRECTION),
                 SettingsBackup.ALLOWLIST);
     }
 
@@ -649,6 +662,68 @@ public class SettingsBackupTest {
     }
 
     /**
+     * Bookmarks (#79) go out as an array of their lines and come back added to the phone's own:
+     * each message once, the phone's copy kept, newest first. A file without them leaves them alone,
+     * and a phone with none writes no list.
+     */
+    @Test
+    public void theBookmarksRoundTripAndJoinThePhonesOwn() throws Exception {
+        assertFalse("no bookmarks, no list", new JSONObject(SettingsBackup.create()).getJSONObject("settings")
+                .has(Settings.BOOKMARKS.key));
+        String older = "5\t-100\t7\t3\t1700000000\t1000\tAnna\tFriends\thello";
+        String newer = "5\t200\t9\t0\t1700000100\t3000\t\tBob\ta photo";
+        Settings.BOOKMARKS.save(newer + "\n" + older);
+        String file = SettingsBackup.create();
+        org.json.JSONArray marks = new JSONObject(file).getJSONObject("settings").getJSONArray(Settings.BOOKMARKS.key);
+        assertEquals(2, marks.length());
+        assertEquals(Arrays.asList(newer, older), Arrays.asList(marks.getString(0), marks.getString(1)));
+
+        // Since the file: one bookmark gone, one made, and one of the file's read again with a new preview.
+        String since = "6\t300\t4\t0\t1700000200\t2000\tCara\tWork\tlater";
+        String reread = "5\t200\t9\t0\t1700000100\t500\t\tBob\tedited";
+        Settings.BOOKMARKS.save(since + "\n" + reread);
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(0, snapshot.unknown);
+        SettingsBackup.Snapshot kept = SettingsBackup.Snapshot.fromBundle(snapshot.toBundle());
+        assertEquals(snapshot.bookmarks, kept.bookmarks);
+        assertEquals(1, SettingsBackup.apply(kept));
+        assertEquals(since + "\n" + older + "\n" + reread, Settings.BOOKMARKS.savedValue());
+        assertEquals("the same file again changes nothing", 0, SettingsBackup.apply(SettingsBackup.parse(file)));
+
+        SettingsBackup.Snapshot without = SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false));
+        assertNull(without.bookmarks);
+        SettingsBackup.apply(without);
+        assertEquals("a file without bookmarks left them alone", since + "\n" + older + "\n" + reread,
+                Settings.BOOKMARKS.savedValue());
+    }
+
+    @Test
+    public void aBookmarkListThatIsNotOneIsRefused() throws Exception {
+        String good = "5\t-100\t7\t3\t1700000000\t1000\tAnna\tFriends\thello";
+        List<String> tooMany = new ArrayList<>();
+        for (int i = 1; i <= app.hushtelegram.extension.telegram.misc.Bookmarks.MAX + 1; i++) {
+            tooMany.add("5\t-100\t" + i + "\t0\t1700000000\t" + i + "\t\tFriends\thello");
+        }
+        for (Object bad : new Object[]{good, true, 1, JSONObject.NULL, new JSONObject(),
+                new org.json.JSONArray(Arrays.asList(good, 1)),
+                new org.json.JSONArray(Collections.singletonList("not a bookmark")),
+                new org.json.JSONArray(Collections.singletonList("5\t0\t7\t0\t1\t1\t\tA\tb")),
+                new org.json.JSONArray(Collections.singletonList(good + "\n" + good)),
+                new org.json.JSONArray(Collections.singletonList(good.replace("hello", "hel\rlo"))),
+                new org.json.JSONArray(tooMany)}) {
+            JSONObject file = new JSONObject(SettingsBackup.create());
+            file.getJSONObject("settings").put(Settings.BOOKMARKS.key, bad);
+            assertEquals(printable(String.valueOf(bad)), SettingsBackup.Reason.VALUE, reasonFor(file.toString()));
+        }
+        // Exactly as many as the list keeps come in.
+        JSONObject full = new JSONObject(SettingsBackup.create());
+        full.getJSONObject("settings").put(Settings.BOOKMARKS.key, new org.json.JSONArray(tooMany.subList(0, tooMany.size() - 1)));
+        SettingsBackup.apply(SettingsBackup.parse(full.toString()));
+        assertEquals(app.hushtelegram.extension.telegram.misc.Bookmarks.MAX,
+                app.hushtelegram.extension.telegram.misc.Bookmarks.count(Settings.BOOKMARKS.savedValue()));
+    }
+
+    /**
      * The sticker size goes out as its number and comes back only as one of the choices, and a
      * file from before it leaves the size alone.
      */
@@ -682,12 +757,43 @@ public class SettingsBackupTest {
         }
 
         // A saved state is read back as strictly: a size that isn't a choice is left out, and only the
-        // days recordings stay come back.
+        // days recordings stay, the avatar size, the background's dim and the days kept messages stay come back.
+        Set<Object> others = new HashSet<>(Arrays.asList(Settings.RECORD_CALLS_KEEP_DAYS, Settings.CHAT_LIST_AVATAR_SIZE,
+                Settings.LIST_BACKGROUND_DIM, Settings.KEEP_DELETED_DAYS));
         Bundle state = snapshot.toBundle();
         state.getBundle("numbers").putInt(Settings.STICKER_SIZE.key, 100);
-        assertEquals(Collections.singleton(Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.Snapshot.fromBundle(state).numbers.keySet());
+        assertEquals(others, new HashSet<Object>(SettingsBackup.Snapshot.fromBundle(state).numbers.keySet()));
         state.getBundle("numbers").putString(Settings.STICKER_SIZE.key, "150");
-        assertEquals(Collections.singleton(Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.Snapshot.fromBundle(state).numbers.keySet());
+        assertEquals(others, new HashSet<Object>(SettingsBackup.Snapshot.fromBundle(state).numbers.keySet()));
+    }
+
+    /** The chat list's avatar size goes out as its number, comes back only as one of its choices and shows in the preview (#89). */
+    @Test
+    public void theAvatarSizeRoundTripsAsOneOfItsChoicesAndShowsInThePreview() throws Exception {
+        Settings.CHAT_LIST_AVATAR_SIZE.save(120);
+        String file = SettingsBackup.create();
+        assertEquals(120, new JSONObject(file).getJSONObject("settings").get(Settings.CHAT_LIST_AVATAR_SIZE.key));
+        for (Object bad : new Object[]{100, 0, -80, 75, 1000, 80.5, "80", true, JSONObject.NULL}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.CHAT_LIST_AVATAR_SIZE.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.CHAT_LIST_AVATAR_SIZE.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Avatar size: 80% to 120%", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals(120, (int) Settings.CHAT_LIST_AVATAR_SIZE.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.CHAT_LIST_AVATAR_SIZE.resetToDefault();
+        }
     }
 
     /**
@@ -737,7 +843,7 @@ public class SettingsBackupTest {
         Bundle state = snapshot.toBundle();
         state.getBundle("texts").putString(Settings.TITLE_EMOJI.key, tooLong.toString());
         Set<StringSetting> others = new java.util.HashSet<>(Arrays.asList(Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.STORAGE_FOLDER_NAME, Settings.FOLDER_ICON_PACK,
-                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH));
+                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH, Settings.CHAT_LIST_TITLE_TEXT, Settings.LOCAL_PINNED_CHATS, Settings.LINK_PREVIEW_RULE_LIST, Settings.KEPT_REMOVED_CHATS, Settings.CHAT_LIST_BANNER, Settings.VOICE_CHANGER));
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
         state.getBundle("texts").putInt(Settings.TITLE_EMOJI.key, 1);
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
@@ -1246,6 +1352,89 @@ public class SettingsBackupTest {
         }
     }
 
+    /** The text in place of Telegram's name comes back only as a title the editor would have saved (#86). */
+    @Test
+    public void theChatListTitleTextRoundTripsOnlyAsATitleTheEditorWouldSave() throws Exception {
+        Settings.CHAT_LIST_TITLE.save(true);
+        Settings.CHAT_LIST_TITLE_TEXT.save("My chats");
+        String file = SettingsBackup.create();
+        JSONObject written = new JSONObject(file).getJSONObject("settings");
+        assertEquals(true, written.get(Settings.CHAT_LIST_TITLE.key));
+        assertEquals("My chats", written.get(Settings.CHAT_LIST_TITLE_TEXT.key));
+
+        StringBuilder tooLong = new StringBuilder();
+        for (int i = 0; i <= app.hushtelegram.extension.telegram.misc.TitleEmoji.MAX_TITLE_CODE_POINTS; i++) tooLong.append('a');
+        String turned = new String(Character.toChars(0x202E)) + "My chats";
+        for (Object bad : new Object[]{tooLong.toString(), " My chats", "My\nchats", turned, 1, true, JSONObject.NULL}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.CHAT_LIST_TITLE_TEXT.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+        // Longer than the emoji may be, and still a title.
+        JSONObject longer = new JSONObject(file);
+        longer.getJSONObject("settings").put(Settings.CHAT_LIST_TITLE_TEXT.key, "Seventeen letters");
+        assertEquals("Seventeen letters", SettingsBackup.parse(longer.toString()).texts.get(Settings.CHAT_LIST_TITLE_TEXT));
+
+        Settings.CHAT_LIST_TITLE_TEXT.resetToDefault();
+        Settings.CHAT_LIST_TITLE.resetToDefault();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(1, snapshot.switchChanges());
+        assertEquals(2, SettingsBackup.apply(SettingsBackup.Snapshot.fromBundle(snapshot.toBundle())));
+        assertTrue(Settings.CHAT_LIST_TITLE.savedValue());
+        assertEquals("My chats", Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+    }
+
+    @Test
+    public void aFileThatChangesOnlyTheChatListTitleTextShowsItAndImportsIt() throws Exception {
+        Settings.CHAT_LIST_TITLE_TEXT.save("My chats");
+        String file = SettingsBackup.create();
+        Settings.CHAT_LIST_TITLE_TEXT.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Text for the chat list title: none to " + app.hushtelegram.extension.shared.L10n.isolate("My chats"),
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("My chats", Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+            assertTrue("the row shows the imported text",
+                    String.valueOf(page.findPreference(TitleEmojiEditor.TITLE_KEY).getSummary()).contains("My chats"));
+            // The chat list builds its title once, so the new text waits for a restart.
+            assertEquals(Collections.singleton(Settings.CHAT_LIST_TITLE_TEXT.key), new TreeSet<>(AbstractPreferenceFragment.restartPending));
+        }
+    }
+
+    /** Link preview rules (#79): the preview counts the rules before and after, and the row follows the import. */
+    @Test
+    public void aFileThatChangesOnlyTheLinkPreviewRulesCountsThemAndImportsThem() throws Exception {
+        Settings.LINK_PREVIEW_RULE_LIST.save("x.com -> fixupx.com");
+        String file = SettingsBackup.create();
+        Settings.LINK_PREVIEW_RULE_LIST.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Link preview rules: 6 rules to 1 rule", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("x.com -> fixupx.com", Settings.LINK_PREVIEW_RULE_LIST.savedValue());
+            assertEquals("Rules: 1. Fix link previews follows these for the links you send.",
+                    String.valueOf(page.findPreference(LinkPreviewRulesEditor.KEY).getSummary()));
+        }
+
+        // Only rules the editor would save come in.
+        JSONObject odd = new JSONObject(file);
+        for (String bad : new String[] {"X.com->fixupx.com", "x.com -> fixupx.com\nnot a rule", "x.com -> x.com", "x.com -> fixupx.com\n"}) {
+            odd.getJSONObject("settings").put(Settings.LINK_PREVIEW_RULE_LIST.key, bad);
+            assertEquals(bad, SettingsBackup.Reason.VALUE, reasonFor(odd.toString()));
+        }
+    }
+
     @Test
     public void aFileThatChangesOnlyTheGalleryFolderSaysSoAndImportsIt() throws Exception {
         Settings.GALLERY_FOLDER.save(app.hushtelegram.extension.telegram.misc.GalleryFolder.DCIM_APART);
@@ -1311,6 +1500,215 @@ public class SettingsBackupTest {
         } finally {
             Settings.RECORD_CALLS_WHICH.resetToDefault();
             Settings.RECORD_CALLS_KEEP_DAYS.resetToDefault();
+        }
+    }
+
+    /**
+     * How long kept deleted messages stay goes out with the switches, comes back only as one of the
+     * days its row offers, and shows in the preview (#91).
+     */
+    @Test
+    public void theKeptMessageDaysRoundTripAsOneOfTheirChoicesAndShowInThePreview() throws Exception {
+        Settings.KEEP_DELETED_DAYS.save(7);
+        String file = SettingsBackup.create();
+        assertEquals(7, new JSONObject(file).getJSONObject("settings").get(Settings.KEEP_DELETED_DAYS.key));
+        for (Object bad : new Object[]{2, -7, 366, "7", true, JSONObject.NULL}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.KEEP_DELETED_DAYS.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.KEEP_DELETED_DAYS.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Remove kept messages after: Never to 7 days", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals(7, (int) Settings.KEEP_DELETED_DAYS.savedValue());
+        } finally {
+            Settings.KEEP_DELETED_DAYS.resetToDefault();
+        }
+    }
+
+    /** The voice changer's voice goes out with the switches and comes back only as a voice its row offers (#79). */
+    @Test
+    public void theVoiceChangerRoundTripsAndShowsInThePreview() throws Exception {
+        Settings.VOICE_CHANGER.save("robot");
+        String file = SettingsBackup.create();
+        assertEquals("robot", new JSONObject(file).getJSONObject("settings").get(Settings.VOICE_CHANGER.key));
+        for (Object bad : new Object[]{"chipmunk", "ROBOT", 1}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.VOICE_CHANGER.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.VOICE_CHANGER.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Voice changer: Off to Robot", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("robot", Settings.VOICE_CHANGER.savedValue());
+        } finally {
+            Settings.VOICE_CHANGER.resetToDefault();
+        }
+    }
+
+    /**
+     * The picture behind the lists (#88) goes out as its switch and its dim, never as the picture,
+     * comes back only as a dim its row offers, and shows in the preview without a restart owed.
+     * Android 13, where its row is drawn for the preview to name.
+     */
+    @Test @Config(sdk = 33)
+    public void theListBackgroundSwitchAndDimRoundTripWithoutThePicture() throws Exception {
+        Settings.LIST_BACKGROUND.save(true);
+        Settings.LIST_BACKGROUND_DIM.save(60);
+        String file = SettingsBackup.create();
+        JSONObject written = new JSONObject(file).getJSONObject("settings");
+        assertEquals(true, written.get(Settings.LIST_BACKGROUND.key));
+        assertEquals(60, written.get(Settings.LIST_BACKGROUND_DIM.key));
+        assertFalse("the picture stays on the phone", file.contains("list_background.img"));
+
+        for (Object bad : new Object[]{50, 0, 90, -20, "60", true}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.LIST_BACKGROUND_DIM.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.LIST_BACKGROUND.resetToDefault();
+        Settings.LIST_BACKGROUND_DIM.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("1 switch will change.\n\nPicture behind the lists turns on\nBackground dim: 40% to 60%",
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertTrue(Settings.LIST_BACKGROUND.savedValue());
+            assertEquals(60, (int) Settings.LIST_BACKGROUND_DIM.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.LIST_BACKGROUND.resetToDefault();
+            Settings.LIST_BACKGROUND_DIM.resetToDefault();
+        }
+    }
+
+    /**
+     * The chats pinned on this phone go out with the switches, come back only as a list Pin on this
+     * phone would write, and show as a count in the preview, never as chat ids (#79).
+     */
+    @Test
+    public void theChatsPinnedOnThisPhoneRoundTripAndShowAsACount() throws Exception {
+        Settings.LOCAL_PINNED_CHATS.save("12,-34");
+        String file = SettingsBackup.create();
+        assertEquals("12,-34", new JSONObject(file).getJSONObject("settings").get(Settings.LOCAL_PINNED_CHATS.key));
+
+        StringBuilder tooMany = new StringBuilder("1");
+        for (int i = 2; i <= 21; i++) tooMany.append(',').append(i);
+        for (Object bad : new Object[]{"12,12", "0", "12,abc", "+5", "12,", tooMany.toString(), 12, true}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.LOCAL_PINNED_CHATS.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.LOCAL_PINNED_CHATS.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Chats pinned on this phone: 0 chats to 2 chats", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("12,-34", Settings.LOCAL_PINNED_CHATS.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.LOCAL_PINNED_CHATS.resetToDefault();
+        }
+    }
+
+    /**
+     * The chats kept after you were removed go out with the switches, come back only as a list
+     * Keep chats you're removed from would write, and show as a count in the preview (#71).
+     */
+    @Test
+    public void theChatsKeptAfterARemovalRoundTripAndShowAsACount() throws Exception {
+        Settings.KEPT_REMOVED_CHATS.save("-1001234567890,-42");
+        String file = SettingsBackup.create();
+        assertEquals("-1001234567890,-42", new JSONObject(file).getJSONObject("settings").get(Settings.KEPT_REMOVED_CHATS.key));
+
+        StringBuilder tooMany = new StringBuilder("-1");
+        for (int i = 2; i <= app.hushtelegram.extension.telegram.misc.KeepRemoved.MAX_CHATS + 1; i++) tooMany.append(",-").append(i);
+        for (Object bad : new Object[]{"-42,-42", "42", "0", "-42,abc", "-042", "-42,", tooMany.toString(), -42, true}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.KEPT_REMOVED_CHATS.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.KEPT_REMOVED_CHATS.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Chats you were removed from: 0 chats to 2 chats", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("-1001234567890,-42", Settings.KEPT_REMOVED_CHATS.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.KEPT_REMOVED_CHATS.resetToDefault();
+        }
+    }
+
+    /**
+     * The chat list banner (#86) goes out as its choice, never as its picture, comes back only as a
+     * choice its row offers, and shows in the preview by name without a restart owed.
+     */
+    @Test
+    public void theChatListBannerRoundTripsAsItsChoiceWithoutThePicture() throws Exception {
+        Settings.CHAT_LIST_BANNER.save("ocean");
+        String file = SettingsBackup.create();
+        assertEquals("ocean", new JSONObject(file).getJSONObject("settings").get(Settings.CHAT_LIST_BANNER.key));
+        assertFalse("the picture stays on the phone", file.contains("chat_list_banner.img"));
+
+        for (Object bad : new Object[]{"sunset", "Ocean", " ocean", "picture2", 1, true}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.CHAT_LIST_BANNER.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+        for (String good : new String[]{"", "picture", "dusk", "slate"}) {
+            JSONObject right = new JSONObject(file);
+            right.getJSONObject("settings").put(Settings.CHAT_LIST_BANNER.key, good);
+            assertEquals(good, SettingsBackup.parse(right.toString()).texts.get(Settings.CHAT_LIST_BANNER));
+        }
+
+        Settings.CHAT_LIST_BANNER.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Chat list banner: None to Ocean", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("ocean", Settings.CHAT_LIST_BANNER.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.CHAT_LIST_BANNER.resetToDefault();
         }
     }
 

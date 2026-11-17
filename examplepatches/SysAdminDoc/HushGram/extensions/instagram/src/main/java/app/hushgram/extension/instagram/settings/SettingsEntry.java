@@ -70,8 +70,10 @@ import app.hushgram.extension.instagram.misc.SavedFastScroll;
 import app.hushgram.extension.instagram.misc.LaunchScreen;
 import app.hushgram.extension.instagram.misc.HeaderText;
 import app.hushgram.extension.instagram.misc.AppIcon;
+import app.hushgram.extension.instagram.misc.TextSize;
 import app.hushgram.extension.instagram.profile.ProfileTitle;
 import app.hushgram.extension.instagram.stories.StoryProgressBar;
+import app.hushgram.extension.instagram.stories.StoryReplyBox;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
@@ -185,11 +187,13 @@ public final class SettingsEntry {
         PureBlackNav.install(context);
         StoryBands.install(context);
         StoryProgressBar.install(context);
+        StoryReplyBox.install(context);
         ProfileMenuPress.install(context);
         ProfileTitle.install(context);
         MuseCard.install(context);
         LaunchScreen.install(context);
         AppIcon.install(context);
+        TextSize.install(context);
         if (SettingsStatus.messagesLock()) MessagesLock.watch(context);
         if (SettingsStatus.backgroundPlay()) BackgroundPlay.watch(context);
         // A save Android stopped halfway left a pending gallery row, a work file or a notification.

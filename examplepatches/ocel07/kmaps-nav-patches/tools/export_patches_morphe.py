@@ -11,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from export_patches_naver import ID  # noqa: E402
 
-SITES = os.path.join(HERE, '..', 'src', 'dev', 'ubxbridge', 'morphe', 'NaverSites.kt')
+SITES = os.path.join(HERE, '..', 'patches', 'src', 'main', 'kotlin', 'app', 'kmaps', 'patches', 'naver', 'NaverSites.kt')
 MRC = 'com/naver/maps/navi/mapmatching/internal/routeMatching/reroute/internal/MergeRoadChecker'
 HAND = [  # class, note, anchor first line, patch id  (NaverPatch.kt)
     ('com/naver/map/core/common/location/FusedLocationSource', 'N1 setInterval', 'const-wide/16 *, 0x3e8', 'N1'),
@@ -22,7 +22,7 @@ HAND = [  # class, note, anchor first line, patch id  (NaverPatch.kt)
 ]
 
 
-KAKAO = os.path.join(HERE, '..', 'src', 'dev', 'ubxbridge', 'morphe', 'KakaoPatch.kt')
+KAKAO = os.path.join(HERE, '..', 'patches', 'src', 'main', 'kotlin', 'app', 'kmaps', 'patches', 'kakao', 'KakaoPatch.kt')
 
 
 def kakao_rows():

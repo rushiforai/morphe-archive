@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
+import semicoloncolonel.mobilestream.patches.shared.misc.tvName
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -44,7 +45,7 @@ private fun switchFingerprint(name: String) = Fingerprint(
 
 @Suppress("unused")
 val autoSkipPatch = bytecodePatch(
-    name = "Auto-skip (Android TV)",
+    name = tvName("Auto-skip (Android TV)"),
     description = "Presses Skip for you on the parts you choose: Apple's promos for other titles, recaps, and intros.",
 ) {
     compatibleWith(Constants.TV_COMPATIBILITY)

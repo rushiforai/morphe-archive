@@ -95,6 +95,41 @@ internal fun Method.resultFailureCall(from: Int = 0): MethodReference =
         }
     } ?: throw PatchException("$definingClass->$name: no Result.failure(Throwable) call after instruction $from")
 
+/**
+ * Smali that wraps the Throwable in [throwable] into a Kotlin failure Result and returns it, as the
+ * method already does after instruction [from]. R8 either keeps the `Result.failure(Throwable)` call
+ * (11.12.0.33) or inlines it into `new Result.Failure(Throwable)` (11.14.0.35: Lkotlin/t$a;), so
+ * both shapes are copied from the method. [scratch] is a free register for the inlined form.
+ */
+internal fun Method.returnFailureSmali(from: Int, throwable: String, scratch: String): String {
+    val rest = insns().drop(from)
+    val staticCall = rest.firstNotNullOfOrNull { insn ->
+        insn.methodRef()?.takeIf {
+            insn.opcode == Opcode.INVOKE_STATIC && it.definingClass.startsWith("Lkotlin/") &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;") &&
+                it.returnType.startsWith("L")
+        }
+    }
+    if (staticCall != null) {
+        return """
+            invoke-static {$throwable}, ${staticCall.smali()}
+            move-result-object $throwable
+            return-object $throwable
+        """
+    }
+    val ctor = rest.firstNotNullOfOrNull { insn ->
+        insn.methodRef()?.takeIf {
+            insn.opcode == Opcode.INVOKE_DIRECT && it.name == "<init>" && it.definingClass.startsWith("Lkotlin/") &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;")
+        }
+    } ?: throw PatchException("$definingClass->$name: no Result.failure(Throwable) call or Result.Failure constructor after instruction $from")
+    return """
+        new-instance $scratch, ${ctor.definingClass}
+        invoke-direct {$scratch, $throwable}, ${ctor.smali()}
+        return-object $scratch
+    """
+}
+
 // ---------------------------------------------------------------------------------------------
 // App launch tasks. LaunchTaskManagerImpl runs LaunchTask subclasses (11.12.0.33: launchtaskmanager.b)
 // in a dependency graph; each task's execute (a(Continuation)Object) answers an ExecutionResult.
@@ -104,13 +139,17 @@ internal fun Method.resultFailureCall(from: Int = 0): MethodReference =
 // tasks that depend on it still run.
 // ---------------------------------------------------------------------------------------------
 
-// LaunchTask.equals(Object) casts with the Kotlin message naming the LaunchTask class, and compares
-// config.taskId, which gives both fields.
+// LaunchTask.equals(Object) compares config.taskId, which gives both fields. 11.12.0.33 found it by
+// the Kotlin cast message naming the LaunchTask class; R8 dropped that string in 11.14.0.35, so the
+// anchor is the abstract LaunchTask.kt class (source name kept) and the config.taskId read pair.
 private object LaunchTaskEqualsFingerprint : Fingerprint(
     name = "equals",
     returnType = "Z",
     parameters = listOf("Ljava/lang/Object;"),
-    filters = listOf(string(".launchtaskmanager.LaunchTask", StringComparisonType.ENDS_WITH)),
+    custom = { method, classDef ->
+        AccessFlags.ABSTRACT.isSet(classDef.accessFlags) && classDef.sourceFile == "LaunchTask.kt" &&
+            method.insns().any { it.opcode == Opcode.IGET_OBJECT && it.fieldRef()?.definingClass == classDef.type }
+    },
 )
 
 // ExecutionResult.Success(taskId) (11.12.0.33: launchtaskmanager.a$e).

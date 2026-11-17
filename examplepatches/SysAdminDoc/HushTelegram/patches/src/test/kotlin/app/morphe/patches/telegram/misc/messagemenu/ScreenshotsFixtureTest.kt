@@ -57,21 +57,32 @@ class ScreenshotsFixtureTest {
                 val after = method.controlBody()
                 val hooks = after.indices.filter { after[it].controlRef()?.startsWith(SCREENSHOTS) == true }
                 val wanted = when (site) {
-                    ScreenshotSite.VIEWER -> List(3) { SCREENSHOTS_PROTECTED }
+                    ScreenshotSite.VIEWER -> List(3) { SCREENSHOTS_PROTECTED } + SCREENSHOTS_SECRET
                     ScreenshotSite.STORY -> listOf(SCREENSHOTS_STORY)
+                    ScreenshotSite.CONDITION -> listOf(SCREENSHOTS_PROTECTED, SCREENSHOTS_SECRET)
                     else -> listOf(SCREENSHOTS_PROTECTED)
                 }
-                assertEquals("${build.name} $site", wanted, hooks.map { after[it].controlRef() })
+                assertEquals("${build.name} $site", wanted.sorted(), hooks.mapNotNull { after[it].controlRef() }.sorted())
+                val added = mutableSetOf<Int>()
                 for (at in hooks) {
                     val invoke = after[at] as RegisterRangeInstruction
+                    val secret = after[at].controlRef() == SCREENSHOTS_SECRET
                     assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, after[at].opcode)
                     assertEquals(build.name, 1, invoke.registerCount)
-                    assertEquals(build.name, Opcode.MOVE_RESULT, after[at + 1].opcode)
+                    assertEquals(build.name, if (secret) Opcode.MOVE_RESULT_OBJECT else Opcode.MOVE_RESULT, after[at + 1].opcode)
                     assertEquals(build.name, invoke.startRegister, (after[at + 1] as OneRegisterInstruction).registerA)
-                    val next = after[at + 2]
-                    when (site) {
-                        ScreenshotSite.STORY -> assertEquals("${build.name}: the story's answer goes over first", 0, at)
-                        ScreenshotSite.VIEWER -> {
+                    added += listOf(at, at + 1)
+                    if (secret) {
+                        // Cast back, so the verifier still sees the secret chat Telegram read.
+                        assertEquals(build.name, Opcode.CHECK_CAST, after[at + 2].opcode)
+                        assertEquals(build.name, ENCRYPTED_CHAT, after[at + 2].controlRef())
+                        assertEquals(build.name, invoke.startRegister, (after[at + 2] as OneRegisterInstruction).registerA)
+                        added += at + 2
+                    }
+                    val next = after[if (secret) at + 3 else at + 2]
+                    when {
+                        site == ScreenshotSite.STORY -> assertEquals("${build.name}: the story's answer goes over first", 0, at)
+                        site == ScreenshotSite.VIEWER || secret -> {
                             assertEquals(build.name, Opcode.IF_NEZ, next.opcode)
                             assertEquals(build.name, invoke.startRegister, (next as OneRegisterInstruction).registerA)
                         }
@@ -80,16 +91,22 @@ class ScreenshotsFixtureTest {
                             assertEquals(build.name, invoke.startRegister, (next as OneRegisterInstruction).registerA)
                         }
                     }
+                    if (secret) {
+                        // Handed over straight from the secret chat field Telegram reads.
+                        val read = after[at - 1]
+                        assertEquals(build.name, Opcode.IGET_OBJECT, read.opcode)
+                        assertEquals(build.name, ENCRYPTED_CHAT, ((read as ReferenceInstruction).reference as FieldReference).type)
+                        assertEquals(build.name, invoke.startRegister, (read as OneRegisterInstruction).registerA)
+                    }
                 }
-                val without = after.indices.filter { it !in hooks && (it - 1) !in hooks }.map { operand(after[it]) }
+                val without = after.indices.filter { it !in added }.map { operand(after[it]) }
                 assertEquals("${build.name} $site: stock code stays", before[n], without)
             }
-            // The secret chat check in each condition comes before its hook and is left as it was.
+            // In each condition the secret chat goes over first, then the chat's own answer.
             for ((method, site) in plan.targets.filter { it.second == ScreenshotSite.CONDITION }) {
                 val after = method.controlBody()
                 val hook = after.indexOfFirst { it.controlRef() == SCREENSHOTS_PROTECTED }
-                val secret = after.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.type == "Lorg/telegram/tgnet/TLRPC\$EncryptedChat;" }
-                assertEquals("${build.name} $site", Opcode.IF_NEZ, after[secret + 1].opcode)
+                val secret = after.indexOfFirst { it.controlRef() == SCREENSHOTS_SECRET }
                 assertEquals("${build.name} $site", true, secret in 0 until hook)
             }
             // The message cell hands over the message's noforwards answer, read right before the hook.

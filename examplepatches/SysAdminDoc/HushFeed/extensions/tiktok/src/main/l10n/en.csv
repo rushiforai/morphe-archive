@@ -262,6 +262,7 @@ Also apply these filters to downloaded videos TikTok uses when the feed can't lo
 Also change the region TikTok reports internally and set TikTok to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.,Also change the region TikTok reports internally and set TikTok to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.
 Also filter it,Also filter it
 Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.,Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.","Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data."
 "Also on a block list, so still hidden: %1$s","Also on a block list, so still hidden: %1$s"
 Also on opened videos,Also on opened videos
 Also replaces the saved region and country code TikTok sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.,Also replaces the saved region and country code TikTok sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.
@@ -394,6 +395,7 @@ Caption height,Caption height
 Caption height in Clear display,Caption height in Clear display
 Caption height in landscape,Caption height in landscape
 Caption languages,Caption languages
+Caption spot in Clear display,Caption spot in Clear display
 Caption text size,Caption text size
 "Caption, creator or sound","Caption, creator or sound"
 Captions,Captions
@@ -516,6 +518,7 @@ Couldn't open the file picker to import. Try again.,Couldn't open the file picke
 Couldn't open your photos. Try again.,Couldn't open your photos. Try again.
 Couldn't put back the diagnostic data. Try again.,Couldn't put back the diagnostic data. Try again.
 Couldn't put the saved videos back. Try again.,Couldn't put the saved videos back. Try again.
+Couldn't reach TikTok. Open this LIVE again.,Couldn't reach TikTok. Open this LIVE again.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.
 Couldn't read TikTok's current values. Refresh values from the menu to try again.,Couldn't read TikTok's current values. Refresh values from the menu to try again.
 Couldn't read a field value. Check and try again.,Couldn't read a field value. Check and try again.
@@ -550,6 +553,7 @@ Couldn't start the import. Try again in a moment.,Couldn't start the import. Try
 Couldn't start the report export. Try again.,Couldn't start the report export. Try again.
 Couldn't start the settings change. Try again in a moment.,Couldn't start the settings change. Try again in a moment.
 Couldn't stop it. Try again.,Couldn't stop it. Try again.
+Couldn't tell which LIVE this is. Open it again.,Couldn't tell which LIVE this is. Open it again.
 Couldn't tell which folder to update. Choose it again.,Couldn't tell which folder to update. Choose it again.
 Couldn't translate this draft. Try again.,Couldn't translate this draft. Try again.
 Couldn't translate this message. Try again.,Couldn't translate this message. Try again.
@@ -564,12 +568,15 @@ Country filters,Country filters
 Counts under the buttons,Counts under the buttons
 Cover,Cover
 Cover saved to %1$s,Cover saved to %1$s
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.","Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size."
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size."
 Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.,Cover the whole window without cropping anything. The video gets a little taller or wider to do it. A video far from the screen's shape keeps TikTok's size.
 Create,Create
 Creator exceptions,Creator exceptions
 Creators and sounds,Creators and sounds
 Creators hidden on this phone,Creators hidden on this phone
 Creators you hid from a video. Search the list and remove one at a time.,Creators you hid from a video. Search the list and remove one at a time.
+Crop and stretch to fill the screen,Crop and stretch to fill the screen
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.,Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.
 Current,Current
 Current %1$s,Current %1$s
@@ -1104,6 +1111,7 @@ Inserted cards,Inserted cards
 Instead of these settings. The list has a button that brings you back here.,Instead of these settings. The list has a button that brings you back here.
 Invisible controls button,Invisible controls button
 Invite friends,Invite friends
+"It's in %1$s, under %2$s. Tap to go there.","It's in %1$s, under %2$s. Tap to go there."
 Join Amplify,Join Amplify
 Joined,Joined
 Joined %s,Joined %s
@@ -1137,6 +1145,7 @@ Keep the LIVE quality after TikTok restarts,Keep the LIVE quality after TikTok r
 Keep the caption in sight,Keep the caption in sight
 Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.,Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.
 Keep the language picked in TikTok,Keep the language picked in TikTok
+Keep the middle unstretched,Keep the middle unstretched
 Keep the music disc still,Keep the music disc still
 Keep the next videos in full screen,Keep the next videos in full screen
 Keep the progress bar,Keep the progress bar
@@ -1160,6 +1169,7 @@ LIVE ended or dropped. Recording saved to %1$s,LIVE ended or dropped. Recording 
 LIVE feed,LIVE feed
 LIVE feed countries,LIVE feed countries
 LIVE followers range,LIVE followers range
+LIVE name alerts,LIVE name alerts
 LIVE recording quality,LIVE recording quality
 LIVE recording saved to %1$s,LIVE recording saved to %1$s
 LIVE recording source,LIVE recording source
@@ -1203,9 +1213,11 @@ Let a LIVE fill the screen up to the top edge. The status bar comes back when yo
 Let other apps play until a video starts,Let other apps play until a video starts
 "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.","Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this."
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.
+Let the host see you,Let the host see you
 Let the last video finish,Let the last video finish
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.
 "Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.","Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are."
+Letting the host see you,Letting the host see you
 Licenses,Licenses
 Lift text length limits,Lift text length limits
 "Lifts spoken captions above TikTok's spot while the phone is sideways. Use 0 for TikTok's spot, or up to %1$d.","Lifts spoken captions above TikTok's spot while the phone is sideways. Use 0 for TikTok's spot, or up to %1$d."
@@ -1228,6 +1240,7 @@ Link copied,Link copied
 Links,Links
 Links in comments open,Links in comments open
 Liquid glass look,Liquid glass look
+Listen for your name,Listen for your name
 "Lists the videos you watch on this phone, with who posted each one and its caption. It stays on your phone.","Lists the videos you watch on this phone, with who posted each one and its caption. It stays on your phone."
 Lite mode,Lite mode
 Live photo clip,Live photo clip
@@ -1265,6 +1278,7 @@ Long press on For You opens my watch history,Long press on For You opens my watc
 Long press on Profile opens my watch history,Long press on Profile opens my watch history
 Long-press Home for Hushfeed settings,Long-press Home for Hushfeed settings
 Long-press Inbox for read receipts,Long-press Inbox for read receipts
+Long-press Profile for Activity center,Long-press Profile for Activity center
 Long-press Profile for Watch history,Long-press Profile for Watch history
 Long-press Profile to switch accounts,Long-press Profile to switch accounts
 "Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID. On a LIVE profile card, long-press the name, username or bio to copy it, or tap the copy mark by the username.","Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID. On a LIVE profile card, long-press the name, username or bio to copy it, or tap the copy mark by the username."
@@ -1273,6 +1287,7 @@ Longest first,Longest first
 Look up a commenter's country,Look up a commenter's country
 Looking for apps,Looking for apps
 Loop a story,Loop a story
+"Lower, near the bottom","Lower, near the bottom"
 Lowest,Lowest
 "MP3 (.mp3), plays anywhere","MP3 (.mp3), plays anywhere"
 MP3 didn't work. Saving TikTok's own file.,MP3 didn't work. Saving TikTok's own file.
@@ -1335,7 +1350,9 @@ Mute feed videos,Mute feed videos
 Muted,Muted
 My watch history,My watch history
 Name copied,Name copied
+Names to listen for,Names to listen for
 Nearby,Nearby
+Needs Android 13 or newer.,Needs Android 13 or newer.
 Network error. %1$d removed.,Network error. %1$d removed.
 Network proxy,Network proxy
 Never from these countries,Never from these countries
@@ -1441,9 +1458,11 @@ Off,Off
 "Off until you tap it. Wipes TikTok's data once, on the next start, and gives it a new Android ID and advertising ID, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.","Off until you tap it. Wipes TikTok's data once, on the next start, and gives it a new Android ID and advertising ID, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay."
 "Off, only its button closes it.","Off, only its button closes it."
 Off. TikTok can report views and typing.,Off. TikTok can report views and typing.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.
 Offer Audio only in LIVE quality,Offer Audio only in LIVE quality
 Offer LIVE quality in more rooms,Offer LIVE quality in more rooms
 Offer clear screen in every LIVE room,Offer clear screen in every LIVE room
+Offer full screen in more LIVEs,Offer full screen in more LIVEs
 Offline videos,Offline videos
 Offline videos limit,Offline videos limit
 Oldest first,Oldest first
@@ -1466,9 +1485,11 @@ One at a time,One at a time
 One minute left,One minute left
 One more save waiting,One more save waiting
 "One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.","One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out."
+One per post,One per post
 One picked,One picked
 "One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It takes the place of the speed above. Leave empty to use that one.","One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It takes the place of the speed above. Leave empty to use that one."
 One value per line,One value per line
+One video,One video
 One video was recorded before each account kept its own list. It hides nothing until you add it here.,One video was recorded before each account kept its own list. It hides nothing until you add it here.
 One was already saved,One was already saved
 Only a watermarked copy existed. Saved to %1$s,Only a watermarked copy existed. Saved to %1$s
@@ -1502,6 +1523,7 @@ Open the search page,Open the search page
 Open the story again and try once more,Open the story again and try once more
 "Open your profile once, then return here to choose its shortcuts.","Open your profile once, then return here to choose its shortcuts."
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.,Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.","Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice."
 "Opens TikTok's own profile background editor in Edit profile, and shows the backgrounds other profiles have set. TikTok's servers may still refuse to save one for an account TikTok hasn't offered it to yet.","Opens TikTok's own profile background editor in Edit profile, and shows the backgrounds other profiles have set. TikTok's servers may still refuse to save one for an account TikTok hasn't offered it to yet."
 Opens a GitHub report with your versions and settings filled in. Add what happened.,Opens a GitHub report with your versions and settings filled in. Add what happened.
 Opens github.com in your browser,Opens github.com in your browser
@@ -1610,6 +1632,7 @@ Press and hold a profile picture to save the full size original to your photo de
 "Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.","Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over."
 Press and hold the Home tab to open these settings. A tap on Home works as before.,Press and hold the Home tab to open these settings. A tap on Home works as before.
 "Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.","Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press."
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.","Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press."
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.","Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts."
 "Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this.","Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this."
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.,Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.
@@ -1812,6 +1835,7 @@ Save the cover as well,Save the cover as well
 Save the feed capture,Save the feed capture
 Save the frame on screen as a photo,Save the frame on screen as a photo
 Save the original sound,Save the original sound
+Save the photo posts as one video?,Save the photo posts as one video?
 Save the sound as well,Save the sound as well
 Save the video's cover,Save the video's cover
 "Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video.","Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video."
@@ -1958,6 +1982,7 @@ Shake to report,Shake to report
 Share,Share
 Share profile,Share profile
 Share sheet,Share sheet
+Share the video after a save,Share the video after a save
 Shares range,Shares range
 Shop,Shop
 Shop order updates and coupon messages no longer take up rows in the Inbox. Your orders are unchanged.,Shop order updates and coupon messages no longer take up rows in the Inbox. Your orders are unchanged.
@@ -2105,6 +2130,8 @@ Sound saved to %1$s,Sound saved to %1$s
 Sound: %1$s,Sound: %1$s
 Sounds,Sounds
 Source,Source
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.","Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again."
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.
 Speed,Speed
 Speed menu choices,Speed menu choices
 "Speed up this video, double tap again to undo","Speed up this video, double tap again to undo"
@@ -2243,6 +2270,7 @@ Tapping a sticker someone sent you in a chat opens a box with Save media. Turn t
 Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.,Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.
 Technical details,Technical details
 "Technical details, %1$s","Technical details, %1$s"
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.","Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off."
 Terms and Policies,Terms and Policies
 Text sticker words,Text sticker words
 That JSON file doesn't contain the supported TikTok watch history.,That JSON file doesn't contain the supported TikTok watch history.
@@ -2324,6 +2352,10 @@ The frame couldn't be read. Try again.,The frame couldn't be read. Try again.
 The frame couldn't be saved. Try again.,The frame couldn't be saved. Try again.
 "The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.","The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up."
 The heading at the top. Leave it empty for none.,The heading at the top. Leave it empty for none.
+The host can already see you in this LIVE,The host can already see you in this LIVE
+The host can see you,The host can see you
+The host can see you now,The host can see you now
+The host sees you next time you open it,The host sees you next time you open it
 "The hour both budgets reset, on a 24 hour clock. The default is 4 in the morning, so a late night still counts as the same day.","The hour both budgets reset, on a 24 hour clock. The default is 4 in the morning, so a late night still counts as the same day."
 The last feed capture wasn't saved. Tap to try again.,The last feed capture wasn't saved. Tap to try again.
 The last one is still waiting for Wi-Fi,The last one is still waiting for Wi-Fi
@@ -2391,6 +2423,7 @@ This list is too long to preview here. Saving still follows the usual limit.,Thi
 This list isn't available on this TikTok build.,This list isn't available on this TikTok build.
 This original sound isn't on YouTube Music,This original sound isn't on YouTube Music
 "This phone has no file picker, so there's no way to choose a file here","This phone has no file picker, so there's no way to choose a file here"
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.","This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again."
 This photo post is already saved,This photo post is already saved
 This preset isn't available for your installed TikTok version.,This preset isn't available for your installed TikTok version.
 This profile picture isn't available to save,This profile picture isn't available to save
@@ -2434,6 +2467,7 @@ TikTok is locked,TikTok is locked
 "TikTok isn't ready yet. Open your Inbox, then try again.","TikTok isn't ready yet. Open your Inbox, then try again."
 "TikTok lets you pick a LIVE's quality only in some rooms. This adds Video quality to the menu in most of the others, and the next room opens at the quality you picked last.","TikTok lets you pick a LIVE's quality only in some rooms. This adds Video quality to the menu in most of the others, and the next room opens at the quality you picked last."
 "TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.","TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today."
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.","TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again."
 TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.,TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.
 TikTok read it,TikTok read it
 "TikTok read it, but the override couldn't be applied. Reset it and save it again.","TikTok read it, but the override couldn't be applied. Reset it and save it again."
@@ -2448,6 +2482,7 @@ TikTok reports additional filtered accounts. This list is incomplete.,TikTok rep
 TikTok reports no more items in this list.,TikTok reports no more items in this list.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.
 "TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.","TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work."
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.
 TikTok slips the videos it saved for offline viewing back into For You when it can't load enough new ones. This takes them all out. Your offline list stays as it is.,TikTok slips the videos it saved for offline viewing back into For You when it can't load enough new ones. This takes them all out. Your offline list stays as it is.
 TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.,TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.
 TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.,TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.
@@ -2620,6 +2655,7 @@ Videos with the sound %1$s,Videos with the sound %1$s
 Videos you watch show up here,Videos you watch show up here
 Views range,Views range
 Visual search,Visual search
+Visual search on paused videos,Visual search on paused videos
 Volume,Volume
 Wait a day to loosen the budget,Wait a day to loosen the budget
 "Wait a day to loosen the budget is on, so Hushfeed stays on","Wait a day to loosen the budget is on, so Hushfeed stays on"
@@ -2631,6 +2667,7 @@ Waiting to record. Go to the screen you want recorded.,Waiting to record. Go to 
 Waiting to save %1$s files,Waiting to save %1$s files
 Waiting to save one file,Waiting to save one file
 Waiting to save video,Waiting to save video
+Watch LIVEs unseen,Watch LIVEs unseen
 Watch history cleared,Watch history cleared
 Watch history was imported for the account that chose the file. Switch back to see it.,Watch history was imported for the account that chose the file. Switch back to see it.
 "WebP, exactly as TikTok sent it","WebP, exactly as TikTok sent it"
@@ -2653,6 +2690,7 @@ What's new on TikTok,What's new on TikTok
 When to send,When to send
 "When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.","When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later."
 "When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.","When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual."
+Where TikTok shows it,Where TikTok shows it
 Where the time goes,Where the time goes
 "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.","While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen."
 "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.","While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only."
@@ -2687,6 +2725,7 @@ You can continue now.,You can continue now.
 You can pick up to %1$s at a time,You can pick up to %1$s at a time
 "You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.","You have %1$s. Update the patches in Morphe Manager, then patch TikTok again."
 You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.,You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.
 You stay off the viewer list of stories you watch. Needs Ghost mode on.,You stay off the viewer list of stories you watch. Needs Ghost mode on.
 YouTube Music didn't open. Open it yourself to search.,YouTube Music didn't open. Open it yourself to search.
 YouTube Music isn't installed,YouTube Music isn't installed
@@ -2699,6 +2738,8 @@ Your feed,Your feed
 Your feed. Your rules.,Your feed. Your rules.
 Your filters hid everything TikTok just sent. Most were %1$s.,Your filters hid everything TikTok just sent. Most were %1$s.
 "Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.","Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s."
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.","Your handle and TikTok name are on the list already. Add other names people call you, separated by commas."
+Your name came up in a LIVE,Your name came up in a LIVE
 "Your network proxy was kept, since a backup can't change it","Your network proxy was kept, since a backup can't change it"
 "Your operator's name, like T-Mobile.","Your operator's name, like T-Mobile."
 "Your operator's numeric code, like 310260.","Your operator's numeric code, like 310260."
@@ -2716,6 +2757,7 @@ autoplay auto play,autoplay auto play
 collapsed,collapsed
 debug debugging logs logging,debug debugging logs logging
 dialog popup greeting,dialog popup greeting
+download button,download button
 expanded,expanded
 picture in picture PiP,picture in picture PiP
 save photos,save photos

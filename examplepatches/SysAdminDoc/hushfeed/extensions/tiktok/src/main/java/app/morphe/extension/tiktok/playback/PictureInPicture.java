@@ -31,6 +31,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.feedfilter.LiveFilter;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -38,7 +39,10 @@ import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 
+import com.ss.android.ugc.aweme.feed.model.Aweme;
+
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -89,6 +93,12 @@ public final class PictureInPicture {
     private static final int SETTLE_CHECKS = 8;
 
     /**
+     * How many LIVE previews in a row an arrow steps over. A LIVE plays in TikTok's own LIVE
+     * window, never this one, so landing on one left the window black (#413).
+     */
+    static final int LIVE_SKIPS = 3;
+
+    /**
      * Carried by the window's own button. Before Android 13 a receiver registered at run time
      * can't be kept from other apps, so any of them could send the action and pause or play
      * the video. They can't read this, since only the button's PendingIntent holds it.
@@ -137,7 +147,7 @@ public final class PictureInPicture {
     }
 
     /** Where the note that Hushfeed turned TikTok's own LIVE window on is kept. */
-    static final String STATE = "hushfeed_picture_in_picture";
+    public static final String STATE = "hushfeed_picture_in_picture";
     static final String LIVE_WINDOW_OURS = "live_window_ours";
 
     /**
@@ -207,6 +217,44 @@ public final class PictureInPicture {
     /** Paused only while no Hushfeed window holds the feed; in the window the step plays on. */
     static boolean pageSelectPaused(boolean paused, boolean windowUp) {
         return paused && !windowUp;
+    }
+
+    /**
+     * The feed panel's "am I on screen?" inside the same page-select step (#413). The panel drops
+     * it as the activity pauses, and the step skips the start for an unseen panel too, so with only
+     * the pause answered the arrows still landed on a black cell. Non-zero means visible. Never throws.
+     */
+    public static int pageSelectVisible(int visible) {
+        try {
+            return pageSelectVisible(visible != 0, windowUp()) ? 1 : 0;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Couldn't decide the page-select visibility check", failure);
+            return visible;
+        }
+    }
+
+    /** The window shows the feed, so the panel counts as on screen while it's up. */
+    static boolean pageSelectVisible(boolean visible, boolean windowUp) {
+        return visible || windowUp;
+    }
+
+    /**
+     * The feed player's "is my activity in front?" inside its can-play check (#413). The window
+     * pauses the activity, so with both page-select answers handled the player still refused the
+     * video the arrows moved to. Non-zero means in front. Never throws.
+     */
+    public static int playerForeground(int foreground) {
+        try {
+            return playerForeground(foreground != 0, windowUp()) ? 1 : 0;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Couldn't decide the player's foreground check", failure);
+            return foreground;
+        }
+    }
+
+    /** The window is the feed in front of the user, so the player counts as in front while it's up. */
+    static boolean playerForeground(boolean foreground, boolean windowUp) {
+        return foreground || windowUp;
     }
 
     private static boolean windowUp() {
@@ -312,12 +360,19 @@ public final class PictureInPicture {
         }
     }
 
-    /** Starts the video again when TikTok stopped it as the window opened, unless the reader paused it. */
+    /**
+     * Starts the video again when TikTok stopped it as the window opened, unless the reader paused
+     * it. After an arrow, the video the player has moved to is the one it starts.
+     */
     @RequiresApi(26)
     private static void keepPlaying(Activity activity) {
         if (activity == null || opened.get() != activity || readerPaused) return;
         if (!activity.isInPictureInPictureMode()) return;
-        if (Boolean.FALSE.equals(SessionPlaybackHold.currentPlaying())) {
+        Object post = SessionPlaybackHold.followCurrentPlayer();
+        Boolean playing = SessionPlaybackHold.currentPlaying();
+        Logger.printDebug(() -> "Picture-in-picture keep playing: playing " + playing + ", "
+                + ParkedPlay.describe(SessionPlaybackHold.currentController(), post));
+        if (Boolean.FALSE.equals(playing)) {
             SessionPlaybackHold.setCurrentPlaying(true);
         }
     }
@@ -354,8 +409,12 @@ public final class PictureInPicture {
 
     /**
      * Moves TikTok's pager one video up or down, the way a swipe would, so TikTok picks and plays
-     * the next video itself. What was set aside comes back first, since the video slides in from a
-     * cell beside this one, and once the pager has settled the new video is kept alone again.
+     * the next video itself, stepping over LIVE previews the pager's list shows on the way. What
+     * was set aside comes back first, since the video slides in from a cell beside this one, and
+     * once the pager has settled the new video is kept alone again.
+     *
+     * <p>The player is told its pager is at rest first, so a scroll flag the window's resize left
+     * up doesn't park the new video's play ({@link ParkedPlay}).
      */
     @RequiresApi(26)
     private static void move(int direction) {
@@ -365,30 +424,102 @@ public final class PictureInPicture {
         if (!canMove(pager, direction)) return;
         Object position = Reflect.invoke(pager, "getCurrentItem");
         if (!(position instanceof Integer) || (Integer) position < 0) return;
+        int from = (Integer) position;
+        int page = landing(pager, from, direction);
+        Object controller = SessionPlaybackHold.currentController();
+        Logger.printDebug(() -> "Picture-in-picture move " + from + " -> " + page + ": "
+                + ParkedPlay.describe(controller, SessionPlaybackHold.currentPlayingAweme()));
+        if (Boolean.TRUE.equals(ParkedPlay.holding(controller))) ParkedPlay.release(controller);
         bringBack();
-        try {
-            // The native pager clamps to its adapter and runs its own selection callbacks.
-            pager.getClass().getMethod("setCurrentItem", int.class).invoke(pager, (Integer) position + direction);
-        } catch (ReflectiveOperationException | RuntimeException failure) {
-            Logger.printException(() -> "Picture-in-picture couldn't move the pager", failure);
+        if (!turn(pager, page)) {
             keepAsideWhileUp(activity.getWindow().getDecorView());
             return;
         }
         readerPaused = false;
-        settle(new WeakReference<>(activity), SETTLE_CHECKS);
+        settle(new WeakReference<>(activity), SETTLE_CHECKS, direction, LIVE_SKIPS);
     }
 
+    /**
+     * The page an arrow lands on, read off the pager's list: the next one that way, or the first
+     * after it that isn't a LIVE preview. Without a readable list, the next one, and the LIVE is
+     * stepped over once the pager settles.
+     */
+    private static int landing(View pager, int from, int direction) {
+        Object adapter = Reflect.invoke(pager, "getAdapter");
+        if (adapter == null) return from + direction;
+        try {
+            // Made accessible: the adapter's own class need not be public.
+            Method count = adapter.getClass().getMethod("getCount");
+            Method item = adapter.getClass().getMethod("getItem", int.class);
+            count.setAccessible(true);
+            item.setAccessible(true);
+            int size = (Integer) count.invoke(adapter);
+            return landing(from, direction, size, at -> isLive(item.invoke(adapter, at)), LIVE_SKIPS);
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            return from + direction;
+        }
+    }
+
+    /** Whether the post on a page of the pager's list is a LIVE preview. */
+    interface PageCheck {
+        boolean live(int page) throws ReflectiveOperationException;
+    }
+
+    /**
+     * The first page past {@code from} in {@code direction}, among the next {@code skips} + 1 of
+     * the {@code count} pages, that isn't a LIVE, or the very next page when they all are (the
+     * arrow still moves, and the window shows what TikTok does with it).
+     */
+    static int landing(int from, int direction, int count, PageCheck live, int skips)
+            throws ReflectiveOperationException {
+        int next = from + direction;
+        for (int page = next, step = 0; step <= skips && page >= 0 && page < count; step++, page += direction) {
+            if (!live.live(page)) return page;
+        }
+        return next;
+    }
+
+    /** Sets TikTok's pager to a page. The native pager clamps to its adapter and runs its own selection callbacks. */
+    private static boolean turn(View pager, int page) {
+        try {
+            pager.getClass().getMethod("setCurrentItem", int.class).invoke(pager, page);
+            return true;
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            Logger.printException(() -> "Picture-in-picture couldn't move the pager", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Once the pager stops, the player's new video becomes the one the window plays, a LIVE is
+     * stepped over the same way, and the video is kept alone and started again.
+     */
     @RequiresApi(26)
-    private static void settle(WeakReference<Activity> owner, int checksLeft) {
+    private static void settle(WeakReference<Activity> owner, int checksLeft, int direction, int skipsLeft) {
         Utils.runOnMainThreadDelayed(() -> {
             Activity activity = owner.get();
             if (activity == null || opened.get() != activity || !activity.isInPictureInPictureMode()) return;
             View decor = activity.getWindow().getDecorView();
             View pager = pagerOf(videoView(decor));
             if (pager != null && !idle(pager) && checksLeft > 1) {
-                settle(owner, checksLeft - 1);
+                settle(owner, checksLeft - 1, direction, skipsLeft);
                 return;
             }
+            Object post = SessionPlaybackHold.followCurrentPlayer();
+            if (skipsLeft > 0 && isLive(post) && canMove(pager, direction)) {
+                Object position = Reflect.invoke(pager, "getCurrentItem");
+                if (position instanceof Integer && turn(pager, (Integer) position + direction)) {
+                    settle(owner, SETTLE_CHECKS, direction, skipsLeft - 1);
+                    return;
+                }
+            }
+            Object controller = SessionPlaybackHold.currentController();
+            Boolean playing = SessionPlaybackHold.currentPlaying();
+            Logger.printDebug(() -> "Picture-in-picture settled on " + Reflect.invoke(pager, "getCurrentItem")
+                    + " (rest " + (pager == null || idle(pager)) + "): playing " + playing + ", "
+                    + ParkedPlay.describe(controller, post));
+            // The slide is over: a play TikTok parked for its end starts now if it hasn't.
+            if (!Boolean.TRUE.equals(playing)) ParkedPlay.release(controller);
             keepAsideWhileUp(decor);
             activity.setPictureInPictureParams(params(activity, videoView(decor), true));
             for (long delay : RESUME_CHECKS_MS) {
@@ -420,6 +551,15 @@ public final class PictureInPicture {
 
     private static boolean idle(View pager) {
         return Integer.valueOf(0).equals(Reflect.invoke(pager, "getScrollState"));
+    }
+
+    private static boolean isLive(Object post) {
+        if (!(post instanceof Aweme)) return false;
+        try {
+            return LiveFilter.isLive((Aweme) post);
+        } catch (RuntimeException unreadable) {
+            return false;
+        }
     }
 
     /**

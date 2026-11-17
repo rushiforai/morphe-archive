@@ -7,7 +7,7 @@ import app.fakh.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 
 /**
@@ -22,7 +22,7 @@ private object ProfileEventQueueFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val anonymousProfileViewingPatch = bytecodePatch(
+val anonymousProfileViewingPatch = patch(
     name = "Anonymous profile viewing",
     description = "Adds an option (off by default) to visit profiles without being listed in " +
         "\"Who viewed your profile\": the app does not report the visit.",

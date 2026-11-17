@@ -50,6 +50,12 @@ final class FeedPillBlur extends Drawable implements ViewTreeObserver.OnPreDrawL
     private static android.graphics.Bitmap grainTile;
     private static final int RIM_DELAY=120,RIM_FADE=160;
 
+    /** Every glass surface frosts with a lightened surface colour, so it reads as clear glass over dark content too. */
+    static final float FROST_LIGHTEN=.22f;
+    static int lighten(int color,float amount){
+        int red=(color>>16)&0xff,green=(color>>8)&0xff,blue=color&0xff;
+        return 0xff000000|(Math.round(red+(255-red)*amount)<<16)|(Math.round(green+(255-green)*amount)<<8)|Math.round(blue+(255-blue)*amount);
+    }
     FeedPillBlur(View source,View bar,int baseColor){
         this(source,bar,baseColor,false);
     }
@@ -63,7 +69,7 @@ final class FeedPillBlur extends Drawable implements ViewTreeObserver.OnPreDrawL
      * @param minimumTint lower bound for the frost tint percentage, for text-bearing surfaces.
      */
     FeedPillBlur(View source,View bar,int baseColor,boolean includeWindow,float cornerDp,boolean screenSpace,int minimumTint,int blurScale){
-        this.source=new WeakReference<>(source);this.bar=new WeakReference<>(bar);this.baseColor=baseColor;this.includeWindow=includeWindow;
+        this.source=new WeakReference<>(source);this.bar=new WeakReference<>(bar);this.baseColor=lighten(baseColor,FROST_LIGHTEN);this.includeWindow=includeWindow;
         this.screenSpace=screenSpace;this.minimumTint=minimumTint;this.blurScale=Math.max(1,blurScale);
         density=bar.getResources().getDisplayMetrics().density;padding=48*density;radius=cornerDp*density;
         blurEffect=RenderEffect.createBlurEffect(3.5f*density,3.5f*density,Shader.TileMode.CLAMP);node.setRenderEffect(blurEffect);

@@ -8,6 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-16
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -92,7 +93,6 @@ import app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
 public class NavigationBarOrderPreference extends Preference {
 
     private static final boolean SUPPORTS_ADDITIONAL_ITEMS_AND_ORDER = PackageUtils.isVersionOrGreater("20.05.00");
-    private static final List<NavigationButton> DEFAULT_ORDER = getEditorButtons();
 
     /** Older targets support the native hide flags, but not extra renderers or reordering. */
     private static List<NavigationButton> getEditorButtons() {
@@ -154,9 +154,9 @@ public class NavigationBarOrderPreference extends Preference {
 
     private void showOrderDialog() {
         Context context = getContext();
-        List<NavigationButton> pendingOrder = getCurrentOrder();
+        PendingOrder pendingOrder = new PendingOrder();
         PendingVisibility pendingVisibility = new PendingVisibility();
-        NavigationButtonAdapter adapter = new NavigationButtonAdapter(context, pendingOrder, pendingVisibility);
+        NavigationButtonAdapter adapter = new NavigationButtonAdapter(context, pendingOrder.buttons, pendingVisibility);
 
         ListView listView = getListView(context, adapter);
 
@@ -181,18 +181,14 @@ public class NavigationBarOrderPreference extends Preference {
                 null,
                 () -> {
                     boolean changed = pendingVisibility.save();
-                    String order = SUPPORTS_ADDITIONAL_ITEMS_AND_ORDER
-                            ? serializeOrder(pendingOrder) : Settings.NAVIGATION_BAR_ORDER.get();
-                    changed |= !order.equals(Settings.NAVIGATION_BAR_ORDER.get());
-                    Settings.NAVIGATION_BAR_ORDER.save(order);
+                    if (SUPPORTS_ADDITIONAL_ITEMS_AND_ORDER) changed |= pendingOrder.save();
                     if (changed) AbstractPreferenceFragment.setRestartNeeded();
                     updateSummary();
                 },
                 null,
                 str("revanced_settings_reset"),
                 () -> {
-                    pendingOrder.clear();
-                    pendingOrder.addAll(DEFAULT_ORDER);
+                    pendingOrder.reset();
                     pendingVisibility.reset();
                     adapter.notifyDataSetChanged();
                 },
@@ -234,7 +230,11 @@ public class NavigationBarOrderPreference extends Preference {
 
     /** Shared with the glass-size preview so both editors use the same order. */
     static List<NavigationButton> getCurrentOrder() {
-        if (!SUPPORTS_ADDITIONAL_ITEMS_AND_ORDER) return new ArrayList<>(DEFAULT_ORDER);
+        return getCurrentOrder(getEditorButtons());
+    }
+
+    private static List<NavigationButton> getCurrentOrder(List<NavigationButton> defaultOrder) {
+        if (!SUPPORTS_ADDITIONAL_ITEMS_AND_ORDER) return new ArrayList<>(defaultOrder);
         String serializedOrder = Settings.NAVIGATION_BAR_ORDER.get();
         List<NavigationButton> order = new ArrayList<>();
         Set<NavigationButton> seenButtons = new HashSet<>();
@@ -254,9 +254,9 @@ public class NavigationBarOrderPreference extends Preference {
         }
 
         if (order.isEmpty()) {
-            order.addAll(DEFAULT_ORDER);
+            order.addAll(defaultOrder);
         } else {
-            for (NavigationButton button : DEFAULT_ORDER) {
+            for (NavigationButton button : defaultOrder) {
                 if (seenButtons.add(button)) {
                     order.add(button);
                 }
@@ -265,11 +265,25 @@ public class NavigationBarOrderPreference extends Preference {
         return order;
     }
 
-    private static String serializeOrder(List<NavigationButton> order) {
-        if (DEFAULT_ORDER.equals(order)) {
-            return "";
+    /** Stages edits against the same native-order snapshot used to draw this dialog. */
+    static final class PendingOrder {
+        private final List<NavigationButton> defaultOrder = getEditorButtons();
+        final List<NavigationButton> buttons = getCurrentOrder(defaultOrder);
+
+        void reset() {
+            buttons.clear();
+            buttons.addAll(defaultOrder);
         }
 
+        boolean save() {
+            String serialized = buttons.equals(defaultOrder) ? "" : serializeOrder(buttons);
+            boolean changed = !serialized.equals(Settings.NAVIGATION_BAR_ORDER.get());
+            Settings.NAVIGATION_BAR_ORDER.save(serialized);
+            return changed;
+        }
+    }
+
+    private static String serializeOrder(List<NavigationButton> order) {
         StringBuilder serialized = new StringBuilder();
         for (NavigationButton button : order) {
             if (serialized.length() > 0) {
@@ -281,15 +295,18 @@ public class NavigationBarOrderPreference extends Preference {
     }
 
     static String getLabel(NavigationButton button) {
-        return button == NavigationButton.WATCH_LATER
-                ? str("revanced_change_start_page_entry_watch_later")
-                : str("revanced_change_start_page_entry_" + button.name().toLowerCase(Locale.ROOT));
+        String resourceName = switch (button) {
+            case LIBRARY -> "revanced_navigation_bar_order_you";
+            case WATCH_LATER -> "revanced_change_start_page_entry_watch_later";
+            default -> "revanced_change_start_page_entry_" + button.name().toLowerCase(Locale.ROOT);
+        };
+        return str(resourceName);
     }
 
     /** Settings controlled by this editor rather than individual switch preferences. */
     static boolean isVisibilitySetting(Setting<?> setting) {
         if (setting == Settings.SWITCH_CREATE_WITH_NOTIFICATIONS_BUTTON) return true;
-        for (NavigationButton button : DEFAULT_ORDER) {
+        for (NavigationButton button : getEditorButtons()) {
             if (setting == PendingVisibility.settingFor(button)) return true;
         }
         return false;
@@ -303,7 +320,7 @@ public class NavigationBarOrderPreference extends Preference {
         private final Map<BooleanSetting, Boolean> values = new LinkedHashMap<>();
 
         PendingVisibility() {
-            for (NavigationButton button : DEFAULT_ORDER) {
+            for (NavigationButton button : getEditorButtons()) {
                 BooleanSetting setting = settingFor(button);
                 values.put(setting, setting.get());
             }

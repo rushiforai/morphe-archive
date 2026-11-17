@@ -255,6 +255,14 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             else "ツールバーの表示はChMateのツールバー設定で。検索のオン／オフや履歴保存は検索画面で変更できます。",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(8.dp)) }
+                        item {
+                            SettingsFrame(onClick = { startActivity(SettingsSupport.intent(this@HaiagaruSettingsActivity)) }) {
+                                Text(if (english) "Support board" else "サポート板", style = MaterialTheme.typography.titleMedium)
+                                Text("ChMate用Morpheパッチ「Haiagaru」", style = MaterialTheme.typography.bodyMedium)
+                                Text(SettingsSupport.URL, color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                 } else if (searchQuery.isNotBlank()) {
                         item { Text(if (searching || indexedScope != selected) (if (english) "Searching…" else "検索中…") else if (visibleMatches.isEmpty())
                             (if (english) "No settings found. Try a shorter word." else "見つかりませんでした。短い言葉で探してみてください。")

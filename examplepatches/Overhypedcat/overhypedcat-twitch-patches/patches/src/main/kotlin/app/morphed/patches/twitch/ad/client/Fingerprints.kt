@@ -19,3 +19,11 @@ object AdIneligibilityReasonsFingerprint : Fingerprint(
 object AdEligibilityCheckFingerprint : Fingerprint(
     strings = listOf("Returning ineligible due to long tail"),
 )
+
+/**
+ * Where the app gets an ad trigger (a display ad beside the stream, LeftThird or Banner, or a video ad) and
+ * decides to request the ad or decline it.
+ */
+object AdTriggerFingerprint : Fingerprint(
+    strings = listOf("ad_request_client_trigger_received", "ad_request_client_trigger_declined"),
+)

@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
 
-/** One continuous status/toolbar scrim. No backdrop capture, blur or refraction. */
+/** One continuous status/toolbar scrim: a gradient, or on Android 12+ an optional fading blur. */
 final class HeaderGradient {
     private final WeakReference<View> root,bar,tools;
     private final WeakReference<Activity> owner;
@@ -25,6 +25,8 @@ final class HeaderGradient {
     private final WeakHashMap<View,Circle> circles=new WeakHashMap<>();
     private final WeakHashMap<ViewGroup,Padding> paddings=new WeakHashMap<>();
     private final WeakHashMap<ViewGroup,boolean[]> clips=new WeakHashMap<>();
+    /** Views beside the bar that clip to their own outline while their parent lets the bar draw below itself. */
+    private final WeakHashMap<View,Object[]> outlines=new WeakHashMap<>();
     private final ArrayList<ViewGroup> lists=new ArrayList<>();
     private final int[] location=new int[2],parentLocation=new int[2];
     private String originalBehavior;
@@ -34,6 +36,96 @@ final class HeaderGradient {
     private final Shade shade;
     private final Slice toolbarSlice=new Slice(),statusSlice=new Slice();
     boolean enabled;
+    private long lastSignature;
+    private WeakReference<View> list=new WeakReference<>(null);
+    private static final int CIRCLE_TAG=0x7f5f0004;
+    private final boolean glassButtons;
+    /** Each toolbar icon sits in a frosted glass circle that blurs what scrolls behind it. */
+    private void circleIcons(View toolbar){
+        if(!(toolbar instanceof ViewGroup))return;
+        View source=list();if(source==null)return;
+        ViewGroup bar=(ViewGroup)toolbar;
+        // Keep the last circle clear of the screen edge.
+        if(bar.getTag(CIRCLE_TAG)==null){
+            bar.setTag(CIRCLE_TAG,Boolean.TRUE);
+            int edge=Math.round(8*bar.getResources().getDisplayMetrics().density);
+            bar.setPaddingRelative(bar.getPaddingStart(),bar.getPaddingTop(),bar.getPaddingEnd()+edge,bar.getPaddingBottom());
+        }
+        for(int index=0;index<bar.getChildCount();index++){
+            View child=bar.getChildAt(index);
+            if(child instanceof android.widget.ImageButton)circle(child,source);
+            else if(child.getClass().getName().endsWith("ActionMenuView") && child instanceof ViewGroup){
+                ViewGroup menu=(ViewGroup)child;
+                for(int item=0;item<menu.getChildCount();item++)circle(menu.getChildAt(item),source);
+            }
+        }
+    }
+    @android.annotation.TargetApi(31)
+    private static void circle(View icon,View source){
+        if(icon.getVisibility()!=View.VISIBLE || icon.getTag(CIRCLE_TAG)!=null)return;
+        android.content.Context context=icon.getContext();
+        float density=context.getResources().getDisplayMetrics().density;int size=Math.round(CIRCLE_DP*density);
+        // Narrow icons such as the overflow get a full-width touch area so their circle fits.
+        if(icon.getMinimumWidth()<Math.round(48*density)){icon.setMinimumWidth(Math.round(48*density));icon.requestLayout();return;}
+        if(icon.getWidth()<size || icon.getHeight()<size)return;
+        icon.setTag(CIRCLE_TAG,Boolean.TRUE);
+        // The overflow button has uneven side padding, which pushes its dots off the circle's centre.
+        if(icon.getPaddingLeft()!=icon.getPaddingRight()){int side=Math.min(icon.getPaddingLeft(),icon.getPaddingRight());icon.setPadding(side,icon.getPaddingTop(),side,icon.getPaddingBottom());}
+        FeedPillBlur glass=new FeedPillBlur(source,icon,SurfaceAppearanceTweaks.role(context,false),false,CIRCLE_DP/2f,true,0,1);
+        Drawable frame=new Centred(glass,size);
+        int ripple=MaterialYouTweaks.color(context,"colorControlHighlight",android.R.attr.colorControlHighlight);
+        icon.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(ripple),frame,new Dot(0xffffffff,size/2f)));
+        glass.start();
+    }
+    /** Circle size in dp, leaving a clear gap between neighbouring icons. */
+    private static final int CIRCLE_DP=40;
+    /** Keeps the glass a centred square whenever its button is resized, so it never stretches into an oval. */
+    @android.annotation.TargetApi(31)
+    private static final class Centred extends android.graphics.drawable.DrawableWrapper {
+        final int size;
+        Centred(Drawable glass,int size){super(glass);this.size=size;}
+        @Override protected void onBoundsChange(android.graphics.Rect b){
+            Drawable glass=getDrawable();if(glass==null)return;
+            int side=Math.min(size,Math.min(b.width(),b.height()));
+            int left=b.left+(b.width()-side)/2,top=b.top+(b.height()-side)/2;
+            glass.setBounds(left,top,left+side,top+side);
+        }
+    }
+    /** A fixed-size circle, centred, never larger than the view. */
+    private static final class Dot extends Drawable {
+        final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final float radius;
+        Dot(int color,float radius){paint.setColor(color);this.radius=radius;}
+        @Override public void draw(Canvas canvas){android.graphics.Rect b=getBounds();canvas.drawCircle(b.exactCenterX(),b.exactCenterY(),Math.min(radius,Math.min(b.width(),b.height())/2f),paint);}
+        @Override public void setAlpha(int alpha){paint.setAlpha(alpha);}
+        @Override public void setColorFilter(ColorFilter filter){paint.setColorFilter(filter);}
+        @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
+    }
+    /** The RecyclerView that scrolls under the header; its wrappers never move themselves. */
+    private View list(){
+        View found=list.get();
+        if(found!=null && found.isAttachedToWindow())return found;
+        View start=scrolling.get();if(start==null)start=source.get();
+        found=start==null ? null:findRecycler(start);
+        if(found==null)found=start;
+        list=new WeakReference<>(found);
+        return found;
+    }
+    private static View findRecycler(View view){
+        if(view.getVisibility()==View.VISIBLE && recycler(view))return view;
+        if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int index=0;index<group.getChildCount();index++){View found=findRecycler(group.getChildAt(index));if(found!=null)return found;}}
+        return null;
+    }
+    /** Changes when the content under the header scrolls or its first rows change. */
+    private long contentSignature(){
+        View list=list();
+        if(!(list instanceof ViewGroup))return list==null ? 0:list.getScrollY();
+        ViewGroup group=(ViewGroup)list;long signature=group.getChildCount();
+        for(int index=0;index<Math.min(3,group.getChildCount());index++){
+            View child=group.getChildAt(index);
+            signature=signature*31+System.identityHashCode(child);signature=signature*31+child.getTop();signature=signature*31+child.getHeight();
+        }
+        return signature*31+group.getScrollY();
+    }
 
     HeaderGradient(Activity owner,View root,View bar,View tools){
         this.owner=new WeakReference<>(owner);
@@ -43,11 +135,15 @@ final class HeaderGradient {
         banner=new WeakReference<>(SurfaceAppearanceTweaks.find(root,"header_content"));
         profile=SurfaceAppearanceTweaks.find(root,"user_info_view")!=null;
         strict=owner!=null && SurfaceAppearanceTweaks.extendedChrome(owner.getClass().getName());settings=owner!=null && owner.getClass().getName().endsWith(".SettingsActivityCompat");
-        shade=new Shade(SurfaceAppearanceTweaks.role(owner==null ? tools.getContext():owner,false));
+        android.content.Context context=owner==null ? tools.getContext():owner;
+        int role=SurfaceAppearanceTweaks.role(context,false);
+        glassButtons=android.os.Build.VERSION.SDK_INT>=31 && SurfaceSettingsActivity.enabled(context,"header_glass_buttons",false);
+        shade=android.os.Build.VERSION.SDK_INT>=31 && SurfaceSettingsActivity.enabled(context,"header_blur",false)
+            ? new BlurShade(role,context.getResources().getDisplayMetrics().density):new Shade(role);
     }
     private static final class Circle {final WeakReference<View> icon;final float base;Circle(View view){icon=new WeakReference<>(view);base=view.getTranslationY();}}
     private static final class Padding {final int top;final boolean clip;Padding(ViewGroup view){top=view.getPaddingTop();clip=view.getClipToPadding();}}
-    private static final class Shade extends Drawable {
+    private static class Shade extends Drawable {
         final Paint paint=new Paint();int color;
         Shade(int color){this.color=color&0xffffff;}
         @Override protected void onBoundsChange(android.graphics.Rect bounds){
@@ -55,13 +151,83 @@ final class HeaderGradient {
         }
         @Override public void draw(Canvas canvas){canvas.drawRect(getBounds(),paint);}
         @Override public void setAlpha(int alpha){paint.setAlpha(alpha);}
+        /** Called when the content under the header may have moved. */
+        void contentChanged(){}
         @Override public int getAlpha(){return paint.getAlpha();}
         @Override public void setColorFilter(ColorFilter filter){}
         @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
     }
+    /**
+     * Blurs what scrolls under the header and fades the blur out towards its bottom edge, with a
+     * light tint so the title stays readable. The capture is redrawn only when the content moves.
+     */
+    @android.annotation.TargetApi(31)
+    private static final class BlurShade extends Shade {
+        private static final int SCALE=3;
+        // Progressive blur: each layer is stronger and fades out higher up, so the blur eases off
+        // towards the bottom edge. Radii in dp, and where each layer has faded out completely.
+        // The blur reaches EXTRA_DP below the top bar and fades out there, so the bar itself stays fully frosted
+        // and there is no line where the blur stops. Each layer is opaque until its start and gone by its end.
+        private static final float[] RADII={3,7,13,22},STARTS={.78f,.6f,.35f,.15f},ENDS={1f,.9f,.7f,.5f};
+        static final int EXTRA_DP=16;
+        final android.graphics.RenderNode capture=new android.graphics.RenderNode("ShikifyHeaderCapture");
+        final android.graphics.RenderNode[] layers=new android.graphics.RenderNode[RADII.length];
+        final Paint[] masks=new Paint[RADII.length];
+        final Paint tintPaint=new Paint();
+        final int[] location=new int[2];
+        WeakReference<View> content=new WeakReference<>(null);
+        boolean dirty=true,recording;
+        BlurShade(int color,float density){
+            super(color);
+            for(int index=0;index<RADII.length;index++){
+                float radius=RADII[index]*density/SCALE;
+                layers[index]=new android.graphics.RenderNode("ShikifyHeaderBlur"+index);
+                layers[index].setRenderEffect(android.graphics.RenderEffect.createBlurEffect(radius,radius,Shader.TileMode.CLAMP));
+                masks[index]=new Paint();masks[index].setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_IN));
+            }
+        }
+        @Override protected void onBoundsChange(android.graphics.Rect bounds){
+            if(bounds.isEmpty())return;
+            for(int index=0;index<RADII.length;index++){
+                float end=ENDS[index],start=STARTS[index];
+                masks[index].setShader(new LinearGradient(0,bounds.top,0,bounds.bottom,new int[]{0xff000000,0xff000000,0x00000000,0x00000000},new float[]{0,start,end,1},Shader.TileMode.CLAMP));
+            }
+            tintPaint.setShader(new LinearGradient(0,bounds.top,0,bounds.bottom,new int[]{0x66000000|color,0x40000000|color,0x26000000|color,0x00000000|color},new float[]{0,.6f,.78f,1},Shader.TileMode.CLAMP));
+            dirty=true;
+        }
+        @Override void contentChanged(){dirty=true;invalidateSelf();}
+        @Override public void draw(Canvas canvas){
+            if(recording)return;
+            View view=content.get();android.graphics.Rect bounds=getBounds();
+            if(view==null || view.getWidth()==0 || bounds.isEmpty() || !canvas.isHardwareAccelerated()){super.draw(canvas);return;}
+            if(dirty || !layers[0].hasDisplayList()){
+                int width=Math.max(1,(int)Math.ceil(bounds.width()/(float)SCALE)),height=Math.max(1,(int)Math.ceil(bounds.height()/(float)SCALE));
+                capture.setPosition(0,0,width,height);for(android.graphics.RenderNode layer:layers)layer.setPosition(0,0,width,height);
+                android.graphics.RecordingCanvas layer=capture.beginRecording();recording=true;boolean success=false;
+                try{
+                    layer.drawColor(0xff000000|color);layer.scale(1f/SCALE,1f/SCALE);
+                    layer.clipRect(0,0,bounds.width(),bounds.height());
+                    view.getLocationInWindow(location);layer.translate(location[0]-bounds.left,location[1]-bounds.top);
+                    view.draw(layer);success=true;
+                }catch(RuntimeException ignored){
+                }finally{capture.endRecording();recording=false;}
+                if(!success){super.draw(canvas);return;}
+                for(android.graphics.RenderNode node:layers){android.graphics.RecordingCanvas blur=node.beginRecording();blur.drawRenderNode(capture);node.endRecording();}
+                dirty=false;
+            }
+            for(int index=0;index<layers.length;index++){
+                float end=bounds.top+bounds.height()*ENDS[index];
+                int saved=canvas.saveLayer(bounds.left,bounds.top,bounds.right,end,null);
+                int transform=canvas.save();canvas.translate(bounds.left,bounds.top);canvas.scale(SCALE,SCALE);canvas.drawRenderNode(layers[index]);canvas.restoreToCount(transform);
+                canvas.drawRect(bounds.left,bounds.top,bounds.right,end,masks[index]);
+                canvas.restoreToCount(saved);
+            }
+            canvas.drawRect(bounds,tintPaint);
+        }
+    }
     private final class Slice extends Drawable {
-        int x,y;
-        @Override public void draw(Canvas canvas){int saved=canvas.save();canvas.clipRect(getBounds());canvas.translate(-x,-y);shade.draw(canvas);canvas.restoreToCount(saved);}
+        int x,y,extra;
+        @Override public void draw(Canvas canvas){int saved=canvas.save();android.graphics.Rect bounds=getBounds();canvas.clipRect(bounds.left,bounds.top,bounds.right,bounds.bottom+extra);canvas.translate(-x,-y);shade.draw(canvas);canvas.restoreToCount(saved);}
         @Override public void setAlpha(int alpha){shade.setAlpha(alpha);invalidateSelf();}
         @Override public void setColorFilter(ColorFilter filter){}
         @Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
@@ -70,7 +236,7 @@ final class HeaderGradient {
         for(Class<?> type=view.getClass();type!=null;type=type.getSuperclass()){String name=type.getName();
             if(name.equals("androidx.recyclerview.widget.RecyclerView") || name.equals("com.rubenmayayo.reddit.ui.customviews.EmptyStateView")){lists.add((ViewGroup)view);if(name.endsWith("EmptyStateView"))UnifiedChromeTweaks.emptyState((ViewGroup)view);return;}
             if(name.equals("androidx.swiperefreshlayout.widget.SwipeRefreshLayout") && !circles.containsKey(view)){
-                Object icon=CommentsChromeTweaks.field(view,"N");
+                Object icon=CommentsChromeTweaks.field(view,"M");
                 if(icon instanceof View)circles.put(view,new Circle((View)icon));
             }
         }
@@ -98,13 +264,29 @@ final class HeaderGradient {
     }
     private void behavior(View view,String type)throws ReflectiveOperationException {
         Object params=view.getLayoutParams();ClassLoader loader=view.getContext().getClassLoader();Object behavior=Class.forName(type,true,loader).getConstructor().newInstance();
-        if(type.contains("search.SearchBar"))behavior.getClass().getField("B").setBoolean(behavior,true);
+        if(type.contains("search.SearchBar"))behavior.getClass().getField("A").setBoolean(behavior,true);
         params.getClass().getMethod("b",Class.forName("androidx.coordinatorlayout.widget.CoordinatorLayout$c",false,loader)).invoke(params,behavior);view.requestLayout();
     }
     /** The status bar shade sits above the window content, including an open drawer. */
     void statusAlpha(float alpha){View surface=statusView.get();if(surface!=null && Math.abs(surface.getAlpha()-alpha)>.01f)surface.setAlpha(alpha);}
+    /** The status shade sits above an open drawer, so it stops at the drawer's edge instead of fading out. */
+    private int statusEdge=-1;
+    private final android.graphics.drawable.ColorDrawable statusScrim=new android.graphics.drawable.ColorDrawable(SCRIM);
+    /** DrawerLayout's default scrim; the shade sits above it, so it is dimmed by the same amount. */
+    private static final int SCRIM=0x99000000;
+    void statusEdge(int edge,float open){
+        View surface=statusView.get();if(surface==null || edge==statusEdge)return;
+        statusEdge=edge;
+        if(surface.getAlpha()!=1)surface.setAlpha(1);
+        if(surface.getForeground()!=statusScrim)surface.setForeground(statusScrim);
+        statusScrim.setAlpha(Math.round(Math.max(0,Math.min(1,open))*255));
+        surface.setClipBounds(edge<=0 ? null:new android.graphics.Rect(edge,0,surface.getWidth(),surface.getHeight()));
+    }
     /** Blends a small amount of the given colour into the header surface. */
     void tint(int color){
+        // A community colour turns the blur into a flat band, and some people prefer no tint at all.
+        View view=tools.get();
+        if(shade instanceof BlurShade || view==null || !SurfaceSettingsActivity.enabled(view.getContext(),"subreddit_colours"))return;
         int base=shade.color,red=mix(android.graphics.Color.red(base),android.graphics.Color.red(color)),green=mix(android.graphics.Color.green(base),android.graphics.Color.green(color)),blue=mix(android.graphics.Color.blue(base),android.graphics.Color.blue(color));
         shade.color=(red<<16)|(green<<8)|blue;shade.onBoundsChange(shade.getBounds());toolbarSlice.invalidateSelf();statusSlice.invalidateSelf();
     }
@@ -120,6 +302,12 @@ final class HeaderGradient {
                     source=new WeakReference<>(content);
                     break;
                 }
+            }
+            // Search screens keep their list in an unnamed container under the app bar.
+            Activity activity=owner.get();
+            if(content==null && activity!=null && activity.getClass().getName().startsWith("com.rubenmayayo.reddit.ui.search.")){
+                View list=SurfaceAppearanceTweaks.find(decor,"recyclerview"),container=list==null ? null:scrolling(list);
+                if(container!=null){content=container;source=new WeakReference<>(content);}
             }
         }
         if(content!=null){View child=scrolling.get();if(child==null){child=strict && (settings || !overlaps(content)) ? null:scrolling(content);if(child!=null){
@@ -199,6 +387,7 @@ final class HeaderGradient {
                 header.setLayoutParams(params);
             }
         }
+        if(shade instanceof BlurShade)((BlurShade)shade).content=new WeakReference<>(content);
         enabled=true;position(statusHeight);
     }
     void position(int statusHeight){
@@ -224,7 +413,29 @@ final class HeaderGradient {
             }
         }
         toolbar.getLocationInWindow(location);
-        int bottom=location[1]+toolbar.getHeight(),height=Math.max(statusHeight,bottom);
+        int bottom=location[1]+toolbar.getHeight(),extra=shade instanceof BlurShade ? Math.round(BlurShade.EXTRA_DP*toolbar.getResources().getDisplayMetrics().density):0,height=Math.max(statusHeight,bottom)+extra;
+        if(extra>0){
+            // Let the bar draw the blur's fade below itself.
+            toolbarSlice.extra=extra;
+            View appbar=bar.get();boolean inside=false;View path=toolbar;
+            for(android.view.ViewParent up=toolbar.getParent();up instanceof View;up=up.getParent())if(up==appbar){inside=true;break;}
+            for(android.view.ViewParent parent=toolbar.getParent();parent instanceof ViewGroup && parent!=decor;path=(View)parent,parent=parent.getParent()){
+                ViewGroup group=(ViewGroup)parent;
+                if(!clips.containsKey(group))clips.put(group,new boolean[]{group.getClipChildren(),group.getClipToPadding()});
+                if(group.getClipChildren())group.setClipChildren(false);
+                // A parent that stops clipping also stops clipping the bar's siblings, such as the search
+                // screen's collapsed filters, which slide up behind the bar. Clip those to themselves instead.
+                if(inside){
+                    for(int index=0;index<group.getChildCount();index++){
+                        View sibling=group.getChildAt(index);
+                        if(sibling==path || outlines.containsKey(sibling))continue;
+                        outlines.put(sibling,new Object[]{sibling.getOutlineProvider(),sibling.getClipToOutline()});
+                        sibling.setOutlineProvider(android.view.ViewOutlineProvider.BOUNDS);sibling.setClipToOutline(true);
+                    }
+                    if(group==appbar)inside=false;
+                }
+            }
+        }
         boolean changed=toolbarSlice.x!=location[0] || toolbarSlice.y!=location[1] || shade.getBounds().width()!=decor.getWidth() || shade.getBounds().height()!=height;
         toolbarSlice.x=location[0];
         toolbarSlice.y=location[1];
@@ -232,6 +443,17 @@ final class HeaderGradient {
         if(changed){
             toolbarSlice.invalidateSelf();
             statusSlice.invalidateSelf();
+        }
+        if(glassButtons)circleIcons(toolbar);
+        if(shade instanceof BlurShade){
+            // Capture the scrolling list itself: some screens' containers do not hold it.
+            BlurShade blur=(BlurShade)shade;View list=list();
+            if(list!=null && blur.content.get()!=list)blur.content=new WeakReference<>(list);
+            long signature=contentSignature();
+            if(changed || signature!=lastSignature){
+                lastSignature=signature;
+                shade.contentChanged();toolbarSlice.invalidateSelf();statusSlice.invalidateSelf();
+            }
         }
         View child=scrolling.get(),strip=progress.get(),appbar=bar.get();
         int contentTop=bottom;
@@ -243,7 +465,7 @@ final class HeaderGradient {
             child.getLocationInWindow(parentLocation);
             contentTop=Math.max(contentTop,parentLocation[1]);
         }
-        if(strip!=null && child!=null){
+        if(strip!=null && child!=null && !(strip.getBackground() instanceof MaterialLoadingDrawable)){
             child.getLocationInWindow(parentLocation);
             float top=relativeTop(strip,child);
             if(!Float.isNaN(top)){
@@ -257,7 +479,20 @@ final class HeaderGradient {
             swipe.getLocationInWindow(parentLocation);
             float translation=entry.getValue().base+Math.max(0,contentTop-parentLocation[1]);
             if(Math.abs(icon.getTranslationY()-translation)>.5f)icon.setTranslationY(translation);
+            if(parked(swipe,icon))icon.setVisibility(View.INVISIBLE);
         }
+    }
+    /**
+     * The refresh circle normally rests out of sight above the list. The header shift brings that
+     * spot on screen, so a circle left behind by an interrupted animation stays visible. Pulling
+     * or refreshing makes it visible again.
+     */
+    private static boolean parked(View swipe,View icon){
+        if(icon.getVisibility()!=View.VISIBLE || Boolean.TRUE.equals(CommentsChromeTweaks.field(swipe,"c")))return false;
+        android.view.animation.Animation animation=icon.getAnimation();
+        if(animation!=null && !animation.hasEnded())return false;
+        Object rest=CommentsChromeTweaks.field(swipe,"P");
+        return rest instanceof Integer && icon.getTop()<=(Integer)rest;
     }
     private static void clearScrim(View view,String getter,String setter){
         try{
@@ -305,6 +540,11 @@ final class HeaderGradient {
             entry.getKey().setClipToPadding(entry.getValue()[1]);
         }
         clips.clear();
+        for(java.util.Map.Entry<View,Object[]> entry:outlines.entrySet()){
+            entry.getKey().setOutlineProvider((android.view.ViewOutlineProvider)entry.getValue()[0]);
+            entry.getKey().setClipToOutline((Boolean)entry.getValue()[1]);
+        }
+        outlines.clear();
         lists.clear();
         View strip=progress.get();
         if(strip!=null)strip.setTranslationY(progressTranslation);

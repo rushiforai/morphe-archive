@@ -31,6 +31,7 @@ final class QuickSetupKeys {
             Settings.HIDE_ADS,
             Settings.HIDE_TOPIC_SUGGESTIONS,
             Settings.HIDE_SURVEY_PROMPTS,
+            Settings.HIDE_POPUP_BANNERS,
             Settings.QUIET_EMAIL_REMINDER,
             Settings.HIDE_SAVE_TOASTS,
             Settings.DISABLE_UPDATE_NAG,

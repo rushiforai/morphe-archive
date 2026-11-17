@@ -57,6 +57,9 @@ public class OutsideTranslateTest {
         int applied;
         int refreshed;
         String shown;
+        /** Telegram's entities over [original]. */
+        List<?> entities;
+        ArrayList<Object> shownEntities;
         String language;
         /** What Telegram's translate bar shows for the chat; null is a stock app with nothing to read. */
         String telegramTarget;
@@ -75,9 +78,16 @@ public class OutsideTranslateTest {
         @Override public int id() { return id; }
         @Override public boolean eligible() { return eligible; }
         @Override public String original() { return original; }
+        @Override public List<?> entities() { return entities; }
         @Override public boolean translated() { return translated; }
         @Override public String telegramTarget() { return telegramTarget; }
-        @Override public void apply(String text, String language) { applied++; shown = text; this.language = language; translated = true; }
+        @Override public void apply(String text, ArrayList<Object> entities, String language) {
+            applied++;
+            shown = text;
+            shownEntities = entities;
+            this.language = language;
+            translated = true;
+        }
         @Override public void refresh() {
             refreshed++;
             if (onRefresh != null) onRefresh.run();
@@ -1233,9 +1243,53 @@ public class OutsideTranslateTest {
     @Test public void codeBlocksAreLeftAsWritten() {
         class TL_messageEntityPre {}
         class TL_messageEntityBold {}
-        assertTrue(OutsideTranslate.hasCode(Arrays.asList(new TL_messageEntityBold(), new TL_messageEntityPre())));
-        assertFalse(OutsideTranslate.hasCode(Collections.singletonList(new TL_messageEntityBold())));
-        assertFalse(OutsideTranslate.hasCode(null));
+        assertTrue(OutsideTranslate.keptAsWritten(Arrays.asList(new TL_messageEntityBold(), new TL_messageEntityPre())));
+        assertFalse(OutsideTranslate.keptAsWritten(Collections.singletonList(new TL_messageEntityBold())));
+        assertFalse(OutsideTranslate.keptAsWritten(null));
+    }
+
+    @Test public void aTranslatedMessageKeepsItsFormattingAndItsSpoilerStaysCovered() {
+        Settings.OUTSIDE_TRANSLATE.save(true);
+        OutsideTranslate.toggleChat(OWNER, 10);
+        List<String> sent = new ArrayList<>();
+        OutsideTranslate.fetcher = (service, target, text) -> {
+            sent.add(text);
+            return new GoogleTranslate.Result("Der Gewinner ist <x1/>, <b0>herzlichen Glückwunsch</b0>!", "ru");
+        };
+        Fake message = new Fake();
+        message.original = "The winner is John, congratulations!";
+        TranslateMarkupTest.TL_messageEntitySpoiler spoiler = new TranslateMarkupTest.TL_messageEntitySpoiler().at(14, 4);
+        TranslateMarkupTest.TL_messageEntityBold strong = new TranslateMarkupTest.TL_messageEntityBold().at(20, 15);
+        message.entities = Arrays.asList(strong, spoiler);
+
+        assertFalse(OutsideTranslate.showMessage(message, message));
+        assertEquals("the spoiler's words stay on the phone", Collections.singletonList("The winner is <x1/>, <b0>congratulations</b0>!"), sent);
+        assertTrue(OutsideTranslate.showMessage(message, message));
+        String text = "Der Gewinner ist John, herzlichen Glückwunsch!";
+        assertTrue(message.shown, message.shown.startsWith(text + "\n\n"));
+        assertEquals(2, message.shownEntities.size());
+        TranslateMarkupTest.Entity covered = (TranslateMarkupTest.Entity) message.shownEntities.get(0);
+        assertTrue(covered instanceof TranslateMarkupTest.TL_messageEntitySpoiler);
+        assertEquals(text.indexOf("John"), covered.offset);
+        assertEquals(4, covered.length);
+        TranslateMarkupTest.Entity bold = (TranslateMarkupTest.Entity) message.shownEntities.get(1);
+        assertTrue(bold instanceof TranslateMarkupTest.TL_messageEntityBold);
+        assertEquals(text.indexOf("herzlichen"), bold.offset);
+        assertEquals("herzlichen Glückwunsch".length(), bold.length);
+        assertEquals("the message's own spoiler stays where it was", 14, spoiler.offset);
+    }
+
+    @Test public void aServiceThatLosesASpoilersPlaceLeavesTheMessageAsWritten() {
+        Settings.OUTSIDE_TRANSLATE.save(true);
+        OutsideTranslate.toggleChat(OWNER, 10);
+        OutsideTranslate.fetcher = (service, target, text) -> new GoogleTranslate.Result("Der Gewinner ist John!", "ru");
+        Fake message = new Fake();
+        message.original = "The winner is John!";
+        message.entities = Collections.singletonList(new TranslateMarkupTest.TL_messageEntitySpoiler().at(14, 4));
+        assertFalse(OutsideTranslate.showMessage(message, message));
+        assertFalse(OutsideTranslate.showMessage(message, message));
+        assertEquals(0, message.applied);
+        assertNull(message.shown);
     }
 
     @Test public void theMenuEntryGoesAfterTelegramsOwnTranslateAndKeepsTheListsInStep() {

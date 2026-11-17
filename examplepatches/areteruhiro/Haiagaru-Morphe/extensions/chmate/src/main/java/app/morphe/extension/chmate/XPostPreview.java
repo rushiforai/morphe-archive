@@ -130,10 +130,20 @@ public final class XPostPreview {
     }
     static final class Data {
         final String id, author, handle, text, date, excerpt;
+        final boolean truncated,possiblyTruncated;
         Data(String id, String author, String handle, String text, String date) {
+            this(id,author,handle,text,date,false,false);
+        }
+        Data(String id, String author, String handle, String text, String date,boolean truncated,boolean possiblyTruncated) {
             this.id = id; this.author = author; this.handle = handle; this.text = text; this.date = date;
+            this.truncated=truncated;this.possiblyTruncated=possiblyTruncated;
             excerpt = text.codePointCount(0, text.length()) > 140
                     ? text.substring(0, text.offsetByCodePoints(0, 140)) + "…" : text;
+        }
+        String notice(boolean full){
+            if(!full&&text.codePointCount(0,text.length())>140)return "［表示を140文字で省略しています］";
+            if(truncated)return "［投稿の一部のみ取得しています。続きは元の投稿で確認］";
+            return possiblyTruncated?"［全文を取得できていない可能性があります。元の投稿で確認］":"";
         }
     }
 
@@ -147,19 +157,25 @@ public final class XPostPreview {
         if (extended != null && extended.optString("full_text").length() > full.length())
             full = extended.optString("full_text");
         JSONObject note = post.optJSONObject("note_tweet");
+        boolean noteComplete=false;
         if (note != null) {
             JSONObject results = note.optJSONObject("note_tweet_results");
             JSONObject result = results == null ? null : results.optJSONObject("result");
             String noteText = result == null ? note.optString("text", "") : result.optString("text", "");
+            noteComplete=!noteText.isEmpty();
             if (noteText.length() > full.length()) full = noteText;
         }
+        boolean fullProvided=!full.isEmpty()&&full.length()>=text.length()
+                &&(!post.optBoolean("truncated",false)||full.length()>text.length()||noteComplete);
         if (full.length() > text.length()) text = full;
         if (user == null || text.isEmpty() || text.length() > 50_000) return null;
         String handle = user.optString("screen_name", "");
         if (!handle.matches("[A-Za-z0-9_]{1,50}")) return null;
         return new Data(expectedId, user.optString("name", "").substring(0,
                 Math.min(200, user.optString("name", "").length())), handle, text,
-                post.optString("created_at", ""));
+                post.optString("created_at", ""),post.optBoolean("truncated",false)&&!fullProvided,
+                !noteComplete&&(post.optBoolean("is_note_tweet",false)||note!=null)
+                        ||!fullProvided&&(text.codePointCount(0,text.length())>=140||text.endsWith("…")||text.endsWith("...")));
     }
 
     static void apply(TextView view) {
@@ -321,6 +337,8 @@ public final class XPostPreview {
             result.setSpan(new StyleSpan(Typeface.BOLD), author, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             String body = Haiagaru.xPostPreviewFullText() ? data.text : data.excerpt;
             result.append(body);
+            String notice=data.notice(Haiagaru.xPostPreviewFullText());
+            if(!notice.isEmpty())result.append("\n").append(notice);
             if (!data.date.isEmpty()) result.append(card ? "\n\n" : "\n").append(XPostTime.japan(data.date));
             result.append(card ? "\n\n投稿を開く" : "\n投稿を開く");
             result.setSpan(new XPostPreviewTouch.PostLink("https://x.com/" + data.handle + "/status/" + id),

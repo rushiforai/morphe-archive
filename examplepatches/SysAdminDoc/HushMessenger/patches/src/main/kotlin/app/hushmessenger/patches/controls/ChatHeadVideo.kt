@@ -19,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * Videos in chat heads (#104). Messenger's video player is built from (context, the video view, its config), and the
  * constructor reads one boolean from the config to pick a TextureView over a SurfaceView, which 587 uses on Android 10
  * and newer. On some phones the SurfaceView's separate layer shows black in a chat head and stays on screen after the
- * chat head closes. The hook asks the extension at the constructor's entry, before anything reads the config, and
- * writes its answer back into that boolean.
+ * chat head closes, and on a Huawei it did the same in the chat itself. The hook asks the extension at the
+ * constructor's entry, before anything reads the config, and writes its answer back into that boolean.
  */
 internal const val CHAT_HEAD_VIDEO = "chat_head_video"
 internal const val CHAT_HEAD_VIDEO_HOST = "Lapp/hushmessenger/extension/ChatHeadVideo;"
@@ -113,7 +113,7 @@ internal fun MutableMethod.injectChatHeadVideo() {
 @Suppress("unused")
 val chatHeadVideoPatch = bytecodePatch(
     name = "Fix videos in chat heads",
-    description = "Draws videos in a chat head like the rest of the chat instead of on a separate layer, which some phones showed as a black box that stayed on screen after the chat head closed. Videos in the app itself are left as they are.",
+    description = "Draws videos in a chat head like the rest of the chat instead of on a separate layer, which some phones showed as a black box that stayed on screen after the chat head closed. On the Huawei and Honor phones where that layer also leaves a box behind in the chat itself, every video is drawn this way.",
     default = true,
 ) {
     category("Fixes")

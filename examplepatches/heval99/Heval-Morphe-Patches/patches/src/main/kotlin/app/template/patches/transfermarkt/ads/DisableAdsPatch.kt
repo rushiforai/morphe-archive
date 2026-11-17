@@ -3,7 +3,7 @@ package app.template.patches.transfermarkt.ads
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_TRANSFERMARKT
 import app.template.patches.shared.misc.ads.neutraliseMobileAdsStatics
 import app.template.patches.transfermarkt.shared.interceptWebViewRequests

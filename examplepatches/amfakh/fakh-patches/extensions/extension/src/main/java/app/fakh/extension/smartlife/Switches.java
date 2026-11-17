@@ -3,7 +3,10 @@ package app.fakh.extension.smartlife;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.View;
+import android.widget.TabHost;
+import android.widget.TabWidget;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
@@ -16,6 +19,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import app.fakh.extension.shared.AppRuntime;
+import app.fakh.extension.shared.SwipeTabs;
 
 /**
  * The switches of these patches: their state, the Fakh Patches row in Settings that opens their page, and the hooks
@@ -29,6 +33,8 @@ public final class Switches {
     static final String DARK_PANELS = "fakh_dark_panels";
     /** The text under the icons of the navigation bar, which is shown until this switch is turned on. */
     static final String HIDE_TAB_LABELS = "fakh_hide_tab_labels";
+    /** Swipe between tabs. */
+    private static final String SWIPE_TABS = "fakh_swipe_tabs";
     private static final String PLUS = "fakh_hide_plus";
     private static final String EXPLORE = "fakh_hide_explore";
     private static final String MALL_TAB = "fakh_hide_mall_tab";
@@ -49,6 +55,8 @@ public final class Switches {
         bar.put(EXPLORE, "Hide Explore tab");
         bar.put(MALL_TAB, "Hide Mall tab");
         bar.put(HIDE_TAB_LABELS, "Hide tab labels");
+        bar.put(SWIPE_TABS, "Swipe between tabs");
+        DESCRIPTIONS.put(SWIPE_TABS, "Swipe sideways to go to the next or previous tab of the navigation bar.");
         Map<String, String> me = section("Me");
         me.put("fakh_hide_rewards", "Hide Rewards Hub");
         me.put("fakh_hide_orders", "Hide My Orders");
@@ -134,6 +142,48 @@ public final class Switches {
         } catch (ReflectiveOperationException | RuntimeException failure) {
             // The tabs stay as the app loaded them.
         }
+    }
+
+    /**
+     * Injected after the tab host adds a tab: a sideways swipe on a screen of the bottom bar opens the next or
+     * previous tab while the switch is on. Every call points the swipe at the host's bar.
+     *
+     * @param host the app's tab host
+     */
+    public static void swipeTabs(TabHost host) {
+        TabWidget widget = host.getTabWidget();
+        if (widget == null) return;
+        SwipeTabs.install(widget, widget, new SwipeTabs.Host() {
+            @Override
+            public boolean enabled() {
+                return on(SWIPE_TABS);
+            }
+
+            @Override
+            public View content(View bar) {
+                return host.getTabContentView();
+            }
+
+            @Override
+            public float menuEdgeDp() {
+                return 0;
+            }
+
+            @Override
+            public void log(String message) {
+            }
+
+            @Override
+            public boolean turnsLockedPagers() {
+                // Scene keeps Automation and Tap-to-Run in a ViewPager with its swipe turned off.
+                return true;
+            }
+
+            @Override
+            public void error(String message, Throwable failure) {
+                Log.w("FakhSmartLife", message, failure);
+            }
+        });
     }
 
     /**

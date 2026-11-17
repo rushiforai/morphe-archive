@@ -2,7 +2,7 @@ package app.template.patches.bleacherreport.misc.telemetry
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.bleacherreport.shared.insns
 import app.template.patches.bleacherreport.shared.isStatic
 import app.template.patches.bleacherreport.shared.methodRef

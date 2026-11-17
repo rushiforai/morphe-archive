@@ -8,7 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.util.names.loadsInt
 import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstruction
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -115,7 +117,9 @@ class LocalControlsFixtureTest {
             val plan = context.resolveLocalIds()
             // Special contacts' two hooks go in with the IDs; SpecialContactsFixtureTest holds them to the stock code.
             val special = context.resolveSpecialContacts().first!!
-            val hooked = setOf(plan.method, special.putUser, special.updates)
+            // So do member join dates', which the member list test below holds to the stock code.
+            val hooked = setOf(plan.method, special.putUser, special.updates) + context.resolveMemberJoinDates().first!!.methods +
+                context.resolveForwardDates().first!!.methods
             val stock = ImmutableMethod.of(plan.method)
             val untouched = hostState(build, context, hooked)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
@@ -139,8 +143,30 @@ class LocalControlsFixtureTest {
                 hostState(build, context, hooked))
             assertEquals("$SPECIAL_CONTACTS->user(Ljava/lang/Object;Ljava/lang/Object;I)V", special.putUser.controlBody().first().controlRef())
             assertEquals("$SPECIAL_CONTACTS->updates(Ljava/lang/Object;Ljava/lang/Object;)V", special.updates.controlBody().first().controlRef())
+            // The registration month asks the selected account's cache for a person, and a bot answers no.
+            val person = context.tgMutableClassDefBy(REGISTRATION_DATE).methods.single { it.origName == "isPerson" }.controlBody()
+            assertEquals(listOf(Opcode.SGET, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+                Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.IGET_BOOLEAN, Opcode.IF_NEZ, Opcode.CONST_4,
+                Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN), person.map { it.opcode })
+            assertEquals("$DC_ACCOUNTS->selectedAccount:I", person[0].controlRef())
+            assertEquals("$DC_PEERS->getUser(Ljava/lang/Long;)$DC_USER", person[5].controlRef())
+            assertEquals("$DC_USER->bot:Z", person[8].controlRef())
             flags(context, ID_FLAGS + "specialContacts", true)
             flags(context, PASTE_FLAGS + REACTION_FLAGS, false)
+        }
+    }
+
+    @Test fun `profile IDs go in without the registration month when a user no longer says it's a bot`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            context.tgMutableClassDefBy(DC_USER).fields.removeAll { it.origName == "bot" }
+            val warnings = PatchLogCapture.warnings { showLocalIdsPatch.execute(context) }
+            assertEquals("${build.name}: $warnings", 1, warnings.size)
+            assertTrue("${build.name}: $warnings", "without registration dates" in warnings.single())
+            val person = context.tgMutableClassDefBy(REGISTRATION_DATE).methods.single { it.origName == "isPerson" }.controlBody()
+            assertEquals("${build.name}: the stub keeps answering no", listOf(Opcode.CONST_4, Opcode.RETURN), person.map { it.opcode })
+            flags(context, ID_FLAGS - "registrationDate", true)
+            flags(context, listOf("registrationDate"), false)
         }
     }
 
@@ -156,6 +182,257 @@ class LocalControlsFixtureTest {
             assertEquals("${build.name}: putUser keeps its stock code", stock, putUser.controlBody().map { it.operand() })
             flags(context, ID_FLAGS, true)
             flags(context, listOf("specialContacts"), false)
+        }
+    }
+
+    @Test fun `member lists name each row's member and only the last seen line gets the date`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val local = context.resolveLocalIds().method
+            val special = context.resolveSpecialContacts().first!!
+            val (found, missing) = context.resolveMemberJoinDates()
+            assertNull("${build.name}: $missing", missing)
+            val plan = found!!
+            // The Members page and the two lists on a group's profile. The invite link sheet looks members up in a loop and isn't one.
+            assertEquals("${build.name}: member lists", 3, plan.binders.size)
+            assertEquals("${build.name}: member rows", 2, plan.cells.size)
+            val stock = plan.methods.associate { key(it) to ImmutableMethod.of(it) }
+            val sites = plan.methods.associate { key(it) to plan.sites(it) }
+            val hooked = setOf(local, special.putUser, special.updates) + plan.methods + context.resolveForwardDates().first!!.methods
+            val untouched = hostState(build, context, hooked)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
+            val page = plan.binders.first()
+            for (method in plan.methods) {
+                val case = "${build.name}: ${key(method)}"
+                val old = stock.getValue(key(method))
+                val at = sites.getValue(key(method))
+                val before = old.controlBody()
+                val after = method.controlBody()
+                val extras = when {
+                    method == page -> mapOf(at.single() to 2)
+                    method == plan.loader -> mapOf(at.single() to 1)
+                    method in plan.binders -> at.associateWith { 1 }
+                    else -> mapOf(at[0] to 1, at[1] to 2, at[2] to 2)
+                }
+                assertStockAt(case, old, method, extras)
+                fun placed(site: Int) = site + extras.filterKeys { it < site }.values.sum()
+                when {
+                    method == page -> {
+                        // Right after the row's member comes back from getItem(position), with the row cast before it.
+                        val bound = at.single()
+                        assertEquals(case, "Lorg/telegram/tgnet/TLObject;", before[bound - 2].call()?.returnType)
+                        assertEquals(case, Opcode.MOVE_RESULT_OBJECT, before[bound - 1].opcode)
+                        assertEquals(case, JD_MEMBER_HOOK, after[bound].controlRef())
+                        assertEquals(case, before[bound - 1].namedRegisters(), after[bound].namedRegisters())
+                        assertEquals(case, JD_CELL_HOOK, after[bound + 1].controlRef())
+                        val cast = (bound downTo 0).first { before[it].opcode == Opcode.CHECK_CAST &&
+                            (before[it] as ReferenceInstruction).reference.toString().startsWith("Lorg/telegram/ui/Cells/") }
+                        assertEquals(case, listOf(before[cast].namedRegisters().first()), after[bound + 1].namedRegisters())
+                        assertTrue(case, plan.cells.any { it.definingClass == (before[cast] as ReferenceInstruction).reference.toString() })
+                    }
+                    method == plan.loader -> {
+                        // Right before the saved list writes cu.date, the time it saved the row, over the member's own date.
+                        val overwrite = at.single()
+                        assertTrue(case, before.any { it.controlString() == JD_SAVED_MEMBERS })
+                        assertEquals(case, Opcode.IPUT, before[overwrite].opcode)
+                        assertEquals(case, JD_CHANNEL_DATE, before[overwrite].controlRef())
+                        val (saved, held) = before[overwrite].namedRegisters()
+                        val result = (overwrite - 1 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == saved }
+                        assertEquals(case, Opcode.MOVE_RESULT, before[result].opcode)
+                        assertEquals(case, JD_CURSOR_INT, before[result - 1].controlRef())
+                        // Column 3 of the query is cu.date.
+                        val column = before[result - 1].namedRegisters()[1]
+                        val loaded = (result - 2 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == column }
+                        assertEquals(case, 3L, (before[loaded] as WideLiteralInstruction).wideLiteral)
+                        assertEquals(case, JD_STORED_HOOK, after[overwrite].controlRef())
+                        assertEquals(case, listOf(held), after[overwrite].namedRegisters())
+                        assertEquals(case, before[overwrite].controlRef(), after[overwrite + 1].controlRef())
+                        assertEquals(case, before[overwrite].namedRegisters(), after[overwrite + 1].namedRegisters())
+                    }
+                    method in plan.binders -> {
+                        // Before the one read of the member's user ID, and before the role call on the row it binds.
+                        val (read, role) = at
+                        assertEquals(case, JD_MEMBER_HOOK, after[placed(read)].controlRef())
+                        assertEquals(case, JD_MEMBER_USER, after[placed(read) + 1].controlRef())
+                        assertEquals(case, listOf(before[read].namedRegisters().last()), after[placed(read)].namedRegisters())
+                        assertEquals(case, JD_CELL_HOOK, after[placed(role)].controlRef())
+                        assertEquals(case, JD_ROLE_PARAMETERS, after[placed(role) + 1].call()?.parameterTypes?.map { it.toString() })
+                        assertEquals(case, listOf(after[placed(role) + 1].namedRegisters().first()), after[placed(role)].namedRegisters())
+                        assertTrue(case, plan.cells.any { it.definingClass == after[placed(role) + 1].call()!!.definingClass })
+                    }
+                    else -> {
+                        // The row names itself first, then each of its two last seen texts passes through the hook.
+                        assertEquals(case, 0, at[0])
+                        assertEquals(case, JD_UPDATING_HOOK, after[0].controlRef())
+                        assertEquals(case, listOf(method.implementation!!.registerCount - 2), after[0].namedRegisters())
+                        // One right after last seen is made, one right after "online" is.
+                        assertEquals(case, setOf(JD_USER_STATUS, JD_ONLINE), at.drop(1).map { site ->
+                            if (before[site - 2].controlRef() == JD_USER_STATUS) JD_USER_STATUS else before[site - 3].controlRef() }.toSet())
+                        for (site in at.drop(1)) {
+                            val text = before[site - 1].namedRegisters()
+                            assertEquals(case, Opcode.MOVE_RESULT_OBJECT, before[site - 1].opcode)
+                            assertEquals(case, JD_STATUS_HOOK, after[placed(site)].controlRef())
+                            assertEquals(case, text, after[placed(site)].namedRegisters())
+                            assertEquals(case, Opcode.MOVE_RESULT_OBJECT, after[placed(site) + 1].opcode)
+                            assertEquals(case, text, after[placed(site) + 1].namedRegisters())
+                        }
+                    }
+                }
+            }
+            // The date comes from the member alone: a wrapped channel member's own, then a channel or group member's, else 0.
+            val date = context.tgMutableClassDefBy(JOIN_DATES).methods.single { it.origName == "participantDate" }.controlBody()
+            assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.MOVE_OBJECT, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.IF_EQZ,
+                Opcode.IGET, Opcode.IF_EQZ, Opcode.RETURN, Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET, Opcode.RETURN,
+                Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
+            assertEquals(listOf("$JD_WRAPPED_PARTICIPANT->channelParticipant:$JD_CHANNEL_PARTICIPANT", "$JD_CHANNEL_PARTICIPANT->date:I",
+                "$JD_CHANNEL_PARTICIPANT->date:I", JD_MEMBER_DATE), listOf(date[4], date[6], date[12], date[17]).map { it.controlRef() })
+            assertFalse(date.any { it.call() != null })
+            // A wrapped channel member's own record, where a date kept from the saved list is found; anything else is null.
+            val inner = context.tgMutableClassDefBy(JOIN_DATES).methods.single { it.origName == "channelMember" }.controlBody()
+            assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT,
+                Opcode.CONST_4, Opcode.RETURN_OBJECT), inner.map { it.opcode })
+            assertEquals("$JD_WRAPPED_PARTICIPANT->channelParticipant:$JD_CHANNEL_PARTICIPANT", inner[3].controlRef())
+            assertEquals("${build.name}: every other list, row and host method keeps its code", untouched, hostState(build, context, hooked))
+            flags(context, ID_FLAGS + "specialContacts", true)
+        }
+    }
+
+    @Test fun `profile IDs go in without member join dates when a member list or row changed`() {
+        val mutations: List<Pair<String, (BytecodePatchContext, MemberJoinDatesPlan) -> Unit>> = listOf(
+            "a second Members page" to { c, p -> duplicate(c, p.binders.first()) },
+            "the profile's lists read another member field" to { _, p -> p.binders.drop(1).forEach { m ->
+                val body = m.controlBody(); val at = body.indexOfFirst { it.controlRef() == JD_MEMBER_USER }; val r = body[at].namedRegisters()
+                m.replaceInstruction(at, "iget-wide v${r[0]}, v${r[1]}, $JD_CHAT_PARTICIPANT->inviter_id:J") } },
+            "a row's online text gone" to { _, p -> val cell = p.cells.last(); val body = cell.controlBody()
+                val at = body.indexOfFirst { it.loadsInt() && it.controlRef() == JD_ONLINE }
+                cell.replaceInstruction(at, "const v${body[at].namedRegisters().single()}, 0x0") },
+            // Then the date it reads back can't be told from the time the list was saved.
+            "the saved member list's date write gone" to { _, p -> val body = p.loader.controlBody()
+                p.loader.replaceInstruction(body.indexOfFirst { it.opcode == Opcode.IPUT && it.controlRef() == JD_CHANNEL_DATE }, "nop") },
+        )
+        for (build in Fixtures.declaredBuilds()) for ((name, change) in mutations) {
+            val c = context(build)
+            val plan = c.resolveMemberJoinDates().first!!
+            change(c, plan)
+            val stock = plan.methods.associate { key(it) to it.state() }
+            val warnings = PatchLogCapture.warnings { showLocalIdsPatch.execute(c) }
+            assertEquals("${build.name} $name: $warnings", 1, warnings.size)
+            assertTrue("${build.name} $name: $warnings", "without member join dates" in warnings.single())
+            assertEquals("${build.name} $name: every member list and row keeps its code", stock, plan.methods.associate { key(it) to it.state() })
+            val date = c.tgMutableClassDefBy(JOIN_DATES).methods.single { it.origName == "participantDate" }.controlBody()
+            assertEquals("${build.name} $name: the stub keeps answering 0", listOf(Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
+            val inner = c.tgMutableClassDefBy(JOIN_DATES).methods.single { it.origName == "channelMember" }.controlBody()
+            assertEquals("${build.name} $name: the stub keeps answering null", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT), inner.map { it.opcode })
+            flags(c, ID_FLAGS - "memberJoinDates" + "specialContacts", true)
+            flags(c, listOf("memberJoinDates"), false)
+        }
+    }
+
+    @Test fun `a forward's header and its compact header pass through the date hook and nothing else changes`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val local = context.resolveLocalIds().method
+            val special = context.resolveSpecialContacts().first!!
+            val joinDates = context.resolveMemberJoinDates().first!!
+            val (found, missing) = context.resolveForwardDates()
+            assertNull("${build.name}: $missing", missing)
+            val plan = found!!
+            assertEquals("${build.name}: one class draws both", plan.line.definingClass, plan.compact.definingClass)
+            val stock = plan.methods.associate { key(it) to ImmutableMethod.of(it) }
+            val sites = plan.methods.associate { key(it) to plan.sites(it) }
+            val hooked = setOf(local, special.putUser, special.updates) + joinDates.methods + plan.methods
+            val untouched = hostState(build, context, hooked)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
+
+            // The line: the message is kept where "Forwarded from" is loaded, and the text it answers goes through the hook.
+            val lineCase = "${build.name}: ${key(plan.line)}"
+            val lineStock = stock.getValue(key(plan.line))
+            val before = lineStock.controlBody()
+            val (load, returned) = sites.getValue(key(plan.line))
+            assertStockAt(lineCase, lineStock, plan.line, mapOf(load to 1, returned to 2))
+            assertTrue(lineCase, before[load].loadsInt() && before[load].controlRef() == FD_FORWARDED_FROM)
+            assertTrue(lineCase, before.any { it.opcode == Opcode.CONST_STRING &&
+                ((it as ReferenceInstruction).reference as? com.android.tools.smali.dexlib2.iface.reference.StringReference)?.string == "PsaMessage_" })
+            assertEquals(lineCase, listOf(Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), listOf(before[returned - 1].opcode, before[returned].opcode))
+            val after = plan.line.controlBody()
+            val kept = after[load].namedRegisters()
+            assertEquals(lineCase, Opcode.MOVE_OBJECT, after[load].opcode)
+            // The message is the cell's one parameter after itself.
+            assertEquals(lineCase, plan.line.implementation!!.registerCount - 1, kept[1])
+            assertTrue(lineCase, kept[0] < plan.line.implementation!!.registerCount - 2)
+            val text = before[returned].namedRegisters()
+            assertEquals(lineCase, FD_HEADER_HOOK, after[returned + 1].controlRef())
+            assertEquals(lineCase, listOf(kept[0]) + text, after[returned + 1].namedRegisters())
+            assertEquals(lineCase, Opcode.MOVE_RESULT_OBJECT, after[returned + 2].opcode)
+            assertEquals(lineCase, text, after[returned + 2].namedRegisters())
+            // Nothing between the two writes the kept register.
+            assertTrue(lineCase, (load + 1..returned).none { after[it].opcode.setsRegister() && after[it].namedRegisters().first() == kept[0] })
+
+            // The compact header: the row's empty text slot takes the date before the row is set.
+            val compactCase = "${build.name}: ${key(plan.compact)}"
+            val compactStock = stock.getValue(key(plan.compact))
+            val row = sites.getValue(key(plan.compact)).single()
+            assertStockAt(compactCase, compactStock, plan.compact, mapOf(row to 2))
+            val compactBefore = compactStock.controlBody()
+            val label = compactBefore.indexOfFirst { it.loadsInt() && it.controlRef() == FD_FORWARDED_FROM }
+            assertTrue(compactCase, label in 0 until row)
+            val arguments = compactBefore[row].namedRegisters()
+            assertEquals(compactCase, compactBefore[label + 2].namedRegisters(), listOf(arguments[1]))
+            // Telegram hands the row no text for a forward.
+            val nothing = (row - 1 downTo label).first { compactBefore[it].opcode.setsRegister() && compactBefore[it].namedRegisters().first() == arguments[5] }
+            assertEquals(compactCase, Opcode.CONST_4, compactBefore[nothing].opcode)
+            assertEquals(compactCase, 0L, (compactBefore[nothing] as WideLiteralInstruction).wideLiteral)
+            val compactAfter = plan.compact.controlBody()
+            assertEquals(compactCase, FD_COMPACT_HOOK, compactAfter[row].controlRef())
+            assertEquals(compactCase, Opcode.MOVE_RESULT_OBJECT, compactAfter[row + 1].opcode)
+            assertEquals(compactCase, listOf(arguments[5]), compactAfter[row + 1].namedRegisters())
+            val message = compactAfter[row].namedRegisters().first()
+            // The compact header copies its message parameter first thing, and the hook reads that copy.
+            val copied = compactBefore.indexOfFirst { it.opcode == Opcode.MOVE_OBJECT_FROM16 && it.namedRegisters() ==
+                listOf(message, plan.compact.implementation!!.registerCount - 1) }
+            assertTrue(compactCase, copied in 0 until label)
+
+            // The date comes from the message's forward header, else 0.
+            val date = context.tgMutableClassDefBy(FORWARD_DATES).methods.single { it.origName == "sentAt" }.controlBody()
+            assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.IF_EQZ, Opcode.IGET_OBJECT,
+                Opcode.IF_EQZ, Opcode.IGET, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
+            assertEquals(listOf("$FD_MESSAGE->messageOwner:$FD_TL_MESSAGE", "$FD_TL_MESSAGE->fwd_from:$FD_FWD_HEADER", "$FD_FWD_HEADER->date:I"),
+                listOf(date[3], date[5], date[7]).map { it.controlRef() })
+            assertFalse(date.any { it.call() != null })
+            assertEquals("${build.name}: every other host method keeps its code", untouched, hostState(build, context, hooked))
+            flags(context, ID_FLAGS + "specialContacts", true)
+        }
+    }
+
+    @Test fun `profile IDs go in without forward dates when a Forwarded from site changed`() {
+        val mutations: List<Pair<String, (BytecodePatchContext, ForwardDatesPlan) -> Unit>> = listOf(
+            "a second Forwarded from line" to { c, p -> duplicate(c, p.line) },
+            "a second compact header" to { c, p -> duplicate(c, p.compact) },
+            "the line has no local left to keep the message in" to { _, p ->
+                // Reading every local right after the label leaves none free until the line answers. Its locals are
+                // the registers below this and the one message parameter.
+                val load = p.line.controlBody().indexOfFirst { it.loadsInt() && it.controlRef() == FD_FORWARDED_FROM }
+                for (register in 0 until p.line.implementation!!.registerCount - 2)
+                    p.line.addInstruction(load + 1, "invoke-static {v$register}, Ljava/util/Objects;->hashCode(Ljava/lang/Object;)I")
+            },
+            "the compact row takes another label" to { _, p -> val body = p.compact.controlBody()
+                val label = body.indexOfFirst { it.loadsInt() && it.controlRef() == FD_FORWARDED_FROM }
+                val named = body[label + 2].namedRegisters().single()
+                p.compact.replaceInstruction(label + 2, "move-result-object v${named + 1}") },
+        )
+        for (build in Fixtures.declaredBuilds()) for ((name, change) in mutations) {
+            val c = context(build)
+            val plan = c.resolveForwardDates().first!!
+            change(c, plan)
+            val stock = plan.methods.associate { key(it) to it.state() }
+            val warnings = PatchLogCapture.warnings { showLocalIdsPatch.execute(c) }
+            assertEquals("${build.name} $name: $warnings", 1, warnings.size)
+            assertTrue("${build.name} $name: $warnings", "without forward dates" in warnings.single())
+            assertEquals("${build.name} $name: both sites keep their code", stock, plan.methods.associate { key(it) to it.state() })
+            val date = c.tgMutableClassDefBy(FORWARD_DATES).methods.single { it.origName == "sentAt" }.controlBody()
+            assertEquals("${build.name} $name: the stub keeps answering 0", listOf(Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
+            flags(c, ID_FLAGS - "forwardDates" + "specialContacts", true)
+            flags(c, listOf("forwardDates"), false)
         }
     }
 
@@ -322,7 +599,8 @@ class LocalControlsFixtureTest {
     private fun loadHosts(build: File): List<ClassDef> {
         val result = FixtureDex.classesWhere(build, { true }) { method ->
             method.origDefiningClass == PROFILE || method.origName == "onTextContextMenuItem" || method.origName == "onDoubleTap" ||
-                method.controlBody().any { it.controlRef() == DOUBLE_TAP_CHOICE }
+                method.controlBody().let { body -> body.any { it.controlRef() == DOUBLE_TAP_CHOICE } || joinDateHost(body) ||
+                    body.any { it.loadsInt() && it.controlRef() == FD_FORWARDED_FROM } }
         }.associateByTo(linkedMapOf()) { it.type }
         val profile = result.getValue(PROFILE)
         // The menu is identified by its overflow icon/store, rather than any obfuscated name.
@@ -342,7 +620,7 @@ class LocalControlsFixtureTest {
         // Use normal paste also reads the entities method Mention by ID hooks. LocaleController holds the
         // getString(int) wrapper whose forwarded call 13.2 inlined into the profile's Send Gram title.
         result.putAll(FixtureDex.classes(build, setOf(boundMenu, "Lorg/telegram/messenger/R\$drawable;", "Lorg/telegram/messenger/MediaDataController;",
-            "Lorg/telegram/messenger/LocaleController;") + PROFILE_DC_TYPES))
+            "Lorg/telegram/messenger/LocaleController;") + PROFILE_DC_TYPES + JD_TYPES + setOf(FD_MESSAGE, FD_TL_MESSAGE, FD_FWD_HEADER)))
         loadAncestors(build, result)
         // 13.2 declares the row factory on the menu item's superclass and takes the title as a CharSequence.
         val menuLine = generateSequence(result.getValue(boundMenu)) { menu -> menu.superclass?.let { result[it] } }.toList()
@@ -352,6 +630,14 @@ class LocalControlsFixtureTest {
         result.putAll(FixtureDex.classes(build, rows))
         loadAncestors(build, result)
         return result.values.map(ImmutableClassDef::of)
+    }
+
+    /** Member join dates' hosts: the Members page, the profile's member lists, the rows that write last seen and the saved list's reader. */
+    private fun joinDateHost(body: List<Instruction>): Boolean {
+        val refs = body.mapNotNullTo(HashSet()) { it.controlRef() }
+        return (JD_KICKED_BY in refs && JD_MEMBER_DATE in refs) || (JD_USER_STATUS in refs && JD_ONLINE in refs) ||
+            body.any { it.controlString() == JD_SAVED_MEMBERS } ||
+            (JD_MEMBER_USER in refs && body.any { it.call()?.parameterTypes?.map { p -> p.toString() } == JD_ROLE_PARAMETERS })
     }
 
     private fun loadAncestors(build: File, result: MutableMap<String, ClassDef>) {
@@ -376,6 +662,27 @@ class LocalControlsFixtureTest {
             assertEquals("$case: stock operand $i", before[i].operand(), after[moved(i)].operand())
             assertEquals("$case: stock normal path $i", a.normal[i].map(::target), b.normal[moved(i)])
             assertEquals("$case: stock exceptional path $i", a.exceptional[i].map(::moved), b.exceptional[moved(i)])
+        }
+    }
+    /** [assertStock] for hooks at several places: [extras] says how many instructions go in front of each stock index. */
+    private fun assertStockAt(case: String, old: Method, changed: Method, extras: Map<Int, Int>) {
+        val before = old.controlBody()
+        val after = changed.controlBody()
+        assertEquals("$case: register count", old.implementation!!.registerCount, changed.implementation!!.registerCount)
+        // A payload's alignment nop comes or goes with the hooks' size, so the code is compared without nops.
+        val kept = before.indices.filter { before[it].opcode != Opcode.NOP }
+        val real = after.indices.filter { after[it].opcode != Opcode.NOP }
+        assertEquals("$case: size", kept.size + extras.values.sum(), real.size)
+        val a = ControlFlow.of(old); val b = ControlFlow.of(changed)
+        val rank = kept.withIndex().associate { (place, index) -> index to place }
+        fun moved(index: Int) = real[rank.getValue(index) + extras.filterKeys { it <= index }.values.sum()]
+        // A jump to a hooked instruction lands on its hook, which goes in under that instruction's label.
+        fun target(index: Int) = moved(index) - (extras[index] ?: 0)
+        fun code(next: List<Int>, body: List<Instruction>) = next.filter { body[it].opcode != Opcode.NOP }
+        for (i in kept) {
+            assertEquals("$case: stock operand $i", before[i].operand(), after[moved(i)].operand())
+            assertEquals("$case: stock normal path $i", code(a.normal[i], before).map(::target), code(b.normal[moved(i)], after))
+            assertEquals("$case: stock exceptional path $i", code(a.exceptional[i], before).map(::target), code(b.exceptional[moved(i)], after))
         }
     }
     private fun ClassDef.state() = listOf(accessFlags, superclass, interfaces.toList(), fields.map { listOf(it.name, it.type, it.accessFlags, it.initialValue) }, methods.map { key(it) to it.state() })
@@ -410,7 +717,7 @@ class LocalControlsFixtureTest {
     companion object {
         private val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>()
         private val PASTE_FLAGS = listOf("normalPaste", "composePlainPaste", "captionPlainPaste")
-        private val ID_FLAGS = listOf("showLocalIds", "profileLocalIds")
+        private val ID_FLAGS = listOf("showLocalIds", "profileLocalIds", "registrationDate", "memberJoinDates", "forwardDates")
         private val REACTION_FLAGS = listOf("disableDoubleTapReactions", "chatDoubleTapReaction", "previewDoubleTapReaction")
         private const val OVERFLOW_ICON = "Lorg/telegram/messenger/R\$drawable;->ic_ab_other:I"
         private const val COPY_ICON = "drawable/msg_copy"

@@ -64,12 +64,18 @@ val hideChatCallButtonsPatch = patch {
         )
 
         // Narrow Instagram's own availability flags before it chooses a combined or individual action.
-        val (audio, video) = regular.instructionMatches
-        for ((read, hook) in listOf(video to "showChatVideoCallButton", audio to "showChatAudioCallButton")) {
-            val register = read.instruction.registersUsed.first()
-            regular.method.addInstructions(read.index + 1, visibilityCheck(register, hook))
+        runCatching {
+            val regMatch = regular.matchOrNull()
+            if (regMatch != null) {
+                val (audio, video) = regMatch.instructionMatches
+                for ((read, hook) in listOf(video to "showChatVideoCallButton", audio to "showChatAudioCallButton")) {
+                    val register = read.instruction.registersUsed.first()
+                    regMatch.method.addInstructions(read.index + 1, visibilityCheck(register, hook))
+                }
+            }
         }
 
+        runCatching {
         // At either ongoing action, the condition register is true and can be reused for the visibility check.
         val matches = ongoing.instructionMatches
         val empty = ExternalLabel("empty", ongoing.method.getInstruction(matches[0].index))
@@ -84,6 +90,7 @@ val hideChatCallButtonsPatch = patch {
                 visibilityCheck(register, hook) + "\nif-eqz v$register, :empty",
                 empty,
             )
+        }
         }
     
             }

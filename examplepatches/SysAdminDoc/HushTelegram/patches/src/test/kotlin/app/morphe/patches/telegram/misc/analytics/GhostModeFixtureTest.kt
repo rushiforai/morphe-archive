@@ -131,7 +131,7 @@ class GhostModeFixtureTest {
             val metricsClass = FixtureDex.classesWhere(build, { true }) { method ->
                 method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.origString() == REPORT_READ_METRICS }
             }
-            val context = PatchContexts.of(ExtensionDex.classes() + metricsClass + ghostModeHosts(build) + readsMenuHosts(build))
+            val context = PatchContexts.of(ExtensionDex.classes() + (metricsClass + ghostModeHosts(build) + readsMenuHosts(build) + folderReadsHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             // This slice leaves the Premium reports out, so those say so; Ghost mode doesn't.
             assertTrue(warnings.toString(), warnings.none { "Ghost mode" in it })

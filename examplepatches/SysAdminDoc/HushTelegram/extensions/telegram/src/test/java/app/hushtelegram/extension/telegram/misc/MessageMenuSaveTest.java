@@ -36,7 +36,7 @@ import org.robolectric.shadows.ShadowToast;
 
 /** Save to Downloads in the long-press menu of a downloaded file in a chat that doesn't allow saving (#29). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30, shadows = {MessageMenuSaveTest.Native.class}, instrumentedPackages = "app.hushtelegram.extension.telegram.misc")
+@Config(sdk = 30, shadows = {MessageMenuSaveTest.Native.class, MessageMenuSaveTest.Timed.class}, instrumentedPackages = "app.hushtelegram.extension.telegram.misc")
 public class MessageMenuSaveTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     @Rule public final TemporaryFolder folder = new TemporaryFolder();
@@ -60,6 +60,16 @@ public class MessageMenuSaveTest {
         @Implementation protected static String attachPath(Object message) { return paths.getOrDefault(message, attachPath); }
         @Implementation protected static File photoFile(Object message) { return null; }
         @Implementation protected static String documentName(Object message) { return documentName; }
+        @Implementation protected static long dialog(Object message) { return 7L; }
+        @Implementation protected static boolean secret(long dialog) { return secret; }
+        static boolean secret;
+    }
+
+    @Implements(value = SaveDownloads.class, isInAndroidSdk = false)
+    public static class Timed {
+        static boolean timed;
+
+        @Implementation protected static boolean timedMedia(Object message) { return timed; }
     }
 
     @Before public void setUp() throws IOException {
@@ -77,9 +87,13 @@ public class MessageMenuSaveTest {
         SaveDownloads.work = realWork;
         Native.album = null;
         Native.paths.clear();
+        Native.secret = false;
+        Timed.timed = false;
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
+        SettingReadsForTests.mend(Settings.SAVE_SECRET_CHATS);
+        Settings.SAVE_SECRET_CHATS.resetToDefault();
         HookStatus.clear();
         ShadowToast.reset();
     }
@@ -172,5 +186,33 @@ public class MessageMenuSaveTest {
         MessageMenu.chosen(new Object(), MessageMenu.SAVE_DOWNLOAD);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals("Couldn't save that. Try again.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aSecretChatGetsTheItemOnlyWithAlsoSaveFromSecretChatsOn() {
+        // #82: the chat check behind the item leaves secret chats out on its own.
+        Settings.MESSAGE_MENU_SAVE_PROTECTED.save(true);
+        Native.restricted = false;
+        Native.secret = true;
+        ArrayList<ArrayList<Object>> menu = menu(1);
+        fill(menu);
+        assertEquals(Arrays.<Object>asList(1), menu.get(2));
+
+        Settings.SAVE_SECRET_CHATS.save(true);
+        menu = menu(1);
+        fill(menu);
+        assertEquals(Arrays.<Object>asList(1, MessageMenu.SAVE_DOWNLOAD), menu.get(2));
+
+        // An ordinary chat that allows saving still gets none.
+        Native.secret = false;
+        menu = menu(1);
+        fill(menu);
+        assertEquals(Arrays.<Object>asList(1), menu.get(2));
+
+        // A secret chat's view-once or timed media stays encrypted on the phone, so it gets none either.
+        Native.secret = true;
+        Timed.timed = true;
+        menu = menu(1);
+        fill(menu);
+        assertEquals(Arrays.<Object>asList(1), menu.get(2));
     }
 }

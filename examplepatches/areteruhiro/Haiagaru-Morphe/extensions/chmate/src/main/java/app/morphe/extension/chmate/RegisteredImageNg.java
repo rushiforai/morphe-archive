@@ -280,7 +280,14 @@ public final class RegisteredImageNg {
                 for (RegisteredImageSafStore.Entry current : RegisteredImageSafStore.list(app))
                     if (current.identity().equals(entry.identity())) { present = true; break; }
                 if (!present) { completed.accept("画像がフォルダ内に見つかりません"); return; }
+                String deletedDigest=null;
+                try(InputStream input=entry.open(app)){deletedDigest=digest(readCapped(input));}
+                catch(Exception unreadable){
+                    // A broken reference must remain removable. Canonical names retain the digest.
+                    if(entry.name.matches("[a-f0-9]{32}\\..+"))deletedDigest=entry.name.substring(0,32);
+                }
                 boolean removed = entry.delete(app);
+                if(removed&&deletedDigest!=null)RegisteredImageSafStore.deleted(app,deletedDigest);
                 reload(true);
                 completed.accept(removed ? "登録画像を削除しました" : "削除できませんでした");
             } catch (Exception error) {
@@ -343,6 +350,19 @@ public final class RegisteredImageNg {
                 }
                 completed.accept(results, null);
             } catch (Exception error) { completed.accept(results, error.getMessage()); }
+        });
+    }
+    static void recoverOnSettingsOpen(Context context,java.util.function.Consumer<String> completed){
+        initialize(context);WORKER.execute(()->{
+            String message;
+            try{
+                int restored=RegisteredImageSafStore.recoverLegacy(app,MAX_REFERENCE_IMAGES,new RegisteredImageSafStore.BytesReader(){
+                    public byte[] read(InputStream input)throws Exception{byte[] bytes=readCapped(input);return decode(bytes)==null?null:bytes;}
+                    public String digest(byte[] bytes)throws Exception{return RegisteredImageNg.digest(bytes);}
+                });
+                reload(true);message=restored>0?"旧保存先から登録画像を"+restored+"枚復元しました（元画像は保持）":status;
+            }catch(Exception error){reload(true);message="旧登録画像の復元を完了できませんでした。保存先のアクセス権を確認してください。元画像は変更していません。";}
+            completed.accept(message);
         });
     }
 

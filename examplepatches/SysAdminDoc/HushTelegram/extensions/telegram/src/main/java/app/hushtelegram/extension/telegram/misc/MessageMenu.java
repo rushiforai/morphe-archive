@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -105,7 +106,7 @@ public final class MessageMenu {
             copy = copy && forwardable && photo(message) && downloaded(message) != null;
             quick = quick && forwardable && quickable(chat, message);
             text = text && restricted(message) && !copyable(chat, message).isEmpty();
-            save = save && restricted(message) && downloaded(message) != null;
+            save = save && (restricted(message) || secretSaving(message)) && downloaded(message) != null;
             again = again && restricted(message) && (!copyable(chat, message).isEmpty() || media(message));
             offer(icons, items, options, repeat, copy, details, quick, text, save, again, forwardOption());
             if (tools) MessageMenuTools.offer(chat, message, icons, items, options, forwardable);
@@ -361,13 +362,17 @@ public final class MessageMenu {
         HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, what);
     }
 
-    /** A copy of the file under the document's own name in the app's cache, in a folder of its own, older ones cleared. */
+    /** A copy of the file under the document's own name in the app's shared cache, in a folder of its own, older ones cleared. */
     static File renamed(Context context, File file, String name) throws java.io.IOException {
-        File folder = new File(context.getCacheDir(), "hushtelegram_forward_copy");
+        // In the cache on shared storage, where Telegram keeps its own downloads: its file send
+        // refuses any path inside the app's private folder (#94), the cache there included.
+        File inside = new File(context.getCacheDir(), COPY_FOLDER);
+        File shared = context.getExternalCacheDir();
+        File folder = shared != null ? new File(shared, COPY_FOLDER) : inside;
         if (!folder.mkdirs() && !folder.isDirectory()) throw new java.io.IOException("no cache folder");
-        File[] old = folder.listFiles();
         long cutoff = System.currentTimeMillis() - COPY_KEEP_MS;
-        if (old != null) for (File each : old) if (each.lastModified() < cutoff) deleteTree(each);
+        clearOlder(folder, cutoff);
+        if (!inside.equals(folder)) clearOlder(inside, cutoff);
         File own = new File(folder, Long.toString(System.nanoTime()));
         if (!own.mkdirs() && !own.isDirectory()) throw new java.io.IOException("no cache folder");
         File target = new File(own, name.replace('/', '_'));
@@ -376,6 +381,14 @@ public final class MessageMenu {
             for (int read; (read = in.read(buffer)) != -1; ) out.write(buffer, 0, read);
         }
         return target;
+    }
+
+    private static final String COPY_FOLDER = "hushtelegram_forward_copy";
+
+    /** Deletes the copies in [folder] made before [cutoff]. */
+    private static void clearOlder(File folder, long cutoff) {
+        File[] old = folder.listFiles();
+        if (old != null) for (File each : old) if (each.lastModified() < cutoff) deleteTree(each);
     }
 
     private static void deleteTree(File file) {
@@ -589,6 +602,14 @@ public final class MessageMenu {
         }
     }
 
+    /**
+     * Whether Save to Downloads fits a secret chat's message: Also save from secret chats is on (#82)
+     * and it isn't view-once or timed media, whose file Telegram keeps encrypted.
+     */
+    private static boolean secretSaving(Object message) {
+        return on(Settings.SAVE_SECRET_CHATS) && secret(dialog(message)) && !SaveDownloads.timedMedia(message);
+    }
+
     /** The photo's file once it's on the phone: the sent original first, then Telegram's own copy. */
     static File downloaded(Object message) {
         String sent = attachPath(message);
@@ -640,8 +661,19 @@ public final class MessageMenu {
         int forwardDate;
         int dc;
         long size;
+        /** The file's own name, as sent. */
+        String fileName;
+        String mime;
+        /** A photo's or video's size in pixels, 0 when it has none. */
+        int width;
+        int height;
+        /** A song's, voice message's or video's length in seconds, 0 when it has none. */
+        double duration;
         List<KeepEdits.Version> earlier = new ArrayList<>();
     }
+
+    /** What {@link #attributeKind} says a file attribute holds: a video's size and length, a song's or voice message's length, or the file's name. */
+    static final int OTHER_ATTRIBUTE = 0, VIDEO_ATTRIBUTE = 1, AUDIO_ATTRIBUTE = 2, NAME_ATTRIBUTE = 3;
 
     /** What Keep edit history kept for the message, oldest first. */
     static List<KeepEdits.Version> earlier(Object message) {
@@ -663,11 +695,33 @@ public final class MessageMenu {
         }
         facts.dc = fileDc(message);
         facts.size = documentSize(message);
+        facts.mime = mime(message);
+        ArrayList<?> attributes = attributes(message);
+        if (attributes != null) {
+            for (Object attribute : attributes) {
+                if (attribute == null) continue;
+                int kind = attributeKind(attribute);
+                if (kind == VIDEO_ATTRIBUTE && facts.width <= 0) {
+                    facts.width = attributeWidth(attribute);
+                    facts.height = attributeHeight(attribute);
+                }
+                if ((kind == VIDEO_ATTRIBUTE || kind == AUDIO_ATTRIBUTE) && facts.duration <= 0) facts.duration = attributeDuration(attribute);
+                if (kind == NAME_ATTRIBUTE && facts.fileName == null) facts.fileName = attributeName(attribute);
+            }
+        }
         if (facts.size <= 0) {
             ArrayList<?> sizes = photoSizes(message);
             if (sizes != null) {
+                long area = 0;
                 for (Object size : sizes) {
-                    if (size != null) facts.size = Math.max(facts.size, photoSize(size));
+                    if (size == null) continue;
+                    facts.size = Math.max(facts.size, photoSize(size));
+                    int width = photoWidth(size), height = photoHeight(size);
+                    if (width > 0 && height > 0 && (long) width * height > area) {
+                        area = (long) width * height;
+                        facts.width = width;
+                        facts.height = height;
+                    }
                 }
             }
         }
@@ -692,10 +746,39 @@ public final class MessageMenu {
         }
         if (facts.dc > 0) lines.add(L10n.f(context, "File data center: %1$s", Integer.toString(facts.dc)));
         if (facts.size > 0) lines.add(L10n.f(context, "File size: %1$s", Formatter.formatFileSize(context, facts.size)));
+        if (facts.fileName != null && !facts.fileName.isEmpty()) lines.add(L10n.f(context, "File name: %1$s", L10n.isolate(facts.fileName)));
+        if (facts.mime != null && !facts.mime.isEmpty()) lines.add(L10n.f(context, "MIME type: %1$s", facts.mime));
+        if (facts.width > 0 && facts.height > 0) {
+            String resolution = facts.width + "x" + facts.height;
+            lines.add(L10n.f(context, "Resolution: %1$s", resolution));
+        }
+        if (facts.duration > 0) lines.add(L10n.f(context, "Duration: %1$s", duration(facts.duration)));
+        long kilobits = kilobitsPerSecond(facts);
+        if (kilobits > 0) {
+            lines.add(L10n.f(context, "Bitrate: %1$s kbps", NumberFormat.getIntegerInstance(L10n.locale(context)).format(kilobits)));
+        }
         for (KeepEdits.Version version : facts.earlier) {
             lines.add(L10n.f(context, "Before the edit at %1$s: %2$s", time(context, version.replaced), L10n.isolate(version.text)));
         }
         return String.join("\n", lines);
+    }
+
+    /** A length the way Telegram's player shows it, whole seconds only: 0:12, or 1:02:09 past an hour. */
+    static String duration(double seconds) {
+        int whole = (int) seconds;
+        int hours = whole / 3600;
+        int minutes = whole / 60 % 60;
+        int rest = whole % 60;
+        return hours == 0 ? String.format(Locale.US, "%d:%02d", minutes, rest) : String.format(Locale.US, "%d:%02d:%02d", hours, minutes, rest);
+    }
+
+    /**
+     * The file's average bitrate in kilobits a second, from its size and length, or 0 without both.
+     * Telegram's file attributes carry no bitrate of their own, so there's none to prefer.
+     */
+    static long kilobitsPerSecond(Facts facts) {
+        if (facts.size <= 0 || facts.duration <= 0) return 0;
+        return Math.round(facts.size * 8 / facts.duration / 1000);
     }
 
     private static String time(Context context, int seconds) {
@@ -722,6 +805,26 @@ public final class MessageMenu {
             HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "message details copy", failure);
             feedback(context, L10n.t(context, "Couldn't copy that. Try again."));
         }
+    }
+
+    /**
+     * Also delete for, checked by default (#83). Injected where Telegram's delete dialog fills in
+     * the Also delete for box, in place of its unchecked start.
+     *
+     * <p>Telegram offers that box only in a chat with a person: not Saved Messages, a bot, a deleted
+     * account, a group, a channel or a secret chat, and only while at least one of the messages can
+     * still go for both sides. It starts the box unchecked and reads a one-slot flag when Delete is
+     * tapped. This sets that flag and answers true for the box's start, so the box and the flag
+     * agree, and the box's own tap flips both back. Nowhere else does the dialog change.
+     *
+     * @param choice the dialog's own flag that Delete reads, slot 0 meaning delete for both sides
+     * @return whether the box starts checked
+     */
+    public static boolean alsoDeleteChecked(boolean[] choice) {
+        if (choice == null || choice.length == 0 || !on(Settings.ALSO_DELETE_CHECKED)) return false;
+        choice[0] = true;
+        HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "Also delete for checked");
+        return true;
     }
 
     /** Whether the switch is on and HushTelegram isn't paused. */
@@ -842,4 +945,15 @@ public final class MessageMenu {
     public static long documentSize(Object message) { return 0L; }
     public static ArrayList<?> photoSizes(Object message) { return null; }
     public static int photoSize(Object size) { return 0; }
+    public static int photoWidth(Object size) { return 0; }
+    public static int photoHeight(Object size) { return 0; }
+    public static String mime(Object message) { return null; }
+    /** The file's attributes, or null without a file. */
+    public static ArrayList<?> attributes(Object message) { return null; }
+    /** One of {@link #VIDEO_ATTRIBUTE}, {@link #AUDIO_ATTRIBUTE}, {@link #NAME_ATTRIBUTE} or {@link #OTHER_ATTRIBUTE}. */
+    public static int attributeKind(Object attribute) { return OTHER_ATTRIBUTE; }
+    public static int attributeWidth(Object attribute) { return 0; }
+    public static int attributeHeight(Object attribute) { return 0; }
+    public static double attributeDuration(Object attribute) { return 0; }
+    public static String attributeName(Object attribute) { return null; }
 }

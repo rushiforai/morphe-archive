@@ -42,7 +42,9 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -1245,25 +1247,13 @@ public class PlayerPatch {
         );
     }
 
-    private static final int timestampClickListenerTag =
-            ResourceUtils.getStringIdentifier("revanced_replace_time_stamp_action_title");
-
     /**
      * Retains YouTube's remaining-time action before the timestamp menu replaces it.
      * Hooked at the native listener assignment, avoiding reflection into Android views.
      */
     public static void setTimestampClickListener(View view, View.OnClickListener original) {
-        if (original == null
-                || !Settings.APPEND_TIME_STAMP_INFORMATION.get()
-                || !Settings.REPLACE_TIME_STAMP_ACTION.get()) {
-            view.setTag(timestampClickListenerTag, null);
-            view.setOnClickListener(original);
-            return;
-        }
-
-        TimestampClickListener listener = new TimestampClickListener(view, original);
-        view.setTag(timestampClickListenerTag, listener);
-        view.setOnClickListener(listener);
+        TimestampClickListener.bind(view, original, Settings.APPEND_TIME_STAMP_INFORMATION.get()
+                && Settings.REPLACE_TIME_STAMP_ACTION.get());
     }
 
     public static void setContainerClickListener(View view) {
@@ -1284,7 +1274,8 @@ public class PlayerPatch {
             // Some player layouts nest timestamps_inner_container inside the native
             // timestamps_container. Bind the tapped parent to the ancestor's action.
             View nativeContainer = containerView;
-            while (!(nativeContainer.getTag(timestampClickListenerTag) instanceof TimestampClickListener listener)) {
+            TimestampClickListener listener;
+            while ((listener = TimestampClickListener.find(nativeContainer)) == null) {
                 if (!(nativeContainer.getParent() instanceof View parent)) return;
                 nativeContainer = parent;
             }
@@ -1299,7 +1290,28 @@ public class PlayerPatch {
      * and invokes YouTube's original action to toggle elapsed and remaining time.
      * The listener survives timestamp refreshes so they cannot reset a pending tap.
      */
-    private static final class TimestampClickListener implements View.OnClickListener {
+    static final class TimestampClickListener implements View.OnClickListener {
+        // Main-thread view callbacks only. Weak values also avoid retaining a native listener's view graph.
+        private static final Map<View, WeakReference<TimestampClickListener>> listeners = new WeakHashMap<>();
+
+        static void bind(View view, View.OnClickListener original, boolean enabled) {
+            if (original == null || !enabled) {
+                listeners.remove(view);
+                view.setOnClickListener(original);
+                return;
+            }
+
+            TimestampClickListener listener = new TimestampClickListener(view, original);
+            listeners.put(view, new WeakReference<>(listener));
+            view.setOnClickListener(listener);
+        }
+
+        @Nullable
+        static TimestampClickListener find(View view) {
+            WeakReference<TimestampClickListener> reference = listeners.get(view);
+            return reference == null ? null : reference.get();
+        }
+
         private final View.OnClickListener original;
         private final WeakReference<View> nativeView;
         private Runnable pendingClick;

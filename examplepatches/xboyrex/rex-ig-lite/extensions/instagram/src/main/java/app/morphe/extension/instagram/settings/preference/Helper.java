@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
-*/
-
+ */
 
 package app.morphe.extension.instagram.settings.preference;
 
@@ -19,6 +18,7 @@ import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.instagram.patches.ReelsPlayback;
 import app.morphe.extension.instagram.patches.dm.InboxLock;
+import app.morphe.extension.instagram.patches.story.StoryMentionIcon;
 
 import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
 import app.morphe.extension.instagram.settings.preference.widgets.ListPref;
@@ -39,7 +39,8 @@ import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.instagram.settings.BooleanSetting;
 import app.morphe.extension.instagram.settings.StringSetting;
 
-import  app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
+import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
+import app.morphe.extension.instagram.patches.devFlags.HookFlags;
 
 public class Helper {
     private final Context context;
@@ -67,7 +68,6 @@ public class Helper {
     }
 
     private static void updateAvailability(Preference preference, boolean enabled) {
-        // Only presentation changes; the saved child value returns when its parent is enabled.
         if (preference instanceof SwitchPref) {
             ((SwitchPref) preference).setSwitchInteractionEnabled(enabled);
         } else {
@@ -84,14 +84,6 @@ public class Helper {
         return preference;
     }
 
-    /**
-     * A switch whose value is currently forced on by another feature.
-     *
-     * When {@code forced} the switch is shown checked and non-interactive with
-     * {@code forcedSummary}, without writing to the stored value, so the user's own choice
-     * returns once the feature releases it.
-     * Not specific to any patch: any feature that overrides a setting can use it.
-     */
     public Preference forcedSwitchPreference(
             String title,
             String summary,
@@ -103,8 +95,6 @@ public class Helper {
         if (forced && preference instanceof SwitchPref) {
             SwitchPref switchPreference = (SwitchPref) preference;
             switchPreference.setPersistent(false);
-            // Attaching the preference initializes it from the default value, which would undo
-            // setChecked(true), so the default has to be true as well while it is forced.
             switchPreference.setDefaultValue(Boolean.TRUE);
             switchPreference.setChecked(true);
             switchPreference.setSwitchInteractionEnabled(false);
@@ -134,8 +124,6 @@ public class Helper {
 
     public Preference categoryPreference(String title, String summary, String setting) {
         ButtonPref preference = buttonPreference(title, summary, setting);
-        // Among rows with a chevron (>), only top-level xboyrex categories get a pressed highlight.
-        // Other chevron rows keep the chevron without a pressed highlight.
         preference.setPressedHighlightEnabled(true);
         return preference;
     }
@@ -171,7 +159,7 @@ public class Helper {
     }
 
     public Preference editTextNumPreference(String title, String summary, StringSetting setting) {
-        EditTextPref preference = (EditTextPref)editTextPreference(title,summary,setting);
+        EditTextPref preference = (EditTextPref) editTextPreference(title, summary, setting);
         preference.setNumericOnly(true);
         return preference;
     }
@@ -202,14 +190,15 @@ public class Helper {
     }
 
     public boolean setValue(Preference preference, Object newValue) {
+        if (preference == null) return false;
         String key = preference.getKey();
+        if (key == null || key.isEmpty()) return false;
         try {
             if (newValue != null) {
                 Object previousValue = getValue(preference);
-                String newValClass = newValue.getClass().getSimpleName();
                 boolean saved = false;
 
-                if (newValClass.equals("Boolean")) {
+                if (newValue instanceof Boolean) {
                     Boolean val = (Boolean) newValue;
                     if (Settings.AMOLED_THEME.key.equals(key)) {
                         return MaterialYouTheme.requestAmoledChange(context, val);
@@ -221,35 +210,46 @@ public class Helper {
                             || Settings.INBOX_LOCK_NOTIFICATIONS.key.equals(key)
                             || Settings.HIDDEN_CHATS.key.equals(key);
                     if (lockedKey && !val && InboxLock.mustConfirmToDisable() && context instanceof Activity) {
-                        // Reject for now; the switch turns off once the device lock confirms it, so cancelling can't bypass the lock.
                         InboxLock.confirm((Activity) context, () -> {
                             if (setValue(preference, newValue)) ((SwitchPreference) preference).setChecked(false);
                         });
                         return false;
                     }
                     saved = SharedPref.setBooleanPref(key, val);
-                } else if (newValClass.equals("String")) {
+                } else if (newValue instanceof String) {
                     String val = (String) newValue;
-                    if(key.contains("_")) {
+                    if (key.contains("_")) {
                         saved = SharedPref.setStringPref(key, val);
-                    }else{
+                    } else {
                         saved = FlagsSharedPref.setStringPref(key, val);
                     }
-                } else if (newValClass.equals("HashSet")) {
-                    saved = SharedPref.setSetPref(key, (Set) newValue);
+                } else if (newValue instanceof Set<?>) {
+                    @SuppressWarnings("unchecked")
+                    Set<String> setVal = (Set<String>) newValue;
+                    saved = SharedPref.setSetPref(key, setVal);
                 }
 
                 if (saved) {
-                    if (Settings.RESUME_REELS_AFTER_SCROLLING.key.equals(key)) {
+                    if (Settings.RESUME_REELS_AFTER_SCROLLING.key.equals(key)
+                            || Settings.DISABLE_REELS_LOOPING.key.equals(key)) {
                         ReelsPlayback.onSettingChanged();
                     }
+                    if (Settings.STORY_MENTION_ICON.key.equals(key)) {
+                        StoryMentionIcon.refresh();
+                    }
+                    try {
+                        HookFlags.load();
+                    } catch (Throwable ignored) {}
                     SettingsRestart.markChanged(key, previousValue, newValue);
+                } else {
+                    Utils.showToastShort("Could not save setting: " + key);
                 }
                 return saved;
             }
+            Utils.showToastShort("Invalid value for setting: " + key);
             return false;
         } catch (Exception ex) {
-            Utils.showToastShort(ex.toString());
+            Utils.showToastShort("Error saving setting: " + ex.getMessage());
             Logger.printException(() -> "Failed setting pref: ", ex);
             return false;
         }

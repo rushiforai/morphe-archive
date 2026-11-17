@@ -92,7 +92,7 @@ class HevalControlsHost internal constructor(internal val compatibility: Compati
 fun hevalControlsPatch(
     compatibility: Compatibility,
     default: Boolean = true,
-    dependencies: Set<Patch<*>> = emptySet(),
+    dependencies: Set<Patch> = emptySet(),
 ): HevalControlsHost {
     val host = HevalControlsHost(compatibility)
 
@@ -143,7 +143,7 @@ fun HevalControlsHost.featurePatch(
     name: String = feature.name,
     description: String = feature.description,
     default: Boolean = true,
-    dependencies: Set<Patch<*>> = emptySet(),
+    dependencies: Set<Patch> = emptySet(),
     block: BytecodePatchContext.() -> Unit,
 ): BytecodePatch {
     val host = this
@@ -220,7 +220,7 @@ internal fun Document.addHevalControlsComponents() {
     for (i in 0 until existing.length) {
         val name = (existing.item(i) as? Element)?.getAttribute("android:name") ?: continue
         if (name.startsWith("app.template.extension.hevalcontrols.")) {
-            throw PatchException("Patch settings is already in this APK ($name). Start from the stock APK.")
+            throw PatchException("This APK already contains Patch settings. Start from the original APK, not the installed patched app, and add this patch source only once in Manager.")
         }
     }
 

@@ -2,7 +2,7 @@ package app.template.patches.mailcom.misc.telemetry
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.mailcom.shared.forceGettersFalse
 import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
 import app.template.patches.shared.addInstructionsChecked

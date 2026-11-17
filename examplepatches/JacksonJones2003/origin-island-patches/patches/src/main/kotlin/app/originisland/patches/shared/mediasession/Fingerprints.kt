@@ -20,6 +20,16 @@ internal object MediaSessionSetMetadataFingerprint : Fingerprint(
     )
 )
 
+internal object MediaSessionSetExtrasFingerprint : Fingerprint(
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/media/session/MediaSession;",
+            name = "setExtras",
+            parameters = listOf("Landroid/os/Bundle;")
+        )
+    )
+)
+
 internal object MediaSessionSetPlaybackStateFingerprint : Fingerprint(
     filters = listOf(
         methodCall(

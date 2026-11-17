@@ -1,28 +1,22 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
-
 
 package app.morphe.extension.instagram.patches.download;
 
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
-import android.app.Dialog;
-import android.app.Notification;
-import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.IOException;
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.MediaMetadataRetriever;
+import android.os.SystemClock;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,54 +24,69 @@ import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.constants.UI;
-import app.morphe.extension.instagram.settings.Settings;
-import app.morphe.extension.instagram.utils.Pref;
-import app.morphe.extension.instagram.utils.MediaUrls;
-import app.morphe.extension.rex.sharedPreference.SharedPref;
-import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.entity.DashVideoData;
 import app.morphe.extension.instagram.entity.Entity;
+import app.morphe.extension.instagram.entity.ImageResolution;
 import app.morphe.extension.instagram.entity.MediaData;
-import app.morphe.extension.instagram.entity.UserData;
+import app.morphe.extension.instagram.entity.MediaInterface;
 import app.morphe.extension.instagram.entity.VideoData;
 import app.morphe.extension.instagram.entity.VideoResolution;
 import app.morphe.extension.instagram.entity.VideoVariant;
-import app.morphe.extension.instagram.entity.ImageResolution;
-import app.morphe.extension.instagram.entity.InstagramDialogBox;
-import app.morphe.extension.instagram.entity.AudioMediaInterface;
-import app.morphe.extension.instagram.entity.MediaInterface;
+import app.morphe.extension.instagram.patches.Links;
+import app.morphe.extension.instagram.patches.download.MediaActionRegistry.ActionId;
+import app.morphe.extension.instagram.patches.download.MediaActionRegistry.ActionSpec;
+import app.morphe.extension.instagram.patches.download.MediaContextResolver.MediaCapabilities;
+import app.morphe.extension.instagram.settings.ActivityHook;
+import app.morphe.extension.instagram.settings.Settings;
+import app.morphe.extension.instagram.settings.SettingsStatus;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexVectorIcons;
+import app.morphe.extension.instagram.utils.MediaUrls;
+import app.morphe.extension.instagram.utils.Pref;
+import app.morphe.extension.rex.RexUtils;
+import app.morphe.extension.rex.downloader.DownloadMetadata;
+import app.morphe.extension.rex.downloader.DownloadRequest;
+import app.morphe.extension.rex.downloader.MediaDownloader;
+import app.morphe.extension.rex.downloader.MediaType;
+import app.morphe.extension.rex.downloader.StorageUtils;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.instagram.settings.ActivityHook;
-import app.morphe.extension.instagram.patches.Links;
-import app.morphe.extension.rex.ObjectBrowser;
-import app.morphe.extension.rex.downloader.MediaDownloader;
-import app.morphe.extension.rex.downloader.DownloadMetadata;
-import app.morphe.extension.rex.downloader.DownloadRequest;
-import app.morphe.extension.rex.downloader.MediaType;
-import app.morphe.extension.rex.downloader.StorageUtils;
-import app.morphe.extension.rex.RexUtils;
 
-import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
-import app.morphe.extension.instagram.settings.preference.widgets.RexVectorIcons;
 import com.instagram.common.session.UserSession;
 
 public class DownloadUtils {
 
     private static MediaDownloader downloadAllDownloader;
+    private static volatile long lastActionTimestampMs;
+    private static final long ACTION_DEBOUNCE_MS = 450L;
+
+    public static synchronized boolean isActionDebounced() {
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastActionTimestampMs < ACTION_DEBOUNCE_MS) {
+            return true;
+        }
+        lastActionTimestampMs = now;
+        return false;
+    }
 
     private static synchronized MediaDownloader getDownloadAllDownloader(Context context) {
         if (downloadAllDownloader == null) {
@@ -86,12 +95,12 @@ public class DownloadUtils {
         return downloadAllDownloader;
     }
 
-    public static String getSubfolderName(String username){
+    public static String getSubfolderName(String username) {
         boolean SPLIT_BY_USERNAME = Pref.downloadUsernameFolder() && SettingsStatus.downloadMedia;
         return SPLIT_BY_USERNAME ? username : null;
     }
 
-    private static void buildVariantDialogBox(
+    public static void buildVariantDialogBox(
             Context context,
             MediaData mediaInfo,
             int position,
@@ -100,166 +109,213 @@ public class DownloadUtils {
             DialogInterface.OnDismissListener onDismiss
     ) throws Exception {
         MediaData currentMediaData = mediaInfo.getMediaAt(position);
-        String username = mediaInfo.getUserData().getUsername();
+        String username = "instagram";
+        try {
+            if (mediaInfo.getUserData() != null && mediaInfo.getUserData().getUsername() != null) {
+                username = mediaInfo.getUserData().getUsername();
+            }
+        } catch (Throwable ignored) {
+        }
+        final String safeUsername = username;
         List<MediaInterface> variantList;
-        String title = "";
-        if(mediaType.equals(MediaType.VIDEO)){
+        String title;
+        if (mediaType.equals(MediaType.VIDEO)) {
             title = str("rex_video_variants");
             List<VideoVariant> videos = new ArrayList<>();
             if (Pref.preferDashFormat()) videos.addAll(currentMediaData.getDashVideos());
             List<VideoData> progressive = currentMediaData.getVideoVariants();
             if (progressive != null) videos.addAll(progressive);
             variantList = new ArrayList<>(VideoResolution.group(videos));
-        }else{
+        } else {
             title = str("rex_image_variants");
             variantList = new ArrayList<>(ImageResolution.group(currentMediaData.getImageVariants()));
         }
 
-        InstagramDialogBox dialog = new InstagramDialogBox(context);
+        if (variantList.isEmpty()) {
+            Utils.showToastShort("No alternative quality variants found — downloading best quality");
+            downloadMedia(context, mediaInfo, position, filenameIndex, mediaType);
+            if (onDismiss != null) onDismiss.onDismiss(null);
+            return;
+        }
+
         ArrayList<String> options = new ArrayList<>();
+        ArrayList<String> iconIds = new ArrayList<>();
         for (MediaInterface item : variantList) {
             String label = item.getLabel();
             if (item instanceof VideoResolution) {
                 label = item.shortSide() > 0 ? label : str("rex_unknown");
             }
             options.add(label);
-        }
-        CharSequence[] items = options.toArray(new CharSequence[0]);
-
-        dialog.addDialogMenuItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface d, int which) {
-                MediaInterface data = variantList.get(which);
-
-                try {
-                    String subFolder = getSubfolderName(username);
-                    String fileName = username + "_" + currentMediaData.getVariantFileName(data);
-                    DownloadRequest request = buildMediaRequest(
-                            mediaInfo,
-                            currentMediaData,
-                            position,
-                            filenameIndex,
-                            data.getMediaType(),
-                            data.getUrl(),
-                            subFolder,
-                            fileName,
-                            data
-                    );
-                    enqueueDownload(context, request);
-                } catch (Exception e) {
-                    RexUtils.logger(e);
-                    Logger.printException(() -> "Error at buildVariantDialogBox", e);
-                    Utils.showToastShort(e.getMessage());
-                }
-
-            }
-        });
-
-        dialog.setOnDismissListener(onDismiss);
-        dialog.setTitle(title);
-        dialog.setNegativeButton(str("rex_close"), (d, which) -> d.dismiss());
-        dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(true);
-
-        Dialog dlg = dialog.getDialog();
-        dlg.show();
-
-    }
-
-    private static void downloadDialogBox(Context context, MediaData mediaInfo, int position, DownloadMediaGroup group,
-                                          DialogInterface.OnDismissListener onDismiss) throws Exception {
-        MediaData currentMediaData = mediaInfo.getMediaAt(position);
-        int filenameIndex = group.currentFilenameIndex(position);
-        Boolean isCurrentMediaVideo = currentMediaData.isVideo();
-        Boolean currentMediaHasAudio = currentMediaData.hasAudio();
-
-        InstagramDialogBox dialog = new InstagramDialogBox(context);
-
-        ArrayList<String> options = new ArrayList<>();
-        options.add(str("rex_download_current_media"));
-        options.add(str("rex_download_as_image"));
-        if (currentMediaHasAudio) options.add(str("rex_download_audio"));
-        options.add(str("rex_copy_media_link"));
-        options.add(str("rex_image_variants"));
-        if (isCurrentMediaVideo) {
-            options.add(str("rex_video_variants"));
-            options.add(str("rex_open_video_externally"));
-        } else {
-            options.add(str("rex_open_image_externally"));
+            iconIds.add(mediaType.equals(MediaType.VIDEO) ? "film" : "badge-hd");
         }
 
-        if (group.size() > 1) {
-            options.add(str("rex_select_media_download"));
-            options.add(str("rex_download_all"));
-        }
-
-        CharSequence[] items = options.toArray(new CharSequence[0]);
-        boolean[] childDialogShown = {false};
-
-        dialog.addDialogMenuItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface d, int which) {
-                try {
-                    // Doing like this because options are dynamic.
-                    String selectedOption = options.get(which);
-
-                    if (selectedOption.equals(str("rex_download_current_media"))) {
-                        downloadMedia(context, mediaInfo, position, filenameIndex, MediaType.ANY);
-
-                    } else if (selectedOption.equals(str("rex_download_as_image"))) {
-                        downloadMedia(context, mediaInfo, position, filenameIndex, MediaType.IMAGE);
-
-                    } else if (selectedOption.equals(str("rex_copy_media_link"))) {
-                        Utils.setClipboard(MediaUrls.forViewing(currentMediaData.getMediaLink()));
-                        Utils.showToastShort(str("rex_copied_media_link"));
-
-                    } else if (selectedOption.equals(str("rex_open_video_externally")) || selectedOption.equals(str("rex_open_image_externally"))) {
-                        ActivityHook.handleUrlIntent(isCurrentMediaVideo, currentMediaData.getMediaLink());
-
-                    } else if (selectedOption.equals(str("rex_select_media_download"))) {
-                        DownloadSelectionSheet.show(context, group, onDismiss);
-                        childDialogShown[0] = true;
-
-                    } else if (selectedOption.equals(str("rex_download_all"))) {
-                        downloadAllMedia(context, group);
-
-                    } else if (selectedOption.equals(str("rex_download_audio"))) {
-                        downloadMedia(context, mediaInfo, position, MediaType.AUDIO);
-
-                    } else if (selectedOption.equals(str("rex_video_variants"))) {
-                        buildVariantDialogBox(context, mediaInfo, position, filenameIndex, MediaType.VIDEO, onDismiss);
-                        childDialogShown[0] = true;
-
-                    } else if (selectedOption.equals(str("rex_image_variants"))) {
-                        buildVariantDialogBox(context, mediaInfo, position, filenameIndex, MediaType.IMAGE, onDismiss);
-                        childDialogShown[0] = true;
-
+        RexDialogs.showSemanticMenuDialog(
+                context,
+                mediaType.equals(MediaType.VIDEO) ? "film" : "badge-hd",
+                title,
+                options,
+                iconIds,
+                (d, which) -> {
+                    MediaInterface data = variantList.get(which);
+                    try {
+                        String subFolder = getSubfolderName(safeUsername);
+                        String fileName = safeUsername + "_" + currentMediaData.getVariantFileName(data);
+                        DownloadRequest request = buildMediaRequest(
+                                mediaInfo,
+                                currentMediaData,
+                                position,
+                                filenameIndex,
+                                data.getMediaType(),
+                                data.getUrl(),
+                                subFolder,
+                                fileName,
+                                data
+                        );
+                        enqueueDownload(context, request);
+                    } catch (Exception e) {
+                        RexUtils.logger(e);
+                        Logger.printException(() -> "Error at buildVariantDialogBox", e);
+                        Utils.showToastShort("Couldn't start variant download. Try again.");
                     }
-                } catch (Exception e) {
-                    RexUtils.logger(e);
-                    Logger.printException(() -> "Error at downloadDialogBox", e);
-                    Utils.showToastShort(e.getMessage());
-                }
-            }
-        });
-
-
-        // A replacement dialog owns the dismissal until the user finishes there.
-        dialog.setOnDismissListener(d -> {
-            if (!childDialogShown[0] && onDismiss != null) onDismiss.onDismiss(d);
-        });
-        dialog.setTitle(str("rex_download_options"));
-        dialog.setNegativeButton(str("rex_close"), (d, which) -> d.dismiss());
-        dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(true);
-
-        Dialog dlg = dialog.getDialog();
-        dlg.show();
+                },
+                onDismiss
+        );
     }
 
-
-    public static void downloadPost(Context context,  UserSession userSession, Object mediaObject, int position) {
+    private static void downloadDialogBox(
+            Context context,
+            MediaData mediaInfo,
+            int position,
+            DownloadMediaGroup group,
+            DialogInterface.OnDismissListener onDismiss
+    ) {
         try {
+            MediaCapabilities caps = MediaContextResolver.resolve(mediaInfo, group, position, group != null && group.isStoryGroup());
+            List<ActionSpec> specs = new ArrayList<>(MediaActionRegistry.buildActions(caps, true));
+
+            ArrayList<String> options = new ArrayList<>();
+            ArrayList<String> iconIds = new ArrayList<>();
+            for (ActionSpec spec : specs) {
+                options.add(spec.label);
+                iconIds.add(spec.iconId);
+            }
+            if (!caps.isStory) {
+                options.add("More Post & Caption Options...");
+                iconIds.add("hexagon");
+            }
+
+            final int filenameIndex = caps.group.currentFilenameIndex(caps.currentIndex);
+            final boolean[] childDialogShown = {false};
+
+            String headerTitle = caps.isCarousel && caps.totalCount > 1
+                    ? "Download Options (Slide " + caps.displayIndex + " of " + caps.totalCount + ")"
+                    : str("rex_download_options");
+
+            RexDialogs.showSemanticMenuDialog(
+                    context,
+                    "download",
+                    headerTitle,
+                    options,
+                    iconIds,
+                    (d, which) -> {
+                        try {
+                            if (which >= specs.size()) {
+                                childDialogShown[0] = true;
+                                RexDialogs.showPostOptionsSheet(
+                                        context,
+                                        caps.rootMedia.getUserSession(),
+                                        caps.rootMedia.getObject(),
+                                        caps.currentIndex
+                                );
+                                return;
+                            }
+                            ActionSpec chosen = specs.get(which);
+                            executeMediaAction(
+                                    context,
+                                    caps,
+                                    chosen.id,
+                                    filenameIndex,
+                                    onDismiss,
+                                    childDialogShown
+                            );
+                        } catch (Exception e) {
+                            RexUtils.logger(e);
+                            Logger.printException(() -> "Error at downloadDialogBox", e);
+                            Utils.showToastShort("Couldn't complete media action. Try again.");
+                        }
+                    },
+                    d -> {
+                        if (!childDialogShown[0] && onDismiss != null) onDismiss.onDismiss(d);
+                    }
+            );
+        } catch (Exception e) {
+            RexUtils.logger(e);
+            Logger.printException(() -> "Error building downloadDialogBox", e);
+            Utils.showToastShort("Couldn't load media options. Try again.");
+            if (onDismiss != null) onDismiss.onDismiss(null);
+        }
+    }
+
+    public static void executeMediaAction(
+            Context context,
+            MediaCapabilities caps,
+            ActionId actionId,
+            int filenameIndex,
+            DialogInterface.OnDismissListener onDismiss,
+            boolean[] childDialogShown
+    ) throws Exception {
+        switch (actionId) {
+            case DOWNLOAD_CURRENT:
+                downloadMedia(context, caps.rootMedia, caps.currentIndex, filenameIndex, MediaType.ANY);
+                break;
+            case DOWNLOAD_ALL_CAROUSEL:
+                downloadAllMedia(context, caps.group);
+                break;
+            case DOWNLOAD_FIRST_10:
+                downloadFirstMedia(context, caps.group, 10);
+                break;
+            case SELECT_SLIDES:
+                DownloadSelectionSheet.show(context, caps.group, onDismiss);
+                if (childDialogShown != null && childDialogShown.length > 0) childDialogShown[0] = true;
+                break;
+            case IMAGE_VARIANTS:
+                buildVariantDialogBox(context, caps.rootMedia, caps.currentIndex, filenameIndex, MediaType.IMAGE, onDismiss);
+                if (childDialogShown != null && childDialogShown.length > 0) childDialogShown[0] = true;
+                break;
+            case VIDEO_VARIANTS:
+                buildVariantDialogBox(context, caps.rootMedia, caps.currentIndex, filenameIndex, MediaType.VIDEO, onDismiss);
+                if (childDialogShown != null && childDialogShown.length > 0) childDialogShown[0] = true;
+                break;
+            case DOWNLOAD_AUDIO:
+                downloadMedia(context, caps.rootMedia, caps.currentIndex, MediaType.AUDIO);
+                break;
+            case DOWNLOAD_COVER:
+                downloadMedia(context, caps.rootMedia, caps.currentIndex, filenameIndex, MediaType.IMAGE);
+                break;
+            case COPY_CLEAN_LINK: {
+                String link = caps.postLink;
+                if (link == null || link.isEmpty()) {
+                    link = caps.currentMedia.getMediaLink();
+                }
+                if (link != null && !link.isEmpty()) {
+                    Utils.setClipboard(MediaUrls.forViewing(link));
+                    Utils.showToastShort(str("rex_copied_media_link"));
+                } else {
+                    Utils.showToastShort(str("rex_media_link_unavailable"));
+                }
+                break;
+            }
+            case OPEN_EXTERNAL_APP:
+                ActivityHook.handleUrlIntent(caps.currentItemIsVideo, caps.currentMedia.getMediaLink());
+                break;
+            default:
+                break;
+        }
+    }
+
+    public static void downloadPost(Context context, UserSession userSession, Object mediaObject, int position) {
+        try {
+            if (isActionDebounced()) return;
             position = position < 1 ? 0 : position;
             MediaData mediaInfo = new MediaData(mediaObject, userSession);
             if (directDownloadEnabled()) {
@@ -267,10 +323,10 @@ public class DownloadUtils {
             } else {
                 downloadDialogBox(context, mediaInfo, position, DownloadMediaGroup.carousel(mediaInfo), null);
             }
-
         } catch (Exception e) {
             RexUtils.logger(e);
             Logger.printException(() -> "Error at downloadPost", e);
+            Utils.showToastShort("Couldn't load media options. Try again.");
         }
     }
 
@@ -296,7 +352,9 @@ public class DownloadUtils {
     public static void showDownloadOptions(Context context, UserSession userSession, Object mediaObject, int position,
                                            DialogInterface.OnDismissListener onDismiss) {
         try {
-            MediaData media = new MediaData(mediaObject, userSession);
+            MediaData media = mediaObject instanceof MediaData
+                    ? (MediaData) mediaObject
+                    : new MediaData(mediaObject, userSession);
             downloadDialogBox(context, media, Math.max(0, position), DownloadMediaGroup.carousel(media), onDismiss);
         } catch (Exception e) {
             Logger.printException(() -> "Could not show download options", e);
@@ -317,8 +375,15 @@ public class DownloadUtils {
         }
     }
 
-    private static void downloadAllMedia(Context context, DownloadMediaGroup group) throws Exception {
+    public static void downloadAllMedia(Context context, DownloadMediaGroup group) throws Exception {
         int total = group.size();
+        List<Integer> indexes = new ArrayList<>(total);
+        for (int index = 0; index < total; index++) indexes.add(index);
+        downloadSelectedMedia(context, group, indexes);
+    }
+
+    public static void downloadFirstMedia(Context context, DownloadMediaGroup group, int maxItems) throws Exception {
+        int total = Math.min(group.size(), Math.max(1, maxItems));
         List<Integer> indexes = new ArrayList<>(total);
         for (int index = 0; index < total; index++) indexes.add(index);
         downloadSelectedMedia(context, group, indexes);
@@ -332,8 +397,8 @@ public class DownloadUtils {
         }
     }
 
-    static void downloadSelectedMedia(Context context, DownloadMediaGroup group, List<Integer> indexes) throws Exception {
-        if (indexes.isEmpty()) return;
+    public static void downloadSelectedMedia(Context context, DownloadMediaGroup group, List<Integer> indexes) throws Exception {
+        if (indexes == null || indexes.isEmpty()) return;
         if (!Utils.isNetworkConnected()) {
             Utils.showToastShort(str("rex_no_internet"));
             return;
@@ -343,11 +408,26 @@ public class DownloadUtils {
         String subFolder = getSubfolderName(username);
         List<DownloadRequest> requests = new ArrayList<>(indexes.size());
         for (int index : new TreeSet<>(indexes)) {
-            if (index < 0 || index >= total) throw new IllegalArgumentException("Invalid media index");
+            if (index < 0 || index >= total) continue;
             MediaData child = group.itemAt(index);
             MediaData root = group.carouselParent == null ? child : group.carouselParent;
-            requests.add(buildMediaRequest(root, child, group.carouselParent == null ? 0 : index, index, MediaType.ANY, child.getMediaLink(),
-                    subFolder, username + "_" + child.getDownloadFilename(MediaType.ANY), null));
+            String link = child.getMediaLink();
+            if (link == null || link.isEmpty()) continue;
+            requests.add(buildMediaRequest(
+                    root,
+                    child,
+                    group.carouselParent == null ? 0 : index,
+                    index,
+                    MediaType.ANY,
+                    link,
+                    subFolder,
+                    username + "_" + child.getDownloadFilename(MediaType.ANY),
+                    null
+            ));
+        }
+        if (requests.isEmpty()) {
+            Utils.showToastShort(str("rex_download_failed_media"));
+            return;
         }
         getDownloadAllDownloader(context).enqueueBatch(requests);
     }
@@ -357,22 +437,36 @@ public class DownloadUtils {
         downloadMedia(context, mediaInfo, position, position, mediaType);
     }
 
-    private static void downloadMedia(Context context, MediaData mediaInfo, int position, int filenameIndex,
-                                      MediaType mediaType) throws Exception {
-        if(!Utils.isNetworkConnected()){
+    public static void downloadMedia(Context context, MediaData mediaInfo, int position, int filenameIndex,
+                                     MediaType mediaType) throws Exception {
+        if (!Utils.isNetworkConnected()) {
             Utils.showToastShort(str("rex_no_internet"));
             return;
         }
         MediaDownloader downloader = position == -1
                 ? getDownloadAllDownloader(context)
                 : new MediaDownloader(context);
-        String username = mediaInfo.getUserData().getUsername();
+        String username = "instagram";
+        try {
+            if (mediaInfo.getUserData() != null && mediaInfo.getUserData().getUsername() != null) {
+                username = mediaInfo.getUserData().getUsername();
+            }
+        } catch (Throwable ignored) {
+        }
         String subFolder = getSubfolderName(username);
 
         if (mediaType.equals(MediaType.AUDIO)) {
-            AudioMediaInterface audioMedia = mediaInfo.getMediaAt(position).getAudioMedia();
-            String audioUrl = audioMedia.getAudioUrl();
-            String fileName = audioMedia.getDownloadName() + ".mp3";
+            MediaData currentMedia = mediaInfo.getMediaAt(Math.max(0, position));
+            String audioUrl = currentMedia.resolveAudioDownloadUrl();
+            String fileName = currentMedia.resolveAudioDownloadFileName(username);
+            if ((audioUrl == null || audioUrl.trim().isEmpty()) && currentMedia != mediaInfo) {
+                audioUrl = mediaInfo.resolveAudioDownloadUrl();
+                fileName = mediaInfo.resolveAudioDownloadFileName(username);
+            }
+            if (audioUrl == null || audioUrl.trim().isEmpty()) {
+                Utils.showToastShort("No audio track available for this post");
+                return;
+            }
             downloader.enqueue(new DownloadRequest(audioUrl, Constants.DEFAULT_AUDIO_FOLDER, fileName));
 
         } else if (position != -1) {
@@ -382,6 +476,10 @@ public class DownloadUtils {
                 mediaUrl = mediaData.getImageLink();
             } else {
                 mediaUrl = mediaData.getMediaLink();
+            }
+            if (mediaUrl == null || mediaUrl.trim().isEmpty()) {
+                Utils.showToastShort("Media stream unavailable. Try again.");
+                return;
             }
             String fileName = username + "_" + mediaData.getDownloadFilename(mediaType);
             DownloadRequest request = buildMediaRequest(
@@ -447,7 +545,6 @@ public class DownloadUtils {
         } else {
             Utils.showToastShort("There is nothing to download");
         }
-
     }
 
     private static MediaDownloader firstFrameDownloader(Context context, MediaInterface video, long coverPixels) {
@@ -508,12 +605,6 @@ public class DownloadUtils {
         };
     }
 
-    /**
-     * The request for one media, as {@code variant} when one was chosen. A video with none chosen
-     * downloads as the sharpest DASH rendition, with its audio merged in, when that is sharper
-     * than the progressive file. Automatic downloads retry the same resolution before the
-     * existing progressive fallback; a chosen resolution only retries its own renditions.
-     */
     private static DownloadRequest buildMediaRequest(
             MediaData rootMediaData,
             MediaData childMediaData,
@@ -585,7 +676,6 @@ public class DownloadUtils {
                     if (url == null || url.trim().isEmpty()) continue;
                     request.fallbackSources.add(new DownloadRequest.Source(url, candidate.getAudioUrl()));
                 } catch (Exception | LinkageError ignored) {
-                    // A failed optional candidate must not prevent the selected download.
                 }
             }
         } else if (variant instanceof ImageResolution) {
@@ -609,12 +699,10 @@ public class DownloadUtils {
         if (!isVideo && variant == null && (mediaType == MediaType.ANY || mediaType == MediaType.IMAGE)) {
             try {
                 MediaInterface image = childMediaData.getBestImage();
-                // Only use dimensions belonging to the URL already selected by the existing path.
                 if (image != null && request.url != null && request.url.equals(image.getUrl())) {
                     addImageFallbacks(request, childMediaData, image.getWidth(), image.getHeight());
                 }
             } catch (Exception | LinkageError ignored) {
-                // Optional alternatives must not prevent the original image from being saved.
             }
             addFinalImageFallbacks(request, childMediaData, originalImage);
         }
@@ -646,7 +734,7 @@ public class DownloadUtils {
     }
 
     private static void addFinalImageFallbacks(DownloadRequest request, MediaData mediaData,
-                                              MediaInterface image) {
+                                               MediaInterface image) {
         if (image == null || request.fallbackUrl == null) return;
         try {
             if (!request.fallbackUrl.equals(image.getUrl())) return;
@@ -658,12 +746,10 @@ public class DownloadUtils {
             for (DownloadRequest.Source source : request.fallbackSources) seen.add(source.url);
             fallback.fallbackSources.removeIf(source -> !seen.add(source.url));
             if (fallback.fallbackSources.isEmpty()) return;
-            // Sources run before fallbackUrl, so move the original cover ahead of its new peers.
             request.fallbackSources.add(new DownloadRequest.Source(request.fallbackUrl, null));
             request.fallbackSources.addAll(fallback.fallbackSources);
             request.fallbackUrl = null;
         } catch (Exception | LinkageError ignored) {
-            // Keep the legacy fallback if its dimensions or optional peers cannot be read.
         }
     }
 
@@ -683,7 +769,6 @@ public class DownloadUtils {
                 break;
             }
         } catch (Exception | LinkageError ignored) {
-            // Keep the initial image and legacy fallback when alternatives cannot be read.
         }
     }
 
@@ -707,14 +792,12 @@ public class DownloadUtils {
                         if (primary.equals(Arrays.asList(url, audio))) containsPrimary = true;
                         sources.add(new DownloadRequest.Source(url, audio));
                     } catch (Exception | LinkageError ignored) {
-                        // A failed optional candidate must not prevent the original download.
                     }
                 }
                 if (!containsPrimary) continue;
 
                 Set<List<String>> seen = new HashSet<>();
                 seen.add(primary);
-                // Keep the legacy complete-file fallback last, even if it appears in this group.
                 if (request.fallbackUrl != null) seen.add(Arrays.asList(request.fallbackUrl, null));
                 for (DownloadRequest.Source source : sources) {
                     if (seen.add(Arrays.asList(source.url, source.audioUrl))) request.fallbackSources.add(source);
@@ -726,7 +809,6 @@ public class DownloadUtils {
         }
     }
 
-
     public static void downloadMediaUrl(Context context, String mediaUrl, String subFolder, String fileName) throws Exception {
         enqueueDownload(context, new DownloadRequest(mediaUrl, subFolder, fileName));
     }
@@ -735,7 +817,6 @@ public class DownloadUtils {
     private static final Object FEED_HEXAGON_BUTTON_TAG = new Object();
     private static final String MEDIA_CLASS_NAME = "com.instagram.feed.media.Media";
 
-    /** Shared by the injected Litho component and the view holder hook. */
     public static boolean isFeedDownloadButtonEnabled() {
         return Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ENABLE_DOWNLOAD))
                 && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.FEED_DOWNLOAD_BUTTON));
@@ -745,11 +826,9 @@ public class DownloadUtils {
         return str("rex_download_current_media");
     }
 
-    // Placeholders the patch rewrites inside `currentMediaIndex` with the live-index field names.
     static final String FEED_VIEW_STATE_FIELD = "feedViewStateField";
     static final String FEED_CURRENT_MEDIA_FIELD = "feedCurrentMediaField";
 
-    /** Adds a download button beside the save button; called from the patched row binder on every bind. */
     public static void addFeedDownloadButton(
             View rootView, Object media, UserSession userSession, Object mediaState) {
         try {
@@ -764,7 +843,6 @@ public class DownloadUtils {
             View saveButton = saveButtonId == 0 ? null : rootView.findViewById(saveButtonId);
             if (saveButton == null || !(saveButton.getParent() instanceof ViewGroup)) return;
 
-            // Litho hosts reject added views; their button is built into the component instead.
             ViewGroup buttonGroup = (ViewGroup) saveButton.getParent();
             if (buttonGroup.getClass().getName().startsWith("com.facebook.litho.")) return;
 
@@ -795,7 +873,6 @@ public class DownloadUtils {
         }
     }
 
-    /** Reads the live carousel index at click time, so the download follows a swipe. */
     static int currentMediaIndex(Object mediaState) {
         if (mediaState == null) return 0;
         try {
@@ -809,7 +886,6 @@ public class DownloadUtils {
         return 0;
     }
 
-    /** Unwraps a feed row state to the single `Media` it holds; anything else is returned as is. */
     static Object extractMedia(Object source) {
         if (source == null || MEDIA_CLASS_NAME.equals(source.getClass().getName())) return source;
         try {
@@ -825,7 +901,6 @@ public class DownloadUtils {
         return source;
     }
 
-    /** Drops the button on rebind so turning the toggle off takes effect without recreating the row. */
     private static void removeFeedDownloadButton(View rootView) {
         View existing = rootView.findViewWithTag(FEED_DOWNLOAD_BUTTON_TAG);
         if (existing != null && existing.getParent() instanceof ViewGroup) {
@@ -868,7 +943,6 @@ public class DownloadUtils {
         return button;
     }
 
-    /** Copies the save button's slot so the download icon matches its size and spacing. */
     private static ViewGroup.LayoutParams cloneLayoutParams(View saveButton) {
         ViewGroup.LayoutParams saveParams = saveButton.getLayoutParams();
         if (saveParams instanceof LinearLayout.LayoutParams) {
@@ -884,7 +958,6 @@ public class DownloadUtils {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
-    /** Uses the row context: the application context cannot resolve activity scoped theme attributes. */
     private static void applyFeedDownloadIcon(ImageView button, Context context) {
         int drawableId = ResourceUtils.getIdentifier(context, ResourceType.DRAWABLE, UI.DRAWABLE_DOWNLOAD_ICON);
         if (drawableId == 0) return;
@@ -916,7 +989,6 @@ public class DownloadUtils {
                 button = createStoryDownloadButton(row);
                 if (button == null) return;
             }
-            // Reset before the native binder applies any story-specific tint.
             button.getDrawable().setTint(Color.WHITE);
             button.setOnClickListener(v -> downloadStory(v, userSession, media, reel, false));
             button.setOnLongClickListener(v -> {
@@ -951,6 +1023,7 @@ public class DownloadUtils {
 
     private static void downloadStory(View anchor, UserSession userSession, Object media, Object reel, boolean longPress) {
         try {
+            if (isActionDebounced()) return;
             Activity activity = storyActivity(anchor);
             MediaData current = new MediaData(media, userSession);
             if (!longPress && directDownloadEnabled()) {
@@ -973,7 +1046,6 @@ public class DownloadUtils {
         }
     }
 
-    // The toolbar uses an application context wrapper; its ancestors carry the hosting Activity.
     private static Activity storyActivity(View view) {
         for (View current = view; current != null; ) {
             Context context = current.getContext();
@@ -990,7 +1062,7 @@ public class DownloadUtils {
     }
 
     private static void enqueueDownload(Context context, DownloadRequest request) {
-        if(!Utils.isNetworkConnected()){
+        if (!Utils.isNetworkConnected()) {
             Utils.showToastShort(str("rex_no_internet"));
             return;
         }
@@ -998,21 +1070,21 @@ public class DownloadUtils {
         downloader.enqueue(request);
     }
 
-    public static void externalDownloader(Object mediaObject, int currentMediaIndex){
+    public static void externalDownloader(Object mediaObject, int currentMediaIndex) {
         try {
             String packageName = Pref.externalDownloaderPackageName();
             packageName = packageName == null ? "" : packageName.trim();
-            if(packageName.isEmpty()){
+            if (packageName.isEmpty()) {
                 RexUtils.toast(str("rex_external_downloader_package_name_not_set"));
                 return;
             }
-            if(!RexUtils.isAppInstalledAndEnabled(packageName)){
+            if (!RexUtils.isAppInstalledAndEnabled(packageName)) {
                 RexUtils.toast(str("rex_external_downloader_package_name_not_found"));
                 return;
             }
             String link = Links.generatePostLink(mediaObject, currentMediaIndex);
             RexUtils.shareTextToPackageName(link, packageName);
-        } catch (Exception e){
+        } catch (Exception e) {
             RexUtils.logger(e);
             Logger.printException(() -> "Error at externalDownloader", e);
         }

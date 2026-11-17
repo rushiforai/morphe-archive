@@ -23,9 +23,9 @@ final class QuickSetups {
     static final List<String> QUIET = Collections.unmodifiableList(Arrays.asList(
         "people", "growth", "inbox_promotions", "chat_promotions", "ad_context_banner", "suggested_replies",
         "business_suggestions", "event_prompts", "reels_badge"));
-    /** Less sent to Meta: usage statistics, the advertising ID, ad and inbox logging, and MQTT health reports. */
+    /** Less sent to Meta: usage statistics, the advertising ID, ad and inbox logging, attention timings and MQTT health reports. */
     static final List<String> PRIVACY = Collections.unmodifiableList(Arrays.asList(
-        "analytics_uploads", "attribution_uploads", "ad_events", "mqtt_telemetry"));
+        "analytics_uploads", "attribution_uploads", "ad_events", "dwell_tracking", "mqtt_telemetry"));
     /** Messenger as an iPhone shows it: a "Chats" title in place of the wordmark, the search bar kept, menus over a blur. */
     static final List<String> IPHONE = Collections.unmodifiableList(Arrays.asList("home_header", "inbox_search_bar", MenuBlur.KEY));
     /** The choices in the order the settings show them. Each has a SettingsText title "quick_" + name and its "_help". */

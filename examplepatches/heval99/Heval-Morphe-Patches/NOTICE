@@ -30,3 +30,16 @@ licensed under the GNU General Public License v3.0, at commit
 5ae3ddf0acb1c56bf2330e5cfcc172df47dfb98f. It was modified for Heval's Morphe
 Patches on 2026-10-14. Each ported or adapted file starts with a header naming the
 original file, what was taken from it and how it was changed.
+
+Samsung Keyboard (patches/src/main/kotlin/app/template/patches/samsungkeyboard,
+patches/src/main/kotlin/app/template/patches/shared/samsung,
+patches/src/main/kotlin/app/template/patches/shared/NewerJavaCalls.kt and
+extensions/samsungkeyboard) contains code based on bearinmindcat/morphe-patches
+(https://github.com/bearinmindcat/morphe-patches), licensed under the GNU General Public
+License v3.0, at commit 5f79152d69a62c26178525282aaf0dbb96820f4e (v2.9.6): the Samsung Keyboard
+patches (patches/src/main/kotlin/org/ungoogled/patches/samsungkeyboard), the shared Samsung
+helpers (.../org/ungoogled/patches/samsung and .../shared/NewerJavaCalls.kt) and the
+extension (extensions/samsungkeyboard). It was modified for Heval's Morphe Patches on
+2026-11-13 (packages and extension prefix renamed, defaults changed, call redirectors skip
+every Heval extension class, checked instruction helpers, the app-name patch decodes
+strings.xml). Each ported file starts with a header naming its upstream path and what was changed.

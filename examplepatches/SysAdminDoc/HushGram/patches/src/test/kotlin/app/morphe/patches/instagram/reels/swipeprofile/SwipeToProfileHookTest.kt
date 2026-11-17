@@ -17,7 +17,6 @@ import app.morphe.patches.instagram.media.taptoplay.TOUCH as TAP_CLOCK
 import app.morphe.patches.instagram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
-import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -36,6 +35,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
@@ -273,7 +273,7 @@ class SwipeToProfileHookTest {
 
     @Test
     fun aBuildWithoutTheCheckFailsThePatch() {
-        refuses("found 0") { PatchContexts.of(listOf(check(marker = false))).findSwipeGate() }
+        refuses("found 0") { PatchContexts.of(listOf(check(loadsName = false))).findSwipeGate() }
     }
 
     @Test
@@ -281,9 +281,10 @@ class SwipeToProfileHookTest {
         refuses("found 2") { PatchContexts.of(listOf(check(), check("Lfixture/OtherCheck;"))).findSwipeGate() }
     }
 
+    /** A static method loading the name, as 456's class initializer is, isn't taken for the check. */
     @Test
-    fun aCheckThatIsNotAnInstanceMethodWithoutParametersFailsThePatch() {
-        refuses("isn't an instance method") { PatchContexts.of(listOf(check(static = true))).findSwipeGate() }
+    fun aStaticMethodLoadingTheNameIsNotTheCheck() {
+        refuses("found 0") { PatchContexts.of(listOf(check(static = true))).findSwipeGate() }
     }
 
     @Test
@@ -389,13 +390,7 @@ class SwipeToProfileHookTest {
     }
 
     private fun builds(bundle: File, label: String) {
-        val found = mutableListOf<ClassDef>()
-        FixtureDex.forEach(bundle) { dex ->
-            if (dex.stringSection.none { it.endsWith("_$SWIPE_ALLOWED") }) return@forEach
-            for (classDef in dex.classes) {
-                if (classDef.methods.any { SWIPE_ALLOWED in it.markers() }) found += ImmutableClassDef.of(classDef)
-            }
-        }
+        val found = FixtureDex.classesLoading(bundle, REELS_MEGAPHONE)
         val screens = FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY, PROFILE_FRAGMENT)).values
         val context = PatchContexts.of(
             FixtureDex.withStringPools(bundle, found + fixturePanelClasses(bundle) + screens) +
@@ -411,7 +406,9 @@ class SwipeToProfileHookTest {
         swipeToProfilePatch.execute(context)
         assertCloseHooked("$label $FRAGMENT_ACTIVITY->dispatchTouchEvent", context, close)
 
-        val method = context.mutableClassDefBy(gate.type).methods.single { it.name == gate.name && SWIPE_ALLOWED in it.markers() }
+        val method = context.mutableClassDefBy(gate.type).methods.single {
+            it.name == gate.name && it.parameterTypes.isEmpty() && it.returnType == "Z"
+        }
         assertHooked("$label ${gate.type}->${gate.name}", method, gate)
         assertPanelHooked("$label ${panel.tabChange.definingClass}->${panel.tabChange.name}", context, panel, returns)
         assertSetUpHooked("$label ${setUp.method.definingClass}->${setUp.method.name}", context, panel, setUp)
@@ -437,8 +434,14 @@ class SwipeToProfileHookTest {
             method.implementation?.instructions?.any { it.called()?.toString() in asked } == true
         }
         val hosts = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet() - SWIPE_CONTAINER).values
+        // 455's gate caller is a panel update taking nothing, so the tab it compares with comes in
+        // through the static it loads (03am's on 386113969), not through a parameter.
+        val loaded = callers.flatMap { method ->
+            method.implementation!!.instructions.filter { it.opcode == Opcode.SGET_OBJECT }
+                .mapNotNull { ((it as ReferenceInstruction).reference as? FieldReference)?.definingClass }
+        }
         val kept = (hosts + container).flatMap { holder -> holder.fields.map { it.type } } +
-            callers.flatMap { method -> method.parameterTypes.map(CharSequence::toString) }
+            callers.flatMap { method -> method.parameterTypes.map(CharSequence::toString) } + loaded
         val have = hosts.map { it.type }.toSet() + SWIPE_CONTAINER
         val wanted = kept.filter { it.startsWith("L") }.toSet() + walks + VIEW_PAGER
         return listOf(container) + hosts + FixtureDex.classes(bundle, wanted - have).values
@@ -980,13 +983,13 @@ class SwipeToProfileHookTest {
         }
 
         /**
-         * Shaped like 452's check: its marker loaded first, then [gates] calls taking the session and
+         * Shaped like 456's check: the megaphone name loaded first, then [gates] calls taking the session and
          * answering a boolean, each followed by a move-result into v[register], an if-nez on the last
          * answer over a `return false` to a `return true`. [jumpIn] adds a branch that lands on the if-nez.
          */
         fun check(
             type: String = CHECK,
-            marker: Boolean = true,
+            loadsName: Boolean = true,
             gates: Int = 1,
             register: Int = 0,
             branch: Opcode = Opcode.IF_NEZ,
@@ -994,10 +997,8 @@ class SwipeToProfileHookTest {
             jumpIn: Boolean = false,
         ): ClassDef {
             val code = MutableMethodImplementation(24)
-            if (marker) {
-                code.addInstruction(
-                    BuilderInstruction21c(Opcode.CONST_STRING, 3, ImmutableStringReference("android_purge_26_q3_$SWIPE_ALLOWED")),
-                )
+            if (loadsName) {
+                code.addInstruction(BuilderInstruction21c(Opcode.CONST_STRING, 3, ImmutableStringReference(REELS_MEGAPHONE)))
             }
             val jumpAt = code.instructions.size
             if (jumpIn) code.addInstruction(BuilderInstruction10x(Opcode.NOP))

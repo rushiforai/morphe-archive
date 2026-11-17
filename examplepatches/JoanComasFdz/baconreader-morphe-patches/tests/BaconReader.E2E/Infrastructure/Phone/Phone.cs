@@ -30,6 +30,7 @@ public sealed class Phone
         Chrome = new Chrome.ChromeApp(driver);
         MorpheManager = new MorpheManager.MorpheManagerApp(driver);
         FilePicker = new FilePicker(driver);
+        Toast = new Toast(driver);
         InstallUnknownApps = new InstallUnknownApps(driver);
         PackageInstaller = new PackageInstaller(driver);
         NotificationPermission = new NotificationPermission(driver);
@@ -43,6 +44,9 @@ public sealed class Phone
 
     /// <summary>Android's file picker, which an app opens to be given a file.</summary>
     public FilePicker FilePicker { get; }
+
+    /// <summary>A toast: the short message Android shows at the bottom of the screen.</summary>
+    public Toast Toast { get; }
 
     /// <summary>Android's permission for an app to install apps: "Permission required", then "Install unknown apps".</summary>
     public InstallUnknownApps InstallUnknownApps { get; }

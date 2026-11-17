@@ -120,14 +120,25 @@ class BleacherReportSmokeTest {
         val insns = method.instructions()
         val ctor = if (withMessage) 2 else 1
         val failure = insns.getOrNull(ctor + 1)?.methodRef()
+        val takesThrowable = failure != null && failure.definingClass.startsWith("Lkotlin/") &&
+            failure.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;")
+        // Either the Result.failure(Throwable) static (11.12.0.33) or the inlined Result.Failure
+        // constructor (11.14.0.35): new-instance Failure, invoke-direct <init>(Throwable), return.
+        val staticForm = insns.getOrNull(ctor + 1)?.opcode == Opcode.INVOKE_STATIC && takesThrowable &&
+            insns.getOrNull(ctor + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+            insns.getOrNull(ctor + 3)?.opcode == Opcode.RETURN_OBJECT
+        val inlinedForm = insns.getOrNull(ctor + 1)?.opcode == Opcode.NEW_INSTANCE &&
+            insns.getOrNull(ctor + 2)?.opcode == Opcode.INVOKE_DIRECT &&
+            insns[ctor + 2].methodRef()?.let {
+                it.definingClass.startsWith("Lkotlin/") && it.name == "<init>" &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;")
+            } == true &&
+            insns.getOrNull(ctor + 3)?.opcode == Opcode.RETURN_OBJECT
         assertTrue(
             insns.getOrNull(0)?.opcode == Opcode.NEW_INSTANCE && insns[0].typeRef() == exception &&
                 insns.getOrNull(ctor)?.opcode == Opcode.INVOKE_DIRECT &&
                 insns[ctor].methodRef()?.let { it.definingClass == exception && it.name == "<init>" } == true &&
-                insns[ctor + 1].opcode == Opcode.INVOKE_STATIC && failure != null &&
-                failure.definingClass.startsWith("Lkotlin/") && failure.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Throwable;") &&
-                insns.getOrNull(ctor + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
-                insns.getOrNull(ctor + 3)?.opcode == Opcode.RETURN_OBJECT,
+                (staticForm || inlinedForm),
             "${method.label()} does not return Result.failure($exception) at entry; found ${insns.take(ctor + 4).map { it.opcode }}",
         )
         if (withMessage) assertEquals("Ad Unit is missing", insns[1].stringRef(), "${method.label()} failure message")
@@ -146,16 +157,16 @@ class BleacherReportSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.13.0.39",
+            version = "11.14.0.35",
             patchNames = setOf("Disable ads", "Disable telemetry", "Hide betting content"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val byType = classes.associateBy { it.type }
 
-        // Launch tasks: the LaunchTask base (by its cast message), config.taskId (read by its
+        // Launch tasks: the LaunchTask base (abstract, from LaunchTask.kt), config.taskId (read by its
         // equals) and ExecutionResult.Success (by toString), found the way the patch finds them.
-        val launchEquals = classes.single("LaunchTask.equals") { _, m ->
-            m.name == "equals" && m.strings().any { it.endsWith(".launchtaskmanager.LaunchTask") }
+        val launchEquals = classes.single("LaunchTask.equals") { c, m ->
+            m.name == "equals" && c.sourceFile == "LaunchTask.kt" && AccessFlags.ABSTRACT.isSet(c.accessFlags)
         }
         val launchTask = launchEquals.definingClass
         val reads = launchEquals.instructions().filter { it.opcode == Opcode.IGET_OBJECT }.mapNotNull { it.fieldRef() }
@@ -296,15 +307,17 @@ class BleacherReportSmokeTest {
         // then `return null`, before the stock code.
         val stats = classes.byToString("Stats(type=")
         val typeField = stats.fields.single { !AccessFlags.STATIC.isSet(it.accessFlags) }
-        val mapper = classes.single("ChannelItemsMapper Stats mapper") { c, m ->
-            c.sourceFile == "ChannelItemsMapper.kt" && m.isStatic() && m.parameterTypes.size == 2 &&
-                m.parameterTypes[0].toString() == stats.type
+        val mapper = classes.single("Gamecast item mapper Stats method") { c, m ->
+            c.sourceFile == "GamecastItemMapperImpl.kt" && m.implementation != null && m.parameterTypes.size == 2 &&
+                m.parameterTypes.any { it.toString() == stats.type }
         }
+        // The Stats parameter's register: 11.14.0.35 has an instance a(model, Stats), so p2.
+        val statsRegister = mapper.p(mapper.parameterTypes.indexOfFirst { it.toString() == stats.type } + if (mapper.isStatic()) 0 else 1)
         val mapperInsns = mapper.instructions()
         val checks = BETTING_STATS_ITEMS.size * 4
         assertTrue(
-            mapperInsns[0].opcode == Opcode.IF_EQZ && mapperInsns[0].register() == mapper.p(0) &&
-                mapperInsns[1].opcode == Opcode.MOVE_OBJECT_FROM16 &&
+            mapperInsns[0].opcode == Opcode.IF_EQZ && mapperInsns[0].register() == statsRegister &&
+                mapperInsns[1].opcode == Opcode.MOVE_OBJECT_FROM16 && mapperInsns[1].register() == 0 &&
                 mapperInsns[2].opcode == Opcode.IGET_OBJECT && mapperInsns[2].fieldRef()?.name == typeField.name &&
                 mapperInsns[2].fieldRef()?.definingClass == stats.type &&
                 mapperInsns[3].opcode == Opcode.IF_EQZ &&

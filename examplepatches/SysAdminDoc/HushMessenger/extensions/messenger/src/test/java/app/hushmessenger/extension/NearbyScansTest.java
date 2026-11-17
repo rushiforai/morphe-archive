@@ -73,7 +73,7 @@ public class NearbyScansTest {
         assertTrue(Settings.installed.contains("nearby_scans"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("nearby_scans")).findFirst().orElseThrow();
         assertEquals("Stop nearby scans", row[1]);
-        assertEquals("privacy", row[3]);
+        assertEquals("tracking", row[3]);
         assertFalse(Settings.preferences.contains("nearby_scans"));
         assertFalse(Settings.wouldUse("nearby_scans"));
         // Location features may lean on these checks, so a one-tap setup doesn't turn them off for anyone.

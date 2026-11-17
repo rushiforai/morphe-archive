@@ -107,7 +107,6 @@ public class Links {
         return false;
     }
 
-    // Thanks to InstaEclipse and InstaMoon.
     public static void interceptUri(URI uri) throws IOException{
        boolean shouldBlockUri = false;
         try {

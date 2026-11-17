@@ -104,6 +104,7 @@ public final class LastWaveMusicCardPatch {
     private static String lyrics = "";
     private static String lyricsFor = "";
     private static final Runnable sendLyricsTask = LastWaveMusicCardPatch::sendLyrics;
+    private static final long PLAYER_LYRICS_SETTLE_MS = 2000;
 
     /**
      * The island and the widget of the lock screen forget the lyrics when they are made again, as
@@ -376,9 +377,58 @@ public final class LastWaveMusicCardPatch {
         if (!lrc.equals(lyrics) || !mediaId.equals(lyricsFor)) {
             lyrics = lrc;
             lyricsFor = mediaId;
-            // The app may still be about to publish the song these lyrics are for.
-            mainHandler.post(sendLyricsTask);
+            // The player takes the lyrics of each source as it answers, one after the other, and
+            // the card starts over with each, so they are sent once the player has settled on some.
+            // The app may also still be about to publish the song these lyrics are for.
+            mainHandler.removeCallbacks(sendLyricsTask);
+            mainHandler.postDelayed(sendLyricsTask, PLAYER_LYRICS_SETTLE_MS);
         }
+    }
+
+    /**
+     * Injection point. Called with the extras of the session.
+     *
+     * Since version 5.2, LastWave sends the card the lyrics of the song that plays from its
+     * playback service, also when none of its screens are open, under a media id of its own.
+     * The card only takes lyrics for the media id of the metadata, which this patch sets, so
+     * they are kept as the lyrics of the song and sent under that media id. Lyrics the player
+     * of the app loaded for the song are kept over them.
+     *
+     * @return The extras to set.
+     */
+    public static synchronized Bundle onSetExtras(MediaSession session, Bundle extras) {
+        try {
+            if (extras == null || !EXTRA_ACTION_LYRICS_CHANGED.equals(extras.getString(EXTRA_ACTION))) {
+                // Other extras of the app would replace the lyrics the card reads from the session.
+                if (trackId.equals(lyricsFor) && !lyrics.isEmpty()) {
+                    Bundle withLyrics = extras == null ? new Bundle() : new Bundle(extras);
+                    withLyrics.putString(EXTRA_ACTION, EXTRA_ACTION_LYRICS_CHANGED);
+                    withLyrics.putString(EXTRA_MEDIA_ID, trackId);
+                    withLyrics.putString(EXTRA_LYRICS, lyrics);
+                    return withLyrics;
+                }
+                return extras;
+            }
+
+            String lrc = extras.getString(EXTRA_LYRICS);
+            if (lrc != null && !lrc.isEmpty() && !trackId.isEmpty()
+                    && (!trackId.equals(lyricsFor) || lyrics.isEmpty())) {
+                lyrics = lrc;
+                lyricsFor = trackId;
+                Log.i(TAG, "Lyrics of the app: " + lrc.length() + " characters");
+            }
+
+            Bundle withMediaId = new Bundle(extras);
+            withMediaId.putString(EXTRA_MEDIA_ID, trackId);
+            if (trackId.equals(lyricsFor) && !lyrics.isEmpty()) {
+                withMediaId.putString(EXTRA_LYRICS, lyrics);
+            }
+            return withMediaId;
+        } catch (Exception ex) {
+            Log.e(TAG, "onSetExtras failure", ex);
+        }
+
+        return extras;
     }
 
     /**

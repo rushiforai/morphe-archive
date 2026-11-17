@@ -112,9 +112,11 @@ object CaptionSettingsResourceTest {
             return
         }
         val patches = loadPatchesFromJar(setOf(addon)).byPatchesFile.getValue(addon)
-        val all = linkedSetOf<Patch<*>>()
-        fun visit(patch: Patch<*>) { if (all.add(patch)) patch.dependencies.forEach(::visit) }
-        patches.forEach(::visit)
+        val all = patches.toMutableSet()
+        val pending = ArrayDeque(patches)
+        while (pending.isNotEmpty()) {
+            pending.removeFirst().dependencies.forEach { if (all.add(it)) pending.add(it) }
+        }
         val settings = all.single { it.description == "Adds the AI caption screen to the settings of Morphe." }
         val patched = output.resolve("patched-unsigned.apk")
         Patcher(PatcherConfig(apkFile = input, temporaryFilesPath = output.resolve("patch-session"))).use { patcher ->

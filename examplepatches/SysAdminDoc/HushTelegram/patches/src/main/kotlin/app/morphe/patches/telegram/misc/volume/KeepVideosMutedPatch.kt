@@ -61,11 +61,13 @@ val keepVideosMutedPatch = bytecodePatch(
         val turn = resolveFullScreenTurn()
         val upright = resolveVideoUpright(turn)
         val sound = resolveVideoSound()
+        val tracks = resolveVideoTracks()
         // Assembled on a copy first, so a refusal leaves the app untouched.
         site.replace(MutableMethod(ImmutableMethod.of(site.dispatch)))
         turn.rehearse()
         upright.rehearse(this)
         sound.rehearse(this)
+        tracks.rehearse(this)
         writeStub(VOLUME_KEYS, "stockChatTakesKey", 1, """
             check-cast p0, ${site.handler.definingClass}
             invoke-virtual {p0}, ${site.handler}
@@ -91,6 +93,12 @@ val keepVideosMutedPatch = bytecodePatch(
             enableCapability("videoStartsSilent")
         } else {
             patchLog.warning("Keep videos muted on volume keys: ${sound.missing}. The patch goes on without the switch that starts videos without sound.")
+        }
+        if (tracks.missing == null) {
+            tracks.apply(this)
+            enableCapability("videoTracks")
+        } else {
+            patchLog.warning("Keep videos muted on volume keys: ${tracks.missing}. The patch goes on without the audio and subtitle track choice.")
         }
     }
 }

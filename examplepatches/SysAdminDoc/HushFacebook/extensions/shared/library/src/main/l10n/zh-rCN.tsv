@@ -500,6 +500,10 @@ Hide Like on comments	隐藏评论的赞按钮
 Takes Like off the row under comments. Reply and the reaction count stay.	去掉评论下方那一行的赞。回复和心情数量保留。
 Hide Reply on comments	隐藏评论的回复按钮
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	去掉评论下方那一行的回复。“查看回复”、赞和心情数量保留。
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	隐藏评论里的头号粉丝等徽章
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	去掉评论者名字旁的头号粉丝、订阅者等徽章。名字和评论保留.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	仅“赞”
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1057,6 +1061,26 @@ Dark box behind open captions	展开的说明加深色底框
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	展开的短视频说明会显示在深色底框上，像字幕一样，在明亮的视频上也容易看清。更改从下一个短视频开始生效。
 Dark box behind folded captions	收起的说明加深色底框
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	收起的短视频说明，也就是结尾带“更多”的短说明，也会显示在同样的深色底框上。两个都开启即可为每条说明加底框。更改从下一个短视频开始生效.
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	短视频名字加深色底框
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	短视频底部的名字也会显示在同样的深色底框上，在明亮的视频上也容易看清。更改从下一个短视频开始生效。
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	底框深浅
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	说明和名字后面底框的深浅，按百分比计，范围 %1$s 到 %2$s。留空则使用 %3$s。
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	深色底框为百分之 %1$s 的黑色。输入数字即可更改。
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	深色底框为百分之 %1$s 的黑色。
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	底框边缘柔和
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	深色底框在边缘渐渐淡出，而不是生硬地截止。更改从下一个短视频或快拍开始生效。
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	快拍名字加深色底框
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	快拍栏和打开的快拍里的名字会显示在深色底框上，明亮的快拍也不会遮住它们。深浅由 Reels 和 Watch 下的“底框深浅”设置。下次加载快拍时生效。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看谁分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在帖子菜单中添加“查看谁分享了”，打开 Facebook 上分享该帖子的用户列表。
@@ -2276,6 +2300,8 @@ Playback speed	播放速度
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	为动态视频添加后退或前进 10 秒的按钮，和 Facebook 自己的播放器一样。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	为动态视频添加一个显示播放速度的按钮。每点一次切换到下一档：1x、1.25x、1.5x、2x，然后是 0.5x。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	在动态视频进度条的左端显示已播放的时间，右端显示剩余时间。需要开启“动态视频上的进度条”。
+Full length on the seek bar	进度条上显示总时长
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	在动态视频进度条的右端显示视频总时长，而不是剩余时间。需要开启“进度条上的时间”。
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	为动态中的视频添加一个按钮，在 Facebook 自己的完整播放器中打开视频，附带全部控件。直播视频也有。开启“点按播放”时，还需要开启“动态消息视频控件”。
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	完整播放器按钮放在扬声器旁
@@ -2294,6 +2320,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	把动态视频的进度条移得更靠近底边，Facebook 的扬声器和标记的人按钮也一起下移。需要开启“动态视频上的进度条”。
 Seek bar on the bottom edge	进度条贴底边
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	把动态视频的进度条放在底边上，滑动时不容易误触。Facebook 的扬声器和标记的人按钮会上移到它上方。优先于“降低进度条和扬声器按钮”。需要开启“动态视频上的进度条”。
+Thin line seek bar	细线进度条
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	把动态视频的进度条显示成贴着底边的一条细线，和 Instagram 的一样，拖动之前不显示圆点和时间。直播视频在可以回退时也会显示。在最右端松手即可回到直播。Facebook 的扬声器和标记的人按钮会上移到它上方。需要开启“动态视频上的进度条”。
 Feed video position	动态视频播放位置
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	徽章颜色
@@ -2735,6 +2763,10 @@ Not found yet	暂未找到
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	评论顶部的放大镜会打开搜索框，找出包含你输入的文字的评论。
 Open shared reels on their own	单独打开分享的 Reels
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	从其他应用的链接或聊天中打开的 Reels 会单独播放，之后没有可以继续滑动的 Reels.
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	隐藏分享的 Reels 上的加好友弹窗
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	打开还不是好友的人分享的 Reels 时，不再弹出请你加对方为好友的窗口。从下一个分享的 Reels 起生效.
 Light bars on the Reels tab	Reels 标签页使用浅色栏
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	在浅色模式下，Reels 标签页保持与其他标签页相同的浅色状态栏、顶部栏和标签栏，而不是把它们变暗.
 Bar opacity	栏的不透明度
@@ -2868,3 +2900,19 @@ Clear mode	清爽模式
 Scroll to next reel automatically	自动滚动到下一个 Reels
 Transcript	文字记录
 Audio and language	音频和语言
+Reset settings	重置设置
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	把“导出设置”会保存的每个开关和选项恢复成新安装时的样子。暂停、调试日志和更新检查保持不变。
+Undo the reset	撤销重置
+Brings back the switches and choices you had before the last reset.	恢复你在上次重置之前的开关和选项。
+Couldn't reset the settings. Nothing was changed.	无法重置设置。未更改任何内容。
+Your settings already match a new install.	你的设置已经和新安装时一样。
+Resetting settings	正在重置设置
+Settings reset. Undo the reset puts yours back.	设置已重置。“撤销重置”可以找回你原来的设置。
+Couldn't undo the reset. Nothing was changed.	无法撤销重置。未更改任何内容。
+Putting your settings back	正在恢复你的设置
+Your settings are back the way they were before the reset.	你的设置已恢复到重置之前的样子。
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	无法完成，也无法恢复你原来的设置。请检查此页面上的开关。
+Show every reaction on comments	显示评论上的所有回应
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	在 Facebook 只在数量旁显示评论最多的那个回应时，改为保留赞、回复和所有回应。更改对之后显示的评论生效。
+Move seen stories to the end	将已看过的快拍移到末尾
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	你已看过的快拍会移到快拍栏末尾，排在没看过的后面。开启“隐藏已看过的快拍”时，它优先生效。在 Facebook 下次加载快拍栏时生效。

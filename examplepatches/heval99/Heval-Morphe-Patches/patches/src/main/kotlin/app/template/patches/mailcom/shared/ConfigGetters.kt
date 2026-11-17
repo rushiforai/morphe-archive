@@ -5,7 +5,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 
 internal const val STRING = "Ljava/lang/String;"
 

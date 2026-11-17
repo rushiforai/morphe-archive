@@ -180,8 +180,8 @@ public class SetupSummaryTest {
             assertTrue(report.matches("(?s).*hide_read_receipts: installed=true, selected=true, active=true, last_active=\\d+s ago, scope=.*"));
             assertTrue(report.contains("Marking it read yourself or replying marks it read and shows Seen"));
             assertTrue(report.contains("Group chats aren't tested. Messenger's own Read receipts setting under Privacy & safety"));
-            assertTrue(report.contains("In encrypted chats it keeps the words you already saw in the chat or a notification, until Messenger restarts. Group chats aren't tested."));
-            assertTrue(report.contains("It doesn't add replay or saving."));
+            assertTrue(report.contains("In encrypted chats it keeps the words you already saw in the chat or a notification, and still has them after Messenger restarts. Group chats aren't tested."));
+            assertTrue(report.contains("A switch under it puts a Save button on the view-once viewer. It doesn't add replay."));
             assertTrue(report.contains("Android bubbles need Android 11 or newer, a supported account and notification permission."));
             assertTrue(report.contains("Search and community folders still show them."));
         }
@@ -209,7 +209,7 @@ public class SetupSummaryTest {
                     android.graphics.Rect visible = new android.graphics.Rect();
                     assertTrue(target.getGlobalVisibleRect(visible));
                     assertEquals(target.getHeight(), visible.height());
-                    assertTrue(root.findViewWithTag("allow_screenshot").getContentDescription().toString().contains("It doesn't add replay or saving."));
+                    assertTrue(root.findViewWithTag("allow_screenshot").getContentDescription().toString().contains("A switch under it puts a Save button on the view-once viewer. It doesn't add replay."));
                     String output = System.getenv("HUSH_SETTINGS_CAPTURES");
                     if (output != null) {
                         var directory = java.nio.file.Path.of(output);

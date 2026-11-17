@@ -194,7 +194,9 @@ public final class SettingsActivity extends Activity {
 
         if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
                 || Settings.isExpandPostsIncluded() || Settings.isSwipeTabsIncluded()
-                || Settings.isCopyTextIncluded()) {
+                || Settings.isCopyTextIncluded() || Settings.isKeepFeedIncluded()
+                || Settings.isViewerTapToHideIncluded()
+                || Settings.isPostMenuIncluded()) {
             Category feed = new Category("Feed");
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like",
@@ -207,6 +209,18 @@ public final class SettingsActivity extends Activity {
             if (Settings.isCopyTextIncluded()) {
                 feed.toggle(Settings.COPY_TEXT, true, "Copy text",
                         "Press and hold text to select and copy it.");
+            }
+            if (Settings.isKeepFeedIncluded()) {
+                feed.toggle(Settings.KEEP_FEED, true, "Keep feed on reopen",
+                        "Stay where you were when you come back. Pull down or tap \"New posts\" for new posts.");
+            }
+            if (Settings.isPostMenuIncluded()) {
+                feed.toggle(Settings.POST_MENU, true, "Post menu items",
+                        "Copy text, Download photos and videos, and Save document as PDF in the ⋯ menu of posts.");
+            }
+            if (Settings.isViewerTapToHideIncluded()) {
+                feed.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide in viewers",
+                        "Tap a video or document in full screen to hide its caption and buttons.");
             }
             if (Settings.isExpandPostsIncluded()) {
                 feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Posts start expanded. Tap the text to collapse.");
@@ -239,6 +253,9 @@ public final class SettingsActivity extends Activity {
             tabs.add(choice(Settings.SHOW_TAB_JOBS, true, "Jobs"));
             tabs.add(choice(Settings.SHOW_TAB_NETWORK, true, "Network"));
             tabs.add(choice(Settings.SHOW_TAB_NOTIFICATIONS, true, "Notifications"));
+            if (Settings.tabOffered("POST")) tabs.add(choice(Settings.SHOW_TAB_POST, true, "Post"));
+            if (Settings.tabOffered("VIDEO")) tabs.add(choice(Settings.SHOW_TAB_VIDEO, true, "Video"));
+            if (Settings.tabOffered("NEWS")) tabs.add(choice(Settings.SHOW_TAB_NEWS, true, "News"));
             tabs.add(choice(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "More"));
             if (Settings.isGlassNavigationBarIncluded()) {
                 navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Liquid Glass navigation bar",
@@ -778,6 +795,9 @@ public final class SettingsActivity extends Activity {
                 {"Expand posts", Settings.isExpandPostsIncluded()},
                 {"Swipe between tabs", Settings.isSwipeTabsIncluded()},
                 {"Copy text", Settings.isCopyTextIncluded()},
+                {"Keep feed on reopen", Settings.isKeepFeedIncluded()},
+                {"Post menu items", Settings.isPostMenuIncluded()},
+                {"Tap to hide in viewers", Settings.isViewerTapToHideIncluded()},
                 {"Download media", Settings.isDownloadMediaIncluded()},
                 {"Messaging", Settings.isMessagingIncluded()},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},

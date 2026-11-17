@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.14.1...v1.14.2) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **LastWave:** keep the lyrics on the island as the app changes the session and the player loads lyrics ([63d915d](https://github.com/JacksonJones2003/origin-island-patches/commit/63d915db548e8ad8334be7cf7c9dae7e0cd21d89))
+* **LastWave:** show the lyrics LastWave sends itself on Origin Island without opening the app ([eaf4ff7](https://github.com/JacksonJones2003/origin-island-patches/commit/eaf4ff7ab0e97e43242af89af7f568d13708dda9))
+
 ## [1.14.1](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.14.0...v1.14.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

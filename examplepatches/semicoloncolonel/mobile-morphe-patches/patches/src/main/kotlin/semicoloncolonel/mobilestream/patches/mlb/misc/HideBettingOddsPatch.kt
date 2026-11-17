@@ -4,19 +4,34 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MLB 26.21.0.49 — Hide betting odds.
+// MLB — Hide betting odds (phone only).
 //
-// The scores sheet shows a "betting odds" section, gated by a boolean field
-// named "bettingOddsEnabled" on a scores data model. Every read of that field
-// is made to return false, so the betting-odds section, its toggle, and its
-// legal disclaimer never appear. The field name is semantic and stable; its
-// holder class is renamed per build, so it is found by the field name.
+// The scores web module is configured with a data class (fields jsAPIVersion,
+// displayMode, os, version, and bettingOddsEnabled) built in the WebView
+// fragments and handed to the page, which draws the odds section when
+// bettingOddsEnabled is true. The field name is semantic and stable; its holder
+// class is renamed per build, so it is found by the field name.
+//
+// The value is forced to false in the one class that declares the field, where
+// its constructor stores it, so every reader sees false consistently and the
+// web module hides the section. Only that class is made mutable.
+//
+// An earlier version rewrote every read of the field instead. To find the
+// reads it walked every class in the app and called mutableClassDefBy on each,
+// which materializes a mutable copy of the whole app. On the NVIDIA Shield's
+// CPU that patch-time cost overwhelmed Morphe Manager and the patch crashed
+// before it finished.
+//
+// Phone only. The Android TV build draws its odds through a different, native
+// path (an odds-provider banner, not this web config, whose class is dead code
+// there), so this patch is excluded from the TV flavor in build.gradle.kts.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Suppress("unused")
@@ -26,36 +41,36 @@ val hideBettingOddsPatch = bytecodePatch(
     default = false,
 ) {
     category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
 
     execute {
-        // Find the class that declares bettingOddsEnabled:Z.
-        var owner: String? = null
+        var patched = 0
+        val owners = mutableListOf<String>()
         classDefForEach { classDef ->
-            if (owner == null && classDef.fields.any { it.name == "bettingOddsEnabled" && it.type == "Z" }) {
-                owner = classDef.type
+            if (classDef.fields.any { it.name == "bettingOddsEnabled" && it.type == "Z" }) {
+                owners += classDef.type
             }
         }
-        val field = owner ?: throw PatchException("bettingOddsEnabled field not found")
 
-        // After every read of that field, force the destination register to 0.
-        var patched = 0
-        val targets = mutableListOf<String>()
-        classDefForEach { classDef -> targets += classDef.type }
-        targets.forEach { type ->
-            mutableClassDefBy(type).methods.forEach { method ->
+        owners.forEach { owner ->
+            mutableClassDefBy(owner).methods.forEach { method ->
+                if (method.name != "<init>") return@forEach
                 val instructions = method.implementation?.instructions?.toList() ?: return@forEach
                 instructions.indices.reversed().forEach { index ->
                     val instruction = instructions[index]
-                    if (instruction.opcode != Opcode.IGET_BOOLEAN) return@forEach
+                    if (instruction.opcode != Opcode.IPUT_BOOLEAN) return@forEach
                     val reference = (instruction as ReferenceInstruction).reference as FieldReference
-                    if (reference.definingClass != field || reference.name != "bettingOddsEnabled") return@forEach
-                    val register = (instruction as OneRegisterInstruction).registerA
-                    method.addInstructions(index + 1, "const/16 v$register, 0x0")
+                    if (reference.definingClass != owner || reference.name != "bettingOddsEnabled") return@forEach
+                    // Force the stored value to false. The source register holds a
+                    // constructor parameter used only for this store, so reusing it
+                    // is safe.
+                    val source = (instruction as TwoRegisterInstruction).registerA
+                    method.addInstructions(index, "const/4 v$source, 0x0")
                     patched++
                 }
             }
         }
-        if (patched == 0) throw PatchException("No bettingOddsEnabled reads found")
+
+        if (patched == 0) throw PatchException("No bettingOddsEnabled constructor write found")
     }
 }

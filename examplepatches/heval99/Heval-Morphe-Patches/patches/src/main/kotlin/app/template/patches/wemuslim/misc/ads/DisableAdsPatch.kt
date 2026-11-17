@@ -7,7 +7,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.cloneParameters
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_WEMUSLIM
 import app.template.patches.wemuslim.misc.encryption.bypassNativeEncryptionPatch
 import com.android.tools.smali.dexlib2.AccessFlags

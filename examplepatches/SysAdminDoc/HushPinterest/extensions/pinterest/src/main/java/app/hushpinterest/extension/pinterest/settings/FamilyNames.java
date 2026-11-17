@@ -55,6 +55,11 @@ public final class FamilyNames {
     public static final String HIDE_INBOX_UPDATES = "Hide Inbox updates";
     public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
     public static final String HIDE_SURVEY_PROMPTS = "Hide survey prompts";
+    public static final String HIDE_POPUP_BANNERS = "Hide pop-up banners";
+    public static final String HIDE_RELATED_PINS = "Hide related pins";
+    public static final String HIDE_CREATOR_NAME = "Hide creator name on pins";
+    public static final String CUSTOM_SAVE_SOUND = "Custom save sound";
+    public static final String CUSTOM_SPLASH_LOGO = "Custom splash logo";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String SHOW_POSTED_DATE = "Show posted date";

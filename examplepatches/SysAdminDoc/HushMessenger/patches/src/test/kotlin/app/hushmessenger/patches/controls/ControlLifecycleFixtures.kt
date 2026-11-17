@@ -101,11 +101,12 @@ internal fun lifecycleApk(directory: Path, classes: List<ClassDef>, manifestExtr
     (module as Closeable).use {
         val table = fixtureCall(module, "getTableBlock")!!
         val pkg = fixtureCall(table, "getOrCreatePackage", 0x7f, "com.facebook.orca")!!
-        fixtureCall(fixtureCall(pkg, "getOrCreate", "", "string", "stock")!!, "setValueAsString", "Stock")
+        // The ARSCLib the patcher pins since 2.4.0 calls these setDataAs*, where 2.3.0's called them setValueAs*.
+        fixtureCall(fixtureCall(pkg, "getOrCreate", "", "string", "stock")!!, "setDataAsString", "Stock")
         // The full resource writer reads ids.xml even when these patches introduce no new IDs.
-        fixtureCall(fixtureCall(pkg, "getOrCreate", "", "id", "stock_id")!!, "setValueAsBoolean", false)
+        fixtureCall(fixtureCall(pkg, "getOrCreate", "", "id", "stock_id")!!, "setDataAsBoolean", false)
         fixtureCall(fixtureCall(pkg, "getOrCreate", "", "xml", "stock_shortcuts")!!,
-            "setValueAsString", "res/xml/stock_shortcuts.xml")
+            "setDataAsString", "res/xml/stock_shortcuts.xml")
         moduleType.getMethod("initializeAndroidFramework", Int::class.javaObjectType).invoke(module, null)
         val parser = Class.forName("com.reandroid.xml.XMLFactory").getMethod("newPullParser", Reader::class.java)
         val manifest = fixtureCall(module, "getAndroidManifest")!!

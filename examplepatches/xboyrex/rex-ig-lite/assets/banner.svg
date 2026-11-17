@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" width="100%" height="260">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050608"/>
+      <stop offset="50%" stop-color="#0D1115"/>
+      <stop offset="100%" stop-color="#07090C"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#88C2CE"/>
+      <stop offset="100%" stop-color="#80C8C4"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="260" rx="28" fill="url(#bg)" stroke="#222830" stroke-width="2"/>
+  <circle cx="840" cy="50" r="140" fill="#88C2CE" fill-opacity="0.04"/>
+  <circle cx="120" cy="220" r="120" fill="#80C8C4" fill-opacity="0.04"/>
+
+  <!-- Minimal Hexagon + IG Camera Emblem -->
+  <g transform="translate(88, 66)">
+    <rect x="0" y="0" width="128" height="128" rx="34" fill="#12161B" stroke="#2A323B" stroke-width="2"/>
+    <polygon points="64,20 102,42 102,86 64,108 26,86 26,42" fill="none" stroke="url(#cyanGrad)" stroke-width="4" stroke-linejoin="round"/>
+    <rect x="46" y="46" width="36" height="36" rx="10" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="64" cy="64" r="8.5" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="74.5" cy="53.5" r="2.2" fill="#88C2CE"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="248" y="114" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="54" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">
+    Rex <tspan fill="url(#cyanGrad)">IG Lite</tspan>
+  </text>
+  <text x="250" y="152" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="500" fill="#9AA3AE">
+    Minimal AMOLED Morphe Patch Suite for Instagram &amp; X · by xboyrex
+  </text>
+
+  <!-- Minimal Feature Pills -->
+  <g transform="translate(250, 174)">
+    <rect x="0" y="0" width="132" height="32" rx="16" fill="#14191F" stroke="#28313B" stroke-width="1.5"/>
+    <text x="66" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#88C2CE">v3.13.0 Stable</text>
+
+    <rect x="144" y="0" width="146" height="32" rx="16" fill="#14191F" stroke="#28313B" stroke-width="1.5"/>
+    <text x="217" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#D5DEE5">161 Active Patches</text>
+
+    <rect x="302" y="0" width="168" height="32" rx="16" fill="#14191F" stroke="#28313B" stroke-width="1.5"/>
+    <text x="386" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#D5DEE5">Pure AMOLED #000</text>
+  </g>
+</svg>

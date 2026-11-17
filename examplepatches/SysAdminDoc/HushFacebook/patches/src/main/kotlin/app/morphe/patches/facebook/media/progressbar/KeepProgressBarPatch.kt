@@ -8,6 +8,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -17,6 +18,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.layout.theme.branchTargets
+import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
@@ -126,6 +128,7 @@ internal const val SET_VIEW_ALPHA = "Landroid/view/View;->setAlpha(F)V"
 /** 1.0f's bits, the `const/high16` an alpha back to full loads. */
 internal const val FULL_ALPHA = 0x3f800000
 internal const val KEEPS_CONTROLS = "$PROGRESS_BAR->keepsControls()Z"
+internal const val POSTS_CONTROLS_HIDE = "$PROGRESS_BAR->postsControlsHide(Landroid/os/Handler;Ljava/lang/Runnable;J)Z"
 internal const val HIDE_TIME_LABEL = "$PROGRESS_BAR->hideTimeLabel(Landroid/view/ViewGroup;)V"
 internal const val BARS_EVERY_REEL = "$PROGRESS_BAR->barsEveryReel()Z"
 internal const val HAS_BAR = "$PROGRESS_BAR->hasBar(ZI)Z"
@@ -318,8 +321,9 @@ internal const val INVALIDATE = "Landroid/view/View;->invalidate()V"
  *
  * The newer Litho player hides its controls through an extension named [CONTROLS_EXTENSION] (581
  * `LX/RbF;`). Its one method that drops its pending callbacks and posts a runnable (581 `A0N`) sets
- * the hide 3 seconds after the controls are touched, 10 with accessibility on. The same hook goes
- * first there.
+ * the hide 3 seconds after the controls are touched, 10 with accessibility on. There the hook
+ * takes the place of that post alone ([noHidePostWhileKept]), since on 586 the method is shared
+ * with fifteen other video extensions (#447).
  *
  * The player the video viewer's Enter fullscreen landscape mode opens on 577 to 581 runs on the
  * Reels controls component instead, whose updater traces [PLAYER_CONTROL_UPDATE] (581
@@ -512,6 +516,26 @@ val keepProgressBarPatch = bytecodePatch(
         if (!extendsType(barType, SEEK_BAR) { classDefByOrNull(it)?.superclass }) refuse("$barType, the scrubber's bar, isn't a SeekBar")
         val touch = barTouch(classDefByOrNull(barType) ?: refuse("$barType, the scrubber's SeekBar, isn't in this APK"))
         val release = barRelease(barListeners, progress.base.type)
+        // The bar's seek on a live video, which Facebook skips unless the player was marked rewound (#482).
+        val seekRequest = seekRequest(
+            classDefByStrings(SEEK_REQUEST_FORMAT, StringComparisonType.EQUALS)
+                .filterNot { it.type.startsWith(EXTENSION_CLASSES) },
+        )
+        scrubberSeekSite(release.method, seekRequest)
+        val liveChecks = mutableListOf<LiveSeekCheck>()
+        classDefForEachReferencing(types = listOf(seekRequest.type)) { holder ->
+            if (!holder.type.startsWith(EXTENSION_CLASSES)) liveChecks += liveSeekChecks(holder, seekRequest)
+        }
+        val liveCheck = liveChecks.singleOrNull()
+            ?: refuse("${liveChecks.size} seek handlers skip a live video's ${seekRequest.type}, expected one")
+        checkLiveSeekThrough(liveCheck)
+        val player = classDefByOrNull(liveCheck.live.definingClass) ?: refuse("${liveCheck.live.definingClass}, the player, isn't in this APK")
+        val liveNow = liveNowField(classDefByOrNull(VIDEO_PLAYER_PARAMS) ?: refuse("VideoPlayerParams isn't in this APK"))
+        val liveRewind = liveRewind(player, liveCheck, liveNow)
+        // The scrubber search results open a live video with seeks from its bar straight in the player's own seek.
+        val liveGate = liveGate(player, liveCheck, liveNow, liveRewind)
+        // Search results open some live videos with settings that say they aren't live, whose seeks skip the live offset.
+        val liveShift = liveShift(player, liveCheck) { classDefByOrNull(it) }
 
         mutableClassDefBy(scrubber.type).methods.single { it.sameAs(scrubber.passive) }
             .activeInstead(scrubber, graph)
@@ -581,10 +605,18 @@ val keepProgressBarPatch = bytecodePatch(
                 .fullSizeInstead(plugin.type, sizes.fullSize)
         }
         mutableClassDefBy(controls.type).methods.single { it.sameAs(timer) }.noTimerWhileKept()
-        mutableClassDefBy(extension.type).methods.single { it.sameAs(hide) }.noTimerWhileKept()
+        mutableClassDefBy(extension.type).methods.single { it.sameAs(hide) }.noHidePostWhileKept()
         mutableClassDefBy(hider.type).methods.single { it.sameAs(hiderRun) }.noTimerWhileKept()
         mutableClassDefBy(barType).methods.single { it.sameAs(touch) }.takesTapsToSeek()
-        mutableClassDefBy(release.method.definingClass).methods.single { it.sameAs(release.method) }.reportsBarRelease(release)
+        mutableClassDefBy(release.method.definingClass).methods.single { it.sameAs(release.method) }.apply {
+            reportsBarRelease(release)
+            reportsScrubberSeek(seekRequest)
+        }
+        mutableClassDefBy(liveCheck.method.definingClass).methods.single { it.sameAs(liveCheck.method) }
+            .letsLiveSeekThrough(liveCheck)
+        mutableClassDefBy(liveRewind.player).methods.single { it.sameAs(liveGate.method) }.rewindsForTheBar(liveGate)
+        fillLiveRewound(liveRewind)
+        fillLiveShift(liveShift)
         enableStatus("keepProgressBar")
     }
 }
@@ -3248,6 +3280,32 @@ internal fun MutableMethod.fullSizeInstead(plugin: String, fullSize: Method) {
         """,
         ExternalLabel("facebook", getInstruction(0)),
     )
+}
+
+/**
+ * The newer player's controls hide: its one [POST_DELAYED] call becomes a call to the extension
+ * with the same registers, which posts the hide unless the controls are kept. Nothing else in the
+ * method changes, so branches that jump there still land on it. On 586 Redex merged the controls
+ * extension's method with fifteen other video extensions' into one that picks the extension by
+ * class (`LX/0YE3;->A0J`), and a return at its top stopped every one of them while the switch was
+ * on, which left a live video's chat folded away (#447).
+ */
+internal fun MutableMethod.noHidePostWhileKept() {
+    val code = implementation!!.instructions.toList()
+    val posts = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == POST_DELAYED }
+    val index = posts.singleOrNull()
+        ?: refuse("$definingClass->$name posts ${posts.size} runnables with a delay, expected the one controls hide")
+    val post = code[index]
+    val call = when (post.opcode) {
+        Opcode.INVOKE_VIRTUAL -> (post as FiveRegisterInstruction).let {
+            "invoke-static { v${it.registerC}, v${it.registerD}, v${it.registerE}, v${it.registerF} }, $POSTS_CONTROLS_HIDE"
+        }
+        Opcode.INVOKE_VIRTUAL_RANGE -> (post as RegisterRangeInstruction).let {
+            "invoke-static/range { v${it.startRegister} .. v${it.startRegister + it.registerCount - 1} }, $POSTS_CONTROLS_HIDE"
+        }
+        else -> refuse("$definingClass->$name posts the controls hide with ${post.opcode}, expected an invoke-virtual")
+    }
+    replaceInstruction(index, call)
 }
 
 /**

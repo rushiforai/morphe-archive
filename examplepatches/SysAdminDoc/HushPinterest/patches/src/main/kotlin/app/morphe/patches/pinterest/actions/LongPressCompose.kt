@@ -182,6 +182,18 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
     return LongPressCompose(face, kinds, dispatcher, listAt, items, alias.registerA, pair, effect, clickAt, option, holder, pinRead, scratch, done)
 }
 
+/** View's icon and label for the newer list (#37): the full-screen icon and the string the extension passes. */
+internal fun BytecodePatchContext.applyLongPressComposeView(menu: LongPressMenu) {
+    writeStub(LONG_PRESS, "composeViewIconAndLabel", 4, """
+        new-instance v0, $PAIR
+        sget-object v1, ${menu.icon}->$VIEW_ICON:${menu.icon}
+        invoke-static { p0 }, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+        move-result-object v2
+        invoke-direct { v0, v1, v2 }, $PAIR-><init>(Ljava/lang/Object;Ljava/lang/Object;)V
+        return-object v0
+    """)
+}
+
 internal fun BytecodePatchContext.applyLongPressCompose(menu: LongPressMenu, found: LongPressCompose) {
     writeStub(LONG_PRESS, "composeOptionType", 1, """
         const-class v0, ${found.face.type}

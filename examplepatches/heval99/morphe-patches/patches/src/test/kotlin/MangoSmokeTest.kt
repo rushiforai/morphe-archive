@@ -43,7 +43,7 @@ class MangoSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.67",
+            version = "1.68",
             patchNames = setOf("Enable Premium", "Disable license check"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -70,7 +70,13 @@ class MangoSmokeTest {
 
         // Issue #145: the purchase query writes Boolean.valueOf(hasPurchase) into the same Pro flow, which
         // undid the seed for a free user. Every such write now stores Boolean.TRUE.
-        val flowField = (insns.drop(at + 2).take(10).first { it.opcode == Opcode.IPUT_OBJECT } as ReferenceInstruction).reference as FieldReference
+        // 1.68 stores an unrelated boolean between the seed register and the flow, so look for the
+        // Boolean.valueOf that consumes the seed register first, then the next iput-object.
+        val seedAt = (at + 3..insns.lastIndex).first {
+            val call = (insns[it] as? ReferenceInstruction)?.reference as? MethodReference
+            insns[it].opcode == Opcode.INVOKE_STATIC && call?.definingClass == "Ljava/lang/Boolean;" && call.name == "valueOf"
+        }
+        val flowField = (insns.drop(seedAt + 1).take(6).first { it.opcode == Opcode.IPUT_OBJECT } as ReferenceInstruction).reference as FieldReference
         fun Instruction.isFlowRead() = opcode == Opcode.IGET_OBJECT && ((this as ReferenceInstruction).reference as? FieldReference) == flowField
         fun Instruction.isBooleanValueOf() = (this as? ReferenceInstruction)?.reference.let {
             opcode == Opcode.INVOKE_STATIC && it is MethodReference && it.definingClass == "Ljava/lang/Boolean;" && it.name == "valueOf"

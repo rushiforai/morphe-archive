@@ -16,14 +16,19 @@ import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongSupplier;
 
 /**
  * When someone else deletes a message, the server tells the app and Telegram removes it from the
@@ -48,6 +53,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Delete for them ({@link DeleteForThem}) puts your own messages on the same list. A message on
  * the list stays when a deletion comes in for it, even with this switch off, and with this switch
  * off nothing else is held back.
+ *
+ * <p>Remove kept messages after (#91) gives each kept message a time: the hour it was kept, saved
+ * with the lists in the same commit. Once it's older than the days picked, it goes back to
+ * Telegram's own deletion the way a clear sends it, without a notice. That's looked at with each
+ * deletion, about once an hour while chats are drawn, and when the days are picked. A message
+ * kept before there was a time starts its time when it's first seen.
  */
 public final class KeepDeleted {
     private KeepDeleted() {}
@@ -57,6 +68,14 @@ public final class KeepDeleted {
 
     /** Bubbles measured lately, which a chat on screen can be asked to draw again. */
     static final int SHOWN_LIMIT = 300;
+
+    /** The days Remove kept messages after offers, with 0 for until they're cleared (#91). */
+    public static final List<Integer> DAYS = Collections.unmodifiableList(Arrays.asList(0, 1, 7, 30, 90));
+
+    /** How often bubbles being drawn look for kept messages past their time. */
+    static final long SWEEP_EVERY = 60 * 60 * 1000L;
+
+    private static final long HOUR = 60 * 60 * 1000L;
 
     /** One stored message, with what the decision needs to know about it. */
     static final class Row {
@@ -167,6 +186,13 @@ public final class KeepDeleted {
      * hasn't finished deleting. Saved with the kept list in one commit.
      */
     private static final Map<Long, LinkedHashSet<String>> HANDING = new ConcurrentHashMap<>();
+    /**
+     * Per account, the hour each kept message, and each one on its way back, was kept, counted from
+     * 1970. Saved with the two lists in the same commit; a build from before it leaves it alone.
+     */
+    private static final Map<Long, Map<String, Long>> KEPT_AT = new ConcurrentHashMap<>();
+    /** When the next bubble drawn looks for kept messages past their time. */
+    private static volatile long nextSweep;
     /** Of those, the ones given to Telegram in this run and not finished yet. A restart empties it. */
     private static final Map<Long, LinkedHashSet<String>> DISPATCHED = new HashMap<>();
     /** Whether the saved lists come from a newer HushTelegram, which this one only reads. Null until read. */
@@ -182,6 +208,7 @@ public final class KeepDeleted {
     static Persist persist = new Prefs();
     static Keys keys = KeepDeletedBridge::keyOf;
     static Accounts accounts = KeepDeletedBridge::signedIn;
+    static LongSupplier clock = System::currentTimeMillis;
 
     /**
      * Asked in place of a "messages deleted" update for chats that aren't channels.
@@ -228,6 +255,7 @@ public final class KeepDeleted {
     /** Told which message the bubble is measuring, so the next time it formats can carry the label. */
     public static void measuring(Object message) {
         LABELLED.remove();
+        sweepWhenDue();
         try {
             MEASURING.set(on() || DeleteForThem.on() ? message : null);
         } catch (Throwable failure) {
@@ -338,12 +366,13 @@ public final class KeepDeleted {
         ArrayList<Object> media = new ArrayList<>();
         List<String> overflow = Collections.emptyList();
         long self = 0;
+        boolean own = others && keepsOwn();
         try {
             self = source.self();
             // With no account to keep it for, nothing could find it again to clear it.
             if (self <= 0) throw new IllegalStateException("no signed-in account");
             for (Row row : source.rows(dialogId, ids)) {
-                boolean keep = others ? keeps(row, self) || held(self, row) : held(self, row);
+                boolean keep = others ? keeps(row, self, own) || held(self, row) : held(self, row);
                 if (!keep || !release.remove(Integer.valueOf(row.id))) continue;
                 kept.add(new long[] {row.dialog, row.id});
                 if (row.message != null) media.add(row.message);
@@ -363,7 +392,11 @@ public final class KeepDeleted {
         // reach of Clear kept messages, so it goes to Telegram's own deletion now instead, with
         // anything a restart left on its way back.
         if (!overflow.isEmpty()) HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "oldest kept messages handed back");
-        if (self > 0) handBackWaiting(source, self, false);
+        if (self > 0) {
+            // So do those past the time Remove kept messages after allows (#91).
+            expire(self);
+            handBackWaiting(source, self, false);
+        }
         redraw(source, self, kept);
         saveMedia(source, media);
         if (release.isEmpty()) return;
@@ -384,9 +417,25 @@ public final class KeepDeleted {
         }
     }
 
-    /** Someone else's plain message in a chat that allows saving. Anything else goes the stock way. */
-    static boolean keeps(Row row, long self) {
-        return !row.mine && !row.timed && !row.guarded && row.dialog != self;
+    /**
+     * Someone else's plain message in a chat that allows saving, and with [own] set your own too.
+     * Anything else goes the stock way.
+     */
+    static boolean keeps(Row row, long self, boolean own) {
+        return (own || !row.mine) && !row.timed && !row.guarded && row.dialog != self;
+    }
+
+    /**
+     * Whether your own messages stay too (#82). A deletion of them that reaches here came from the
+     * server: the other person deleting the whole chat for both of you, or you on another device.
+     */
+    private static boolean keepsOwn() {
+        try {
+            return Utils.settingsReady() && Settings.KEEP_OWN_DELETED.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "own messages switch", failure);
+            return false;
+        }
     }
 
     /** Already on [owner]'s kept list, such as your own message after Delete for them. */
@@ -534,6 +583,117 @@ public final class KeepDeleted {
     public static String clearedMessage(int count) {
         if (count <= 0) return L10n.t("There are no kept messages to clear.");
         return L10n.quantity(count, "Removing %1$d kept message.", "Removing %1$d kept messages.", count);
+    }
+
+    /**
+     * Remove kept messages after (#91): in every signed-in account, the kept messages older than the
+     * days picked go to Telegram's own deletion on the account's storage queue, without a notice.
+     * Does nothing while it's set to keep them until they're cleared, or HushTelegram is paused.
+     *
+     * @return how many are past their time and on their way
+     */
+    public static int sweep() {
+        if (keepDays() <= 0) return 0;
+        List<Source> signedIn;
+        try {
+            signedIn = accounts.signedIn();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "accounts", failure);
+            return 0;
+        }
+        int due = 0;
+        for (Source source : signedIn) {
+            try {
+                long owner = source.self();
+                if (owner <= 0) continue;
+                int past;
+                synchronized (KeepDeleted.class) {
+                    // A message with no time yet gets one on the queue, so it's posted for too.
+                    if (load(owner).isEmpty()) continue;
+                    past = pastTime(owner, keepDays(), new HashSet<>()).size();
+                }
+                source.post(() -> sweepOnQueue(source, owner));
+                due += past;
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "removing kept messages past their time", failure);
+            }
+        }
+        return due;
+    }
+
+    /** Bubbles are drawn all day, so the first one drawn each hour starts a {@link #sweep()}. */
+    private static void sweepWhenDue() {
+        try {
+            long now = clock.getAsLong();
+            if (now < nextSweep) return;
+            nextSweep = now + SWEEP_EVERY;
+            if (keepDays() > 0) sweep();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "removing kept messages past their time", failure);
+        }
+    }
+
+    /** Runs on [owner]'s storage queue for {@link #sweep()}. */
+    static void sweepOnQueue(Source source, long owner) {
+        if (!stillOwner(source, owner)) return;
+        expire(owner);
+        handBackWaiting(source, owner, false);
+    }
+
+    /**
+     * Moves [owner]'s kept messages older than the days picked onto the list of messages on their way
+     * back, in one commit, and gives any kept message without a time one now. Run on the account's
+     * storage queue, before its messages on their way back are handed over.
+     *
+     * @return how many moved, and none when the commit failed and nothing changed
+     */
+    static synchronized int expire(long owner) {
+        int days = keepDays();
+        if (days <= 0) return 0;
+        Set<String> fresh = new HashSet<>();
+        List<String> past = pastTime(owner, days, fresh);
+        if (past.isEmpty() && fresh.isEmpty()) return 0;
+        LinkedHashSet<String> kept = new LinkedHashSet<>(load(owner));
+        kept.removeAll(new HashSet<>(past));
+        LinkedHashSet<String> handing = new LinkedHashSet<>(handing(owner));
+        handing.addAll(past);
+        if (!commit(owner, kept, handing, fresh)) return 0;
+        if (!past.isEmpty()) HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "kept messages past their time handed back");
+        return past.size();
+    }
+
+    /**
+     * Of [owner]'s kept messages, oldest first, those kept [days] days ago or earlier. Those with no
+     * time, or one later than now from a clock that was set back, go into [fresh] instead. Run under
+     * the class lock.
+     */
+    private static List<String> pastTime(long owner, int days, Set<String> fresh) {
+        long now = hour();
+        long cutoff = now - days * 24L;
+        Map<String, Long> at = keptAt(owner);
+        List<String> past = new ArrayList<>();
+        for (String key : load(owner)) {
+            Long stamp = at.get(key);
+            if (stamp == null || stamp > now) fresh.add(key);
+            else if (stamp <= cutoff) past.add(key);
+        }
+        return past;
+    }
+
+    /** The days picked in Remove kept messages after, and 0 while paused or for a number it doesn't offer. */
+    private static int keepDays() {
+        try {
+            if (!Utils.settingsReady()) return 0;
+            int days = Settings.KEEP_DELETED_DAYS.get();
+            return DAYS.contains(days) ? days : 0;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "keep time", failure);
+            return 0;
+        }
+    }
+
+    private static long hour() {
+        return Math.floorDiv(clock.getAsLong(), HOUR);
     }
 
     /** Hands [owner]'s messages waiting for Telegram's deletion to it, those not already on their way. */
@@ -709,14 +869,32 @@ public final class KeepDeleted {
      * disk, so what's remembered never runs ahead of what a restart reads. Run under the class lock.
      */
     private static boolean commit(long owner, LinkedHashSet<String> kept, LinkedHashSet<String> handing) {
+        return commit(owner, kept, handing, Collections.emptySet());
+    }
+
+    /**
+     * {@link #commit(long, LinkedHashSet, LinkedHashSet)}, with each message's time: the one it had,
+     * or now for a new one and for those in [fresh].
+     */
+    private static boolean commit(long owner, LinkedHashSet<String> kept, LinkedHashSet<String> handing, Set<String> fresh) {
         if (newer()) {
             HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "kept messages saved by a newer version");
             return false;
+        }
+        Map<String, Long> before = keptAt(owner);
+        Map<String, Long> stamps = new HashMap<>();
+        long now = hour();
+        for (Set<String> list : Arrays.<Set<String>>asList(kept, handing)) {
+            for (String key : list) {
+                Long stamp = fresh.contains(key) ? null : before.get(key);
+                stamps.put(key, stamp == null ? now : stamp);
+            }
         }
         Map<String, String> entries = new LinkedHashMap<>();
         entries.put(VERSION_KEY, String.valueOf(VERSION));
         entries.put(keptKey(owner), String.join(",", kept));
         entries.put(handingKey(owner), String.join(",", handing));
+        entries.put(keptAtKey(owner), writeStamps(stamps));
         try {
             if (!persist.write(entries)) throw new IllegalStateException("the kept messages didn't reach the disk");
         } catch (Throwable failure) {
@@ -725,7 +903,42 @@ public final class KeepDeleted {
         }
         KEPT.put(owner, kept);
         HANDING.put(owner, handing);
+        KEPT_AT.put(owner, stamps);
         return true;
+    }
+
+    /** "hour=key,key;hour=key": the times grouped by hour, so a key is written once and an hour once per group. */
+    static String writeStamps(Map<String, Long> stamps) {
+        TreeMap<Long, List<String>> byHour = new TreeMap<>();
+        for (Map.Entry<String, Long> stamp : stamps.entrySet()) {
+            List<String> keys = byHour.get(stamp.getValue());
+            if (keys == null) byHour.put(stamp.getValue(), keys = new ArrayList<>());
+            keys.add(stamp.getKey());
+        }
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<Long, List<String>> hour : byHour.entrySet()) {
+            if (out.length() > 0) out.append(';');
+            Collections.sort(hour.getValue());
+            out.append(hour.getKey()).append('=').append(String.join(",", hour.getValue()));
+        }
+        return out.toString();
+    }
+
+    /** {@link #writeStamps(Map)} read back. A group that can't be read is left out, and its messages start again from now. */
+    static Map<String, Long> readStamps(String saved) {
+        Map<String, Long> stamps = new HashMap<>();
+        if (saved == null || saved.isEmpty()) return stamps;
+        for (String group : saved.split(";")) {
+            int equals = group.indexOf('=');
+            long hour;
+            try {
+                hour = Long.parseLong(group.substring(0, Math.max(equals, 0)));
+            } catch (NumberFormatException unreadable) {
+                continue;
+            }
+            for (String key : group.substring(equals + 1).split(",")) if (!key.isEmpty()) stamps.put(key, hour);
+        }
+        return stamps;
     }
 
     /**
@@ -750,8 +963,10 @@ public final class KeepDeleted {
     static synchronized void forgetAllForTests() {
         KEPT.clear();
         HANDING.clear();
+        KEPT_AT.clear();
         DISPATCHED.clear();
         newer = null;
+        nextSweep = 0;
         synchronized (SHOWN) {
             SHOWN.clear();
         }
@@ -763,6 +978,17 @@ public final class KeepDeleted {
 
     private static LinkedHashSet<String> handing(long owner) {
         return HANDING.computeIfAbsent(owner, account -> read(handingKey(account)));
+    }
+
+    private static Map<String, Long> keptAt(long owner) {
+        return KEPT_AT.computeIfAbsent(owner, account -> {
+            try {
+                return readStamps(persist.read(keptAtKey(account)));
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "reading kept messages", failure);
+                return new HashMap<>();
+            }
+        });
     }
 
     /** Run under the class lock. */
@@ -794,6 +1020,8 @@ public final class KeepDeleted {
     private static String keptKey(long owner) { return "kept_" + owner; }
 
     private static String handingKey(long owner) { return "handing_" + owner; }
+
+    private static String keptAtKey(long owner) { return "kept_at_" + owner; }
 
     private static ArrayList<Integer> ints(List<?> list) {
         ArrayList<Integer> out = new ArrayList<>(list.size());

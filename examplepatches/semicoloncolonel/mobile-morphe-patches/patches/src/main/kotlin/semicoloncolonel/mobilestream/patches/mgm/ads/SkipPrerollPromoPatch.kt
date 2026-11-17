@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.mgm.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skip the MGM+ pre-roll promo.
@@ -36,7 +37,7 @@ val skipPrerollPromoPatch = bytecodePatch(
     description = "Skips the MGM+ promo that plays before a title.",
 ) {
     category("Ads")
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
 
     extendWith("extensions/extension.mpe")
 

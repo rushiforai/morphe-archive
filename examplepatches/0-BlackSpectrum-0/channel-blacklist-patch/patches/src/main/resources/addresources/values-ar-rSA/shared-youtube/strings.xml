@@ -28,6 +28,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_new_indicator_days_title">تمييز الإعدادات الجديدة</string>
   <string name="morphe_settings_new_indicator_days_summary">عدد الأيام التي تظهر فيها النقطة بجانب الإعدادات والخيارات التي أُضيفت بواسطة التحديث</string>
   <string name="morphe_settings_new_indicator_days_off">متوقف</string>
+  <string name="morphe_settings_new_indicator_clear_title">تحديد كل الإعدادات كمُشاهدة</string>
+  <string name="morphe_settings_new_indicator_clear_summary">إزالة النقطة من كل الإعدادات والخيارات الجديدة</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_title">تحديد كل الإعدادات كمُشاهدة؟</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_message">تتم إزالة النقطة من كل الإعدادات والخيارات الجديدة. ستظل الإعدادات المضافة في التحديثات المستقبلية مميزة.</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">إعادة التشغيل لإنهاء الإعداد</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -36,7 +40,7 @@ Second \"item\" text"</string>
   <string name="morphe_theme_color_dark_title">خلفية المظهر الداكن</string>
   <string name="morphe_theme_color_dark_entry_2">أسود خالص</string>
   <string name="morphe_theme_color_dark_entry_3">Material You (أسود خالص)</string>
-  <string name="morphe_theme_color_dark_entry_9">يوتيوب الكلاسيكي</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube الكلاسيكي</string>
   <string name="morphe_theme_color_dark_entry_10">وردي داكن</string>
   <string name="morphe_theme_color_dark_entry_11">أزرق داكن</string>
   <string name="morphe_theme_color_dark_entry_12">أخضر داكن</string>
@@ -67,6 +71,13 @@ Second \"item\" text"</string>
 
 تحقق من صحة اسم الحزمة وأن التطبيق مثبت"</string>
   <string name="morphe_external_downloader_empty_warning">لا يمكن أن يكون اسم الحزمة فارغًا</string>
+  <string name="morphe_export_download_folder_dialog_title">مجلد التصدير</string>
+  <string name="morphe_export_download_folder_change">تغيير المجلد</string>
+  <string name="morphe_export_download_folder_changed">تم تغيير مجلد التصدير</string>
+  <string name="morphe_export_download_folder_reset">إعادة تعيين مجلد التصدير</string>
+  <string name="morphe_export_download_folder_missing">تعذر العثور على مجلد التصدير %s</string>
+  <string name="morphe_export_download_flyout_title">تصدير إلى جهاز</string>
+  <string name="morphe_export_download_canceled">تم إلغاء التصدير</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">مُخصّص</string>
   <string name="morphe_custom_branding_icon_title">أيقونة التطبيق</string>
@@ -110,13 +121,27 @@ Second \"item\" text"</string>
 هل ترغب في جعل %2$s هو العميل الافتراضي؟"</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_switch">تبديل</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">قد يؤدي إيقاف تشغيل هذا الإعداد إلى مشكلات في التشغيل</string>
+  <!-- "Android System WebView" is the name of the Android app and should not be translated. -->
+  <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"Android System WebView متوقف أو غير مثبت.
+
+تتطلب عملية تشغيل الفيديو وجود Android System WebView. يرجى تفعيله وتحديثه إلى أحدث إصدار.
+
+انقر على موافق لفتح Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"إصدار Android System WebView قديم (الإصدار %s).
+
+قد تفشل عملية تشغيل الفيديو حتى يتم تحديث Android System WebView إلى أحدث إصدار.
+
+انقر على موافق لفتح Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_ignore">لا تعرض مرة أخرى</string>
+  <string name="morphe_spoof_video_streams_webview_toast_not_installed">Android System WebView غير مثبت. يرجى تثبيته لإصلاح تشغيل الفيديو</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
          "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
   <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">جرب تمكين: Spoof Video Streams &gt; تسجيل الدخول إلى Android VR</string>
   <string name="morphe_spoof_video_streams_client_type_title">العميل الافتراضي</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">تسجيل الدخول إلى Android VR</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">لم يتم تسجيل الدخول إلى Android VR. انقر هنا لتسجيل الدخول</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">يتطلب Android VR تسجيل دخول منفصل. انقر هنا للمتابعة</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">مسجل حاليًا في Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">للحصول على هذه الميزة، غيّر \'العميل الافتراضي\' إلى Android VR</string>
@@ -142,13 +167,35 @@ Second \"item\" text"</string>
 • لن يتم استيراد/تصدير بيانات مصادقة Android VR من إعدادات Morphe الخاصة بك
 • إذا لم يتم استخدام هذا التطبيق لمدة 6 أشهر، فستقوم Google بإزالة بيانات المصادقة هذه
 • ستحتاج إلى تسجيل الدخول مرة أخرى إذا قمت بتغيير كلمة مرور Google أو إلغاء تسجيل هذا الجهاز من إعدادات Google الخاصة بك"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_title">تسجيل الدخول إلى ويب الجوّال</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary">اختياري: سجل الدخول إلى موقع YouTube الإلكتروني لتشغيل الفيديوهات باستخدام حسابك. انقر هنا للمتابعة</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_signed_in">تم تسجيل الدخول حاليًا في ويب الجوّال</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_disabled">للحصول على هذه الميزة، غيّر \'العميل الافتراضي\' إلى Mobile Web</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_title">تسجيل الدخول إلى Mobile Web</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_not_signed_in_message">"يقوم Mobile Web بتشغيل الفيديوهات عند تسجيل الخروج، أو عند تسجيل الدخول إلى موقع YouTube الإلكتروني
+
+• عند تسجيل الدخول، يمكن تشغيل الفيديوهات التي تتطلب حسابًا، مثل الفيديوهات المقيدة بفئة عمرية
+• تفتح صفحة تسجيل الدخول إلى Google في هذا التطبيق
+• يُستخدم تسجيل الدخول فقط للحصول على الفيديوهات التي تشغلها
+• يتم حفظ تسجيل الدخول على هذا الجهاز فقط
+
+لتسجيل الدخول، انقر على متابعة أدناه"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_success_dialog_message">"تم حفظ تسجيل الدخول
+
+• لن تقوم إعدادات Morphe باستيراد/تصدير تسجيل الدخول إلى الويب على الجوّال
+• إذا أنهى Google تسجيل الدخول، فسيتم تشغيل الفيديوهات دون تسجيل الدخول حتى تقوم بتسجيل الدخول مرة أخرى
+• يؤدي تسجيل الخروج أيضًا إلى تسجيل خروج هذا الجهاز من موقع YouTube الإلكتروني"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_expired">انتهت صلاحية تسجيل الدخول إلى الويب على الجوّال، حاول تسجيل الدخول إلى الويب على الجوّال مرة أخرى</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_signed_out">تم تسجيل الخروج من الويب على الجوّال</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_webview_missing">Android System WebView غير متاح. يرجى تثبيته أو تفعيله لتسجيل الدخول</string>
   <string name="morphe_oauth2_connection_failure_timeout">OAuth2 غير متاح مؤقتًا (انتهت مهلة API)</string>
   <string name="morphe_oauth2_connection_failure_status_400">انتهت صلاحية تسجيل الدخول إلى Android VR، حاول تسجيل الدخول إلى VR مرة أخرى</string>
   <string name="morphe_oauth2_connection_failure_status">OAuth2 غير متاح مؤقتًا (الحالة %s)</string>
   <string name="morphe_oauth2_connection_failure_generic">OAuth2 غير متاح مؤقتًا</string>
   <string name="morphe_oauth2_connection_failure_auth_not_approved">لا يمكن تسجيل الدخول إلى VR، لم تتم الموافقة على مصادقة الموقع الإلكتروني</string>
   <string name="morphe_oauth2_connection_failure_auth_error">فشل تسجيل الدخول إلى VR: %s</string>
-  <string name="morphe_oauth2_toast_reset">تم تسجيل خروج Android VR</string>
+  <string name="morphe_oauth2_toast_reset">تم تسجيل الخروج من Android VR</string>
   <string name="morphe_oauth2_toast_invalid">رمز تسجيل الدخول إلى VR غير صالح، حاول تسجيل الدخول مرة أخرى إلى VR</string>
   <!-- misc.medianotification.mediaNotificationControlsPatch -->
   <string name="morphe_notification_media_screen_title">عناصر التحكم في وسائط الإشعارات</string>
@@ -207,14 +254,30 @@ Second \"item\" text"</string>
   <string name="morphe_replace_music_with_youtube_summary">يستبدل music.youtube.com بـ youtube.com في الروابط المُشاركة</string>
   <string name="morphe_replace_links_with_shortener_title">تغيير روابط المشاركة إلى youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">يُلزم استخدام تنسيق رابط youtu.be المختصر للفيديوهات</string>
+  <!-- video.quality.rememberVideoQualityPatch -->
+  <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
+  <string name="morphe_video_quality_default_entry_1">تلقائي</string>
+  <string name="morphe_remember_video_quality_last_selected_title">تذكر جودة الفيديو</string>
+  <string name="morphe_remember_video_quality_last_selected_summary">يطبق تحديد الجودة اليدوي على كل الفيديوهات المستقبلية</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_title">إشعارات تغيير الجودة</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_summary">يعرض إشعارًا عند حفظ جودة افتراضية جديدة</string>
+  <string name="morphe_video_quality_default_wifi_title">جودة الفيديو الافتراضية على شبكة Wi-Fi</string>
+  <string name="morphe_video_quality_default_mobile_title">جودة الفيديو الافتراضية على شبكة الجوّال</string>
+  <string name="morphe_remember_video_quality_toast_mobile">تم تغيير جودة الجوّال الافتراضية إلى: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">تم تغيير جودة Wi-Fi الافتراضية إلى: %s</string>
+  <!-- misc.sharesheet.openSystemShareSheetPatch -->
+  <string name="morphe_open_system_share_sheet_title">فتح قائمة مشاركة النظام</string>
+  <string name="morphe_open_system_share_sheet_summary">يفتح قائمة مشاركة الخاصة بالنظام بدلًا من قائمة التطبيق عند مشاركة المحتوى</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">سجل تصحيح الأخطاء لـ Protocol Buffer</string>
-  <string name="morphe_debug_protobuffer_summary">يضيف معلومات تسجيل إضافية للمطورين لتحديد مكونات التطبيق</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"يؤدي تمكين هذا الإعداد إلى تسجيل بيانات تخطيط إضافية، بما في ذلك النص الظاهر على الشاشة لبعض مكونات الواجهة.
+  <string name="morphe_debug_litho_title">تسجيل Litho</string>
+  <string name="morphe_debug_litho_entry_disabled">معطّل</string>
+  <string name="morphe_debug_litho_entry_path">المسار</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">المسار والمخزن المؤقت</string>
+  <string name="morphe_debug_litho_user_dialog_message">"يقوم تسجيل Litho بتسجيل مكونات تخطيط التطبيق، بما في ذلك النص الظاهر على الشاشة لبعض مكونات واجهة المستخدم.
 
 يمكن أن يساعد ذلك في تحديد المكونات عند إنشاء عوامل تصفية مخصصة.
 
-ومع ذلك، سيؤدي تمكين هذا الخيار أيضًا إلى تسجيل بعض بيانات المستخدم مثل عنوان IP الخاص بك"</string>
+ومع ذلك، سيؤدي هذا أيضًا إلى تسجيل بعض بيانات المستخدم مثل عنوان IP الخاص بك"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">فلتر مخصص</string>
   <string name="morphe_custom_filter_screen_summary">تكوين فلاتر مخصصة لإخفاء أي مكون</string>
@@ -290,7 +353,7 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_accessibility_dislike_count">ضع علامة لم يعجبني على هذا الفيديو، إلى جانب %s من الأشخاص الآخرين</string>
   <string name="morphe_ryd_accessibility_dislike_percentage">ضع علامة لم يعجني على هذا الفيديو، نسبة الأصوات غير المعجبة هي %s</string>
   <string name="morphe_ryd_enabled_title">تمكين استعادة عدد مرات لم يعجبني</string>
-  <string name="morphe_ryd_dislike_percentage_title">عرض لم يعجبني كــ نسبة مئوية</string>
+  <string name="morphe_ryd_dislike_percentage_title">عرض لم يعجبني كنسبة مئوية</string>
   <string name="morphe_ryd_dislike_percentage_summary">يعرض إحصائية لم يعجبني كنسبة مئوية من الإعجابات بدلًا من رقم</string>
   <string name="morphe_ryd_estimated_like_title">عرض الإعجابات المقدرة</string>
   <string name="morphe_ryd_estimated_like_summary">يعرض عددًا تقديريًا للإعجابات في الفيديوهات التي قام المنشئ بتعطيل الإعجابات فيها</string>
@@ -308,10 +371,10 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">لم يعجبني غير متاح مؤقتًا - حد معدل عميل API ساري المفعول</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_title">API جلب الأصوات وعدد الاتصالات</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">لم يتم إجراء اتصالات الشبكة</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%s اتصالات شبكية أجريت</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">تم إجراء %s من اتصالات الشبكة</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API جلب الأصوات، عدد مرات انتهاء المهلة</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">لم يتم تجاوز المهلة في أي من طلبات الشبكة</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%s اتصالات شبكية انتهت مهلتها</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">انتهت مهلة %s من اتصالات الشبكة</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">حدود معدل عميل API</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">لم يتم مواجهة أي حدود لمعدل العميل</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">تم تجاوز حد معدل العميل %s مرة</string>

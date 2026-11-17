@@ -14,9 +14,9 @@ Ported from [ReVanced Patches](https://gitlab.com/ReVanced/revanced-patches)' Ba
 Patches with settings add them to one screen. Open it from BaconReader's settings → Patches, the last entry of the menu.
 
 - The screen is built in Java by the extension (`BaconReaderPreferenceFragment`) and shown in BaconReader's `GoogleApiActivity`, in BaconReader's theme (light, dark or black).
-- Its sections are Images and videos, Links, Comments, Chat and Account colors. A section shows only when a selected patch has settings in it. An About section at the end shows "BaconReader Patches" and the patches' version.
+- Its sections are Images and videos, Links, Comments, Chat, Account colors and Backup. A section shows only when a selected patch has settings in it. An About section at the end shows "BaconReader Patches" and the patches' version.
 - A setting that needs another is greyed out while that one is off.
-- Settings are stored in Morphe's `morphe_prefs` preferences. The screen has no export or import.
+- Settings are stored in Morphe's `morphe_prefs` preferences. Morphe's own JSON export and import aren't on the screen; Export and import settings, in the Backup section, saves them with BaconReader's settings.
 - The entry, the screen and the drawer's version footer come with `settingsPatch`, an internal patch without a name. Every patch with settings depends on it, so they show whenever one of those patches is selected, and never otherwise.
 - The drawer ends with "Patches <version> (Morphe)", such as "Patches 1.2.0 (Morphe)". The version is the `version` in `gradle.properties` the `.mpp` was built with.
 
@@ -121,6 +121,18 @@ In the Account colors section:
 | Account colors | `revanced_baconreader_account_colors` | On |
 
 The accounts' colors aren't settings: they're kept in the app's `baconreader_patches` preferences, as `account_colors.color.<user name in lower case>`.
+
+### Export and import settings
+
+In the Backup section, two rows that run code, not settings: Export settings and Import settings (strings `revanced_baconreader_export_settings_*` and `revanced_baconreader_import_settings_*`). The extension's `DocumentRequest`, a fragment without a view, gets the file Android picked, because `GoogleApiActivity` replaces the settings fragment when Android recreates it.
+
+The file has `format: 1` and three maps:
+
+- `baconreader`: BaconReader's default preferences, by their own keys, without its accounts, logins and what it keeps about the device and install (`accounts`, `username`, `device_identifier`, `storage_uri`, first-start and review timestamps, its analytics key `FLURRY_KEY` and `clear_app_data_cache`, ad consent strings, any key with "token").
+- `patches`: the settings of the applied patches (`IncludedPatches`), by their key without `revanced_baconreader_` (`revanced_baconreader_show_images` is `show_images`). Reseam's keys without their group are the same names, so a file imports with either patcher. Integer settings are numbers here, strings in Reseam; each patcher reads either. Avatar size and Auto-load "load more comments" must be one of their list's values, or go back to their default. Prompt to open Reddit links' `OPEN_LINKS_PROMPT_SHOWN` isn't exported, as it isn't shown.
+- `account_colors`: Account colors' `account_colors.color.<name>` from the `baconreader_patches` preferences, by user name.
+
+Booleans and ints are written as YAML writes them, longs as `!long`, floats as `!float`, strings double-quoted and string sets as `!set [...]`. An import converts each value to the type the key has in the app. Each map the file has replaces what's set: keys it doesn't list are removed, or set back to their default.
 
 ## Differences from ReVanced
 

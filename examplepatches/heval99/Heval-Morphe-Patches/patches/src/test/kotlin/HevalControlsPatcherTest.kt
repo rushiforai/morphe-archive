@@ -66,7 +66,7 @@ class HevalControlsPatcherTest {
                 packageName = PKG,
                 apkFileType = ApkFileType.APKM,
                 appIconColor = 0xD0BCFF,
-                targets = listOf(AppTarget(version = "1.4.5", versionCode = 57)),
+                targets = listOf(AppTarget(version = "1.4.8", versionCode = 60)),
             ),
         )
         val featurePatch = host.featurePatch(feature) {
@@ -88,7 +88,7 @@ class HevalControlsPatcherTest {
             apk = apk,
             workDir = workDir.resolve(run),
             pkg = PKG,
-            version = "1.4.5",
+            version = "1.4.8",
             patchNames = setOf("Patch settings", feature.name),
             allPatches = setOf(host.patch, featurePatch),
         )
@@ -130,7 +130,7 @@ class HevalControlsPatcherTest {
         // The list record carries the kind field; the switch record does not.
         assertTrue(encoded.lines().any { it.startsWith("${listFeature.id}\t") && it.endsWith("\tlist") }, encoded)
         assertTrue(encoded.lines().single { it.startsWith("${feature.id}\t") }.split('\t').size == 8, encoded)
-        assertEquals("1.4.5 (57)", registry.constString("patchedAppVersion"))
+        assertEquals("1.4.8 (60)", registry.constString("patchedAppVersion"))
         assertTrue(registry.constString("bundleVersion").isNotBlank())
 
         // The feature's method starts with the gate.

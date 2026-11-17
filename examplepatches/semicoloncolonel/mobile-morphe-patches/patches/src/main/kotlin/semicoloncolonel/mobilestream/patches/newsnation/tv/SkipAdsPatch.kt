@@ -4,6 +4,8 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.newsnation.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
+import semicoloncolonel.mobilestream.patches.shared.misc.tvName
+import semicoloncolonel.mobilestream.patches.shared.misc.tvText
 
 // NewsNation Android TV 4.71 is a Haystack app. Video ads are client-side:
 // when an ad response arrives, the app puts the Ad objects into a singleton
@@ -24,8 +26,8 @@ internal object AdQueueAddAdsFingerprint : Fingerprint(
 
 @Suppress("unused")
 val skipAdsTvPatch = bytecodePatch(
-    name = "Skip ads (Android TV)",
-    description = "Removes the video ads before clips in the Android TV app.",
+    name = tvName("Skip ads (Android TV)"),
+    description = tvText("Removes the video ads before clips in the Android TV app."),
 ) {
     compatibleWith(Constants.TV_COMPATIBILITY)
 

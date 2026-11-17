@@ -55,7 +55,9 @@ internal fun reads(instruction: Instruction): List<Int> = when (instruction) {
     is ThreeRegisterInstruction -> listOf(instruction.registerB, instruction.registerC) +
         if (instruction.opcode.setsRegister()) emptyList() else listOf(instruction.registerA)
     is TwoRegisterInstruction -> listOf(instruction.registerB) +
-        if (instruction.opcode.setsRegister()) emptyList() else listOf(instruction.registerA)
+        // (a /2addr operation reads its first register too, before writing it)
+        if (instruction.opcode.setsRegister() && !instruction.opcode.name.endsWith("/2addr")) emptyList()
+        else listOf(instruction.registerA)
     is OneRegisterInstruction -> if (instruction.opcode.setsRegister()) emptyList() else listOf(instruction.registerA)
     else -> emptyList()
 }

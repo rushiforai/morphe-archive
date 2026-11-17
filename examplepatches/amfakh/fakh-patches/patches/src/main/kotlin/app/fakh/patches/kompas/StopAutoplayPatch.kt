@@ -5,7 +5,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
@@ -18,7 +18,7 @@ private object RecommendationVideoFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val stopAutoplayPatch = bytecodePatch(
+val stopAutoplayPatch = patch(
     name = "Stop autoplay",
     description = "Stops the videos in the \"Video Pilihan\" block under an article from playing on their own. They play when tapped.",
     default = true,

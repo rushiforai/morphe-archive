@@ -67,6 +67,7 @@ public final class Settings {
     static final String HIDE_SPONSORED_MESSAGES = "hide_sponsored_messages";
     static final String GHOST_MODE = "ghost_mode";
     static final String DEBUG_LOGGING = "debug_logging";
+    static final String GMS_CORE_BATTERY_REMINDER = "gmscore_battery_reminder";
     static final String LANGUAGE = "language";
     static final String LAST_SEEN_VERSION = "last_seen_version";
 

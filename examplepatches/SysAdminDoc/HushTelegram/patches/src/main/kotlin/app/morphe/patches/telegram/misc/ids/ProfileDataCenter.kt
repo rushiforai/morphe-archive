@@ -74,3 +74,38 @@ private fun photoDc(lookup: String, peer: String, photo: String) = """
     const/4 v0, 0x0
     return v0
 """
+
+internal const val REGISTRATION_DATE = "$EXTENSION_PACKAGE/misc/RegistrationDate;"
+
+/**
+ * Why the registration month can't tell a person from a bot in this build, or null when it can.
+ * It reads the same cached user the data center row does, and changes nothing.
+ */
+internal fun BytecodePatchContext.registrationDateMissing(): String? {
+    controlHook(REGISTRATION_DATE, "isPerson", listOf("J"), "Z")
+    val bot = tgClassDefByOrNull(DC_USER)?.fields?.any {
+        it.origName == "bot" && it.origType == "Z" && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+    } == true
+    return if (bot) null else "Telegram's users no longer say whether they're a bot"
+}
+
+/** True only for a user the selected account has cached who isn't a bot. A channel or group never asks. */
+internal fun BytecodePatchContext.writeRegistrationDate() {
+    writeStub(REGISTRATION_DATE, "isPerson", 4, """
+        sget v0, $DC_ACCOUNTS->selectedAccount:I
+        invoke-static {v0}, $DC_PEERS->getInstance(I)$DC_PEERS
+        move-result-object v0
+        invoke-static {p0, p1}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+        move-result-object v1
+        invoke-virtual {v0, v1}, $DC_PEERS->getUser(Ljava/lang/Long;)$DC_USER
+        move-result-object v0
+        if-eqz v0, :hush_none
+        iget-boolean v0, v0, $DC_USER->bot:Z
+        if-nez v0, :hush_none
+        const/4 v0, 0x1
+        return v0
+        :hush_none
+        const/4 v0, 0x0
+        return v0
+    """)
+}

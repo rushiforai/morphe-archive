@@ -98,7 +98,7 @@ URL／AndroidインテントURLを含む全形式は [CSV一覧](settings-links-
 | 2chapi 設定ファイル | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.2chapi 設定ファイル.開く` | — | — |
 | 2chapi_monakey 設定キー | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.2chapi_monakey 設定キー.開く` | — | — |
 | 広告クラス名 | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.広告クラス名.開く` | — | — |
-| chtoio | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.chtoio.開く` | `Haiagaru.設定.通信・詳しい設定.chtoio.true` | `Haiagaru.設定.通信・詳しい設定.chtoio.false` |
+| 5ch.netのリンクを5ch.ioに変換 | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.5ch.netのリンクを5ch.ioに変換.開く` | `Haiagaru.設定.通信・詳しい設定.5ch.netのリンクを5ch.ioに変換.true` | `Haiagaru.設定.通信・詳しい設定.5ch.netのリンクを5ch.ioに変換.false` |
 | HTTP通信をHTTPSへ切り替える（画像を含む） | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.HTTP通信をHTTPSへ切り替える(画像を含む).開く` | `Haiagaru.設定.通信・詳しい設定.HTTP通信をHTTPSへ切り替える(画像を含む).true` | `Haiagaru.設定.通信・詳しい設定.HTTP通信をHTTPSへ切り替える(画像を含む).false` |
 | タブレットでスレ切替時の自動再読込を抑える | 191／226／242 | `Haiagaru.設定.通信・詳しい設定.タブレットでスレ切替時の自動再読込を抑える.開く` | `Haiagaru.設定.通信・詳しい設定.タブレットでスレ切替時の自動再読込を抑える.true` | `Haiagaru.設定.通信・詳しい設定.タブレットでスレ切替時の自動再読込を抑える.false` |
 | 191の板・スレ取得で接続を再利用しない | 191 | `Haiagaru.設定.通信・詳しい設定.191の板・スレ取得で接続を再利用しない.開く` | `Haiagaru.設定.通信・詳しい設定.191の板・スレ取得で接続を再利用しない.true` | `Haiagaru.設定.通信・詳しい設定.191の板・スレ取得で接続を再利用しない.false` |

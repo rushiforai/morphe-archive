@@ -96,7 +96,7 @@ val fixSomethingPatch = bytecodePatch(
 
 1. The settings in `Settings.java`, under a `// <Patch name>.` comment.
 2. A method in `settings/IncludedPatches.java` that returns `false`: `public static boolean userAvatars()`.
-3. The preferences in `settings/BaconReaderPreferenceFragment.java`, in their section, inside `if (IncludedPatches.userAvatars())`: `switchPreference`, `listPreference(context, setting, entryCount)`, `multiLineTextPreference`, `textPreference` (title and summary only), or `addCustomPreference` with the class name of a `Preference` that saves its setting itself (`CommentLimitPreference`, `OpenLinksPreference`).
+3. The preferences in `settings/BaconReaderPreferenceFragment.java`, in their section, inside `if (IncludedPatches.userAvatars())`: `switchPreference`, `listPreference(context, setting, entryCount)`, `multiLineTextPreference`, `textPreference` (title and summary only), or `addCustomPreference` with the class name of a `Preference` that saves its setting itself (`CommentLimitPreference`, `OpenLinksPreference`), or `actionPreference(context, key, action)` for a row that runs code (Export and import settings).
 4. Their strings in `strings.xml`.
 5. In the patch, `dependsOn(sharedExtensionPatch, settingsPatch)` and, first in `execute`, `markPatchIncluded("userAvatars")`, which makes that method return `true`. A section without settings is removed from the screen.
 

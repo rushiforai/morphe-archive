@@ -40,6 +40,10 @@ public final class SiteThreadDatesTest {
         var doc=org.jsoup.Jsoup.parse(futHtml);String id=doc.selectFirst(".thre[data-res]").attr("data-res");
         ok(SiteThreadDates.opening(fut,id,futHtml)>0,"actual Futaba opening date selector");
         ok(SiteThreadDates.opening(fut,"99999999999",futHtml)==0,"another thread cannot supply date");
+        String catalogue="<table id=cattable><tr><td><a href='res/123.htm'>image</a><small>title</small><font>2</font></td></tr></table>";
+        FutabaCatalogue.topics(fut,catalogue,url->"<div class=thre data-res=123><span class=cnw>26/11/07(土)12:00:00</span><blockquote>title</blockquote></div>",1);
+        ok(FutabaCatalogue.creation(fut,"123")==day,"catalogue title lookup also retains the true OP creation date");
+        ok(FutabaCatalogue.creation(SiteBoardProtocol.address("https://img.2chan.net/b/"),"123")==0,"same numeric ID on another board cannot reuse creation date");
         System.out.println("PASS "+checks+" creation-date and momentum checks");
     }
 }

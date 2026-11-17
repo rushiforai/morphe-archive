@@ -41,15 +41,19 @@ public final class SettingsStatus {
 
     public static boolean hideShopping() { return false; }
     public static boolean feedShopping() { return false; }
+    public static boolean closeupShopping() { return false; }
 
     public static boolean filterFeed() { return false; }
     public static boolean feedVideoPins() { return false; }
     public static boolean feedMutedWords() { return false; }
     public static boolean feedSavedPins() { return false; }
+    public static boolean feedSavedSearch() { return false; }
+    public static boolean feedSavedRelated() { return false; }
     public static boolean feedHomeSuggestions() { return false; }
     public static boolean feedbackFlyout() { return false; }
     public static boolean keepHomeFeed() { return false; }
     public static boolean homeFeed() { return false; }
+    public static boolean homeBack() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean analyticsTasks() { return false; }
     public static boolean analyticsUploads() { return false; }
@@ -75,6 +79,7 @@ public final class SettingsStatus {
     public static boolean longPressDownload() { return false; }
     public static boolean longPressMenu() { return false; }
     public static boolean longPressChoices() { return false; }
+    public static boolean longPressView() { return false; }
     public static boolean externalBrowser() { return false; }
     public static boolean visitLinks() { return false; }
     public static boolean systemShare() { return false; }
@@ -96,6 +101,8 @@ public final class SettingsStatus {
     public static boolean blackComments() { return false; }
     public static boolean blackPinMenu() { return false; }
     public static boolean blackSaveSheet() { return false; }
+    public static boolean blackSheets() { return false; }
+    public static boolean blackBoards() { return false; }
     public static boolean hideCloseupButtons() { return false; }
     public static boolean closeupButtons() { return false; }
     public static boolean closeupSearchLabel() { return false; }
@@ -117,6 +124,15 @@ public final class SettingsStatus {
     public static boolean emailReminder() { return false; }
     public static boolean hideSurveyPrompts() { return false; }
     public static boolean surveyPrompts() { return false; }
+    public static boolean hidePopupBanners() { return false; }
+    public static boolean popupBanners() { return false; }
+    public static boolean hideRelatedPins() { return false; }
+    public static boolean relatedPins() { return false; }
+    public static boolean hideCreatorName() { return false; }
+    public static boolean creatorName() { return false; }
+    public static boolean customSaveSound() { return false; }
+    public static boolean saveSound() { return false; }
+    public static boolean customSplashLogo() { return false; }
     public static boolean hideSaveToasts() { return false; }
     public static boolean saveToasts() { return false; }
     public static boolean originalImages() { return false; }

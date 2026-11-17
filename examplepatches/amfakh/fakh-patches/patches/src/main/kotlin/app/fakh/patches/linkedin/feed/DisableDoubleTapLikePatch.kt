@@ -6,7 +6,7 @@ import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val ACTION_LIST = "Lcom/linkedin/sdui/viewdata/action/ActionListViewData;"
 
@@ -23,7 +23,7 @@ private object ClickActionsFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val disableDoubleTapLikePatch = bytecodePatch(
+val disableDoubleTapLikePatch = patch(
     name = "Disable double-tap like",
     description = "Stops double tapping a post or photo from liking it.",
     default = true

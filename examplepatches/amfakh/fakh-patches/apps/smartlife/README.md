@@ -6,7 +6,7 @@ of them.
 | App | Package | Version | Source |
 |---|---|---|---|
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror ("SmartLife - Smart Living") |
-| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872` | APKM from APKMirror |
+| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror |
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure |
 
 ## Patches
@@ -28,12 +28,13 @@ of them.
 | Theme | Dark device panels | Smart Life, Tuya Smart, Bardi | Darkens device control panels that have no dark mode of their own while the phone is in dark mode, using Android's automatic dark theme. On by default in Morphe, but it does nothing until the Dark Device Panels switch on the Fakh Patches page is turned on; turn it off again when a panel looks wrong. |
 | Privacy | Hide ads | Smart Life, Tuya Smart | Removes the ad banners and the AdMob ad entry. |
 | Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. Tuya's own usage statistics stay on. |
+| Feature | Swipe between tabs | all | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Where Scene shows Automation and Tap-to-Run as tabs (BARDI), it switches between them first. Does not act where something under the finger can scroll sideways. |
 | Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
 | Feature | GmsCore support | all | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
 
 Settings has a Fakh Patches row above About that opens a page with one switch for each of these patches, in sections by where they act. They are all on until turned off, and a change applies after the app restarts, except Dark Device Panels.
 
-The layout patches, Glass navigation bar, Glass cards, Dark device panels, Hide ads, Disable analytics and Spoof signature are on by default.
+The layout patches, Glass navigation bar, Glass cards, Dark device panels, Swipe between tabs, Hide ads, Disable analytics and Spoof signature are on by default.
 
 ## Signature check
 

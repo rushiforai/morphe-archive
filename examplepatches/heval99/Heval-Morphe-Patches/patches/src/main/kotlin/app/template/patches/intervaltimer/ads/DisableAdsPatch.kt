@@ -1,7 +1,7 @@
 package app.template.patches.intervaltimer.ads
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_INTERVALTIMER
 
 // "Ad-free" (adbuster) is the app's only entitlement. The ad state is an int: 3 = ad-free, 2 =

@@ -5,12 +5,12 @@ import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/DownloadMediaPatch;"
 
 @Suppress("unused")
-val downloadMediaPatch = bytecodePatch(
+val downloadMediaPatch = patch(
     name = "Download media",
     description = "Adds a download button to the full screen photo and video viewer.",
     default = true

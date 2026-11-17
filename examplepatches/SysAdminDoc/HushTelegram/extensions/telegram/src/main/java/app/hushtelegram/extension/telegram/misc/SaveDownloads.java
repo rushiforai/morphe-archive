@@ -69,8 +69,9 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * second switch, off until turned on, lets that last kind through (#29), and with it photos and
  * videos from such a chat too, since Save to gallery is gone there. A third, also off until turned
  * on, lets view-once and self-destructing photos, videos, voice and round videos through (#9).
- * Telegram keeps those encrypted, so their copy is decrypted on the way, see {@link #open}. No
- * switch lets anything out of a secret chat. On Android 9 and 10 with storage access, Telegram's
+ * Telegram keeps those encrypted, so their copy is decrypted on the way, see {@link #open}. A
+ * fourth, off until turned on, lets a secret chat's through as well, on top of the second (#82).
+ * On Android 9 and 10 with storage access, Telegram's
  * folder is already shared, so there's nothing to copy. What to copy narrows all of it to the kinds
  * ticked there, read from the copy's name (#57), see {@link #kind}.
  *
@@ -444,15 +445,16 @@ public final class SaveDownloads {
             return restrictedMedia(name, file, message, document);
         }
         boolean restricted = telegram.savingForbidden(message);
-        if (restricted && (!Settings.SAVE_RESTRICTED_DOWNLOADS.get() || telegram.secretChat(message))) {
+        boolean secret = restricted && Settings.SAVE_RESTRICTED_DOWNLOADS.get() && telegram.secretChat(message);
+        if (restricted && (!Settings.SAVE_RESTRICTED_DOWNLOADS.get() || secret && !Settings.SAVE_SECRET_CHATS.get())) {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
         String display = displayName(telegram.documentName(document), file.getName());
         Kind kind = kind(display, false);
         if (!ticked(kind)) return null;
-        if (restricted) HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED);
-        return () -> save(file, display, name, restricted, false, kind);
+        if (restricted) HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, secret ? SECRET : RESTRICTED);
+        return () -> save(file, display, name, restricted, secret, false, kind);
     }
 
     /**
@@ -468,7 +470,8 @@ public final class SaveDownloads {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, OTHER_MEDIA);
             return null;
         }
-        if (telegram.secretChat(message)) {
+        boolean secret = telegram.secretChat(message);
+        if (secret && !Settings.SAVE_SECRET_CHATS.get()) {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
@@ -476,14 +479,14 @@ public final class SaveDownloads {
         // A photo has no document, only the size the chat shows.
         Kind kind = document == null ? Kind.PHOTOS : kind(display, false);
         if (!ticked(kind)) return null;
-        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED_MEDIA);
-        return () -> save(file, display, name, true, false, kind);
+        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, secret ? SECRET : RESTRICTED_MEDIA);
+        return () -> save(file, display, name, true, secret, false, kind);
     }
 
     /**
      * A view-once or self-destructing photo, video, voice or round video, copied with the third
-     * switch on (#9). Never from a secret chat, and from a chat that doesn't allow saving only with
-     * the second switch on too.
+     * switch on (#9). From a chat that doesn't allow saving only with the second switch on too, and
+     * from a secret chat only with the fourth on as well (#82).
      */
     private static Runnable timed(String name, File file, Object message) {
         Object document = telegram.document(message);
@@ -494,8 +497,10 @@ public final class SaveDownloads {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, OTHER_MEDIA);
             return null;
         }
-        boolean restricted = telegram.savingForbidden(message);
-        if (telegram.secretChat(message) || restricted && !Settings.SAVE_RESTRICTED_DOWNLOADS.get()) {
+        boolean secret = telegram.secretChat(message);
+        // A secret chat never allows saving, so it needs the second switch whatever its message says.
+        boolean restricted = secret || telegram.savingForbidden(message);
+        if (secret && !Settings.SAVE_SECRET_CHATS.get() || restricted && !Settings.SAVE_RESTRICTED_DOWNLOADS.get()) {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
@@ -503,7 +508,7 @@ public final class SaveDownloads {
         Kind kind = document == null ? Kind.PHOTOS : kind(display, true);
         if (!ticked(kind)) return null;
         HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, TIMED);
-        return () -> save(file, display, name, restricted, true, kind);
+        return () -> save(file, display, name, restricted, secret, true, kind);
     }
 
     /** What Telegram adds to the name of a file it keeps encrypted. */
@@ -554,6 +559,7 @@ public final class SaveDownloads {
     static final String RESTRICTED = "file from a chat that doesn't allow saving, copied as switched on";
     static final String RESTRICTED_MEDIA = "photo or video from a chat that doesn't allow saving, copied as switched on";
     static final String TIMED = "view-once or timed media copied as switched on";
+    static final String SECRET = "file, photo or video from a secret chat, copied as switched on";
 
     /** The private list of copies: the downloader's name for a document, to the Downloads entry holding it. */
     static final String RECEIPTS = "hushtelegram_saved_downloads";
@@ -576,21 +582,22 @@ public final class SaveDownloads {
      * the write. Returns what happened ({@link #SAVED}, {@link #ALREADY_SAVED}) or null when nothing was copied.
      */
     static String saveByHand(File file, String name, String document) {
-        return save(file, name, document, true, false, null);
+        return save(file, name, document, true, false, false, null);
     }
 
     /**
      * @param name       the name the copy shows in Downloads
      * @param document   the downloader's name for the document, which no other document has
      * @param restricted whether its chat doesn't allow saving, so the second switch has to stay on too
+     * @param secret     whether it's a secret chat's, so the fourth switch has to stay on too
      * @param timed      whether it's view-once or timed media, so the third switch has to stay on too
      * @param kind       what it counts as in What to copy, which has to stay ticked; null for Save to Downloads
      */
-    private static String save(File file, String name, String document, boolean restricted, boolean timed, Kind kind) {
+    private static String save(File file, String name, String document, boolean restricted, boolean secret, boolean timed, Kind kind) {
         boolean manual = kind == null;
         try {
             // Turned off or paused while it waited behind other copies.
-            if (!wanted(restricted, timed, kind)) {
+            if (!wanted(restricted, secret, timed, kind)) {
                 HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, DROPPED);
                 return null;
             }
@@ -604,7 +611,7 @@ public final class SaveDownloads {
                 HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, "file already in shared storage");
                 return manual ? ALREADY_SAVED : null;
             }
-            String result = copy(context, file, name, document, restricted, timed, kind);
+            String result = copy(context, file, name, document, restricted, secret, timed, kind);
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, result);
             return result;
         } catch (Throwable failure) {
@@ -614,10 +621,11 @@ public final class SaveDownloads {
     }
 
     /** @param kind null for Save to Downloads, which only its own switch decides */
-    private static boolean wanted(boolean restricted, boolean timed, Kind kind) {
+    private static boolean wanted(boolean restricted, boolean secret, boolean timed, Kind kind) {
         if (kind == null) return Utils.settingsReady() && Settings.MESSAGE_MENU_SAVE_PROTECTED.get();
         return Utils.settingsReady() && Settings.SAVE_DOWNLOADS.get() && on(kind)
                 && (!restricted || Settings.SAVE_RESTRICTED_DOWNLOADS.get())
+                && (!secret || Settings.SAVE_SECRET_CHATS.get())
                 && (!timed || Settings.SAVE_TIMED_MEDIA.get());
     }
 
@@ -644,7 +652,7 @@ public final class SaveDownloads {
      * name and size. One added before it is taken once by name and size, see {@link #OLDER_COPY}.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
-    private static String copy(Context context, File file, String name, String document, boolean restricted, boolean timed,
+    private static String copy(Context context, File file, String name, String document, boolean restricted, boolean secret, boolean timed,
             Kind kind) throws IOException {
         ContentResolver resolver = context.getContentResolver();
         Uri downloads = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
@@ -676,7 +684,7 @@ public final class SaveDownloads {
                 for (int read; (read = in.read(buffer)) != -1; ) out.write(buffer, 0, read);
             }
             // Turned off or paused while it was written: the hidden entry goes and nothing shows up.
-            if (!wanted(restricted, timed, kind)) {
+            if (!wanted(restricted, secret, timed, kind)) {
                 resolver.delete(pending, null, null);
                 return DROPPED;
             }

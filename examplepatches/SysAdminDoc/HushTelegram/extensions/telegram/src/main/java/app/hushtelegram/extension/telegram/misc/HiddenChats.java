@@ -112,8 +112,12 @@ public final class HiddenChats {
         HookStatus.invoked(FamilyNames.HIDE_FOLDER_COUNTERS);
         pruneHidden(controller);
         AdminChats.prune(controller);
+        // Only asks for the Admin folder's chats to be put right, at most once a minute, after this sort.
+        AdminFolder.refresh();
         // After the hidden chats left, so the order only covers what shows.
         ChatSort.sortLists(controller);
+        // Last, so the chats pinned on this phone lead whatever order the list ended up in.
+        LocalPins.sort(controller);
     }
 
     private static void pruneHidden(Object controller) {
@@ -469,7 +473,8 @@ public final class HiddenChats {
     /**
      * Injected in DialogsActivity.createActionMode right after the more menu's Block item: adds
      * Hide from chat list under it, then {@link GhostChats}' Ghost mode exception,
-     * {@link FakeTyping}'s Fake typing and {@link RecordChats}' Record calls here under that.
+     * {@link FakeTyping}'s Fake typing, {@link RecordChats}' Record calls here and
+     * {@link LocalPins}' Pin on this phone and Unpin on this phone under that.
      */
     public static void menuItem(Object list, Object more) {
         try {
@@ -486,17 +491,19 @@ public final class HiddenChats {
         GhostChats.menuItem(list, more);
         FakeTyping.menuItem(list, more);
         RecordChats.menuItem(list, more);
+        LocalPins.menuItem(list, more);
     }
 
     /**
      * Injected at the start of DialogsActivity.updateCounters, which runs each time the selection
-     * changes: the item shows while Hide picked chats is on, and Ghost mode exception, Fake typing
-     * and Record calls here follow their own switches.
+     * changes: the item shows while Hide picked chats is on, and Ghost mode exception, Fake typing,
+     * Record calls here and Pin on this phone follow their own switches.
      */
     public static void menuShown(Object list) {
         GhostChats.menuShown(list);
         FakeTyping.menuShown(list);
         RecordChats.menuShown(list);
+        LocalPins.menuShown(list);
         try {
             WeakReference<View> held = MENU_ITEMS.get(list);
             View item = held == null ? null : held.get();
@@ -511,13 +518,14 @@ public final class HiddenChats {
      * Injected at the start of DialogsActivity's action bar click handler. A tap on Hide from chat
      * list adds the selected chats to the account's hidden ones and hands Telegram its back arrow,
      * which closes the selection; a tap on Ghost mode exception goes to {@link GhostChats}, one on
-     * Fake typing to {@link FakeTyping}, one on Record calls here to {@link RecordChats}, and any
-     * other id goes on as it came.
+     * Fake typing to {@link FakeTyping}, one on Record calls here to {@link RecordChats}, one on
+     * Pin or Unpin on this phone to {@link LocalPins}, and any other id goes on as it came.
      */
     public static int menuChoice(Object listener, int id) {
         if (id == GhostChats.MENU_ID) return GhostChats.menuChoice(listener, id);
         if (id == FakeTyping.MENU_ID) return FakeTyping.menuChoice(listener);
         if (id == RecordChats.MENU_ID) return RecordChats.menuChoice(listener, id);
+        if (id == LocalPins.PIN_ID || id == LocalPins.UNPIN_ID) return LocalPins.menuChoice(listener, id);
         if (id != MENU_ID) return id;
         try {
             if (SettingsLock.refuses()) return id;

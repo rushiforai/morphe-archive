@@ -168,17 +168,21 @@ internal class ReadFlow(method: Method) {
             }
         }
     }
-    fun deadFrom(start: Int, register: Int) {
+    /** Whether nothing reads the register again from here on, down every path out of it, the exceptional ones too. */
+    fun deadAt(start: Int, register: Int): Boolean {
         val pending = ArrayDeque<Int>().apply { add(start) }
         val seen = mutableSetOf<Int>()
         while (pending.isNotEmpty()) {
             val i = pending.removeFirst()
             if (!seen.add(i)) continue
-            readRequire(!code[i].readReads(register))
+            if (code[i].readReads(register)) return false
             pending.addAll(exceptionalSuccessors(i))
             if (!code[i].readWrites(register)) pending.addAll(normalSuccessors(i))
         }
+        return true
     }
+
+    fun deadFrom(start: Int, register: Int) = readRequire(deadAt(start, register))
 }
 
 /**
@@ -260,4 +264,92 @@ internal fun MutableMethod.injectReplyRead() {
         invoke-static {v0, v1}, $SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V
     """.trimIndent())
     addInstructions(dispatch - stage, "move-object/16 p13, v12")
+}
+
+internal const val DELIVERY_RECEIPT = "delivery_receipt"
+internal const val DELIVERY_RECEIPT_OP = "send_delivery_receipt_batch"
+internal const val DELIVERY_RECEIPT_TAG = "DefaultSendDeliveryReceiptManager"
+internal const val DELIVERY_RECEIPT_TOPIC = "/t_dr_batch"
+
+/**
+ * Delivered is sent from one batch manager, named by the op it publishes rather than by its obfuscated class. Its two
+ * callers, the ordinary send and the retry task, both land here, so the one hook covers every Delivered Messenger
+ * reports over this transport. Encrypted chats answer on their own msys path and are left alone.
+ */
+internal fun Method.isDeliveryReceiptSend() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
+    parameterTypes.size == 4 && parameterTypes[0].toString() == FB_USER_SESSION &&
+    stringLiterals().containsAll(setOf(DELIVERY_RECEIPT_OP, DELIVERY_RECEIPT_TAG, DELIVERY_RECEIPT_TOPIC))
+
+internal fun findDeliveryReceipt(classes: Iterable<ClassDef>): List<Method> =
+    classes.flatMap { it.methods }.filter { it.isDeliveryReceiptSend() }
+
+/** Where the batch leaves its holder: the drain, the register it lands in, the clearing store and the empty check. */
+private class DeliverySeam(val merge: Int, val batch: Int, val cleared: Int, val zero: Int, val gate: Int)
+
+/**
+ * The sender takes the lock, merges whatever is waiting with the batch it was handed, clears the holder and releases
+ * the lock, then returns when the merge came back empty. Everything after that is this batch alone.
+ *
+ * The same merge runs a second time when the send fails and the batch goes back in the holder, so the call alone
+ * doesn't name the seam. Only the drain clears the holder and gates on what came back, and only one place does.
+ */
+private fun Method.deliverySeam(): DeliverySeam? {
+    val code = readCode()
+    val merges = code.withIndex().filter { (_, insn) ->
+        insn.opcode == Opcode.INVOKE_STATIC && (insn.readRef() as? MethodReference)?.let { ref ->
+            val held = ref.returnType
+            held.startsWith("L") && ref.parameterTypes.map { it.toString() } == listOf(held, held)
+        } == true
+    }.map { it.index }
+    return merges.mapNotNull { merge ->
+        val held = (code[merge].readRef() as MethodReference).returnType
+        val moved = code.getOrNull(merge + 1)
+        if (moved?.opcode != Opcode.MOVE_RESULT_OBJECT || (moved as OneRegisterInstruction).registerA > 15) return@mapNotNull null
+        val cleared = code.withIndex().drop(merge + 2).firstOrNull { (_, insn) ->
+            insn.opcode == Opcode.IPUT_OBJECT && (insn.readRef() as? FieldReference)?.type == held
+        } ?: return@mapNotNull null
+        if (code.getOrNull(cleared.index + 1)?.opcode != Opcode.MONITOR_EXIT) return@mapNotNull null
+        val gate = cleared.index + 2
+        val branch = code.getOrNull(gate) ?: return@mapNotNull null
+        if (branch.opcode != Opcode.IF_EQZ || (branch as OneRegisterInstruction).registerA != moved.registerA) return@mapNotNull null
+        DeliverySeam(merge, moved.registerA, cleared.index, (cleared.value as TwoRegisterInstruction).registerA, gate)
+    }.singleOrNull()
+}
+
+/**
+ * The seam one past the empty check. The batch is out of the holder and the lock is already released there, so an
+ * early return drops these receipts instead of letting them pile up for the next send.
+ */
+internal fun MutableMethod.validateDeliveryReceipt(): Int {
+    readRequire(isDeliveryReceiptSend(), "the batch payload moved out of ${hookId()}")
+    val seam = deliverySeam()
+    readRequire(seam != null, "no empty-batch return in ${hookId()}")
+    val at = seam!!.gate + 1
+    val flow = ReadFlow(this)
+    val c = flow.code
+    // The holder has to be cleared with a register a const zero proves zero on every path into the store.
+    val zeroed = flow.definitionsAt(seam.cleared, seam.zero).singleOrNull() ?: -1
+    readRequire(zeroed >= 0 && c[zeroed].opcode == Opcode.CONST_4 &&
+        (c[zeroed] as NarrowLiteralInstruction).narrowLiteral == 0, "the batch holder isn't cleared")
+    readRequire(flow.definitionsAt(at, seam.batch) == setOf(seam.merge + 1), "the batch reaches the send from elsewhere")
+    // Insertion can stretch a try that ended at the old next instruction over the new throwing call, and the
+    // handler past the monitor exit would release a monitor this thread no longer holds.
+    readRequire((seam.gate..at).none { flow.protected(it) }, "the empty check sits inside a try")
+    readRequire(at !in jumpTargets(), "a jump lands on the empty-batch exit")
+    readRequire(!flow.reaches(0, at, setOf(seam.gate)), "the send is reachable without the empty check")
+    val exit = c.branchTarget(seam.gate)
+    readRequire(exit >= 0 && c[exit].opcode == Opcode.RETURN_VOID, "the empty-batch branch stopped being a bare return")
+    flow.deadFrom(at, 0)
+    validateSwitch()
+    return at
+}
+
+internal fun MutableMethod.injectDeliveryReceipt() {
+    val at = validateDeliveryReceipt()
+    addInstructionsWithLabels(at, """
+        invoke-static {}, $SETTINGS->hideDeliveryReceipts()Z
+        move-result v0
+        if-eqz v0, :stock_delivery
+        return-void
+    """.trimIndent(), ExternalLabel("stock_delivery", getInstruction(at)))
 }

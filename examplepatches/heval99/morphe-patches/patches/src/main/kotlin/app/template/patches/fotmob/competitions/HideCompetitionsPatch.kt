@@ -1,6 +1,6 @@
 package app.template.patches.fotmob.competitions
 
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.fotmob.controls.FotMobControlsCategory
 import app.template.patches.fotmob.controls.fotMobControls
 import app.template.patches.fotmob.countries.COMPETITION_FILTER

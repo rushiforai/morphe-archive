@@ -120,6 +120,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting KEEP_CAPTIONS_CLEAR_DISPLAY = new BooleanSetting("keep_captions_clear_display", FALSE);
     public static final IntegerSetting CAPTION_CLEAR_DISPLAY_OFFSET = new IntegerSetting(
             "caption_clear_display_offset", 0, Setting.parent(KEEP_CAPTIONS_CLEAR_DISPLAY)).withRange(0, 300);
+    /** Where the kept caption sits in Clear display: "tiktok" at TikTok's own caption spot, "bottom" lower, where the description was (#428). */
+    public static final StringSetting CAPTION_CLEAR_DISPLAY_SPOT = new StringSetting(
+            "caption_clear_display_spot", "tiktok", false, Setting.parent(KEEP_CAPTIONS_CLEAR_DISPLAY));
     /** The Accessibility page's Captions switch and the caption controls, where TikTok leaves them off (CaptionsAvailable). */
     public static final BooleanSetting KEEP_CAPTIONS_AVAILABLE = new BooleanSetting("keep_captions_available", FALSE, true);
     public static final BooleanSetting ALLOW_SCREEN_CAPTURE = new BooleanSetting("allow_screen_capture", FALSE, true);
@@ -170,6 +173,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_WITHOUT_SOUND =
             new BooleanSetting("download_without_sound", FALSE);
     public static final BooleanSetting DOWNLOAD_PROGRESS = new BooleanSetting("download_progress", false);
+    /** Android's share sheet on the saved file once a video or story save finishes, in place of the banner (#423). */
+    public static final BooleanSetting SHARE_AFTER_SAVE = new BooleanSetting("share_after_save", FALSE);
     /** The Share to sheet TikTok opens a few seconds after its own downloader saves a video. */
     public static final BooleanSetting SKIP_POST_DOWNLOAD_SHARE_SHEET =
             new BooleanSetting("skip_post_download_share_sheet", FALSE);
@@ -330,6 +335,15 @@ public class Settings extends BaseSettings {
     /** Cover the window with the whole video by stretching it instead of cropping (#406). */
     public static final BooleanSetting STRETCH_VIDEO_TO_SCREEN =
             new BooleanSetting("stretch_video_to_screen", FALSE);
+    /** Cover the window with half the crop of fill and half the stretch of stretch (#421). */
+    public static final BooleanSetting BLEND_VIDEO_TO_SCREEN =
+            new BooleanSetting("blend_video_to_screen", FALSE);
+    /**
+     * Cover the window with the middle of the video kept at its own shape (#421). TikTok picks
+     * the view it plays into as the player starts, so it takes a restart.
+     */
+    public static final BooleanSetting KEEP_MIDDLE_VIDEO_TO_SCREEN =
+            new BooleanSetting("keep_middle_video_to_screen", FALSE, true);
     public static final BooleanSetting UNCAP_REFRESH_RATE =
             new BooleanSetting("uncap_refresh_rate", FALSE);
     /**
@@ -631,6 +645,8 @@ public class Settings extends BaseSettings {
      * accounts that press is TikTok's account switcher, which this takes over while it's on.
      */
     public static final BooleanSetting PROFILE_TAB_OPENS_WATCH_HISTORY = new BooleanSetting("profile_tab_opens_watch_history", FALSE);
+    /** A long press on the Profile tab opens TikTok's Activity center (#425), while Watch history's is off. */
+    public static final BooleanSetting PROFILE_TAB_OPENS_ACTIVITY_CENTER = new BooleanSetting("profile_tab_opens_activity_center", FALSE);
     /**
      * Holding the Profile tab opens TikTok's account switcher on accounts where TikTok left that
      * hold off (#388). TikTok's switch_account_gesture experiment answers yes, which is what puts
@@ -811,6 +827,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_LIVE_CLEAR_SCREEN = new BooleanSetting("keep_live_clear_screen", FALSE);
     /**
+     * Gives every LIVE room TikTok's full screen button, which it attaches only in LIVE Studio
+     * and screen share rooms (#57); the LIVE controls patch. TikTok still shows the button only
+     * while the room's video is wide. Read as each room loads its widgets, so the next room
+     * follows a change.
+     */
+    public static final BooleanSetting OFFER_LIVE_FULL_SCREEN = new BooleanSetting("offer_live_full_screen", FALSE);
+    /**
      * Opens LIVE panels in TikTok's dark LIVE theme while TikTok is in dark mode (#159); the LIVE
      * controls patch. Read as each panel opens, so the next panel follows a change. The provider
      * answer alone only turned the panels' navigation bar dark on the S25, so each themed
@@ -850,6 +873,29 @@ public class Settings extends BaseSettings {
      * than 8 as 8. Read as tapping starts, so no restart.
      */
     public static final StringSetting LIVE_AUTO_TAP_RATE = new StringSetting("live_auto_tap_rate", "4");
+    /**
+     * Alerts you when your name comes up in a LIVE (#424); the LIVE controls patch. Read on each
+     * message the room gets, so no restart.
+     */
+    public static final BooleanSetting LIVE_NAME_ALERTS = new BooleanSetting("live_name_alerts", FALSE);
+    /**
+     * More names for LIVE name alerts to listen for, separated by commas (#424). The handle and
+     * TikTok name are always on the list. Read within seconds of a change, so no restart.
+     */
+    public static final StringSetting LIVE_NAME_ALERT_NAMES = new StringSetting("live_name_alert_names", "");
+    /**
+     * LIVE name alerts also listen to the room's sound through the phone's speech recognition
+     * (#424). Starts with the next room, so no restart.
+     */
+    public static final BooleanSetting LIVE_NAME_ALERTS_LISTEN =
+            new BooleanSetting("live_name_alerts_listen", FALSE, false, Setting.parent(LIVE_NAME_ALERTS));
+    /**
+     * Set when the phone's speech recognition left the LIVE's sound unread, which means it
+     * listens to the microphone instead (#424). Listening stays off until the switch is turned
+     * off and on again. Not a choice, so a backup leaves it out.
+     */
+    public static final BooleanSetting LIVE_LISTEN_SOUND_IGNORED =
+            new BooleanSetting("live_listen_sound_ignored", FALSE, false, false);
     /**
      * Plays the audio TikTok mutes on a post whose sound was pulled; the Keep pulled sounds
      * patch. Read as each video starts, so no restart.
@@ -1451,6 +1497,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("ghost_hide_profile_visits", TRUE, false, Setting.parent(GHOST_MODE));
     public static final BooleanSetting GHOST_HIDE_TYPING =
             new BooleanSetting("ghost_hide_typing", TRUE, false, Setting.parent(GHOST_MODE));
+    // Holds back a LIVE room's enter request, which is what puts you on the host's viewer list
+    // (#420). Off by default, like Hide online status, and read at each request, so no restart.
+    public static final BooleanSetting GHOST_HIDE_LIVE_VIEWS =
+            new BooleanSetting("ghost_hide_live_views", FALSE, false, Setting.parent(GHOST_MODE));
     public static final BooleanSetting DISABLE_ANALYTICS = new BooleanSetting("disable_analytics", FALSE);
     // Stop on-device AI profiling, in the default selection with this off. TikTok starts the
     // engine during launch, so a restart applies it.

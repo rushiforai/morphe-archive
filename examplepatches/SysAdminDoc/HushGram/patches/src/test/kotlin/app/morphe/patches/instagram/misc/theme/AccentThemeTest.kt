@@ -503,6 +503,78 @@ class AccentThemeTest {
         assertTrue(again.message, again.message!!.contains("already have a HushGramClassicBackgrounds_dark"))
     }
 
+    /**
+     * The Reels tab's bar takes the page's shade from every dark background style, so it no longer turns
+     * Prism black as the tab opens (#187), and no light style touches it, since Instagram keeps that tab
+     * dark with white icons on a light theme.
+     */
+    @Test
+    fun theReelsTabBarTakesThePageShadeInDarkStylesOnly() {
+        val uses = setOf(AccentUse("igds_color_link", AccentRole.LINK_ON_DARK, 0xff))
+        val attrs = declaring(listOf("igds_color_primary_background", REELS_TAB_BAR))
+        val colors = parse("<resources />")
+        val colorsV31 = parse("<resources />")
+        val styles = parse("<resources />")
+
+        addAccentResources(uses, attrs, colors, styles)
+        addWallpaperResources(uses, attrs, colors, colorsV31, styles)
+
+        val accent = styleItems(styles, "HushGramAccentBackgrounds_")
+        assertEquals(
+            "the Reels tab bar goes with the page",
+            "@color/${backgroundColor(WALLPAPER, IconTheme.DARK, BackgroundStep.BASE)}",
+            accent.getValue(backgroundStyle(WALLPAPER, IconTheme.DARK)).toMap()[REELS_TAB_BAR],
+        )
+        assertEquals(
+            "@color/${backgroundColor("PURPLE", IconTheme.DARK, BackgroundStep.BASE)}",
+            accent.getValue(backgroundStyle("PURPLE", IconTheme.DARK)).toMap()[REELS_TAB_BAR],
+        )
+        assertEquals(
+            "@color/${classicColor(IconTheme.DARK, BackgroundStep.BASE)}",
+            styleItems(styles, "HushGramClassicBackgrounds_").getValue(classicStyle(IconTheme.DARK)).toMap()[REELS_TAB_BAR],
+        )
+        val light = (accent.filterKeys { it.endsWith("_light") } + styleItems(styles, "HushGramClassicBackgrounds_light")).values
+        assertTrue("the light styles leave the Reels tab dark", light.isNotEmpty() && light.none { items -> items.any { it.first == REELS_TAB_BAR } })
+        assertTrue("the light styles still paint the page", light.all { items -> items.any { it.first == "igds_color_primary_background" } })
+    }
+
+    /**
+     * A profile's Edit profile and Share profile buttons, and the other gray secondary buttons, take the
+     * top shade from every background style, dark and light, instead of Prism's grays (#187).
+     */
+    @Test
+    fun theSecondaryButtonsTakeTheTopShade() {
+        val uses = setOf(AccentUse("igds_color_link", AccentRole.LINK_ON_DARK, 0xff))
+        val attrs = declaring(listOf("igds_color_primary_background") + SECONDARY_BUTTONS)
+        val colors = parse("<resources />")
+        val colorsV31 = parse("<resources />")
+        val styles = parse("<resources />")
+
+        addAccentResources(uses, attrs, colors, styles)
+        addWallpaperResources(uses, attrs, colors, colorsV31, styles)
+
+        val accent = styleItems(styles, "HushGramAccentBackgrounds_")
+        val classic = styleItems(styles, "HushGramClassicBackgrounds_")
+        assertEquals(2, SECONDARY_BUTTONS.size)
+        for (theme in IconTheme.values()) {
+            for (button in SECONDARY_BUTTONS) {
+                assertEquals(
+                    "$button, $theme",
+                    "@color/${backgroundColor(WALLPAPER, theme, BackgroundStep.TOP)}",
+                    accent.getValue(backgroundStyle(WALLPAPER, theme)).toMap()[button],
+                )
+                assertEquals(
+                    "@color/${backgroundColor("PURPLE", theme, BackgroundStep.TOP)}",
+                    accent.getValue(backgroundStyle("PURPLE", theme)).toMap()[button],
+                )
+                assertEquals(
+                    "@color/${classicColor(theme, BackgroundStep.TOP)}",
+                    classic.getValue(classicStyle(theme)).toMap()[button],
+                )
+            }
+        }
+    }
+
     /** Text stays Instagram's color, so every color's backgrounds have to leave that text easy to read on them (#187, #639). */
     @Test
     fun instagramsTextStaysReadableOnEveryBackground() {

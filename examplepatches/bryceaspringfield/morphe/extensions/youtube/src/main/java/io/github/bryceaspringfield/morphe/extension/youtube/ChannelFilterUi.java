@@ -227,7 +227,7 @@ final class ChannelFilterUi {
                     fill[0].run();
                 }));
             });
-            dialog.show();
+            Ui.show(dialog);
         } catch (Throwable t) {
             Logger.printException(() -> "YouTube Extras: channel filter list failed", t);
         }
@@ -250,7 +250,7 @@ final class ChannelFilterUi {
         box.addView(edit);
         ScrollView scroll = new ScrollView(ctx);
         scroll.addView(box);
-        new AlertDialog.Builder(ctx)
+        Ui.show(new AlertDialog.Builder(ctx)
                 .setTitle(Strings.get("cf_text"))
                 .setView(scroll)
                 .setPositiveButton(Strings.get("cf_save"), (d, w) -> {
@@ -258,7 +258,7 @@ final class ChannelFilterUi {
                     onSaved.run();
                 })
                 .setNegativeButton(Strings.get("cf_cancel"), null)
-                .show();
+                .create());
     }
 
     private static TextView label(Context ctx, String key) {
@@ -342,10 +342,10 @@ final class ChannelFilterUi {
             Button pick = new Button(ctx, null, android.R.attr.borderlessButtonStyle);
             pick.setText(Strings.get("cf_pick"));
             pick.setAllCaps(false);
-            pick.setOnClickListener(v -> new AlertDialog.Builder(ctx)
+            pick.setOnClickListener(v -> Ui.show(new AlertDialog.Builder(ctx)
                     .setTitle(Strings.get("cf_pick"))
                     .setItems(shown.toArray(new String[0]), (d, w) -> channel.setText(ids.get(w)))
-                    .show());
+                    .create()));
             box.addView(pick, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
 
@@ -430,6 +430,6 @@ final class ChannelFilterUi {
             dialog.dismiss();
             onSave.run();
         }));
-        dialog.show();
+        Ui.show(dialog);
     }
 }

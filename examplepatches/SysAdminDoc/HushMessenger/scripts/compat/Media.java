@@ -952,6 +952,237 @@ final class Media {
         return tray == null ? List.of() : List.of(items, editors.get(0), tray);
     }
 
+    static final String TEXT_INPUT_VIEW = "Lcom/facebook/primitive/textinput/TextInputView;";
+    static final String PASTE_INPUT_CONNECTION =
+        TEXT_INPUT_VIEW + "->onCreateInputConnection(Landroid/view/inputmethod/EditorInfo;)Landroid/view/inputmethod/InputConnection;";
+    static final String CONTENT_INFO = "Landroid/view/ContentInfo;";
+    static final String PASTE_CLIP = "Landroid/content/ClipData;";
+    static final String PASTE_CHAT_RESULT = "onActivityResult(IILandroid/content/Intent;)V";
+    static final String WEAK_REFERENCE = "Ljava/lang/ref/WeakReference;";
+    static final String REDEX_NAME = "__redex_internal_original_name";
+    static final String CHAT_FRAGMENT_NAME = "MsysThreadViewFragment";
+    static final Set<Opcode> PASTE_ENDS =
+        Set.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW);
+    static final Set<Opcode> PASTE_GOTOS = Set.of(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32);
+
+    /** What can run right after [at]: none after a return or throw, null after a switch. Mirrors galleryNext in ExternalGallery.kt. */
+    static List<Integer> pasteNext(List<Instruction> code, int at) {
+        var i = code.get(at);
+        if (PASTE_ENDS.contains(i.getOpcode())) return List.of();
+        if (i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) return null;
+        if (i instanceof OffsetInstruction) {
+            int target = mediaTarget(code, at);
+            if (target < 0) return null;
+            return PASTE_GOTOS.contains(i.getOpcode()) ? List.of(target) : List.of(at + 1, target);
+        }
+        return List.of(at + 1);
+    }
+
+    /** Every instruction the code can run from [start] on, or null when that takes a switch or runs off the end. Mirrors galleryReach. */
+    static Set<Integer> pasteReach(List<Instruction> code, int start) {
+        var reach = new LinkedHashSet<Integer>();
+        var pending = new ArrayDeque<Integer>();
+        pending.add(start);
+        while (!pending.isEmpty()) {
+            int i = pending.removeFirst();
+            if (i < 0 || i >= code.size()) return null;
+            if (!reach.add(i)) continue;
+            var next = pasteNext(code, i);
+            if (next == null) return null;
+            pending.addAll(next);
+        }
+        return reach;
+    }
+
+    /** Whether this writes [register], whole or as half of a wide pair. Mirrors galleryWrites. */
+    static boolean pasteWrites(Instruction i, int register) {
+        if (!i.getOpcode().setsRegister() || !(i instanceof OneRegisterInstruction one)) return false;
+        return one.getRegisterA() == register || (i.getOpcode().setsWideRegister() && one.getRegisterA() + 1 == register);
+    }
+
+    /** Every register this may read, erring toward more. Mirrors galleryReads. */
+    static Set<Integer> pasteReads(Instruction i) {
+        String op = i.getOpcode().name();
+        boolean onlyWrites = i.getOpcode().setsRegister() && i.getOpcode() != Opcode.CHECK_CAST && !op.endsWith("_2ADDR");
+        var read = new ArrayList<Integer>();
+        if (i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction) read.addAll(bubbleArgs(i));
+        else if (i instanceof ThreeRegisterInstruction three) {
+            if (!onlyWrites) read.add(three.getRegisterA());
+            read.add(three.getRegisterB());
+            read.add(three.getRegisterC());
+        } else if (i instanceof TwoRegisterInstruction two) {
+            if (!onlyWrites) read.add(two.getRegisterA());
+            read.add(two.getRegisterB());
+        } else if (i instanceof OneRegisterInstruction one) {
+            if (!onlyWrites) read.add(one.getRegisterA());
+        }
+        boolean wide = op.contains("WIDE") || op.contains("LONG") || op.contains("DOUBLE");
+        var out = new HashSet<Integer>();
+        for (int r : read) { out.add(r); if (wide) out.add(r + 1); }
+        return out;
+    }
+
+    /** Whether every way on from [start] writes [register] before it reads it, or ends without touching it. Mirrors galleryFree. */
+    static boolean pasteFree(List<Instruction> code, int start, int register) {
+        var seen = new HashSet<Integer>();
+        var pending = new ArrayDeque<Integer>();
+        pending.add(start);
+        while (!pending.isEmpty()) {
+            int i = pending.removeFirst();
+            if (!seen.add(i)) continue;
+            if (pasteReads(code.get(i)).contains(register)) return false;
+            if (!pasteWrites(code.get(i), register)) pending.addAll(pasteNext(code, i));
+        }
+        return true;
+    }
+
+    /** The listener's own method: one non-static (View, payload) -> payload with a body. Mirrors pasteListener in PastePhoto.kt. */
+    static Method pasteListener(ClassDef cls) {
+        Method only = null;
+        for (var m : cls.getMethods()) {
+            if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || "<init>".equals(m.getName()) || m.getImplementation() == null) continue;
+            var params = new ArrayList<String>();
+            for (var p : m.getParameterTypes()) params.add(p.toString());
+            if (params.size() != 2 || !"Landroid/view/View;".equals(params.get(0)) || !params.get(1).equals(m.getReturnType())) continue;
+            if (only != null) return null;
+            only = m;
+        }
+        return only;
+    }
+
+    /** The payload androidx wraps pasted content in, matched by shape. Mirrors isPastePayload in PastePhoto.kt. */
+    static boolean pastePayload(ClassDef cls) {
+        boolean maker = false;
+        boolean unwrap = false;
+        for (var m : cls.getMethods()) {
+            var params = new ArrayList<String>();
+            for (var p : m.getParameterTypes()) params.add(p.toString());
+            boolean isStatic = AccessFlags.STATIC.isSet(m.getAccessFlags());
+            if (isStatic && cls.getType().equals(m.getReturnType()) && params.equals(List.of(CONTENT_INFO))) maker = true;
+            if (!isStatic && CONTENT_INFO.equals(m.getReturnType()) && params.isEmpty()) unwrap = true;
+        }
+        return maker && unwrap;
+    }
+
+    /** The clip read the listener opens with: the payload's own field, read off the parameter. Mirrors pasteClipRead. */
+    static FieldReference pasteClipField(Method listener, String payload) {
+        var code = instructions(listener);
+        if (listener.getImplementation() == null) return null;
+        int register = parameterRegister(listener, 2);
+        for (int i = 0; i < code.size() - 1; i++) {
+            if (code.get(i).getOpcode() != Opcode.IGET_OBJECT || ((TwoRegisterInstruction) code.get(i)).getRegisterB() != register) continue;
+            if (!(((ReferenceInstruction) code.get(i)).getReference() instanceof FieldReference field)) continue;
+            if (!payload.equals(field.getDefiningClass())) continue;
+            int got = ((TwoRegisterInstruction) code.get(i)).getRegisterA();
+            var call = code.get(i + 1);
+            if (call.getOpcode() != Opcode.INVOKE_INTERFACE || !(call instanceof ReferenceInstruction ri) ||
+                !(ri.getReference() instanceof MethodReference getter)) continue;
+            if (((FiveRegisterInstruction) call).getRegisterCount() != 1 || ((FiveRegisterInstruction) call).getRegisterC() != got) continue;
+            if (!getter.getDefiningClass().equals(field.getType()) || !getter.getParameterTypes().isEmpty() ||
+                !PASTE_CLIP.equals(getter.getReturnType())) continue;
+            return field;
+        }
+        return null;
+    }
+
+    /** The listener's hook fits when it has a local for the clip and nothing reads that local first. Mirrors pasteHooked. */
+    static boolean pasteHooked(Method listener) {
+        if (listener.getImplementation() == null) return false;
+        var code = instructions(listener);
+        return parameterRegister(listener, 0) >= 1 && parameterRegister(listener, 2) <= 15 &&
+            pasteReach(code, 0) != null && pasteFree(code, 0, 0);
+    }
+
+    /** The chat fragment's own result handler, the one that makes the composer's activity result event. Mirrors pasteResult. */
+    static boolean pasteResultMaker(Method method) {
+        if (!hookId(method).equals(method.getDefiningClass() + "->" + PASTE_CHAT_RESULT)) return false;
+        for (var i : instructions(method)) {
+            if (i.getOpcode() != Opcode.INVOKE_STATIC || !(i instanceof ReferenceInstruction ri) ||
+                !(ri.getReference() instanceof MethodReference maker)) continue;
+            if (!ACTIVITY_RESULT_EVENT.equals(maker.getReturnType())) continue;
+            var params = new ArrayList<String>();
+            for (var p : maker.getParameterTypes()) params.add(p.toString());
+            if (params.equals(List.of("Landroid/content/Intent;", "I", "I"))) return true;
+        }
+        return false;
+    }
+
+    /** The chat fragment's own onViewCreated, where the chat first has a view. Mirrors isChatJumpView in ChatJump.kt. */
+    static boolean chatJumpView(Method method) {
+        var params = new ArrayList<String>();
+        for (var p : method.getParameterTypes()) params.add(p.toString());
+        return !AccessFlags.STATIC.isSet(method.getAccessFlags()) && "onViewCreated".equals(method.getName()) &&
+            "V".equals(method.getReturnType()) && params.equals(List.of("Landroid/view/View;", "Landroid/os/Bundle;")) &&
+            method.getImplementation() != null;
+    }
+
+    /**
+     * paste_photo: the listener the chat's text input hands pasted content to, and the chat fragment's view handover. The
+     * text input builds the listener itself, so it's whichever class it makes that the content route's shape fits: a weak
+     * reference to its view, and one method taking a view and androidx's payload whose body reads the clip off it. The
+     * chat fragment also has to carry the result handler the extension hands the photo to. Mirrors findPastePhoto in
+     * PastePhoto.kt.
+     */
+    static List<Method> pastePhotoHooks(List<ClassDef> classes) {
+        var byType = new HashMap<String, ClassDef>();
+        for (var cls : classes) byType.put(cls.getType(), cls);
+        var input = byType.get(TEXT_INPUT_VIEW);
+        if (input == null) return List.of();
+        Method create = null;
+        for (var m : input.getMethods()) {
+            if (!PASTE_INPUT_CONNECTION.equals(hookId(m))) continue;
+            if (create != null) return List.of();
+            create = m;
+        }
+        if (create == null) return List.of();
+        var built = new LinkedHashSet<String>();
+        for (var i : instructions(create)) if (i.getOpcode() == Opcode.NEW_INSTANCE && typeOf(i) != null) built.add(typeOf(i));
+        var listeners = new ArrayList<Method>();
+        for (var type : built) {
+            var cls = byType.get(type);
+            if (cls == null || cls.getInterfaces().size() != 1) continue;
+            Field field = null;
+            int fields = 0;
+            for (var f : cls.getFields()) { field = f; fields++; }
+            if (fields != 1 || !WEAK_REFERENCE.equals(field.getType())) continue;
+            boolean ctor = false;
+            for (var m : cls.getMethods()) {
+                var params = new ArrayList<String>();
+                for (var p : m.getParameterTypes()) params.add(p.toString());
+                if ("<init>".equals(m.getName()) && params.equals(List.of(WEAK_REFERENCE))) ctor = true;
+            }
+            if (!ctor) continue;
+            var listener = pasteListener(cls);
+            if (listener == null) continue;
+            var payload = byType.get(listener.getReturnType());
+            if (payload == null || !pastePayload(payload)) continue;
+            if (pasteClipField(listener, payload.getType()) == null) continue;
+            if (!pasteHooked(listener)) continue;
+            listeners.add(listener);
+        }
+        if (listeners.size() != 1) return List.of();
+        ClassDef chat = null;
+        for (var cls : classes) {
+            String original = null;
+            for (var f : cls.getFields()) if (REDEX_NAME.equals(f.getName())) {
+                original = f.getInitialValue() instanceof StringEncodedValue s ? s.getValue() : null;
+                break;
+            }
+            if (!CHAT_FRAGMENT_NAME.equals(original)) continue;
+            if (chat != null) return List.of();
+            chat = cls;
+        }
+        if (chat == null) return List.of();
+        Method view = null;
+        Method result = null;
+        for (var m : chat.getMethods()) {
+            if (chatJumpView(m)) { if (view != null) return List.of(); view = m; }
+            if (pasteResultMaker(m)) { if (result != null) return List.of(); result = m; }
+        }
+        if (view == null || result == null) return List.of();
+        return List.of(listeners.get(0), view);
+    }
+
     static final String PRESENCE_ITEM = "Lcom/facebook/presence/model/PresenceItem;";
     static final Set<String> PRESENCE_MANAGERS = Set.of("Lcom/facebook/presence/DefaultPresenceManager;", "Lcom/facebook/presence/PresenceManagerV2;");
     static final List<String> PRESENCE_ITEM_PARAMS = List.of("Lcom/facebook/user/model/UserKey;", "Ljava/lang/Long;", "Ljava/lang/Long;", "Ljava/lang/String;",

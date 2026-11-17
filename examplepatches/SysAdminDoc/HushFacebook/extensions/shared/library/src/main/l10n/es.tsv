@@ -500,6 +500,10 @@ Hide Like on comments	Ocultar Me gusta en los comentarios
 Takes Like off the row under comments. Reply and the reaction count stay.	Quita Me gusta de la fila bajo los comentarios. Responder y el número de reacciones se quedan.
 Hide Reply on comments	Ocultar Responder en los comentarios
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Quita Responder de la fila bajo los comentarios. Ver respuestas, Me gusta y el número de reacciones se quedan.
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	Ocultar insignias como Fan destacado en los comentarios
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	Quita Fan destacado, Suscriptor y las demás insignias de los nombres en los comentarios. El nombre y el comentario se quedan.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Solo Me gusta
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1060,6 +1064,26 @@ Dark box behind open captions	Fondo oscuro detrás de las descripciones abiertas
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Una descripción de reel abierta aparece sobre un recuadro oscuro, como los subtítulos, para que se lea bien sobre un video claro. El cambio se aplica desde el siguiente reel.
 Dark box behind folded captions	Fondo oscuro detrás de las descripciones plegadas
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Una descripción de reel plegada, la corta con más al final, aparece sobre el mismo recuadro oscuro. Activa ambos para que todas las descripciones tengan recuadro. El cambio se aplica desde el siguiente reel.
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	Fondo oscuro detrás de los nombres de reels
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	El nombre en la parte inferior de un reel aparece sobre el mismo recuadro oscuro, para que se lea bien sobre un video brillante. El cambio se aplica desde el siguiente reel.
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	Oscuridad de los recuadros
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Qué tan oscuros son los recuadros detrás de las descripciones y los nombres, en porcentaje, de %1$s a %2$s. Déjalo vacío para %3$s.
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	Los recuadros oscuros son negros al %1$s por ciento. Escribe un número para cambiarlo.
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	Los recuadros oscuros son negros al %1$s por ciento.
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	Bordes suaves de los recuadros
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	Los recuadros oscuros se desvanecen en sus bordes en lugar de terminar de golpe. El cambio se aplica desde el siguiente reel o historia.
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	Fondo oscuro detrás de los nombres de historias
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	Los nombres en la fila de historias y en una historia abierta aparecen sobre un recuadro oscuro, para que una historia brillante no los oculte. Oscuridad de los recuadros, en Reels y Watch, define qué tan oscuro. El cambio se aplica la próxima vez que se carguen las historias.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quién compartió
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Añade Ver quién compartió al menú de una publicación. Abre la lista de Facebook de las personas que la compartieron.
@@ -2281,6 +2305,8 @@ Playback speed	Velocidad de reproducción
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Agrega a los videos del feed botones que retroceden o adelantan 10 segundos, como el reproductor de Facebook. Los videos en vivo y los anuncios conservan sus propios controles. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Agrega a los videos del feed un botón que muestra su velocidad. Cada toque pasa a la siguiente: 1x, 1.25x, 1.5x, 2x y luego 0.5x. Los videos en vivo y los anuncios conservan sus propios controles. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Muestra cuánto llevas de un video del feed en el extremo izquierdo de su barra de progreso y cuánto falta en el derecho. Necesita “Barra de progreso en videos del feed” activado.
+Full length on the seek bar	Duración total en la barra de progreso
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	Muestra la duración total de un video del feed en el extremo derecho de su barra de progreso, en lugar del tiempo que falta. Necesita “Tiempos en la barra de progreso” activado.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Añade un botón a los videos del feed que abre el video en el reproductor completo de Facebook, con todos sus controles. Los videos en directo también lo tienen. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	Botón de reproductor completo junto al altavoz
@@ -2299,6 +2325,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Acerca la barra de progreso de un video del feed al borde inferior, junto con los botones de altavoz y de personas etiquetadas de Facebook. Necesita “Barra de progreso en videos del feed” activado.
 Seek bar on the bottom edge	Barra de progreso en el borde inferior
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Pone la barra de progreso de un video del feed justo en su borde inferior, para que no estorbe al desplazarte. Los botones de altavoz y de personas etiquetadas de Facebook suben para quedar encima de ella. Tiene prioridad sobre “Bajar la barra de progreso y el altavoz”. Necesita “Barra de progreso en videos del feed” activado.
+Thin line seek bar	Barra de progreso como línea fina
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Muestra la barra de progreso de un video del feed como una línea fina justo en su borde inferior, como la de Instagram, sin punto ni tiempos hasta que la arrastras. Los videos en vivo también la tienen mientras se puedan retroceder. Suelta en el extremo derecho para volver al vivo. Los botones de altavoz y de personas etiquetadas de Facebook suben para quedar encima de ella. Necesita “Barra de progreso en videos del feed” activado.
 Feed video position	Posición del video del feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Color de insignias
@@ -2740,6 +2768,10 @@ Not found yet	Aún no encontrado
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	Una lupa en la parte superior de los comentarios abre un cuadro de búsqueda que encuentra los comentarios con tus palabras.
 Open shared reels on their own	Abrir reels compartidos solos
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Un reel que abres desde un enlace en otra app o desde un chat se reproduce solo, sin más reels para deslizar después.
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	Ocultar la ventana de Agregar a amigos en reels compartidos
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	Al abrir un reel de alguien que aún no es tu amigo, ya no aparece una ventana que te pide agregarlo. El cambio se ve desde el próximo reel compartido.
 Light bars on the Reels tab	Barras claras en la pestaña Reels
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	En el modo claro, la pestaña Reels mantiene la misma barra de estado, barra superior y barra de pestañas claras que las demás pestañas, en lugar de oscurecerlas.
 Bar opacity	Opacidad de las barras
@@ -2873,3 +2905,19 @@ Clear mode	Modo despejado
 Scroll to next reel automatically	Pasar al siguiente reel automáticamente
 Transcript	Transcripción
 Audio and language	Audio e idioma
+Reset settings	Restablecer configuración
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	Devuelve cada interruptor y opción que guarda Exportar configuración a como vienen en una instalación nueva. Pausa, Registro de depuración y la búsqueda de actualizaciones se quedan como están.
+Undo the reset	Deshacer el restablecimiento
+Brings back the switches and choices you had before the last reset.	Recupera los interruptores y opciones que tenías antes del último restablecimiento.
+Couldn't reset the settings. Nothing was changed.	No se pudo restablecer la configuración. No se cambió nada.
+Your settings already match a new install.	Tu configuración ya es la de una instalación nueva.
+Resetting settings	Restableciendo la configuración
+Settings reset. Undo the reset puts yours back.	Configuración restablecida. Deshacer el restablecimiento recupera la tuya.
+Couldn't undo the reset. Nothing was changed.	No se pudo deshacer el restablecimiento. No se cambió nada.
+Putting your settings back	Recuperando tu configuración
+Your settings are back the way they were before the reset.	Tu configuración volvió a estar como antes del restablecimiento.
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	No se pudo terminar ni restaurar la configuración que tenías. Revisa los interruptores de esta pantalla.
+Show every reaction on comments	Mostrar todas las reacciones en los comentarios
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	Donde Facebook muestra solo la reacción principal de un comentario junto al número, deja Me gusta, Responder y todas las reacciones. Un cambio se ve en los comentarios que se muestren después.
+Move seen stories to the end	Mover las historias vistas al final
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	Las historias que ya viste pasan al final de la bandeja de historias, después de las que no has visto. Mientras Ocultar historias vistas esté activado, va primero. Se aplica cuando Facebook cargue la bandeja de nuevo.

@@ -1,8 +1,8 @@
 # Patches
 
-All 25 patches target Boost for Reddit 1.14.3 (`com.rubenmayayo.reddit`). Pick any combination in Morphe Manager.
+All 25 patches target Boost for Reddit 1.14.4 (`com.rubenmayayo.reddit`). Pick any combination in Morphe Manager, where they appear under these headers.
 
-## Look
+## Appearance
 
 - Material You: themes, glass surfaces, side panel, empty screens and compact metadata
 - Material dialogs (needs Material You)
@@ -22,18 +22,18 @@ All 25 patches target Boost for Reddit 1.14.3 (`com.rubenmayayo.reddit`). Pick a
 - Expand inline comment media
 - Swipe comment actions
 
-## Posts and media
+## Media
 
-- Swipe post actions
-- Hold to peek at media
 - Bottom gallery action buttons
+- Hold to peek at media
 - Polish media viewer
 
 ## Navigation
 
+- Swipe post actions
 - Predictive back navigation
 
-## Loading
+## Performance
 
 - HTTP/2 Reddit connection
 - Parallel content loading

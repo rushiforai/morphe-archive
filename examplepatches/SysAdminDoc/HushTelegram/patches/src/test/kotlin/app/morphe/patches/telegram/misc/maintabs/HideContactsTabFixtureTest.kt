@@ -136,6 +136,8 @@ class HideContactsTabFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val compact = context.resolveCompactBar(context.resolveMainTabs())
             assertNull("$name: ${compact.missing}", compact.missing)
+            val outline = context.resolveBarOutline(context.resolveMainTabs())
+            assertNull("$name: ${outline.missing}", outline.missing)
             assertEquals("$name: padding, corner and height as the main screen builds, then the width as the bar measures",
                 listOf(BAR_PADDING, BAR_CORNER, BAR_HEIGHT, BAR_MIN_WIDTH), compact.sizes.map { it.hook })
             assertEquals(name, listOf("createView", "createView", "createView", "onMeasure"), compact.sizes.map { it.method.name })
@@ -154,11 +156,14 @@ class HideContactsTabFixtureTest {
             for ((method, stock) in before) {
                 val what = "$name ${method.name}"
                 val own = compact.sizes.filter { it.method === method }.sortedBy { it.at }
+                // The bar's colors are registered in the same build, one instruction ahead of stock[glassAt].
+                val glassAt = if (method.name == outline.build!!.name && method.definingClass == outline.build.definingClass) outline.at else Int.MAX_VALUE
+                val glass = if (glassAt == Int.MAX_VALUE) 0 else 1
                 val after = method.controlBody()
-                assertEquals("$what: two instructions a size", stock.size + 2 * own.size, after.size)
+                assertEquals("$what: two instructions a size", stock.size + 2 * own.size + glass, after.size)
                 val flow = ControlFlow.of(method)
                 own.forEachIndexed { earlier, size ->
-                    val hook = size.at + 2 * earlier
+                    val hook = size.at + 2 * earlier + if (size.at > glassAt) 1 else 0
                     assertEquals(what, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT), listOf(after[hook].opcode, after[hook + 1].opcode))
                     assertEquals(what, size.hook, after[hook].controlRef())
                     assertEquals(what, listOf(size.register), after[hook].namedRegisters())
@@ -166,11 +171,74 @@ class HideContactsTabFixtureTest {
                     // Only Telegram's constant leads into the hook.
                     assertEquals(what, listOf(hook - 1), after.indices.filter { hook in flow.normal[it] || hook in flow.exceptional[it] })
                 }
-                assertStock(what, stock, after) { i -> i + 2 * own.count { it.at <= i } }
+                assertStock(what, stock, after) { i -> i + 2 * own.count { it.at <= i } + if (i >= glassAt) 1 else 0 }
             }
-            for (flag in listOf("hideContactsTab", "compactTabBar", "hideNewMessage")) {
+            for (flag in listOf("hideContactsTab", "compactTabBar", "hideNewMessage", "barOutline")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
+    @Test fun `the bar glass's colors are registered as the main screen makes them, and their outline answers ask the runtime`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val plan = context.resolveMainTabs()
+            val outline = context.resolveBarOutline(plan)
+            assertNull("$name: ${outline.missing}", outline.missing)
+            val compactInBuild = context.resolveCompactBar(plan).sizes.count { it.method.name == outline.build!!.name }
+            val stock = ImmutableMethod.of(outline.build!!).controlBody()
+            // One static call makes the colors, and the next instruction hands them to the call that makes the glass.
+            assertEquals(name, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT), listOf(stock[outline.at - 2].opcode, stock[outline.at - 1].opcode))
+            assertEquals(name, outline.factory, stock[outline.at - 2].controlRef())
+            val colors = stock[outline.at - 1].namedRegisters().single()
+            assertTrue(name, colors in stock[outline.at].namedRegisters())
+            assertEquals(name, outline.factory.substringAfterLast(')'), stock[outline.at - 2].call()!!.returnType.toString())
+            // Both answers are Telegram's zero, a color and a width.
+            assertEquals(name, listOf("I", "F"), listOf(outline.color!!.returnType, outline.width!!.returnType))
+            for (answer in listOf(outline.color, outline.width)) {
+                assertEquals(name, listOf(Opcode.CONST_4, Opcode.RETURN), answer.controlBody().map { it.opcode })
+                assertEquals(name, outline.factory.substringAfterLast(')'), answer.definingClass)
+            }
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+
+            val after = outline.build.controlBody()
+            assertEquals("$name: one instruction besides the compact bar's", stock.size + 1 + 2 * compactInBuild, after.size)
+            val hook = after.indices.single { after[it].controlRef() == BAR_GLASS }
+            assertEquals(name, Opcode.INVOKE_STATIC_RANGE, after[hook].opcode)
+            assertEquals(name, listOf(colors), after[hook].namedRegisters())
+            assertEquals(name, outline.factory, after[hook - 2].controlRef())
+            assertEquals(name, listOf(Opcode.MOVE_RESULT_OBJECT), listOf(after[hook - 1].opcode))
+            assertEquals(name, listOf(colors), after[hook - 1].namedRegisters())
+            for ((answer, runtime) in listOf(outline.color to BAR_OUTLINE_COLOR, outline.width to BAR_OUTLINE_WIDTH)) {
+                val body = answer.controlBody()
+                assertEquals(name, listOf(Opcode.CONST_4, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
+                assertEquals(name, runtime, body[1].controlRef())
+                // p0, the colors themselves, the second of two registers.
+                assertEquals(name, listOf(1), body[1].namedRegisters())
+                assertEquals(name, listOf(listOf(0), listOf(0)), listOf(body[2].namedRegisters(), body[3].namedRegisters()))
+            }
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "barOutline" }.controlBody()
+            assertEquals("$name: barOutline", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `colors that already draw an outline leave the outline switch out and the others in`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val outline = context.resolveBarOutline(context.resolveMainTabs())
+            assertNull("$name: ${outline.missing}", outline.missing)
+            outline.color!!.replaceInstruction(0, "const/4 v0, 0x1")
+            assertEquals(name, listOf("Hide Contacts tab: the bar's colors no longer leave the outline color at zero. " +
+                "The patch goes on without the bar outline."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertTrue("$name: the colors aren't registered", outline.build!!.controlBody().none { it.controlRef() == BAR_GLASS })
+            assertEquals("$name: the width keeps Telegram's zero", 2, outline.width!!.controlBody().size)
+            assertEquals("$name: the color keeps its own answer", 2, outline.color.controlBody().size)
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 1L, "barOutline" to 0L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
     }
@@ -226,9 +294,11 @@ class HideContactsTabFixtureTest {
                 val shown = plan.shown.controlBody().size
                 assertEquals(what, listOf("Hide Contacts tab: $reason. The patch goes on without the compact bar."),
                     PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
-                assertEquals("$what: the bar's sizes stay Telegram's", before, sized.map { method -> method.controlBody().map(::operands) })
+                // The outline still registers the bar's colors in the main screen's build, its one instruction there.
+                assertEquals("$what: the bar's sizes stay Telegram's", before,
+                    sized.map { method -> method.controlBody().filterNot { it.controlRef() == BAR_GLASS }.map(::operands) })
                 assertEquals("$what: the Contacts tab is still hidden each time the bar is set", shown + 1, plan.shown.controlBody().size)
-                for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 0L, "sideMenu" to 1L, "hideNewMessage" to 1L)) {
+                for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 0L, "sideMenu" to 1L, "hideNewMessage" to 1L, "barOutline" to 1L)) {
                     val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                     assertEquals("$what: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
                 }
@@ -465,6 +535,12 @@ class HideContactsTabFixtureTest {
         assertEquals("${build.name}: one main screen", 1, screens.size)
         val loaded = LinkedHashMap<String, ClassDef>()
         screens.forEach { loaded[it.type] = it }
+        val made = FixtureDex.namedBy(build) {
+            screens.single().methods.filter(::isMainBuild).flatMap { method ->
+                method.controlBody().filter { it.opcode == Opcode.INVOKE_STATIC }.mapNotNull { it.call()?.returnType }
+            }.filter { it.startsWith("L") && isAppType(it) }.toSet()
+        }
+        loaded.putAll(FixtureDex.classes(build, made))
         if (withChatList) {
             val chatLists = FixtureDex.classesWhere(build, { true }, ::isChatListButton)
             chatLists.forEach { loaded[it.type] = it }

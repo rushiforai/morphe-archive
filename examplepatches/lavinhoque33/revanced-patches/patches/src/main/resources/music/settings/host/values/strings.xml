@@ -1434,4 +1434,11 @@ Side effect (Block request):
     <string name="morphe_music_navigation_bar_glass_preview_samples">Samples</string>
     <string name="morphe_music_navigation_bar_glass_preview_explore">Explore</string>
     <string name="morphe_music_navigation_bar_glass_preview_library">Library</string>
+    <!-- Smart Shuffle; modified by lavinhoque33, 2026-11-15. -->
+    <string name="morphe_smart_shuffle_suggested">Suggested</string>
+    <string name="morphe_smart_shuffle_keep">Keep</string>
+    <string name="morphe_smart_shuffle_keep_unavailable">Save to playlist is unavailable for this song.</string>
+    <string name="morphe_smart_shuffle_dismiss">Dismiss</string>
+    <string name="morphe_smart_shuffle_on">Smart Shuffle on. Long press to turn off.</string>
+    <string name="morphe_smart_shuffle_off">Smart Shuffle off. Long press to turn on.</string>
 </resources>

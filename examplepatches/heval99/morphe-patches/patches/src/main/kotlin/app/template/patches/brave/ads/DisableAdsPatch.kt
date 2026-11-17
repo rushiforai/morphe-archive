@@ -4,7 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BRAVE_EXPERIMENTAL
 import app.template.patches.shared.addInstructionsChecked
 

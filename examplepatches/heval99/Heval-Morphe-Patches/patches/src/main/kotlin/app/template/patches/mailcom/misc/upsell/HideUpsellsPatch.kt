@@ -3,7 +3,7 @@ package app.template.patches.mailcom.misc.upsell
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
 
 // Swipe2UpsellFeature.isEnabledByConfig (9.18.3): the SWIPE_2_UPSELL feature toggle. Its only

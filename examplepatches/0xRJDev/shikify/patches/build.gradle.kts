@@ -55,8 +55,8 @@ tasks.register<JavaExec>("validateBundle") {
     maxHeapSize = "2g"
     args(
         layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
-        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.3.apk").absolutePath),
-        rootProject.file("output/boost-1.14.3-chrome-unsigned.apk").absolutePath,
+        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.4.apk").absolutePath),
+        rootProject.file("output/boost-1.14.4-chrome-unsigned.apk").absolutePath,
     )
 }
 dependencies {
@@ -87,7 +87,7 @@ tasks.register<JavaExec>("validateWrapper") {
     systemProperty("regressionMode", providers.gradleProperty("regressionMode").getOrElse("STRIP_FAST"))
     args(
         providers.gradleProperty("validationBundle").getOrElse(layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath),
-        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.3.apk").absolutePath),
+        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.4.apk").absolutePath),
         providers.gradleProperty("regressionOutput").getOrElse(rootProject.file(".work/regression/live-wrapper-fixed.apk").absolutePath),
     )
 }
@@ -100,7 +100,7 @@ tasks.register<JavaExec>("validatePostWrapper") {
     systemProperty("regressionMode", providers.gradleProperty("regressionMode").getOrElse("STRIP_FAST"))
     args(
         providers.gradleProperty("validationBundle").getOrElse(layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath),
-        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.3.apk").absolutePath),
+        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.4.apk").absolutePath),
         providers.gradleProperty("regressionOutput").getOrElse(rootProject.file(".work/regression/live-post-wrapper-fixed.apk").absolutePath),
     )
 }
@@ -114,7 +114,7 @@ tasks.register<JavaExec>("validateCombined") {
     args(
         layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
         providers.gradleProperty("patcheddit").getOrElse(rootProject.file("inputs/patcheddit-2.1.0-dev.4.mpp").absolutePath),
-        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.3.apk").absolutePath),
+        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.4.apk").absolutePath),
         rootProject.file(".work/combined").absolutePath,
     )
 }
@@ -127,7 +127,7 @@ tasks.register<JavaExec>("validateSubsets") {
     maxHeapSize = "3g"
     args(
         layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
-        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.3.apk").absolutePath),
+        providers.gradleProperty("boostApk").getOrElse(rootProject.file("inputs/boost-for-reddit-1.14.4.apk").absolutePath),
         rootProject.file(".work/subsets").absolutePath,
     )
 }

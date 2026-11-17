@@ -1802,6 +1802,8 @@ Offer clear screen in every LIVE room,Tawarkan layar bersih di setiap ruang LIVE
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.","Layar bersih menyembunyikan obrolan, hadiah, dan tombol LIVE sehingga hanya siarannya yang terlihat. TikTok hanya menaruhnya di menu beberapa ruang. Ini menambahkannya ke ruang lainnya."
 Keep clear screen in the next LIVE,Pertahankan layar bersih di LIVE berikutnya
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE yang kamu geser akan kembali menampilkan obrolan, hadiah, dan tombolnya. Ini membuat layar bersih tetap aktif dari ruang ke ruang sampai kamu mematikannya."
+Offer full screen in more LIVEs,Tawarkan layar penuh di lebih banyak LIVE
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok hanya menampilkan tombol layar penuh di LIVE yang disiarkan dari komputer atau layar yang dibagikan. Ini menampilkannya di setiap LIVE lain dengan video lebar.
 Keep watching in a small window,Tetap menonton di jendela kecil
 "When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.","Saat Anda meninggalkan TikTok ketika video sedang diputar, video tetap diputar di jendela kecil di atas aplikasi lain, dengan tombol untuk menjedanya dan untuk pindah ke video sebelumnya atau berikutnya. Berfungsi di feed, di LIVE, dan pada video yang Anda buka dari profil, pencarian, atau suara. Memerlukan Android 8 atau yang lebih baru."
 Play,Putar
@@ -2399,6 +2401,8 @@ search suggestions,saran pencarian
 AI chat,chat AI
 AI Tako,AI Tako
 save photos,simpan foto
+download button,tombol unduh download
+"It's in %1$s, under %2$s. Tap to go there.","Ada di %1$s, di bawah %2$s. Ketuk untuk ke sana."
 Lock the feed at set times,Kunci feed pada waktu tertentu
 "The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.","Feed terkunci sendiri selama jam-jam ini, menurut jam ponselmu. Tulis hari dan jam seperti Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Kosongkan hari agar berlaku setiap hari. Waktu yang berakhir lebih awal dari mulainya berlanjut melewati tengah malam."
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,Tidak dapat membaca %1$s. Tulis hari dan jam seperti Mon-Fri 21:00-07:00.
@@ -2724,3 +2728,41 @@ Account country on profiles,Negara akun di profil
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.","Lembar bagikan profil mendapat tombol Negara akun. Tombol ini menanyakan ke TikTok di mana akun itu berada, atau dari mana video terbarunya diunggah."
 Account country,Negara akun
 Videos posted from %1$s,Video diunggah dari %1$s
+Long-press Profile for Activity center,Tekan lama Profil untuk Pusat aktivitas
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.","Tekan lama tab Profil untuk membuka Pusat aktivitas TikTok. Mengetuk Profil tetap berfungsi seperti biasa. Selama Tekan lama Profil untuk riwayat tontonan aktif, opsi itu mengambil tekanan tersebut."
+Share the video after a save,Bagikan video setelah disimpan
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.","Membuka lembar berbagi Android dengan file begitu video disimpan, termasuk cerita video, sehingga Anda bisa langsung mengirimnya ke WhatsApp, Telegram, atau aplikasi lain. Video pilihan yang disimpan bersamaan mendapat pemberitahuan biasa."
+Caption spot in Clear display,Posisi keterangan saat tampilan bersih
+Where TikTok shows it,Tempat TikTok menampilkannya
+"Lower, near the bottom","Lebih rendah, dekat bagian bawah"
+Crop and stretch to fill the screen,Potong dan regangkan untuk memenuhi layar
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Menutupi seluruh jendela dengan separuh potongan Penuhi dan separuh regangan Regangkan, jadi keduanya tidak terlalu terlihat. Video yang bentuknya jauh berbeda dari layar tetap memakai ukuran TikTok."
+Watch LIVEs unseen,Tonton LIVE tanpa terlihat
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Kamu tidak akan muncul di daftar penonton LIVE yang kamu buka. Ketuk ikon mata di LIVE agar host bisa melihatmu. Mode siluman harus menyala.
+The host can see you,Host bisa melihatmu
+Let the host see you,Biarkan host melihatmu
+Couldn't tell which LIVE this is. Open it again.,Tidak tahu LIVE mana ini. Buka lagi.
+The host can already see you in this LIVE,Host sudah bisa melihatmu di LIVE ini
+Letting the host see you,Membiarkan host melihatmu
+The host can see you now,Sekarang host bisa melihatmu
+The host sees you next time you open it,Host akan melihatmu saat kamu membukanya lagi
+Couldn't reach TikTok. Open this LIVE again.,Tidak bisa terhubung ke TikTok. Buka LIVE ini lagi.
+LIVE name alerts,Peringatan nama di LIVE
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.","Memberi tahu saat namamu disebut di LIVE, di chat atau diucapkan di ruang dengan subtitel aktif. Kamu mendapat notifikasi saat notifikasi TikTok aktif, dan banner di ruang saat notifikasinya mati."
+Names to listen for,Nama yang didengarkan
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.","Nama pengguna dan nama TikTok-mu sudah ada di daftar. Tambahkan nama lain yang biasa dipakai orang untuk memanggilmu, pisahkan dengan koma."
+Your name came up in a LIVE,Namamu disebut di LIVE
+Listen for your name,Dengarkan namamu
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.","Juga mendengarkan suara LIVE, jadi namamu terhitung saat diucapkan keras-keras di ruang tanpa subtitel. Yang mendengarkan adalah pengenalan suara bawaan ponselmu, dengan izin mikrofon TikTok. Ia hanya mendengar LIVE, meski Android menampilkan titik mikrofonnya, dan memakai sedikit lebih banyak data."
+Needs Android 13 or newer.,Perlu Android 13 atau yang lebih baru.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,Mati: pengenalan suara ponsel ini hanya mendengar mikrofon. Matikan lalu nyalakan lagi untuk mencoba lagi.
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.","Ponsel ini tidak punya pengenalan suara. Pilih satu di setelan input suara Android, lalu buka LIVE lagi."
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.","TikTok perlu izin mikrofon untuk pengenalan suara. Izinkan di setelan aplikasi Android, lalu buka LIVE lagi."
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.","Pengenalan suara tidak punya model untuk bahasa ponselmu. Unduh satu di setelan ucapan Android, lalu buka LIVE lagi."
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,Pengenalan suara terus gagal di LIVE terakhir. Buka LIVE lagi untuk mencoba ulang.
+Save the photo posts as one video?,Simpan unggahan foto sebagai satu video?
+One video,Satu video
+One per post,Satu per unggahan
+Keep the middle unstretched,Jaga bagian tengah tidak teregang
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.","Menutupi seluruh jendela dan menjaga bagian tengah video tetap dalam bentuk aslinya. Sedikit bagian sisi terpotong, dan hanya bagian atas dan bawah yang diregangkan. Video yang bentuknya jauh berbeda dari layar tetap memakai ukuran TikTok."
+Visual search on paused videos,Pencarian visual di video yang dijeda

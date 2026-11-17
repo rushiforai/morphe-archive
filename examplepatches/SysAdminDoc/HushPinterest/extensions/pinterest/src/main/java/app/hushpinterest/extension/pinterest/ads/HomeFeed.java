@@ -63,4 +63,25 @@ public final class HomeFeed {
         Logger.printDebug(() -> "Home feed: held an automatic refresh, mask " + mask);
         return true;
     }
+
+    /**
+     * True lets Back go on out of Home. Home's Back handler asks only once the feed is scrolled
+     * past Pinterest's own mark, right before it would scroll to the top and refresh instead, and
+     * true takes the path Back takes at the top of the feed. Its own switch, apart from
+     * {@link Settings#KEEP_HOME_FEED}.
+     */
+    public static boolean leave() {
+        HookStatus.invoked(FamilyNames.KEEP_HOME_FEED);
+        boolean on;
+        try {
+            on = Utils.settingsReady() && Settings.BACK_LEAVES_HOME.get();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.KEEP_HOME_FEED, "Back switch read", t);
+            return false;
+        }
+        if (!on) return false;
+        HookStatus.counted(FamilyNames.KEEP_HOME_FEED, "Back left Home");
+        Logger.printDebug(() -> "Home feed: Back left Home without the jump to the top");
+        return true;
+    }
 }

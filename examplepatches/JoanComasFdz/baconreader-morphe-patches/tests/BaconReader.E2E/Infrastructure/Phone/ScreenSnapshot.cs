@@ -54,6 +54,7 @@ public sealed class ScreenNode
         Text = element.Attribute("text")?.Value ?? "";
         Description = element.Attribute("content-desc")?.Value ?? "";
         Displayed = element.Attribute("displayed")?.Value != "false";
+        Checked = element.Attribute("checked")?.Value == "true";
         Bounds = ParseBounds(element.Attribute("bounds")?.Value);
     }
 
@@ -74,6 +75,9 @@ public sealed class ScreenNode
 
     /// <summary>Whether it shows on the screen.</summary>
     public bool Displayed { get; }
+
+    /// <summary>Whether it is checked: a ticked checkbox, a switch that is on.</summary>
+    public bool Checked { get; }
 
     /// <summary>Where it is on the screen, in pixels: only its part on the screen.</summary>
     public Rectangle Bounds { get; }

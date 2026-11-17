@@ -10,6 +10,7 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Looper;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import java.io.File;
@@ -117,11 +118,20 @@ public class CallRecordingTest {
     }
 
     private TextView pill() {
+        return byTag("call_recording_pill");
+    }
+
+    private TextView pausePill() {
+        return byTag("call_recording_pause");
+    }
+
+    private View bar() {
+        return byTag("call_recording_bar");
+    }
+
+    private <T extends View> T byTag(String tag) {
         FrameLayout content = screen.get().findViewById(android.R.id.content);
-        for (int i = 0; i < content.getChildCount(); i++) {
-            if (content.getChildAt(i) instanceof TextView) return (TextView) content.getChildAt(i);
-        }
-        return null;
+        return content.findViewWithTag(tag);
     }
 
     private void on() {
@@ -194,6 +204,21 @@ public class CallRecordingTest {
         assertNull(pill());
     }
 
+    /** #105: it used to sit under the status bar, over the name of the person you were calling. */
+    @Test public void theButtonSitsAboveMessengersOwnCallButtons() {
+        on();
+        open();
+        callStarts();
+        View buttons = bar();
+        assertNotNull(buttons);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) buttons.getLayoutParams();
+        assertEquals(android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertEquals(0, params.topMargin);
+        CallRecording.place(buttons);
+        float density = buttons.getResources().getDisplayMetrics().density;
+        assertEquals((int) (density * CallRecording.ABOVE_CALL_BUTTONS_DP), params.bottomMargin);
+    }
+
     @Test public void theButtonShowsItsPressBeforeAndDuringARecording() throws Exception {
         on();
         open();
@@ -228,7 +253,8 @@ public class CallRecordingTest {
         callStarts();
         recording();
         idle();
-        assertEquals("Recording, tap to stop", pill().getText().toString());
+        assertEquals("Stop 0:00", pill().getText().toString());
+        assertEquals("Recording, tap to stop", pill().getContentDescription());
         assertEquals(1, active());
 
         ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
@@ -260,7 +286,7 @@ public class CallRecordingTest {
         callStarts();
         recording();
         idle();
-        assertEquals("Recording, tap to stop", pill().getText().toString());
+        assertEquals("Stop 0:00", pill().getText().toString());
         assertEquals(0, active());
 
         ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
@@ -520,5 +546,116 @@ public class CallRecordingTest {
 
     @Test public void theFileIsNamedForWhenItStarted() {
         assertTrue(CallRecording.name(new Date(0)).matches("Call \\d{4}-\\d{2}-\\d{2} \\d{2}\\.\\d{2}\\.\\d{2}\\.wav"));
+    }
+
+    /** #193: the name of the person or group on the call goes in the file's name. */
+    @Test public void theFileSaysWhoTheCallWasWith() {
+        assertTrue(CallRecording.name(new Date(0), "Alex Kim").matches("Call with Alex Kim \\d{4}-\\d{2}-\\d{2} \\d{2}\\.\\d{2}\\.\\d{2}\\.wav"));
+        assertEquals("Nothing to go on leaves the plain name", CallRecording.name(new Date(0)), CallRecording.name(new Date(0), " "));
+    }
+
+    @Test public void aNameAFileCantCarryIsCleanedUpFirst() {
+        assertEquals("Alex Kim", CallRecording.fileSafe("Alex/Kim"));
+        assertEquals("Alex Kim", CallRecording.fileSafe("  Alex\tKim\n"));
+        assertEquals("Work Chat", CallRecording.fileSafe("Work: *Chat*?"));
+        assertEquals("A name can't start a file with a dot", "hidden", CallRecording.fileSafe("..hidden"));
+        assertEquals("", CallRecording.fileSafe(null));
+        assertEquals("A right-to-left mark can't turn the rest of the name around", "a bc", CallRecording.fileSafe("a‮bc"));
+        StringBuilder room = new StringBuilder();
+        while (room.length() < 200) room.append("Group chat about the trip ");
+        assertEquals(48, CallRecording.fileSafe(room.toString()).length());
+    }
+
+    @Test public void theTimeOnTheButtonReadsTheWayACallScreenCountsIt() {
+        assertEquals("0:00", CallRecording.clock(0));
+        assertEquals("0:05", CallRecording.clock(5_400));
+        assertEquals("1:05", CallRecording.clock(65_000));
+        assertEquals("59:59", CallRecording.clock(3_599_999));
+        assertEquals("1:00:00", CallRecording.clock(3_600_000));
+        assertEquals("2:03:04", CallRecording.clock(7_384_000));
+        assertEquals("A clock that reads backwards still reads", "0:00", CallRecording.clock(-5_000));
+    }
+
+    @Test public void theButtonCountsTheRecordingUp() throws Exception {
+        on();
+        open();
+        callStarts();
+        recording();
+        idle();
+        assertEquals("Stop 0:00", pill().getText().toString());
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(13));
+        idle();
+        assertEquals("Stop 0:13", pill().getText().toString());
+    }
+
+    @Test public void holdOnlyShowsWhileItRecords() throws Exception {
+        on();
+        open();
+        callStarts();
+        assertEquals(View.GONE, pausePill().getVisibility());
+        recording();
+        idle();
+        assertEquals(View.VISIBLE, pausePill().getVisibility());
+        assertEquals("Pause", pausePill().getText().toString());
+        pill().performClick();
+        finished();
+        assertEquals(View.GONE, pausePill().getVisibility());
+    }
+
+    /** #193: what's said while a recording waits is left out, and so is the wait itself. */
+    @Test public void holdingTheRecordingLeavesTheWaitOutOfTheFile() throws Exception {
+        on();
+        open();
+        callStarts();
+        recording();
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.heard(speaker, frame((short) 500), 320);
+
+        pausePill().performClick();
+        idle();
+        assertEquals("Resume", pausePill().getText().toString());
+        assertEquals("Paused 0:01", pill().getText().toString());
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(5));
+        CallRecording.heard(speaker, frame((short) 2000), 320);
+        CallRecording.spoke(microphone, frame((short) 2000), 320);
+        assertEquals("The time stands still while it waits", "Paused 0:01", pill().getText().toString());
+
+        pausePill().performClick();
+        idle();
+        assertEquals("Pause", pausePill().getText().toString());
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        pill().performClick();
+        finished();
+
+        assertTrue(store.kept);
+        ByteBuffer all = ByteBuffer.wrap(Files.readAllBytes(file.toPath())).order(ByteOrder.LITTLE_ENDIAN);
+        int samples = all.getInt(40) / 2;
+        assertTrue("About the two seconds it recorded, not the seven the clock moved: " + samples,
+            samples >= CallMix.RATE && samples < CallMix.RATE * 3);
+        int said = 0;
+        int whileWaiting = 0;
+        for (int i = 0; i < samples; i++) {
+            short sample = all.getShort(CallMix.HEADER_BYTES + i * 2);
+            if (sample == 500) said++;
+            if (sample >= 2000) whileWaiting++;
+        }
+        assertEquals("Both stretches it did record are in it", 320, said);
+        assertEquals("Nothing from the wait is", 0, whileWaiting);
+    }
+
+    @Test public void aRecordingOnHoldStillFinishesWhenTheCallEnds() throws Exception {
+        on();
+        open();
+        callStarts();
+        recording();
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        pausePill().performClick();
+        idle();
+        callEnds();
+        finished();
+        assertTrue(store.kept);
+        assertNull(pill());
     }
 }

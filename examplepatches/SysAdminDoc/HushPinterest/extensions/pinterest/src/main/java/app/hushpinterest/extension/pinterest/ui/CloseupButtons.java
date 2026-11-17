@@ -10,6 +10,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
+import android.text.Layout;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.TextView;
@@ -29,6 +32,7 @@ import app.hushpinterest.extension.shared.ResourceUtils;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 import app.hushpinterest.extension.shared.settings.BooleanSetting;
+import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 
 /**
  * Hide closeup buttons: the back arrow and the visual search (lens) button that float over a pin's
@@ -68,6 +72,20 @@ public final class CloseupButtons {
     /** Keeps a smaller Save button anchored at the end of its row as its size changes. */
     private static final View.OnLayoutChangeListener PIVOT =
             (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> pivot(view);
+
+    /** The smallest a Save label's text gets to stay on one line, as a share of Pinterest's size. */
+    static final float SMALLEST_LABEL = 0.75f;
+    /** The least padding, in dp, a Save button keeps on each side of a label pulled onto one line. */
+    static final int LEAST_PADDING_DP = 8;
+
+    /** Save buttons watched for a label that breaks over two lines. */
+    private static final Set<View> WATCHED = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    /** Save buttons whose label was pulled onto one line, with what Pinterest had on them. */
+    private static final Map<TextView, OneLine> ONE_LINE = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** Checks a watched Save button's label each time it's laid out. */
+    private static final View.OnLayoutChangeListener FIT =
+            (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> fit((TextView) view);
 
     /** The closeup's back arrow, right after Pinterest finds it in the closeup's layout. */
     public static void backArrow(View button) {
@@ -229,8 +247,10 @@ public final class CloseupButtons {
      * icon. Only the closeup's Save button is changed. With its switch on it's drawn at
      * {@link #SMALLER} of its size, anchored at the end of its row, and a color saved for it
      * replaces Pinterest's red while the button is red, so Saved keeps Pinterest's own look. A
-     * light color gets {@link #DARK_TEXT}. Each call first takes back what an earlier one did, so
-     * the switch going off, the color cleared or a pause shows Pinterest's button again.
+     * light color gets {@link #DARK_TEXT}. A label that breaks over two lines, the way a long
+     * translation does when a pin's likes and comments take most of the row, is pulled back onto one
+     * (#38), see {@link #fit}. Each call first takes back what an earlier one did, so the switch
+     * going off, the color cleared, a pin with more room or a pause shows Pinterest's button again.
      */
     public static void saveButton(View button) {
         if (button == null || saveId == 0) return;
@@ -238,10 +258,114 @@ public final class CloseupButtons {
             if (saveId < 0) saveId = id(button, "save_pinit_bt");
             if (saveId == 0 || button.getId() != saveId) return;
             shrink(button, UiHooks.enabled(FamilyNames.HIDE_CLOSEUP_BUTTONS, Settings.SMALLER_SAVE_BUTTON));
-            if (button instanceof TextView) paint((TextView) button, Utils.settingsReady()
-                    ? SaveButtonColorSetting.color(SaveButtonColorSetting.SAVE_BUTTON_COLOR.get()) : null);
+            if (button instanceof TextView) {
+                paint((TextView) button, Utils.settingsReady()
+                        ? SaveButtonColorSetting.color(SaveButtonColorSetting.SAVE_BUTTON_COLOR.get()) : null);
+                oneLine((TextView) button, !HushPinterestPause.isPaused());
+            }
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.HIDE_CLOSEUP_BUTTONS, "save button", failure);
+        }
+    }
+
+    private static void oneLine(TextView button, boolean on) {
+        OneLine was = ONE_LINE.remove(button);
+        if (was != null) was.undo(button);
+        if (on) {
+            if (WATCHED.add(button)) button.addOnLayoutChangeListener(FIT);
+            // Nothing new to lay out, so the label as it stands is the one to check.
+            if (button.isLaidOut() && !button.isLayoutRequested()) fit(button);
+        } else if (WATCHED.remove(button)) {
+            button.removeOnLayoutChangeListener(FIT);
+        }
+    }
+
+    /**
+     * A watched Save button just laid out. When its label broke over two lines, the button gives up
+     * side padding until the label fits on one, down to {@link #LEAST_PADDING_DP}, and only past
+     * that is the text made smaller, never below {@link #SMALLEST_LABEL} of Pinterest's size. Past
+     * even that the label ends in an ellipsis rather than splitting a word. The width the button
+     * has stays the same, so nothing else in the row moves.
+     */
+    private static void fit(TextView button) {
+        if (ONE_LINE.containsKey(button) || !WATCHED.contains(button)) return;
+        try {
+            Layout layout = button.getLayout();
+            int width = button.getWidth();
+            if (layout == null || layout.getLineCount() < 2 || width <= 0) return;
+            int left = button.getPaddingLeft(), right = button.getPaddingRight();
+            int drawables = button.getTotalPaddingLeft() - left + button.getTotalPaddingRight() - right;
+            // A pixel over the label's own width, so rounding can't break it again.
+            int need = (int) Math.ceil(Layout.getDesiredWidth(layout.getText(), button.getPaint())) + 1;
+            int spare = width - drawables - need;
+            int least = Math.min(Math.min(left, right),
+                    Math.round(LEAST_PADDING_DP * button.getResources().getDisplayMetrics().density));
+            float size = button.getTextSize();
+            OneLine fitted;
+            if (spare >= 2 * least) {
+                int start = spare / 2;
+                fitted = new OneLine(button, start, spare - start, size, false);
+            } else {
+                float scale = Math.max(SMALLEST_LABEL, (width - drawables - 2f * least) / need);
+                fitted = new OneLine(button, least, least, size * scale, true);
+            }
+            ONE_LINE.put(button, fitted);
+            fitted.apply(button);
+            // The new padding and size ask for a layout in the middle of this one, and a layout asked
+            // for while one runs is dropped when it ends. So the label is laid out again here, in the
+            // bounds the button already has.
+            button.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(button.getHeight(), View.MeasureSpec.EXACTLY));
+            button.layout(button.getLeft(), button.getTop(), button.getRight(), button.getBottom());
+            // Those bounds still have the height two lines took, so once this pass is over the button
+            // asks for a layout of its own, which measures it at one line's height (#38).
+            Utils.runOnMainThread(() -> {
+                if (ONE_LINE.get(button) == fitted) button.requestLayout();
+            });
+            HookStatus.counted(FamilyNames.HIDE_CLOSEUP_BUTTONS, "save label on one line");
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_CLOSEUP_BUTTONS, "save label", failure);
+        }
+    }
+
+    /** A Save label pulled onto one line: what Pinterest had on the button, and what went on instead. */
+    private static final class OneLine {
+        final int left, right, maxLines;
+        final float size;
+        @Nullable final TextUtils.TruncateAt ellipsize;
+        final int fitLeft, fitRight;
+        final float fitSize;
+        final boolean single;
+
+        OneLine(TextView button, int fitLeft, int fitRight, float fitSize, boolean single) {
+            left = button.getPaddingLeft();
+            right = button.getPaddingRight();
+            maxLines = button.getMaxLines();
+            size = button.getTextSize();
+            ellipsize = button.getEllipsize();
+            this.fitLeft = fitLeft;
+            this.fitRight = fitRight;
+            this.fitSize = fitSize;
+            this.single = single;
+        }
+
+        void apply(TextView button) {
+            button.setPadding(fitLeft, button.getPaddingTop(), fitRight, button.getPaddingBottom());
+            if (fitSize != size) button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fitSize);
+            if (single) {
+                button.setMaxLines(1);
+                button.setEllipsize(TextUtils.TruncateAt.END);
+            }
+        }
+
+        /** Puts back each of Pinterest's values that's still ours; one Pinterest set again since stays. */
+        void undo(TextView button) {
+            if (button.getPaddingLeft() == fitLeft && button.getPaddingRight() == fitRight) {
+                button.setPadding(left, button.getPaddingTop(), right, button.getPaddingBottom());
+            }
+            if (fitSize != size && button.getTextSize() == fitSize) button.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
+            if (single && button.getMaxLines() == 1) button.setMaxLines(maxLines < 0 ? Integer.MAX_VALUE : maxLines);
+            if (single && button.getEllipsize() == TextUtils.TruncateAt.END) button.setEllipsize(ellipsize);
         }
     }
 

@@ -39,7 +39,7 @@ class BooklySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.4.2",
+            version = "2.4.3",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

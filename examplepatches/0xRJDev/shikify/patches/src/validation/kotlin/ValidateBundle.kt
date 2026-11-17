@@ -30,8 +30,8 @@ fun main(args: Array<String>) = runBlocking {
     val (bundle, apk, output) = args.map(::File)
     check(apk.isFile) { "Missing original APK: $apk" }
     val hash = MessageDigest.getInstance("SHA-256").digest(apk.readBytes()).joinToString("") { "%02x".format(it) }
-    check(hash == "a273eca565f5f6e811db4bfbe63e5c9d5ece6d0cc2e1c38ac1a3a50b411ffe5c") {
-        "Validation requires the official, unchanged Boost 1.14.3 APK, got SHA-256 $hash"
+    check(hash == "a3c70867fec07c822f950b8b60f784290b63e815c52ef0a7fad3036533100011") {
+        "Validation requires the official, unchanged Boost 1.14.4 APK, got SHA-256 $hash"
     }
     ZipFile(bundle).use { zip ->
         check(zip.getEntry("classes.dex") != null) { "Bundle lacks Android patch DEX" }
@@ -69,9 +69,12 @@ fun main(args: Array<String>) = runBlocking {
     check(patches.size == 25 && patches.map { it.name }.toSet() == expectedNames) {
         "Expected 25 unprefixed public patches, got ${patches.map { it.name }}"
     }
+    check(patches.groupingBy { it.category }.eachCount()==mapOf("Appearance" to 9,"Comments" to 5,"Media" to 3,"Navigation" to 2,"Performance" to 6)) {
+        "Unexpected patch categories: ${patches.groupingBy { it.category }.eachCount()}"
+    }
     for (patch in patches) {
         check(patch.compatibility!!.single().packageName == "com.rubenmayayo.reddit")
-        check(patch.compatibility!!.single().targets.single().version == "1.14.3")
+        check(patch.compatibility!!.single().targets.single().version == "1.14.4")
         println("BUNDLE: ${patch.name}")
     }
     val original = classes(apk)
@@ -80,13 +83,13 @@ fun main(args: Array<String>) = runBlocking {
     }
     val fragment = "Lcom/rubenmayayo/reddit/ui/comments/CommentsFragment;"
     val model = "Lcom/rubenmayayo/reddit/models/reddit/SubmissionModel;"
-    field("Lcom/rubenmayayo/reddit/ui/submissions/subreddit/SubredditActivity;", "F0", "Z")
+    field("Lcom/rubenmayayo/reddit/ui/submissions/subreddit/SubredditActivity;", "J0", "Z")
     field(fragment, "c", model)
-    field(fragment, "B", "Ljava/util/ArrayList;")
-    field(fragment, "D", "Lcom/rubenmayayo/reddit/ui/customviews/ScrollingLinearLayoutManager;")
+    field(fragment, "A", "Ljava/util/ArrayList;")
+    field(fragment, "C", "Lcom/rubenmayayo/reddit/ui/customviews/ScrollingLinearLayoutManager;")
     field(fragment, "mRecyclerView", "Landroidx/recyclerview/widget/RecyclerView;")
-    field(model, "S", "Ljava/lang/String;")
-    field(model, "a0", "Ljava/lang/String;")
+    field(model, "R", "Ljava/lang/String;")
+    field(model, "Z", "Ljava/lang/String;")
     field("Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;", "topLine", "Lcom/google/android/material/divider/MaterialDivider;")
     field("Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;", "mediaPreviewIv", "Landroid/widget/ImageView;")
     field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "previewImageview", "Lcom/rubenmayayo/reddit/ui/customviews/BadgeImageView;")
@@ -109,10 +112,10 @@ fun main(args: Array<String>) = runBlocking {
     field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "title", "Landroid/widget/TextView;")
     field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "voteDownButton", "Lcom/rubenmayayo/reddit/ui/customviews/buttons/DownActiveImageButton;")
     field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "voteUpButton", "Lcom/rubenmayayo/reddit/ui/customviews/buttons/UpActiveImageButton;")
-    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "A", "I")
-    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "c", "I")
-    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "y", "I")
     field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "z", "I")
+    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "c", "I")
+    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "x", "I")
+    field("Lcom/rubenmayayo/reddit/ui/customviews/IndentView;", "y", "I")
     field("Landroidx/recyclerview/widget/RecyclerView\$a0;", "a", "Landroid/view/View;")
     check(original["Landroidx/recyclerview/widget/LinearLayoutManager;"]!!.methods.any {
         it.name == "C" && it.parameterTypes.map { p -> p.toString() } == listOf("I") && it.returnType == "Landroid/view/View;"
@@ -120,14 +123,14 @@ fun main(args: Array<String>) = runBlocking {
     check(original["Landroidx/recyclerview/widget/LinearLayoutManager;"]!!.methods.any {
         it.name == "Z0" && it.parameterTypes.isEmpty() && it.returnType == "I"
     })
-    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "P", "Ljh1;")
-    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "Q", "Z")
-    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "b0", "Lcom/rubenmayayo/reddit/models/reddit/SubmissionModel;")
-    field("Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;", "c0", "Lcom/rubenmayayo/reddit/models/reddit/CommentModel;")
-    field("Lcom/rubenmayayo/reddit/ui/adapters/LoadMoreViewHolder;", "R", "Lcom/rubenmayayo/reddit/models/reddit/LoadMoreModel;")
-    field("Lcom/rubenmayayo/reddit/models/reddit/CommentViewModel;", "R", "I")
-    field("Lcom/rubenmayayo/reddit/models/reddit/CommentViewModel;", "S", "Z")
-    field(fragment, "C", "Lcom/rubenmayayo/reddit/ui/comments/CommentsFragment\$m;")
+    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "O", "Loh1;")
+    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "W", "Z")
+    field("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;", "h0", "Lcom/rubenmayayo/reddit/models/reddit/SubmissionModel;")
+    field("Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;", "b0", "Lcom/rubenmayayo/reddit/models/reddit/CommentModel;")
+    field("Lcom/rubenmayayo/reddit/ui/adapters/LoadMoreViewHolder;", "Q", "Lcom/rubenmayayo/reddit/models/reddit/LoadMoreModel;")
+    field("Lcom/rubenmayayo/reddit/models/reddit/CommentViewModel;", "Q", "I")
+    field("Lcom/rubenmayayo/reddit/models/reddit/CommentViewModel;", "R", "Z")
+    field(fragment, "B", "Lcom/rubenmayayo/reddit/ui/comments/CommentsFragment\$m;")
     fun nativeMethod(type: String, name: String, parameters: List<String>, returns: String = "V") {
         check(original[type]!!.methods.any { it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == returns }) {
             "Wrong native method mapping: $type->$name"
@@ -142,58 +145,58 @@ fun main(args: Array<String>) = runBlocking {
         nativeMethod("Landroidx/recyclerview/widget/RecyclerView\$e;", name, listOf(observer))
     val subscription = "Lcom/rubenmayayo/reddit/models/reddit/SubscriptionViewModel;"
     nativeMethod(subscription, "<init>", listOf(model))
-    nativeMethod("Laz1;", "G", listOf("Landroid/content/Context;", subscription))
-    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","N","Lns;")
-    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","T","Lrs;")
+    nativeMethod("Lgz1;", "G", listOf("Landroid/content/Context;", subscription))
+    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","M","Lps;")
+    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","S","Lts;")
     field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","c","Z")
-    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","z","F")
-    field("Lcom/pnikosis/materialishprogress/ProgressWheel;","O","Z")
+    field("Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;","y","F")
+    field("Lcom/pnikosis/materialishprogress/ProgressWheel;","N","Z")
     field(subscription,"a","Ljava/lang/String;");field(subscription,"b","Z")
-    field("Lpd2;","r","Lpd2;");field("Lld2;","a","Lcom/rubenmayayo/reddit/aa/User;")
+    field("Lxd2;","r","Lxd2;");field("Ltd2;","a","Lcom/rubenmayayo/reddit/aa/User;")
     field("Lcom/rubenmayayo/reddit/aa/User;","name","Ljava/lang/String;")
-    nativeMethod("Ldh0;","i",listOf("Landroid/view/View;"),"Lq41;")
-    nativeMethod("Lhg2;","o",listOf("Landroid/view/View;"))
-    nativeMethod("Lq41;","v",listOf("Ljava/lang/String;"),"Lp41;")
-    nativeMethod("Lp41;","Z",emptyList(),"Lp41;")
-    nativeMethod("Lp41;","e0",listOf("I","I"),"Lp41;")
-    nativeMethod("Lxf2;","P",listOf("Landroid/widget/ImageView;"))
+    nativeMethod("Lgh0;","n",listOf("Landroid/view/View;"),"Lu41;")
+    nativeMethod("Lpg2;","o",listOf("Landroid/view/View;"))
+    nativeMethod("Lu41;","v",listOf("Ljava/lang/String;"),"Lt41;")
+    nativeMethod("Lt41;","Z",emptyList(),"Lt41;")
+    nativeMethod("Lt41;","g0",listOf("I","I"),"Lt41;")
+    nativeMethod("Lfg2;","P",listOf("Landroid/widget/ImageView;"))
     field("Landroidx/core/view/insets/ProtectionLayout;","a","Ljava/util/ArrayList;")
+    field("Lcom/rubenmayayo/reddit/models/reddit/LoadMoreModel;", "V", "I")
     field("Lcom/rubenmayayo/reddit/models/reddit/LoadMoreModel;", "W", "I")
-    field("Lcom/rubenmayayo/reddit/models/reddit/LoadMoreModel;", "X", "I")
-    field("Lcom/rubenmayayo/reddit/ui/customviews/fab/FloatingActionMenu;", "z", "Lcom/rubenmayayo/reddit/ui/customviews/fab/FloatingActionSubmenu;")
-    nativeMethod("Lcom/google/android/material/floatingactionbutton/FloatingActionButton;","getShapeAppearanceModel",emptyList(),"Lus2;")
-    nativeMethod("Lcom/google/android/material/floatingactionbutton/FloatingActionButton;","setShapeAppearanceModel",listOf("Lus2;"))
+    field("Lcom/rubenmayayo/reddit/ui/customviews/fab/FloatingActionMenu;", "y", "Lcom/rubenmayayo/reddit/ui/customviews/fab/FloatingActionSubmenu;")
+    nativeMethod("Lcom/google/android/material/floatingactionbutton/FloatingActionButton;","getShapeAppearanceModel",emptyList(),"Lct2;")
+    nativeMethod("Lcom/google/android/material/floatingactionbutton/FloatingActionButton;","setShapeAppearanceModel",listOf("Lct2;"))
     nativeMethod("Lcom/google/android/material/floatingactionbutton/FloatingActionButton;","setBackgroundTintList",listOf("Landroid/content/res/ColorStateList;"))
-    nativeMethod("Lus2;","e",listOf("Lqe2;"),"Lus2;")
+    nativeMethod("Lct2;","e",listOf("Lye2;"),"Lct2;")
     nativeMethod("Lcom/rubenmayayo/reddit/ui/activities/MediaVideoActivity;","d1",emptyList())
     nativeMethod("Landroidx/core/view/insets/ProtectionLayout;","setProtections",listOf("Ljava/util/List;"))
     nativeMethod("Lcom/aurelhubert/ahbottomnavigation/AHBottomNavigation;","setDefaultBackgroundColor",listOf("I"))
     nativeMethod("Lcom/aurelhubert/ahbottomnavigation/AHBottomNavigation;","getDefaultBackgroundColor",emptyList(),"I")
     nativeMethod("Lcom/google/android/material/appbar/CollapsingToolbarLayout;","setContentScrimColor",listOf("I"))
     nativeMethod("Lcom/google/android/material/appbar/CollapsingToolbarLayout;","setStatusBarScrimColor",listOf("I"))
-    nativeMethod("Ljm3;","s",listOf("I","I"),"Z")
-    field("Ljm3;","s","Ljm3\$d;")
+    nativeMethod("Lgn3;","s",listOf("I","I"),"Z")
+    field("Lgn3;","s","Lgn3\$d;")
     field("Lcom/liuguangqiang/swipeback/SwipeBackLayout\$e;","a","Lcom/liuguangqiang/swipeback/SwipeBackLayout\$c;")
     nativeMethod("Lcom/liuguangqiang/swipeback/SwipeBackLayout\$c;","a",emptyList())
     nativeMethod("Lcom/mikepenz/materialize/view/ScrimInsetsRelativeLayout;","setTintStatusBar",listOf("Z"))
     nativeMethod("Lcom/mikepenz/materialize/view/ScrimInsetsRelativeLayout;","setTintNavigationBar",listOf("Z"))
     nativeMethod("Lcom/mikepenz/materialize/view/ScrimInsetsRelativeLayout;","setInsetForeground",listOf("Landroid/graphics/drawable/Drawable;"))
     // Reflective class names are plain strings: nothing else fails if R8 reassigns them.
-    nativeMethod("La03;","a",listOf("Ljava/lang/String;"),"Ljava/lang/String;")
-    for (handler in listOf("Luj0;","Lgh;","Lai0;","Lgq1;","Lny;")) nativeMethod(handler,"onBackPressed",emptyList())
-    nativeMethod("Lbn2;","<init>",listOf("I","Ljava/lang/String;"))
-    field("Lbn2;","a","I");field("Lbn2;","b","Ljava/lang/String;");field("Lbn2;","c",subscription)
-    nativeMethod("Lpd2;","K",emptyList(),"Ljava/util/ArrayList;")
+    nativeMethod("Lj03;","a",listOf("Ljava/lang/String;"),"Ljava/lang/String;")
+    for (handler in listOf("Lxj0;","Lhh;","Ldi0;","Llq1;","Lqy;")) nativeMethod(handler,"onBackPressed",emptyList())
+    nativeMethod("Ljn2;","<init>",listOf("I","Ljava/lang/String;"))
+    field("Ljn2;","a","I");field("Ljn2;","b","Ljava/lang/String;");field("Ljn2;","c",subscription)
+    nativeMethod("Lxd2;","K",emptyList(),"Ljava/util/ArrayList;")
     for(factory in listOf("c","o","a"))nativeMethod(subscription,factory,emptyList(),subscription)
     nativeMethod("Lcom/rubenmayayo/reddit/ui/search/SearchGenericActivity;","y1",emptyList())
     field("Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity;","a","Ljava/util/ArrayList;")
     field("Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity;","b","Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity\$e;")
     nativeMethod("Lcom/google/android/material/navigation/NavigationBarView;","getMenu",emptyList(),"Landroid/view/Menu;")
-    for(loader in listOf("Lr83;","Lak1;","Ldk1;","Lgk1;"))check(original[loader]!!.superclass=="Landroid/os/AsyncTask;") { "Wrong content loader mapping: $loader" }
-    check(original["Ldp1;"]!!.methods.any { it.name == "show" && it.parameterTypes.isEmpty() }) { "Wrong dialog mapping" }
-    check(original["Lfp1;"]!!.superclass == "Landroidx/recyclerview/widget/RecyclerView\$l;") { "Wrong divider decoration mapping" }
-    check(original["Lpd2;"]!!.fields.any { it.name == "j" && it.type == "Lnet/dean/jraw/models/LoggedInAccount;" }) { "Wrong account mapping" }
-    check(original["Lgg2;"]!!.methods.any { it.name == "a" }) { "Wrong Glide listener mapping" }
+    for(loader in listOf("La93;","Lfk1;","Lik1;","Llk1;"))check(original[loader]!!.superclass=="Landroid/os/AsyncTask;") { "Wrong content loader mapping: $loader" }
+    check(original["Lip1;"]!!.methods.any { it.name == "show" && it.parameterTypes.isEmpty() }) { "Wrong dialog mapping" }
+    check(original["Lkp1;"]!!.superclass == "Landroidx/recyclerview/widget/RecyclerView\$l;") { "Wrong divider decoration mapping" }
+    check(original["Lxd2;"]!!.fields.any { it.name == "j" && it.type == "Lnet/dean/jraw/models/LoggedInAccount;" }) { "Wrong account mapping" }
+    check(original["Log2;"]!!.methods.any { it.name == "a" }) { "Wrong Glide listener mapping" }
     println("MAPPINGS: verified against official APK $hash")
     output.parentFile.mkdirs()
     Patcher(PatcherConfig(apkFile = apk,
@@ -269,6 +272,8 @@ fun main(args: Array<String>) = runBlocking {
     var tokenHooks = 0
     var taskHooks = 0
     var searchHooks = 0
+    var circularDialogHooks = 0
+    var pageLoadingHooks = 0
     for (type in patched.values) for (method in type.methods) {
         if (type.type.startsWith(EXT)) continue
         val instructions = method.implementation?.instructions?.toList() ?: continue
@@ -277,6 +282,27 @@ fun main(args: Array<String>) = runBlocking {
             val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
             if (!target.definingClass.startsWith(EXT)) continue
             modified = true
+            if (target.definingClass == "${EXT}MaterialLoadingTweaks;" &&
+                target.name in setOf("onProgressCreated", "startProgress", "stopProgress")) {
+                check(type.type == "Lcom/rubenmayayo/reddit/ui/customviews/progress/ProgressView;")
+                check(instruction.opcode == Opcode.INVOKE_STATIC_RANGE)
+                val call = instruction as RegisterRangeInstruction
+                val parameters = if (method.name == "<init>") 3 else 1
+                check(call.registerCount == 1 && call.startRegister == method.implementation!!.registerCount - parameters)
+                check(instructions[index + 1].opcode == Opcode.RETURN_VOID)
+                if (target.name != "onProgressCreated") check(index == 0)
+                pageLoadingHooks++
+                continue
+            }
+            if (target.definingClass == "${EXT}MaterialLoadingTweaks;" && target.name == "onDialogShown") {
+                check(type.type == "Lip1;" && method.name == "show" && instruction.opcode == Opcode.INVOKE_STATIC_RANGE)
+                val call = instruction as RegisterRangeInstruction
+                check(call.registerCount == 1 && call.startRegister == method.implementation!!.registerCount - 1)
+                check(instructions[index - 1].let { (it as ReferenceInstruction).reference as MethodReference }.name == "show")
+                check(instructions[index + 1].opcode == Opcode.RETURN_VOID)
+                circularDialogHooks++
+                continue
+            }
             if(target.definingClass=="${EXT}NoticeTweaks;") {
                 check(instruction.opcode==Opcode.INVOKE_STATIC || instruction.opcode==Opcode.INVOKE_STATIC_RANGE)
                 if(target.name=="make") check(instructions[index+1].opcode==Opcode.MOVE_RESULT_OBJECT)
@@ -302,7 +328,7 @@ fun main(args: Array<String>) = runBlocking {
                 val expected=when(target.name) {
                     "rate" -> "Lnet/dean/jraw/http/RestClient;" to "setRatelimit"
                     "remaining" -> "Lnet/dean/jraw/RedditClient;" to "adjustRatelimit"
-                    "takeAccount" -> "Lpd2;" to "M"
+                    "takeAccount" -> "Lxd2;" to "M"
                     "pageLimit" -> "Lnet/dean/jraw/paginators/Paginator;" to "next"
                     else -> "Lnet/dean/jraw/RedditClient;" to "authenticate"
                 }
@@ -315,13 +341,13 @@ fun main(args: Array<String>) = runBlocking {
                 continue
             }
             if(target.definingClass=="${EXT}NetworkTweaks;" && target.name=="token") {
-                check(type.type=="Lpd2;" && method.name=="b" && method.parameterTypes.isEmpty() && (method.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 && index==0)
+                check(type.type=="Lxd2;" && method.name=="b" && method.parameterTypes.isEmpty() && (method.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 && index==0)
                 check(instructions[1].opcode==Opcode.MOVE_RESULT && instructions[2].opcode==Opcode.IF_EQZ && instructions[3].opcode==Opcode.RETURN_VOID)
                 tokenHooks++
                 continue
             }
             if(target.definingClass=="${EXT}NetworkTweaks;") {
-                check(type.type=="Lkk3;" && method.name=="D" && index==0 && instruction.opcode==Opcode.INVOKE_STATIC_RANGE && instructions[1].opcode==Opcode.MOVE_RESULT && instructions[2].opcode==Opcode.RETURN)
+                check(type.type=="Lal3;" && method.name=="F" && index==0 && instruction.opcode==Opcode.INVOKE_STATIC_RANGE && instructions[1].opcode==Opcode.MOVE_RESULT && instructions[2].opcode==Opcode.RETURN)
                 networkHooks++
                 continue
             }
@@ -331,7 +357,7 @@ fun main(args: Array<String>) = runBlocking {
                 continue
             }
             if(target.name=="onShow" && target.definingClass=="${EXT}DialogTweaks;") {
-                check(type.type=="Ldp1;" && method.name=="show" && index==0 && instruction.opcode==Opcode.INVOKE_STATIC_RANGE)
+                check(type.type=="Lip1;" && method.name=="show" && index==0 && instruction.opcode==Opcode.INVOKE_STATIC_RANGE)
                 dialogHooks++
                 continue
             }
@@ -381,12 +407,12 @@ fun main(args: Array<String>) = runBlocking {
                     check(call.startRegister==p0+1)
                     check(instructions[index-1].opcode==Opcode.CHECK_CAST &&
                         (instructions[index-1] as OneRegisterInstruction).registerA==p0+1)
-                    check(instructions[index+1].let { (it as ReferenceInstruction).reference as MethodReference }.name=="b0")
+                    check(instructions[index+1].let { (it as ReferenceInstruction).reference as MethodReference }.name=="d0")
                 } else {
                     check(call.startRegister==p0 && index==0)
                     if(target.name=="onPull")check(type.type=="Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;" && method.name=="d")
                     else {
-                        check((target.name=="drawRefresh" && type.type=="Lrs;" && method.name=="draw") ||
+                        check((target.name=="drawRefresh" && type.type=="Lts;" && method.name=="draw") ||
                             (target.name=="drawWheel" && type.type=="Lcom/pnikosis/materialishprogress/ProgressWheel;" && method.name=="onDraw"))
                         check(instructions[1].opcode==Opcode.MOVE_RESULT && (instructions[1] as OneRegisterInstruction).registerA==0)
                         check(instructions[2].opcode==Opcode.IF_EQZ && instructions[3].opcode==Opcode.RETURN_VOID)
@@ -408,8 +434,8 @@ fun main(args: Array<String>) = runBlocking {
             if (target.name == "onRowBound" || target.name == "onPostBound") {
                 check(method.name == "onBindViewHolder")
                 if(target.name == "onRowBound")check(type.type == "Lcom/rubenmayayo/reddit/ui/comments/CommentsFragment\$m;")
-                else check(type.type in setOf("Lcom/rubenmayayo/reddit/ui/fragments/k\$a;",
-                    "Lcom/rubenmayayo/reddit/ui/fragments/m\$a;", "Lft0;",
+                else check(type.type in setOf("Lcom/rubenmayayo/reddit/ui/fragments/j\$a;",
+                    "Lcom/rubenmayayo/reddit/ui/fragments/l\$a;", "Ljt0;",
                     "Lcom/rubenmayayo/reddit/ui/profile/UserContributionListFragment\$f;"))
                 check(instruction.opcode == Opcode.INVOKE_STATIC_RANGE)
                 val call = instruction as RegisterRangeInstruction
@@ -435,7 +461,7 @@ fun main(args: Array<String>) = runBlocking {
                 continue
             }
             if (target.name == "isSupported" || target.name == "legacyTransition") {
-                check(type.type == "Lil;" && instruction.opcode == Opcode.INVOKE_STATIC)
+                check(type.type == "Lkl;" && instruction.opcode == Opcode.INVOKE_STATIC)
                 val call = instruction as FiveRegisterInstruction
                 if (target.name == "isSupported") {
                     check(method.name == "a1" && call.registerCount == 0)
@@ -485,18 +511,22 @@ fun main(args: Array<String>) = runBlocking {
         }
     }
     check(hooks.values.sum() == 21 && hooks.size == 16 && loadingAvatarHooks == 4 && anchorHooks == 1 && platformHooks == 2 && completionHooks == 3 && feedCompletionHooks == 4 && profileCompletionHooks==1) { "Unexpected hook count: $hooks" }
-    val fontLookup=patched["Lps2;"]!!.methods.single { it.name=="e0" }.implementation!!.instructions.toList()
+    val fontLookup=patched["Lxs2;"]!!.methods.single { it.name=="e0" }.implementation!!.instructions.toList()
     check(((fontLookup[0] as ReferenceInstruction).reference as com.android.tools.smali.dexlib2.iface.reference.FieldReference).name=="DEFAULT" && fontLookup[1].opcode==Opcode.RETURN_OBJECT) { "System font lookup is not patched" }
+    check(patched["Lcom/rubenmayayo/reddit/ui/fragments/imagemodel/ImageModelFragment;"]!!.methods.single { it.name=="onDestroy" }.implementation!!.instructions.none { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref->ref.definingClass=="Lnu0;" && ref.name=="d" }==true }) { "Gallery still deletes its shared file" }
+    check(patched["Lcom/rubenmayayo/reddit/ui/activities/MediaVideoActivity;"]!!.methods.single { it.name=="onPause" }.implementation!!.instructions.none { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name=="isFinishing" }) { "Video viewer can keep playing after closing" }
     check(settleHooks == 4) { "Expected four media dismiss settle hooks, got $settleHooks" }
     check(flairHooks == 1) { "Expected one flair colour hook, got $flairHooks" }
     check(noticeHooks >= 100) { "Expected the Toast callers to be redirected, got $noticeHooks" }
     check(tagHooks >= 2) { "Expected SPOILER and NSFW colour hooks, got $tagHooks" }
     check(dialogHooks == 1) { "Expected one dialog hook, got $dialogHooks" }
+    check(circularDialogHooks == 1) { "Expected one circular progress dialog hook, got $circularDialogHooks" }
+    check(pageLoadingHooks == 3) { "Expected three page loading hooks, got $pageLoadingHooks" }
     check(networkHooks == 1) { "Expected one network hook, got $networkHooks" }
     check(startupHooks == 7) { "Expected seven startup hooks, got $startupHooks" }
     check(initHooks == 1) { "Expected one network settings hook, got $initHooks" }
-    for(name in listOf("a","e"))check(patched["Lpd2;"]!!.fields.plus(patched["Lld2;"]!!.fields).any { it.name==name && (it.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 }) { "Login field $name changed" }
-    check(patched["Lpd2;"]!!.methods.any { it.name=="M" && it.parameterTypes.isEmpty() && (it.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 }) { "Login method changed" }
+    for(name in listOf("a","e"))check(patched["Lxd2;"]!!.fields.plus(patched["Ltd2;"]!!.fields).any { it.name==name && (it.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 }) { "Login field $name changed" }
+    check(patched["Lxd2;"]!!.methods.any { it.name=="M" && it.parameterTypes.isEmpty() && (it.accessFlags and com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.value)!=0 }) { "Login method changed" }
     check(patched["Lnet/dean/jraw/RedditClient;"]!!.fields.any { it.name=="authenticatedUser" } && patched["Lnet/dean/jraw/http/oauth/OAuthHelper;"]!!.fields.any { it.name=="authStatus" }) { "Login fields changed" }
     check(taskHooks >= 100) { "Expected AsyncTask starts to be routed, got $taskHooks" }
     check(tokenHooks == 1) { "Expected one token lock, got $tokenHooks" }

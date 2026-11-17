@@ -26,7 +26,7 @@ fun main(args: Array<String>) = runBlocking {
             val fingerprint = Fingerprint(
                 definingClass = "Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;",
                 name = "w", returnType = "V",
-                parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/CommentModel;", "Z", "Z", "Z", "Lhg2;"),
+                parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/CommentModel;", "Z", "Z", "Z", "Lpg2;"),
             )
             val target = fingerprint.method
             val owner = fingerprint.classDef
@@ -36,7 +36,7 @@ fun main(args: Array<String>) = runBlocking {
                 target.annotations, target.hiddenApiRestrictions, MutableMethodImplementation(9)).toMutable()
             // Like Patcheddit 2.1.0-dev.1 wrapHook: assemble the complete body with addInstructions.
             wrapper.addInstructions(0, """
-                invoke-direct/range {p0 .. p5}, ${target.definingClass}->morpheOriginal_w_0(Lcom/rubenmayayo/reddit/models/reddit/CommentModel;ZZZLhg2;)V
+                invoke-direct/range {p0 .. p5}, ${target.definingClass}->morpheOriginal_w_0(Lcom/rubenmayayo/reddit/models/reddit/CommentModel;ZZZLpg2;)V
                 invoke-virtual {p1}, Lcom/rubenmayayo/reddit/models/reddit/ContributionModel;->getExtraEmoji()Ljava/lang/String;
                 move-result-object v0
                 invoke-static {v0}, Landroid/text/TextUtils;->isEmpty(Ljava/lang/CharSequence;)Z

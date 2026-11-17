@@ -2,6 +2,7 @@ package app.template.patches.flashscore.misc.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.template.patches.flashscore.controls.FLASHSCORE_EXTENSION
@@ -9,6 +10,7 @@ import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import app.template.patches.shared.requireNoBranchTargetAt
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -39,6 +41,10 @@ private fun Method.isResourcesCompatGetFont() =
  * 2026-11-07 (#128): the first version replaced the four Compose families with FontFamily.Default.
  * Flashscore's text styles carry no weight (the bold comes from the family's only font), so every
  * Compose text then rendered at the regular weight, visibly thinner than the XML views.
+ *
+ * 2026-11-14 (#128): the app also writes 1 into the live Configuration.fontWeightAdjustment when
+ * Android's Bold text is on; the patch drops that write so the system setting applies the same way
+ * on every launch.
  */
 @Suppress("unused")
 val useSystemFontPatch = bytecodePatch(
@@ -77,5 +83,20 @@ val useSystemFontPatch = bytecodePatch(
             """.trimIndent(),
             ExternalLabel("heval_stock", getFont.getInstruction(0)),
         )
+
+        // The app caps Android's Bold text by writing 1 into the shared Configuration.fontWeightAdjustment
+        // (onCreate / onConfigurationChanged), so consumers read 300 or 1 depending on timing and the
+        // weight changes between launches. Drop that write. It must stay the only writer: if R8 inlines
+        // it into several callers, fail instead of skipping some.
+        val writers = mutableListOf<String>()
+        classDefForEach { classDef ->
+            classDef.methods.filter { it.touchesFontWeightAdjustment(setOf(Opcode.IPUT)) }
+                .forEach { writers += "${classDef.type}->${it.name}" }
+        }
+        val override = FontWeightOverrideFingerprint.method
+        if (writers != listOf("${override.definingClass}->${override.name}")) {
+            throw PatchException("Expected one fontWeightAdjustment writer (${override.definingClass}->${override.name}), found $writers")
+        }
+        override.returnEarly()
     }
 }

@@ -500,6 +500,10 @@ Hide Like on comments	Sembunyikan Suka di komentar
 Takes Like off the row under comments. Reply and the reaction count stay.	Menghapus Suka dari baris di bawah komentar. Balas dan jumlah reaksi tetap ada.
 Hide Reply on comments	Sembunyikan Balas di komentar
 Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Menghapus Balas dari baris di bawah komentar. Lihat balasan, Suka, dan jumlah reaksi tetap ada.
+# context: switch title under Comments and writing, right under Hide Reply on comments; on, the small badges Facebook puts by a commenter's name (Top fan, Subscriber, group roles) go away; use Facebook's own name for the Top fan badge in your language
+Hide badges like Top fan on comments	Sembunyikan lencana seperti Penggemar berat di komentar
+# context: description of that switch; "Top fan" and "Subscriber" are Facebook's badge names, use Facebook's wording in your language; only the badge goes, the commenter's name and comment stay
+Takes Top fan, Subscriber and the other badges off commenters' names. The name and the comment stay.	Menghapus Penggemar berat, Pelanggan, dan lencana lainnya dari nama orang yang berkomentar. Nama dan komentarnya tetap ada.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Hanya Suka
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1060,6 +1064,26 @@ Dark box behind open captions	Kotak gelap di balik keterangan yang dibuka
 An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Keterangan reel yang dibuka tampil di atas kotak gelap, seperti subtitle, agar mudah dibaca di atas video yang terang. Perubahan berlaku mulai reel berikutnya.
 Dark box behind folded captions	Kotak gelap di balik keterangan yang dilipat
 A folded reel caption, the short one with more at the end, sits on the same dark box. Turn on both to box every caption. A change shows from the next reel.	Keterangan reel yang dilipat, yang pendek dengan selengkapnya di akhir, tampil di atas kotak gelap yang sama. Aktifkan keduanya agar setiap keterangan punya kotak. Perubahan berlaku mulai reel berikutnya.
+# context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
+Dark box behind reel names	Kotak gelap di balik nama reel
+# context: summary of that switch
+The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	Nama di bagian bawah reel tampil di atas kotak gelap yang sama, jadi mudah dibaca di atas video yang terang. Perubahan berlaku mulai reel berikutnya.
+# context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
+Box darkness	Kegelapan kotak
+# context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
+How dark the boxes behind captions and names are, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Seberapa gelap kotak di balik keterangan dan nama, dalam persen, dari %1$s sampai %2$s. Biarkan kosong untuk %3$s.
+# context: that row's summary while it's blank; %1$s is a whole percent
+The dark boxes are %1$s percent black. Type a number to change it.	Kotak gelap berwarna hitam %1$s persen. Ketik angka untuk mengubahnya.
+# context: that row's summary once a number is typed; %1$s is a whole percent
+The dark boxes are %1$s percent black.	Kotak gelap berwarna hitam %1$s persen.
+# context: switch title under Reels and Watch; the dark boxes fade out softly at their edges
+Soft box edges	Tepi kotak lembut
+# context: summary of that switch
+The dark boxes fade out at their edges instead of ending sharp. A change shows from the next reel or story.	Kotak gelap memudar di tepinya, bukan berakhir tajam. Perubahan berlaku mulai reel atau cerita berikutnya.
+# context: switch title on the Stories page; the names in the stories row and on an open story get a dark see-through box
+Dark box behind story names	Kotak gelap di balik nama cerita
+# context: summary of that switch; Box darkness is the row title above and Reels and Watch the settings page it's on
+Names in the stories row and on an open story sit on a dark box, so a bright story doesn't hide them. Box darkness under Reels and Watch sets how dark. A change shows the next time the stories load.	Nama di baris cerita dan di cerita yang dibuka tampil di atas kotak gelap, jadi cerita yang terang tidak menutupinya. Kegelapan kotak di Reels dan Watch mengatur seberapa gelap. Perubahan berlaku saat cerita dimuat berikutnya.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Lihat siapa yang membagikan
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Menambahkan Lihat siapa yang membagikan ke menu postingan. Ini membuka daftar Facebook berisi orang yang membagikannya.
@@ -2281,6 +2305,8 @@ Playback speed	Kecepatan putar
 Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol di video feed untuk mundur atau maju 10 detik, seperti pemutar Facebook sendiri. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol di video feed yang menunjukkan kecepatannya. Setiap ketukan pindah ke kecepatan berikutnya: 1x, 1.25x, 1.5x, 2x, lalu 0.5x. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Menampilkan berapa lama video feed sudah diputar di ujung kiri bilah gesernya, dan sisa waktunya di ujung kanan. Perlu “Bilah geser di video feed” aktif.
+Full length on the seek bar	Durasi penuh di bilah geser
+Shows a feed video's full length at the right end of its seek bar, in place of the time left. Needs Times on the seek bar on.	Menampilkan durasi penuh video feed di ujung kanan bilah gesernya, sebagai ganti sisa waktunya. Perlu “Waktu di bilah geser” aktif.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol ke video feed yang membuka video di pemutar penuh milik Facebook, lengkap dengan semua kontrolnya. Video siaran langsung juga mendapatkannya. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 # context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
 Full player button by the speaker	Tombol pemutar penuh di samping speaker
@@ -2299,6 +2325,8 @@ While a feed video plays, its seek bar and Facebook's speaker button fade a few 
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Memindahkan bilah geser video feed lebih dekat ke tepi bawah, bersama tombol speaker dan orang yang ditandai milik Facebook. Perlu “Bilah geser di video feed” aktif.
 Seek bar on the bottom edge	Bilah geser di tepi bawah
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Menaruh bilah geser video feed tepat di tepi bawahnya, agar tidak mengganggu saat Anda menggulir. Tombol speaker dan orang yang ditandai milik Facebook naik ke atasnya. Lebih diutamakan daripada “Turunkan bilah geser dan speaker”. Perlu “Bilah geser di video feed” aktif.
+Thin line seek bar	Bilah geser garis tipis
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Menampilkan bilah geser video feed sebagai garis tipis tepat di tepi bawahnya, seperti di Instagram, tanpa titik atau waktu sampai Anda menyeretnya. Video live juga mendapatkannya selama bisa dimundurkan. Lepaskan di ujung kanan untuk kembali ke siaran langsung. Tombol speaker dan orang yang ditandai milik Facebook naik ke atasnya. Perlu “Bilah geser di video feed” aktif.
 Feed video position	Posisi video feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Warna lencana
@@ -2740,6 +2768,10 @@ Not found yet	Belum ditemukan
 A magnifier at the top of the comments opens a search box that finds the comments with your words.	Kaca pembesar di bagian atas komentar membuka kotak pencarian yang menemukan komentar berisi kata-kata Anda.
 Open shared reels on their own	Buka reel yang dibagikan sendiri
 A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Reel yang kamu buka dari tautan di aplikasi lain atau dari obrolan diputar sendiri, tanpa reel lain untuk digeser setelahnya.
+# context: switch title under Reels and Watch, right under Open shared reels on their own; on, the sheet "[Name] shared this reel. Add him as a friend to make sharing even easier" with Add friend and Not now no longer opens over a reel a non-friend sent; use Facebook's own label for its Add friend button
+Hide the Add friend pop-up on shared reels	Sembunyikan pop-up Tambahkan teman di reel yang dibagikan
+# context: description of that switch; the sheet only opens for a reel shared by someone who isn't your Facebook friend; only the sheet goes, the reel still plays
+Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking you to add them. A change shows from the next shared reel.	Saat kamu membuka reel dari orang yang belum menjadi temanmu, tidak ada lagi jendela yang memintamu menambahkannya. Perubahan terlihat mulai reel yang dibagikan berikutnya.
 Light bars on the Reels tab	Bilah terang di tab Reels
 In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	Dalam mode terang, tab Reels tetap memakai bilah status, bilah atas, dan bilah tab terang yang sama dengan tab lain, bukan menggelapkannya.
 Bar opacity	Opasitas bilah
@@ -2873,3 +2905,19 @@ Clear mode	Mode bersih
 Scroll to next reel automatically	Gulir ke reel berikutnya secara otomatis
 Transcript	Transkrip
 Audio and language	Audio dan bahasa
+Reset settings	Setel ulang pengaturan
+Turns every switch and choice that Export settings saves back to how a new install has them. Pause, Debug logging and the update check stay as they are.	Mengembalikan setiap sakelar dan pilihan yang disimpan Ekspor pengaturan ke keadaan instalasi baru. Jeda, Pencatatan debug, dan pengecekan pembaruan tetap seperti semula.
+Undo the reset	Urungkan setel ulang
+Brings back the switches and choices you had before the last reset.	Mengembalikan sakelar dan pilihan yang kamu punya sebelum setel ulang terakhir.
+Couldn't reset the settings. Nothing was changed.	Pengaturan tidak dapat disetel ulang. Tidak ada yang diubah.
+Your settings already match a new install.	Pengaturan kamu sudah sama dengan instalasi baru.
+Resetting settings	Menyetel ulang pengaturan
+Settings reset. Undo the reset puts yours back.	Pengaturan disetel ulang. Urungkan setel ulang akan mengembalikan pengaturan kamu.
+Couldn't undo the reset. Nothing was changed.	Setel ulang tidak dapat diurungkan. Tidak ada yang diubah.
+Putting your settings back	Mengembalikan pengaturan kamu
+Your settings are back the way they were before the reset.	Pengaturan kamu sudah kembali seperti sebelum setel ulang.
+Couldn't finish, and couldn't put back the settings you had. Check the switches on this screen.	Tidak dapat diselesaikan, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
+Show every reaction on comments	Tampilkan semua reaksi di komentar
+Where Facebook shows only a comment's top reaction next to its count, keeps Like, Reply and every reaction instead. A change shows on the comments drawn after it.	Saat Facebook hanya menampilkan reaksi teratas sebuah komentar di samping jumlahnya, Suka, Balas, dan semua reaksi tetap ditampilkan. Perubahan terlihat pada komentar yang ditampilkan setelahnya.
+Move seen stories to the end	Pindahkan cerita yang sudah dilihat ke akhir
+Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	Cerita yang sudah kamu tonton pindah ke akhir baris Cerita, setelah yang belum kamu tonton. Selama Sembunyikan cerita yang sudah dilihat aktif, pengaturan itu didahulukan. Berlaku saat Facebook memuat baris itu lagi.

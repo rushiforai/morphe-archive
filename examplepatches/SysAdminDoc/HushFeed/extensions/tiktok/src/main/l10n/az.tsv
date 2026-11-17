@@ -1833,6 +1833,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Növbəti LIVE-da təmiz ekranı saxla
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Sürüşdürdüyünüz LIVE çatı, hədiyyələri və düymələri ilə geri gəlir. Bu, təmiz ekranı siz söndürənə qədər otaqdan otağa açıq saxlayır.
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	Daha çox LIVE-da tam ekran təklif et
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	TikTok tam ekran düyməsini yalnız kompüterdən və ya paylaşılan ekrandan yayımlanan LIVE-larda göstərir. Bu, onu geniş videolu bütün digər LIVE-larda da göstərir.
 Dark LIVE panels in dark mode	Qaranlıq rejimdə tünd LIVE panelləri
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	TikTok qaranlıq rejimdə olanda da LIVE otağı paylaşma menyusunu, fan klubunu və digər panelləri açıq rənglərdə açır. Bu ayar onları tünd açır.
 Keep watching in a small window	Kiçik pəncərədə izləməyə davam et
@@ -2449,6 +2453,8 @@ search suggestions	axtarış təklifləri
 AI chat	Sİ söhbəti
 AI Tako	Sİ Tako
 save photos	fotoları saxla
+download button	yükləmə düyməsi yüklə
+It's in %1$s, under %2$s. Tap to go there.	%1$s bölməsində, %2$s altındadır. Ora keçmək üçün toxunun.
 Lock the feed at set times	Lenti müəyyən saatlarda kilidlə
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Lent bu saatlarda telefonunun saatına görə özü kilidlənir. Günləri və saatları belə yaz: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Hər gün üçün günləri yazma. Başladığından tez bitən vaxt gecə yarısını keçir.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	%1$s oxuna bilmədi. Günləri və saatları Mon-Fri 21:00-07:00 kimi yaz.
@@ -2861,3 +2867,50 @@ Account country on profiles	Profillərdə hesabın ölkəsi
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	Profilin paylaşma panelinə Hesabın ölkəsi düyməsi əlavə olunur. O, TikTok-dan bu hesabın harada olduğunu, ya da son videolarının haradan paylaşıldığını soruşur.
 Account country	Hesabın ölkəsi
 Videos posted from %1$s	Videoların paylaşıldığı ölkə: %1$s
+Long-press Profile for Activity center	Fəaliyyət mərkəzi üçün Profili uzun basın
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	TikTok-un Fəaliyyət mərkəzini açmaq üçün Profil nişanını basıb saxlayın. Profilə toxunmaq əvvəlki kimi işləyir. Baxış tarixçəsi üçün Profili uzun basın açıq olduqda həmin basmanı o götürür.
+Share the video after a save	Yadda saxladıqdan sonra videonu paylaşın
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	Video yadda saxlanılan kimi Android-in paylaşma vərəqini faylla açır, video hekayələr də daxil olmaqla, beləliklə onu birbaşa WhatsApp, Telegram və ya istənilən başqa tətbiqə göndərə bilərsiniz. Birlikdə yadda saxlanılan seçilmiş videolar adi bildirişi alır.
+Caption spot in Clear display	Təmiz ekranda başlıq yeri
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	TikTok-un göstərdiyi yerdə
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	Daha aşağıda, alta yaxın
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	Ekranı doldurmaq üçün kəs və uzat
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Bütün pəncərəni Doldurmanın yarısı qədər kəsmə və Uzatmanın yarısı qədər uzatma ilə örtür, beləliklə heç biri çox gözə çarpmır. Forması ekrandan çox fərqli olan video TikTok-un ölçüsünü saxlayır.
+Watch LIVEs unseen	LIVE-lara görünmədən bax
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Açdığınız LIVE-ların baxış siyahısında görünməyəcəksiniz. Aparıcının sizi görməsi üçün LIVE-da gözə toxunun. Xəyal rejimi açıq olmalıdır.
+The host can see you	Aparıcı sizi görür
+Let the host see you	Aparıcı sizi görsün
+Couldn't tell which LIVE this is. Open it again.	Bunun hansı LIVE olduğu bilinmədi. Yenidən açın.
+The host can already see you in this LIVE	Aparıcı bu LIVE-da sizi artıq görür
+Letting the host see you	Aparıcıya görünürsünüz
+The host can see you now	Aparıcı indi sizi görür
+The host sees you next time you open it	Növbəti dəfə açanda aparıcı sizi görəcək
+Couldn't reach TikTok. Open this LIVE again.	TikTok-a qoşulmaq olmadı. Bu LIVE-ı yenidən açın.
+LIVE name alerts	LIVE-da ad xəbərdarlıqları
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	Adınız LIVE-da çəkiləndə xəbər verir, çatda və ya altyazıları açıq otaqda ucadan deyiləndə. TikTok bildirişləri açıq olanda bildiriş, bağlı olanda isə otaqda banner görəcəksiniz.
+Names to listen for	Dinlənəcək adlar
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	İstifadəçi adınız və TikTok adınız artıq siyahıdadır. İnsanların sizi çağırdığı başqa adları vergüllə ayıraraq əlavə edin.
+Your name came up in a LIVE	Adınız LIVE-da çəkildi
+Listen for your name	Adını səsdə dinlə
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	LIVE-ın səsini də dinləyir, beləliklə altyazısız otaqlarda adın ucadan deyiləndə də nəzərə alınır. Dinləməni telefonunun öz nitq tanıması TikTok-un mikrofon icazəsi ilə edir. Yalnız LIVE-ı eşidir, Android mikrofon nöqtəsini göstərsə də, və bir az daha çox data işlədir.
+Needs Android 13 or newer.	Android 13 və ya daha yenisi lazımdır.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	Söndürülüb: bu telefonun nitq tanıması yalnız mikrofonu eşidir. Yenidən yoxlamaq üçün bunu söndürüb yandır.
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	Bu telefonda nitq tanıma yoxdur. Android-in səsli daxiletmə ayarlarında birini seç, sonra LIVE-ı yenidən aç.
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	TikTok-a nitq tanıma üçün mikrofon icazəsi lazımdır. Android-in tətbiq ayarlarında icazə ver, sonra LIVE-ı yenidən aç.
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	Nitq tanımanın telefonunun dili üçün modeli yoxdur. Android-in nitq ayarlarında birini endir, sonra LIVE-ı yenidən aç.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	Son LIVE-da nitq tanıma dəfələrlə alınmadı. Yenidən yoxlamaq üçün LIVE-ı təkrar aç.
+Save the photo posts as one video?	Foto paylaşımları bir video kimi saxlanılsın?
+One video	Bir video
+One per post	Hər paylaşıma bir
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	Ortanı uzatmadan saxla
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	Bütün pəncərəni örtür və videonun ortasını öz formasında saxlayır. Kənarlardan bir az kəsilir, yalnız yuxarı və aşağı hissə uzadılır. Forması ekrandan çox fərqli olan video TikTok-un ölçüsünü saxlayır.
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	Dayandırılmış videolarda vizual axtarış

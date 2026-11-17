@@ -31,10 +31,41 @@ def adb(*args, timeout=120):
     return subprocess.run(["adb", *args], capture_output=True, text=True, timeout=timeout)
 
 
+# The emulator reports boot_completed a few seconds before the package service
+# answers, and an install then fails with "Failure calling service package:
+# Broken pipe" (run 43661824151). These errors mean "not ready yet", not a
+# problem with the app.
+NOT_READY = ("Broken pipe", "Can't find service: package", "device offline", "Is the system running?")
+
+
+def wait_for_package_service(timeout=180):
+    """Waits until the package service lists the framework package."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if "package:" in adb("shell", "pm", "path", "android").stdout:
+            return True
+        time.sleep(5)
+    return False
+
+
+def install(apk):
+    """adb install, retried while the package service is not ready."""
+    for attempt in range(4):
+        result = adb("install", "-r", "-g", str(apk), timeout=600)
+        output = result.stdout + result.stderr
+        if result.returncode == 0 and "Success" in result.stdout:
+            return result
+        if attempt == 3 or not any(sign in output for sign in NOT_READY):
+            return result
+        wait_for_package_service()
+        time.sleep(15)
+    return result
+
+
 def launch(apk, package, wait):
-    install = adb("install", "-r", "-g", str(apk), timeout=600)
-    if install.returncode != 0 or "Success" not in install.stdout:
-        reason = (install.stdout + install.stderr).strip().splitlines()[-1:] or ["unknown"]
+    installed = install(apk)
+    if installed.returncode != 0 or "Success" not in installed.stdout:
+        reason = (installed.stdout + installed.stderr).strip().splitlines()[-1:] or ["unknown"]
         if "NO_MATCHING_ABIS" in reason[0]:
             return "not tested: the app has no code for the emulator's processor"
         return f"did not install ({reason[0]})"
@@ -79,6 +110,7 @@ def main():
     results = json.loads((args.report / "app-updates.json").read_text())
     launches = {}
     lines = ["", "## Launch check", "", "| App | Version | Result |", "|-----|---------|--------|"]
+    wait_for_package_service()
     for r in results:
         apk = args.report / "patched" / str(r.get("patched_apk", ""))
         if not r.get("patched_apk") or not apk.exists():
@@ -92,7 +124,7 @@ def main():
             needs_review = result.startswith(("crashed", "closed", "did not install"))
             note = "\n\nThis needs a manual check: open the patched app on a device." if needs_review else ""
             comment(r["name"], r["latest"],
-                    f"Launch check on an Android 14 emulator: the patched {r['name']} `{r['latest']}` {result}{note}\n",
+                    f"Launch check on an Android 17 emulator: the patched {r['name']} `{r['latest']}` {result}{note}\n",
                     needs_review)
     (args.report / "launch.json").write_text(json.dumps(launches, indent=2))
     if len(lines) > 5:

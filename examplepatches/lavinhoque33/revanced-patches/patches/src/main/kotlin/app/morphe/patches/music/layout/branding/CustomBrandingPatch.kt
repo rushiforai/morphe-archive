@@ -8,6 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-16
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -67,6 +68,7 @@ import app.morphe.patches.music.utils.patch.PatchList.CUSTOM_BRANDING_FOR_YOUTUB
 import app.morphe.patches.music.utils.playservice.is_7_06_or_greater
 import app.morphe.patches.music.utils.playservice.is_7_27_or_greater
 import app.morphe.patches.music.utils.playservice.versionCheckPatch
+import app.morphe.patches.music.utils.resourceid.actionBarLogo
 import app.morphe.patches.music.utils.resourceid.actionBarLogoRingo2
 import app.morphe.patches.music.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.music.utils.resourceid.ytmLogoRingo2
@@ -160,7 +162,22 @@ private val changeHeaderBytecodePatch = bytecodePatch(
     dependsOn(sharedResourceIdPatch, versionCheckPatch)
 
     execute {
-        if (!is_7_06_or_greater) return@execute
+        if (!is_7_06_or_greater) {
+            if (actionBarLogo == -1L) {
+                printWarn("Custom Music header: legacy action_bar_logo is missing. Keeping the stock header.")
+                return@execute
+            }
+
+            replaceLiteralInstructionCall(
+                actionBarLogo,
+                """
+                    invoke-static {v$REGISTER_TEMPLATE_REPLACEMENT}, $GENERAL_CLASS_DESCRIPTOR->getHeaderDrawableId(I)I
+                    move-result v$REGISTER_TEMPLATE_REPLACEMENT
+                """,
+            )
+            return@execute
+        }
+
         if (actionBarLogoRingo2 == -1L || ytmLogoRingo2 == -1L) {
             printWarn("Target resource not found!")
             return@execute

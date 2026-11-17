@@ -3,7 +3,7 @@ package app.template.patches.sofascore.misc.facebook
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import org.w3c.dom.Element
 
 /**

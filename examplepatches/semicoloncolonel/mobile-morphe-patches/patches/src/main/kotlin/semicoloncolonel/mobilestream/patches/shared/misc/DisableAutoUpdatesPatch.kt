@@ -13,6 +13,7 @@ import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
 import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
 import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
 import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
+import semicoloncolonel.mobilestream.patches.reuters.shared.Constants as Reuters
 import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
@@ -79,7 +80,7 @@ val disableAutoUpdatesPatch = resourcePatch(
     description = "Stops the Play Store from replacing the patched app with the official version.",
     default = false,
 ) {
-    compatibleWith(
+    compatibleWith(*forBundle(
         Tubi.COMPATIBILITY,
         Disney.COMPATIBILITY,
         Hulu.COMPATIBILITY,
@@ -99,9 +100,9 @@ val disableAutoUpdatesPatch = resourcePatch(
         FoxNews.COMPATIBILITY,
         MsNow.COMPATIBILITY,
         Cnn.COMPATIBILITY,
-        Espn.COMPATIBILITY,
+        Espn.COMPATIBILITY, Espn.TV_COMPATIBILITY,
         Nfl.COMPATIBILITY,
-        Nba.COMPATIBILITY,
+        Nba.COMPATIBILITY, Nba.TV_COMPATIBILITY,
         Fandango.COMPATIBILITY,
         CbsNews.COMPATIBILITY,
         NbcNews.COMPATIBILITY,
@@ -121,7 +122,8 @@ val disableAutoUpdatesPatch = resourcePatch(
         Att.COMPATIBILITY,
         Verizon.COMPATIBILITY,
         Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY,
-    )
+        Reuters.COMPATIBILITY,
+    ))
 
     execute {
         document("AndroidManifest.xml").use { document ->

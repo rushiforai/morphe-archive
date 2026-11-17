@@ -74,6 +74,7 @@ val enablePremiumPatch = bytecodePatch(
         )
 
         // Later billing results can never downgrade the entitlement (or reset premium features).
-        setter.addInstructionsChecked(0, "const/4 p1, 0x1")
+        // const/16: since 1.4.8 the setter has 24 registers, so p1 is v23, which const/4 cannot address.
+        setter.addInstructionsChecked(0, "const/16 p1, 0x1")
     }
 }

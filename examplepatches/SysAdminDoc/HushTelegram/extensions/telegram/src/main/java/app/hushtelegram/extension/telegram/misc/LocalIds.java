@@ -30,7 +30,9 @@ public final class LocalIds {
                 HookStatus.threw(FamilyNames.SHOW_LOCAL_IDS, "local inspection row", failure);
             }
         }
-        // The data center row has its own switch and goes under the ID row.
+        // The registration month has its own switch and goes right under the ID row, for a person only.
+        RegistrationDate.addToProfile(menu, userId, chatId);
+        // The data center row has its own switch and goes under those.
         ProfileDc.addToProfile(menu, userId, chatId);
         // So does the track row, which only a user's profile gets.
         SpecialContacts.addToProfile(menu, userId, chatId);

@@ -123,6 +123,22 @@ public class HomeSuggestionsTest {
         }
     }
 
+    /** 14.44.0's y5 story holding the viewer's own boards, the way the board-tab Home sends "More ideas for your board" (#30). */
+    static final class BoardsStory {
+        @Json("id") String id;
+        @Json("story_type") String storyType;
+        @Json("objects") List<Object> objects = new ArrayList<>(Arrays.asList(new Board()));
+
+        BoardsStory(String id, String storyType) {
+            this.id = id;
+            this.storyType = storyType;
+        }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
     /** Pinterest's typed story kinds, as one story model keeps them (an enum, not the JSON text). */
     enum StoryKind { HOMEFEED_MORE_IDEAS_FEED_STORY, IDEAS_FOR_YOU }
 
@@ -204,6 +220,21 @@ public class HomeSuggestionsTest {
         if (HomeSuggestions.STORIES.contains("homefeed_more_ideas_feed_story")) {
             assertEquals("[pin, kept]", FeedFilter.filter(typed).toString());
         }
+    }
+
+    /**
+     * The board-tab Home's "More ideas for your board" row is a story over the viewer's own boards,
+     * typed as 14.44.0's story binder names it (pr1/e0 and vr1/d0). A board's own ideas story and the
+     * boards inside other stories stay.
+     */
+    @Test
+    public void theBoardIdeasStoryOverYourOwnBoardsGoes() {
+        Settings.HIDE_HOME_SUGGESTIONS.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(pin,
+                new BoardsStory("items", "boards_more_ideas_feed_upsell_list_items"),
+                new BoardsStory("cards", "boards_more_ideas_feed_upsell_list_cards"),
+                new BoardsStory("ownBoard", "board_more_ideas"), ideas));
+        assertEquals("[pin, ownBoard, ideas]", FeedFilter.filter(page).toString());
     }
 
     @Test

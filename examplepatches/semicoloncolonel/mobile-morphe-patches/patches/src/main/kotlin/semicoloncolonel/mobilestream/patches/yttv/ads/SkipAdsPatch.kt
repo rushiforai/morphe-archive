@@ -2,12 +2,14 @@ package semicoloncolonel.mobilestream.patches.yttv.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import semicoloncolonel.mobilestream.patches.yttv.shared.Constants
 
@@ -34,8 +36,15 @@ import semicoloncolonel.mobilestream.patches.yttv.shared.Constants
 // Commercials in live broadcasts are part of the broadcast and still play.
 // ─────────────────────────────────────────────────────────────────────────────
 
-private const val CONTROLLER =
+// Up to 10.45 the controller kept its name, PlaybackControllerWrapper. From
+// 10.46, R8 renames it (aonc in 10.46.0), so it is found by its shape: the
+// class that extends PlaybackControllerCallbacks and keeps a cue-point
+// provider in a field. The DAI switch's lambda was renamed the same way
+// (CuePointDataProviderWrapper$$ExternalSyntheticLambda0, then anjh): the
+// Runnable built from a provider whose run() calls nativeSetDaiDisabledByNoConfig.
+private const val NAMED_CONTROLLER =
     "Lcom/google/android/libraries/youtube/media/player/exo2/platypus/PlaybackControllerWrapper;"
+private const val CALLBACKS = "Lcom/google/android/libraries/youtube/media/interfaces/PlaybackControllerCallbacks;"
 private const val PROVIDER = "Lcom/google/android/libraries/youtube/media/interfaces/CuePointDataProviderWrapper;"
 private const val DISABLER = "Lsemicoloncolonel/mobilestream/extension/yttv/ads/YttvDaiDisabler;"
 private const val STREAMING_DATA = "Lcom/google/android/libraries/youtube/innertube/model/media/VideoStreamingData;"
@@ -55,6 +64,34 @@ internal object PlayerBytesAdLayoutFingerprint : Fingerprint(
     strings = listOf("Bootstrapped layout construction resulted in non PlayerBytesLayout. PlayerAds count: "),
 )
 
+internal fun BytecodePatchContext.playbackController(): String {
+    if (classDefByOrNull(NAMED_CONTROLLER) != null) return NAMED_CONTROLLER
+    val matches = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.superclass == CALLBACKS && classDef.fields.any { it.type == PROVIDER }) matches += classDef.type
+    }
+    return matches.singleOrNull()
+        ?: throw PatchException("playback controller not found (${matches.size} candidates)")
+}
+
+// The Runnable whose run() calls nativeSetDaiDisabledByNoConfig, as a Java class name.
+internal fun BytecodePatchContext.daiLambdaClass(): String {
+    val matches = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if ("Ljava/lang/Runnable;" !in classDef.interfaces) return@classDefForEach
+        if (classDef.methods.none { it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } == listOf(PROVIDER) }) {
+            return@classDefForEach
+        }
+        val run = classDef.methods.firstOrNull { it.name == "run" && it.parameterTypes.isEmpty() } ?: return@classDefForEach
+        val callsSwitch = run.implementation?.instructions?.any {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "nativeSetDaiDisabledByNoConfig"
+        } == true
+        if (callsSwitch) matches += classDef.type
+    }
+    val type = matches.singleOrNull() ?: throw PatchException("DAI switch lambda not found (${matches.size} candidates)")
+    return type.removePrefix("L").removeSuffix(";").replace('/', '.')
+}
+
 // Hands every cue-point provider PlaybackControllerWrapper stores (field p)
 // to YttvDaiDisabler, with the controller. Shared by Skip ads, which turns DAI
 // off there, and Mask live ad breaks, which clears its slots there.
@@ -62,15 +99,18 @@ internal val cuePointProviderHookPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        val controller = playbackController()
+        mutableClassDefBy(DISABLER).methods.first { it.name == "daiLambdaClass" }
+            .addInstructions(0, "const-string v0, \"${daiLambdaClass()}\"\nreturn-object v0")
         var hooked = 0
-        mutableClassDefBy(CONTROLLER).methods.forEach { method ->
+        mutableClassDefBy(controller).methods.forEach { method ->
             val instructions = method.implementation?.instructions?.toList() ?: return@forEach
             // Insert from the end so earlier indices stay valid.
             instructions.indices.reversed().forEach { index ->
                 val instruction = instructions[index]
                 if (instruction.opcode != Opcode.IPUT_OBJECT) return@forEach
                 val field = (instruction as ReferenceInstruction).reference as FieldReference
-                if (field.definingClass != CONTROLLER || field.type != PROVIDER) return@forEach
+                if (field.definingClass != controller || field.type != PROVIDER) return@forEach
                 val register = (instruction as TwoRegisterInstruction).registerA
                 method.addInstructions(
                     index + 1,
@@ -102,7 +142,7 @@ internal val streamTypePatch = bytecodePatch {
         }?.name ?: throw PatchException("stream type label method not found")
         var playbackField: String? = null
         var streamField: String? = null
-        mutableClassDefBy(CONTROLLER).fields.forEach { field ->
+        mutableClassDefBy(playbackController()).fields.forEach { field ->
             if (playbackField != null || !field.type.startsWith("L")) return@forEach
             val holder = classDefByOrNull(field.type) ?: return@forEach
             holder.fields.firstOrNull { it.type == STREAMING_DATA }?.let {

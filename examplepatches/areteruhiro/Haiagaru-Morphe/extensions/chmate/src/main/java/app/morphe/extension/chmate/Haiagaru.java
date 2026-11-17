@@ -493,6 +493,7 @@ public final class Haiagaru {
     /** Adds the archive action to ChMate's own home-toolbar customization model. */
     public static Object addEdgeArchiveToolbarChoice(Object toolbarModel) {
         Object result=addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
+        result=addToolbarChoice(result,ResponseNotes.MENU,"haiagaru_response_notes");
         return addToolbarChoice(result,OpenTabsRefresh.ACTION,"haiagaru_refresh_open_tabs");
     }
 
@@ -667,6 +668,7 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if(itemId==ResponseNotes.MENU){ResponseNotes.open(toolbarActivity(fragment),null);return true;}
         if(MultiResponseNg.click(fragment,itemId))return true;
         if(HomeThreadOrder.click(fragment,itemId))return true;
         if(StockChmatePosting.normalClick(fragment,itemId))return true;
@@ -3637,6 +3639,17 @@ public final class Haiagaru {
         LinearLayout lists=SettingsSection.add(layout,text("スレ一覧・HOME・履歴の表示", "Thread lists, HOME and history"),text("並び順、表示するスレ、履歴タブ", "Ordering, thread visibility and history tabs"),true);
         LinearLayout search=SettingsSection.add(layout,text("スレ内検索・記者ID", "Thread search and reporter IDs"),text("検索対象と記者IDの表示・検索", "Search targets and reporter ID display/search"),true);
         ThreadSearchOptions.add(search,activity);
+        Switch homeNotes=addSwitch(lists,activity,"HOMEの3点メニューにメモを表示",SettingsProfiles.prefs(activity).getBoolean("homeResponseNotesMenu",true));
+        homeNotes.setOnCheckedChangeListener((button,on)->{SettingsProfiles.prefs(activity).edit().putBoolean("homeResponseNotesMenu",on).apply();activity.invalidateOptionsMenu();});
+        Switch homeOrder=addSwitch(lists,activity,"HOMEのお気に入りの並び替え・固定を使う",SettingsProfiles.prefs(activity).getBoolean(HomeThreadOrder.ENABLED,true));
+        homeOrder.setTag(SettingLinkEntry.KEY_TAG,HomeThreadOrder.ENABLED);
+        homeOrder.setOnCheckedChangeListener((button,on)->{SettingsProfiles.prefs(activity).edit().putBoolean(HomeThreadOrder.ENABLED,on).apply();activity.invalidateOptionsMenu();});
+        Switch cachedControls=addSwitch(search,activity,"取得済みスレ検索に追加の操作欄を表示",SettingsProfiles.prefs(activity).getBoolean(CachedWacchoiSearch.CONTROLS,true));
+        cachedControls.setTag(SettingLinkEntry.KEY_TAG,CachedWacchoiSearch.CONTROLS);
+        cachedControls.setOnCheckedChangeListener((button,on)->SettingsProfiles.prefs(activity).edit().putBoolean(CachedWacchoiSearch.CONTROLS,on).apply());
+        Switch keywordMenu=addSwitch(lists,activity,"3点メニューに「キーワードの表示名を設定」を表示",SettingsProfiles.prefs(activity).getBoolean(HomeThreadOrder.KEYWORD_MENU,false));
+        keywordMenu.setTag(SettingLinkEntry.KEY_TAG,HomeThreadOrder.KEYWORD_MENU);
+        keywordMenu.setOnCheckedChangeListener((button,on)->{SettingsProfiles.prefs(activity).edit().putBoolean(HomeThreadOrder.KEYWORD_MENU,on).apply();activity.invalidateOptionsMenu();});
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         Switch automaticFold = addSwitch(appearance, activity,
@@ -3851,6 +3864,14 @@ public final class Haiagaru {
                 text("スレ立てコマンドの候補を表示", "Show thread creation command suggestions"),
                 preferences.getBoolean("threadCommandsEnabled", true));
         live.toggle(threadCommands, "threadCommandsEnabled");
+        Switch postingLimits=addSwitch(layout,activity,
+                text("投稿上限・残り文字数・行数と超過部分を表示", "Show posting limits, remaining length and excess text"),
+                preferences.getBoolean(PostEditorLimits.KEY,true));
+        live.toggle(postingLimits,PostEditorLimits.KEY);
+        TextView postingLimitsHelp=new TextView(activity);
+        postingLimitsHelp.setText(text("板設定からスレタイ・本文・行数の上限を取得し、超えた部分を赤色で表示します。バイト制限の板はバイト数で判定します。取得できない上限は「上限未取得」と表示します。カウンターの長押しで再取得できます。OFFで上限表示と赤色表示を解除し、入力内容は保持します。",
+                "Reads board limits and highlights excess text in red. Byte-limited boards use their posting byte count. Missing limits stay unknown. Long-press a counter to refresh. Turning this off removes counters and highlights while retaining the draft."));
+        layout.addView(postingLimitsHelp);
         Switch threadNames=addSwitch(layout,activity,
                 text("名前欄をスレごとに保存する", "Remember posting names per thread"),
                 preferences.getBoolean(ThreadPostingNames.ENABLED,false));
@@ -4066,7 +4087,7 @@ public final class Haiagaru {
         Switch chtoio = addSwitch(
                 layout,
                 activity,
-                "chtoio",
+                "5ch.netのリンクを5ch.ioに変換",
                 preferences.getBoolean("chtoio", true)
         );
 
@@ -4367,6 +4388,9 @@ public final class Haiagaru {
         Switch videoViewer = addSwitch(layout, activity,
                 text("動画を専用ビューアで開く（オフなら従来の動作）", "Open videos in dedicated viewer (off: original behavior)"),
                 preferences.getBoolean("videoViewerEnabled", true));
+        Switch externalVideoCache=addSwitch(layout,activity,"外部プレイヤー用にimgpile動画を一時取得",preferences.getBoolean(ExternalVideoCache.KEY,true));
+        live.toggle(externalVideoCache,ExternalVideoCache.KEY);
+        TextView externalVideoHelp=new TextView(activity);externalVideoHelp.setText("専用ビューアを使わないとき、動画を取得してから端末の動画アプリへ渡します。最大128MB・60秒。一時ファイルは次回取得時に24時間経過分を整理します。");layout.addView(externalVideoHelp);
         if (!VideoViewerActivity.installed(activity)) {
             videoViewer.setChecked(false);
             videoViewer.setEnabled(false);

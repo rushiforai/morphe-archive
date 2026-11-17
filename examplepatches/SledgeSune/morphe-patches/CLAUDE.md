@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 Personal [Morphe](https://github.com/MorpheApp) patch bundle (`SledgeSune/morphe-patches`, public), built from
-MorpheApp's patches template. Patches **Sync.ME** (`com.syncme.syncmeapp`) and **Waze** (`com.waze`); any new app
+MorpheApp's patches template. Patches **Sync.ME** (`com.syncme.syncmeapp`), **Waze** (`com.waze`) and **CP** (`pt.cp.mobiapp`, Flutter); any new app
 gets its own folder here, not a new repo. All code is written by Claude — keep the README's "MADE BY AI" warning.
 
 **Read [HANDOFF.md](HANDOFF.md) at the start of a session** (state, how each patch hooks in, what is untested,

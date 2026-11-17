@@ -210,6 +210,14 @@ final class PostInfo {
             if (!indicators.isEmpty() && NSFW.matcher(indicators).find()) nsfw = true;
         }
 
+        // Home feed cards of some builds carry the flair in another element (or none until the post's state changes):
+        // any element naming a link flair or a flairs list gives it, whatever its class.
+        if (!name.equals("PostFlairsElement")) {
+            String linkFlair = valueOf(text, "linkFlairText");
+            if (!linkFlair.isEmpty()) addFlair(linkFlair);
+            if (text.contains(", flairs=[") || text.contains("(flairs=[")) addFlairs(bracketed(text, "flairs"));
+        }
+
         // The parts: lists of elements, and single elements such as a repost's original post.
         for (Field field : fields(element.getClass())) {
             Object value;

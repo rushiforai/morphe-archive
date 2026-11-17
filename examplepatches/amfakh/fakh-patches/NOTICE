@@ -97,6 +97,19 @@ app.fakh.extension.linkedin) are based on Michii Patches by heyymichii
 (https://github.com/heyymichii/michii-patches), licensed under GPLv3.
 
 
+The Post menu items, Keep feed on reopen, Tap to hide in viewers, Dark app icon
+and Material icons in the navigation bar patches, with their extension classes
+(PostMenu, PostActionActivity, PostCommentary, MenuIconIds, DocumentPdf,
+KeepFeed and ViewerChrome), are adapted from BadFella Patches by XBadFellaX
+(https://github.com/XBadFellaX/BadFella-Patches) and Loki Patches by Lokesh
+Sparrow (https://github.com/lokesh-sparrow/loki-patches), both licensed under
+GPLv3. Files that carry a "Copyright (C) 2026 Lokesh Sparrow" header keep it.
+
+The Material icon outlines in the Material icons in the navigation bar patch
+come from Google's Material Icons (https://github.com/google/material-design-icons),
+licensed under the Apache License 2.0.
+
+
 Glass navigation bar
 ====================
 

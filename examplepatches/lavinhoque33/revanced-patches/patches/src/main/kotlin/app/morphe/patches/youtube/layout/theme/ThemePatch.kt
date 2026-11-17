@@ -8,6 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-16
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -131,7 +132,6 @@ private const val SPLASH_THEME_LIGHT_PREFIX = "morphe_theme_splash_light_"
 private const val SPLASH_THEME_NO_ICON_SUFFIX = "_no_icon"
 private const val SPLASH_THEME_PARENT = "@style/Theme.YouTube.Home"
 private const val PRECOMPILED_THEME_MCC = 801
-// modified by lavinhoque33, 2026-10-12: match RuntimeResourceOverlay's palette configuration.
 private const val RUNTIME_THEME_MCC = 802
 private const val DEFAULT_LIGHT_THEME_COLOR = "#FFFFFFFF"
 private const val DEFAULT_CUSTOM_DARK_THEME_COLOR = "#FF000000"
@@ -186,6 +186,15 @@ private val stockDarkThemeColors = linkedMapOf(
     "yt_black_pure_opacity60" to "#99000000",
 )
 
+// Mainstage is a separate stock palette in 21.43+. Do not flatten it when the preset is Stock.
+private val stockMainstageThemeColors = linkedMapOf(
+    "yt_ref_color_constants_colors_mainstage_grey5" to "#FF141416",
+    "yt_ref_color_constants_colors_mainstage_grey20" to "#FF2D2D31",
+    "yt_ref_color_constants_colors_mainstage_grey25" to "#FF2A2A2D",
+)
+
+private val stockRuntimeDarkThemeColors = stockDarkThemeColors + stockMainstageThemeColors
+
 /**
  * YouTube 21.13 introduced baseline styles that bypass the legacy yt_* color aliases. Keep their
  * neutral references connected to the same aliases, but leave static black/player scrims stock.
@@ -196,12 +205,17 @@ private val youtube21_13DarkThemeColorAliases = linkedMapOf(
     "yt_ref_color_constants_baseline_black_black2" to "yt_black2",
     "yt_ref_color_constants_baseline_black_black3" to "yt_black3",
     "yt_ref_color_constants_baseline_black_black4" to "yt_black4",
-    // modified by lavinhoque33, 2026-10-12: newer baseline styles use default_* names directly.
     "yt_ref_color_constants_default_baseline_black_black0" to "yt_black0",
     "yt_ref_color_constants_default_baseline_black_black1" to "yt_black1",
     "yt_ref_color_constants_default_baseline_black_black2" to "yt_black2",
     "yt_ref_color_constants_default_baseline_black_black3" to "yt_black3",
     "yt_ref_color_constants_default_baseline_black_black4" to "yt_black4",
+    "yt_ref_color_constants_default_grey25" to "yt_black0",
+    "yt_ref_color_constants_default_grey20" to "yt_black1",
+    "yt_ref_color_constants_default_grey10" to "yt_black2",
+    "yt_ref_color_constants_default_grey5" to "yt_black3",
+    "yt_ref_color_constants_default_grey1" to "yt_black4",
+    "yt_sys_color_baseline_dark_default_menu_background" to "yt_black0",
 )
 
 private val youtube21_13LightThemeColorAliases = linkedMapOf(
@@ -209,17 +223,24 @@ private val youtube21_13LightThemeColorAliases = linkedMapOf(
     "yt_ref_color_constants_baseline_white_white2" to "yt_white2",
     "yt_ref_color_constants_baseline_white_white3" to "yt_white3",
     "yt_ref_color_constants_baseline_white_white4" to "yt_white4",
-    // modified by lavinhoque33, 2026-10-12: cover the newer foreground baseline aliases.
     "yt_ref_color_constants_default_baseline_white_white2" to "yt_white2",
     "yt_ref_color_constants_default_baseline_white_white3" to "yt_white3",
     "yt_ref_color_constants_default_baseline_white_white4" to "yt_white4",
+    "yt_ref_color_constants_default_grey99" to "yt_white2",
+    "yt_ref_color_constants_default_grey95" to "yt_white3",
+    "yt_ref_color_constants_default_grey90" to "yt_white4",
 )
 
-private val runtimeDarkThemeResources = stockDarkThemeColors.keys.associateWith { name -> "morphe_runtime_dark_theme_${name.removePrefix("yt_")}" }
+private val runtimeDarkThemeResources = stockRuntimeDarkThemeColors.keys.associateWith { name ->
+    "morphe_runtime_dark_theme_${name.removePrefix("yt_")}"
+}
 
 private val runtimeThemeResourceIds =
-    runtimeDarkThemeResources.values.mapIndexed { index, name ->
-        name to "0x7f06${(0x2000 + index).toString(16).padStart(4, '0')}"
+    stockDarkThemeColors.keys.mapIndexed { index, name ->
+        runtimeDarkThemeResources.getValue(name) to "0x7f06${(0x2000 + index).toString(16)}"
+    }.toMap() + stockMainstageThemeColors.keys.mapIndexed { index, name ->
+        // Leave the original light-color IDs at 0x200f and 0x2010 unchanged.
+        runtimeDarkThemeResources.getValue(name) to "0x7f06${(0x2011 + index).toString(16)}"
     }.toMap() + mapOf(
         RUNTIME_LIGHT_THEME_COLOR to RUNTIME_LIGHT_THEME_COLOR_ID,
         RUNTIME_LIGHT_THEME_COLOR_OPACITY70 to RUNTIME_LIGHT_THEME_COLOR_OPACITY70_ID,
@@ -599,9 +620,8 @@ val themePatch = resourcePatch(
         } else {
             emptySet()
         }
-        // modified by lavinhoque33, 2026-10-12: shared aliases replace default black1/black3 special cases.
         val precompiledDarkThemeResources = (
-            stockDarkThemeColors.filterKeys { name ->
+            stockRuntimeDarkThemeColors.filterKeys { name ->
                 name !in stockPlayerColorNames && name in existingColorResourceNames
             } + setOf(
                 "yt_sys_color_baseline_dark_menu_background",
@@ -626,6 +646,9 @@ val themePatch = resourcePatch(
             "yt_sys_color_baseline_light_base_background",
             "yt_sys_color_baseline_light_raised_background",
             "yt_sys_color_baseline_light_menu_background",
+            "yt_sys_color_baseline_mobile_light_default_base_background",
+            "yt_sys_color_baseline_mobile_light_default_raised_background",
+            "yt_sys_color_baseline_light_default_menu_background",
         ).filter(existingColorResourceNames::contains) + youtube21_13LightThemeResources
         val youtube21_13RuntimeThemeAliases = if (is_21_13_or_greater) {
             youtube21_13DarkThemeColorAliases
@@ -642,11 +665,33 @@ val themePatch = resourcePatch(
         } else {
             emptyMap()
         }
-        // modified by lavinhoque33, 2026-10-12: preserve inactive modern foreground shades.
         val modernLightThemeAliases = youtube21_13LightThemeColorAliases.keys.filter { name ->
-            name.startsWith("yt_ref_color_constants_default_baseline_white_") &&
+            (name.startsWith("yt_ref_color_constants_default_baseline_white_") ||
+                    name.startsWith("yt_ref_color_constants_default_grey")) &&
                     name in youtube21_13RuntimeThemeAliases
         }
+
+        if ("yt_ref_color_constants_default_grey5" in existingColorResourceNames) {
+            // The shared white constant also paints player overlays. Change only light-background roles.
+            val lightBackgroundAttributes = setOf(
+                "yt_sys_color_baseline_base_background",
+                "yt_sys_color_baseline_raised_background",
+                "yt_sys_color_baseline_menu_background",
+                "yt_sys_color_baseline_static_white_background",
+            )
+            document("res/values/styles.xml").use { document ->
+                document.documentElement.forEachChildElement { style ->
+                    if (style.getAttribute("name") == "yt.sys.color.baseline") {
+                        style.forEachChildElement { item ->
+                            if (item.getAttribute("name") in lightBackgroundAttributes) {
+                                item.textContent = "@color/$STATIC_WHITE_COLOR_NAME"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Android 8–10 have no public ResourcesLoader API. Precompile every dark/light pair under
         // one synthetic MCC and a pair-specific MNC, plus separate foreground-disabled MNCs for
         // the app's dark and light appearances. A day/night qualifier cannot be used here because
@@ -741,7 +786,7 @@ val themePatch = resourcePatch(
                     runtimeDarkThemeResources.forEach { (stockName, runtimeName) ->
                         resourcesNode.appendChild(document.createElement("color").apply {
                             setAttribute("name", runtimeName)
-                            textContent = stockDarkThemeColors.getValue(stockName)
+                            textContent = stockRuntimeDarkThemeColors.getValue(stockName)
                         })
                     }
                     resourcesNode.appendChild(document.createElement("color").apply {
@@ -768,15 +813,13 @@ val themePatch = resourcePatch(
                     val youtube21_13RuntimeThemeAlias =
                         youtube21_13RuntimeThemeAliases[node.getAttribute("name")]
                     if (youtube21_13RuntimeThemeAlias != null) {
-                        // modified by lavinhoque33, 2026-10-12: keep modern foreground shades stock
-                        // when only the dark background is themed.
+                        // Preserve modern foreground shades when only the dark background is themed.
                         if (node.getAttribute("name") !in modernLightThemeAliases) {
                             node.textContent = "@color/$youtube21_13RuntimeThemeAlias"
                         }
                         continue
                     }
 
-                    // modified by lavinhoque33, 2026-10-12: default dark aliases use the shared mapping above.
                     node.textContent = when (node.getAttribute("name")) {
                         in stockPlayerColorNames -> continue
 
@@ -800,7 +843,10 @@ val themePatch = resourcePatch(
                         "material_grey_50", "material_grey_100",
                         "yt_sys_color_baseline_light_base_background",
                         "yt_sys_color_baseline_light_raised_background",
-                        "yt_sys_color_baseline_light_menu_background" ->
+                        "yt_sys_color_baseline_light_menu_background",
+                        "yt_sys_color_baseline_mobile_light_default_base_background",
+                        "yt_sys_color_baseline_mobile_light_default_raised_background",
+                        "yt_sys_color_baseline_light_default_menu_background" ->
                             "@color/$RUNTIME_LIGHT_THEME_COLOR"
 
                         else -> continue
@@ -809,7 +855,7 @@ val themePatch = resourcePatch(
             }
         }
 
-        // modified by lavinhoque33, 2026-10-12: qualify modern light aliases by the active runtime palette.
+        // Qualify modern light aliases by the active runtime palette.
         if (modernLightThemeAliases.isNotEmpty()) {
             // Match RuntimeResourceOverlay: MNC 1 themes both palettes; MNC 3 themes light backgrounds.
             // MNC 2 deliberately falls back to the original modern white shades.

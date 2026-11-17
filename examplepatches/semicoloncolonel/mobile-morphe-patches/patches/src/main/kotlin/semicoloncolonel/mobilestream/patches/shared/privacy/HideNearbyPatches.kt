@@ -3,8 +3,6 @@ package semicoloncolonel.mobilestream.patches.shared.privacy
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -12,21 +10,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
-import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hide Wi-Fi networks / Block Bluetooth scanning / Hide cell tower info /
-// Block background location (all OPT-IN, default OFF, shopping apps only).
+// Nearby Wi-Fi networks / Bluetooth scanning / Cell tower info / Background
+// location (options of Hide device identifiers, all off by default).
 //
 // Retail apps tell that you are inside a store from nearby radio signals as
 // well as GPS: Walmart matches its store Wi-Fi in scans, Target, Home Depot
 // and CVS range in-store Bluetooth beacons, and fraud SDKs collect nearby
-// networks and cell towers as a device fingerprint. Each patch takes away one
+// networks and cell towers as a device fingerprint. Each option takes away one
 // of those signals and can be used alone.
 //
 // The first three rewrite every app call to the framework methods in their
 // list (bundled SDKs included) into NearbyHider, the same way the network-
-// state patches do. Block background location removes the permission from the
+// state options do. Background location removes the permission from the
 // manifest, so Android and Play Services refuse background location and
 // geofences themselves.
 //
@@ -74,7 +71,7 @@ internal val WIFI_REWRITES = listOf(
     CallRewrite(WIFI_INFO, "getMacAddress", listOf(), "Ljava/lang/String;"),
     CallRewrite(WIFI_INFO, "getNetworkId", listOf(), "I"),
     CallRewrite("Landroid/net/NetworkInfo;", "getExtraInfo", listOf(), "Ljava/lang/String;"),
-    // The same call after "Report Wi-Fi connection" rewrote it.
+    // The same call after the Report Wi-Fi connection option rewrote it.
     CallRewrite(SPOOFER, "getExtraInfo", listOf("Landroid/net/NetworkInfo;"), "Ljava/lang/String;", isStatic = true),
 )
 
@@ -97,7 +94,7 @@ internal val BLUETOOTH_REWRITES = listOf(
     CallRewrite(ADAPTER, "getBondedDevices", listOf(), "Ljava/util/Set;"),
 )
 
-private val CELL_REWRITES = listOf(
+internal val CELL_REWRITES = listOf(
     CallRewrite(TELEPHONY, "getAllCellInfo", listOf(), "Ljava/util/List;"),
     CallRewrite(TELEPHONY, "getCellLocation", listOf(), "Landroid/telephony/CellLocation;"),
     CallRewrite(TELEPHONY, "getNeighboringCellInfo", listOf(), "Ljava/util/List;"),
@@ -156,80 +153,26 @@ internal fun BytecodePatchContext.rewriteCalls(rewrites: List<CallRewrite>) {
     }
 }
 
-@Suppress("unused")
-val hideWifiNetworksPatch = bytecodePatch(
-    name = "Hide Wi-Fi networks",
-    description = "Hides nearby Wi-Fi networks and the name of your network from the app.",
-    default = false,
-) {
-    compatibleWith(*SHOPPING_APPS)
-
-    extendWith("extensions/extension.mpe")
-
-    execute { rewriteCalls(WIFI_REWRITES) }
-}
-
 // AltBeacon's StartupBroadcastReceiver starts the app on boot and whenever the
 // phone is plugged in, so it can resume beacon scanning in the background. Its
 // intent filters are removed. The receiver stays declared, since the library
 // may refer to it by name.
 private const val BEACON_STARTUP_RECEIVER = "org.altbeacon.beacon.startup.StartupBroadcastReceiver"
 
-internal val beaconWakeupPatch = resourcePatch {
-    execute {
-        document("AndroidManifest.xml").use { document ->
-            val receivers = document.getElementsByTagName("receiver")
-            for (i in 0 until receivers.length) {
-                val receiver = receivers.item(i) as? Element ?: continue
-                if (receiver.getAttribute("android:name") != BEACON_STARTUP_RECEIVER) continue
-                val filters = receiver.getElementsByTagName("intent-filter")
-                // Snapshot: the NodeList is live.
-                (0 until filters.length).map { filters.item(it) }.forEach { receiver.removeChild(it) }
-            }
+internal fun ResourcePatchContext.removeBeaconWakeup() {
+    document("AndroidManifest.xml").use { document ->
+        val receivers = document.getElementsByTagName("receiver")
+        for (i in 0 until receivers.length) {
+            val receiver = receivers.item(i) as? Element ?: continue
+            if (receiver.getAttribute("android:name") != BEACON_STARTUP_RECEIVER) continue
+            val filters = receiver.getElementsByTagName("intent-filter")
+            // Snapshot: the NodeList is live.
+            (0 until filters.length).map { filters.item(it) }.forEach { receiver.removeChild(it) }
         }
     }
 }
 
-@Suppress("unused")
-val blockBluetoothScanningPatch = bytecodePatch(
-    name = "Block Bluetooth scanning",
-    description = "Stops the app from scanning for Bluetooth devices and beacons, and hides paired devices.",
-    default = false,
-) {
-    compatibleWith(*SHOPPING_APPS)
-
-    dependsOn(beaconWakeupPatch)
-
-    extendWith("extensions/extension.mpe")
-
-    execute { rewriteCalls(BLUETOOTH_REWRITES) }
-}
-
-@Suppress("unused")
-val hideCellTowerInfoPatch = bytecodePatch(
-    name = "Hide cell tower info",
-    description = "Hides the cell towers your phone sees from the app.",
-    default = false,
-) {
-    compatibleWith(*SHOPPING_APPS)
-
-    extendWith("extensions/extension.mpe")
-
-    execute { rewriteCalls(CELL_REWRITES) }
-}
-
 private const val BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION"
-
-@Suppress("unused")
-val blockBackgroundLocationPatch = resourcePatch(
-    name = "Block background location",
-    description = "Removes the app's access to your location while it is closed or in the background.",
-    default = false,
-) {
-    compatibleWith(*SHOPPING_APPS)
-
-    execute { removeBackgroundLocation() }
-}
 
 internal fun ResourcePatchContext.removeBackgroundLocation() {
     document("AndroidManifest.xml").use { document ->

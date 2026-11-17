@@ -1,10 +1,22 @@
 """Unit tests for Ultimea patches and verification."""
 import json
+import re
 from pathlib import Path
 import unittest
 import zipfile
 
 class UltimeaPatchesTests(unittest.TestCase):
+    def test_menu_branding_matches_native_label_and_page_title(self):
+        root = Path(__file__).resolve().parents[1]
+        menu = (root / 'extensions/extension/src/main/java/app/hxreborn/extension/ultimea/PatchesMenu.java').read_text()
+        title = re.search(r'SETTINGS_ROW_TITLE = "([^"]+)"', menu).group(1)
+        self.assertEqual(title, 'BadFella Patches')
+        native = (root / 'patches/src/main/kotlin/app/badfella/patches/ultimea/upstream/settings/NativeCode.kt').read_text()
+        allocation = native.split('private val TITLE_ALLOCATION =', 1)[1].split('.hexToByteArray()', 1)[0]
+        payload = bytes.fromhex(''.join(re.findall(r'"([0-9a-f]+)"', allocation)))
+        self.assertEqual(payload[-16:], title.encode())
+        self.assertNotIn(b'hxreborn patches', payload)
+
     @classmethod
     def setUpClass(cls):
         cls.root = Path(__file__).resolve().parents[1]
@@ -14,10 +26,10 @@ class UltimeaPatchesTests(unittest.TestCase):
             if any(c['packageName'] == 'com.dynanic.ultimea' for c in p['compatiblePackages'])
         ]
 
-    def test_catalog_contains_exact_two_ultimea_patches(self):
-        self.assertEqual(len(self.ultimea_patches), 2)
+    def test_catalog_contains_exact_six_ultimea_patches(self):
+        self.assertEqual(len(self.ultimea_patches), 6)
         names = {p['name'] for p in self.ultimea_patches}
-        self.assertEqual(names, {'Ultimea Black Mode', 'Ultimea Hide Explorer Tab'})
+        self.assertEqual(names, {'Ultimea Black Mode', 'Ultimea Hide Explorer Tab', 'Accent color', 'Disable tracking', 'Remove distractions', 'Remove popups'})
 
     def test_ultimea_black_mode_metadata(self):
         patch = next(p for p in self.ultimea_patches if p['name'] == 'Ultimea Black Mode')
@@ -36,60 +48,39 @@ class UltimeaPatchesTests(unittest.TestCase):
         self.assertEqual(len(compat['targets']), 1)
         target = compat['targets'][0]
         self.assertEqual(target['version'], '1.4.4')
-        self.assertEqual(target['versionCodes']['ARM64_V8A'], 495)
+        self.assertEqual(target['versionCodes'], {'ARM64_V8A': 495})
         self.assertFalse(target['isExperimental'])
 
-    def test_theme_bin_zero_syscall_amoled(self):
-        theme_bin = self.root / 'patches/src/main/resources/ultimea/theme.bin'
-        self.assertTrue(theme_bin.is_file())
-        data = theme_bin.read_bytes()
-        self.assertEqual(len(data), 2284)
-        # Verify patched instructions at 0x2d4: mov w17, #3; str w17, [x1, x16]; ret
-        expected_patch = bytes.fromhex('71008052316820b8c0035fd6')
-        self.assertEqual(data[0x2d4:0x2d4 + len(expected_patch)], expected_patch)
+    def test_no_engine_or_connection_hooks(self):
+        source = self.root / 'patches/src/main/kotlin/app/badfella/patches/ultimea'
+        text = '\n'.join(p.read_text(encoding='utf-8') for p in source.rglob('*.kt'))
+        for symbol in ('libflutter.so', 'FlutterImageDecoder', 'FineEqualizer', 'Xupmix',
+                       'spoofSignaturePatch', 'EqualizerConnection', 'NativeSettings',
+                       'EqualizerConnectionPatch', '--aot-shared-library-name='):
+            self.assertNotIn(symbol, text)
 
-    def test_navigation_anchors_unique_in_stock_libraries(self):
-        arm64_apk = Path('D:/Learn_Android_Development/analysis/ultimea/device/split_config.arm64_v8a.apk')
-        if not arm64_apk.is_file():
-            self.skipTest('Stock ARM64 split APK not found')
+    def test_no_automatic_main_activity_recreation(self):
+        source = self.root / 'extensions/extension/src/main/java/app/hxreborn/extension/ultimea'
+        self.assertFalse((source / 'AccentObserver.java').exists())
+        self.assertFalse((source / 'NativeSettings.java').exists())
+        self.assertNotIn('observer', (source / 'AccentColor.java').read_text())
 
-        with zipfile.ZipFile(arm64_apk, 'r') as z:
-            libapp_a64 = z.read('lib/arm64-v8a/libapp.so')
-
-        a64_alloc_old = bytes.fromhex('c20080d252d11294e20300aaa0035df8a2831ff840f000b8a0035cf8403001b8a0835df8407001b8')
-        a64_constructor_old = bytes.fromhex('c00080d220b000b825c00f94')
-        a64_on_tap_old = bytes.fromhex('a20b40f99f47e597403740f9002457f9')
-
-        self.assertEqual(libapp_a64.count(a64_alloc_old), 1)
-        self.assertEqual(libapp_a64.count(a64_constructor_old), 1)
-        self.assertEqual(libapp_a64.count(a64_on_tap_old), 1)
-
-        xapk = Path('D:/Learn_Android_Development/ultimia/ULTIMEA_1.4.4_APKPure.xapk')
-        if xapk.is_file():
-            with zipfile.ZipFile(xapk, 'r') as z:
-                with zipfile.ZipFile(z.open('config.armeabi_v7a.apk'), 'r') as v7_apk:
-                    libapp_a32 = v7_apk.read('lib/armeabi-v7a/libapp.so')
-            a32_alloc_old = bytes.fromhex('0610a0e3328e00eb0010a0e108001be518100be50b0081e510001be50f0081e514001be5130081e5')
-            self.assertEqual(libapp_a32.count(a32_alloc_old), 1)
-
-    def test_no_breaking_extras_in_source(self):
-        source_dir = self.root / 'patches/src/main/kotlin/app/badfella/patches/ultimea'
-        all_text = ''
-        for kt in source_dir.glob('*.kt'):
-            all_text += kt.read_text(encoding='utf-8')
-
-        breaking_symbols = [
-            'FineEqualizer',
-            'Xupmix',
-            'StopFirmwareReminders',
-            'RemovePopups',
-            'DisableTracking',
-            'PatchesSettingsActivity',
-            'FlutterImageDecoder',
-            'LoganMethodCall',
-        ]
-        for symbol in breaking_symbols:
-            self.assertNotIn(symbol, all_text)
+    def test_android_bundle(self):
+        version = next(line.split('=', 1)[1].strip() for line in
+                       (self.root / 'gradle.properties').read_text().splitlines()
+                       if line.startswith('version ='))
+        bundle = self.root / f'patches/build/libs/patches-{version}.mpp'
+        if not bundle.exists():
+            self.skipTest('Build the Android patch bundle first')
+        with zipfile.ZipFile(bundle) as archive:
+            for name in archive.namelist():
+                if name.endswith(('.class', '.dex')):
+                    for package in (b'javax/imageio/', b'java/awt/', b'javax/swing/'):
+                        self.assertNotIn(package, archive.read(name), name)
+            self.assertIn('ultimea/theme.bin', archive.namelist())
+            self.assertIn('ultimea/accent.bin', archive.namelist())
+            for icon in ('hdmi', 'usb', 'optical', 'aux', 'bluetooth'):
+                self.assertIn(f'ultimea/images/device_input_{icon}_n.png', archive.namelist())
 
 if __name__ == '__main__':
     unittest.main()

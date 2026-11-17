@@ -40,7 +40,7 @@ class NativeCameraSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "1.4.5",
+            apk = apk, workDir = workDir, pkg = PKG, version = "1.4.8",
             patchNames = setOf("Disable license check", "Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -67,7 +67,8 @@ class NativeCameraSmokeTest {
         }
         val first = setter.instructions().firstOrNull()
         assertTrue(
-            first is NarrowLiteralInstruction && first.narrowLiteral == 1 && first.opcode == Opcode.CONST_4,
+            first is NarrowLiteralInstruction && first.narrowLiteral == 1 && first.opcode == Opcode.CONST_16 &&
+                (first as OneRegisterInstruction).registerA == setter.implementation!!.registerCount - 1,
             "${viewModel.type}.${setter.name}(Z) does not force its argument true; first is ${first?.opcode}"
         )
 

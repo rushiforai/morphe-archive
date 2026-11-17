@@ -68,7 +68,7 @@ final class CaptionBlockTranslator implements CaptionSession.Translator {
     static final int MAX_BATCH_TEXTS = 5;
 
     static final CaptionBlockTranslator DEFAULT = new CaptionBlockTranslator(
-            url -> Requester.openConnection(url), () -> System.nanoTime() / 1_000_000L);
+            Requester::openConnection, () -> System.nanoTime() / 1_000_000L);
 
     private static final String GOOGLE_URL = "https://translate-pa.googleapis.com/v1/translateHtml";
     // Google Translate webpage key. Ubiquitous and used by hundreds of projects
@@ -374,7 +374,10 @@ final class CaptionBlockTranslator implements CaptionSession.Translator {
                 else microsoftCooldownUntil = until;
                 throw new Failure("Caption provider HTTP " + status, seconds * 1000, status == 429);
             }
-            if (google && status >= 300 && status < 400 && isVerificationPage(connection.getHeaderField("Location"))) {
+            String location = google && status >= 300 && status < 400
+                    ? connection.getHeaderField("Location") : null;
+            if (location != null && (location.startsWith("https://www.google.com/sorry/")
+                    || location.startsWith("https://google.com/sorry/"))) {
                 googleCooldownUntil = clock.millis() + VERIFICATION_COOLDOWN_MS;
                 throw new Failure("Caption Google requires verification", VERIFICATION_COOLDOWN_MS, true);
             }
@@ -403,6 +406,7 @@ final class CaptionBlockTranslator implements CaptionSession.Translator {
                 bytes.write(buffer, 0, count);
             }
             remaining(deadline);
+            //noinspection StringOperationCanBeSimplified
             return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
         }
     }
@@ -416,11 +420,6 @@ final class CaptionBlockTranslator implements CaptionSession.Translator {
         } catch (IOException ex) {
             Logger.printDebug(() -> "Could not close caption error stream", ex);
         }
-    }
-
-    private static boolean isVerificationPage(@Nullable String location) {
-        return location != null && (location.startsWith("https://www.google.com/sorry/")
-                || location.startsWith("https://google.com/sorry/"));
     }
 
     /**
@@ -483,6 +482,7 @@ final class CaptionBlockTranslator implements CaptionSession.Translator {
     }
 
     private static String encode(String value) throws IOException {
+        //noinspection CharsetObjectCanBeUsed
         return URLEncoder.encode(value, "UTF-8");
     }
 }

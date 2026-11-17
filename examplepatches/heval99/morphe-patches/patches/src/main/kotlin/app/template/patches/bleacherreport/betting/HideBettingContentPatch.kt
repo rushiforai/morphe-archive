@@ -28,8 +28,8 @@ val hideBettingContentPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_BLEACHER_REPORT)
 
     execute {
-        // 1. Game page: the Stats item mapper (11.12.0.33: static gamecast.impl.mapper.b.a, from
-        // ChannelItemsMapper.kt) answers null for the betting stats types, as it already does for
+        // 1. Game page: the Stats item mapper (11.14.0.35: the GamecastItemMapperImpl.kt instance
+        // method; 11.12.0.33: a static one in ChannelItemsMapper.kt) answers null for the betting stats types, as it already does for
         // types without data; its caller passes the null on and the item is left out.
         val stats = single(StatsItemToStringFingerprint, "ChannelItemType.Stats toString").classDef
         val typeField = stats.fields.singleOrNull { !AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -45,19 +45,24 @@ val hideBettingContentPatch = bytecodePatch(
         }
         val mapper = single(
             Fingerprint(
+                // 11.12.0.33: static ChannelItemsMapper.kt a(Stats, model); 11.14.0.35: instance
+                // GamecastItemMapperImpl.kt a(model, Stats). Either way: the only two-parameter
+                // method taking the Stats item with an object result, in one of those two classes.
                 custom = { method, classDef ->
-                    classDef.sourceFile == "ChannelItemsMapper.kt" && method.isStatic() &&
+                    classDef.sourceFile?.let { it == "GamecastItemMapperImpl.kt" || it == "ChannelItemsMapper.kt" } == true &&
                         method.implementation != null && method.returnType.startsWith("L") &&
-                        method.parameterTypes.size == 2 && method.parameterTypes[0].toString() == stats.type
+                        method.parameterTypes.size == 2 && method.parameterTypes.any { it.toString() == stats.type }
                 },
             ),
-            "ChannelItemsMapper Stats item mapper",
+            "Stats item mapper",
         ).method
-        if (mapper.implementation!!.registerCount - 2 < 2) {
-            throw PatchException("Hide betting content: the Stats item mapper has fewer than 2 locals")
-        }
-        // p0 is above v15 (11.12.0.33: .locals 22, p0 = v22), so it is copied to v0 before the
-        // 4-bit iget-object. v0 and v1 are written by the stock code before it reads them.
+        val statsParam = mapper.parameterTypes.indexOfFirst { it.toString() == stats.type }
+        val locals = mapper.implementation!!.registerCount - mapper.parameterTypes.size - (if (mapper.isStatic()) 0 else 1)
+        if (locals < 2) throw PatchException("Hide betting content: the Stats item mapper has fewer than 2 locals")
+        // The Stats parameter register (11.14.0.35: .registers 21, p2 = v20) is above v15, so it
+        // is copied to v0 before the 4-bit iget-object. v0 and v1 are written by the stock code
+        // before it reads them.
+        val statsRegister = locals + (if (mapper.isStatic()) 0 else 1) + statsParam
         val field = "${stats.type}->${typeField.name}:${typeField.type}"
         val checks = BETTING_STATS_ITEMS.joinToString("\n") { name ->
             """
@@ -70,8 +75,8 @@ val hideBettingContentPatch = bytecodePatch(
         mapper.addInstructionsWithLabelsChecked(
             0,
             """
-                if-eqz p0, :stock
-                move-object/from16 v0, p0
+                if-eqz v$statsRegister, :stock
+                move-object/from16 v0, v$statsRegister
                 iget-object v0, v0, $field
                 if-eqz v0, :stock
                 invoke-virtual {v0}, Ljava/lang/Enum;->name()Ljava/lang/String;

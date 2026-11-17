@@ -12,7 +12,7 @@ import android.net.NetworkCapabilities;
  */
 public final class NetworkTweaks {
     /** ThingsAsyncLoader, LoadCommentsAsync, LoadMoreCommentsAsync and LoadSubmissionAsync. */
-    private static final java.util.Set<String> CONTENT=new java.util.HashSet<>(java.util.Arrays.asList("r83","ak1","dk1","gk1"));
+    private static final java.util.Set<String> CONTENT=new java.util.HashSet<>(java.util.Arrays.asList("a93","fk1","ik1","lk1"));
     private static final ThreadLocal<Object> ACCOUNT=new ThreadLocal<>();
     private static final ThreadLocal<Boolean> IN_TOKEN=new ThreadLocal<>();
     private static final ThreadLocal<Boolean> RESTORING=new ThreadLocal<>();

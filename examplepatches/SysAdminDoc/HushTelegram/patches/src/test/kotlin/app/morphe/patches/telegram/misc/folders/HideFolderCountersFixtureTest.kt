@@ -35,7 +35,7 @@ class HideFolderCountersFixtureTest {
                 m.origReturnType == "I" && m.controlBody().map { it.controlRef() }.let { it.any(::isMainUnread) && FILTER_UNREAD in it }
             }.map(ImmutableClassDef::of)
             // The chat list too: the patch's folder at launch switch goes in with the counters, and warns without it.
-            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type })
             val counter = context.resolveHideFolderCounters()
             val old = ImmutableMethod.of(counter)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
@@ -51,7 +51,7 @@ class HideFolderCountersFixtureTest {
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
                     listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), after[i + 5].origRef()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "hiddenAccounts", "hiddenUnread")) {
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "localPins", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "hiddenAccounts", "hiddenUnread", "chatListAvatar")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

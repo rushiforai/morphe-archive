@@ -56,13 +56,15 @@ class MessageMenuFixtureTest {
         "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
         "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$string;",
         "Lorg/telegram/tgnet/TLObject;", "Lorg/telegram/messenger/ImageLocation;", "Lorg/telegram/messenger/NotificationCenter;",
+        "Lorg/telegram/tgnet/TLRPC\$DocumentAttribute;", "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeVideo;",
+        "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeAudio;", "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeFilename;",
     )
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     internal fun hosts(build: File): List<ClassDef> = baseHosts(build).let { it + selectBetweenHosts(build, it) }.let { it + hideForMeHosts(build, it) }
-        .let { it + sharedMediaSelectAllHosts(build, it) }
+        .let { it + sharedMediaSelectAllHosts(build, it) }.let { it + alsoDeleteHosts(build, it) }.let { it + photoEditHosts(build, it) }
 
     private fun baseHosts(build: File): List<ClassDef> {
         val found = FixtureDex.classesWhere(build, { true }) { m ->
@@ -189,6 +191,25 @@ class MessageMenuFixtureTest {
             }
             assertTrue("$name: Telegram's downloaded copy", stub("photoFile").any { it.controlRef() == "Lorg/telegram/messenger/FileLoader;->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;" })
             assertTrue("$name: no photo behind the age filter", stub("photo").any { it.controlRef() == "Lorg/telegram/messenger/MessageObject;->isHiddenSensitive()Z" })
+            // Message details: the file's type, name, picture size and length, each from Telegram's own field.
+            val document = "Lorg/telegram/tgnet/TLRPC\$Document;"
+            val attribute = "Lorg/telegram/tgnet/TLRPC\$DocumentAttribute;"
+            val tl = "Lorg/telegram/tgnet/TLRPC\$TL_documentAttribute"
+            fun reads(n: String) = stub(n).mapNotNull { it.controlRef() }
+            assertEquals("$name: MIME type", listOf("Lorg/telegram/messenger/MessageObject;->getDocument()$document", "$document->mime_type:Ljava/lang/String;"),
+                reads("mime").drop(1))
+            assertEquals("$name: the file's attributes", "$document->attributes:Ljava/util/ArrayList;", reads("attributes").last())
+            assertEquals("$name: a video, a song or voice message, a file name", listOf("${tl}Video;", "${tl}Audio;", "${tl}Filename;"),
+                stub("attributeKind").filter { it.opcode == Opcode.INSTANCE_OF }.map { it.controlRef() })
+            assertEquals("$name: the numbers MessageMenu reads", listOf(1, 2, 3, 0),
+                stub("attributeKind").filter { it.opcode == Opcode.CONST_4 }.map { (it as NarrowLiteralInstruction).narrowLiteral })
+            assertEquals(listOf(attribute, "$attribute->w:I"), reads("attributeWidth"))
+            assertEquals(listOf(attribute, "$attribute->h:I"), reads("attributeHeight"))
+            assertEquals(listOf(attribute, "$attribute->duration:D"), reads("attributeDuration"))
+            assertEquals(Opcode.RETURN_WIDE, stub("attributeDuration").last().opcode)
+            assertEquals(listOf(attribute, "$attribute->file_name:Ljava/lang/String;"), reads("attributeName"))
+            assertEquals(listOf("Lorg/telegram/tgnet/TLRPC\$PhotoSize;", "Lorg/telegram/tgnet/TLRPC\$PhotoSize;->w:I"), reads("photoWidth"))
+            assertEquals(listOf("Lorg/telegram/tgnet/TLRPC\$PhotoSize;", "Lorg/telegram/tgnet/TLRPC\$PhotoSize;->h:I"), reads("photoHeight"))
             assertTrue("$name: secret chats refused", stub("canSend").any { it.controlRef() == "Lorg/telegram/messenger/DialogObject;->isEncryptedDialog(J)Z" })
             assertTrue("$name: the chat's own send rights", stub("canSend").any { it.controlRef()?.endsWith("->canSendMessages(Lorg/telegram/tgnet/TLRPC\$Chat;)Z") == true })
             assertTrue("$name: paid media refused", stub("blocked").any { it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$TL_messageMediaPaidMedia;" })

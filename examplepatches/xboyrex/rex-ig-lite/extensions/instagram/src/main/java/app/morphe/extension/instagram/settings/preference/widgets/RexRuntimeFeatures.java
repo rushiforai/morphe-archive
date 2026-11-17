@@ -30,7 +30,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -44,7 +43,6 @@ import org.json.JSONArray;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -61,17 +59,13 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.patches.dm.HiddenChatsPref;
-import app.morphe.extension.instagram.patches.download.DownloadUtils;
 import app.morphe.extension.instagram.settings.Settings;
-import app.morphe.extension.rex.RexUtils;
-import app.morphe.extension.rex.downloader.MediaType;
 import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Utils;
 
 public final class RexRuntimeFeatures {
 
     private static final String PRIVACY_OVERLAY_TAG = "rex_privacy_screen_overlay";
-    private static final String FLOATING_REEL_BAR_TAG = "rex_floating_reel_bar";
 
     private RexRuntimeFeatures() {}
 
@@ -121,13 +115,13 @@ public final class RexRuntimeFeatures {
         } catch (Throwable ignored) {}
         current = Math.max(10, Math.min(90, current));
 
-        LinearLayout root = createCardContainer(context, "Private Screen Opacity");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "brightness-down", "Private Screen Opacity");
         final TextView valueLabel = new TextView(context);
         valueLabel.setText("Dimmer Opacity: " + current + "%");
-        valueLabel.setTextColor(0xFF88C2CE);
-        valueLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        valueLabel.setTextColor(RexDialogs.BRAND_CYAN);
+        valueLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
         valueLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        valueLabel.setPadding(0, 0, 0, RexVectorIcons.dp(context, 10));
+        valueLabel.setPadding(RexVectorIcons.dp(context, 4), 0, 0, RexVectorIcons.dp(context, 10));
         root.addView(valueLabel);
 
         SeekBar seekBar = new SeekBar(context);
@@ -216,18 +210,19 @@ public final class RexRuntimeFeatures {
     }
 
     public static void showCreativeFontsDialog(final Context context) {
-        LinearLayout root = createCardContainer(context, "Creative Fonts for DMs");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "wand", "Creative Fonts for DMs");
 
         final EditText input = new EditText(context);
         input.setHint("Type message to style & copy...");
-        input.setHintTextColor(0xFF7B858E);
-        input.setTextColor(Color.WHITE);
-        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        input.setHintTextColor(RexDialogs.TEXT_SECONDARY);
+        input.setTextColor(RexDialogs.TEXT_PRIMARY);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
         int p = RexVectorIcons.dp(context, 12);
         input.setPadding(p, p, p, p);
         GradientDrawable inBg = new GradientDrawable();
-        inBg.setColor(0xFF1C2226);
+        inBg.setColor(RexDialogs.ELEVATED_SURFACE);
         inBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+        inBg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
         input.setBackground(inBg);
         LinearLayout.LayoutParams inLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -245,30 +240,32 @@ public final class RexRuntimeFeatures {
             row.setOrientation(LinearLayout.VERTICAL);
             row.setPadding(p, p, p, p);
             GradientDrawable rowBg = new GradientDrawable();
-            rowBg.setColor(style.equals(currentStyle) ? 0xFF203338 : 0xFF1A1F23);
-            rowBg.setCornerRadius(RexVectorIcons.dp(context, 12));
+            rowBg.setColor(style.equals(currentStyle) ? 0xFF22343A : RexDialogs.ELEVATED_SURFACE);
+            rowBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+            rowBg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
             row.setBackground(rowBg);
 
             TextView title = new TextView(context);
             title.setText(style);
-            title.setTextColor(0xFF88C2CE);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setTextColor(RexDialogs.BRAND_CYAN);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
             title.setTypeface(Typeface.DEFAULT_BOLD);
             row.addView(title);
 
             final TextView sample = new TextView(context);
             sample.setTag(style);
-            sample.setText(toStyledUnicode("xboyrex Liquid Glass Instagram", style));
-            sample.setTextColor(Color.WHITE);
-            sample.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+            sample.setText(toStyledUnicode("xboyrex Rex IG Lite", style));
+            sample.setTextColor(RexDialogs.TEXT_PRIMARY);
+            sample.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
             sample.setPadding(0, RexVectorIcons.dp(context, 4), 0, 0);
             row.addView(sample);
             previewViews.add(sample);
 
             row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
                 SharedPref.setStringPref(Settings.DM_CREATIVE_FONT_STYLE.key, style);
                 String raw = input.getText().toString().trim();
-                String converted = toStyledUnicode(raw.isEmpty() ? "xboyrex Liquid Glass Instagram" : raw, style);
+                String converted = toStyledUnicode(raw.isEmpty() ? "xboyrex Rex IG Lite" : raw, style);
                 Utils.setClipboard(converted);
                 Utils.showToastShort("Selected " + style + " & copied styled text!");
             });
@@ -282,7 +279,7 @@ public final class RexRuntimeFeatures {
         input.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String txt = s == null || s.length() == 0 ? "xboyrex Liquid Glass Instagram" : s.toString();
+                String txt = s == null || s.length() == 0 ? "xboyrex Rex IG Lite" : s.toString();
                 for (TextView tv : previewViews) {
                     tv.setText(toStyledUnicode(txt, String.valueOf(tv.getTag())));
                 }
@@ -300,7 +297,7 @@ public final class RexRuntimeFeatures {
     }
 
     // -------------------------------------------------------------------------
-    // 3. Notification Filtering (By Type & By Keywords)
+    // 3. Notification Filtering (By Type & By Keywords — With Tabler Check Icons)
     // -------------------------------------------------------------------------
     private static final String[] NOTIF_TYPES = {
             "Direct Messages",
@@ -318,22 +315,61 @@ public final class RexRuntimeFeatures {
             selected.addAll(Arrays.asList(raw.split("\\|")));
         }
 
-        LinearLayout root = createCardContainer(context, "Filter Notifications by Type");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "bell-ringing", "Filter Notifications by Type");
+        int p = RexVectorIcons.dp(context, 12);
+
         for (final String type : NOTIF_TYPES) {
-            final TextView item = new TextView(context);
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setMinimumHeight(RexVectorIcons.dp(context, 48));
+            row.setPadding(p, p, p, p);
+
             boolean isBlocked = selected.contains(type);
-            item.setText((isBlocked ? "☑  " : "☐  ") + type);
-            item.setTextColor(Color.WHITE);
-            item.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-            int p = RexVectorIcons.dp(context, 12);
-            item.setPadding(p, p, p, p);
-            item.setOnClickListener(v -> {
-                if (selected.contains(type)) selected.remove(type);
-                else selected.add(type);
-                item.setText((selected.contains(type) ? "☑  " : "☐  ") + type);
+            final ImageView checkIcon = new ImageView(context);
+            checkIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            RexIcon.bindOrAnimateState(
+                    checkIcon,
+                    isBlocked ? "square-check" : "square",
+                    isBlocked,
+                    RexDialogs.TEXT_SECONDARY,
+                    RexDialogs.ACTIVE_TEAL,
+                    22,
+                    false
+            );
+            LinearLayout.LayoutParams iLp = new LinearLayout.LayoutParams(
+                    RexVectorIcons.dp(context, 22), RexVectorIcons.dp(context, 22));
+            iLp.setMarginEnd(RexVectorIcons.dp(context, 14));
+            row.addView(checkIcon, iLp);
+
+            final TextView item = new TextView(context);
+            item.setText(type);
+            item.setTextColor(RexDialogs.TEXT_PRIMARY);
+            item.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            row.addView(item, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+            row.setOnClickListener(v -> {
+                RexHaptics.toggle(v);
+                boolean nowSelected;
+                if (selected.contains(type)) {
+                    selected.remove(type);
+                    nowSelected = false;
+                } else {
+                    selected.add(type);
+                    nowSelected = true;
+                }
+                RexIcon.bindOrAnimateState(
+                        checkIcon,
+                        nowSelected ? "square-check" : "square",
+                        nowSelected,
+                        RexDialogs.TEXT_SECONDARY,
+                        RexDialogs.ACTIVE_TEAL,
+                        22,
+                        true
+                );
                 SharedPref.setStringPref(Settings.FILTER_NOTIFICATION_TYPES.key, String.join("|", selected));
             });
-            root.addView(item);
+            root.addView(row);
         }
 
         AlertDialog dialog = new AlertDialog.Builder(context).create();
@@ -343,26 +379,27 @@ public final class RexRuntimeFeatures {
     }
 
     public static void showNotificationKeywordFilterDialog(final Context context) {
-        LinearLayout root = createCardContainer(context, "Filter Notifications (Keywords)");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "filter", "Filter Notifications (Keywords)");
 
         TextView desc = new TextView(context);
         desc.setText("Enter comma-separated keywords to mute in incoming notifications:");
-        desc.setTextColor(0xFF9AA3AE);
-        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        desc.setPadding(0, 0, 0, RexVectorIcons.dp(context, 10));
+        desc.setTextColor(RexDialogs.TEXT_SECONDARY);
+        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+        desc.setPadding(RexVectorIcons.dp(context, 4), 0, 0, RexVectorIcons.dp(context, 10));
         root.addView(desc);
 
         final EditText input = new EditText(context);
         input.setText(SharedPref.getStringPref(Settings.NOTIFICATION_KEYWORDS));
         input.setHint("e.g. giveaway, crypto, spam, promo");
-        input.setHintTextColor(0xFF7B858E);
-        input.setTextColor(Color.WHITE);
-        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        input.setHintTextColor(RexDialogs.TEXT_SECONDARY);
+        input.setTextColor(RexDialogs.TEXT_PRIMARY);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
         int p = RexVectorIcons.dp(context, 12);
         input.setPadding(p, p, p, p);
         GradientDrawable inBg = new GradientDrawable();
-        inBg.setColor(0xFF1C2226);
+        inBg.setColor(RexDialogs.ELEVATED_SURFACE);
         inBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+        inBg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
         input.setBackground(inBg);
         root.addView(input);
 
@@ -374,11 +411,12 @@ public final class RexRuntimeFeatures {
 
         TextView saveBtn = new TextView(context);
         saveBtn.setText("Save Keywords");
-        saveBtn.setTextColor(0xFF88C2CE);
-        saveBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        saveBtn.setTextColor(RexDialogs.BRAND_CYAN);
+        saveBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
         saveBtn.setTypeface(Typeface.DEFAULT_BOLD);
         saveBtn.setPadding(p, RexVectorIcons.dp(context, 8), p, RexVectorIcons.dp(context, 8));
         saveBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
             SharedPref.setStringPref(Settings.NOTIFICATION_KEYWORDS.key, input.getText().toString().trim());
             Utils.showToastShort("Saved notification keywords");
             dialog.dismiss();
@@ -391,7 +429,7 @@ public final class RexRuntimeFeatures {
     }
 
     public static boolean shouldBlockNotification(String textOrThreadId) {
-        if (Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DND_MODE_ENABLED))) {
+        if (Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DND_MODE)) || Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DND_MODE_ENABLED))) {
             return true;
         }
         if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DISABLE_FILTER_KEYWORDS))) {
@@ -411,25 +449,26 @@ public final class RexRuntimeFeatures {
     // 4. Hidden Chats Manager & Passcode Lock
     // -------------------------------------------------------------------------
     public static void showPasscodeSetupDialog(final Context context) {
-        LinearLayout root = createCardContainer(context, "Set Passcode Lock to Hide Chat");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "key", "Set Passcode Lock to Hide Chat");
 
         TextView desc = new TextView(context);
         desc.setText("Set a 4-digit PIN passcode & enable biometric/device lock for Hidden Chats and Inbox:");
-        desc.setTextColor(0xFF9AA3AE);
-        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        desc.setPadding(0, 0, 0, RexVectorIcons.dp(context, 10));
+        desc.setTextColor(RexDialogs.TEXT_SECONDARY);
+        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+        desc.setPadding(RexVectorIcons.dp(context, 4), 0, 0, RexVectorIcons.dp(context, 10));
         root.addView(desc);
 
         final EditText pinInput = new EditText(context);
         pinInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         pinInput.setHint("Enter 4-digit PIN (leave blank to clear)");
-        pinInput.setHintTextColor(0xFF7B858E);
-        pinInput.setTextColor(Color.WHITE);
+        pinInput.setHintTextColor(RexDialogs.TEXT_SECONDARY);
+        pinInput.setTextColor(RexDialogs.TEXT_PRIMARY);
         int p = RexVectorIcons.dp(context, 12);
         pinInput.setPadding(p, p, p, p);
         GradientDrawable inBg = new GradientDrawable();
-        inBg.setColor(0xFF1C2226);
+        inBg.setColor(RexDialogs.ELEVATED_SURFACE);
         inBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+        inBg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
         pinInput.setBackground(inBg);
         root.addView(pinInput);
 
@@ -441,11 +480,12 @@ public final class RexRuntimeFeatures {
 
         TextView saveBtn = new TextView(context);
         saveBtn.setText("Save Passcode");
-        saveBtn.setTextColor(0xFF88C2CE);
-        saveBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        saveBtn.setTextColor(RexDialogs.BRAND_CYAN);
+        saveBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
         saveBtn.setTypeface(Typeface.DEFAULT_BOLD);
         saveBtn.setPadding(p, RexVectorIcons.dp(context, 8), p, RexVectorIcons.dp(context, 8));
         saveBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
             String pin = pinInput.getText().toString().trim();
             SharedPref.setStringPref("rex_hidden_chats_pin", pin);
             SharedPref.setBooleanPref(Settings.HIDDEN_CHATS.key, true);
@@ -466,25 +506,42 @@ public final class RexRuntimeFeatures {
 
     public static void showHiddenChatsListDialog(final Context context) {
         Set<String> hiddenIds = HiddenChatsPref.getHiddenThreadIds();
-        LinearLayout root = createCardContainer(context, "Hidden Chats (" + hiddenIds.size() + ")");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "message-pin", "Hidden Chats (" + hiddenIds.size() + ")");
 
         if (hiddenIds.isEmpty()) {
             TextView empty = new TextView(context);
             empty.setText("No chats are currently hidden.\n\n" +
                     "To hide a chat: Long-press any conversation in your Direct Inbox and tap 'Hide chat'. Triple-tap the Direct Messages icon to toggle Hidden Chats visibility.");
-            empty.setTextColor(0xFF9AA3AE);
-            empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            empty.setPadding(0, RexVectorIcons.dp(context, 10), 0, RexVectorIcons.dp(context, 10));
+            empty.setTextColor(RexDialogs.TEXT_SECONDARY);
+            empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            empty.setPadding(RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10), RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10));
             root.addView(empty);
         } else {
+            int p = RexVectorIcons.dp(context, 12);
             for (final String tid : new ArrayList<>(hiddenIds)) {
-                TextView row = new TextView(context);
-                row.setText("🔒 Thread ID: " + tid + "  (Tap to Unhide)");
-                row.setTextColor(Color.WHITE);
-                row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                int p = RexVectorIcons.dp(context, 12);
+                LinearLayout row = new LinearLayout(context);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setMinimumHeight(RexVectorIcons.dp(context, 48));
                 row.setPadding(p, p, p, p);
+
+                final ImageView lockIcon = new ImageView(context);
+                lockIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                lockIcon.setImageDrawable(RexIcon.getDrawable(context, "lock", RexDialogs.BRAND_CYAN, 20));
+                LinearLayout.LayoutParams lLp = new LinearLayout.LayoutParams(
+                        RexVectorIcons.dp(context, 20), RexVectorIcons.dp(context, 20));
+                lLp.setMarginEnd(RexVectorIcons.dp(context, 12));
+                row.addView(lockIcon, lLp);
+
+                TextView label = new TextView(context);
+                label.setText("Thread ID: " + tid + "  (Tap to Unhide)");
+                label.setTextColor(RexDialogs.TEXT_PRIMARY);
+                label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
+                row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
                 row.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    RexIcon.pulseIcon(lockIcon);
                     HiddenChatsPref.unhideThread(tid);
                     Utils.showToastShort("Unhid thread " + tid);
                 });
@@ -508,7 +565,7 @@ public final class RexRuntimeFeatures {
             final String currentVal,
             final java.util.function.Consumer<String> onSelect
     ) {
-        LinearLayout root = createCardContainer(context, title);
+        LinearLayout root = RexDialogs.createDialogSheet(context, "list-checks", title);
         ScrollView scroll = new ScrollView(context);
         LinearLayout list = new LinearLayout(context);
         list.setOrientation(LinearLayout.VERTICAL);
@@ -517,14 +574,39 @@ public final class RexRuntimeFeatures {
         int p = RexVectorIcons.dp(context, 12);
 
         for (final String opt : options) {
-            TextView row = new TextView(context);
-            boolean sel = opt.equalsIgnoreCase(currentVal);
-            row.setText((sel ? "●  " : "○  ") + opt);
-            row.setTextColor(sel ? 0xFF88C2CE : Color.WHITE);
-            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-            if (sel) row.setTypeface(Typeface.DEFAULT_BOLD);
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setMinimumHeight(RexVectorIcons.dp(context, 48));
             row.setPadding(p, p, p, p);
+
+            boolean sel = opt.equalsIgnoreCase(currentVal);
+            final ImageView radioIcon = new ImageView(context);
+            radioIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            RexIcon.bindOrAnimateState(
+                    radioIcon,
+                    sel ? "circle-check" : "circle",
+                    sel,
+                    RexDialogs.TEXT_SECONDARY,
+                    RexDialogs.ACTIVE_TEAL,
+                    21,
+                    false
+            );
+            LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(
+                    RexVectorIcons.dp(context, 21), RexVectorIcons.dp(context, 21));
+            rLp.setMarginEnd(RexVectorIcons.dp(context, 14));
+            row.addView(radioIcon, rLp);
+
+            TextView tv = new TextView(context);
+            tv.setText(opt);
+            tv.setTextColor(sel ? RexDialogs.BRAND_CYAN : RexDialogs.TEXT_PRIMARY);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            if (sel) tv.setTypeface(Typeface.DEFAULT_BOLD);
+            row.addView(tv, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
             row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                RexIcon.pulseIcon(radioIcon);
                 onSelect.accept(opt);
                 dialog.dismiss();
             });
@@ -606,26 +688,28 @@ public final class RexRuntimeFeatures {
 
     public static void showVideoSplitterDialog(final Context context) {
         String dur = SharedPref.getStringPref(Settings.SPLIT_VIDEO_DURATION);
-        LinearLayout root = createCardContainer(context, "Long Video Splitter (" + dur + ")");
+        LinearLayout root = RexDialogs.createDialogSheet(context, "scissors", "Long Video Splitter (" + dur + ")");
 
         TextView desc = new TextView(context);
         desc.setText("Split long videos into " + dur + " segments for Instagram & WhatsApp Stories without quality loss.");
-        desc.setTextColor(0xFF9AA3AE);
-        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        desc.setPadding(0, 0, 0, RexVectorIcons.dp(context, 14));
+        desc.setTextColor(RexDialogs.TEXT_SECONDARY);
+        desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+        desc.setPadding(RexVectorIcons.dp(context, 4), 0, RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 14));
         root.addView(desc);
 
         final AlertDialog dialog = new AlertDialog.Builder(context).create();
 
-        TextView changeDurBtn = createActionButton(context, "Change Segment Duration (" + dur + ")", 0xFF1F2A2E, Color.WHITE);
+        TextView changeDurBtn = createActionButton(context, "Change Segment Duration (" + dur + ")", RexDialogs.ELEVATED_SURFACE, RexDialogs.TEXT_PRIMARY);
         changeDurBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
             dialog.dismiss();
             showSplitDurationPicker(context, null);
         });
         root.addView(changeDurBtn);
 
-        TextView pickVideoBtn = createActionButton(context, "Pick Video from Gallery to Split", 0xFF9AD0DC, 0xFF0A1417);
+        TextView pickVideoBtn = createActionButton(context, "Pick Video from Gallery to Split", RexDialogs.BRAND_CYAN, 0xFF0A1417);
         pickVideoBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
             dialog.dismiss();
             try {
                 Intent pick = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
@@ -704,26 +788,13 @@ public final class RexRuntimeFeatures {
 
             final String resultText = (translated != null && !translated.isEmpty()) ? translated : text;
             Utils.runOnMainThread(() -> {
-                LinearLayout root = createCardContainer(context, "Translated (" + targetLangName + ")");
-                TextView body = new TextView(context);
-                body.setText(resultText);
-                body.setTextColor(Color.WHITE);
-                body.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-                body.setPadding(0, RexVectorIcons.dp(context, 8), 0, RexVectorIcons.dp(context, 14));
-                root.addView(body);
-
-                final AlertDialog dialog = new AlertDialog.Builder(context).create();
-                TextView copyBtn = createActionButton(context, "Copy Translated Text", 0xFF9AD0DC, 0xFF0A1417);
-                copyBtn.setOnClickListener(v -> {
-                    Utils.setClipboard(resultText);
-                    Utils.showToastShort("Copied translation");
-                    dialog.dismiss();
-                });
-                root.addView(copyBtn);
-
-                addCloseButton(context, root, dialog);
-                dialog.setView(root);
-                RexDialogs.showBlurredDialog(context, dialog);
+                RexDialogs.showTextStudioDialog(
+                        context,
+                        "Translated " + label + " (" + targetLangName + ")",
+                        "",
+                        resultText,
+                        ""
+                );
             });
         });
     }
@@ -758,26 +829,13 @@ public final class RexRuntimeFeatures {
                     ? desc.trim()
                     : ("Post by @" + username + " (" + mediaData.getShortcode() + ")");
 
-            LinearLayout root = createCardContainer(context, "Cover Image to Text (OCR)");
-            TextView tv = new TextView(context);
-            tv.setText(combined);
-            tv.setTextColor(Color.WHITE);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            tv.setPadding(0, RexVectorIcons.dp(context, 6), 0, RexVectorIcons.dp(context, 14));
-            root.addView(tv);
-
-            final AlertDialog dialog = new AlertDialog.Builder(context).create();
-            TextView copyBtn = createActionButton(context, "Copy Extracted Text", 0xFF9AD0DC, 0xFF0A1417);
-            copyBtn.setOnClickListener(v -> {
-                Utils.setClipboard(combined);
-                Utils.showToastShort("Copied extracted text");
-                dialog.dismiss();
-            });
-            root.addView(copyBtn);
-
-            addCloseButton(context, root, dialog);
-            dialog.setView(root);
-            RexDialogs.showBlurredDialog(context, dialog);
+            RexDialogs.showTextStudioDialog(
+                    context,
+                    "Cover Image OCR Studio",
+                    username,
+                    combined,
+                    ""
+            );
         } catch (Throwable e) {
             Utils.showToastShort("OCR Error: " + e.getMessage());
         }
@@ -892,7 +950,7 @@ public final class RexRuntimeFeatures {
     public static void applyChatWallpaper(View viewInChat) {
         if (viewInChat == null) return;
         try {
-            if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.CHAT_CUSTOM_BG_ENABLED))) return;
+            if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.CUSTOM_CHAT_WALLPAPER)) && !Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.CHAT_CUSTOM_BG_ENABLED))) return;
             String uriStr = SharedPref.getStringPref(Settings.CHAT_CUSTOM_BG_URI);
             if (uriStr == null || uriStr.isEmpty()) return;
 
@@ -963,31 +1021,14 @@ public final class RexRuntimeFeatures {
     // Shared UI Card Helpers
     // -------------------------------------------------------------------------
     public static LinearLayout createCardContainer(Context context, String titleText) {
-        LinearLayout root = new LinearLayout(context);
-        root.setOrientation(LinearLayout.VERTICAL);
-        int pad = RexVectorIcons.dp(context, 20);
-        root.setPadding(pad, pad, pad, pad);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(0xFF121518);
-        bg.setCornerRadius(RexVectorIcons.dp(context, 24));
-        bg.setStroke(RexVectorIcons.dp(context, 1), 0x3388C2CE);
-        root.setBackground(bg);
-
-        TextView title = new TextView(context);
-        title.setText(titleText);
-        title.setTextColor(Color.WHITE);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setPadding(0, 0, 0, RexVectorIcons.dp(context, 12));
-        root.addView(title);
-        return root;
+        return RexDialogs.createDialogSheet(context, "settings", titleText);
     }
 
     public static TextView createActionButton(Context context, String label, int bgColor, int textColor) {
         TextView btn = new TextView(context);
         btn.setText(label);
         btn.setTextColor(textColor);
-        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
         btn.setTypeface(Typeface.DEFAULT_BOLD);
         btn.setGravity(Gravity.CENTER);
         int p = RexVectorIcons.dp(context, 12);
@@ -995,6 +1036,7 @@ public final class RexRuntimeFeatures {
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(bgColor);
         bg.setCornerRadius(RexVectorIcons.dp(context, 16));
+        bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
         btn.setBackground(bg);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -1004,20 +1046,43 @@ public final class RexRuntimeFeatures {
     }
 
     public static void addCloseButton(Context context, LinearLayout root, final AlertDialog dialog) {
-        LinearLayout footer = new LinearLayout(context);
-        footer.setOrientation(LinearLayout.HORIZONTAL);
-        footer.setGravity(Gravity.END);
-        footer.setPadding(0, RexVectorIcons.dp(context, 10), 0, 0);
+        RexDialogs.addDialogCloseFooter(context, root, dialog);
+    }
 
-        TextView close = new TextView(context);
-        close.setText("Close");
-        close.setTextColor(0xFF88C2CE);
-        close.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        close.setTypeface(Typeface.DEFAULT_BOLD);
-        int p = RexVectorIcons.dp(context, 10);
-        close.setPadding(p, p, p, p);
-        close.setOnClickListener(v -> dialog.dismiss());
-        footer.addView(close);
-        root.addView(footer);
+    public static void clearTemporaryCache(Context context) {
+        if (context == null) return;
+        try {
+            long bytesFreed = 0L;
+            File cacheDir = context.getCacheDir();
+            if (cacheDir != null && cacheDir.exists()) {
+                bytesFreed += deleteRecursive(cacheDir, false);
+            }
+            File extCache = context.getExternalCacheDir();
+            if (extCache != null && extCache.exists()) {
+                bytesFreed += deleteRecursive(extCache, false);
+            }
+            String mb = String.format(java.util.Locale.US, "%.2f MB", bytesFreed / (1024.0 * 1024.0));
+            Utils.showToastShort("Cleared temporary cache (" + mb + " freed)");
+        } catch (Throwable e) {
+            Utils.showToastShort("Cache cleanup error: " + e.getMessage());
+        }
+    }
+
+    private static long deleteRecursive(File fileOrDir, boolean deleteRoot) {
+        if (fileOrDir == null || !fileOrDir.exists()) return 0L;
+        long freed = 0L;
+        if (fileOrDir.isDirectory()) {
+            File[] children = fileOrDir.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    freed += deleteRecursive(child, true);
+                }
+            }
+        }
+        if (deleteRoot) {
+            long len = fileOrDir.length();
+            if (fileOrDir.delete()) freed += len;
+        }
+        return freed;
     }
 }

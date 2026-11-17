@@ -2,11 +2,14 @@ package semicoloncolonel.mobilestream.patches.wsj.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants
 
-// WSJ phone 15.12.0. The ad module (com.dowjones.advertisement) is not
+// WSJ phone 15.12.0 and 15.13.0. The ad module (com.dowjones.advertisement) is not
 // obfuscated. Ads reach the screen four ways, and each is cut at its entry:
 //
 //   Ad slots — Compose functions in DJAdComponentKt: DJArticleAdComponent,
@@ -18,9 +21,13 @@ import semicoloncolonel.mobilestream.patches.wsj.shared.Constants
 //     Job that every caller discards, so returning null is safe.
 //   Video interstitial — DiscoverVideoInterstitialAd.loadAd. Without a load,
 //     there is nothing to show.
-//   Video pre-rolls — ExoMediaPlayer.setPlayingVideo takes a nullable IMA ad
-//     tag URI and ads loader. The playback code already null-checks both, so
-//     passing null plays the video without ads.
+//   Video pre-rolls — the player's setPlayingVideo takes a nullable IMA ads
+//     loader, and the playback code null-checks it before it builds the ad
+//     media source, so passing null plays the video without ads. 15.12.0 has
+//     one player, ExoMediaPlayer, which also takes the ad tag URI. 15.13.0
+//     splits it into PreloadMediaPlayer and SingleMediaPlayer, which read the
+//     tag from the item instead. Each setPlayingVideo in the video package
+//     that takes a loader is found by that parameter, so both builds match.
 private const val ADS = "Lcom/dowjones/advertisement/"
 
 internal object AdSlotComponentsFingerprint : Fingerprint(
@@ -66,18 +73,25 @@ internal object VideoInterstitialLoadFingerprint : Fingerprint(
     returnType = "V",
 )
 
-internal object SetPlayingVideoFingerprint : Fingerprint(
-    definingClass = "Lcom/dowjones/video/ExoMediaPlayer;",
-    name = "setPlayingVideo",
-    returnType = "V",
-    parameters = listOf(
-        "Lcom/dowjones/video/model/MediaPlayerItem;",
-        "Landroid/net/Uri;",
-        "Landroidx/media3/exoplayer/ima/ImaAdsLoader;",
-        "Landroidx/media3/ui/PlayerView;",
-        "Lkotlin/jvm/functions/Function1;",
-    ),
-)
+private const val VIDEO = "Lcom/dowjones/video/"
+private const val IMA_ADS_LOADER = "Landroidx/media3/exoplayer/ima/ImaAdsLoader;"
+
+private fun Method.isSetPlayingVideo() =
+    name == "setPlayingVideo" && returnType == "V" && implementation != null &&
+        !AccessFlags.STATIC.isSet(accessFlags) &&
+        parameterTypes.any { it.toString() == IMA_ADS_LOADER }
+
+// The smali name ("p3") of each parameter of these types. p0 is this, and
+// long and double take two registers.
+private fun Method.parameterRegisters(types: Set<String>): List<String> {
+    var register = 1
+    return parameterTypes.mapNotNull { parameter ->
+        val type = parameter.toString()
+        val name = "p$register".takeIf { type in types }
+        register += if (type == "J" || type == "D") 2 else 1
+        name
+    }
+}
 
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
@@ -103,13 +117,12 @@ val skipAdsPatch = bytecodePatch(
 
         VideoInterstitialLoadFingerprint.method.addInstructions(0, "return-void")
 
-        // .locals 9, so p2/p3 are v11/v12 and fit const/4.
-        SetPlayingVideoFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 p2, 0x0
-                const/4 p3, 0x0
-            """.trimIndent(),
-        )
+        // Null the ads loader, and on 15.12.0 the ad tag URI. const/16 takes
+        // any register below 256, so the method's size does not matter.
+        val players = forEachMatchingMethod({ it.type.startsWith(VIDEO) }, { it.isSetPlayingVideo() }) { method ->
+            val nulled = method.parameterRegisters(setOf(IMA_ADS_LOADER, "Landroid/net/Uri;"))
+            method.addInstructions(0, nulled.joinToString("\n") { "const/16 $it, 0x0" })
+        }
+        if (players == 0) throw PatchException("No video player setPlayingVideo takes an ads loader")
     }
 }

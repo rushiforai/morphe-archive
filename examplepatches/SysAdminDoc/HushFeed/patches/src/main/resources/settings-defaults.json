@@ -39,7 +39,8 @@
       "download_video_path",
       "download_photo_path",
       "download_video_filename_template",
-      "download_photo_filename_template"
+      "download_photo_filename_template",
+      "share_after_save"
     ],
     "Allow Duet and Stitch": [
       "allow_duet_and_stitch",
@@ -318,6 +319,7 @@
       "keep_for_you_on_pull_down",
       "home_tab_opens_settings",
       "profile_tab_opens_watch_history",
+      "profile_tab_opens_activity_center",
       "profile_tab_switches_accounts",
       "inbox_tab_flips_read_receipts",
       "search_instead_of_home",
@@ -336,7 +338,9 @@
     "Fit the video to the screen": [
       "fit_video_to_screen",
       "fill_video_to_screen",
-      "stretch_video_to_screen"
+      "stretch_video_to_screen",
+      "blend_video_to_screen",
+      "keep_middle_video_to_screen"
     ],
     "Foldable split comment view": [
       "foldable_split_view",
@@ -350,7 +354,8 @@
       "ghost_hide_online_status",
       "ghost_hide_story_views",
       "ghost_hide_profile_visits",
-      "ghost_hide_typing"
+      "ghost_hide_typing",
+      "ghost_hide_live_views"
     ],
     "Hide CAPTCHA popups": [
       "hide_browsing_captcha_popups"
@@ -554,6 +559,7 @@
       "remember_live_quality",
       "offer_live_clear_screen",
       "keep_live_clear_screen",
+      "offer_live_full_screen",
       "dark_live_panels",
       "record_live",
       "auto_record_live",
@@ -562,6 +568,9 @@
       "live_auto_tap",
       "live_auto_tap_rate",
       "live_audio_only",
+      "live_name_alerts",
+      "live_name_alert_names",
+      "live_name_alerts_listen",
       "remembered_live_quality"
     ],
     "Lift text length limits": [
@@ -812,6 +821,7 @@
       "caption_background",
       "keep_captions_clear_display",
       "caption_clear_display_offset",
+      "caption_clear_display_spot",
       "keep_captions_available"
     ],
     "Swipe-left controls": [
@@ -992,6 +1002,12 @@
       "key": "bio_mention_links",
       "type": "boolean",
       "default": true
+    },
+    "blend_video_to_screen": {
+      "field": "BLEND_VIDEO_TO_SCREEN",
+      "key": "blend_video_to_screen",
+      "type": "boolean",
+      "default": false
     },
     "block_advertising_id": {
       "field": "BLOCK_ADVERTISING_ID",
@@ -1206,6 +1222,12 @@
       "default": 0,
       "minimum": 0,
       "maximum": 300
+    },
+    "caption_clear_display_spot": {
+      "field": "CAPTION_CLEAR_DISPLAY_SPOT",
+      "key": "caption_clear_display_spot",
+      "type": "string",
+      "default": "tiktok"
     },
     "caption_font_weight": {
       "field": "CAPTION_FONT_WEIGHT",
@@ -2002,6 +2024,12 @@
     "full_screen_next_videos": {
       "field": "FULL_SCREEN_NEXT_VIDEOS",
       "key": "full_screen_next_videos",
+      "type": "boolean",
+      "default": false
+    },
+    "ghost_hide_live_views": {
+      "field": "GHOST_HIDE_LIVE_VIEWS",
+      "key": "ghost_hide_live_views",
       "type": "boolean",
       "default": false
     },
@@ -3033,6 +3061,12 @@
       "type": "boolean",
       "default": false
     },
+    "keep_middle_video_to_screen": {
+      "field": "KEEP_MIDDLE_VIDEO_TO_SCREEN",
+      "key": "keep_middle_video_to_screen",
+      "type": "boolean",
+      "default": false
+    },
     "keep_offline_videos": {
       "field": "KEEP_OFFLINE_VIDEOS",
       "key": "keep_offline_videos",
@@ -3182,6 +3216,24 @@
       "key": "live_min_max_viewers",
       "type": "string",
       "default": "0-9223372036854775807"
+    },
+    "live_name_alert_names": {
+      "field": "LIVE_NAME_ALERT_NAMES",
+      "key": "live_name_alert_names",
+      "type": "string",
+      "default": ""
+    },
+    "live_name_alerts": {
+      "field": "LIVE_NAME_ALERTS",
+      "key": "live_name_alerts",
+      "type": "boolean",
+      "default": false
+    },
+    "live_name_alerts_listen": {
+      "field": "LIVE_NAME_ALERTS_LISTEN",
+      "key": "live_name_alerts_listen",
+      "type": "boolean",
+      "default": false
     },
     "live_record_quality": {
       "field": "LIVE_RECORD_QUALITY",
@@ -3553,6 +3605,12 @@
       "type": "boolean",
       "default": false
     },
+    "offer_live_full_screen": {
+      "field": "OFFER_LIVE_FULL_SCREEN",
+      "key": "offer_live_full_screen",
+      "type": "boolean",
+      "default": false
+    },
     "offer_live_quality": {
       "field": "OFFER_LIVE_QUALITY",
       "key": "offer_live_quality",
@@ -3670,6 +3728,12 @@
       "key": "profile_shortcut_picks",
       "type": "string",
       "default": ""
+    },
+    "profile_tab_opens_activity_center": {
+      "field": "PROFILE_TAB_OPENS_ACTIVITY_CENTER",
+      "key": "profile_tab_opens_activity_center",
+      "type": "boolean",
+      "default": false
     },
     "profile_tab_opens_watch_history": {
       "field": "PROFILE_TAB_OPENS_WATCH_HISTORY",
@@ -4022,6 +4086,12 @@
       "key": "share_added_apps",
       "type": "string",
       "default": ""
+    },
+    "share_after_save": {
+      "field": "SHARE_AFTER_SAVE",
+      "key": "share_after_save",
+      "type": "boolean",
+      "default": false
     },
     "share_block_author": {
       "field": "SHARE_BLOCK_AUTHOR",

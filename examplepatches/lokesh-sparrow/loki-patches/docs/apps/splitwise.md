@@ -3,7 +3,7 @@
 
 ![version](https://img.shields.io/badge/version-26.11.1-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-5-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Account%20tab-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.Splitwise.SplitwiseMobile`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.0.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.0.1)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.Splitwise.SplitwiseMobile`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.1.1)
 
 **🎯 Supported versions:** `26.11.1`
 <!-- HEADER_END -->

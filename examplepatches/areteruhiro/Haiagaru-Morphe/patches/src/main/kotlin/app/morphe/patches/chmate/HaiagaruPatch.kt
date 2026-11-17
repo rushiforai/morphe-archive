@@ -4984,6 +4984,12 @@ val haiagaruPatch = resourcePatch(
                 entry.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
                 entry.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "未使用のジェスチャーを割り当ててください")
                 anchor.parentNode.insertBefore(entry, anchor.nextSibling)
+                val notes = settings.createElement("jp.syoboi.a2chMate.ui.setting.preference.gesture.GesturePreference")
+                notes.setAttributeNS("http://schemas.android.com/apk/res/android", "android:title", "メモ")
+                notes.setAttributeNS("http://schemas.android.com/apk/res/android", "android:key", "haiagaruGestureResponseNotes")
+                notes.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
+                notes.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "メモの一覧・検索を開きます。未使用のジェスチャーを割り当ててください")
+                anchor.parentNode.insertBefore(notes,entry.nextSibling)
                 val deleteRead = settings.createElement("jp.syoboi.a2chMate.ui.setting.preference.gesture.GesturePreference")
                 deleteRead.setAttributeNS("http://schemas.android.com/apk/res/android", "android:title", "既読スレをすべて削除")
                 deleteRead.setAttributeNS("http://schemas.android.com/apk/res/android", "android:key", "haiagaruGestureDeleteReadThreads")
@@ -5127,7 +5133,7 @@ val haiagaruPatch = resourcePatch(
             entry.textContent = "フィルタ"
             strings.documentElement.appendChild(entry)
         }
-        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加", "共有NG条件確認", "選択（レス複数選択）")
+        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加", "共有NG条件確認", "選択（レス複数選択）", "メモ")
         val archiveIcons = mapOf(
             "haiagaru_response_history" to "M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 .07,.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54 .72,-1.21 -3.5,-2.08V8H12z",
             "haiagaru_response_save" to "M17,3H5c-1.11,0 -2,.9 -2,2v14c0,1.1 .89,2 2,2h14c1.1,0 2,-.9 2,-2V7l-4,-4zM12,19c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3zM15,9H5V5h10v4z",
@@ -5193,6 +5199,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_thread_watch" to "このスレの新着通知",
             "haiagaru_stock_posting" to "標準アプリで書き込むを開く",
             "haiagaru_response_select" to "選択（レス複数選択）",
+            "haiagaru_response_notes" to "メモ",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
             for (values in listOf("values", "values-en")) {
@@ -5208,6 +5215,7 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_response_notes" -> "M4,3h12l4,4v14H4zM6,5v14h12V8h-4V5zM8,10h8v2H8zM8,14h8v2H8z"
                 "haiagaru_response_select" ->
                     "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
                 "haiagaru_stock_posting" ->
@@ -5583,6 +5591,23 @@ val haiagaruPatch = resourcePatch(
                 setAndroidAttribute("authorities", document.documentElement.getAttribute("package") + ".haiagaru.settings")
                 setAndroidAttribute("exported", "false")
                 setAndroidAttribute("grantUriPermissions", "true")
+            })
+            application.appendChild(document.createElement("provider").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.ExternalVideoCacheProvider")
+                setAndroidAttribute("authorities", document.documentElement.getAttribute("package") + ".haiagaru.video-cache")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("grantUriPermissions", "true")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.ExternalVideoPlaybackActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.ResponseNotesActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+                setAndroidAttribute("windowSoftInputMode", "adjustResize")
             })
             application.appendChild(document.createElement("activity").apply {
                 setAndroidAttribute("name", "app.morphe.extension.chmate.SettingsImportActivity")

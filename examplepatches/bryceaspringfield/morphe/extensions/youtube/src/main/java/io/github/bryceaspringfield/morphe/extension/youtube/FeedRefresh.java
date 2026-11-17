@@ -88,7 +88,7 @@ final class FeedRefresh {
                 View decor = a.getWindow().getDecorView();
                 Utils.runOnMainThreadDelayed(() -> {
                     View home = findHome(decor, decor.getHeight() * 3 / 4);
-                    if (home == null) {
+                    if (home == null || !home.isSelected()) {
                         MorpheKeywords.usedSignature = used;
                         return;
                     }

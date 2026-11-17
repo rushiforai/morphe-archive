@@ -70,17 +70,26 @@ private val ARM64 = LibraryPatch(
     guardWidth = 4,
     guardExpected = 0xA9BA7BFDL, // stp x29, x30, [sp, #-96]!
     rewrites = listOf(
-        // The traps first: they are unreachable once the routine returns, but a caller that
-        // reaches an inner block keeps its no-ops.
+        // The traps, in case anything else ever reaches the routine.
         Rewrite(0x6e2e1c, 4, 0x00000000L, NOP_64), // udf #0
         Rewrite(0x6e2e30, 4, 0x00000000L, NOP_64), // udf #0
         Rewrite(0x6e30d0, 4, 0x39000109L, NOP_64), // strb w9, [x8], x8 = 0xdeadbeef
         Rewrite(0x6e33f8, 4, 0xB900014BL, NOP_64), // str w11, [x10], x10 = 0
         Rewrite(0x6e3414, 4, 0xB900014DL, NOP_64), // str w13, [x10], x10 = 0
-        // Then the routine itself: it returns immediately. Running it instead of disarming it
-        // was tried, and its failure path blocks the caller, so no caller ever finishes.
-        Rewrite(0x6e2b80, 4, 0xA9BA7BFDL, 0x2A1F03E0L), // stp x29, x30, [sp, #-96]! -> mov w0, wzr
-        Rewrite(0x6e2b84, 4, 0xA9016FFCL, 0xD65F03C0L), // stp x28, x27, [sp, #16]     -> ret
+
+        // And every call into the routine, which is how it is actually kept out of the way.
+        //
+        // The routine is not removed and not stubbed: it is simply never called. Gutting its
+        // prologue (`mov w0, wzr; ret`) removed the routine instead of disarming it, and the
+        // engine then came up half-initialised - `nativeActions`, the JNI entry point behind
+        // every key-code injection, silently did nothing. Running it in full was worse: it is
+        // ~670 instructions that never finish on a re-signed APK, and the app ANRs during startup
+        // ("failed to complete startup", 98% CPU). Removing the four `bl`s leaves both problems
+        // behind and touches nothing inside the routine.
+        Rewrite(0x6d4db4, 4, 0x94003773L, NOP_64), // bl -> 0x6e2b80
+        Rewrite(0x8492f0, 4, 0x97FA6624L, NOP_64), // bl -> 0x6e2b80
+        Rewrite(0x849700, 4, 0x97FA6520L, NOP_64), // bl -> 0x6e2b80
+        Rewrite(0x85ed34, 4, 0x97FA0F93L, NOP_64), // bl -> 0x6e2b80
     ),
     constructorSlot = 0xbf96e8L + 8 * 2,
     constructorExpected = 0x68fb4cL,
@@ -105,7 +114,14 @@ private val ARM32 = LibraryPatch(
         Rewrite(0x304304, 2, 0xB5F0L, BX_LR_16), // the anti-tamper constructor -> return
         Rewrite(0x356e14, 2, 0x7001L, NOP_16), // strb r1, [r0], r0 = 0xdeadbeef
         Rewrite(0x356fe8, 2, 0x6001L, NOP_16), // str r1, [r0], r0 = 0
-        Rewrite(0x356ad8, 2, 0xB5F0L, BX_LR_16), // the verification routine -> return
+
+        // The verification routine keeps its prologue, exactly as on 64-bit ARM: its four
+        // callers are turned into no-ops instead. Each call is a Thumb `BL` pair, so the whole
+        // 32-bit word becomes `nop.n; nop.n`.
+        Rewrite(0x3497c4, 4, 0xF988F00DL, NOP_16 or (NOP_16 shl 16)),
+        Rewrite(0x49C5D2, 4, 0xFA81F6BAL, NOP_16 or (NOP_16 shl 16)),
+        Rewrite(0x49D2D0, 4, 0xFC02F6B9L, NOP_16 or (NOP_16 shl 16)),
+        Rewrite(0x4AEE8A, 4, 0xFE25F6A7L, NOP_16 or (NOP_16 shl 16)),
     ),
 )
 

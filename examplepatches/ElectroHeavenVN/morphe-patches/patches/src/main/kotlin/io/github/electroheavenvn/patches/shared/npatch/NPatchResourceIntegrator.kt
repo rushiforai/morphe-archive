@@ -13,7 +13,6 @@ private val REMOVED_METADATA = setOf("xposedmodule", "xposeddescription", "xpose
 
 fun ResourcePatchContext.integrateNPatch(
     injectProvider: Boolean,
-    useMicroG: Boolean,
     usesCleartextTraffic: Boolean,
 ) {
     val manifest = document("AndroidManifest.xml")
@@ -35,7 +34,6 @@ fun ResourcePatchContext.integrateNPatch(
             packageName = packageName,
             appComponentFactory = originalFactory,
             injectProvider = injectProvider,
-            useMicroG = useMicroG,
             usesCleartextTraffic = usesCleartextTraffic,
         )
         configBytes = config.toJsonBytes()

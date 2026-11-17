@@ -16,9 +16,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import app.morphe.extension.instagram.constants.Constants;
-import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.patches.customise.font.FontStorage;
 import app.morphe.extension.instagram.patches.devFlags.RecommendedFlags;
 import app.morphe.extension.instagram.patches.dm.SavedMessagesHook;
@@ -27,13 +30,110 @@ import app.morphe.extension.instagram.patches.focusLock.FocusLockDialogs;
 import app.morphe.extension.instagram.patches.story.StoryLikeHistoryActivity;
 import app.morphe.extension.instagram.patches.story.StoryMentionSettings;
 import app.morphe.extension.instagram.settings.ActivityHook;
+import app.morphe.extension.instagram.settings.Settings;
+import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.settings.preference.fragments.FragmentHook;
 import app.morphe.extension.instagram.utils.InstaUtils;
+import app.morphe.extension.rex.downloader.StorageUtils;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
 public class ButtonPref extends Preference {
+    // Role color tokens (#2D95E8 / #3998E8 for primary actions, #FF4438 / #F05D69 for destructive actions)
+    public static final Set<String> REGISTERED_ROUTE_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            Constants.REX_FRAGMENT_SETTINGS,
+            Constants.REX_FRAGMENT_GHOST,
+            Constants.REX_FRAGMENT_NOTIFICATION,
+            Constants.REX_FRAGMENT_PRIVACY,
+            Constants.REX_FRAGMENT_GESTURES,
+            Constants.REX_FRAGMENT_FEED_AND_STORIES,
+            Constants.REX_FRAGMENT_UI_TWEAKS,
+            Constants.REX_FRAGMENT_DISTRACTION_FREE,
+            Constants.REX_FRAGMENT_MISC,
+            Constants.REX_FRAGMENT_DOWNLOAD_MEDIA,
+            Constants.REX_FRAGMENT_DEV_OPTIONS,
+            Constants.REX_FRAGMENT_ABOUT,
+            Constants.REX_FRAGMENT_ADS,
+            Constants.REX_FRAGMENT_STORY,
+            Constants.REX_FRAGMENT_LINKS,
+            Constants.REX_FRAGMENT_NAV_BTNS,
+            Constants.REX_FRAGMENT_ACTION_BAR,
+            Constants.REX_FRAGMENT_DM,
+            Constants.REX_FRAGMENT_FILTER_CONTENT,
+            Constants.REX_FRAGMENT_REC_FLAGS,
+            Constants.REX_FRAGMENT_FOCUS_LOCK,
+            Constants.REX_FRAGMENT_INSTANTS,
+            Constants.REX_FRAGMENT_FONT
+    )));
+
+    public static final Set<String> REGISTERED_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "rex_export_dev_overrides",
+            "rex_import_dev_overrides",
+            "rex_import_id_mapping",
+            "rex_export_pref",
+            "rex_import_pref",
+            "rex_download_set_path",
+            "rex_reset_download_path",
+            "rex_pref_add_font",
+            "rex_reset_pref",
+            "rex_focus_lock_action",
+            "rex_pref_delete_font",
+            "rex_export_experiment_list",
+            "rex_export_experiment_mappings",
+            "rex_download_id_mapping",
+            "rex_view_saved_instants",
+            "view_deleted_messages",
+            "rex_notification_center_btn",
+            "rex_chat_wallpaper_picker",
+            "rex_saved_captions_btn",
+            "rex_saved_bios_btn",
+            "rex_saved_profiles_btn",
+            "rex_watch_history_btn",
+            "rex_video_splitter_btn",
+            "rex_story_like_history_btn",
+            "rex_story_mention_settings_btn",
+            "rex_app_language_btn",
+            "rex_rec_flags_refresh_file",
+            "rex_enable_all_ghost",
+            "rex_disable_all_ghost",
+            "rex_enable_all_distractions",
+            "rex_disable_all_distractions",
+            "rex_quick_access_sheet",
+            "rex_clear_cache_btn",
+            "rex_creative_fonts_btn",
+            "rex_private_screen_opacity_btn",
+            "rex_passcode_lock_btn",
+            "rex_hidden_chats_list_btn",
+            "rex_whatsapp_type_btn",
+            "rex_last_active_format_btn",
+            "rex_emoji_type_btn",
+            "rex_font_type_btn",
+            "rex_legal_licenses_btn",
+            Constants.REX_APP_VERSION_PREFERENCE,
+            Constants.REX_PATCH_VERSION_PREFERENCE
+    )));
+
+    public static final Set<String> PRIMARY_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "rex_enable_all_ghost",
+            "rex_enable_all_distractions",
+            "rex_export_pref",
+            "rex_import_pref",
+            "rex_rec_flags_refresh_file",
+            "rex_quick_access_sheet"
+    )));
+
+    public static final Set<String> DESTRUCTIVE_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "rex_reset_pref",
+            "rex_pref_delete_font",
+            "rex_reset_download_path",
+            "rex_disable_all_ghost",
+            "rex_disable_all_distractions",
+            "rex_clear_cache_btn"
+    )));
+
     private final Context context;
+    private View rowView;
     private boolean pressedHighlightEnabled;
 
     public ButtonPref(Context context) {
@@ -54,11 +154,41 @@ public class ButtonPref extends Preference {
         init();
     }
 
+    public static boolean isFragmentNavigation(String key) {
+        return key != null && REGISTERED_ROUTE_KEYS.contains(key);
+    }
+
+    public static boolean isRegisteredAction(String key) {
+        if (key == null) return false;
+        return REGISTERED_ACTION_KEYS.contains(key) || SettingsStatus.FLAGS.containsKey(key);
+    }
+
+    public static boolean isRegisteredActionOrRoute(String key) {
+        return isFragmentNavigation(key) || isRegisteredAction(key);
+    }
+
+    public static boolean isPrimaryActionKey(String key) {
+        return key != null && PRIMARY_ACTION_KEYS.contains(key);
+    }
+
+    public static boolean isDestructiveActionKey(String key) {
+        return key != null && DESTRUCTIVE_ACTION_KEYS.contains(key);
+    }
+
     private void init() {
         setOnPreferenceClickListener(preference -> {
             try {
+                if (rowView != null) RexHaptics.tap(rowView); else RexHaptics.tap(context);
+                if (rowView != null) {
+                    InstagramPreferenceStyle.pulseRowIcon(rowView);
+                }
                 String key = getKey();
-                if (key == null) return true;
+                if (key == null) return false;
+
+                if (!isRegisteredActionOrRoute(key)) {
+                    Utils.showToastShort("Action unavailable: " + key);
+                    return false;
+                }
 
                 if (key.equals("rex_export_dev_overrides")
                         || key.equals("rex_import_dev_overrides")
@@ -69,6 +199,21 @@ public class ButtonPref extends Preference {
                         || key.equals("rex_pref_add_font")) {
                     ActivityHook.launchFragment((Activity) context, key);
 
+                } else if (key.equals("rex_reset_download_path")) {
+                    RexDialogs.showConfirmDialog(
+                            context,
+                            "Reset Download Path",
+                            "Reset custom download folder back to default (/storage/emulated/0/Download/xboyrex)?",
+                            "Reset Path",
+                            true,
+                            () -> {
+                                StorageUtils.saveCustomPath("");
+                                Utils.showToastShort("Download path reset to default");
+                                Runnable recreate = recreateActivityOnComplete(context);
+                                if (recreate != null) recreate.run();
+                            }
+                    );
+
                 } else if (key.equals("rex_reset_pref")) {
                     InstaUtils.showResetSettingsDialog(context);
 
@@ -76,11 +221,20 @@ public class ButtonPref extends Preference {
                     FocusLockDialogs.onActionPressed(context, ButtonPref.this);
 
                 } else if (key.equals("rex_pref_delete_font")) {
-                    FontStorage.DeleteResult result = FontStorage.delete();
-                    Utils.showToastShort(str(
-                            result == FontStorage.DeleteResult.DELETED ? "rex_pref_delete_font_success" :
-                                    result == FontStorage.DeleteResult.NOT_FOUND ? "rex_pref_delete_font_warn" :
-                                            "rex_pref_delete_font_fail"));
+                    RexDialogs.showConfirmDialog(
+                            context,
+                            "Delete Custom Font",
+                            "Remove the imported custom font file and revert to default typography?",
+                            "Delete Font",
+                            true,
+                            () -> {
+                                FontStorage.DeleteResult result = FontStorage.delete();
+                                Utils.showToastShort(str(
+                                        result == FontStorage.DeleteResult.DELETED ? "rex_pref_delete_font_success" :
+                                                result == FontStorage.DeleteResult.NOT_FOUND ? "rex_pref_delete_font_warn" :
+                                                        "rex_pref_delete_font_fail"));
+                            }
+                    );
 
                 } else if (key.equals("rex_export_experiment_list")) {
                     InstaUtils.decompileExperiments(false);
@@ -128,6 +282,78 @@ public class ButtonPref extends Preference {
                 } else if (key.equals("rex_app_language_btn")) {
                     RexDialogs.showAppLanguagePicker(context);
 
+                } else if (key.equals("rex_legal_licenses_btn")) {
+                    RexDialogs.showLegalLicensesDialog(context);
+
+                } else if (key.equals("rex_quick_access_sheet")) {
+                    RexDialogs.showHomeQuickMenu(context);
+
+                } else if (key.equals("rex_clear_cache_btn")) {
+                    RexDialogs.showConfirmDialog(
+                            context,
+                            "Clear Cache & Temporary Media",
+                            "Clear cached temporary media files and freed storage now?",
+                            "Clear Cache",
+                            true,
+                            () -> RexRuntimeFeatures.clearTemporaryCache(context)
+                    );
+
+                } else if (key.equals("rex_creative_fonts_btn")) {
+                    RexRuntimeFeatures.showCreativeFontsDialog(context);
+
+                } else if (key.equals("rex_private_screen_opacity_btn")) {
+                    RexRuntimeFeatures.showOpacityDialog(context);
+
+                } else if (key.equals("rex_passcode_lock_btn")) {
+                    RexRuntimeFeatures.showPasscodeSetupDialog(context);
+
+                } else if (key.equals("rex_hidden_chats_list_btn")) {
+                    RexRuntimeFeatures.showHiddenChatsListDialog(context);
+
+                } else if (key.equals("rex_whatsapp_type_btn")) {
+                    RexRuntimeFeatures.showWhatsAppTypePicker(context, recreateActivityOnComplete(context));
+
+                } else if (key.equals("rex_last_active_format_btn")) {
+                    RexRuntimeFeatures.showLastActiveFormatPicker(context, recreateActivityOnComplete(context));
+
+                } else if (key.equals("rex_emoji_type_btn")) {
+                    RexRuntimeFeatures.showEmojiTypePicker(context, recreateActivityOnComplete(context));
+
+                } else if (key.equals("rex_font_type_btn")) {
+                    RexRuntimeFeatures.showFontTypePicker(context, recreateActivityOnComplete(context));
+
+                } else if (key.equals("rex_enable_all_ghost")) {
+                    setGhostGroupState(true);
+                    Utils.showToastShort("Enabled all Ghost Mode switches");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
+                } else if (key.equals("rex_disable_all_ghost")) {
+                    setGhostGroupState(false);
+                    Utils.showToastShort("Disabled all Ghost Mode switches");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
+                } else if (key.equals("rex_enable_all_distractions")) {
+                    setDistractionGroupState(true);
+                    Utils.showToastShort("Enabled all Distraction-Free filters");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
+                } else if (key.equals("rex_disable_all_distractions")) {
+                    setDistractionGroupState(false);
+                    Utils.showToastShort("Disabled all Distraction-Free filters");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
+                } else if (key.equals(Constants.REX_APP_VERSION_PREFERENCE)
+                        || key.equals(Constants.REX_PATCH_VERSION_PREFERENCE)) {
+                    CharSequence t = getTitle();
+                    if (t != null) {
+                        Utils.setClipboard(t.toString());
+                        Utils.showToastShort("Copied: " + t);
+                    }
+
                 } else if (key.equals(Constants.REX_FRAGMENT_DEV_OPTIONS)) {
                     RexDialogs.showDevWarningDialog(context, () -> FragmentHook.startFragment(Constants.REX_FRAGMENT_DEV_OPTIONS));
 
@@ -136,13 +362,51 @@ public class ButtonPref extends Preference {
 
                 } else if (key.equals("rex_rec_flags_refresh_file")) {
                     RecommendedFlags.downloadRecommendedFlagsFile(recreateActivityOnComplete(context));
+
+                } else if (SettingsStatus.FLAGS.containsKey(key)) {
+                    Boolean active = SettingsStatus.FLAGS.get(key);
+                    Utils.showToastShort(key + ": " + (Boolean.TRUE.equals(active) ? "Active" : "Inactive"));
                 }
             } catch (Exception e) {
-                Utils.showToastShort(e.getMessage());
+                Utils.showToastShort(RexDialogs.userSafeErrorMessage(e, "Action failed. Please try again."));
                 Logger.printException(() -> "Preference button onclick failure", e);
             }
             return true;
         });
+    }
+
+    public static void setGhostGroupState(boolean enabled) {
+        SharedPref.setBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES.key, enabled);
+        SharedPref.setBooleanPref(Settings.VIEW_DM_ANONYMOUSLY.key, enabled);
+        SharedPref.setBooleanPref(Settings.MARK_AS_READ_AFTER_REPLY.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_TYPING_STATUS.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_SCREENSHOT_DETECTION.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_VIEW_ONCE_SEEN.key, enabled);
+        SharedPref.setBooleanPref(Settings.UNLIMITED_REPLAYS.key, enabled);
+        SharedPref.setBooleanPref(Settings.GHOST_INSTANTS.key, enabled);
+        SharedPref.setBooleanPref(Settings.VIEW_STORIES_ANONYMOUSLY.key, enabled);
+        SharedPref.setBooleanPref(Settings.VIEW_LIVE_ANONYMOUSLY.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_AUDIO_SEEN.key, enabled);
+    }
+
+    public static void setDistractionGroupState(boolean enabled) {
+        SharedPref.setBooleanPref(Settings.DISABLE_STORIES.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_STORIES_TRAY.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_HIDDEN_REQUESTS.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_HIGHLIGHTS.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_NOTES_TRAY.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_EXPLORE.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_COMMENTS.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_FEED_POSTS.key, enabled);
+        SharedPref.setBooleanPref(Settings.LIMIT_FOLLOWING_FEED.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_DISCOVER_PEOPLE.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_REELS_SCROLLING.key, enabled);
+        SharedPref.setBooleanPref(Settings.DISABLE_SWIPE_TO_CREATE.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_GROUP_CREATION_BUTTON_ON_SHARESHEET.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_REELS_FOLLOW_BUTTON.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_LIKES.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_SHARE_BUTTON.key, enabled);
+        SharedPref.setBooleanPref(Settings.HIDE_RESHARE_BUTTON.key, enabled);
     }
 
     private static Runnable recreateActivityOnComplete(Context context) {
@@ -158,29 +422,34 @@ public class ButtonPref extends Preference {
 
     @Override
     protected View onCreateView(ViewGroup parent) {
-        return InstagramPreferenceStyle.createPreferenceView(
+        View view = InstagramPreferenceStyle.createPreferenceView(
                 context,
                 InstagramPreferenceStyle.TRAILING_CHEVRON,
                 iconResourceNameForKey(getKey())
         );
+        rowView = view;
+        return view;
     }
 
     @Override
     protected void onBindView(View view) {
+        rowView = view;
         String key = getKey();
+        if (!isRegisteredActionOrRoute(key)) {
+            setEnabled(false);
+        }
         InstagramPreferenceStyle.bindText(this, view);
         InstagramPreferenceStyle.bindIcon(view, iconResourceNameForKey(key));
         InstagramPreferenceStyle.setTrailingVisible(view, hasVisibleTrail(key));
         InstagramPreferenceStyle.setPressedHighlightEnabled(view, pressedHighlightEnabled);
+        InstagramPreferenceStyle.applyActionRoleStyling(view, key, isEnabled());
     }
 
-    private static boolean isFragmentNavigation(String key) {
-        return key != null && key.startsWith("rex_frag_");
-    }
-
-    private static boolean hasVisibleTrail(String key) {
-        return isFragmentNavigation(key)
-                || (key != null && (key.startsWith("rex_") || key.equals("view_deleted_messages")));
+    public static boolean hasVisibleTrail(String key) {
+        return isRegisteredActionOrRoute(key)
+                && !Constants.REX_APP_VERSION_PREFERENCE.equals(key)
+                && !Constants.REX_PATCH_VERSION_PREFERENCE.equals(key)
+                && !SettingsStatus.FLAGS.containsKey(key);
     }
 
     public void setPressedHighlightEnabled(boolean enabled) {
@@ -190,25 +459,10 @@ public class ButtonPref extends Preference {
         }
     }
 
+    /**
+     * Resolves any preference or route key to its unique semantic Tabler icon ID via {@link RexIcon}.
+     */
     public static String iconResourceNameForKey(String key) {
-        if (key == null) return null;
-        if (key.equals(Constants.REX_FRAGMENT_GHOST)) return "rex_vec_ghost";
-        if (key.equals(Constants.REX_FRAGMENT_NOTIFICATION)) return "rex_vec_bell";
-        if (key.equals(Constants.REX_FRAGMENT_PRIVACY) || key.equals(Constants.REX_FRAGMENT_ADS)) return "rex_vec_shield";
-        if (key.equals(Constants.REX_FRAGMENT_GESTURES)) return "rex_vec_gesture";
-        if (key.equals(Constants.REX_FRAGMENT_FEED_AND_STORIES) || key.equals(Constants.REX_FRAGMENT_STORY)) return "rex_vec_feed";
-        if (key.equals(Constants.REX_FRAGMENT_UI_TWEAKS)) return "rex_vec_ui";
-        if (key.equals(Constants.REX_FRAGMENT_DISTRACTION_FREE)) return "rex_vec_focus";
-        if (key.equals(Constants.REX_FRAGMENT_MISC)) return "rex_vec_misc";
-        if (key.equals(Constants.REX_FRAGMENT_DOWNLOAD_MEDIA)) return "rex_vec_download";
-        if (key.equals(Constants.REX_FRAGMENT_DEV_OPTIONS)) return "rex_vec_dev";
-        if (key.equals(Constants.REX_FRAGMENT_ABOUT)) return "rex_vec_info";
-        if (key.equals(Constants.REX_FRAGMENT_LINKS)) return UI.DRAWABLE_LINK_ICON;
-        if (key.equals(Constants.REX_FRAGMENT_NAV_BTNS)) return UI.DRAWABLE_STACK_ICON;
-        if (key.equals(Constants.REX_FRAGMENT_ACTION_BAR)) return UI.DRAWABLE_COLLECTIONS_ICON;
-        if (key.equals(Constants.REX_FRAGMENT_DM)) return UI.DRAWABLE_SHARE_TO_DIRECT;
-        if (key.equals(Constants.REX_FRAGMENT_FILTER_CONTENT)) return UI.DRAWABLE_SHARE_TO_REEL;
-        if (key.equals(Constants.REX_FRAGMENT_INSTANTS)) return UI.DRAWABLE_INSTANTS_ICON;
-        return null;
+        return "rex_vec_" + RexIcon.iconForKey(key);
     }
 }

@@ -76,6 +76,10 @@ private const val MEDIA = "Lorg/telegram/tgnet/TLRPC\$MessageMedia;"
 private const val PHOTO = "Lorg/telegram/tgnet/TLRPC\$Photo;"
 private const val PHOTO_SIZE = "Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
 private const val DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$Document;"
+private const val ATTRIBUTE = "Lorg/telegram/tgnet/TLRPC\$DocumentAttribute;"
+private const val VIDEO_ATTRIBUTE = "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeVideo;"
+private const val AUDIO_ATTRIBUTE = "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeAudio;"
+private const val NAME_ATTRIBUTE = "Lorg/telegram/tgnet/TLRPC\$TL_documentAttributeFilename;"
 private const val PEER = "Lorg/telegram/tgnet/TLRPC\$Peer;"
 private const val TL_CHAT = "Lorg/telegram/tgnet/TLRPC\$Chat;"
 private const val TL_USER = "Lorg/telegram/tgnet/TLRPC\$User;"
@@ -185,6 +189,27 @@ val messageMenuPatch = bytecodePatch(
         } else {
             patchLog.warning("Add Repeat to the message menu: ${hide.missing}. The patch goes on without Hide for me.")
         }
+        val alsoDelete = resolveAlsoDeleteChecked()
+        if (alsoDelete.missing == null) {
+            alsoDelete.apply()
+            enableCapability("alsoDeleteChecked")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${alsoDelete.missing}. The patch goes on without checking Also delete for by default.")
+        }
+        val bookmarks = resolveBookmarks()
+        if (bookmarks.missing == null) {
+            bookmarks.apply(this)
+            enableCapability("bookmarks")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${bookmarks.missing}. The patch goes on without Bookmark.")
+        }
+        val photoEdit = resolvePhotoEdit(site.chat)
+        if (photoEdit.missing == null) {
+            photoEdit.apply(this)
+            enableCapability("photoEdit")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${photoEdit.missing}. The patch goes on without Edit a copy.")
+        }
         enableStatus("messageMenuRepeat")
     }
 }
@@ -231,6 +256,7 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     requireStatusMethod("allowScreenshots")
     controlHook(SCREENSHOTS, "protectedContent", listOf("I"), "Z")
     controlHook(SCREENSHOTS, "storyAllowed", listOf("I"), "Z")
+    controlHook(SCREENSHOTS, "secretChat", listOf(OBJECT), OBJECT)
     controlHook(MESSAGE_MENU, "selectionCopy", listOf(), "Z")
     controlHook(MESSAGE_MENU, "fill", listOf(OBJECT, OBJECT, LIST, LIST, LIST), "V")
     controlHook(MESSAGE_MENU, "chosen", listOf(OBJECT, "I"), "V")
@@ -248,10 +274,13 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlHook(MESSAGE_MENU, "title", listOf("I", "J"), STRING)
     controlHook(MESSAGE_MENU, "forwardTo", listOf("I", LIST, "J", "Z"), "I")
     for (name in listOf("canSend", "blocked", "premium", "forwarded", "photo", "restricted")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Z")
-    for (name in listOf("type", "id", "date", "edited", "forwardDate", "fileDc", "photoSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "I")
+    for (name in listOf("type", "id", "date", "edited", "forwardDate", "fileDc", "photoSize", "photoWidth", "photoHeight",
+        "attributeKind", "attributeWidth", "attributeHeight")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "I")
     for (name in listOf("dialog", "sender", "forwardFrom", "documentSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "J")
-    for (name in listOf("forwardName", "attachPath", "text", "documentName")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Ljava/lang/String;")
+    for (name in listOf("forwardName", "attachPath", "text", "documentName", "mime", "attributeName")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Ljava/lang/String;")
+    controlHook(MESSAGE_MENU, "attributeDuration", listOf(OBJECT), "D")
     controlHook(MESSAGE_MENU, "photoSizes", listOf(OBJECT), LIST)
+    controlHook(MESSAGE_MENU, "attributes", listOf(OBJECT), LIST)
     controlHook(MESSAGE_MENU, "photoFile", listOf(OBJECT), FILE)
     controlHook(MESSAGE_MENU, "sending", listOf(), "Z")
     controlHook(MESSAGE_MENU, "sendText", listOf("I", "J", STRING), "Z")
@@ -470,8 +499,10 @@ private fun BytecodePatchContext.requireHostMembers(joinsAuthority: Boolean) {
     controlMembers(FWD_HEADER, "date:I", "from_id:$PEER")
     controlMembers(MEDIA, "photo:$PHOTO")
     controlMembers(PHOTO, "dc_id:I", "sizes:$LIST")
-    controlMembers(PHOTO_SIZE, "size:I")
-    controlMembers(DOCUMENT, "dc_id:I", "size:J")
+    controlMembers(PHOTO_SIZE, "size:I", "w:I", "h:I")
+    controlMembers(DOCUMENT, "dc_id:I", "size:J", "mime_type:$STRING", "attributes:$LIST")
+    controlMembers(ATTRIBUTE, "w:I", "h:I", "duration:D", "file_name:$STRING")
+    for (kind in listOf(VIDEO_ATTRIBUTE, AUDIO_ATTRIBUTE, NAME_ATTRIBUTE)) controlMembers(kind)
     controlMembers(PAID_MEDIA)
     controlMembers(ACTION_EMPTY)
     controlMembers(CONTROLLER, "isPeerNoForwards(J)Z", "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER",
@@ -815,6 +846,57 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         check-cast p0, $PHOTO_SIZE
         iget v0, p0, $PHOTO_SIZE->size:I
         return v0
+    """)
+    for (side in listOf("w" to "photoWidth", "h" to "photoHeight")) writeStub(MESSAGE_MENU, side.second, 2, """
+        check-cast p0, $PHOTO_SIZE
+        iget v0, p0, $PHOTO_SIZE->${side.first}:I
+        return v0
+    """)
+    for (read in listOf("$DOCUMENT->mime_type:$STRING" to "mime", "$DOCUMENT->attributes:$LIST" to "attributes")) writeStub(MESSAGE_MENU, read.second, 3, """
+        check-cast p0, $MESSAGE
+        invoke-virtual {p0}, $MESSAGE->getDocument()$DOCUMENT
+        move-result-object v0
+        if-eqz v0, :hush_none
+        iget-object v1, v0, ${read.first}
+        return-object v1
+        :hush_none
+        const/4 v1, 0x0
+        return-object v1
+    """)
+    // The numbers MessageMenu gives each kind: a video, a song or voice message, the file's name, anything else.
+    writeStub(MESSAGE_MENU, "attributeKind", 2, """
+        instance-of v0, p0, $VIDEO_ATTRIBUTE
+        if-eqz v0, :hush_audio
+        const/4 v0, 0x1
+        return v0
+        :hush_audio
+        instance-of v0, p0, $AUDIO_ATTRIBUTE
+        if-eqz v0, :hush_name
+        const/4 v0, 0x2
+        return v0
+        :hush_name
+        instance-of v0, p0, $NAME_ATTRIBUTE
+        if-eqz v0, :hush_other
+        const/4 v0, 0x3
+        return v0
+        :hush_other
+        const/4 v0, 0x0
+        return v0
+    """)
+    for (side in listOf("w" to "attributeWidth", "h" to "attributeHeight")) writeStub(MESSAGE_MENU, side.second, 2, """
+        check-cast p0, $ATTRIBUTE
+        iget v0, p0, $ATTRIBUTE->${side.first}:I
+        return v0
+    """)
+    writeStub(MESSAGE_MENU, "attributeDuration", 3, """
+        check-cast p0, $ATTRIBUTE
+        iget-wide v0, p0, $ATTRIBUTE->duration:D
+        return-wide v0
+    """)
+    writeStub(MESSAGE_MENU, "attributeName", 2, """
+        check-cast p0, $ATTRIBUTE
+        iget-object v0, p0, $ATTRIBUTE->file_name:$STRING
+        return-object v0
     """)
 }
 

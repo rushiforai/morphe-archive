@@ -9,6 +9,8 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -27,6 +29,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -86,6 +89,89 @@ class HolidayLookFixtureTest {
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "holidayLook" }.instructions()
             assertEquals("$name: build fact", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals("$name: title emoji build fact", 1, flag(context, "titleEmoji"))
+            // The person's own chat list title rides the same decorate call, so the same build carries it.
+            assertEquals("$name: chat list title build fact", 1, flag(context, "chatListTitle"))
+            assertEquals("$name: chat list banner build fact", 1, flag(context, "chatListBanner"))
+        }
+    }
+
+    @Test
+    fun `the chat list's top bar draws the banner first and asks it before painting the blurred list`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = contextFor(build)
+            val site = barDraw(context)
+            val stock = ImmutableMethod.of(site.draw)
+            val read = stock.instructions()[site.blurAt] as TwoRegisterInstruction
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { holidayLookPatch.execute(context) })
+            val after = site.draw.instructions()
+
+            // First thing, the banner gets the bar and its canvas: p0 and p1, read off the method's own frame.
+            assertEquals("$name: the banner draws first", Opcode.INVOKE_STATIC_RANGE, after[0].opcode)
+            assertEquals("$name: banner draw", "$CHAT_LIST_BANNER->draw(Landroid/view/View;Landroid/graphics/Canvas;)V", after[0].reference())
+            val registers = site.draw.implementation!!.registerCount
+            assertEquals("$name: the bar and its canvas", listOf(registers - 2, registers - 1), after[0].namedRegisters())
+
+            // The blur flag's read, then the banner's answer in its place, then Telegram's own skip on it.
+            val at = site.blurAt + 1
+            assertEquals("$name: the blur flag is read as before", operation(stock.instructions()[site.blurAt]), operation(after[at]))
+            assertEquals("$name: the banner answers for the blur", "$CHAT_LIST_BANNER->blur(Landroid/view/View;I)I", after[at + 1].reference())
+            assertEquals("$name: it gets the bar and the flag", listOf(read.registerB, read.registerA), after[at + 1].namedRegisters())
+            assertEquals("$name: its answer replaces the flag", Opcode.MOVE_RESULT, after[at + 2].opcode)
+            assertEquals("$name: same register", listOf(read.registerA), after[at + 2].namedRegisters())
+            assertEquals("$name: Telegram skips the blur on it", Opcode.IF_EQZ, after[at + 3].opcode)
+            assertEquals("$name: on that register", listOf(read.registerA), after[at + 3].namedRegisters())
+            assertKeepsStock("$name: top bar draw", stock, site.draw, listOf(0 until 1, at + 1 until at + 3))
+
+            // The stubs read the chat list's own mark and the title's color.
+            val banner = context.tgMutableClassDefBy(CHAT_LIST_BANNER)
+            val holiday = banner.methods.single { it.origName == "holiday" }.instructions()
+            val mark = "${site.holiday.definingClass}->${site.holiday.name}:${site.holiday.type}"
+            assertTrue("$name: holiday reads the bar's mark", holiday.any { it.opcode == Opcode.IGET_BOOLEAN && it.reference() == mark })
+            val supports = context.tgMutableClassDefBy(site.bar).methods.single { it.name == "setSupportsHolidayImage" }.instructions()
+            assertEquals("$name: the mark is what the chat list's screen sets", mark, supports[0].reference())
+            val color = banner.methods.single { it.origName == "titleColor" }.instructions()
+            assertTrue("$name: titleColor asks the bar for its title",
+                color.any { it.reference() == "${site.bar}->getTitleTextView()${site.title.returnType}" })
+            assertTrue("$name: and the title for its color",
+                color.any { it.reference() == "${site.title.returnType}->getTextColor()I" })
+            assertEquals("$name: chat list banner build fact", 1, flag(context, "chatListBanner"))
+        }
+    }
+
+    @Test
+    fun `a top bar that changed shape leaves the banner out and the rest of the look goes in`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val changes: List<Pair<String, (BytecodePatchContext) -> Unit>> = listOf(
+                "the draw stops reading the blur flag" to { context ->
+                    val site = barDraw(context)
+                    val read = site.draw.instructions()[site.blurAt]
+                    site.draw.replaceInstruction(site.blurAt, "const/4 v${read.namedRegisters()[0]}, 0x0")
+                },
+                "the blur switch stops clearing the background" to { context ->
+                    val site = barDraw(context)
+                    val setter = context.tgMutableClassDefBy(site.bar).methods.single { it.name == "setDrawBlurBackground" }
+                    setter.replaceInstruction(setter.instructions().indexOfFirst {
+                        ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "setBackground" }, "nop")
+                },
+                "something jumps to the blur check" to { context ->
+                    val site = barDraw(context)
+                    site.draw.addInstructionsWithLabels(0, "goto :check", ExternalLabel("check", site.draw.getInstruction(site.blurAt + 1)))
+                },
+            )
+            val cases = changes.map { (case, change) -> case to contextFor(build).also(change) } +
+                ("no banner runtime" to contextFor(build, banner = false))
+            for ((case, context) in cases) {
+                val bar = context.resolveHolidayLookSites().readers.single { it.origName == "drawChild" }.definingClass
+                val draw = context.tgMutableClassDefBy(bar).methods.single { it.name == "dispatchDraw" }
+                val before = draw.instructions().map(::operation)
+                val warnings = PatchLogCapture.warnings { holidayLookPatch.execute(context) }
+                assertTrue("${build.name}: $case: $warnings", warnings.single().contains("without the chat list banner"))
+                assertEquals("${build.name}: $case leaves the top bar's draw alone", before, draw.instructions().map(::operation))
+                assertEquals("${build.name}: $case leaves the banner fact false", 0, flag(context, "chatListBanner"))
+                assertEquals("${build.name}: $case keeps the look", 1, flag(context, "holidayLook"))
+                assertEquals("${build.name}: $case keeps the own title", 1, flag(context, "chatListTitle"))
+            }
         }
     }
 
@@ -420,6 +506,8 @@ class HolidayLookFixtureTest {
         val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "holidayLook" }.instructions()
         assertEquals("$build: $case leaves the build fact false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals("$build: $case leaves the title emoji fact false", 0, flag(context, "titleEmoji"))
+        assertEquals("$build: $case leaves the chat list title fact false", 0, flag(context, "chatListTitle"))
+        assertEquals("$build: $case leaves the chat list banner fact false", 0, flag(context, "chatListBanner"))
     }
 
     private fun flag(context: BytecodePatchContext, name: String) =
@@ -477,13 +565,19 @@ class HolidayLookFixtureTest {
             body.getOrNull(logo + 1)?.takeIf { logo >= 0 && it.opcode == Opcode.INVOKE_STATIC }
                 ?.let { ((it as ReferenceInstruction).reference as MethodReference).definingClass }
         }.toSet()
-        return (check + readers + FixtureDex.classes(build, loaders).values).distinctBy { it.type }
+        // The banner reads the top bar's title color, so the title's class comes too.
+        val titles = readers.flatMap { it.methods }.filter { it.name == "getTitleTextView" && it.parameterTypes.isEmpty() }
+            .map { it.returnType }.toSet()
+        return (check + readers + FixtureDex.classes(build, loaders + titles).values).distinctBy { it.type }
     }
 
-    private fun contextFor(build: java.io.File, runtime: Boolean = true): BytecodePatchContext {
-        val extension = ExtensionDex.classes().filter { runtime || it.origType != HOLIDAY_LOOK }
+    private fun contextFor(build: java.io.File, runtime: Boolean = true, banner: Boolean = true): BytecodePatchContext {
+        val extension = ExtensionDex.classes().filter { (runtime || it.origType != HOLIDAY_LOOK) && (banner || it.origType != CHAT_LIST_BANNER) }
         return PatchContexts.of(extension + owners(build))
     }
+
+    /** The top bar's draw, found the way the patch finds it, in [context]. */
+    private fun barDraw(context: BytecodePatchContext) = context.resolveChatListBanner(context.resolveHolidayLookSites())
 
     private companion object {
         val HAT_CENSUS = FixtureDex.ClassCensus()

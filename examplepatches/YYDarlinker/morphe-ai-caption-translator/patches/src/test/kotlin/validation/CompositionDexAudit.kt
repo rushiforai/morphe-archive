@@ -157,6 +157,24 @@ fun main(args:Array<String>){
         // The quick-toggle hook must pass the live panel register and the index the divider uses.
         // 1.48's VideoDelay row turns p0 into a Boolean scratch before this point, so p0 was wrong.
         val flyout=classes.getValue("Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;")
+        // Resolve the actual serialized target, including the one-argument 2.3 API and the
+        // older indexed API. A source-only signature check would miss an invalid DEX invoke.
+        val containerCode=classes.getValue("Lapp/yydarlinker/deepseekcaptions/CaptionQuickToggle;").methods
+            .single { it.name=="nativeContainer" }.implementation!!.instructions.toList()
+        val infoInvoke=containerCode.filterIsInstance<ReferenceInstruction>().single {
+            (it.reference as? MethodReference)?.let { ref -> ref.definingClass==flyout.type && ref.name=="getFlyoutMenuInfo" }==true
+        }
+        val infoRef=infoInvoke.reference as MethodReference
+        val info=flyout.methods.single { it.toString()==infoRef.toString() }
+        val infoParams=info.parameterTypes.map { it.toString() }
+        check(infoParams in listOf(listOf("Ljava/lang/Object;"),listOf("Ljava/lang/Object;","I")))
+        check(AccessFlags.PUBLIC.isSet(info.accessFlags) && AccessFlags.STATIC.isSet(info.accessFlags))
+        check((infoInvoke as Instruction).argumentRegisters().size==infoParams.size) { "Menu info invoke argument count mismatch" }
+        val containerRef=containerCode.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
+            .single { it.name=="menuContainer" }
+        check(containerRef.definingClass==info.returnType && containerRef.returnType=="Landroid/widget/LinearLayout;")
+        check(classes.getValue(info.returnType).methods.any { it.toString()==containerRef.toString() && AccessFlags.PUBLIC.isSet(it.accessFlags) })
+        println("QUICK_TOGGLE_CONTAINER_PASS parameters=$infoParams typed_container=true")
         val menuBody=flyout.methods.single { method -> method.implementation?.instructions?.filterIsInstance<ReferenceInstruction>()?.any {
             val call=it.reference as? MethodReference
             call?.name=="onMenu" && call.definingClass=="Lapp/yydarlinker/deepseekcaptions/CaptionQuickToggle;"

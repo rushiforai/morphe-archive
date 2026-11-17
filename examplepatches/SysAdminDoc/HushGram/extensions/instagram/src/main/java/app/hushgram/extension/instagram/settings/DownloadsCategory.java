@@ -50,6 +50,13 @@ final class DownloadsCategory {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_PHOTOS, L10n.t("Download feed photos"),
                         L10n.t("The same Download on a photo post, and on a carousel showing a photo. Saves the largest "
                                 + "size Instagram has.")));
+                // The photo's original is listed only for a larger reported screen, which Full resolution photos' patch writes (#500).
+                if (build.contains(PatchFamily.FULL_RESOLUTION)) {
+                    downloads.addPreference(toggle(context, Settings.SAVE_PHOTOS_AT_FULL_SIZE, L10n.t("Save photos at full size"),
+                            L10n.t("Download feed photos saves a photo at the size it was posted, not the 1080 pixel copy "
+                                    + "Instagram shows. Grid pictures load larger too, which uses more data. "
+                                    + "Restart Instagram to see the change.")));
+                }
                 downloads.addPreference(toggle(context, Settings.POST_DETAILS, L10n.t("Details in a post's menu"),
                         L10n.t("Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, "
                                 + "its media ID and the size Download saves, with buttons to copy the file link, "
@@ -62,7 +69,8 @@ final class DownloadsCategory {
                                 + "opening the menu. On a carousel it asks for this page or all of them. "
                                 + "Needs Download feed videos or photos.")));
                 downloads.addPreference(toggle(context, Settings.FEED_DOWNLOAD_ALL_PAGES, L10n.t("Save every page without asking"),
-                        L10n.t("On a carousel, the download icon saves all of its pages at once instead of asking.")));
+                        L10n.t("On a carousel, the download icon saves all of its pages at once instead of asking. "
+                                + "A photo with music saves as a photo.")));
                 if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
                     downloads.addPreference(reelDownloadButtonRow(context));
                     downloads.addPreference(reelDownloadAsksRow(context));
@@ -120,6 +128,11 @@ final class DownloadsCategory {
                     L10n.t("For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved "
                             + "as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size "
                             + "then converts only VP9.")));
+            if (build.contains(PatchFamily.VP9_VIDEO)) {
+                downloads.addPreference(toggle(context, Settings.ASK_FOR_VP9, L10n.t("Ask for VP9 instead of AV1"),
+                        L10n.t("Tells Instagram your phone has no AV1 decoder, so reels and stories come as VP9 or "
+                                + "H.264, both to watch and to save. Takes a restart.")));
+            }
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_NO_HDR, L10n.t("Never save HDR video"),
                     L10n.t("For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram "
                             + "has at full size only in HDR is saved at its largest standard size instead.")));
@@ -142,6 +155,11 @@ final class DownloadsCategory {
                     L10n.t("Writes the account that posted, the post date and a link to the post into a saved photo "
                             + "or video, in the EXIF or MP4 tags a gallery or exiftool reads. JPEG photos and MP4 "
                             + "videos only, and only what the save knows. The picture and the sound are unchanged.")));
+            downloads.addPreference(toggle(context, Settings.SAVE_PHOTO_SCRUB,
+                    L10n.t("Remove hidden data from saved photos"),
+                    L10n.t("Takes Meta's FBMD tracking tag out of each photo you save, along with any camera, place "
+                            + "and time details. The picture and its colors stay the same. With Add the source on, "
+                            + "the source still goes in afterward. JPEG photos only.")));
             // Only the saves of a post, a reel or a story know the media's id, which the list keeps.
             if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)
                     || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {

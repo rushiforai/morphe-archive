@@ -17,6 +17,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowBuild;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -75,6 +76,31 @@ public class ChatHeadVideoTest {
         boolean bubbles = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
         assertEquals(bubbles, ChatHeadVideo.textureView(bubble, false));
         assertEquals(bubbles, ChatHeadVideo.textureView(new ContextThemeWrapper(bubble, 0), false));
+    }
+
+    /** #104: on a Huawei the box stayed behind in the chat itself too, not only in a chat head. */
+    @Test public void everyVideoOnAPhoneThatLeavesABoxBehindDrawsIntoATextureView() {
+        for (String maker : new String[] {"HUAWEI", "Huawei", " honor "}) {
+            ShadowBuild.setManufacturer(maker);
+            assertTrue(maker, ChatHeadVideo.layerLeavesABox());
+            assertTrue(maker, ChatHeadVideo.textureView(activity, false));
+            assertTrue(maker, ChatHeadVideo.textureView(new ContextThemeWrapper(activity, 0), false));
+        }
+        for (String maker : new String[] {"samsung", "Google", "Xiaomi", ""}) {
+            ShadowBuild.setManufacturer(maker);
+            assertFalse(maker, ChatHeadVideo.layerLeavesABox());
+            assertFalse(maker, ChatHeadVideo.textureView(activity, false));
+        }
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** A phone that leaves a box behind still leaves Messenger's videos alone while Hush is paused. */
+    @Test public void aPausedHushLeavesEveryVideoAsMessengerDrewIt() {
+        ShadowBuild.setManufacturer("Huawei");
+        Settings.initialize(app);
+        Settings.preferences.edit().clear().putBoolean("paused", true).commit();
+        CrashGuard.resetForTests();
+        assertFalse(ChatHeadVideo.textureView(activity, false));
     }
 
     @Test public void pauseSafeModeAndNoContextLeaveMessengersChoice() {

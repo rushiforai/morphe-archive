@@ -15,7 +15,7 @@ dependencies {
 val compileBoostObserverApi by tasks.registering(JavaCompile::class) {
     source(rootProject.file("extensions/native-api"))
     include("**/*.java")
-    classpath = files()
+    classpath = files(androidComponents.sdkComponents.bootClasspath)
     destinationDirectory.set(layout.buildDirectory.dir("boost-native-api"))
     options.release.set(17)
 }

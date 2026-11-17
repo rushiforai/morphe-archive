@@ -23,8 +23,8 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 
 /**
- * "Hide Wi-Fi networks", "Block Bluetooth scanning" and "Hide cell tower info"
- * (all opt-in, every app).
+ * Runtime for the Nearby Wi-Fi networks, Bluetooth scanning, and Cell tower info options of
+ * "Hide device identifiers".
  *
  * Each patch rewrites the app's calls to its framework methods into the static
  * methods below, with the receiver as the first parameter. Retail apps use
@@ -98,9 +98,9 @@ public final class NearbyHider {
     }
 
     /**
-     * NetworkInfo.getExtraInfo() carries the Wi-Fi network name. "Report Wi-Fi connection" also
+     * NetworkInfo.getExtraInfo() carries the Wi-Fi network name. The Report Wi-Fi connection option also
      * rewrites this call, so both the original call and NetworkStateSpoofer's land here, and
-     * anything that is not Wi-Fi goes on to NetworkStateSpoofer. Either patch order works.
+     * anything that is not Wi-Fi goes on to NetworkStateSpoofer. Either rewrite order works.
      */
     public static String getExtraInfo(NetworkInfo info) {
         if (info.getType() == ConnectivityManager.TYPE_WIFI) {

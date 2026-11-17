@@ -3,60 +3,26 @@ package semicoloncolonel.mobilestream.patches.shared.privacy
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
-import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
-import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
-import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
-import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
-import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
-import semicoloncolonel.mobilestream.patches.pbs.shared.Constants as Pbs
-import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
-import semicoloncolonel.mobilestream.patches.cnn.shared.Constants as Cnn
-import semicoloncolonel.mobilestream.patches.espn.shared.Constants as Espn
-import semicoloncolonel.mobilestream.patches.nfl.shared.Constants as Nfl
-import semicoloncolonel.mobilestream.patches.nba.shared.Constants as Nba
-import semicoloncolonel.mobilestream.patches.disney.shared.Constants as Disney
-import semicoloncolonel.mobilestream.patches.hulu.shared.Constants as Hulu
-import semicoloncolonel.mobilestream.patches.foxnews.shared.Constants as FoxNews
-import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
-import semicoloncolonel.mobilestream.patches.hbomax.shared.Constants as HboMax
-import semicoloncolonel.mobilestream.patches.mgm.shared.Constants as Mgm
-import semicoloncolonel.mobilestream.patches.msnow.shared.Constants as MsNow
-import semicoloncolonel.mobilestream.patches.nytimes.shared.Constants as NyTimes
-import semicoloncolonel.mobilestream.patches.paramount.shared.Constants as Paramount
-import semicoloncolonel.mobilestream.patches.peacock.shared.Constants as Peacock
-import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
-import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
-import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
-import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
-import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
-import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
-import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
-import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
-import semicoloncolonel.mobilestream.patches.shudder.shared.Constants as Shudder
-import semicoloncolonel.mobilestream.patches.retailmenot.shared.Constants as RetailMeNot
-import semicoloncolonel.mobilestream.patches.sundancenow.shared.Constants as SundanceNow
-import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
-import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Report Wi-Fi connection / Hide VPN connection (both OPT-IN, default OFF).
+// Report Wi-Fi connection / VPN connection (options of Hide device
+// identifiers, both off by default).
 //
 // Every app call to the Android network-state APIs in REWRITES (including the
 // copies inside bundled libraries such as ExoPlayer, WorkManager and the ad
 // and analytics SDKs) is pointed at NetworkStateSpoofer, which answers from
-// the real API and adjusts the answer for whichever patch is on. All of these
+// the real API and adjusts the answer for whichever option is on. All of these
 // are framework classes, so the names are the same in every app.
 //
-// The two named patches share the rewrite (networkStateRewritePatch) and only
-// flip their own switch in the extension, so either can be used alone.
+// The two options share the rewrite (rewriteNetworkState) and only flip their
+// own switch in the extension, so either can be used alone.
 //
 // Not covered: native-code checks and server-side checks of the public IP.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -113,45 +79,41 @@ private fun Rewrite.replacement(): String {
     return "$SPOOFER->$name($parameters)$returnType"
 }
 
-internal val networkStateRewritePatch = bytecodePatch {
-    extendWith("extensions/extension.mpe")
-
-    execute {
-        // Collect first, mutate after: mutableClassDefBy swaps the class map
-        // entry, which must not happen mid-iteration.
-        val targets = mutableListOf<String>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
-            if (classDef.methods.any { method ->
-                    method.implementation?.instructions?.any { it.rewriteFor() != null } == true
-                }
-            ) {
-                targets += classDef.type
+internal fun BytecodePatchContext.rewriteNetworkState() {
+    // Collect first, mutate after: mutableClassDefBy swaps the class map
+    // entry, which must not happen mid-iteration.
+    val targets = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+        if (classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.rewriteFor() != null } == true
             }
+        ) {
+            targets += classDef.type
         }
+    }
 
-        targets.forEach { type ->
-            mutableClassDefBy(type).methods.forEach { method ->
-                // Snapshot: replaceInstruction mutates the live list.
-                val instructions = method.implementation?.instructions?.toList() ?: return@forEach
-                instructions.forEachIndexed { index, instruction ->
-                    val rewrite = instruction.rewriteFor() ?: return@forEachIndexed
-                    val smali = when (instruction) {
-                        is FiveRegisterInstruction -> {
-                            val registers = listOf(
-                                instruction.registerC, instruction.registerD, instruction.registerE,
-                                instruction.registerF, instruction.registerG,
-                            ).take(instruction.registerCount)
-                            "invoke-static {${registers.joinToString { "v$it" }}}, ${rewrite.replacement()}"
-                        }
-                        is RegisterRangeInstruction -> {
-                            val last = instruction.startRegister + instruction.registerCount - 1
-                            "invoke-static/range { v${instruction.startRegister} .. v$last }, ${rewrite.replacement()}"
-                        }
-                        else -> return@forEachIndexed
+    targets.forEach { type ->
+        mutableClassDefBy(type).methods.forEach { method ->
+            // Snapshot: replaceInstruction mutates the live list.
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            instructions.forEachIndexed { index, instruction ->
+                val rewrite = instruction.rewriteFor() ?: return@forEachIndexed
+                val smali = when (instruction) {
+                    is FiveRegisterInstruction -> {
+                        val registers = listOf(
+                            instruction.registerC, instruction.registerD, instruction.registerE,
+                            instruction.registerF, instruction.registerG,
+                        ).take(instruction.registerCount)
+                        "invoke-static {${registers.joinToString { "v$it" }}}, ${rewrite.replacement()}"
                     }
-                    method.replaceInstruction(index, smali)
+                    is RegisterRangeInstruction -> {
+                        val last = instruction.startRegister + instruction.registerCount - 1
+                        "invoke-static/range { v${instruction.startRegister} .. v$last }, ${rewrite.replacement()}"
+                    }
+                    else -> return@forEachIndexed
                 }
+                method.replaceInstruction(index, smali)
             }
         }
     }
@@ -171,36 +133,8 @@ internal object HideVpnSwitchFingerprint : Fingerprint(
     returnType = "Z",
 )
 
-@Suppress("unused")
-val reportWifiConnectionPatch = bytecodePatch(
-    name = "Report Wi-Fi connection",
-    description = "Makes the app see a Wi-Fi connection when the phone is on mobile data.",
-    default = false,
-) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, HboMax.STREAM_COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY)
+internal fun BytecodePatchContext.reportWifi() =
+    ReportWifiSwitchFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
-    dependsOn(networkStateRewritePatch)
-
-    extendWith("extensions/extension.mpe")
-
-    execute {
-        ReportWifiSwitchFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-    }
-}
-
-@Suppress("unused")
-val hideVpnConnectionPatch = bytecodePatch(
-    name = "Hide VPN connection",
-    description = "Hides an active VPN from the app's checks on the phone.",
-    default = false,
-) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, HboMax.STREAM_COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, RetailMeNot.COMPATIBILITY)
-
-    dependsOn(networkStateRewritePatch)
-
-    extendWith("extensions/extension.mpe")
-
-    execute {
-        HideVpnSwitchFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-    }
-}
+internal fun BytecodePatchContext.hideVpn() =
+    HideVpnSwitchFingerprint.method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")

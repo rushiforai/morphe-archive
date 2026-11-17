@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /** Fixed public messages, never URLs, credentials, local paths or raw server error bodies. */
 final class VideoThumbnailFailure extends IOException {
-    static final int NETWORK=1,DNS=2,TIMEOUT=3,LIMIT=4,HTTP=5,RANGE=6,DECODE=7,STOPPED=8,MEMORY=9,STORAGE=10;
+    static final int NETWORK=1,DNS=2,TIMEOUT=3,LIMIT=4,HTTP=5,RANGE=6,DECODE=7,STOPPED=8,MEMORY=9,STORAGE=10,ACCESS_CHECK=11;
     final int kind, value;
     VideoThumbnailFailure(int kind){this(kind,0);}
     VideoThumbnailFailure(int kind,int value){super("Video thumbnail failure: "+kind+"/"+value);this.kind=kind;this.value=value;}
@@ -29,6 +29,7 @@ final class VideoThumbnailFailure extends IOException {
         case STOPPED:return "動画の解析を一時停止しています";
         case MEMORY:return "メモリが不足しています";
         case STORAGE:return "画像を保存できません";
+        case ACCESS_CHECK:return "接続先の確認ページが表示されています";
         default:return "映像を解析できません";
     }}
     String hint(){switch(kind){
@@ -40,6 +41,7 @@ final class VideoThumbnailFailure extends IOException {
         case STOPPED:return "再取得で解析をやり直せます";
         case MEMORY:return "他のアプリを閉じて再試行";
         case STORAGE:return "端末の空き容量を確認してください";
+        case ACCESS_CHECK:return "ブラウザで動画の公開状態・確認画面を確認";
         default:return "動画形式・破損・端末側の制限を確認";
     }}
 }

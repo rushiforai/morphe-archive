@@ -24,6 +24,7 @@ import app.rex.patches.instagram.misc.notification.fixDirectNotificationActionCr
 import app.rex.patches.instagram.misc.notification.fixNotificationRegistrationCrashPatch
 import app.rex.patches.instagram.misc.userProfile.preserveUnknownFriendshipStatusPatch
 import app.rex.patches.instagram.misc.userProfile.userProfileButtonPatch
+import app.rex.patches.instagram.utils.Constants.ACTIONBAR_DESCRIPTOR
 import app.rex.patches.instagram.utils.Constants.ACTIVITY_SETTINGS_CLASS
 import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.rex.patches.instagram.utils.Constants.CONSTANTS_DESCRIPTOR
@@ -137,10 +138,11 @@ val settingsPatch =
 
             for (fingerprint in listOf(IgFragmentActivityOnCreate, IgFragmentActivityOnResume)) {
                 runCatching {
-                    fingerprint.method.addInstruction(
+                    fingerprint.method.addInstructions(
                         fingerprint.instructionMatches.first().index,
                         """
                         invoke-static {p0}, Lapp/morphe/extension/shared/Utils;->setActivity(Landroid/app/Activity;)V
+                        invoke-static {p0}, $ACTIONBAR_DESCRIPTOR->attachHomeTabLongPress(Landroid/app/Activity;)V
                         """.trimIndent(),
                     )
                 }

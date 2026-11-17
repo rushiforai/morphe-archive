@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
@@ -23,7 +24,9 @@ private const val PATCH = "Filter feed"
  * list has an entry, or an idea pin whose `story_pin_data` runs for more than zero seconds. Muted
  * words are a list of words and phrases matched whole against a pin's title, grid title and
  * description. The fields are read by JSON name at run time; a GIF is an image to Pinterest and stays.
- * Saved pins go from Home alone, on two hooks of their own ([installHomeFields], [installHomePage]).
+ * Saved pins go from Home on two hooks of their own ([installHomeFields], [installHomePage]), and from
+ * search and More to explore on a switch and hooks of their own ([installSavedElsewhere]), never on the
+ * list hook, which boards go through too.
  * Home suggestions are rows of Pinterest's own on the same list hook, plus the pin's "See more like
  * this?" bubble on a hook of its own ([installFeedbackFlyout]).
  */
@@ -31,8 +34,9 @@ private const val PATCH = "Filter feed"
 val filterFeedPatch = bytecodePatch(
     name = PATCH,
     description = "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your " +
-        "home feed, search, related pins and boards, and pins you've already saved and Pinterest's suggestion rows " +
-        "out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
+        "home feed, search, related pins and boards, pins you've already saved out of your home feed, search and More " +
+        "to explore, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest " +
+        "settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch, feedListHookPatch)
@@ -43,6 +47,8 @@ val filterFeedPatch = bytecodePatch(
         requireStatusMethod("feedVideoPins")
         requireStatusMethod("feedMutedWords")
         requireStatusMethod("feedSavedPins")
+        requireStatusMethod("feedSavedSearch")
+        requireStatusMethod("feedSavedRelated")
         requireStatusMethod("feedHomeSuggestions")
         requireStatusMethod("feedbackFlyout")
         if (feedListHoldersHooked == 0) throw PatchException("$PATCH: no list holder was hooked")
@@ -53,6 +59,12 @@ val filterFeedPatch = bytecodePatch(
             installHomePage(homePage)
             enableCapability("feedSavedPins")
         }
+        val elsewhere = savedElsewhere()
+        installSavedElsewhere(elsewhere, PATCH)
+        if (elsewhere.search) enableCapability("feedSavedSearch")
+        else patchLog.warning("$PATCH: search results weren't found, so saved pins stay in search")
+        if (elsewhere.related) enableCapability("feedSavedRelated")
+        else patchLog.warning("$PATCH: More to explore's list wasn't found, so saved pins stay there")
         feedbackFlyoutOrNull()?.let { flyout ->
             installFeedbackFlyout(flyout)
             enableCapability("feedbackFlyout")

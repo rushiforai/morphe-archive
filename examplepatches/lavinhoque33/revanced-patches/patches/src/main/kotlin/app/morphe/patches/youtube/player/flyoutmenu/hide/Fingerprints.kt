@@ -1,7 +1,7 @@
 /*
  * Portions of this file are ported from Morphe:
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-16.
  * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
@@ -130,5 +130,19 @@ internal fun getCurrentVideoFormatConstructorFingerprint(
 internal object PipModeConfigFingerprint : Fingerprint(
     filters = listOf(
         literal(45427407L),
+    ),
+)
+
+internal object PremiumControlsMenuItemFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = emptyList(),
+    strings = listOf("listen-first"),
+    filters = listOf(
+        resourceLiteral(ResourceType.STRING, "listening_controls_overflow_menu_item"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf("Z"),
+            returnType = "V",
+        ),
     ),
 )

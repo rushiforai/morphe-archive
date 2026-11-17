@@ -10,6 +10,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-16.
  */
 
 package app.morphe.extension.youtube.shared;
@@ -456,6 +458,13 @@ public final class NavigationBar {
         }
     }
 
+    private static volatile List<NavigationButton> serverNavigationButtonOrder = Collections.emptyList();
+
+    /** Records the native order before the user's override, including the app's active layout. */
+    public static void setServerNavigationButtonOrder(List<NavigationButton> buttons) {
+        serverNavigationButtonOrder = List.copyOf(buttons);
+    }
+
     /**
      * Returns the navigation items shown by the order editor.
      *
@@ -464,7 +473,7 @@ public final class NavigationBar {
      * Items that are not present in a particular guide response are ignored by the patch.</p>
      */
     public static List<NavigationButton> getDefaultNavigationButtonOrder() {
-        return Arrays.asList(
+        List<NavigationButton> knownButtons = Arrays.asList(
                 NavigationButton.HOME,
                 NavigationButton.SHORTS,
                 NavigationButton.CREATE,
@@ -476,5 +485,13 @@ public final class NavigationBar {
                 NavigationButton.SETTINGS,
                 NavigationButton.WATCH_LATER
         );
+        List<NavigationButton> serverOrder = serverNavigationButtonOrder;
+        if (serverOrder.isEmpty()) return knownButtons;
+
+        List<NavigationButton> editorOrder = new ArrayList<>(serverOrder);
+        for (NavigationButton button : knownButtons) {
+            if (!editorOrder.contains(button)) editorOrder.add(button);
+        }
+        return editorOrder;
     }
 }

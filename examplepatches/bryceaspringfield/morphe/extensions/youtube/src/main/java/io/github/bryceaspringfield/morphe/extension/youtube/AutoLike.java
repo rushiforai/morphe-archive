@@ -44,6 +44,7 @@ public final class AutoLike {
             CommentTitle.onVideo(videoId);
             if (XSettings.AUDIO_ONLY.get()) AudioOnly.set(true, "video " + videoId);
             AccountHistory.soon();
+            if (!XSettings.DISLIKE_CHANNELS.get().trim().isEmpty()) dislikeSoon(videoId, 0);
             if (!XSettings.AUTO_LIKE.get() && !XSettings.DEBUG.get()) return;
             // After 3 s, and only for the watch player: an inline preview in a feed or search loads videos too.
             Utils.runOnMainThreadDelayed(() -> {
@@ -54,6 +55,68 @@ public final class AutoLike {
         } catch (Exception e) {
             Logger.printException(() -> "YouTube Extras: auto like failed", e);
         }
+    }
+
+    /** Videos already disliked or skipped this session, so each is sent once. */
+    private static final java.util.Set<String> DISLIKE_DONE = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /**
+     * A video of a channel in the dislike list gets a dislike once its channel is known: the player states the channel
+     * a moment after the video's ID, so the match is tried every 500 ms for 10 s, and only while the watch player
+     * shows the video. A video already disliked keeps its dislike.
+     */
+    private static void dislikeSoon(String videoId, int tries) {
+        Utils.runOnMainThreadDelayed(() -> {
+            try {
+                if (!videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getVideoId())) return;
+                if (!app.morphe.extension.youtube.shared.PlayerType.getCurrent().isMaximizedOrFullscreen()) {
+                    if (tries < 20) dislikeSoon(videoId, tries + 1);
+                    return;
+                }
+                String id = app.morphe.extension.youtube.patches.VideoInformation.getChannelId();
+                String name = app.morphe.extension.youtube.patches.VideoInformation.getChannelName();
+                if ((id == null || id.isEmpty()) && (name == null || name.isEmpty())) {
+                    if (tries < 20) dislikeSoon(videoId, tries + 1);
+                    return;
+                }
+                // A list naming handles needs the watch page's data to match; one of names and IDs matches now or never.
+                String list = XSettings.DISLIKE_CHANNELS.get();
+                if (!list.contains("@") && !ChannelRules.listed(list, id, name, Channels.handleOf(id))) return;
+                if (!DISLIKE_DONE.add(videoId)) return;
+                Utils.runOnBackgroundThread(() -> sendDislike(videoId, id, name));
+            } catch (Throwable t) {
+                Logger.printException(() -> "YouTube Extras: dislike channels failed", t);
+            }
+        }, tries == 0 ? 2000 : 500);
+    }
+
+    private static final Pattern OWNER_HANDLE = Pattern.compile("\"canonicalBaseUrl\"\\s*:\\s*\"/@([^\"]+)\"");
+
+    /** The watch page's data names the channel's @handle, which the player does not state; a list may name a channel by it. */
+    private static void sendDislike(String videoId, String channelId, String channel) {
+        try {
+            if (!Account.signedIn()) return;
+            JSONObject next = Account.post("next", new JSONObject().put("videoId", videoId));
+            String text = next == null ? "" : next.toString();
+            Matcher h = OWNER_HANDLE.matcher(text);
+            String handle = h.find() ? h.group(1) : null;
+            if (!ChannelRules.listed(XSettings.DISLIKE_CHANNELS.get(), channelId, channel, handle)) return;
+            Matcher m = LIKE_STATUS.matcher(text);
+            String status = m.find() ? m.group(1) : "UNKNOWN";
+            if ("DISLIKE".equals(status)) {
+                Logger.printDebug(() -> "YouTube Extras: " + videoId + " of " + channel + " is already disliked");
+                return;
+            }
+            JSONObject r = Account.post("like/dislike", new JSONObject().put("target", new JSONObject().put("videoId", videoId)));
+            Logger.printDebug(() -> "YouTube Extras: disliked " + videoId + " of " + channel + " (was " + status + "): " + (r != null));
+        } catch (Exception e) {
+            Logger.printException(() -> "YouTube Extras: dislike request failed", e);
+        }
+    }
+
+    private static String ownerHandle(String text) {
+        Matcher h = OWNER_HANDLE.matcher(text);
+        return h.find() ? h.group(1) : null;
     }
 
     private static void likeIfIndifferent(String videoId) {
@@ -67,6 +130,10 @@ public final class AutoLike {
             String status = m.find() ? m.group(1) : "UNKNOWN";
             Logger.printDebug(() -> "YouTube Extras: " + videoId + " like status " + status);
             if (!XSettings.AUTO_LIKE.get() || !"INDIFFERENT".equals(status)) return;
+            // A channel in the dislike list is never liked.
+            if (ChannelRules.listed(XSettings.DISLIKE_CHANNELS.get(),
+                    app.morphe.extension.youtube.patches.VideoInformation.getChannelId(),
+                    app.morphe.extension.youtube.patches.VideoInformation.getChannelName(), ownerHandle(text))) return;
             // The button's description states the count with the like (Big Buck Bunny's, unliked, "along with
             // 110,399 other people"; another's 959 where likeCountIfIndifferentNumber was 958), so both counts match.
             java.util.Set<String> counts = new java.util.HashSet<>();

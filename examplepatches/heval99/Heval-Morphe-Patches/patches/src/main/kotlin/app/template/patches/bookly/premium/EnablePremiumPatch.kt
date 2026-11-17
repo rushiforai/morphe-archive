@@ -3,7 +3,7 @@ package app.template.patches.bookly.premium
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BOOKLY
 import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.Opcode

@@ -72,6 +72,8 @@ final class Controls {
         found.get("facebook_badge").addAll(facebookBadgeChecks(classes));
         found.get("facebook_profile_header").addAll(profileHeaders(classes));
         found.get("tab_config").addAll(tabConfigurations(classes));
+        found.get("tab_labels").addAll(tabDescriptions(classes));
+        found.get("tab_icons").addAll(tabIconBuilders(classes));
         found.get("ai_mentions").addAll(aiMentionDispatchers(classes));
         found.get("ai_commands").addAll(aiCommandLists(classes));
         var searchBars = searchBarBuilders(classes);
@@ -89,12 +91,14 @@ final class Controls {
         found.get("message_actions_more").addAll(messageActionsMore(classes));
         found.get("hide_read_receipts").addAll(chatSeenBroadcasts(classes));
         found.get("reply_read").addAll(replyReadDispatches(classes));
+        found.get("delivery_receipt").addAll(deliveryReceiptSends(classes));
         found.get("analytics_uploads").addAll(analyticsUploads(classes));
         found.get("analytics_uploads").addAll(boundUploadTasks(classes));
         found.get("analytics_uploads").addAll(xanalyticsUploadTimers(classes));
         found.get("analytics_uploads").addAll(inProcessUploadStarts(classes, stringTables));
         found.get("attribution_uploads").addAll(attributionUploads(classes));
         found.get("ad_events").addAll(adEvents(classes));
+        found.get("dwell_tracking").addAll(dwellTracking(classes));
         found.get("mqtt_telemetry").addAll(mqttTelemetry(classes));
         pinnedChats(classes).forEach((hook, methods) -> found.get(hook).addAll(methods));
         hiddenChats(classes, inboxTypes).forEach((hook, methods) -> found.get(hook).addAll(methods));
@@ -117,9 +121,11 @@ final class Controls {
         found.get("story_ring").addAll(storyRing(classes));
         found.get("quiet_call_ring").addAll(quietCallRing(classes));
         found.get("quiet_call_notification").addAll(quietCallNotification(classes));
+        found.get("quiet_mode").addAll(quietModeNotify(classes));
         found.get("car_messages").addAll(carMessages(classes));
         found.get("car_extension_gate").addAll(carExtensionGate(classes));
         found.get("local_chat_search").addAll(localChatSearch(classes));
+        found.get("local_read").addAll(localRead(classes));
         found.get("call_recording").addAll(callRecording(classes));
         found.get("home_header").addAll(homeHeader(classes));
         var markRead = markReadButton(classes);
@@ -149,6 +155,7 @@ final class Controls {
         found.get("external_gallery").addAll(externalGalleryHooks(classes, stringTables));
         found.get("gallery_temp_file").addAll(galleryTempFileHooks(classes));
         found.get("gallery_to_chat").addAll(galleryToChatHooks(classes));
+        found.get("paste_photo").addAll(pastePhotoHooks(classes));
         found.get("instant_gallery").addAll(instantGallery(classes));
         found.get("special_contacts").addAll(specialContacts(classes));
         found.get("menu_blur").addAll(menuBlur(classes));
@@ -420,6 +427,18 @@ final class Controls {
                     found.get("browser").add(method);
                 }
 
+                // link_player: the message handler's opener, then the launcher's two own void entries, one of them
+                // static on every tested build. Mirrors LinkPlayer.kt.
+                if ("V".equals(method.getReturnType())) {
+                    boolean chatOpen = paramTypes.size() == 7 && paramTypes.get(6).startsWith("L") &&
+                        paramTypes.subList(0, 6).equals(List.of("Landroid/content/Context;", "Landroid/net/Uri;",
+                            "Landroid/net/Uri;", BUBBLE_SESSION, MENU_MESSAGE, THREAD_KEY));
+                    boolean launch = MESSENGER_BROWSER_LAUNCHER.equals(cls.getType()) && paramTypes.size() == 5 &&
+                        paramTypes.subList(0, 3).equals(List.of("Landroid/content/Context;", "Landroid/net/Uri;", BUBBLE_SESSION)) &&
+                        paramTypes.get(3).startsWith("L") && paramTypes.get(4).startsWith("L");
+                    if (chatOpen || launch) found.get("link_player").add(method);
+                }
+
                 // people_jewel, kept once discovery knows the preference getter. It takes the suggestions logger, then its owner.
                 if ("Z".equals(method.getReturnType()) && isStatic && paramTypes.size() == 2 && paramTypes.get(1).equals(cls.getType())) {
                     var refIds = refs.stream().map(Object::toString).collect(Collectors.toSet());
@@ -576,11 +595,14 @@ final class Controls {
                     if ("M4TabNavigationFragment".equals(original)) found.get("chat_inbox").add(method);
                 }
 
-                // chat_jump: the chat fragment's own onViewCreated, where the chat first has a view. Mirrors ChatJump.kt.
+                // chat_jump, secure_chat and invisible_buttons: the chat fragment's own onViewCreated, where the chat
+                // first has a view. Mirrors ChatJump.kt, SecureChat.kt and InvisibleButtons.kt, which all inject there.
                 if ("MsysThreadViewFragment".equals(original) && !isStatic && "onViewCreated".equals(method.getName()) &&
                     "V".equals(method.getReturnType()) && paramTypes.equals(List.of("Landroid/view/View;", "Landroid/os/Bundle;")) &&
                     method.getImplementation() != null) {
                     found.get("chat_jump").add(method);
+                    found.get("secure_chat").add(method);
+                    found.get("invisible_buttons").add(method);
                 }
 
                 // chat_legacy: the chat fragment on Messenger's older route, which loads its own animation

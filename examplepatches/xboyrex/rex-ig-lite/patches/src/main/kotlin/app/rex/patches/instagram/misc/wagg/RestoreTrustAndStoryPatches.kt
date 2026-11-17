@@ -71,10 +71,10 @@ val restoreTrustPatch = patch(
         runCatching {
             val method = PackageSignersFingerprint.method
             val owner = mutableClassDefBy(method.definingClass)
-            val packageInfoFields = owner.fields.filter { it.type.toString() == PACKAGE_INFO }
+            val packageInfoFields = owner.fields.filter { it.type == PACKAGE_INFO }
             if (packageInfoFields.size != 1) return@runCatching
             val packageInfo = packageInfoFields.single().name
-            val signers = method.returnType.toString()
+            val signers = method.returnType
             val constructor = mutableClassDefBy(signers).methods.singleOrNull {
                 it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/List;", "Z", "Z")
             } ?: return@runCatching

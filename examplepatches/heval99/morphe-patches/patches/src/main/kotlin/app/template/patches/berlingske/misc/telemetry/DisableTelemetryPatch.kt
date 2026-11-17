@@ -3,7 +3,7 @@ package app.template.patches.berlingske.misc.telemetry
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BERLINGSKE
 import app.template.patches.shared.Constants.COMPATIBILITY_BT
 import org.w3c.dom.Element

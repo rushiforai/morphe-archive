@@ -375,6 +375,7 @@ public final class SelectionCheck {
         hook(calls, flags, "botSharePreviews", "misc/DraftPreviews", "skipBotSharePreview");
         hook(calls, flags, "localDrafts", "misc/LocalDrafts", "keepOnPhone");
         hook(calls, flags, "localSearch", "misc/LocalSearch", "keep", "sent", "emptyText", "phones");
+        hook(calls, flags, "linkPreviewRules", "misc/LinkPreviewRules", "send");
         hook(calls, flags, "skipAutologin", "misc/LinkRouting", "addAutologinToken");
         hook(calls, flags, "commerceSettingsRows", "misc/Commerce", "addSettingsRow", "showWalletRow");
         hook(calls, flags, "commerceProfileGifts", "misc/Commerce", "addProfileTab", "showGiftsTab");
@@ -430,8 +431,11 @@ public final class SelectionCheck {
         hook(calls, flags, "quietContactsNag", "misc/ContactsNag", "skipAsk", "hideBadge");
         hook(calls, flags, "holidayLook", "misc/HolidayLook", "mode");
         hook(calls, flags, "titleEmoji", "misc/TitleEmoji", "decorate");
+        hook(calls, flags, "chatListBanner", "misc/ChatListBanner", "draw", "blur");
         hook(calls, flags, "useSystemFont", "misc/SystemFont", "typeface", "built");
+        hook(calls, flags, "customFont", "misc/CustomFont", "paint", "view", "regular", "bold");
         hook(calls, flags, "amoledBlack", "misc/BlackTheme", "loaded");
+        hook(calls, flags, "listBackground", "misc/ListBackground", "refreshing", "mark", "laidOut");
         hook(calls, flags, "hideTranslateBar", "misc/TranslateBar", "hidden");
         hook(calls, flags, "exactNumbers", "misc/ExactNumbers", "format");
         hook(calls, flags, "revealSpoilers", "misc/Spoilers", "mediaCovered");
@@ -440,6 +444,7 @@ public final class SelectionCheck {
         hook(calls, flags, "videoEitherLandscape", "misc/VideoTurn", "fullScreen");
         hook(calls, flags, "videoOnlyFromButton", "misc/VideoUpright", "listenerOn", "listenerOff", "requested", "restore");
         hook(calls, flags, "videoStartsSilent", "misc/VideoSound", "setMute", "setVolume");
+        hook(calls, flags, "videoTracks", "misc/VideoTracks", "menu", "menuChoice", "cues");
         hook(calls, flags, "swipeBackOnProfiles", "misc/SwipeBack", "touchBlocks");
         hook(calls, flags, "hidePhoneNumber", "misc/HidePhone", "shown");
         hook(calls, flags, "shareNumberUnticked", "misc/ContactShare", "startsTicked");
@@ -454,7 +459,7 @@ public final class SelectionCheck {
         hook(calls, flags, "reactionSelection", "misc/DoubleTapReactions", "selection");
         hook(calls, flags, "emojiPackNote", "misc/DoubleTapReactions", "packNote");
         hook(calls, flags, "storySave", "misc/StorySave", "shareable", "premium");
-        hook(calls, flags, "allowScreenshots", "misc/Screenshots", "protectedContent", "storyAllowed");
+        hook(calls, flags, "allowScreenshots", "misc/Screenshots", "protectedContent", "storyAllowed", "secretChat");
         hook(calls, flags, "hideFolderCounters", "misc/FolderTabs", "countersHidden");
         hook(calls, flags, "launchFolder", "misc/LaunchFolder", "firstTabs");
         hook(calls, flags, "hideAllChats", "misc/LaunchFolder", "allChatsTab", "tabsAdded", "editing", "skipsDone");
@@ -476,6 +481,8 @@ public final class SelectionCheck {
         hook(calls, flags, "keepDeleted", "misc/KeepDeleted", "userUpdate", "channelUpdate", "push|pushIdsLast", "measuring");
         hook(calls, flags, "redDeletedLabel", "misc/KeepDeleted", "painted");
         hook(calls, flags, "askBeforeSending", "misc/SendConfirm", "sticker", "gif", "voice", "call");
+        hook(calls, flags, "askBeforeText", "misc/SendConfirm", "text|textReordered");
+        hook(calls, flags, "askBeforeJoin", "misc/SendConfirm", "join");
         hook(calls, flags, "outsideTranslate", "misc/OutsideTranslate", "show", "fill", "chosen", "headerMenu", "headerClick");
         hook(calls, flags, "hideChannelButtons", "misc/ChannelButtons", "set");
         hook(calls, flags, "hideChannelMute", "misc/ChannelMute", "begin", "muteLabelled", "finish", "visibility");
@@ -485,11 +492,16 @@ public final class SelectionCheck {
         hook(calls, flags, "compactTabBar", "misc/MainTabs", "barPadding", "barCorner", "barHeight", "barMinWidth");
         hook(calls, flags, "sideMenu", "misc/SideMenu", "swipeStarts", "back");
         hook(calls, flags, "hideNewMessage", "misc/MainTabs", "newMessageButton");
+        hook(calls, flags, "barOutline", "misc/MainTabs", "barGlass", "barOutlineColor", "barOutlineWidth");
+        hook(calls, flags, "forwardDates", "misc/ForwardDates", "header", "compact");
         hook(calls, flags, "fasterDownloads", "misc/DownloadSpeed", "fast");
         hook(calls, flags, "dataSaverDownloads", "misc/DataSaverDownloads", "hold", "holdMask");
         hook(calls, flags, "fasterUploads", "misc/UploadSpeed", "requests");
         hook(calls, flags, "saveDownloads", "misc/SaveDownloads", "fileLoaded");
         hook(calls, flags, "storageFolder", "misc/StorageFolder", "telegramFolder", "olderFile");
+        hook(calls, flags, "knownFiles", "misc/KnownFiles", "knownFile");
+        hook(calls, flags, "fileIconsChat", "misc/FileIcons", "bubble");
+        hook(calls, flags, "fileIconsShared", "misc/FileIcons", "sharedIcon");
         hook(calls, flags, "unifiedPush", "misc/UnifiedPush", "token", "type");
         hook(calls, flags, "reactionAlerts", "misc/ReactionAlerts", "changed");
         hook(calls, flags, "reactionSound", "misc/ReactionAlerts", "quiet");

@@ -36,7 +36,8 @@
       "DOWNLOAD_VIDEO_PATH",
       "DOWNLOAD_PHOTO_PATH",
       "DOWNLOAD_VIDEO_FILENAME_TEMPLATE",
-      "DOWNLOAD_PHOTO_FILENAME_TEMPLATE"
+      "DOWNLOAD_PHOTO_FILENAME_TEMPLATE",
+      "SHARE_AFTER_SAVE"
     ],
     "Allow Duet and Stitch": [
       "ALLOW_DUET_AND_STITCH",
@@ -318,6 +319,7 @@
       "KEEP_FOR_YOU_ON_PULL_DOWN",
       "HOME_TAB_OPENS_SETTINGS",
       "PROFILE_TAB_OPENS_WATCH_HISTORY",
+      "PROFILE_TAB_OPENS_ACTIVITY_CENTER",
       "PROFILE_TAB_SWITCHES_ACCOUNTS",
       "INBOX_TAB_FLIPS_READ_RECEIPTS",
       "SEARCH_INSTEAD_OF_HOME",
@@ -336,7 +338,9 @@
     "Fit the video to the screen": [
       "FIT_VIDEO_TO_SCREEN",
       "FILL_VIDEO_TO_SCREEN",
-      "STRETCH_VIDEO_TO_SCREEN"
+      "STRETCH_VIDEO_TO_SCREEN",
+      "BLEND_VIDEO_TO_SCREEN",
+      "KEEP_MIDDLE_VIDEO_TO_SCREEN"
     ],
     "Foldable split comment view": [
       "FOLDABLE_SPLIT_VIEW",
@@ -350,7 +354,8 @@
       "GHOST_HIDE_ONLINE_STATUS",
       "GHOST_HIDE_STORY_VIEWS",
       "GHOST_HIDE_PROFILE_VISITS",
-      "GHOST_HIDE_TYPING"
+      "GHOST_HIDE_TYPING",
+      "GHOST_HIDE_LIVE_VIEWS"
     ],
     "Hide already seen videos": [
       "HIDE_SEEN_VIDEOS",
@@ -553,6 +558,7 @@
       "REMEMBER_LIVE_QUALITY",
       "OFFER_LIVE_CLEAR_SCREEN",
       "KEEP_LIVE_CLEAR_SCREEN",
+      "OFFER_LIVE_FULL_SCREEN",
       "DARK_LIVE_PANELS",
       "RECORD_LIVE",
       "AUTO_RECORD_LIVE",
@@ -561,6 +567,9 @@
       "LIVE_AUTO_TAP",
       "LIVE_AUTO_TAP_RATE",
       "LIVE_AUDIO_ONLY",
+      "LIVE_NAME_ALERTS",
+      "LIVE_NAME_ALERT_NAMES",
+      "LIVE_NAME_ALERTS_LISTEN",
       "REMEMBERED_LIVE_QUALITY"
     ],
     "Location access governor": [
@@ -812,6 +821,7 @@
       "CAPTION_BACKGROUND",
       "KEEP_CAPTIONS_CLEAR_DISPLAY",
       "CAPTION_CLEAR_DISPLAY_OFFSET",
+      "CAPTION_CLEAR_DISPLAY_SPOT",
       "KEEP_CAPTIONS_AVAILABLE"
     ],
     "Swipe-left controls": [
@@ -844,6 +854,7 @@
   },
   "excluded": {
     "CAPTION_REGULAR_WEIGHT": "Runtime state or legacy migration data; not a configurable feature default.",
+    "LIVE_LISTEN_SOUND_IGNORED": "Runtime state or legacy migration data; not a configurable feature default.",
     "RECENT_SETTINGS_SEARCHES": "Runtime state or legacy migration data; not a configurable feature default.",
     "LAUNCHER_SHORTCUTS_REMOVED": "Runtime state or legacy migration data; not a configurable feature default.",
     "REMOTE_CONFIG_STAMP": "Runtime state or legacy migration data; not a configurable feature default.",

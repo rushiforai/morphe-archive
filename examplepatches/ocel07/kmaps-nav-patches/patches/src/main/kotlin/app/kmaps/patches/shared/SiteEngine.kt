@@ -130,12 +130,30 @@ private fun BytecodePatchContext.siteTypes(spec: String): List<String> {
     return idx[spec.removePrefix("src:")].orEmpty().sorted()
 }
 
-/** apply every site; returns a log line per site */
+/**
+ * Apply every site; logs a line per site. A site that does not match does not stop the run: every failure is logged
+ * ("FAIL ...") and the patch fails at the end with the whole list, so one run shows everything a new app version broke.
+ */
 internal fun BytecodePatchContext.applySites(sites: List<Site>, log: (String) -> Unit) {
+    val failures = mutableListOf<String>()
     for (site in sites) {
+        try {
+            applySite(site, log)
+        } catch (e: PatchException) {
+            failures += e.message ?: site.note
+            log("FAIL ${e.message}")
+        }
+    }
+    if (failures.isNotEmpty()) {
+        throw PatchException("${failures.size} of ${sites.size} sites failed:\n" + failures.joinToString("\n"))
+    }
+}
+
+private fun BytecodePatchContext.applySite(site: Site, log: (String) -> Unit) {
+    run {
         val types = siteTypes(site.cls)
         if (types.isEmpty()) {
-            if (site.optional && packageMetadata.versionName !in site.requiredIn) { log("skip (class absent): ${site.cls} ${site.note}"); continue }
+            if (site.optional && packageMetadata.versionName !in site.requiredIn) { log("skip (class absent): ${site.cls} ${site.note}"); return }
             throw PatchException("class not found: ${site.cls} (${site.note})")
         }
         val n = site.anchor.size
@@ -150,7 +168,7 @@ internal fun BytecodePatchContext.applySites(sites: List<Site>, log: (String) ->
             }
         }
         if (hits.isEmpty() && site.optional && packageMetadata.versionName !in site.requiredIn) {
-            log("skip (not in this version): ${site.cls} ${site.note}"); continue
+            log("skip (not in this version): ${site.cls} ${site.note}"); return
         }
         if (hits.size != site.count) {
             throw PatchException("anchor ${site.cls} ${site.note}: expected ${site.count} match(es), found ${hits.size}: ${site.anchor.first()}")

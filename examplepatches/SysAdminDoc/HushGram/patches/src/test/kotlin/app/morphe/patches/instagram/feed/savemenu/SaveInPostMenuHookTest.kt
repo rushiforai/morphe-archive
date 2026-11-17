@@ -10,13 +10,13 @@ import app.morphe.PatchContexts
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.download.MEDIA
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
-import app.morphe.patches.instagram.download.reel.ELIGIBLE_MARKER
+import app.morphe.patches.instagram.download.reel.ELIGIBILITY_PATH
 import app.morphe.patches.instagram.download.reel.OPTION
+import app.morphe.patches.instagram.download.reel.anchoredClasses
 import app.morphe.patches.instagram.download.video.FEED_HELPER_NAME
 import app.morphe.patches.instagram.download.video.WHY_OPTION
 import app.morphe.patches.instagram.download.video.isShortMenuList
-import app.morphe.patches.instagram.misc.extension.PURGE_MARKER
-import app.morphe.patches.instagram.misc.extension.markers
+import app.morphe.patches.instagram.feed.suggested.HideRowAsserts
 import app.morphe.patches.instagram.misc.extension.originalName
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -35,7 +35,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Save in the post menu (#569): the hooks are in the extension, and in every build of 454 the row's
+ * Save in the post menu (#569): the hooks are in the extension, and in every build of 455 the row's
  * call goes where anyone else's rows start, the short menu's list keeps Save and Unsave before each
  * return, and the row's stubs read the post, the options and the saved check Instagram's older menu uses.
  */
@@ -60,21 +60,24 @@ class SaveInPostMenuHookTest {
             getsTheRow(bundle, bundle.name)
             checked++
         }
-        assertEquals("every build of 454 is read", Fixtures.BUILDS, checked)
+        assertEquals("every build of 455 is read", Fixtures.BUILDS, checked)
     }
 
     private fun getsTheRow(bundle: File, label: String) {
         val classes = mutableListOf<ClassDef>(ExtensionDex.classDef(SAVE_ROW))
+        // The download flow's class, which holds the download check, and the pools it reads.
+        classes += anchoredClasses(bundle, ELIGIBILITY_PATH)
+        val anchored = classes.mapTo(HashSet()) { it.type }
         FixtureDex.forEach(bundle) { dex ->
-            val marked = dex.stringSection.any { it.startsWith("android_purge_") && PURGE_MARKER.find(it)?.groupValues?.get(1) == ELIGIBLE_MARKER }
             val loads = dex.fieldSection.any { it.toString() == DOWNLOAD }
             val named = dex.stringSection.any { it == FEED_HELPER_NAME }
             val options = dex.fieldSection.any { it.toString() == WHY_OPTION }
             val unsaves = dex.fieldSection.any { it.toString() == UNSAVE_OPTION }
-            if (!marked && !loads && !named && !options && !unsaves && dex.classes.none { it.type == OPTION }) return@forEach
+            if (!loads && !named && !options && !unsaves && dex.classes.none { it.type == OPTION }) return@forEach
             for (classDef in dex.classes) {
+                if (classDef.type in anchored) continue
                 val wanted = classDef.type == OPTION || classDef.originalName() == FEED_HELPER_NAME || classDef.methods.any { method ->
-                    ELIGIBLE_MARKER in method.markers() || method.isShortMenuList() ||
+                    method.isShortMenuList() ||
                         method.code().any { it.referenceText() == DOWNLOAD || it.referenceText() == UNSAVE_OPTION }
                 }
                 if (wanted) classes += ImmutableClassDef.of(classDef)
@@ -93,6 +96,7 @@ class SaveInPostMenuHookTest {
             .map { ((it as ReferenceInstruction).reference as MethodReference).definingClass }.toSet()
         val more = (outlined + saved).filter { type -> classes.none { it.type == type } }.toSet()
         if (more.isNotEmpty()) classes += FixtureDex.classes(bundle, more).values
+        HideRowAsserts.loadMenuClasses(bundle, classes)
         val context = PatchContexts.of(classes)
 
         val check = context.findSavedCheck()
@@ -134,8 +138,13 @@ class SaveInPostMenuHookTest {
         val savedStub = stub("saved").map { it.referenceText() }
         assertTrue("$label: saved asks the lookup", check.lookup.toString() in savedStub)
         assertTrue("$label: saved asks the test", check.test.toString() in savedStub)
-        assertTrue("$label: menuMedia reads the post", stub("menuMedia").any { it.opcode == Opcode.IGET_OBJECT })
-        assertTrue("$label: addRow is written", stub("addRow").size > 1)
+        val media = stub("menuMedia")
+        assertEquals("$label: menuMedia asks the menu's helper for the post", listOf(Opcode.CHECK_CAST, Opcode.INVOKE_STATIC),
+            media.take(2).map { it.opcode })
+        assertTrue("$label: the helper's getter", media[1].referenceText()!!.startsWith("${media[0].referenceText()}->"))
+        val add = stub("addRow")
+        assertEquals("$label: addRow makes the row", Opcode.NEW_INSTANCE, add.first().opcode)
+        assertTrue("$label: addRow adds it", add.any { it.referenceText()?.endsWith("->add(Ljava/lang/Object;)Z") == true })
     }
 
     private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

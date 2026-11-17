@@ -34,6 +34,7 @@ MARKERS = {
     "Solid Explorer": "Lpl/solidexplorer/licensing/",
     "nzb360": "Lcom/kevinforeman/nzb360/",
     "Trakt": "Ltv/trakt/trakt/",
+    "Sparkle TV": "Lse/hedekonsult/sparkle/",
 }
 
 # App -> (class descriptor, method name) -> (return type, required, patch, description)
@@ -198,6 +199,43 @@ TARGETS = {
         ("Ls2j;", "b"):
             ("Z", True, "Fix sign-in", "AuthTab support check; forced to false so the flow uses a Custom Tab"),
     },
+    # Sparkle TV 2.4.0:
+    #   `LibUtils` is the JNI wrapper; its method names are pinned by the native library and
+    #   were identical in 2.3.1 and 2.4.0. The gatekeeper and the sync distributor live in
+    #   obfuscated classes (`kh/x` and `MainActivity.K`), so the patch finds them by shape and
+    #   this check cannot pin them — re-resolve those against a new build with the patch itself.
+    "Sparkle TV": {
+        ("Lse/hedekonsult/sparkle/MainActivity;", "onCreate"):
+            ("V", True, "Enable Plus", "startup_time seed for the native anti-tamper traps"),
+        ("Lse/hedekonsult/utils/LibUtils;", "x"):
+            ("V", True, "Enable Plus", "native anti-tamper handshake, skipped"),
+        ("Lse/hedekonsult/utils/LibUtils;", "h"):
+            ("I", True, "Enable Plus", "billing mask, forced to 0xFF"),
+        ("Lse/hedekonsult/utils/LibUtils;", "w"):
+            ("Z", True, "Enable Plus", "anti-debug check, forced false"),
+        ("Lse/hedekonsult/utils/LibUtils;", "y"):
+            ("Z", True, "Enable Plus", "purchase signature verify, forced true"),
+        ("Lse/hedekonsult/utils/LibUtils;", "f"): ("I", True, "Enable Plus", "multi-source flag 0x1"),
+        ("Lse/hedekonsult/utils/LibUtils;", "e"): ("I", True, "Enable Plus", "EPG cache flag 0x2"),
+        ("Lse/hedekonsult/utils/LibUtils;", "c"): ("I", True, "Enable Plus", "live preview flag 0x4"),
+        ("Lse/hedekonsult/utils/LibUtils;", "u"): ("I", True, "Enable Plus", "timeshift flag 0x8"),
+        ("Lse/hedekonsult/utils/LibUtils;", "a"): ("I", True, "Enable Plus", "DVR flag 0x10"),
+        ("Lse/hedekonsult/utils/LibUtils;", "v"): ("I", True, "Enable Plus", "VOD flag 0x20"),
+        ("Lse/hedekonsult/utils/LibUtils;", "g"): ("I", True, "Enable Plus", "multiview flag 0x40"),
+        ("Lse/hedekonsult/utils/LibUtils;", "b"): ("I", True, "Enable Plus", "editing flag 0x80"),
+        ("Lse/hedekonsult/utils/LibUtils;", "i"): ("Ljava/lang/String;", True, "Enable Plus", "plan label"),
+        ("Lse/hedekonsult/utils/LibUtils;", "j"): ("Ljava/lang/String;", True, "Enable Plus", "plan label"),
+        ("Lse/hedekonsult/utils/LibUtils;", "k"): ("Ljava/lang/String;", True, "Enable Plus", "contribution SKU 1"),
+        ("Lse/hedekonsult/utils/LibUtils;", "l"): ("Ljava/lang/String;", True, "Enable Plus", "contribution SKU 2"),
+        ("Lse/hedekonsult/utils/LibUtils;", "m"): ("Ljava/lang/String;", True, "Enable Plus", "contribution SKU 3"),
+        ("Lse/hedekonsult/utils/LibUtils;", "n"): ("Ljava/lang/String;", True, "Enable Plus", "Plus SKU"),
+        ("Lse/hedekonsult/utils/LibUtils;", "o"): ("Ljava/lang/String;", True, "Enable Plus", "Plus connected SKU"),
+        ("Lse/hedekonsult/utils/LibUtils;", "r"): ("Ljava/lang/String;", True, "Enable Plus", "monthly subscription id"),
+        ("Lse/hedekonsult/utils/LibUtils;", "s"): ("Ljava/lang/String;", True, "Enable Plus", "yearly subscription id"),
+        ("Lse/hedekonsult/utils/LibUtils;", "t"): ("Ljava/lang/String;", True, "Enable Plus", "shared-plan label"),
+        ("Lse/hedekonsult/utils/LibUtils;", "p"): ("Ljava/lang/String;", True, "Enable Plus", "native string getter, blanked"),
+        ("Lse/hedekonsult/utils/LibUtils;", "q"): ("Ljava/lang/String;", True, "Enable Plus", "native string getter, blanked"),
+    },
 }
 
 # App -> (class, method) -> parameter lists that must each be present.
@@ -258,6 +296,17 @@ REQUIRED_PARAMS = {
             ["Lcom/kevinforeman/nzb360/helpers/NZB360LicenseHelper$Service;", "Z"],
         ],
         ("Lcom/kevinforeman/nzb360/upgradecenter/Contract$UIState;", "isSubscribed"): [[]],
+    },
+    "Sparkle TV": {
+        ("Lse/hedekonsult/sparkle/MainActivity;", "onCreate"):
+            [["Landroid/os/Bundle;"]],
+        ("Lse/hedekonsult/utils/LibUtils;", "x"): [["Lse/hedekonsult/sparkle/MainActivity;"]],
+        ("Lse/hedekonsult/utils/LibUtils;", "h"):
+            [["Landroid/content/Context;", "Ljava/util/ArrayList;"]],
+        ("Lse/hedekonsult/utils/LibUtils;", "y"):
+            [["Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"]],
+        ("Lse/hedekonsult/utils/LibUtils;", "p"): [["Landroid/content/Context;"]],
+        ("Lse/hedekonsult/utils/LibUtils;", "q"): [["Landroid/content/Context;"]],
     },
     "Trakt": {
         ("Ls2j;", "b"): [

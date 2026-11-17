@@ -63,6 +63,7 @@ import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.xfinity.shared.Constants as Xfinity
 import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
 import semicoloncolonel.mobilestream.patches.yttv.shared.Constants as YtTv
+import semicoloncolonel.mobilestream.patches.reuters.shared.Constants as Reuters
 
 // Apps open Google Play's in-app review sheet with
 // ReviewManager.launchReviewFlow(Activity, ReviewInfo), which returns a
@@ -159,9 +160,10 @@ val hideRatingPromptPatch = bytecodePatch(
     name = "Hide rating prompt",
     description = "Stops Google Play's rate-this-app sheet.",
 ) {
-    // Apple TV, CNBC, Recreation.gov, NewsBreak, and USA TODAY have their own
-    // Hide rating prompt patch, which includes this one.
-    compatibleWith(
+    // Apple TV, CNBC, Recreation.gov, NewsBreak, USA TODAY, and NewsNation's
+    // Android TV build have their own Hide rating prompt patch, which includes
+    // this one.
+    compatibleWith(*forBundle(
         Tubi.COMPATIBILITY,
         Disney.COMPATIBILITY,
         Hulu.COMPATIBILITY,
@@ -184,9 +186,9 @@ val hideRatingPromptPatch = bytecodePatch(
         Moviebase.COMPATIBILITY,
         JustWatch.COMPATIBILITY,
         YtTv.COMPATIBILITY,
-        Espn.COMPATIBILITY,
+        Espn.COMPATIBILITY, Espn.TV_COMPATIBILITY,
         Nfl.COMPATIBILITY,
-        Nba.COMPATIBILITY,
+        Nba.COMPATIBILITY, Nba.TV_COMPATIBILITY,
         Mlb.COMPATIBILITY,
         TheScore.COMPATIBILITY,
         NyTimes.COMPATIBILITY,
@@ -203,7 +205,7 @@ val hideRatingPromptPatch = bytecodePatch(
         ApNews.COMPATIBILITY,
         Substack.COMPATIBILITY,
         Cspan.COMPATIBILITY,
-        NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY,
+        NewsNation.COMPATIBILITY,
         DailyWire.COMPATIBILITY,
         TruthSocial.COMPATIBILITY,
         WhiteHouse.COMPATIBILITY,
@@ -217,7 +219,8 @@ val hideRatingPromptPatch = bytecodePatch(
         TMobilePlay.COMPATIBILITY,
         Visible.COMPATIBILITY,
         Xfinity.COMPATIBILITY,
-    )
+        Reuters.COMPATIBILITY,
+    ))
 
     dependsOn(blockPlayReviewSheetPatch)
 }

@@ -49,6 +49,7 @@ What broke since 2023.
 | [Account colors](patches/account-colors.md) | A color for each account, shown as a line under the toolbars, so you see which account is in use. |
 | [Select text](patches/select-text.md) | "Select text" in the menus of posts and comments lets you select and copy any part of their text. |
 | [Swipe through albums](patches/swipe-through-albums.md) | Swipe left or right on a Reddit gallery or an Imgur album to go to its next or previous image. |
+| [Export and import settings](patches/export-and-import-settings.md) | Your settings in a YAML file, to restore them on another phone or after reinstalling BaconReader. |
 | [Patches entry in settings](patches/patches-entry-in-settings.md) | BaconReader's settings get a "Patches" entry, and the left menu tells which build of the patches is installed. |
 
 ## 🧹 Cleanups

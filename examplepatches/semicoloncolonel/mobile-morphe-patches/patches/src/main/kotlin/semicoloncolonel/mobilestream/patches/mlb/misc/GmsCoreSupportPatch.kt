@@ -2,6 +2,7 @@ package semicoloncolonel.mobilestream.patches.mlb.misc
 
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.gms.gmsCoreSupportPatch
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // MLB 26.21.0.49 signs in with Google through Google Sign-In.
 // A re-signed copy cannot sign in with Google directly: Google answers only
@@ -10,7 +11,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.gms.gmsCoreSupportPatch
 
 @Suppress("unused")
 val gmsCoreSupportPatch = gmsCoreSupportPatch(
-    compatibility = Constants.COMPATIBILITY,
+    compatibility = Constants.COMPATIBILITY.phoneOnly(),
     appName = "MLB",
     packageName = "com.bamnetworks.mobile.android.gameday.atbat",
     clonePackageName = "app.mobilestream.mlb",

@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -60,7 +61,7 @@ class HevySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "3.2.6",
+            version = "3.2.7.1",
             patchNames = HEVY_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -126,17 +127,31 @@ class HevySmokeTest {
         )
         assertReturnsEarlyVoid(flushAndWait, "AppEventQueue.flushAndWait", diagnostics)
 
-        // 4. Amplitude: both ad-ID readers return null at once, no legacy events.
-        for ((label, adId) in listOf(
-            "CachedInfo.fetchAdvertisingId" to byStrings("Ljava/lang/String;", 0, "getAdvertisingIdInfo", "isLimitAdTrackingEnabled"),
-            "CachedInfo.fetchAndCacheAmazonAdvertisingId" to byStrings("Ljava/lang/String;", 0, "limit_ad_tracking", "advertising_id"),
-        )) {
-            val insns = adId.instructions()
+        // 4. Amplitude: the CachedInfo constructor (both ad-ID readers inlined) has its "advertising ID
+        // enabled" flag (a Z field of the outer provider class, tested by the next conditional
+        // branch) forced to false right after the iget-boolean, no legacy events.
+        run {
+            val ctor = classes.flatMap { it.methods }.filter { m ->
+                m.name == "<init>" && m.returnType == "V" &&
+                    m.instructions().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+                        .toSet().containsAll(listOf("getAdvertisingIdInfo", "isLimitAdTrackingEnabled", "limit_ad_tracking", "advertising_id"))
+            }.singleOrNull() ?: error("expected one Amplitude CachedInfo constructor\n$diagnostics")
+            val outer = ctor.params().first()
+            val insns = ctor.instructions()
+            val flagIndex = insns.indices.first { i ->
+                val field = (insns[i] as? ReferenceInstruction)?.reference as? FieldReference
+                insns[i].opcode == Opcode.IGET_BOOLEAN && field?.type == "Z" && field.definingClass == outer &&
+                    // the stock branch tests the read register: in the patched code the const/4 follows
+                    // the read and the first IF_* after it tests the same register
+                    insns.drop(i + 1).first { it.opcode.name.lowercase().replace('_', '-').startsWith("if-") }.let {
+                        (it as OneRegisterInstruction).registerA == (insns[i] as TwoRegisterInstruction).registerA
+                    }
+            }
             assertTrue(
-                insns.getOrNull(0)?.opcode == Opcode.CONST_4 && (insns[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
-                    insns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT &&
-                    (insns[1] as OneRegisterInstruction).registerA == (insns[0] as OneRegisterInstruction).registerA,
-                "$label does not return null first; got ${insns.take(2).map { it.opcode }}\n$diagnostics"
+                insns.getOrNull(flagIndex + 1)?.opcode == Opcode.CONST_4 &&
+                    (insns[flagIndex + 1] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                    (insns[flagIndex + 1] as OneRegisterInstruction).registerA == (insns[flagIndex] as OneRegisterInstruction).registerA,
+                "CachedInfo.<init> does not zero the advertising-ID flag after its iget-boolean\n$diagnostics"
             )
         }
         val legacy = method(
@@ -152,18 +167,60 @@ class HevySmokeTest {
         )
         assertResolvesThenReturns(legacy, 2, "AmplitudeReactNativeModule.getLegacyEvents", diagnostics)
 
-        // 5. Branch: tracking reads as disabled. Branch is renamed; take the ()Z method the
-        // RNBranchModule.isTrackingDisabled bridge method calls, as the patch does.
-        val branchCall = method("Lio/branch/rnbranch/RNBranchModule;", "isTrackingDisabled", listOf(PROMISE)).instructions()
-            .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
-            .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-            .single { it.returnType == "Z" && it.parameterTypes.isEmpty() }
-        assertForcedBoolean(
-            method(branchCall.definingClass, branchCall.name, emptyList()),
-            true,
-            "Branch.isTrackingDisabled (${branchCall.definingClass}->${branchCall.name})",
-            diagnostics,
-        )
+        // 5. Branch: every read of the tracking-disabled field (the Z field the Branch constructor stores
+        // the "bnc_tracking_state" preference into) is const/4 <reg>, 0x1: none is left in any class, and
+        // each stock site (onActivityStopped's inlined updateTrackingState, the RN bridge's
+        // isTrackingDisabled, the SDK readers) now holds the constant at the same index.
+        run {
+            fun Method.key() = "${definingClass}->$name(${params().joinToString("")})$returnType"
+            val branchCtor = classes.flatMap { it.methods }.filter { m ->
+                m.name == "<init>" && m.parameterTypes.size == 1 &&
+                    m.instructions().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "bnc_tracking_state" }
+            }.singleOrNull() ?: error("expected one Branch constructor loading bnc_tracking_state\n$diagnostics")
+            val ctorInsns = branchCtor.instructions()
+            val keyIndex = ctorInsns.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "bnc_tracking_state" }
+            val resultIndex = (keyIndex + 1 until ctorInsns.size).first { ctorInsns[it].opcode == Opcode.MOVE_RESULT }
+            val resultRegister = (ctorInsns[resultIndex] as OneRegisterInstruction).registerA
+            val putField = ctorInsns.drop(resultIndex + 1).first {
+                it.opcode == Opcode.IPUT_BOOLEAN && (it as TwoRegisterInstruction).registerA == resultRegister
+            }.let { (it as ReferenceInstruction).reference as FieldReference }
+            assertTrue(putField.type == "Z", "Branch tracking field is not a boolean: $putField")
+            fun Instruction.readsTracking() = opcode == Opcode.IGET_BOOLEAN &&
+                ((this as ReferenceInstruction).reference as FieldReference).let {
+                    it.definingClass == putField.definingClass && it.name == putField.name
+                }
+
+            val remaining = classes.flatMap { c -> c.methods.filter { m -> m.instructions().any { it.readsTracking() } } }
+            assertTrue(remaining.isEmpty(), "iget-boolean of ${putField.name} remains in ${remaining.map { it.key() }}\n$diagnostics")
+
+            val stockSites = patchedApkClasses(apk).flatMap { c ->
+                c.methods.flatMap { m -> m.instructions().withIndex().filter { it.value.readsTracking() }.map { (i, insn) ->
+                    Triple(m.key(), i, (insn as TwoRegisterInstruction).registerA)
+                } }
+            }
+            assertTrue(stockSites.size >= 5, "only ${stockSites.size} stock reads of the Branch tracking field\n$diagnostics")
+            val patchedMethods = classes.flatMap { it.methods }.associateBy { it.key() }
+            for ((key, index, register) in stockSites) {
+                val insn = patchedMethods[key]?.instructions()?.getOrNull(index)
+                val ok = insn != null && (insn.opcode == Opcode.CONST_4 || insn.opcode == Opcode.CONST_16) &&
+                    (insn as NarrowLiteralInstruction).narrowLiteral == 1 && (insn as OneRegisterInstruction).registerA == register
+                assertTrue(ok, "$key[$index] does not hold const v$register, 1: ${insn?.opcode}\n$diagnostics")
+            }
+            // onActivityStopped reloads the field from the preference (inlined updateTrackingState), which
+            // writes the stock false back; that store stays, and is harmless because every reader is forced.
+            val reload = classes.flatMap { it.methods }.filter { m ->
+                m.name == "onActivityStopped" && m.instructions().any {
+                    it.opcode == Opcode.IPUT_BOOLEAN &&
+                        ((it as ReferenceInstruction).reference as FieldReference).let { f ->
+                            f.definingClass == putField.definingClass && f.name == putField.name
+                        }
+                }
+            }
+            assertTrue(reload.isNotEmpty(), "no onActivityStopped reloads the Branch tracking field")
+            // The RN bridge getter is among the forced reads.
+            assertTrue(stockSites.any { it.first.startsWith("Lio/branch/rnbranch/RNBranchModule;->isTrackingDisabled(") },
+                "no tracking read in RNBranchModule.isTrackingDisabled; sites: ${stockSites.map { it.first }}")
+        }
 
         // Sentry's content providers are disabled in the manifest.
         val manifestFile = workDir.walkTopDown()

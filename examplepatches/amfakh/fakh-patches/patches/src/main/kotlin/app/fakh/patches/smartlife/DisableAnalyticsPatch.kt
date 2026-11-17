@@ -6,7 +6,9 @@ import app.fakh.patches.shared.firebase.firebaseManifestPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -31,7 +33,7 @@ private object EnableAnalyticsCollectionFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, " +
         "Crashlytics, Performance and Sessions. Tuya's own usage statistics are left on.",

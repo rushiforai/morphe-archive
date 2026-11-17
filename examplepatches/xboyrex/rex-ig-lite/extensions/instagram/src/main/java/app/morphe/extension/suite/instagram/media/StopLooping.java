@@ -15,6 +15,7 @@ import java.util.WeakHashMap;
 
 import app.morphe.extension.suite.instagram.download.InstagramMedia;
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.instagram.settings.SettingsStatus;
 import app.morphe.extension.suite.shared.Utils;
@@ -303,7 +304,7 @@ public final class StopLooping {
     }
 
     private static boolean on() {
-        return Utils.settingsReady() && Settings.STOP_VIDEO_LOOPING.get();
+        return Pref.disableReelsLooping() || (Utils.settingsReady() && Settings.STOP_VIDEO_LOOPING.get());
     }
 
     /** Forgets the players and the loops. For tests. */

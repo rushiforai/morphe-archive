@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T23:15:00",
-  "description": "### Ultimea 1.4.4 (build 495)\n\n- **Pure Black AMOLED Theme:** Enables pure black AMOLED background and surface colors with light text and controls. Patches Dart AOT in-memory hooks without runtime syscalls, sets pure black splash styling, and tints device input and user icons.\n- **Hide Explorer Tab:** Hides the Explorer/Community tab from the bottom navigation bar and collapses store icons.\n\n### Installation\n\nEnable pre-releases for BadFella Patches in Morphe Manager and refresh Sources. Repatch Ultimea 1.4.4 with dev.1, then install using your existing Manager signing key to preserve app data.\n",
-  "download_url": "https://github.com/XBadFellaX/BadFella-Patches/releases/download/v1.6.0-dev.1/patches-1.6.0-dev.1.mpp",
+  "created_at": "2026-11-16T14:35:31",
+  "description": "## Ultimea 1.4.4 (build 495, ARM64)\n\n- Rename the Profile entry and settings page to **BadFella Patches**.\n- Includes Accent color, Disable tracking, Remove distractions and Remove popups, alongside AMOLED theme and Explorer-tab removal.\n\nEnable pre-releases in Morphe Manager, refresh Sources and repatch using dev.6 and your existing signing key. The accent picker is under **Profile \u2192 BadFella Patches \u2192 Accent color**.\n\nThis changes the menu label and page title. Bluetooth/device-control behavior is unchanged from dev.5. Physical device testing is still required; the Feedback contrast issue remains.\n\nIncludes GPL-3.0-only work by [hxreborn](https://github.com/hxreborn/morphe-patches/tree/83839f596c9c7d8555c97809c34c2daabde03ec7); original copyright and license notices are retained.\n",
+  "download_url": "https://github.com/XBadFellaX/BadFella-Patches/releases/download/v1.6.0-dev.6/patches-1.6.0-dev.6.mpp",
   "signature_download_url": "",
-  "version": "1.6.0-dev.1"
+  "version": "1.6.0-dev.6"
 }

@@ -69,7 +69,35 @@ private fun assertStockCode(before: List<Instruction>, after: List<Instruction>,
 }
 private fun field(owner: String, name: String, type: String, flags: Int = FINAL) = ImmutableField(owner, name, type, flags, null, null, null)
 
-internal fun readReceiptsFixture(seenMethod: MutableMethod = seen(), sendMethod: MutableMethod = send()): List<MutableClass> = listOf(
+private const val DELIVERY_OWNER = "LX/Deliver;"
+private const val DELIVERY_HOLDER = "LX/Hold;"
+private const val DELIVERY_BATCH = "LX/Batch;"
+internal const val SYNTHETIC_DELIVERY =
+    "$DELIVERY_OWNER->A02(${FB_USER_SESSION}LX/Payload;Lcom/google/common/base/Optional;Ljava/lang/String;)V"
+
+/**
+ * 587's sender in miniature: the three literals it is found by, then the lock, the drain of whatever was waiting,
+ * the holder cleared with a proven zero, the lock released and the empty-batch return.
+ */
+private fun deliveryBody(changes: Map<Int, String> = emptyMap()): String {
+    val c = MutableList(15) { "nop" }
+    mapOf(
+        0 to "const-string v1, \"$DELIVERY_RECEIPT_TAG\"", 1 to "const-string v1, \"$DELIVERY_RECEIPT_OP\"",
+        2 to "const-string v1, \"$DELIVERY_RECEIPT_TOPIC\"", 3 to "iget-object v2, p0, $DELIVERY_OWNER->A01:$DELIVERY_HOLDER",
+        4 to "monitor-enter v2", 5 to "const/4 v4, 0x0", 6 to "iget-object v5, v2, $DELIVERY_HOLDER->A00:$DELIVERY_BATCH",
+        7 to "invoke-static {v5, v5}, $DELIVERY_HOLDER->A00($DELIVERY_BATCH$DELIVERY_BATCH)$DELIVERY_BATCH",
+        8 to "move-result-object v3", 9 to "iput-object v4, v2, $DELIVERY_HOLDER->A00:$DELIVERY_BATCH",
+        10 to "monitor-exit v2", 11 to "if-eqz v3, :empty_batch", 12 to "invoke-virtual {v3}, $DELIVERY_BATCH->send()V",
+        13 to "return-void", 14 to ":empty_batch\nreturn-void",
+    ).plus(changes).forEach { (i, value) -> c[i] = value }
+    return c.joinToString("\n")
+}
+private fun delivery(changes: Map<Int, String> = emptyMap(), registers: Int = 11) =
+    fixtureMethod(SYNTHETIC_DELIVERY, deliveryBody(changes), registers)
+
+internal fun readReceiptsFixture(seenMethod: MutableMethod = seen(), sendMethod: MutableMethod = send(),
+    deliveryMethod: MutableMethod = delivery()): List<MutableClass> = listOf(
+    fixtureClass(DELIVERY_OWNER, listOf(deliveryMethod)),
     fixtureClass(SEEN_HANDLER, listOf(seenMethod, fixtureMethod("$SEEN_HANDLER-><init>($FB_USER_SESSION$THREAD_KEY_TYPE)V", """
         invoke-direct {p0}, Ljava/lang/Object;-><init>()V
         iput-object p2, p0, $SEEN_HANDLER->A04:$THREAD_KEY_TYPE
@@ -88,7 +116,8 @@ class ReadReceiptsTest {
         val hooks = mirroredControls(readReceiptsFixture())
         assertEquals(listOf(SYNTHETIC_CHAT_SEEN), hooks.getValue(HIDE_READ_RECEIPTS).map { it.hookId() })
         assertEquals(listOf(SYNTHETIC_SEND_EVENT), hooks.getValue(REPLY_READ).map { it.hookId() })
-        validateControls(hooks, setOf(HIDE_READ_RECEIPTS, REPLY_READ))
+        assertEquals(listOf(SYNTHETIC_DELIVERY), hooks.getValue(DELIVERY_RECEIPT).map { it.hookId() })
+        validateControls(hooks, setOf(HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT))
         assertTrue(hooks.values.flatten().none { it.definingClass == "LX/AX0;" })
     }
 
@@ -235,6 +264,74 @@ class ReadReceiptsTest {
         assertStockCode(before, method.code(), emptySet(), "callback catch")
     }
 
+    @Test fun deliveredIsHeldBackOnlyOnceTheBatchHasLeftItsHolder() {
+        val method = delivery()
+        val before = method.code()
+        val at = method.validateDeliveryReceipt()
+        assertEquals(12, at)
+        method.injectDeliveryReceipt()
+        val c = method.code()
+        assertEquals("$SETTINGS->hideDeliveryReceipts()Z", (c[at] as ReferenceInstruction).reference.toString())
+        assertEquals(Opcode.MOVE_RESULT, c[at + 1].opcode)
+        assertEquals(Opcode.RETURN_VOID, c[at + 3].opcode)
+        // Off means the stock send, which insertion pushed to at + 4.
+        assertEquals(at + 4, c.branchTarget(at + 2))
+        assertStockCode(before, c, (at..at + 3).toSet(), "delivery sender")
+    }
+
+    /**
+     * A failed send puts the batch back, through the same merge the drain uses. The holder it clears is the one it
+     * just filled and nothing gates on what came back, so the drain is still the only seam.
+     */
+    @Test fun theRequeueAfterAFailedSendIsNotTakenForTheDrain() {
+        val requeue = """
+            monitor-enter v2
+            iget-object v5, v2, $DELIVERY_HOLDER->A00:$DELIVERY_BATCH
+            invoke-static {v5, v3}, $DELIVERY_HOLDER->A00($DELIVERY_BATCH$DELIVERY_BATCH)$DELIVERY_BATCH
+            move-result-object v5
+            iput-object v5, v2, $DELIVERY_HOLDER->A00:$DELIVERY_BATCH
+            monitor-exit v2
+            return-void
+        """.trimIndent()
+        val method = delivery(mapOf(13 to requeue))
+        val before = method.code()
+        val at = method.validateDeliveryReceipt()
+
+        assertEquals(12, at)
+        method.injectDeliveryReceipt()
+        assertStockCode(before, method.code(), (at..at + 3).toSet(), "requeue")
+    }
+
+    /** The batch has to come out of the holder under the lock, with nothing left behind and nothing else reaching the send. */
+    @Test fun aChangedBatchSeamRefusesDeliveredBeforeAnyEdit() {
+        val cases = mapOf(
+            "the batch payload moved out" to delivery(mapOf(2 to "const-string v1, \"/t_other\"")),
+            "no empty-batch return" to delivery(mapOf(11 to "if-eqz v5, :empty_batch")),
+            "the batch holder isn't cleared" to delivery(mapOf(5 to "const/4 v4, 0x1")),
+            "a jump lands on the empty-batch exit" to delivery(mapOf(
+                12 to ":again\ninvoke-virtual {v3}, $DELIVERY_BATCH->send()V",
+                14 to ":empty_batch\nif-eqz v3, :again\nreturn-void")),
+            "the empty-batch branch stopped being a bare return" to delivery(mapOf(14 to ":empty_batch\nnop\nreturn-void")),
+        )
+        for ((label, method) in cases) {
+            val before = method.code()
+            val failure = assertFailsWith<PatchException>(label) { method.injectDeliveryReceipt() }
+            assertTrue(failure.message!!.contains(label), "$label: ${failure.message}")
+            assertStockCode(before, method.code(), emptySet(), label)
+        }
+        assertTrue(findDeliveryReceipt(listOf(fixtureClass(DELIVERY_OWNER, listOf(cases.getValue("the batch payload moved out"))))).isEmpty())
+    }
+
+    /** Insertion would stretch a try that ended at the send over the new call, and its handler releases the lock. */
+    @Test fun anEmptyCheckInsideTheLockedTryRefusesDelivered() {
+        val method = delivery(mapOf(14 to ":empty_batch\nreturn-void\nmove-exception v0\nmonitor-exit v2\nthrow v0"))
+        method.implementation!!.apply { addCatch(newLabelForIndex(4), newLabelForIndex(12), newLabelForIndex(15)) }
+        val before = method.code()
+        val failure = assertFailsWith<PatchException> { method.injectDeliveryReceipt() }
+        assertTrue(failure.message!!.contains("the empty check sits inside a try"), failure.message)
+        assertStockCode(before, method.code(), emptySet(), "locked try")
+    }
+
     @Test fun everySupportedBuildHasTheSameTypedContractAndPreservesStockInstructions() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
@@ -248,9 +345,12 @@ class ReadReceiptsTest {
             readReceiptThreadFields = resolveReadReceiptThreadFields(classes)
             val seens = findChatSeen(classes)
             val sends = findReplyRead(classes)
+            val deliveries = findDeliveryReceipt(classes)
             assertEquals(activeProfile.hooks.getValue(HIDE_READ_RECEIPTS), seens.map { it.hookId() }.toSet(), code)
             assertEquals(activeProfile.hooks.getValue(REPLY_READ), sends.map { it.hookId() }.toSet(), code)
-            validateControls(mapOf(HIDE_READ_RECEIPTS to seens, REPLY_READ to sends), setOf(HIDE_READ_RECEIPTS, REPLY_READ))
+            assertEquals(activeProfile.hooks.getValue(DELIVERY_RECEIPT), deliveries.map { it.hookId() }.toSet(), code)
+            validateControls(mapOf(HIDE_READ_RECEIPTS to seens, REPLY_READ to sends, DELIVERY_RECEIPT to deliveries),
+                setOf(HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT))
             val seen = MutableMethod(seens.single())
             val seenBefore = seen.code().map { it.opcode }
             seen.injectChatSeen()
@@ -260,6 +360,11 @@ class ReadReceiptsTest {
             val d = send.validateReplyRead()
             send.injectReplyRead()
             assertStockCode(sendBefore, send.code(), setOf(d - REPLY_READ_SHAPE.stage, d + 2, d + 3, d + 4), code)
+            val delivered = MutableMethod(deliveries.single())
+            val deliveredBefore = delivered.code()
+            val at = delivered.validateDeliveryReceipt()
+            delivered.injectDeliveryReceipt()
+            assertStockCode(deliveredBefore, delivered.code(), (at..at + 3).toSet(), code)
             assertTrue(lifecycleDex(listOf(fixtureClass(seen.definingClass, listOf(seen)), fixtureClass(send.definingClass, listOf(send)))).isNotEmpty(), code)
         }
     }

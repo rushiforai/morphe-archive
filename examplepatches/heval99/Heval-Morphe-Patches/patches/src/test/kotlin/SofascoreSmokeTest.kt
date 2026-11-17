@@ -3,7 +3,13 @@ import app.template.patches.shared.hevalcontrols.HevalFeature
 import app.template.patches.shared.hevalcontrols.HevalRegistryCodec
 import app.template.patches.sofascore.controls.SOFASCORE_CONTROLS
 import app.template.patches.sofascore.controls.SOFASCORE_CONTROLS_ENTRY
+import app.template.patches.sofascore.controls.SOFASCORE_SCREEN_CALM
+import app.template.patches.sofascore.controls.SOFASCORE_SHARE_LINKS
 import app.template.patches.sofascore.layout.HIDE_AI_INSIGHTS
+import app.template.patches.sofascore.misc.lists.COMPACT_MATCH_LISTS
+import app.template.patches.sofascore.misc.screen.KEEP_SCREEN_ON
+import app.template.patches.sofascore.misc.screenshot.DISABLE_SCREENSHOT_PROMPT
+import app.template.patches.sofascore.misc.sharing.CLEAN_SHARE_LINKS
 import app.template.patches.sofascore.misc.theme.AMOLED_BLACK
 import app.template.patches.sofascore.misc.video.TURN_OFF_VIDEO_AUTOPLAY
 import app.template.patches.sofascore.layout.HIDE_MATCH_CHAT
@@ -81,6 +87,7 @@ private const val SHARED_PREFERENCES = "Landroid/content/SharedPreferences;"
 private const val EVENT_HEAD_FLAGS = "Lcom/sofascore/model/mvvm/model/EventHeadFlags;"
 private const val BET365_SIGN_UP_PREFIX = "https://www.bet365.com/olp/open-account?affiliate="
 
+private const val EVENT_ACTIVITY_TYPE = "Lcom/sofascore/results/event/EventActivity;"
 private const val RELEASE_APP = "Lcom/sofascore/results/ReleaseApp;"
 private const val FIREBASE_BUNDLE = "Lcom/sofascore/model/FirebaseBundle;"
 private val CONSENT_TYPES = listOf("ad_personalization", "ad_user_data", "analytics_storage", "ad_storage")
@@ -92,6 +99,10 @@ private val SOFASCORE_PATCHES = setOf(
     "AMOLED black",
     "Animation speed",
     "Block marketing notifications",
+    "Clean shared links",
+    "Compact match lists",
+    "Disable screenshot prompt",
+    "Keep screen on",
     "Disable Facebook SDK",
     "Disable ads",
     "Disable rating prompts",
@@ -153,7 +164,11 @@ private val HEVAL_FEATURES: List<HevalFeature> = listOf(HIDE_AI_INSIGHTS) +
     MAIN_TAB_FEATURES +
     SPOILER_FEATURES +
     AMOLED_BLACK +
-    TURN_OFF_VIDEO_AUTOPLAY
+    TURN_OFF_VIDEO_AUTOPLAY +
+    COMPACT_MATCH_LISTS +
+    KEEP_SCREEN_ON +
+    CLEAN_SHARE_LINKS +
+    DISABLE_SCREENSHOT_PROMPT
 
 class SofascoreSmokeTest {
 
@@ -820,6 +835,10 @@ class SofascoreSmokeTest {
         // AMOLED black (2026-11-09): the night cards and elevated surfaces are near black.
         assertAmoledBlack()
 
+        // Comfort batch (2026-11-12): compact match rows, keep screen on, clean shared links, screenshot prompt.
+        assertCompactMatchLists()
+        assertComfortHooks(classes, byType, diagnostics)
+
         // Heval Controls: extension, registry, manifest components and the Settings row.
         assertHevalControls(byType)
     }
@@ -853,6 +872,132 @@ class SofascoreSmokeTest {
         org.junit.jupiter.api.Assertions.assertEquals("#141414", values["surface_P"], "AMOLED black: surface_P")
         // The page background stays pure black.
         org.junit.jupiter.api.Assertions.assertEquals("#000000", values["surface_0"], "surface_0")
+    }
+
+    /** Compact match lists: the decoded list_event_row.xml carries the compact dp values (and the checked ones are unchanged). */
+    private fun assertCompactMatchLists() {
+        val layouts = workDir.walkTopDown().filter { it.name == "list_event_row.xml" }.toList()
+        check(layouts.size == 1) { "expected one decoded list_event_row.xml under $workDir, found ${layouts.size}" }
+        val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(layouts.single())
+        val all = doc.getElementsByTagName("*")
+        val elements = (0 until all.length).map { all.item(it) as Element }
+        fun value(owner: String?, attribute: String): String {
+            val element = if (owner == null) doc.documentElement else elements.single { it.getAttribute("android:id").substringAfterLast('/') == owner }
+            return element.getAttribute(attribute)
+        }
+        val expected = listOf(
+            Triple(null, "android:minHeight", "44.0dp"), Triple(null, "android:paddingVertical", "2.0dp"),
+            Triple("first_team_name", "android:layout_marginTop", "3.0dp"),
+            Triple("second_team_name", "android:layout_marginTop", "2.0dp"),
+            Triple("second_team_name", "android:layout_marginBottom", "3.0dp"),
+            Triple("second_team_name", "app:layout_goneMarginBottom", "3.0dp"),
+            Triple("action_layout", "android:layout_height", "40.0dp"),
+            // Unchanged on purpose.
+            Triple("time_lower", "android:layout_marginTop", "4.0dp"),
+            Triple("vertical_guideline_start", "app:layout_constraintGuide_begin", "72.0dp"),
+            Triple("action_layout", "android:layout_width", "56.0dp"),
+        )
+        expected.forEach { (owner, attribute, want) ->
+            org.junit.jupiter.api.Assertions.assertEquals(want, value(owner, attribute), "Compact match lists: ${owner ?: "root"} $attribute")
+        }
+    }
+
+    /** The registers of an instance method's parameters: this is p0, the first parameter p1. */
+    private fun Method.parameterRegister(index: Int) = implementation!!.registerCount - (parameterTypes.size + 1) + index
+
+    /** Keep screen on, Clean shared links and Disable screenshot prompt: the hooks in the emitted bytecode. */
+    private fun assertComfortHooks(classes: List<ClassDef>, byType: Map<String, ClassDef>, diagnostics: String) {
+        fun require(type: String): ClassDef = byType[type] ?: error("$type not found in emitted dexes\n$diagnostics")
+        require(SOFASCORE_SCREEN_CALM)
+        require(SOFASCORE_SHARE_LINKS)
+        val allMethods = classes.flatMap { it.methods }
+
+        fun assertRangeCallFirst(method: Method, owner: String, name: String, register: Int, label: String): Int {
+            val first = method.instructions().firstOrNull()
+            check(first != null && first.opcode == Opcode.INVOKE_STATIC_RANGE && first.call()?.definingClass == owner &&
+                first.call()?.name == name && (first as RegisterRangeInstruction).startRegister == register && first.registerCount == 1
+            ) { "$label does not start with $owner->$name(v$register); got ${first?.opcode} ${first?.call()}" }
+            return register
+        }
+
+        // Keep screen on: EventActivity.onResume()V starts with ScreenCalm.keepScreenOn(this), onPause()V with releaseScreen(this).
+        val eventActivity = require(EVENT_ACTIVITY_TYPE)
+        val onResume = eventActivity.methods.single { it.name == "onResume" && it.params().isEmpty() && it.returnType == "V" }
+        assertRangeCallFirst(onResume, SOFASCORE_SCREEN_CALM, "keepScreenOn", onResume.parameterRegister(0), "EventActivity.onResume()")
+        val onPause = eventActivity.methods.single { it.name == "onPause" && it.params().isEmpty() && it.returnType == "V" }
+        assertRangeCallFirst(onPause, SOFASCORE_SCREEN_CALM, "releaseScreen", onPause.parameterRegister(0), "EventActivity.onPause()")
+        // The stock super call is still there, right after the hook.
+        check(onResume.instructions()[1].call()?.name == "onResume" && onPause.instructions()[1].call()?.name == "onPause") {
+            "EventActivity onResume/onPause lost their super call after the hook"
+        }
+
+        // Clean shared links, image shares: the (Context, Bitmap, String, ?) share helper holding the three
+        // intent strings passes its String argument (p3) through ShareLinks.cleanShareText before anything else.
+        val shareHelpers = allMethods.filter { m ->
+            !m.isStatic() && m.returnType == "Ljava/lang/Object;" && m.params().let { p ->
+                p.size == 4 && p[0] == CONTEXT && p[1] == "Landroid/graphics/Bitmap;" && p[2] == "Ljava/lang/String;"
+            } && m.strings().containsAll(listOf("android.intent.action.SEND", "image/*", "android.intent.extra.STREAM"))
+        }
+        check(shareHelpers.size == 1) { "expected one image share helper, found ${shareHelpers.size}\n$diagnostics" }
+        val share = shareHelpers.single()
+        val text = share.parameterRegister(3)
+        val shareFirst = share.instructions()
+        assertRangeCallFirst(share, SOFASCORE_SHARE_LINKS, "cleanShareText", text, "image share helper")
+        check(shareFirst[0].call()?.returnType == "Ljava/lang/String;" &&
+            shareFirst[1].opcode == Opcode.MOVE_RESULT_OBJECT && (shareFirst[1] as OneRegisterInstruction).registerA == text
+        ) { "the share helper does not store the cleaned text back into p3; got ${shareFirst[1].opcode}" }
+        check(share.strings().containsAll(listOf("android.intent.extra.TEXT"))) { "the share helper lost EXTRA_TEXT" }
+
+        // Clean shared links, highlight links: the link builder (utm_source + "app referrals") calls the
+        // extension for all four appendQueryParameter calls and the framework one nowhere.
+        val linkBuilders = allMethods.filter { "utm_source" in it.strings() && "app referrals" in it.strings() }
+        check(linkBuilders.size == 1) { "expected one highlight link builder, found ${linkBuilders.size}\n$diagnostics" }
+        val builder = linkBuilders.single()
+        val extensionCalls = builder.instructions().filter { it.call()?.let { c -> c.definingClass == SOFASCORE_SHARE_LINKS && c.name == "appendQueryParameter" } == true }
+        check(extensionCalls.size == 4 && extensionCalls.all { it.opcode == Opcode.INVOKE_STATIC }) {
+            "the link builder calls ShareLinks.appendQueryParameter ${extensionCalls.size} times, expected 4"
+        }
+        check(builder.instructions().none { it.call()?.let { c -> c.definingClass == "Landroid/net/Uri\$Builder;" && c.name == "appendQueryParameter" } == true }) {
+            "the link builder still calls Uri.Builder.appendQueryParameter"
+        }
+
+        // Disable screenshot prompt: in every method that holds PREF_SCREENSHOT_DO_NOT_SHOW_AGAIN, every
+        // SharedPreferences.getBoolean call (counted over the whole method, not a window after the literal)
+        // is followed by move-result vX, ScreenCalm.screenshotPromptHidden(vX), move-result vX. 26.11.03 has
+        // exactly 4 reads: EventActivity.onStart 1, LeagueActivity.onStart 1, the capture callback 2; the
+        // two other holders only write the key and call no getBoolean.
+        val readsByOwner = sortedMapOf<String, Int>()
+        for (cls in classes.filterNot { it.type.startsWith("Lapp/template/extension/") }) {
+            for (m in cls.methods) {
+                val insns = m.instructions()
+                if (insns.none { it.stringOrNull() == "PREF_SCREENSHOT_DO_NOT_SHOW_AGAIN" }) continue
+                val owner = "${cls.type}->${m.name}"
+                insns.indices.filter { i ->
+                    insns[i].call()?.let { it.name == "getBoolean" && it.definingClass == SHARED_PREFERENCES } == true
+                }.forEach { getBoolean ->
+                    readsByOwner.merge(owner, 1, Int::plus)
+                    val result = insns[getBoolean + 1] as OneRegisterInstruction
+                    val hook = insns[getBoolean + 2]
+                    check(insns[getBoolean + 1].opcode == Opcode.MOVE_RESULT && hook.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                        hook.call()?.let { it.definingClass == SOFASCORE_SCREEN_CALM && it.name == "screenshotPromptHidden" } == true &&
+                        (hook as RegisterRangeInstruction).startRegister == result.registerA && hook.registerCount == 1 &&
+                        insns[getBoolean + 3].opcode == Opcode.MOVE_RESULT && (insns[getBoolean + 3] as OneRegisterInstruction).registerA == result.registerA
+                    ) { "$owner: the screenshot preference read is not filtered; got ${hook.opcode}" }
+                }
+            }
+        }
+        check(readsByOwner.values.sum() == 4) { "expected 4 screenshot preference reads, found $readsByOwner" }
+        check(readsByOwner["$EVENT_ACTIVITY_TYPE->onStart"] == 1 && readsByOwner["Lcom/sofascore/results/league/LeagueActivity;->onStart"] == 1) {
+            "the onStart screenshot reads are not hooked once each: $readsByOwner"
+        }
+        check(readsByOwner.filter { it.key.endsWith("->onScreenCaptured") }.values.sum() == 2) {
+            "the capture callback's two reads are not hooked: $readsByOwner"
+        }
+        // The hook is called exactly once per read, nowhere else.
+        val hookCalls = classes.flatMap { it.methods }.sumOf { m ->
+            m.instructions().count { it.call()?.let { c -> c.definingClass == SOFASCORE_SCREEN_CALM && c.name == "screenshotPromptHidden" } == true }
+        }
+        check(hookCalls == 4) { "screenshotPromptHidden is called $hookCalls times, expected 4" }
     }
 
     private fun assertSpoilerFree(byType: Map<String, ClassDef>, stock: List<ClassDef>) {

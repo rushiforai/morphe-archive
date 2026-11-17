@@ -4,9 +4,15 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.TypedValue;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /** Saves media through the system DownloadManager, into the folder chosen in Fakh Patches. */
 final class Downloads {
@@ -56,14 +62,41 @@ final class Downloads {
         return folder.isEmpty() ? baseDir(video) : baseDir(video) + "/" + folder;
     }
 
+    /**
+     * Starts a download. A photo's type is read from the server first, since an animated GIF has the same URL shape
+     * as a JPEG and a GIF saved as .jpg is skipped by gallery apps; that check runs off the main thread.
+     */
     static boolean enqueue(Context context, String url, String baseName, boolean video) {
+        if (video) return enqueue(context, url, baseName, "video/mp4", ".mp4");
+        Context app = context.getApplicationContext();
+        new Thread(() -> {
+            String mime = "image/jpeg";
+            try {
+                HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+                connection.setRequestMethod("HEAD");
+                String type = connection.getContentType();
+                connection.disconnect();
+                if (type != null && type.startsWith("image/")) mime = type.split(";")[0].trim();
+            } catch (Throwable t) {
+                Diagnostics.error("content type failed", t);
+            }
+            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime);
+            String type = mime;
+            String suffix = extension == null ? ".jpg" : "." + extension;
+            new Handler(Looper.getMainLooper()).post(() -> enqueue(app, url, baseName, type, suffix));
+        }).start();
+        return true;
+    }
+
+    private static boolean enqueue(Context context, String url, String baseName, String mime, String extension) {
         try {
-            String fileName = "linkedin_" + baseName + (video ? ".mp4" : ".jpg");
+            String fileName = "linkedin_" + baseName + extension;
+            boolean video = mime.startsWith("video/");
             String folder = Settings.downloadFolder();
             String subPath = folder.isEmpty() ? fileName : folder + "/" + fileName;
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
                     .setTitle(fileName)
-                    .setMimeType(video ? "video/mp4" : "image/jpeg")
+                    .setMimeType(mime)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(baseDir(video), subPath);
             DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);

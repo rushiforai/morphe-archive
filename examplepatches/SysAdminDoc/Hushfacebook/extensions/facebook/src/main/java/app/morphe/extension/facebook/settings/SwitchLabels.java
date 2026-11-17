@@ -70,6 +70,9 @@ final class SwitchLabels {
         if (setting == Settings.SHOW_FULL_REEL_CAPTIONS) return L10n.t("Show full reel captions");
         if (setting == Settings.DIM_OPEN_REEL_CAPTIONS) return L10n.t("Dark box behind open captions");
         if (setting == Settings.DIM_FOLDED_REEL_CAPTIONS) return L10n.t("Dark box behind folded captions");
+        if (setting == Settings.DIM_REEL_NAMES) return L10n.t("Dark box behind reel names");
+        if (setting == Settings.DIM_STORY_NAMES) return L10n.t("Dark box behind story names");
+        if (setting == Settings.SOFT_TEXT_BOXES) return L10n.t("Soft box edges");
         if (setting == Settings.TRANSLATE_POST_LINK) return L10n.t("Add a Translate link to posts");
         if (setting == Settings.TRANSLATE_POSTS_BY_THEMSELVES) return L10n.t("Translate posts by themselves");
         if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
@@ -102,6 +105,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_CREATE_STORY) return L10n.t("Hide Create story");
         if (setting == Settings.HIDE_PAGE_STORIES) return L10n.t("Hide stories from Pages");
         if (setting == Settings.HIDE_SEEN_STORIES) return L10n.t("Hide seen stories");
+        if (setting == Settings.SEEN_STORIES_LAST) return L10n.t("Move seen stories to the end");
         if (setting == Settings.SHOW_ONLY_WATCHED_STORIES) return L10n.t("Show only watched stories");
         if (setting == Settings.HIDE_PASSED_STORIES) return L10n.t("Hide stories you scrolled past");
         if (setting == Settings.BLOCK_STORY_AUTO_ADVANCE) return L10n.t("Stop Story auto-advance");
@@ -144,6 +148,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_COMMENT_DOWNVOTE_BUTTON) return L10n.t("Hide dislike on comments");
         if (setting == Settings.HIDE_COMMENT_LIKE_BUTTON) return L10n.t("Hide Like on comments");
         if (setting == Settings.HIDE_COMMENT_REPLY_BUTTON) return L10n.t("Hide Reply on comments");
+        if (setting == Settings.HIDE_COMMENTER_BADGES) return L10n.t("Hide badges like Top fan on comments");
         if (setting == Settings.COMMENT_BLOCK_BUTTON) return L10n.t("Block button on comments");
         if (setting == Settings.REACTOR_BLOCK_BUTTON) return L10n.t("Block button on reaction lists");
         if (setting == Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS) return L10n.t("Hide related groups");
@@ -151,6 +156,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_COMMENTS_WITH_WORDS) return L10n.t("Hide comments with your words");
         if (setting == Settings.HIDE_INCOMING_COMMENT_TYPING) return L10n.t("Hide who is typing in comments");
         if (setting == Settings.HIDE_NEW_COMMENTS_PILL) return L10n.t("Hide the new comments pop-up");
+        if (setting == Settings.SHOW_EVERY_COMMENT_REACTION) return L10n.t("Show every reaction on comments");
         if (setting == Settings.PAUSE_REELS_UNDER_COMMENTS) return L10n.t("Pause reels while comments are open");
         if (setting == Settings.TAP_REELS_ABOVE_COMMENTS) return L10n.t("Tap a reel above its comments");
         if (setting == Settings.SEARCH_COMMENTS) return L10n.t("Search comments");
@@ -218,6 +224,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_FEED_VIDEO_BUTTONS) return L10n.t("Hide the full-screen and PiP buttons");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
         if (setting == Settings.SHARED_REELS_ALONE) return L10n.t("Open shared reels on their own");
+        if (setting == Settings.HIDE_SHARED_REEL_FRIEND_SHEET) return L10n.t("Hide the Add friend pop-up on shared reels");
         if (setting == Settings.WATCH_AGAIN_IN_PLACE) return L10n.t("Replay feed videos in place");
         if (setting == Settings.SAVED_VIDEOS_IN_PLAYER) return L10n.t("Open saved videos in the video player");
         if (setting == Settings.SAVED_VIDEOS_IN_ORDER) return L10n.t("Play saved videos in a row");
@@ -283,12 +290,14 @@ final class SwitchLabels {
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_FADE) return L10n.t("Fade the seek bar and speaker");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_LOWER) return L10n.t("Lower the seek bar and speaker");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_EDGE) return L10n.t("Seek bar on the bottom edge");
+        if (setting == Settings.FEED_VIDEO_SEEK_BAR_THIN) return L10n.t("Thin line seek bar");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_BUTTON) return L10n.t("Full player button on feed videos");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_CORNER) return L10n.t("Full player button by the speaker");
         if (setting == Settings.FEED_VIDEO_SKIP_BUTTONS) return L10n.t("Skip buttons on feed videos");
         if (setting == Settings.FEED_VIDEO_DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip on feed videos");
         if (setting == Settings.FEED_VIDEO_SPEED_BUTTON) return L10n.t("Speed button on feed videos");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_TIMES) return L10n.t("Times on the seek bar");
+        if (setting == Settings.FEED_VIDEO_SEEK_BAR_LENGTH) return L10n.t("Full length on the seek bar");
         if (setting == Settings.CENTER_FULL_SCREEN_VIDEOS) return L10n.t("Open full screen videos centered");
         if (setting == Settings.STORY_SEEK_BAR) return L10n.t("Seek bar on stories");
         if (setting == Settings.STORY_SEEK_BAR_FADE) return L10n.t("Fade the story seek bar");

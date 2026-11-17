@@ -171,7 +171,9 @@ public final class AiTranslate {
 
     static String instructions(String target) {
         return "You translate Telegram messages. Translate the user's message into " + languageName(target)
-                + ". Keep its meaning, tone, line breaks, emoji, links, @mentions and #hashtags. Answer with the "
+                + ". Keep its meaning, tone, line breaks, emoji, links, @mentions and #hashtags. Keep every tag "
+                + "like <b0> and </b0> around the words it marked, and every placeholder like <x1/> exactly as it "
+                + "is, once each. Answer with the "
                 + "translation only, with no notes, quotes or explanation. If the message is already in that "
                 + "language, answer with " + SAME + " and nothing else.";
     }

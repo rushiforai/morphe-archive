@@ -28,6 +28,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_new_indicator_days_title">Fremhæv nye indstillinger</string>
   <string name="morphe_settings_new_indicator_days_summary">Antal dage en prik vises ved siden af indstillinger og valgmuligheder tilføjet af en opdatering</string>
   <string name="morphe_settings_new_indicator_days_off">Fra</string>
+  <string name="morphe_settings_new_indicator_clear_title">Marker alle indstillinger som sete</string>
+  <string name="morphe_settings_new_indicator_clear_summary">Fjern prikken fra alle nye indstillinger og muligheder</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_title">Marker alle indstillinger som sete?</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_message">Prikken fjernes fra alle nye indstillinger og muligheder. Indstillinger tilføjet via fremtidige opdateringer vil stadig være fremhævet.</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">Genstart for at færdiggøre opsætningen</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -37,7 +41,7 @@ Second \"item\" text"</string>
   <string name="morphe_theme_color_dark_entry_2">Ægte sort</string>
   <string name="morphe_theme_color_dark_entry_3">Material You (Kulsort)</string>
   <string name="morphe_theme_color_dark_entry_9">Klassisk YouTube</string>
-  <string name="morphe_theme_color_dark_entry_10">Mørkerød</string>
+  <string name="morphe_theme_color_dark_entry_10">Mørk pink</string>
   <string name="morphe_theme_color_dark_entry_11">Mørkeblå</string>
   <string name="morphe_theme_color_dark_entry_12">Mørkegrøn</string>
   <string name="morphe_theme_color_dark_entry_13">Mørkegul</string>
@@ -67,13 +71,20 @@ Second \"item\" text"</string>
 
 Kontroller, at pakkenavnet er korrekt, og at appen er installeret"</string>
   <string name="morphe_external_downloader_empty_warning">Pakkenavnet må ikke være tomt</string>
+  <string name="morphe_export_download_folder_dialog_title">Eksporteringsmappe</string>
+  <string name="morphe_export_download_folder_change">Skift mappe</string>
+  <string name="morphe_export_download_folder_changed">Eksportmappe ændret</string>
+  <string name="morphe_export_download_folder_reset">Eksportmappe nulstillet</string>
+  <string name="morphe_export_download_folder_missing">Kunne ikke finde eksportmappe %s</string>
+  <string name="morphe_export_download_flyout_title">Eksporter til enhed</string>
+  <string name="morphe_export_download_canceled">Eksport annulleret</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Brugerdefineret</string>
   <string name="morphe_custom_branding_icon_title">Appikon</string>
   <string name="morphe_custom_branding_icon_entry_1">Original</string>
   <string name="morphe_custom_branding_icon_entry_2">Morphe mørke</string>
   <string name="morphe_custom_branding_icon_entry_3">Morphe mørk</string>
-  <string name="morphe_custom_branding_icon_entry_4">Morphe lille</string>
+  <string name="morphe_custom_branding_icon_entry_4">Morphe lys</string>
   <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
   <string name="morphe_custom_branding_icon_entry_5">Morphe afspilning af lys</string>
   <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
@@ -88,13 +99,13 @@ Denne indstilling ændrer ikke ikonet på nogen af disse steder:
 • ‘Åbn med’-appvælgeren
 • Android Auto-ikonet
 
-For at ændre ikonet overalt skal du patche igen og ændre patchindstillingen ‘App icon’. Updates from the translation memory are unavailable. Some terminology may be preserved."</string>
+For at ændre ikonet overalt skal du patche igen og ændre patchindstillingen ‘Appikon’."</string>
   <string name="morphe_custom_branding_notification_icon_title">Notifikationsikon</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Match appikon</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe play</string>
   <!-- misc.dns.checkWatchHistoryDomainNameResolutionPatch -->
   <string name="morphe_check_watch_history_domain_name_dialog_title">Morphe Meddelelse</string>
-  <string name="morphe_check_watch_history_domain_name_dialog_message">Din afspilningshistorik gemmes ikke.&lt;br&gt;&lt;br&gt;Dette skyldes sandsynligvis en DNS-annonceblokker eller netværksproxy.&lt;br&gt;&lt;br&gt;For at løse dette, whitelist &lt;b&gt;s.youtube.com&lt;/b&gt; eller slå alle DNS-blokkere og proxyservere fra</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_message">Din afspilningshistorik gemmes ikke.&lt;br&gt;&lt;br&gt;Dette skyldes sandsynligvis en DNS-annonceblokker eller netværksproxy.&lt;br&gt;&lt;br&gt;For at løse dette, tilføj &lt;b&gt;s.youtube.com&lt;/b&gt; til hvidlisten eller slå alle DNS-blokkere og proxyservere fra</string>
   <string name="morphe_check_watch_history_domain_name_dialog_ignore">Vis ikke igen</string>
   <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Spoof videostreams</string>
@@ -110,13 +121,27 @@ Hvis du er en YouTube Premium-bruger, er denne indstilling muligvis ikke nødven
 Skal %2$s gøres til standardklient?"</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_switch">Skift</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">Deaktivering af denne indstilling kan forårsage afspilningsproblemer</string>
+  <!-- "Android System WebView" is the name of the Android app and should not be translated. -->
+  <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"Android System WebView er slået fra eller ikke installeret.
+
+Videoafspilning kræver Android System WebView. Slå det til og opdater det til den nyeste version.
+
+Tryk på OK for at åbne Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"Android System WebView er forældet (version %s).
+
+Videoafspilning kan fejle, indtil Android System WebView er opdateret til den nyeste version.
+
+Tryk på OK for at åbne Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_ignore">Vis ikke igen</string>
+  <string name="morphe_spoof_video_streams_webview_toast_not_installed">Android System WebView er ikke installeret. Installer det for at løse problemet med videoafspilning</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
          "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
   <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Prøv at aktivere: Spoof videostreams &gt; Android VR log ind</string>
   <string name="morphe_spoof_video_streams_client_type_title">Standard klient</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR log ind</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Ikke logget ind i Android VR. Tryk her for at logge ind</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR kræver et separat login. Tryk her for at fortsætte</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Logget ind i Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">For at bruge denne funktion, ændr \'Standardklient\' til Android VR</string>
@@ -142,6 +167,28 @@ For at logge ind, tryk på fortsæt nedenfor"</string>
 • Dine Morphe indstillinger vil ikke importere/eksportere Android VR autentificering
 • Hvis denne app ikke bruges i 6 måneder, vil Google fjerne denne autentificering
 • Du skal logge ind igen, hvis du ændrer din Google-adgangskode eller deautoriserer denne enhed fra dine Google-instillinger"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_title">Log ind via mobilweb</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary">Valgfrit: log ind på YouTube-webstedet for at afspille videoer med din konto. Tryk her for at fortsætte</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_signed_in">Logget ind på mobilweb i øjeblikket</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_disabled">For at bruge denne funktion skal du ændre \'Standardklient\' til Mobil Web</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_title">Log ind på Mobil Web</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_not_signed_in_message">"Mobil Web afspiller videoer uden login, eller når der er logget ind på YouTube-webstedet
+
+• Når der er logget ind, kan videoer, der kræver en konto, afspilles, såsom aldersbegrænsede videoer
+• Googles login-side åbnes i denne app
+• Login bruges kun til at hente de videoer, du afspiller
+• Login gemmes kun på denne enhed
+
+Tryk på fortsæt nedenfor for at logge ind"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_success_dialog_message">"Login gemt
+
+• Dine Morphe-indstillinger importerer/eksporterer ikke login til Mobil Web
+• Hvis Google afslutter sessionen, afspilles videoer uden login, indtil du logger ind igen
+• Udlogning logger også denne enhed ud af YouTube-webstedet"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_expired">Indlogning på mobilweb er udløbet, prøv at logge ind på mobilweb igen</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_signed_out">Logget ud af mobilweb</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_webview_missing">Android System WebView er ikke tilgængelig. Installer eller aktiver den for at logge ind</string>
   <string name="morphe_oauth2_connection_failure_timeout">OAuth2 er midlertidigt utilgængelig (API timeout)</string>
   <string name="morphe_oauth2_connection_failure_status_400">Android VR-indlogning er udløbet, prøv at logge ind på VR igen</string>
   <string name="morphe_oauth2_connection_failure_status">OAuth2 er midlertidigt utilgængelig (status %s)</string>
@@ -157,11 +204,11 @@ For at logge ind, tryk på fortsæt nedenfor"</string>
   <string name="morphe_hide_notification_media_prev_next_summary">Skjuler Forrige- og Næste-knapperne i medienotifikationen, på låseskærmen og i hovedtelefonkontrollerne</string>
   <string name="morphe_disable_notification_media_seekbar_title">Deaktiver søgebjælken</string>
   <string name="morphe_disable_notification_media_seekbar_summary">Forhindrer, at søgebjælken kan trækkes på låseskærmen og i meddelelsespanelet</string>
-  <string name="morphe_seek_notification_media_prev_next_title">Søg med knapperne <b>&amp;</b> Forrige &amp; Næste</string>
+  <string name="morphe_seek_notification_media_prev_next_title">Søg med knapperne Forrige &amp; Næste</string>
   <string name="morphe_seek_notification_media_prev_next_summary">Ændrer kontroller for medie-meddelelse, låseskærm og hovedtelefoner til at søge i stedet for at ændre videoer</string>
-  <string name="morphe_seek_notification_media_rewind_length_title">Længde for tilbagetspuling</string>
+  <string name="morphe_seek_notification_media_rewind_length_title">Længde for tilbagespoling</string>
   <string name="morphe_seek_notification_media_rewind_length_summary">Sekunder til at spole tilbage med knappen Forrige</string>
-  <string name="morphe_seek_notification_media_fast_forward_length_title">Længde for fremspringning</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_title">Længde for fremspoling</string>
   <string name="morphe_seek_notification_media_fast_forward_length_summary">Sekunder til at spole fremad med knappen Næste</string>
   <string name="morphe_seek_notification_media_length_invalid">Søgelængden skal være mellem 1 og %s sekunder. Bruger standardværdi</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
@@ -207,14 +254,30 @@ For at logge ind, tryk på fortsæt nedenfor"</string>
   <string name="morphe_replace_music_with_youtube_summary">Erstatter music.youtube.com med youtube.com i delte links.</string>
   <string name="morphe_replace_links_with_shortener_title">Skift delingslinks til youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Tvinger videoer til at bruge det forkortede youtu.be URL-format</string>
+  <!-- video.quality.rememberVideoQualityPatch -->
+  <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
+  <string name="morphe_video_quality_default_entry_1">Automatisk</string>
+  <string name="morphe_remember_video_quality_last_selected_title">Husk videokvalitet</string>
+  <string name="morphe_remember_video_quality_last_selected_summary">Anvender dit manuelle valg af kvalitet på alle fremtidige videoer</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_title">Meddelelser om ændring af kvalitet</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_summary">Viser en meddelelse, når en ny standardkvalitet gemmes</string>
+  <string name="morphe_video_quality_default_wifi_title">Standard videokvalitet på Wi-Fi-netværk</string>
+  <string name="morphe_video_quality_default_mobile_title">Standard videokvalitet på mobilnetværk</string>
+  <string name="morphe_remember_video_quality_toast_mobile">Ændrede standard mobilkvalitet til: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">Ændrede standard Wi-Fi-kvalitet til: %s</string>
+  <!-- misc.sharesheet.openSystemShareSheetPatch -->
+  <string name="morphe_open_system_share_sheet_title">Åbn systemets delingsark</string>
+  <string name="morphe_open_system_share_sheet_summary">Åbner systemets delingsmenu i stedet for den i appen, når der deles indhold</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Debug log protokolbuffer</string>
-  <string name="morphe_debug_protobuffer_summary">Tilføjer yderligere logningsinformation til udviklere for at identificere app-komponenter</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Aktivering af denne indstilling logger yderligere layoutdata, bl.a. skærmtekst for visse UI-komponenter.
+  <string name="morphe_debug_litho_title">Litho-logning</string>
+  <string name="morphe_debug_litho_entry_disabled">Deaktiveret</string>
+  <string name="morphe_debug_litho_entry_path">Sti</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">Sti og buffer</string>
+  <string name="morphe_debug_litho_user_dialog_message">"Litho-logning logger appens layoutkomponenter, herunder skærmtekst for visse UI-komponenter.
 
-Det kan hjælpe med at finde komponenter til egne filtre.
+Det kan hjælpe med at identificere komponenter, når der oprettes brugerdefinerede filtre.
 
-Det logger dog også brugerdata som din IP-adresse"</string>
+Det vil dog også logge visse brugerdata, såsom din IP-adresse"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">Brugerdefineret filter</string>
   <string name="morphe_custom_filter_screen_summary">Konfigurer brugerdefinerede filtre for at skjule en komponent</string>
@@ -227,7 +290,7 @@ Det logger dog også brugerdata som din IP-adresse"</string>
   <string name="morphe_settings_menu_filter_screen_summary">Skjul elementer på standard app-indstillingsskærmen efter deres synlige navn</string>
   <string name="morphe_settings_menu_filter_picker_empty">Åbn standard app-indstillingsskærmen én gang for at udfylde listen</string>
   <!-- interaction.dialog.removeViewerDiscretionDialogPatch -->
-  <string name="morphe_remove_viewer_discretion_dialog_title">Fjern dialog om beskyttelse af seere</string>
+  <string name="morphe_remove_viewer_discretion_dialog_title">Fjern advarselsdialog for seere</string>
   <string name="morphe_remove_viewer_discretion_dialog_summary">Dette omgår ikke aldersbegrænsningen. Den accepterer den bare automatisk</string>
   <!-- misc.potoken.poTokenProviderPatch -->
   <string name="morphe_potoken_provider_screen_title">PoToken-udbyder</string>
@@ -281,7 +344,7 @@ Hvis det senere slås fra, anbefales det at rydde app-data for at forhindre UI-f
   <string name="morphe_custom_font_failed_to_load">Den brugerdefinerede skrifttype kunne ikke indlæses og er slået fra</string>
   <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
   <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Disliker er midlertidigt ikke tilgængelig (API-timeout ud)</string>
+  <string name="morphe_ryd_failure_connection_timeout">Disliker er midlertidigt ikke tilgængelige (API-timeout)</string>
   <string name="morphe_ryd_failure_connection_status_code">Dislikes er ikke tilgængelige (status %s)</string>
   <string name="morphe_ryd_failure_client_rate_limit_requested">Dislikes er ikke tilgængelige (klient API-grænse)</string>
   <string name="morphe_ryd_failure_generic">Dislikes er ikke tilgængelige (%s)</string>
@@ -292,7 +355,7 @@ Hvis det senere slås fra, anbefales det at rydde app-data for at forhindre UI-f
   <string name="morphe_ryd_enabled_title">Aktivér Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Vis dislikes som procent</string>
   <string name="morphe_ryd_dislike_percentage_summary">Viser dislikes som en procentdel af likes i stedet for et tal</string>
-  <string name="morphe_ryd_estimated_like_title">Vis anslåede Likes</string>
+  <string name="morphe_ryd_estimated_like_title">Vis anslåede likes</string>
   <string name="morphe_ryd_estimated_like_summary">Viser et estimeret like-antal på videoer, hvor skaberen har deaktiveret likes</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Vis forbindelsesfejlmeddelelser</string>
   <string name="morphe_ryd_toast_on_connection_error_summary">Viser en notifikation, når Return YouTube Dislike-serveren ikke er tilgængelig</string>
@@ -309,7 +372,7 @@ ID'et på den video, du ser, sendes til Return YouTube Dislike's API, og dine li
   <string name="morphe_ryd_statistics_getFetchCallCount_title">API henter stemmer, antal kald</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Ingen netværksopkald foretaget</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%s netværksopkald udført</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API henter stemmer, antal fejl</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API henter stemmer, antal timeouts</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Ingen netværkskald timed ud</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%s netværksopkald timed out</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API-klientens hastighedsbegrænsninger</string>

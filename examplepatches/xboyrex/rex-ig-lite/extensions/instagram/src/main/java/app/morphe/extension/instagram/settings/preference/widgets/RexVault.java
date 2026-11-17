@@ -9,7 +9,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -17,6 +16,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -25,9 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import app.morphe.extension.instagram.patches.story.StoryLikeHistoryActivity;
@@ -116,61 +114,70 @@ public final class RexVault {
     }
 
     public static void showSavedBiosDialog(Context context) {
-        showVaultDialog(context, "Saved Bios", KEY_BIOS, false);
+        showVaultDialog(context, "file-text", "Saved Bios", KEY_BIOS, false);
     }
 
     public static void showSavedCaptionsDialog(Context context) {
-        showVaultDialog(context, "Saved Captions", KEY_CAPTIONS, false);
+        showVaultDialog(context, "scroll-text", "Saved Captions", KEY_CAPTIONS, false);
     }
 
     public static void showSavedProfilesDialog(Context context) {
-        showVaultDialog(context, "Saved Profiles", KEY_PROFILES, true);
+        showVaultDialog(context, "bookmarks", "Saved Profiles", KEY_PROFILES, true);
     }
 
     public static void showWatchHistoryDialog(Context context) {
-        showVaultDialog(context, "Watch & Story Likes History", KEY_WATCH_HISTORY, true);
+        showVaultDialog(context, "history", "Activity & Watch History", KEY_WATCH_HISTORY, true);
     }
 
-    private static void showVaultDialog(final Context context, final String title, final String prefKey, final boolean openProfileOnTap) {
+    private static void showVaultDialog(
+            final Context context,
+            final String headerIconId,
+            final String title,
+            final String prefKey,
+            final boolean openProfileOnTap
+    ) {
         try {
             SharedPreferences sp = prefs(context);
             JSONArray arr = new JSONArray(sp.getString(prefKey, "[]"));
 
-            LinearLayout root = new LinearLayout(context);
-            root.setOrientation(LinearLayout.VERTICAL);
-            int pad = RexVectorIcons.dp(context, 18);
-            root.setPadding(pad, pad, pad, pad);
-            GradientDrawable bg = new GradientDrawable();
-            bg.setColor(0xFF121518);
-            bg.setCornerRadius(RexVectorIcons.dp(context, 24));
-            bg.setStroke(RexVectorIcons.dp(context, 1), 0x3388C2CE);
-            root.setBackground(bg);
-
-            TextView header = new TextView(context);
-            header.setText(title);
-            header.setTextColor(Color.WHITE);
-            header.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
-            header.setTypeface(Typeface.DEFAULT_BOLD);
-            header.setPadding(0, 0, 0, RexVectorIcons.dp(context, 12));
-            root.addView(header);
+            final AlertDialog dialog = new AlertDialog.Builder(context).create();
+            LinearLayout root = RexDialogs.createDialogSheet(context, headerIconId, title);
 
             if (KEY_WATCH_HISTORY.equals(prefKey)) {
-                TextView storyLikesBtn = new TextView(context);
-                storyLikesBtn.setText("♥ Open 24h Story Likes Grid");
-                storyLikesBtn.setTextColor(0xFF0A1417);
-                storyLikesBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                storyLikesBtn.setTypeface(Typeface.DEFAULT_BOLD);
+                LinearLayout storyLikesBtn = new LinearLayout(context);
+                storyLikesBtn.setOrientation(LinearLayout.HORIZONTAL);
                 storyLikesBtn.setGravity(Gravity.CENTER);
                 int vPad = RexVectorIcons.dp(context, 12);
                 storyLikesBtn.setPadding(vPad, vPad, vPad, vPad);
                 GradientDrawable btnBg = new GradientDrawable();
-                btnBg.setColor(0xFF9AD0DC);
+                btnBg.setColor(RexDialogs.BRAND_CYAN);
                 btnBg.setCornerRadius(RexVectorIcons.dp(context, 18));
                 storyLikesBtn.setBackground(btnBg);
+
+                final ImageView heartIcon = new ImageView(context);
+                heartIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                heartIcon.setImageDrawable(RexIcon.getDrawable(context, "heart", 0xFF0A1417, 18, true));
+                LinearLayout.LayoutParams hLp = new LinearLayout.LayoutParams(
+                        RexVectorIcons.dp(context, 18), RexVectorIcons.dp(context, 18));
+                hLp.setMarginEnd(RexVectorIcons.dp(context, 8));
+                storyLikesBtn.addView(heartIcon, hLp);
+
+                TextView btnLabel = new TextView(context);
+                btnLabel.setText("Open 24h Story Likes Grid");
+                btnLabel.setTextColor(0xFF0A1417);
+                btnLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                btnLabel.setTypeface(Typeface.DEFAULT_BOLD);
+                storyLikesBtn.addView(btnLabel);
+
                 LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 btnLp.bottomMargin = RexVectorIcons.dp(context, 14);
-                storyLikesBtn.setOnClickListener(v -> StoryLikeHistoryActivity.open(context));
+                storyLikesBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    RexIcon.pulseIcon(heartIcon);
+                    dialog.dismiss();
+                    StoryLikeHistoryActivity.open(context);
+                });
                 root.addView(storyLikesBtn, btnLp);
             }
 
@@ -181,9 +188,9 @@ public final class RexVault {
             if (arr.length() == 0) {
                 TextView empty = new TextView(context);
                 empty.setText("No saved items yet. Use the xboyrex Options menu on any profile, post, or reel to save items here.");
-                empty.setTextColor(0xFF9AA3AE);
-                empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                empty.setPadding(0, RexVectorIcons.dp(context, 16), 0, RexVectorIcons.dp(context, 16));
+                empty.setTextColor(RexDialogs.TEXT_SECONDARY);
+                empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                empty.setPadding(RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 14), RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 14));
                 list.addView(empty);
             } else {
                 for (int i = 0; i < arr.length(); i++) {
@@ -195,29 +202,47 @@ public final class RexVault {
                     final String d = obj.optString("d", "");
 
                     LinearLayout card = new LinearLayout(context);
-                    card.setOrientation(LinearLayout.VERTICAL);
-                    int cPad = RexVectorIcons.dp(context, 12);
+                    card.setOrientation(LinearLayout.HORIZONTAL);
+                    card.setGravity(Gravity.CENTER_VERTICAL);
+                    int cPad = RexVectorIcons.dp(context, 14);
                     card.setPadding(cPad, cPad, cPad, cPad);
                     GradientDrawable cardBg = new GradientDrawable();
-                    cardBg.setColor(0xFF1C2226);
-                    cardBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+                    cardBg.setColor(RexDialogs.ELEVATED_SURFACE);
+                    cardBg.setCornerRadius(RexVectorIcons.dp(context, 18));
+                    cardBg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), RexDialogs.BORDER_STROKE);
                     card.setBackground(cardBg);
+
+                    final ImageView itemIcon = new ImageView(context);
+                    itemIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                    String rowIconId = openProfileOnTap ? "user-round" : "edit";
+                    itemIcon.setImageDrawable(RexIcon.getDrawable(context, rowIconId, RexDialogs.BRAND_CYAN, 20));
+                    LinearLayout.LayoutParams iLp = new LinearLayout.LayoutParams(
+                            RexVectorIcons.dp(context, 20), RexVectorIcons.dp(context, 20));
+                    iLp.setMarginEnd(RexVectorIcons.dp(context, 12));
+                    card.addView(itemIcon, iLp);
+
+                    LinearLayout textCol = new LinearLayout(context);
+                    textCol.setOrientation(LinearLayout.VERTICAL);
 
                     TextView topRow = new TextView(context);
                     topRow.setText((u.isEmpty() ? "Saved Item" : "@" + u) + (d.isEmpty() ? "" : "  •  " + d));
-                    topRow.setTextColor(0xFF88C2CE);
-                    topRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+                    topRow.setTextColor(RexDialogs.BRAND_CYAN);
+                    topRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
                     topRow.setTypeface(Typeface.DEFAULT_BOLD);
-                    card.addView(topRow);
+                    textCol.addView(topRow);
 
                     TextView bodyRow = new TextView(context);
                     bodyRow.setText(t);
-                    bodyRow.setTextColor(Color.WHITE);
-                    bodyRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                    bodyRow.setTextColor(RexDialogs.TEXT_PRIMARY);
+                    bodyRow.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
                     bodyRow.setPadding(0, RexVectorIcons.dp(context, 4), 0, 0);
-                    card.addView(bodyRow);
+                    textCol.addView(bodyRow);
+
+                    card.addView(textCol, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
                     card.setOnClickListener(v -> {
+                        RexHaptics.tap(v);
+                        RexIcon.pulseIcon(itemIcon);
                         if (openProfileOnTap && !u.isEmpty()) {
                             Utils.setClipboard("@" + u);
                             try {
@@ -229,8 +254,8 @@ public final class RexVault {
                                 RexUtils.openUrl("https://www.instagram.com/" + u + "/", true);
                             }
                         } else {
-                            Utils.setClipboard(t);
-                            Utils.showToastShort("Copied to clipboard");
+                            dialog.dismiss();
+                            RexDialogs.showTextStudioDialog(context, title, u, t, l);
                         }
                     });
 
@@ -251,17 +276,16 @@ public final class RexVault {
             footer.setGravity(Gravity.END);
             footer.setPadding(0, RexVectorIcons.dp(context, 12), 0, 0);
 
-            final AlertDialog dialog = new AlertDialog.Builder(context).create();
-
             if (arr.length() > 0) {
                 TextView clearBtn = new TextView(context);
                 clearBtn.setText("Clear All");
-                clearBtn.setTextColor(0xFFFF6B6B);
-                clearBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                clearBtn.setTextColor(RexDialogs.DESTRUCTIVE_RED);
+                clearBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
                 clearBtn.setTypeface(Typeface.DEFAULT_BOLD);
                 clearBtn.setPadding(RexVectorIcons.dp(context, 14), RexVectorIcons.dp(context, 8),
                         RexVectorIcons.dp(context, 14), RexVectorIcons.dp(context, 8));
                 clearBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
                     sp.edit().putString(prefKey, "[]").apply();
                     Utils.showToastShort("Cleared " + title);
                     dialog.dismiss();
@@ -271,12 +295,15 @@ public final class RexVault {
 
             TextView closeBtn = new TextView(context);
             closeBtn.setText("Close");
-            closeBtn.setTextColor(0xFF88C2CE);
-            closeBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            closeBtn.setTextColor(RexDialogs.BRAND_CYAN);
+            closeBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
             closeBtn.setTypeface(Typeface.DEFAULT_BOLD);
             closeBtn.setPadding(RexVectorIcons.dp(context, 14), RexVectorIcons.dp(context, 8),
                     RexVectorIcons.dp(context, 14), RexVectorIcons.dp(context, 8));
-            closeBtn.setOnClickListener(v -> dialog.dismiss());
+            closeBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                dialog.dismiss();
+            });
             footer.addView(closeBtn);
 
             root.addView(footer);

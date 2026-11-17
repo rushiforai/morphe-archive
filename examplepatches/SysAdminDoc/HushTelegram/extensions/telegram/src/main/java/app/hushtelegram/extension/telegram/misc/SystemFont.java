@@ -36,6 +36,12 @@ public final class SystemFont {
         HookStatus.invoked(FamilyNames.USE_SYSTEM_FONT);
         try {
             if (!Utils.settingsReady() || !Settings.USE_SYSTEM_FONT.get()) return null;
+            // A font file of your own takes the medium, italic and bold files first (#79).
+            Typeface own = CustomFont.forAsset(asset);
+            if (own != null) {
+                HookStatus.counted(FamilyNames.USE_SYSTEM_FONT, "font file used");
+                return own;
+            }
             Typeface typeface = forAsset(asset);
             if (typeface != null) HookStatus.counted(FamilyNames.USE_SYSTEM_FONT, "system font used");
             return typeface;

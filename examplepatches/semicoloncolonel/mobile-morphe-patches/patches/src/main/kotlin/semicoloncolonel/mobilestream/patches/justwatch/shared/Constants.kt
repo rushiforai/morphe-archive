@@ -3,8 +3,8 @@ package semicoloncolonel.mobilestream.patches.justwatch.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.splitByBundle
 import app.morphe.patcher.patch.SupportedAbi
-import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -14,7 +14,9 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFBC500,
         targets = listOf(
-            devTarget("26.45.1", 2645001, description = "Phone build"),
+            AppTarget("26.45.1", versionCode = 2645001, description = "Phone build"),
+            AppTarget("26.44.2", versionCode = 2644002, description = "Phone build"),
+            AppTarget("26.43.10", versionCode = 2643010, description = "Phone build"),
             // Two Android TV builds of 26.43.8 exist: APKMirror's bundle (2643008, with
             // 32-bit and 64-bit splits) and the single 32-bit APK Google Play gives an
             // NVIDIA Shield (12643008). Both are listed so Morphe Manager accepts either.
@@ -26,6 +28,13 @@ object Constants {
                 ),
                 description = "Android TV build",
             ),
+            // Matched by version name alone, so both the APKMirror bundle and the
+            // copy Google Play gives a Shield are accepted. Tested on an NVIDIA
+            // Shield (Android 11) on 2026-11-16.
+            AppTarget("26.44.5", description = "Android TV build"),
         )
+    ).splitByBundle(
+        phoneDescription = "The JustWatch streaming guide app for phones.",
+        tvDescription = "The JustWatch streaming guide app.",
     )
 }

@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.dealnews.shared.Constants as DealNews
+import semicoloncolonel.mobilestream.patches.shared.misc.forBundle
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants as DealSeek
 import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
 import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
@@ -49,7 +50,7 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
     name = "Disable Pairip license check",
     description = "Lets the patched app start by skipping Google's Pairip license check.",
 ) {
-    compatibleWith(
+    compatibleWith(*forBundle(
         FoxOne.COMPATIBILITY,
         DealSeek.COMPATIBILITY,
         DealNews.COMPATIBILITY,
@@ -58,7 +59,7 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
         WhiteHouse.COMPATIBILITY,
         Nfg.COMPATIBILITY,
         Moviebase.COMPATIBILITY,
-    )
+    ))
 
     execute {
         // Some versions drop Pairip licensing (Moviebase 7.7.1 has no

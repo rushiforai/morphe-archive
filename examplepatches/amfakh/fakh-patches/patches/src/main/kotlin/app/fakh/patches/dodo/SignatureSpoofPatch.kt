@@ -3,7 +3,7 @@ package app.fakh.patches.dodo
 import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /**
  * `com.pairip.application.Application.attachBaseContext(Context)`: the app's entry point, run before
@@ -30,7 +30,7 @@ private val attachBaseContextFingerprint = Fingerprint(
  * match what the server expects. Without it the app installs and shows its library, but no song plays.
  */
 @Suppress("unused")
-val signatureSpoofPatch = bytecodePatch(
+val signatureSpoofPatch = patch(
     name = "Fix song playback",
     description = "Lets songs play on the patched app. A patched app is signed with a different key, which the " +
         "server rejects when it hands out the encrypted song, so without this every song would hang on \"loading\".",

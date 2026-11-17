@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 import org.json.JSONArray;
@@ -89,6 +90,7 @@ final class SpecialContactsStore {
     private final LinkedHashMap<String, Record> records = new LinkedHashMap<>();
     private boolean loaded;
     private volatile Set<String> ids = Collections.emptySet();
+    private volatile Set<String> names = Collections.emptySet();
 
     SpecialContactsStore(File folder) {
         this.folder = folder;
@@ -102,6 +104,11 @@ final class SpecialContactsStore {
     /** The people tracked, for a check that can't wait on the store. */
     Set<String> ids() {
         return ids;
+    }
+
+    /** Their names, lowercased, for the same kind of check. A person Messenger hasn't named yet isn't in here. */
+    Set<String> names() {
+        return names;
     }
 
     /** Reads the folder once. A file that can't be read keeps its person tracked with a fresh history. */
@@ -241,6 +248,8 @@ final class SpecialContactsStore {
         if (record == null || clean.isEmpty() || clean.equals(record.name)) return false;
         if (!record.name.isEmpty()) append(record, now, NAME, record.name + "\n" + clean);
         record.name = clean;
+        // Quiet mode reads the names without the lock, so a new one has to reach it as soon as the history has it.
+        publish();
         return save(record);
     }
 
@@ -256,6 +265,9 @@ final class SpecialContactsStore {
 
     private void publish() {
         ids = Collections.unmodifiableSet(new HashSet<>(records.keySet()));
+        Set<String> lowercase = new HashSet<>();
+        for (Record record : records.values()) if (!record.name.isEmpty()) lowercase.add(record.name.toLowerCase(Locale.ROOT));
+        names = Collections.unmodifiableSet(lowercase);
     }
 
     private File file(String id) {

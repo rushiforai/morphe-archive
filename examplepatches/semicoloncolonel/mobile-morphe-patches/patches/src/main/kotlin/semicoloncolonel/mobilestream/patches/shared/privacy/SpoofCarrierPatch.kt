@@ -3,65 +3,21 @@ package semicoloncolonel.mobilestream.patches.shared.privacy
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
-import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
-import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
-import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
-import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
-import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
-import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
-import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
-import semicoloncolonel.mobilestream.patches.pbs.shared.Constants as Pbs
-import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
-import semicoloncolonel.mobilestream.patches.cnn.shared.Constants as Cnn
-import semicoloncolonel.mobilestream.patches.espn.shared.Constants as Espn
-import semicoloncolonel.mobilestream.patches.nfl.shared.Constants as Nfl
-import semicoloncolonel.mobilestream.patches.nba.shared.Constants as Nba
-import semicoloncolonel.mobilestream.patches.disney.shared.Constants as Disney
-import semicoloncolonel.mobilestream.patches.hulu.shared.Constants as Hulu
-import semicoloncolonel.mobilestream.patches.foxnews.shared.Constants as FoxNews
-import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
-import semicoloncolonel.mobilestream.patches.hbomax.shared.Constants as HboMax
-import semicoloncolonel.mobilestream.patches.mgm.shared.Constants as Mgm
-import semicoloncolonel.mobilestream.patches.msnow.shared.Constants as MsNow
-import semicoloncolonel.mobilestream.patches.nytimes.shared.Constants as NyTimes
-import semicoloncolonel.mobilestream.patches.paramount.shared.Constants as Paramount
-import semicoloncolonel.mobilestream.patches.peacock.shared.Constants as Peacock
-import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
-import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
-import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
-import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
-import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
-import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
-import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
-import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
-import semicoloncolonel.mobilestream.patches.settingshome.shared.Constants as SettingsHome
-import semicoloncolonel.mobilestream.patches.shudder.shared.Constants as Shudder
-import semicoloncolonel.mobilestream.patches.sundancenow.shared.Constants as SundanceNow
-import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
-import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
-import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
-import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
-import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
-import semicoloncolonel.mobilestream.patches.nps.shared.Constants as Nps
-import semicoloncolonel.mobilestream.patches.nfg.shared.Constants as Nfg
-import semicoloncolonel.mobilestream.patches.recgov.shared.Constants as RecGov
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Spoof carrier (OPT-IN, default OFF).
+// Carrier (an option of Hide device identifiers, off by default).
 //
 // Apps and their bundled SDKs (ad bidding, analytics, crash reporting) read
 // the mobile carrier from TelephonyManager and SubscriptionInfo. Every app
 // call to those methods is pointed at CarrierSpoofer, which answers with the
-// name chosen in the patch option. A blank name hides the carrier. The
+// name chosen in the Carrier name option. A blank name hides the carrier. The
 // numeric operator code is always blank and the carrier ID is unknown, so
 // they cannot contradict the name. These are framework classes, so the names
 // are the same in every app.
@@ -114,73 +70,43 @@ internal fun String.smaliEscaped() = buildString {
     }
 }
 
-@Suppress("unused")
-val spoofCarrierPatch = bytecodePatch(
-    name = "Spoof carrier",
-    description = "Hides your mobile carrier from the app, or reports a carrier name you choose.",
-    default = false,
-) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, HboMax.STREAM_COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, JustWatch.COMPATIBILITY, Nps.COMPATIBILITY, Nfg.COMPATIBILITY, RecGov.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, SettingsHome.COMPATIBILITY)
-
-    extendWith("extensions/extension.mpe")
-
-    val carrierName by stringOption(
-        key = "carrierName",
-        default = "",
-        values = mapOf(
-            "Hidden (blank)" to "",
-            "AT&T" to "AT&T",
-            "Google Fi" to "Google Fi",
-            "Mint Mobile" to "Mint Mobile",
-            "T-Mobile" to "T-Mobile",
-            "US Mobile" to "US Mobile",
-            "Verizon" to "Verizon",
-            "Visible" to "Visible",
-        ),
-        title = "Carrier name",
-        description = "The carrier name the app sees. Pick one from the list or type any name. " +
-            "Blank hides the carrier.",
-        required = false,
+internal fun BytecodePatchContext.spoofCarrier(carrierName: String) {
+    val name = carrierName.smaliEscaped()
+    CarrierNameFingerprint.method.addInstructions(
+        0,
+        """
+            const-string v0, "$name"
+            return-object v0
+        """,
     )
 
-    execute {
-        val name = (carrierName ?: "").smaliEscaped()
-        CarrierNameFingerprint.method.addInstructions(
-            0,
-            """
-                const-string v0, "$name"
-                return-object v0
-            """,
-        )
-
-        // Collect first, mutate after: mutableClassDefBy swaps the class map
-        // entry, which must not happen mid-iteration.
-        val targets = mutableListOf<String>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith(CARRIER_EXTENSION_PACKAGE)) return@classDefForEach
-            if (classDef.methods.any { method ->
-                    method.implementation?.instructions?.any { it.carrierRewrite() != null } == true
-                }
-            ) {
-                targets += classDef.type
+    // Collect first, mutate after: mutableClassDefBy swaps the class map
+    // entry, which must not happen mid-iteration.
+    val targets = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(CARRIER_EXTENSION_PACKAGE)) return@classDefForEach
+        if (classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.carrierRewrite() != null } == true
             }
+        ) {
+            targets += classDef.type
         }
+    }
 
-        targets.forEach { type ->
-            mutableClassDefBy(type).methods.forEach { method ->
-                // Snapshot: replaceInstruction mutates the live list.
-                val instructions = method.implementation?.instructions?.toList() ?: return@forEach
-                instructions.forEachIndexed { index, instruction ->
-                    val rewrite = instruction.carrierRewrite() ?: return@forEachIndexed
-                    val target = "$CARRIER_SPOOFER->${rewrite.name}(${rewrite.definingClass})${rewrite.returnType}"
-                    val smali = when (instruction) {
-                        is FiveRegisterInstruction -> "invoke-static {v${instruction.registerC}}, $target"
-                        is RegisterRangeInstruction ->
-                            "invoke-static/range { v${instruction.startRegister} .. v${instruction.startRegister} }, $target"
-                        else -> return@forEachIndexed
-                    }
-                    method.replaceInstruction(index, smali)
+    targets.forEach { type ->
+        mutableClassDefBy(type).methods.forEach { method ->
+            // Snapshot: replaceInstruction mutates the live list.
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            instructions.forEachIndexed { index, instruction ->
+                val rewrite = instruction.carrierRewrite() ?: return@forEachIndexed
+                val target = "$CARRIER_SPOOFER->${rewrite.name}(${rewrite.definingClass})${rewrite.returnType}"
+                val smali = when (instruction) {
+                    is FiveRegisterInstruction -> "invoke-static {v${instruction.registerC}}, $target"
+                    is RegisterRangeInstruction ->
+                        "invoke-static/range { v${instruction.startRegister} .. v${instruction.startRegister} }, $target"
+                    else -> return@forEachIndexed
                 }
+                method.replaceInstruction(index, smali)
             }
         }
     }

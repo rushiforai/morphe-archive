@@ -30,6 +30,7 @@ import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addInstructionsWithLabels
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.literalReads
 import app.morphe.util.returnEarly
@@ -77,6 +78,32 @@ internal object LivePlayFragmentResumeFingerprint : Fingerprint(
     name = "onResume",
     returnType = "V",
     parameters = listOf(),
+)
+
+internal const val LIVE_MENTIONS_EXTENSION = "Lapp/morphe/extension/tiktok/live/LiveMentions;"
+
+/** A message from the LIVE message server, real-named on 47.7.3. */
+internal const val LIVE_MESSAGE = "Lcom/ss/ugc/live/sdk/message/data/IMessage;"
+
+/**
+ * The LIVE message manager's dispatch of one message (#424), in the obfuscated manager that
+ * implements the room's message manager. It tells TikTok's event listeners a message is about to
+ * go out, stamps "dispatch_strategy" and "dispatch_time" on its tracking, then hands it to each
+ * listener. Every chat line and caption a room gets passes here once, so the name alert reads
+ * each one at the top of the method.
+ */
+internal object LiveMessageDispatchFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(LIVE_MESSAGE),
+    strings = listOf("dispatch_strategy", "dispatch_time"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_INTERFACE,
+            definingClass = "Lcom/ss/ugc/live/sdk/message/interfaces/EventListener;",
+            name = "onPreDispatchMessage",
+            parameters = listOf(LIVE_MESSAGE),
+        ),
+    ),
 )
 
 private const val PIP_PARAMS_BUILDER = "Landroid/app/PictureInPictureParams\$Builder;"
@@ -267,6 +294,45 @@ internal object LiveClearScreenSessionFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
 )
+
+/** The full screen button of a portrait LIVE room, both versions real-named on 47.7.3. */
+internal const val LIVE_FULL_VIDEO_BUTTON = "Lcom/bytedance/android/livesdk/chatroom/viewmodule/FullVideoButtonWidget;"
+internal const val LIVE_FULL_VIDEO_BUTTON_V2 = "Lcom/bytedance/android/livesdk/chatroom/viewmodule/FullVideoButtonWidgetV2;"
+
+/**
+ * Whether a LIVE room loads its full screen button (#57). It answers true only for a LIVE Studio
+ * or screen share room that isn't a star room, or while live_mt_mock_landscape is on, and on the
+ * way it notes whether the room is a multi-stream one. Once loaded, the button shows while the
+ * video is wide, and a tap turns the room to landscape. Its last return carries that answer; the
+ * first one answers false for a widget that has no data channel yet.
+ */
+internal object LiveFullVideoButtonAttachFingerprint : Fingerprint(
+    definingClass = LIVE_FULL_VIDEO_BUTTON,
+    name = "shouldAttach",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/** The same answer for the button's second version, which rooms load in its place. */
+internal object LiveFullVideoButtonV2AttachFingerprint : Fingerprint(
+    definingClass = LIVE_FULL_VIDEO_BUTTON_V2,
+    name = "shouldAttach",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/**
+ * Hands a full screen button's shouldAttach answer to the extension at its last return, on that
+ * return's label so the branch onto it runs the call too (#57).
+ */
+internal fun hookFullScreenAttach(method: MutableMethod) = method.apply {
+    val last = findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN }.first()
+    val register = getInstruction<OneRegisterInstruction>(last).registerA
+    addInstructionsAtControlFlowLabel(last, """
+        invoke-static/range { v$register .. v$register }, $EXTENSION->offerFullScreen(Z)Z
+        move-result v$register
+    """)
+}
 
 /**
  * LIVE's per-room controller (X.0Las on 47.7.3, whose obfuscated name moves every build), found by
@@ -1778,6 +1844,131 @@ internal fun hookLightRoomView(constructor: MutableMethod, view: String) {
     )
 }
 
+/** LIVE's widget base, real-named on 47.7.3. */
+internal const val LIVE_WIDGET = "Lcom/bytedance/android/widget/Widget;"
+
+/** The manager LIVE's widgets load through, real-named on 47.7.3. */
+internal const val LIVE_WIDGET_MANAGER = "Lcom/bytedance/android/widget/WidgetManager;"
+
+/** The managers a LIVE room loads widgets through: the base and its two recycling kinds, real-named on 47.7.3. */
+internal val LIVE_WIDGET_MANAGERS = listOf(
+    LIVE_WIDGET_MANAGER,
+    "Lcom/bytedance/ies/sdk/widgets/RecyclableWidgetManager;",
+    "Lcom/bytedance/ies/sdk/widgets/LayeredWidgetManagerV2;",
+)
+
+private val LIVE_WIDGET_TYPES = setOf(LIVE_WIDGET, "Lcom/bytedance/ies/sdk/widgets/LiveRecyclableWidget;")
+
+/** The managers' loaders that take a widget beside whether it inflates in the background. */
+private val LIVE_WIDGET_LOADERS = setOf(
+    "loadNew", "loadOld", "generateNewWidget", "generateOldWidget", "generateNewWidgetV2", "generateOldWidgetV2",
+)
+
+/** Whether [method] is the manager's overlay inflater, which wraps an inflater in a widget's theme overlay. */
+internal fun isWidgetOverlayInflater(method: Method) =
+    method.name == "getThemeOverlayLayoutInflater" && method.returnType == "Landroid/view/LayoutInflater;" &&
+        method.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/LayoutInflater;", "I") &&
+        !AccessFlags.STATIC.isSet(method.accessFlags)
+
+/**
+ * Where [method]'s background flag sits as a loader: the flag's index among its parameters and
+ * whether the widget comes right before it, or null for a method that isn't one of the loaders or
+ * keeps the flag apart from its widget.
+ */
+internal fun widgetLoaderFlag(method: Method): Pair<Int, Boolean>? {
+    if (method.name !in LIVE_WIDGET_LOADERS || AccessFlags.STATIC.isSet(method.accessFlags) ||
+        AccessFlags.SYNTHETIC.isSet(method.accessFlags) || method.implementation == null
+    ) {
+        return null
+    }
+    val types = method.parameterTypes.map(CharSequence::toString)
+    val flag = types.indexOf("Z")
+    if (flag < 0 || types.lastIndexOf("Z") != flag || types.any { it == "J" || it == "D" }) return null
+    return when {
+        flag > 0 && types[flag - 1] in LIVE_WIDGET_TYPES -> flag to true
+        flag + 1 < types.size && types[flag + 1] in LIVE_WIDGET_TYPES -> flag to false
+        else -> null
+    }
+}
+
+/**
+ * Hands the overlay inflater's inflater and overlay to the extension first, which answers the
+ * inflater the overlay goes over: one over the room's light theme for a pinned comment the manager
+ * just named, TikTok's own for everything else.
+ */
+internal fun hookWidgetOverlayInflater(method: MutableMethod) {
+    if (!isWidgetOverlayInflater(method)) {
+        throw PatchException("LIVE controls: the widget manager's overlay inflater is gone")
+    }
+    method.addInstructions(
+        0,
+        """
+            invoke-static/range {p1 .. p2}, $PANEL_THEME->widgetInflater(Landroid/view/LayoutInflater;I)Landroid/view/LayoutInflater;
+            move-result-object p1
+        """,
+    )
+}
+
+/**
+ * Names the widget to the extension right before each of [method]'s calls to the overlay inflater,
+ * from the receiver of the widget's getThemeOverlay just before it, which that call's overlay came
+ * from. A write to that register or a branch landing in between could name another widget, so
+ * either is refused. Returns how many calls were hooked.
+ */
+internal fun hookWidgetLoads(method: MutableMethod): Int {
+    val code = method.implementation?.instructions?.toList() ?: return 0
+    val called = { at: Int -> (code[at] as? ReferenceInstruction)?.reference as? MethodReference }
+    val calls = code.indices.filter { at ->
+        val call = called(at)
+        (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+            call != null && call.name == "getThemeOverlayLayoutInflater" &&
+            call.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/LayoutInflater;", "I")
+    }
+    for (call in calls.reversed()) {
+        val overlay = (call - 1 downTo 0).firstOrNull { at ->
+            val asked = called(at)
+            asked != null && asked.name == "getThemeOverlay" && asked.returnType == "I" &&
+                asked.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
+        } ?: throw PatchException("LIVE controls: ${method.name} asks for an overlay inflater with no widget's overlay")
+        val widget = when (val ask = code[overlay]) {
+            is FiveRegisterInstruction -> ask.registerC
+            is RegisterRangeInstruction -> ask.startRegister
+            else -> throw PatchException("LIVE controls: ${method.name} reads a widget's overlay in an unknown form")
+        }
+        if ((overlay + 1..call).any { code[it].location.labels.isNotEmpty() } ||
+            (overlay + 1 until call).any { writesRegister(code[it], widget) }
+        ) {
+            throw PatchException("LIVE controls: ${method.name} loses its widget before the overlay inflater")
+        }
+        method.addInstruction(call, "invoke-static/range {v$widget .. v$widget}, $PANEL_THEME->widgetLoading(Ljava/lang/Object;)V")
+    }
+    return calls.size
+}
+
+/**
+ * Hands a loader's widget and background flag to the extension first, which answers the flag: a
+ * pinned comment over a darkened room loads in the foreground, where the overlay inflater hook
+ * reaches it. The flag sits right beside the widget, so both go as one range, and the answer goes
+ * back into the flag before the loader reads it.
+ */
+internal fun hookWidgetLoader(method: MutableMethod) {
+    val (flag, widgetFirst) = widgetLoaderFlag(method)
+        ?: throw PatchException("LIVE controls: ${method.name} takes no background flag beside its widget")
+    val register = flag + 1
+    val call = if (widgetFirst) {
+        "invoke-static/range {p${register - 1} .. p$register}, $PANEL_THEME->widgetInBackground(Ljava/lang/Object;Z)Z"
+    } else {
+        "invoke-static/range {p$register .. p${register + 1}}, $PANEL_THEME->backgroundWidget(ZLjava/lang/Object;)Z"
+    }
+    method.addInstructions(
+        0,
+        """
+            $call
+            move-result p$register
+        """,
+    )
+}
+
 private const val ANDROID_THEME = "Landroid/content/res/Resources\$Theme;"
 
 /**
@@ -2434,6 +2625,13 @@ val liveControlsPatch = bytecodePatch(
             "invoke-static {}, $EXTENSION->keepClearScreen()Z",
             "const/4 v0, 0x1\nreturn v0",
         )
+        // Both versions of the room's full screen button pass their answer through the extension
+        // at their last return, which answers true while its switch is on, so every room loads
+        // the button (#57). TikTok's own answer runs first, so the multi-stream flag it notes on
+        // the way is still set, and the early false for a widget with no data channel stays.
+        listOf(LiveFullVideoButtonAttachFingerprint, LiveFullVideoButtonV2AttachFingerprint).forEach {
+            hookFullScreenAttach(it.method)
+        }
         // Answers true while its switch is on and the panel's context is in dark mode, so LIVE
         // panels take TikTok's dark LIVE theme in rooms too (#159).
         LiveDarkThemeFingerprint.method.guardAtEntry(
@@ -2535,6 +2733,27 @@ val liveControlsPatch = bytecodePatch(
         hookLightRoomView(LiveAnchorTipFingerprint.classDef.methods.single {
             it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
         }, "the toolbar tip")
+        // A host's pinned comment takes LIVE's dark overlay over the room's theme, which the room
+        // hook darkened, so its Pinned and timer tags came out in other colors than with the switch
+        // off (#362). Each manager names the widget to the extension right before it asks for the
+        // overlay inflater, which lays a pinned comment's overlay over the room's light copy, and
+        // the loaders send a pinned comment to the foreground, where that inflater is asked.
+        hookWidgetOverlayInflater(mutableClassDefBy(LIVE_WIDGET_MANAGER).methods.single(::isWidgetOverlayInflater))
+        var widgetLoads = 0
+        var widgetLoaders = 0
+        for (manager in LIVE_WIDGET_MANAGERS) {
+            if (classDefByOrNull(manager) == null) continue
+            for (method in mutableClassDefBy(manager).methods) {
+                widgetLoads += hookWidgetLoads(method)
+                if (widgetLoaderFlag(method) != null) {
+                    hookWidgetLoader(method)
+                    widgetLoaders++
+                }
+            }
+        }
+        if (widgetLoads == 0 || widgetLoaders == 0) {
+            throw PatchException("LIVE controls: the widget managers' loads are gone ($widgetLoads, $widgetLoaders)")
+        }
         // That light copy is taken before the room's color scheme styles, the style its base adds
         // in onCreate and TikTok's LIVE color theme, which the room's LIVE fragments apply as
         // they're created. The bubble inflated over a copy without them threw on its text (S22,
@@ -2593,6 +2812,11 @@ val liveControlsPatch = bytecodePatch(
         LivePlayFragmentResumeFingerprint.method.addInstruction(
             0,
             "invoke-static/range {p0 .. p0}, $RECORD_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
+        )
+        // Each message a LIVE room gets, for the name alert, before TikTok hands it out (#424).
+        LiveMessageDispatchFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p1 .. p1}, $LIVE_MENTIONS_EXTENSION->onMessage(Ljava/lang/Object;)V",
         )
         // The same button in TikTok's own picture-in-picture window, next to its play and pause (#413).
         LivePipActionsFingerprint.method.let { pipActions ->

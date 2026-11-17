@@ -2,8 +2,8 @@ package app.fakhradio.patches
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import app.fakhradio.patches.shared.Constants.COMPATIBILITY_RADIO_ID
 import app.fakhradio.patches.shared.disableProviders
 import org.w3c.dom.Element
@@ -35,7 +35,7 @@ private val setCrashlyticsCollectionEnabledFingerprint = Fingerprint(
  * back on at runtime, which matters for Performance: the app calls
  * `setPerformanceCollectionEnabled(true)` in its main process.
  */
-private val analyticsManifestPatch = resourcePatch {
+private val analyticsManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             val application = manifest.getElementsByTagName("application").item(0) as Element
@@ -59,7 +59,7 @@ private val analyticsManifestPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and the Facebook SDK with its app events.",
     default = true,

@@ -115,8 +115,9 @@ final class ReelsCategory {
                     L10n.t("The Add a comment bar under every reel, including the ones in the Reels tab. The comment "
                             + "button still opens the comments.")));
             reels.add(toggle(context, Settings.KEEP_REEL_COMMENT_BAR_SPACE, L10n.t("Keep the comment bar's space"),
-                    L10n.t("Leaves an empty band where a hidden comment bar was on reels you open from a post or a "
-                            + "profile, so the reel, its buttons and the seek bar don't move down.")));
+                    L10n.t("Leaves an empty black band where a hidden comment bar was on reels outside the Reels tab, "
+                            + "like the ones you open from Explore or a profile, so the reel, its buttons and the seek "
+                            + "bar don't move down.")));
             reels.add(toggle(context, Settings.HIDE_REEL_REPLY_BAR, L10n.t("Hide the reply bar on reels from chats"),
                     L10n.t("The Reply to box under a reel you open from a chat, with its reactions and plus button. "
                             + "The chat's own message box stays.")));
@@ -141,8 +142,7 @@ final class ReelsCategory {
                             + "it still comes from Instagram, so it can be empty. Hide the Friends tab wins.")));
             reels.add(toggle(context, Settings.PICK_FRIENDS_TAB, L10n.t("Hold the Friends tab to pick friends"),
                     L10n.t("Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps "
-                            + "only reels they liked or shared. A page with none of them keeps one reel so the next "
-                            + "page can load.")));
+                            + "only reels they liked or shared.")));
             reels.add(toggle(context, Settings.HIDE_REEL_LIKE_BUTTON, L10n.t("Hide the Like button on reels"),
                     L10n.t("Takes the heart out of the column of buttons beside a reel, and the like count under it. "
                             + "Double tap still likes a reel.")));
@@ -152,6 +152,19 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REEL_SAVE_BUTTON, L10n.t("Hide the Save button on reels"),
                     L10n.t("Takes the Save button out of the column of buttons beside a reel, and the count under it. "
                             + "Posts in your feed keep theirs.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_LIKE_COUNT, L10n.t("Hide like counts on reels"),
+                    L10n.t("Takes away the number under the heart beside a reel. The heart stays.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_COMMENT_COUNT, L10n.t("Hide comment counts on reels"),
+                    L10n.t("Takes away the number under the Comment button beside a reel. The button stays.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_REPOST_COUNT, L10n.t("Hide repost counts on reels"),
+                    L10n.t("Takes away the number under the Repost button beside a reel. The button stays.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_SHARE_COUNT, L10n.t("Hide share counts on reels"),
+                    L10n.t("Takes away the number under the Share button beside a reel. The button stays.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_SAVE_COUNT, L10n.t("Hide save counts on reels"),
+                    L10n.t("Takes away the number under the Save button beside a reel. The button stays.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_PAUSE_ICON, L10n.t("Hide the pause icon on reels"),
+                    L10n.t("A paused reel shows just its frame, without the big pause icon and the sound button over "
+                            + "it. Tap the reel to play it again.")));
             reels.add(burnInGuardRow(context));
             reels.add(burnInWaitRow(context));
             reels.add(toggle(context, Settings.BURN_IN_STAY_DIM, L10n.t("Stay dim when I tap"),
@@ -273,6 +286,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.PHOTO_REEL_SEEK_BAR, L10n.t("Seek bar on photos with music"),
                     L10n.t("Reels that are a photo with a song get the same seek bar and time as a video reel, "
                             + "following the song. Drag it to seek.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_SEEK_BAR, L10n.t("Hide the seek bar on reels"),
+                    L10n.t("Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it "
+                            + "back and seek. Keep a seek bar and the seek bar looks above win over it.")));
         }
         if (build.contains(PatchFamily.REEL_ZOOM)) {
             reels.add(toggle(context, Settings.PINCH_ZOOM_REELS, L10n.t("Pinch to zoom"),
@@ -285,10 +301,16 @@ final class ReelsCategory {
                             + "as Skip length says. A double tap in the middle still likes it. Reels no longer than that "
                             + "don't skip.")));
             reels.add(reelSkipLengthRow(context));
+            reels.add(toggle(context, Settings.REEL_SKIP_ARROWS, L10n.t("Show the skip arrows"),
+                    L10n.t("Two arrows flash on the side you double tapped, with the seconds skipped under them, "
+                            + "like on feed videos.")));
         }
         if (build.contains(PatchFamily.HIDE_REEL_2X_POPUP)) {
             reels.add(toggle(context, Settings.HIDE_REEL_2X_POPUP, L10n.t("Hide the 2x popup"),
                     L10n.t("Takes the 2x label off a reel while you hold it to play faster. The speed-up still works.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_LOCK_MESSAGE, L10n.t("Hide the speed lock message"),
+                    L10n.t("Keeps the message Instagram shows when you lock a reel's speed, and when the lock ends, "
+                            + "off the screen. The lock still works.")));
         }
         if (build.contains(PatchFamily.REEL_BLUR_BARS)) {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),

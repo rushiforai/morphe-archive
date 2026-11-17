@@ -7,7 +7,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.mutableClassDefBy
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -63,7 +64,7 @@ private object TeadsBindFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Removes the ad banners with their \"Iklan\" block from the home feed, articles and lists, the native ad in the feed, the Teads video ad in articles and the full-screen ad.",
     default = true,

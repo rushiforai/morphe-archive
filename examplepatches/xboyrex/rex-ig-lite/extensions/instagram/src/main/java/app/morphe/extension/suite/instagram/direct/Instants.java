@@ -5,6 +5,7 @@
 package app.morphe.extension.suite.instagram.direct;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Logger;
 import app.morphe.extension.suite.shared.Utils;
@@ -56,6 +57,6 @@ public final class Instants {
     }
 
     private static boolean switchedOn() {
-        return Utils.settingsReady() && Settings.HIDE_INSTANTS.get();
+        return Pref.ghostInstants() || (Utils.settingsReady() && Settings.HIDE_INSTANTS.get());
     }
 }

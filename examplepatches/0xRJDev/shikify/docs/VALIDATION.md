@@ -1,8 +1,8 @@
 # Validation
 
-Only Boost 1.14.3 is supported. The application validator requires the original APK with SHA-256 `a273eca565f5f6e811db4bfbe63e5c9d5ece6d0cc2e1c38ac1a3a50b411ffe5c`.
+Only Boost 1.14.4 is supported. The application validator requires the original APK with SHA-256 `a3c70867fec07c822f950b8b60f784290b63e815c52ef0a7fad3036533100011`.
 
-`BOOST_APK=/path/to/original.apk ./build.sh` compiles Kotlin/Java, builds the Android extension and `.mpp`, checks all 25 exact public names, validates native mappings and 36 register-safe bytecode hooks, applies the patches, checks runtime references, validates HTTP/2 configuration and exercises both emoji-wrapper regressions. Thirty host checks cover thread-boundary projection. Without an original APK, only compilation, patch metadata generation and host checks run.
+`BOOST_APK=/path/to/original.apk ./build.sh` compiles Kotlin/Java, builds the Android extension and `.mpp`, checks all 25 exact public names, validates native mappings and register-safe bytecode hooks, applies the patches, checks runtime references, validates HTTP/2 configuration and exercises both emoji-wrapper regressions. Thirty host checks cover thread-boundary projection. Without an original APK, only compilation, patch metadata generation and host checks run.
 
 For mixed-source preservation checks, invoke `:patches:validateMixed` with `-PmixedInput=/path/to/your-mixed.apk -PmixedOutput=/path/to/output.apk`, using the same pinned source-composite properties shown in `build.sh`. This verifies other-source class/method/field sets remain present, not arbitrary future patch-source combinations.
 

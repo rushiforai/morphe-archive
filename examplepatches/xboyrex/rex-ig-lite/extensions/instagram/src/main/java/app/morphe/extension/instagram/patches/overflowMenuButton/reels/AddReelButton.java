@@ -95,6 +95,7 @@ public class AddReelButton {
 
     // Called from hook — passes the real current carousel index.
     public static void includeCustomReelOverflowButtons(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
+        if (!Pref.reelsFloatingToolbar() && !Pref.enableDownload() && !Pref.moreOptionsOnPost()) return;
         if(Pref.rexDebug()){
             AddReelButton.addDebugButton(context, helperObject, mediaObject, currentMediaIndex);
         }
@@ -104,7 +105,7 @@ public class AddReelButton {
         if(Pref.downloadWithExternalDownloader()){
             AddReelButton.addExternalDownloadButton(context, helperObject, mediaObject, currentMediaIndex);
         }
-        if(Pref.moreOptionsOnPost()){
+        if(Pref.moreOptionsOnPost() || Pref.reelsFloatingToolbar()){
             AddReelButton.addInfoButton(context, helperObject, mediaObject, currentMediaIndex);
         }
     }

@@ -187,7 +187,7 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
                 ListItem(headlineContent = { SelectableSettingLabel { Text(item.label, style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
                     color = MaterialTheme.colorScheme.onSurface) } },
                     supportingContent = { if (item.description.isNotBlank()) Text(item.description) },
-                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, Modifier.rotate(if (expanded) 90f else 0f)) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, if (expanded) "折りたたむ" else "展開する", Modifier.rotate(if (expanded) -90f else 90f)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded })
                 if (expanded) {

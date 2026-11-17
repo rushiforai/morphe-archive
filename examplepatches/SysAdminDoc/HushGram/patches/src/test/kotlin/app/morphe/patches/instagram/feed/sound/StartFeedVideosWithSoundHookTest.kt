@@ -12,7 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.NeutralNativePath
-import app.morphe.patches.instagram.reels.tapvolume.TOGGLE_AUDIO
+import app.morphe.patches.instagram.media.taptoplay.REELS_PLAYER_PAUSE
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -47,19 +47,22 @@ class StartFeedVideosWithSoundHookTest {
     private val userSession = "Lcom/instagram/common/session/UserSession;"
     private val state = "Lfixture/AudioState;"
     private val reels = "Lfixture/ClipsVideoPlayerController;"
-    private val toggleMarker = "android_purge_26_q3_$TOGGLE_AUDIO"
 
     /**
      * The instructions the hook adds: test the flag, ask, test the answer, set the flag, take the session, test it,
-     * take the account's audio state and set it on.
+     * take the account's audio state and set it on, then go on; and for a flag already true, ask whether feed videos
+     * keep muted, test the answer and clear the flag (#718).
      */
-    private val hookLength = 11
+    private val hookLength = 16
+
+    /** Where the muted branch starts, counted from the flag test, with a one boolean setter. */
+    private val loudAt = 12
 
     /** The hook's opcodes, with a one boolean setter. */
     private val hookOpcodes = listOf(
         Opcode.IF_NEZ, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4,
         Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
-        Opcode.INVOKE_VIRTUAL,
+        Opcode.INVOKE_VIRTUAL, Opcode.GOTO, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4,
     )
 
     /** The hook the patch writes is in the FeedSound the bundle ships, public and static, and takes the controller as an Object. */
@@ -69,6 +72,7 @@ class StartFeedVideosWithSoundHookTest {
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue("$FEED_START_WITH_SOUND is not in the extension: $declared", FEED_START_WITH_SOUND.substringAfter("->") in declared)
+        assertTrue("$FEED_KEEPS_MUTED is not in the extension: $declared", FEED_KEEPS_MUTED.substringAfter("->") in declared)
     }
 
     /**
@@ -108,7 +112,29 @@ class StartFeedVideosWithSoundHookTest {
         assertTrue("the hook wrote the controller's register or a parameter: $written", written.all { it < p0 })
         assertEquals("what's left of the method", original.size + hookLength, code.size)
         assertEquals("the original instructions keep their order", original, code.take(ask - 1).map { it.describe() } + code.drop(call).map { it.describe() })
-        assertTrue("a jump lands inside the hook", (ask until call).none { it in context.start().jumpTargets() })
+        val loud = ask - 1 + loudAt
+        assertMutedBranch("", code, ask, loud, call, flag)
+        assertEquals("only the muted branch is jumped to inside the hook", listOf(loud), (ask until call).filter { it in context.start().jumpTargets() })
+    }
+
+    /**
+     * A flag already true jumps to the muted branch, the loud path goes on to the flag call, and the branch asks
+     * [FEED_KEEPS_MUTED] with nothing, tests its answer in the register the first ask used, and on a yes clears the flag.
+     */
+    private fun assertMutedBranch(what: String, code: List<Instruction>, ask: Int, loud: Int, call: Int, flag: Int) {
+        assertEquals("${what}a true flag goes to the muted branch", loud, code[ask - 1].jumpTarget())
+        // dexlib2 widens the goto when the hook pushes the flag call past a plain goto's reach.
+        assertTrue("${what}the loud path goes on to the flag call, not ${code[loud - 1].opcode}",
+            code[loud - 1].opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32))
+        assertEquals("${what}to the flag call", call, code[loud - 1].jumpTarget())
+        assertEquals("${what}the muted branch asks", FEED_KEEPS_MUTED, code[loud].referenceText())
+        assertEquals("${what}with nothing", emptyList<Int>(), code[loud].arguments())
+        val answer = (code[ask + 1] as OneRegisterInstruction).registerA
+        assertEquals("${what}into the first answer's register", answer, (code[loud + 1] as OneRegisterInstruction).registerA)
+        assertEquals("${what}tests it", answer, (code[loud + 2] as OneRegisterInstruction).registerA)
+        assertEquals("${what}a no goes on to the flag call", call, code[loud + 2].jumpTarget())
+        assertEquals("${what}a yes clears the flag", flag, (code[loud + 3] as OneRegisterInstruction).registerA)
+        assertEquals("${what}to false", 0, (code[loud + 3] as NarrowLiteralInstruction).narrowLiteral)
     }
 
     /** Without one session field on the controller, or with the audio state out of its reach, the patch stops first. */
@@ -211,7 +237,9 @@ class StartFeedVideosWithSoundHookTest {
                 }
                 assertEquals("$what: the setter", site.setter.toString(), code[ask + 9 + extra].referenceText())
                 assertEquals("$what: set to the flag", site.flag, (code[ask + 9 + extra] as FiveRegisterInstruction).registerD)
-                assertTrue("$what: a jump lands inside the hook", (ask until call).none { it in start.jumpTargets() })
+                val loud = ask - 1 + loudAt + extra
+                assertMutedBranch("$what: ", code, ask, loud, call, site.flag)
+                assertEquals("$what: only the muted branch is jumped to inside the hook", listOf(loud), (ask until call).filter { it in start.jumpTargets() })
                 val p0 = start.implementation!!.registerCount - 11
                 assertEquals("$what: the controller is read from its own register", listOf(p0), code[ask].arguments())
                 val borrowed = code.subList(ask - 1, call).mapNotNull { (it as? OneRegisterInstruction)?.registerA }
@@ -229,7 +257,7 @@ class StartFeedVideosWithSoundHookTest {
     // The classes a build is read from: the controller and the types its code makes, the Reels audio toggles and the
     // classes their code calls into, the audio state among them.
     private fun wanted(apk: File, holder: ClassDef): Set<String> {
-        val toggles = FixtureDex.classesHolding(apk, toggleMarker)
+        val toggles = FixtureDex.classesLoading(apk, REELS_PLAYER_PAUSE)
         val called = toggles.flatMap { c -> c.methods.flatMap { m -> m.code().mapNotNull { (it.reference() as? MethodReference)?.definingClass } } }
         return holder.methods.flatMap { m -> m.code().filter { it.opcode == Opcode.NEW_INSTANCE }.map { (it as ReferenceInstruction).reference.toString() } }
             .toSet() + holder.type + toggles.map { it.type } + called.filter { it.startsWith("L") }
@@ -302,7 +330,7 @@ class StartFeedVideosWithSoundHookTest {
         )
         val audioState = if (statePublic) state else "Lother/AudioState;"
         val toggle = method(reels, "toggleAudio", listOf("I"), "V", 6, body = """
-            const-string v0, "$toggleMarker"
+            const-string v0, "toggleAudio"
             invoke-static { v0 }, $trace
             iget-object v1, p0, $reels->session:$userSession
             invoke-static { v1 }, $audioState->of($userSession)$audioState
@@ -313,10 +341,16 @@ class StartFeedVideosWithSoundHookTest {
             invoke-virtual { v2, v4 }, $audioState->set(Z)V
             return-void
         """)
+        val pause = method(reels, "pause", listOf("Ljava/lang/String;"), "I", 1, body = """
+            const-string v0, "$REELS_PLAYER_PAUSE"
+            invoke-static { v0 }, $trace
+            const/4 v0, 0x0
+            return v0
+        """)
         val reelsClass = ImmutableClassDef(
             reels, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
             listOf(ImmutableField(reels, "session", userSession, AccessFlags.PUBLIC.value, null, null, null)),
-            listOf(toggle),
+            listOf(toggle, pause),
         )
         // Out of the controller's package, a state class that isn't public can't be reached from it.
         val stateClass = ImmutableClassDef(
@@ -380,6 +414,8 @@ class StartFeedVideosWithSoundHookTest {
     private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 
     private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference
+
+    private fun Instruction.jumpTarget(): Int? = (this as? BuilderOffsetInstruction)?.target?.location?.index
 
     private fun Instruction.referenceText(): String? = reference()?.toString()
 

@@ -1,0 +1,56 @@
+name: Close untargeted and incomplete reports
+
+# Closes issues labeled "untargeted version" or "incomplete" after 7 days
+# without an update. The triage workflow's comment already says so, so nothing
+# more is posted. An edit that fixes the report removes the label first.
+#
+# It also removes "may reopen" from closed issues after 7 days without a new
+# comment. See mobile-morphe-patches/.github/scripts/expire_may_reopen.py.
+#
+# Copied from mobile-morphe-patches/.github/tv-repo. Edit it there.
+
+on:
+  schedule:
+    - cron: "15 16 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  close:
+    name: Close untargeted and incomplete reports
+    permissions:
+      issues: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Close reports untouched for 7 days
+        uses: actions/stale@v11
+        with:
+          any-of-labels: untargeted version,incomplete
+          days-before-issue-stale: 7
+          days-before-issue-close: 0
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-message: ""
+          close-issue-message: ""
+          close-issue-reason: not_planned
+
+  may-reopen:
+    name: Expire "may reopen"
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout the script
+        uses: actions/checkout@v7
+        with:
+          repository: semicoloncolonel/mobile-morphe-patches
+          persist-credentials: false
+
+      - name: Remove the label after 7 quiet days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/scripts/expire_may_reopen.py

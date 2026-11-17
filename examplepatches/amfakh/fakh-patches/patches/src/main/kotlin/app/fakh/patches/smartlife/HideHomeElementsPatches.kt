@@ -7,9 +7,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -43,7 +43,7 @@ private object IntegrityKillFingerprint : Fingerprint(
  * patch makes the app see the original certificate again through a PackageManager proxy.
  */
 @Suppress("unused")
-val signatureSpoofPatch = bytecodePatch(
+val signatureSpoofPatch = patch(
     name = "Spoof signature",
     description = "Lets the patched app start. A patched app is signed with a different key, which the app's " +
         "integrity check rejects, so without this it closes a few seconds after it opens.",
@@ -120,7 +120,7 @@ internal const val HIDE_CELL = """
 """
 
 @Suppress("unused")
-val hideRewardsHubPatch = bytecodePatch(
+val hideRewardsHubPatch = patch(
     name = "Hide Rewards Hub",
     description = "Removes the \"Rewards Hub\" row and its banner from the Me tab.",
     default = true,
@@ -151,7 +151,7 @@ private object DefaultCellVisibilityFingerprint : Fingerprint(
 private val hiddenRowIds = linkedMapOf<String, String>()
 
 /** The class with type [type]. */
-private fun BytecodePatchContext.classDef(type: String): ClassDef {
+private fun classDef(type: String): ClassDef {
     var found: ClassDef? = null
     classDefForEach { if (it.type == type) found = it }
     return found ?: throw PatchException("Smart Life: $type not found.")
@@ -163,7 +163,7 @@ private fun BytecodePatchContext.classDef(type: String): ClassDef {
  * constructor parameter of the cell, held in the cell's only field of that type, and the id is the field the bean's
  * constructor stores its third parameter in.
  */
-private fun BytecodePatchContext.customRowIdPath(): Pair<String, String> {
+private fun customRowIdPath(): Pair<String, String> {
     val cell = classDef("$CELL_PACKAGE/CustomIotCell;")
     val beanType = cell.methods.single { it.name == "<init>" }.parameterTypes[1].toString()
     val cellField = cell.fields.single { it.type == beanType }.name
@@ -188,7 +188,7 @@ private fun BytecodePatchContext.customRowIdPath(): Pair<String, String> {
  * compares the same field itself); p0 and p1 are free to reuse because the method only returns a constant afterwards.
  * Runs once, after every hide patch added its id.
  */
-private val customRowFilterPatch = bytecodePatch {
+private val customRowFilterPatch = patch {
     finalize {
         if (hiddenRowIds.isEmpty()) return@finalize
         val (cellField, idField) = customRowIdPath()
@@ -224,7 +224,7 @@ private val customRowFilterPatch = bytecodePatch {
 }
 
 @Suppress("unused")
-val hideMyOrdersPatch = bytecodePatch(
+val hideMyOrdersPatch = patch(
     name = "Hide My Orders",
     description = "Removes the \"My Orders\" row from the Me tab.",
     default = true,
@@ -238,7 +238,7 @@ val hideMyOrdersPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideTuyaAiWebPatch = bytecodePatch(
+val hideTuyaAiWebPatch = patch(
     name = "Hide Tuya AI Web Version",
     description = "Removes the \"Tuya AI Web Version\" row from the Me tab.",
     default = true,
@@ -260,7 +260,7 @@ private object PlusMenuViewFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hidePlusButtonPatch = bytecodePatch(
+val hidePlusButtonPatch = patch(
     name = "Hide Plus button",
     description = "Removes the \"Plus\" pill from the home header.",
     default = true,
@@ -283,7 +283,7 @@ val hidePlusButtonPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideRecommendedForYouPatch = bytecodePatch(
+val hideRecommendedForYouPatch = patch(
     name = "Hide Recommended for you",
     description = "Removes the \"Recommended for You\" section and its cards (AI Notes and the rest) from the home screen.",
     default = true,
@@ -313,7 +313,7 @@ val hideRecommendedForYouPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideAiAskBarPatch = bytecodePatch(
+val hideAiAskBarPatch = patch(
     name = "Hide AI ask bar",
     description = "Removes the \"How can I help?\" Tuya AI bar above the navigation bar and at the bottom of device panels.",
     default = true,
@@ -340,7 +340,7 @@ private object TabConfigLoaderFingerprint : Fingerprint(
  * Hands every tab list the loader returns to the extension, which drops the tabs whose hide switch is on. Shared by
  * the patches that hide a tab, so the call goes in once.
  */
-internal val tabFilterPatch = bytecodePatch {
+internal val tabFilterPatch = patch {
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -357,7 +357,7 @@ internal val tabFilterPatch = bytecodePatch {
 }
 
 @Suppress("unused")
-val hideExploreTabPatch = bytecodePatch(
+val hideExploreTabPatch = patch(
     name = "Hide Explore tab",
     description = "Removes the Explore tab from the navigation bar.",
     default = true,
@@ -386,7 +386,7 @@ private object AdEntryFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Removes the Google ad banners and ad rows the app shows, such as the one above the Me menu.",
     default = true,

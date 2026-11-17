@@ -45,6 +45,8 @@ public final class MyMessages {
 
     /** Asked whenever the chat updates its own Translate item, which exists when the chat has a menu at the top. */
     public static void headerMenu(Object chat) {
+        // Admin tools has its own switch and adds its own item, with My messages on or off.
+        AdminTools.headerMenu(chat);
         try {
             if (chat == null || ADDED.contains(chat) || !active() || !hasHeader(chat) || !group(chat)) return;
             addHeaderItem(chat, ITEM, icon(), L10n.t("My messages"));
@@ -61,6 +63,7 @@ public final class MyMessages {
      * @return true when the choice was ours, so Telegram's own handling is skipped
      */
     public static boolean headerClick(Object delegate, int id) {
+        if (id == AdminTools.ITEM) return AdminTools.headerClick(delegate, id);
         if (id != ITEM) return false;
         try {
             // An item left in an open menu after the switch went off is still ours, and does nothing.

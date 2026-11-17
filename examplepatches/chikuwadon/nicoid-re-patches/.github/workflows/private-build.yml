@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
       - name: Validate workflow action pinning and release safeguards
         run: python3 porting/tests/VerifyGithubActionsSecurity.py
-      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -389,6 +389,7 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
           node .github/scripts/verify-release-npm.cjs
+          node .github/scripts/test-release-toolchain.cjs
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
@@ -425,7 +426,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -706,7 +707,33 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
-      - name: Build current Morphe Kotlin patch classes for v2.0.5-dev.17
+      - name: Verify resume option and playback choice ordering
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 porting/revisions/v2.0.6-dev.11/tests/verify.py
+          python3 porting/revisions/v2.0.6-dev.11/tests/run_resume_test.py
+          python3 porting/revisions/v2.0.6-dev.13/tests/menu_test.py
+          mkdir -p /tmp/nicoid-settings-v270
+          javac --release 8 -d /tmp/nicoid-settings-v270 \
+            porting/revisions/v2.0.6-dev.11/java/e/e/a/PlaybackChoiceOrder270.java \
+            porting/revisions/v2.0.6-dev.11/tests/PlaybackChoiceOrder270Test.java
+          java -cp /tmp/nicoid-settings-v270 e.e.a.PlaybackChoiceOrder270Test
+          mkdir -p /tmp/nicoid-comment-v206 /tmp/nicoid-menu-v266
+          javac --release 8 -d /tmp/nicoid-comment-v206 \
+            porting/revisions/v2.0.6-dev.5/java/e/e/a/CommentFlow220.java \
+            porting/revisions/v2.0.6-dev.5/tests/CommentFlow265Test.java
+          java -cp /tmp/nicoid-comment-v206 e.e.a.CommentFlow265Test
+          javac --release 8 -d /tmp/nicoid-comment-v206 \
+            porting/revisions/v2.0.6-dev.8/java/e/e/a/ScrollingTimeline267.java \
+            porting/revisions/v2.0.6-dev.8/tests/ScrollingTimeline267Test.java
+          java -cp /tmp/nicoid-comment-v206 e.e.a.ScrollingTimeline267Test
+          javac --release 8 -d /tmp/nicoid-menu-v266 \
+            porting/revisions/v2.0.6-dev.8/java/e/e/a/PlaybackChoice266.java \
+            porting/revisions/v2.0.6-dev.8/tests/PlaybackChoice266Test.java
+          java -cp /tmp/nicoid-menu-v266 e.e.a.PlaybackChoice266Test
+      - name: Build current Morphe Kotlin patch classes
         if: github.ref == 'refs/heads/dev'
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -728,6 +755,14 @@ jobs:
             # Stable and subsequent versions already contain the canonical compiled MPP.
             if [[ "$version" == "2.0.5-dev.17" ]]; then
               builder=porting/revisions/v2.0.5-dev.17
+            elif [[ "$version" == "2.0.6-dev.10" ]]; then
+              builder=porting/revisions/v2.0.6-dev.10
+            elif [[ "$version" == "2.0.6-dev.11" ]]; then
+              builder=porting/revisions/v2.0.6-dev.11
+            elif [[ "$version" == "2.0.6-dev.12" ]]; then
+              builder=porting/revisions/v2.0.6-dev.12
+            elif [[ "$version" == "2.0.6-dev.13" ]]; then
+              builder=porting/revisions/v2.0.6-dev.13
             else
               builder=""
             fi
@@ -752,6 +787,9 @@ jobs:
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             cp "$compiled" "$output"
+          fi
+          if [[ "$version" == "2.0.6-dev.12" || "$version" == "2.0.6-dev.13" ]]; then
+            python3 porting/revisions/v2.0.6-dev.12/verify_settings_links.py "$output" "$revision/tools"
           fi
           unzip -tq "$output"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"

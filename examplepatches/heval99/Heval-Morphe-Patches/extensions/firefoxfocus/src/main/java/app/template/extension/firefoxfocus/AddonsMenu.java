@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import kotlin.jvm.functions.Function0;
 
 /**
- * The browser menu's add-on entries. Focus 159 builds its menu with Android Components' Compose
+ * The browser menu's add-on entries. Focus (159 and 160) builds its menu with Android Components' Compose
  * menu (BrowserMenu.menuGroupsFor), which has no add-on support, so this adds one row before
  * Settings: each enabled add-on's browser action (its popup) and "Extensions" (the manager).
  *
@@ -250,10 +250,13 @@ final class AddonsMenu {
         return api;
     }
 
-    /** The Focus 159 / Android Components members the menu entries use, resolved once. */
+    /** The Focus 159 / 160 Android Components members the menu entries use, resolved once. */
     private static final class Api {
         final Class<?> text = cls("mozilla.components.compose.base.text.Text");
         final Constructor<?> textString = cls("mozilla.components.compose.base.text.Text$String").getConstructor(String.class);
+        // 160 wraps the title: StandardMenuItem takes a MenuItemTitle(Text) where 159 took a Text.
+        final Class<?> menuItemTitle = optionalCls("mozilla.components.compose.menu.data.MenuItemTitle");
+        final Constructor<?> titleWrap = menuItemTitle == null ? null : menuItemTitle.getConstructor(text);
         final Class<?> menuEvent = cls("mozilla.components.compose.menu.store.MenuEvent");
         final Class<?> menuItemIcon = cls("mozilla.components.compose.menu.ui.MenuItemIcon");
         final Constructor<?> iconDrawable = cls("mozilla.components.compose.menu.ui.MenuItemIconDrawable").getConstructor(Drawable.class);
@@ -293,21 +296,29 @@ final class AddonsMenu {
             return Class.forName(name, false, AddonsMenu.class.getClassLoader());
         }
 
+        private static Class<?> optionalCls(String name) {
+            try {
+                return cls(name);
+            } catch (ClassNotFoundException e) {
+                return null;
+            }
+        }
+
         /** The widest public StandardMenuItem constructor naming title, event, icon and state. */
         private Constructor<?> standardItemConstructor() throws ClassNotFoundException {
             Constructor<?> best = null;
             for (Constructor<?> candidate : cls("mozilla.components.compose.menu.data.StandardMenuItem").getConstructors()) {
                 List<Class<?>> types = Arrays.asList(candidate.getParameterTypes());
-                if (!types.contains(text) || !types.contains(menuEvent) || !types.contains(menuItemIcon)
+                if (!types.contains(menuItemTitle != null ? menuItemTitle : text) || !types.contains(menuEvent) || !types.contains(menuItemIcon)
                         || !types.contains(menuItemState)) continue;
                 if (best == null || candidate.getParameterCount() > best.getParameterCount()) best = candidate;
             }
-            if (best == null) throw new IllegalStateException("no StandardMenuItem(Text, MenuEvent, MenuItemIcon, MenuItemState) constructor");
+            if (best == null) throw new IllegalStateException("no StandardMenuItem(MenuItemTitle or Text, MenuEvent, MenuItemIcon, MenuItemState) constructor");
             return best;
         }
 
         /**
-         * new StandardMenuItem(...): the first Text is the title, then the event, icon and state;
+         * new StandardMenuItem(...): the title (a MenuItemTitle wrapping a Text on 160, a bare Text on 159) comes first, then the event, icon and state;
          * every other reference is null (content description, badge) and every int is 0, so R8's
          * default mask marks nothing as defaulted.
          */
@@ -323,8 +334,9 @@ final class AddonsMenu {
                 if (type == int.class) args[i] = 0;
                 else if (type == boolean.class) args[i] = false;
                 else if (type == long.class) args[i] = 0L;
-                else if (type == text && !titleSet) {
-                    args[i] = textString.newInstance(title);
+                else if (!titleSet && (menuItemTitle != null ? type == menuItemTitle : type == text)) {
+                    Object titleText = textString.newInstance(title);
+                    args[i] = titleWrap != null ? titleWrap.newInstance(titleText) : titleText;
                     titleSet = true;
                 } else if (type == menuEvent) args[i] = event;
                 else if (type == menuItemIcon) args[i] = menuIcon;

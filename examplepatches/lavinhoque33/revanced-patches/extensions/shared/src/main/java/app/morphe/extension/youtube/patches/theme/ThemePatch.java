@@ -8,6 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-16
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -139,6 +140,8 @@ public final class ThemePatch {
             0xFF0F0F0F, 0xFF030303, 0xFF131313, 0xFF303030,
             0xFF000000, 0xFF424242, 0xFF212121, 0x99282828, 0xCC000000,
             0x99000000,
+            // Mainstage base, raised and menu surfaces retain their distinct Stock colors.
+            0xFF141416, 0xFF2D2D31, 0xFF2A2A2D,
     };
     private static final int STOCK_DARK_THEME_STATUS_BAR_COLOR_INDEX = 7;
 
@@ -642,6 +645,8 @@ public final class ThemePatch {
                 {0x5A, 0x34, 0x12, (byte) 0xFF}, {0x5B, 0x34, 0x12, (byte) 0xFF},
                 {0x5C, 0x34, 0x12, (byte) 0xFF}, {0x5D, 0x34, 0x12, (byte) 0xFF},
                 {0x5E, 0x34, 0x12, (byte) 0xFF},
+                {0x5F, 0x34, 0x12, (byte) 0xFF}, {0x60, 0x34, 0x12, (byte) 0xFF},
+                {0x61, 0x34, 0x12, (byte) 0xFF},
         };
         private static final byte[] LIGHT_PLACEHOLDER =
                 {0x21, 0x43, 0x65, (byte) 0xFF};
@@ -653,7 +658,25 @@ public final class ThemePatch {
          * the light background only. The last two keep the opposite foreground palette stock.
          */
         private static final String COMPRESSED_TABLE =
-                "H4sIAI0omWoC/+3cv28U+R3H4e/u2sYGg9fQUFjRmlyB7iS05zMXrjoLpLQxsPz+YRuzAguDrcVGojpTJwVNJNJZSkNpKf8A0rUpKFNSpSYp02w+s/5wtnI5OXBFouh50JuZlz2DR8PSUi/j5S+/rZdaKbGp+LVPfPGHrrdqO3Hdd3G6XNbK43KmPIjjWvy+WrpRS+VJuV968ZWVOJ4pz+Nss2zE7sX3/5+0arvH39X2v6qpeA+ljOy7bnbf+WisGTtZ3R87Xb3S8m35Mo8zefwqj7N5PBvH4cEbX431fvhZ7UYpk/v+nhb3/axfxn4dexrbjn0f+2tsLK6biz2J/T72fexvsV/US/lNbCv2x1ir9Xitt/6wu9DbfLKx8ri7cH+p92hh42E3Tu+tLi0/ah98yZfl888PumRhbX1peWXj+TdnP+bicwf/8JmDL/nq4Etmy+zsT1/ydGNpY/Ppwr2lXmz50YPe2uaT+4MLyhdf/PRtj5c2ur2VpdWFB73u84VzZ9vls88OeI6F9c1e92P+0Hb7I67+Jq4+8O23P7z9r9vlzJn/5Hk/3HDuY2/4+t98uFZXHjzcyDuW11bXej9+4h9d8uHP+1W71OvN0tmq/m0OlclWAQAAAAAAAAAAAAAAAAAA/oc0Spn7ufMWAQAAAAAAAAAAAAAAAAAAAOC/p1bvlNcvShmJ88lWKa+2fv5/CtIHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPolNGOtWDs2F5uPLcbWY1uxl7Ht2E7sText7F3sfXVzrZTRUq/O4lim5meP96uuZV/Mrmdfym5kX84eyu5kD2dfyR7Jvpp9KPta9mj29eyx7BvZh7NvZh/JvpU9nn07+2j2nexj2XezJ7KnL3QH3cye6Tzr1+qd8vpFGTzzZLzYV1u77/VUo1Y+lU8qAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPT7JTRjrVg7Nhebjy3G1mNbsZex7dhO7E3sbexd7H11c62U0VKvzuJYpuZnj/errmVfzK5nX8puZF/OHsruZA9nX8keyb6afSj7WvZo9vXssewb2Yezb2Yfyb6VPZ59O/to9p3sY9l3syeypy90B93Mnuk869fqnfL6RRk882S82Fdbu+/1VGP3PX0Kn1QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA6PdLaMZasXZsLjYfW4ytx7ZiL2PbsZ3Ym9jb2LvY++rmWimjpV6dxbFMzc8e71ddy76YXc++lN3Ivpw9lN3JHs6+kj2SfTX7UPa17NHs69lj2TeyD2ffzD6SfSt7PPt29tHsO9nHsu9mT2RX77Dq5l7/qVbvlNcvyuCZJ+PFvtrafa+nGo3yqXxSAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKDfL6EZa8XasbnYfGwxth7bir2Mbcd2Ym9ib2PvYu+rm2uljJZ6dRbHMnX69Ol+1bXs6enpQdf3+u9VN/b6H1UPZZ88eXJw/XD2xMTEoEeyG43GoA9lnzhxYtCj2e12e9Bj2XEY9OHs8+fPD/rIvzzf+N7z/6Hqo3v3/7nqY3s9+P7Eh/svdAf3N7NnOs/6/wT6f3X22IsCAA==";
+                "H4sIAAAAAAAC/+3UPW9U+RnG4f/MGGNebWwrobCigWyBWIEGr9mwVSzYTRsD5v1lbMzEWBjbGgwSVUyfSDQp0iGFD4CUJiXS" +
+                "tin4CBQoNUmZZvKc8cPaygY5EKroutDN8W98znh8ZuR62V/+8vt6qZUSm4h/28SDP3S9WXsW5/02vlwoq+VBOVkW47ga/y+X" +
+                "TtR8WSl3SzceWYrjyfIkvnpU1mN34vv/T5q1zePvattv1UTch1IGt503te3rodhI7HB1fexYdUvLL8upPE7m8as8TuXxdBx3" +
+                "9e/4cqz7w88aHyhlfNv7tLztZ/089qvYw9jz2Pexv8X2xHnTsZXYH2Lfx/4e+1m9lF/HNmJ/ir2O/bRRSjvWbD5Y7a7d67S7" +
+                "j1bWlx502nfnu/fb6/c68eWd5fmF+62dTzlVjh/f6ZT26tr8wtL6k29Of8zJZ3b+4ZM7n/LVzqdMlampD5/ycH1+/dHD9p35" +
+                "bmzh/mJ39dHK3f4J5csvP3zZg/n1Tndpfrm92O08aZ853SpffLHD62ivPep2PuZJW62POPubOHvHu996f/e/bpWTJ/+b1/v+" +
+                "gjMfe8HX/+HDtby0eG89r1hYXV7t/vgV/+iU98/3i1b59tsPv4Bu5zd5/sLqSrynK+sPN/th3Kel6pHFTv9GnS7fffcZnmay" +
+                "9ZmeJ/5I1OsjZW6j+vszUMabBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIjVKmP+dq9dny9mkpg/Hc481SXmzE" +
+                "g//ja+wBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAL0SRmLNWCs2HZuJzcXWYhuxZ7HnsZexV7HXsTexd9XFtbg+" +
+                "1oy1YkOlXj0axzIxMzXaq7qWfT67nn0hu5F9MXsgezZ7V/al7MHsy9m7s69kD2Vfzd6TfS17b/b17H3ZN7L3Z9/MPpB9K/tg" +
+                "9u3s4ewj5zr9HsmenH3c70PZ7Tx/NHsueyx7PrpWny1vn5b+7zgeb8qLjc335GijVj6VTzkAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                "AAAAAAAAAAAAAAAA9HoljMSasVZsOjYTm4utxTZiz2LPYy9jr2KvY29i76qLa3F9rBlrxYZKvXo0jmViZmq0V3Ut+3x2PftC" +
+                "diP7YvZA9mz2ruxL2YPZl7N3Z1/JHsq+mr0n+1r23uzr2fuyb2Tvz76ZfSD7VvbB7NvZw9lHznX6PZI9Ofu434ey23n+aPZc" +
+                "9lj2fHStPlvePi3933E83pQXG5vvydHG5n39FD7lAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANDrlTASa8ZasenY" +
+                "TGwuthbbiD2LPY+9jL2KvY69ib2rLq7F9bFmrBUbKvXq0TiWiZmp0V7Vtezz2fXsC9mN7IvZA9mz2buyL2UPZl/O3p19JXso" +
+                "+2r2nuxr2Xuzr2fvy76RvT/7ZvaB7FvZB7NvZw9nV/ez6pGt/nPVh7Lbef5o9lz2WPZ8dK0+W94+Lf3fcTzelBcbm+/J0Uaj" +
+                "fCqfcgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADo9UoYiTVjrdh0bCY2F1uLbcSexZ7HXsZexV7H3sTeVRfX4vpY" +
+                "M9aKDZV69Wgcy8SxY8d6Vdeyjxw50u/6Vv+j6sZW/7PqgezDhw/3z9+VPTw83O/B7Eaj0e/d2WNjY/0eym61Wv3ekx2Hfu/N" +
+                "Pnv2bL/3/dvr27/1+v9Y9YGt6/9a9cGt7n9/+P315zr960eyJ2cf9/tQ9k/Gx/s9mn3qxIl+j2WfOH689y9WlCZuuI0CAA==";
 
         private static ResourcesLoader loader;
 

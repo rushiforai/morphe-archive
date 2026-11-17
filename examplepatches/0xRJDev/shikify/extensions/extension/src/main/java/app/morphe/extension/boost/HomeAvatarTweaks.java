@@ -29,8 +29,6 @@ import java.util.WeakHashMap;
 public final class HomeAvatarTweaks {
     private static final String HOME="_load_front_page_this_is_not_a_subreddit";
     private static final WeakHashMap<View,Header> HEADERS=new WeakHashMap<>();
-    private static final WeakHashMap<View,Navigation> NAVIGATION=new WeakHashMap<>();
-    private static final WeakHashMap<View,NavigationHost> NAVIGATION_HOSTS=new WeakHashMap<>();
     private static final LruCache<String,Entry> CACHE=new LruCache<>(12);
     private static boolean installed;
     private HomeAvatarTweaks() { }
@@ -39,10 +37,8 @@ public final class HomeAvatarTweaks {
         ((Application)object).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
             @Override public void onActivityResumed(Activity activity){onResume(activity);}
             @Override public void onActivityCreated(Activity activity,Bundle state){}
-            @Override public void onActivityPaused(Activity activity){NavigationHost host=NAVIGATION_HOSTS.get(activity.getWindow().getDecorView());if(host!=null)host.stop();}
+            @Override public void onActivityPaused(Activity activity){}
             @Override public void onActivityDestroyed(Activity activity){
-                NavigationHost host=NAVIGATION_HOSTS.remove(activity.getWindow().getDecorView());
-                if(host!=null)host.stop();
                 for(Header header:new ArrayList<>(HEADERS.values())){
                     View row=header.row.get();
                     if(row!=null && CommentsChromeTweaks.activity(row.getContext())==activity)header.onViewDetachedFromWindow(row);
@@ -57,122 +53,13 @@ public final class HomeAvatarTweaks {
         String name=activity.getClass().getName();
         if(!SurfaceAppearanceTweaks.chromeActivity(name))return;
         View root=activity.getWindow().getDecorView();int id=root.getResources().getIdentifier("action_bar_title","id",activity.getPackageName());View title=id==0 ? null:root.findViewById(id);
-        navigation(root);
-        NavigationHost host=NAVIGATION_HOSTS.get(root);if(host==null){host=new NavigationHost(root);NAVIGATION_HOSTS.put(root,host);}host.start();
         if(title!=null && title.getParent() instanceof RelativeLayout && ((View)title.getParent()).getParent() instanceof RelativeLayout){
-            Object model=CommentsChromeTweaks.field(activity,"O");
+            Object model=CommentsChromeTweaks.field(activity,"Q");
             if(model!=null)onTitleBind(model,((View)title.getParent()).getParent());
         }
         for(Header header:new ArrayList<>(HEADERS.values())){
             View row=header.row.get();
             if(row!=null && row.isAttachedToWindow() && CommentsChromeTweaks.activity(row.getContext())==activity)header.update();
-        }
-    }
-    static void navigation(View root){
-        int id=root.getResources().getIdentifier("item_profile","id",root.getContext().getPackageName());View item=id==0 ? null:root.findViewById(id);
-        if(!(item instanceof ViewGroup))return;
-        Navigation navigation=NAVIGATION.get(item);
-        if(navigation==null){
-            ImageView icon=icon(item);
-            if(icon==null || !(icon.getParent() instanceof ViewGroup))return;
-            navigation=new Navigation(item,icon);
-            NAVIGATION.put(item,navigation);
-        }
-        navigation.header.update();
-    }
-    private static final class NavigationHost implements ViewTreeObserver.OnGlobalLayoutListener {
-        final WeakReference<View> root;final int profileId;WeakReference<ViewTreeObserver> observer;
-        NavigationHost(View root){this.root=new WeakReference<>(root);profileId=root.getResources().getIdentifier("item_profile","id",root.getContext().getPackageName());}
-        void start(){
-            stop();
-            View view=root.get();
-            if(view==null || profileId==0)return;
-            ViewTreeObserver tree=view.getViewTreeObserver();
-            tree.addOnGlobalLayoutListener(this);
-            observer=new WeakReference<>(tree);
-            onGlobalLayout();
-        }
-        void stop(){ViewTreeObserver tree=observer==null ? null:observer.get();if(tree!=null && tree.isAlive())tree.removeOnGlobalLayoutListener(this);observer=null;}
-        @Override public void onGlobalLayout(){
-            View view=root.get();
-            if(view==null)return;
-            View item=view.findViewById(profileId);
-            if(!(item instanceof ViewGroup))return;
-            Navigation nav=NAVIGATION.get(item);
-            if(nav==null)navigation(view);
-            else if(!TextUtils.equals(nav.header.username,currentUser(view.getContext())))nav.header.update();
-        }
-    }
-    private static ImageView icon(View view){
-        if(view instanceof ImageView)return (ImageView)view;
-        if(view instanceof ViewGroup){
-            ViewGroup group=(ViewGroup)view;
-            for(int index=0;index<group.getChildCount();index++){
-                ImageView image=icon(group.getChildAt(index));
-                if(image!=null)return image;
-            }
-        }
-        return null;
-    }
-    /** Keep the native menu item, selection indicator, badge and click listener intact. */
-    private static final class Navigation implements ViewTreeObserver.OnPreDrawListener,View.OnAttachStateChangeListener,View.OnLayoutChangeListener {
-        final WeakReference<ImageView> nativeIcon;final WeakReference<View> item;
-        final Header header;final int profileId;WeakReference<ViewTreeObserver> observer;
-        Navigation(View item,ImageView icon){
-            this.item=new WeakReference<>(item);
-            profileId=item.getId();
-            nativeIcon=new WeakReference<>(icon);
-            RelativeLayout photo=new RelativeLayout(icon.getContext());
-            photo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            photo.setClickable(false);
-            photo.setFocusable(false);
-            ViewGroup host=(ViewGroup)icon.getParent();
-            host.getOverlay().add(photo);
-            header=new Header(photo,null);
-            header.home=true;
-            HEADERS.put(photo,header);
-            item.addOnAttachStateChangeListener(this);
-            icon.addOnLayoutChangeListener(this);
-            attach();
-            icon.setVisibility(View.INVISIBLE);
-            position();
-        }
-        void attach(){
-            View view=item.get();
-            if(view==null)return;
-            ViewTreeObserver tree=view.getViewTreeObserver(),old=observer==null ? null:observer.get();
-            if(old==tree)return;
-            if(old!=null && old.isAlive())old.removeOnPreDrawListener(this);
-            tree.addOnPreDrawListener(this);
-            observer=new WeakReference<>(tree);
-        }
-        void position(){
-            ImageView icon=nativeIcon.get();
-            View photo=header.row.get();
-            if(icon==null || photo==null)return;
-            if(photo.isLayoutRequested() || photo.getLeft()!=icon.getLeft() || photo.getTop()!=icon.getTop() || photo.getRight()!=icon.getRight() || photo.getBottom()!=icon.getBottom()){
-                photo.measure(View.MeasureSpec.makeMeasureSpec(icon.getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(icon.getHeight(),View.MeasureSpec.EXACTLY));
-                photo.layout(icon.getLeft(),icon.getTop(),icon.getRight(),icon.getBottom());
-            }
-            if(photo.getTranslationX()!=icon.getTranslationX())photo.setTranslationX(icon.getTranslationX());
-            if(photo.getTranslationY()!=icon.getTranslationY())photo.setTranslationY(icon.getTranslationY());
-        }
-        @Override public void onLayoutChange(View view,int left,int top,int right,int bottom,int oldLeft,int oldTop,int oldRight,int oldBottom){position();}
-        @Override public boolean onPreDraw(){
-            ImageView icon=nativeIcon.get();
-            View view=item.get(),photo=header.row.get();
-            boolean account=view!=null && view.getId()==profileId;
-            int visibility=account ? View.INVISIBLE:View.VISIBLE;
-            if(icon!=null && icon.getVisibility()!=visibility)icon.setVisibility(visibility);
-            if(photo!=null && photo.getVisibility()!=(account ? View.VISIBLE:View.GONE))photo.setVisibility(account ? View.VISIBLE:View.GONE);
-            position();
-            return true;
-        }
-        @Override public void onViewAttachedToWindow(View view){attach();header.update();}
-        @Override public void onViewDetachedFromWindow(View view){
-            ViewTreeObserver tree=observer==null ? null:observer.get();
-            if(tree!=null && tree.isAlive())tree.removeOnPreDrawListener(this);
-            observer=null;
         }
     }
     public static void onTitleBind(Object subscription,Object root) {
@@ -185,12 +72,18 @@ public final class HomeAvatarTweaks {
         header.home=home;header.community=community;header.subscription=new WeakReference<>(subscription);header.update();
     }
     static String string(Object value,String name){Object result=CommentsChromeTweaks.field(value,name);return result instanceof String ? (String)result:"";}
-    static Object reddit(Context context)throws ReflectiveOperationException{return Class.forName("pd2",false,context.getClassLoader()).getField("r").get(null);}
+    private static volatile java.lang.reflect.Field session;
+    /** Boost's account holder. The field is looked up once; it is read on every layout pass. */
+    static Object reddit(Context context)throws ReflectiveOperationException{
+        java.lang.reflect.Field field=session;
+        if(field==null){field=Class.forName("xd2",false,context.getClassLoader()).getField("r");session=field;}
+        return field.get(null);
+    }
     static String currentUser(Context context){try{return string(CommentsChromeTweaks.field(reddit(context),"a"),"name");}catch(ReflectiveOperationException | RuntimeException ignored){return "";}}
     static String clean(Context context,String url){
         if(TextUtils.isEmpty(url))return "";
         try{
-            Object result=Class.forName("a03",true,context.getClassLoader()).getMethod("a",String.class).invoke(null,url);
+            Object result=Class.forName("j03",true,context.getClassLoader()).getMethod("a",String.class).invoke(null,url);
             return result instanceof String ? ((String)result).trim():"";
         }catch(ReflectiveOperationException | RuntimeException ignored){
             return url.replace("&amp;","&").trim();
@@ -265,7 +158,7 @@ public final class HomeAvatarTweaks {
                 }
             }
             String key=visible ? (home ? "user:":"sub:")+user.toLowerCase(Locale.ROOT):"";
-            String next=home && visible ? accountUrl(root.getContext(),user):community ? clean(root.getContext(),string(model,"C")):"";
+            String next=home && visible ? accountUrl(root.getContext(),user):community ? clean(root.getContext(),string(model,"B")):"";
             if(home && visible && TextUtils.isEmpty(next))next=clean(root.getContext(),preferences.getString(user,""));
             boolean changed=!TextUtils.equals(key,identity);if(changed){cancel(avatar);avatar.retained=null;identity=key;}
             username=user;Entry entry=CACHE.get(key);if(TextUtils.isEmpty(next) && entry!=null)next=entry.url;
@@ -278,8 +171,8 @@ public final class HomeAvatarTweaks {
             try{requestManager=manager(root.getContext());requestManager.getClass().getMethod("o",View.class).invoke(requestManager,avatar);
                 Object request=requestManager.getClass().getMethod("v",String.class).invoke(requestManager,url);
                 request=request.getClass().getMethod("Z").invoke(request);
-                request=request.getClass().getMethod("e0",int.class,int.class).invoke(request,dp(root,32),dp(root,32));
-                Class<?> listener=Class.forName("gg2",true,root.getContext().getClassLoader());WeakReference<Header> weak=new WeakReference<>(this);String requestedIdentity=identity,requestedUrl=url;
+                request=request.getClass().getMethod("g0",int.class,int.class).invoke(request,dp(root,32),dp(root,32));
+                Class<?> listener=Class.forName("og2",true,root.getContext().getClassLoader());WeakReference<Header> weak=new WeakReference<>(this);String requestedIdentity=identity,requestedUrl=url;
                 Object callback=Proxy.newProxyInstance(listener.getClassLoader(),new Class<?>[]{listener},(proxy,method,args)->{Header header=weak.get();if(method.getDeclaringClass()==Object.class){if(method.getName().equals("hashCode"))return System.identityHashCode(proxy);if(method.getName().equals("equals"))return proxy==args[0];return "Shikify avatar listener";}if(header!=null && requestedIdentity.equals(header.identity) && requestedUrl.equals(header.url)){header.pending=false;if(method.getName().equals("a") && args!=null && args.length==1){AvatarImage image=header.image.get();if(image!=null)image.acceptResource(args[0]);}}return null;});
                 request=request.getClass().getMethod("J",listener).invoke(request,callback);pending=true;request.getClass().getMethod("P",ImageView.class).invoke(request,avatar);
             }catch(ReflectiveOperationException | RuntimeException error){pending=false;}

@@ -63,6 +63,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     public static void prepareExternalIntent(Intent intent) {
         if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
         Context context = Haiagaru.applicationContextForExtension();
+        if(ExternalVideoCache.prepare(context,intent))return;
         if (context == null || !Haiagaru.videoViewerEnabled()) return;
         Uri uri = intent.getData();
         if (uri == null) return;
@@ -586,6 +587,13 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
                 && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         int next = landscape ? flags | LANDSCAPE_IMMERSIVE_FLAGS : flags & ~LANDSCAPE_IMMERSIVE_FLAGS;
         if (next != flags) decor.setSystemUiVisibility(next);
+        if(android.os.Build.VERSION.SDK_INT>=30){
+            android.view.WindowInsetsController controller=getWindow().getInsetsController();
+            if(controller!=null){
+                if(landscape){controller.setSystemBarsBehavior(android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);controller.hide(android.view.WindowInsets.Type.systemBars());}
+                else controller.show(android.view.WindowInsets.Type.systemBars());
+            }
+        }
         if (playerRoot != null) playerRoot.requestApplyInsets();
     }
     @Override public void onConfigurationChanged(Configuration configuration) {

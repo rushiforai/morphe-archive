@@ -14,9 +14,11 @@ object Constants {
             "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
             "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
         ),
-        // Morphe 2.0.0's 21.x targets, plus retained 1.48.0 targets for older compositions.
+        // Morphe 2.3.0's current 21.x targets, plus retained 2.0.0/1.48.0 targets.
         // This is a finite list; new versions still require structural/composition verification.
         targets = listOf(
+            AppTarget(version = "21.45.82", minSdk = 29, isExperimental = true),
+            AppTarget(version = "21.44.528", minSdk = 29, isExperimental = true),
             AppTarget(version = "21.43.523", minSdk = 29, isExperimental = true),
             AppTarget(version = "21.42.241", minSdk = 29, isExperimental = true),
             AppTarget(version = "21.41.525", minSdk = 29, isExperimental = true),

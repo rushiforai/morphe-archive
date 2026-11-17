@@ -1,4 +1,4 @@
-// Added for Heval's Morphe Patches (2026-11-03, first used by Tasker): the scoped ("login-only")
+// Added for Heval's Morphe Patches (2026-11-03): the scoped ("login-only")
 // mode of the shared "GmsCore support" builder. Not upstream code.
 
 package app.template.patches.shared.misc.gms

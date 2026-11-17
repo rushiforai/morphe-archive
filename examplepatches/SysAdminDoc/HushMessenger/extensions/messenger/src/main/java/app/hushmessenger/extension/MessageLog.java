@@ -931,6 +931,11 @@ public final class MessageLog {
      * or one its key doesn't open.
      */
     static byte[] open(File file, long max) throws Exception {
+        return open(file, max, vault());
+    }
+
+    /** As {@link #open(File, long)}, sealed with [vault] instead of the log's own. */
+    static byte[] open(File file, long max, Vault vault) throws Exception {
         if (!file.exists()) return null;
         if (file.length() > max) throw new Damaged("too large: " + file.length(), null);
         byte[] blob = readAll(file, max);
@@ -938,7 +943,7 @@ public final class MessageLog {
         // Shorter than an IV and a tag never reaches the tag check, and the keystore reports it as a size error instead.
         if (blob.length < IV_BYTES + TAG_BITS / 8) throw new Damaged("too short: " + blob.length, null);
         try {
-            return vault().open(blob);
+            return vault.open(blob);
         } catch (AEADBadTagException wrongKey) {
             throw new Damaged("doesn't open", wrongKey);
         }
@@ -1007,7 +1012,12 @@ public final class MessageLog {
 
     /** Seals [plain] into [name] in [dir] through a synced temporary file and one atomic move. */
     static void sealInto(File dir, String name, byte[] plain) throws Exception {
-        byte[] blob = vault().seal(plain);
+        sealInto(dir, name, plain, vault());
+    }
+
+    /** As {@link #sealInto(File, String, byte[])}, sealed with [vault] instead of the log's own. */
+    static void sealInto(File dir, String name, byte[] plain, Vault vault) throws Exception {
+        byte[] blob = vault.seal(plain);
         File temp = new File(dir, name + ".tmp");
         try (FileOutputStream out = new FileOutputStream(temp)) {
             out.write(blob);
@@ -1076,13 +1086,24 @@ public final class MessageLog {
 
     /** AES-GCM with a 256-bit key the Android keystore holds, so the key never leaves the phone. */
     static final class KeystoreVault implements Vault {
+        /** Which keystore key this seals with. The log's own unless a caller asks for another. */
+        private final String alias;
+
+        KeystoreVault() {
+            this(KEY_ALIAS);
+        }
+
+        KeystoreVault(String alias) {
+            this.alias = alias;
+        }
+
         private SecretKey key() throws Exception {
             KeyStore store = KeyStore.getInstance("AndroidKeyStore");
             store.load(null);
-            KeyStore.Entry entry = store.getEntry(KEY_ALIAS, null);
+            KeyStore.Entry entry = store.getEntry(alias, null);
             if (entry instanceof KeyStore.SecretKeyEntry) return ((KeyStore.SecretKeyEntry) entry).getSecretKey();
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-            generator.init(new KeyGenParameterSpec.Builder(KEY_ALIAS,
+            generator.init(new KeyGenParameterSpec.Builder(alias,
                 KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
@@ -1113,7 +1134,7 @@ public final class MessageLog {
         @Override public void forget() throws Exception {
             KeyStore store = KeyStore.getInstance("AndroidKeyStore");
             store.load(null);
-            if (store.containsAlias(KEY_ALIAS)) store.deleteEntry(KEY_ALIAS);
+            if (store.containsAlias(alias)) store.deleteEntry(alias);
         }
     }
 }

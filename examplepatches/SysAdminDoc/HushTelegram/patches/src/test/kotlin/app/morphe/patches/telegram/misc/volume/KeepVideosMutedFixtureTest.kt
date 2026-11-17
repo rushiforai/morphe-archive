@@ -27,7 +27,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.AfterClass
@@ -61,8 +63,11 @@ class KeepVideosMutedFixtureTest {
             // The viewer's other orientation calls are checked in their own test.
             val upright = context.resolveVideoUpright(turn)
             val sound = context.resolveVideoSound()
+            val tracks = context.resolveVideoTracks()
+            assertEquals("$name", null, tracks.missing)
             val beside = (upright.edits + sound.edits).filter { it.signature == turnMethod.toString() }.map { it.index }.toSet()
-            val edited = setOf(key(site.dispatch), key(turnMethod)) + upright.edits.map { it.signature } + sound.edits.map { it.signature }
+            val edited = setOf(key(site.dispatch), key(turnMethod)) + upright.edits.map { it.signature } + sound.edits.map { it.signature } +
+                tracks.edits.map { it.signature }
             val untouched = hostState(build, context, edited)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { keepVideosMutedPatch.execute(context) })
 
@@ -87,7 +92,7 @@ class KeepVideosMutedFixtureTest {
 
             // Both fixed landscape turns hand the activity and Telegram's side to the extension instead.
             val turnBefore = oldTurn.controlBody()
-            val turnAfter = turnMethod.controlBody()
+            val turnAfter = turnMethod.withoutTracks()
             assertEquals("$name: same turn length", turnBefore.size, turnAfter.size)
             for (i in turnBefore.indices) {
                 if (i in turn.calls) {
@@ -100,9 +105,9 @@ class KeepVideosMutedFixtureTest {
                 }
             }
             val e = ControlFlow.of(oldTurn)
-            val f = ControlFlow.of(turnMethod)
-            assertEquals("$name: same turn paths", e.normal.toList(), f.normal.toList())
-            assertEquals("$name: same turn handlers", e.exceptional.toList(), f.exceptional.toList())
+            val f = turnMethod.pathsWithoutTracks()
+            assertEquals("$name: same turn paths", e.normal.toList(), f.first)
+            assertEquals("$name: same turn handlers", e.exceptional.toList(), f.second)
 
             val stub = context.tgMutableClassDefBy(VOLUME_KEYS).methods.single { it.origName == "stockChatTakesKey" }.controlBody()
             assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), stub.map { it.opcode })
@@ -111,6 +116,7 @@ class KeepVideosMutedFixtureTest {
             assertEquals(1L, status(context, "videoEitherLandscape"))
             assertEquals(1L, status(context, "videoOnlyFromButton"))
             assertEquals(1L, status(context, "videoStartsSilent"))
+            assertEquals(1L, status(context, "videoTracks"))
         }
     }
 
@@ -153,7 +159,7 @@ class KeepVideosMutedFixtureTest {
                 val now = context.tgMutableClassDefBy(here.values.first().type).methods.single { it.toString() == signature }
                 val a = old.controlBody()
                 val shift = if (signature == key.signature) 3 else 0
-                val head = now.controlBody().take(shift)
+                val head = now.withoutTracks().take(shift)
                 if (shift > 0) {
                     assertEquals("$name: the key hook", listOf(Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC), head.map { it.opcode })
                     assertEquals("$name: the window's viewer", listOf(key.scratch, key.window), head[0].namedRegisters())
@@ -163,7 +169,7 @@ class KeepVideosMutedFixtureTest {
                     assertEquals(VOLUME_KEY_HOOK, head[2].controlRef())
                     assertEquals("$name: the player and the key", listOf(key.scratch, key.event), head[2].namedRegisters())
                 }
-                val b = now.controlBody().drop(shift)
+                val b = now.withoutTracks().drop(shift)
                 assertEquals("$name: $signature keeps its length", a.size, b.size)
                 for (i in a.indices) {
                     val edit = here[i]
@@ -177,11 +183,11 @@ class KeepVideosMutedFixtureTest {
                     }
                 }
                 val x = ControlFlow.of(old)
-                val y = ControlFlow.of(now)
-                fun Array<List<Int>>.past(shift: Int) = drop(shift).map { next -> next.map { it - shift } }
-                assertEquals("$name: $signature same paths", x.normal.toList(), y.normal.past(shift))
-                assertEquals("$name: $signature same handlers", x.exceptional.toList(), y.exceptional.past(shift))
-                assertEquals("$name: the key hook runs straight into Telegram's", (1..shift).map { listOf(it) }, y.normal.take(shift))
+                val (normal, exceptional) = now.pathsWithoutTracks()
+                fun List<List<Int>>.past(shift: Int) = drop(shift).map { next -> next.map { it - shift } }
+                assertEquals("$name: $signature same paths", x.normal.toList(), normal.past(shift))
+                assertEquals("$name: $signature same handlers", x.exceptional.toList(), exceptional.past(shift))
+                assertEquals("$name: the key hook runs straight into Telegram's", (1..shift).map { listOf(it) }, normal.take(shift))
             }
             val stubs = context.tgMutableClassDefBy(VIDEO_SOUND).methods
             for ((stub, call) in listOf("stockSetMute" to mute, "stockSetVolume" to volume)) {
@@ -207,7 +213,7 @@ class KeepVideosMutedFixtureTest {
             assertEquals(0L, status(c, "videoStartsSilent"))
             for (edit in sound.edits.filter { it !== keys }) {
                 val m = c.tgMutableClassDefBy(edit.type).methods.single { it.toString() == edit.signature }
-                assertTrue("${build.name}: ${edit.signature} ${edit.index} stays Telegram's", m.controlBody()[edit.index].controlRef() != edit.hook)
+                assertTrue("${build.name}: ${edit.signature} ${edit.index} stays Telegram's", m.withoutTracks()[edit.index].controlRef() != edit.hook)
             }
             val window = c.tgMutableClassDefBy(keys.type).methods.single { it.toString() == keys.signature }
             assertTrue("${build.name}: no key hook", window.controlBody().none { it.controlRef() == VOLUME_KEY_HOOK })
@@ -244,7 +250,7 @@ class KeepVideosMutedFixtureTest {
                 val type = upright.edits.first { it.signature == signature }.type
                 val now = context.tgMutableClassDefBy(type).methods.single { it.toString() == signature }
                 val a = old.controlBody()
-                val b = now.controlBody()
+                val b = now.withoutTracks()
                 assertEquals("$name: $signature keeps its length", a.size, b.size)
                 val here = upright.edits.filter { it.signature == signature }.associateBy { it.index }
                 for (i in a.indices) {
@@ -258,9 +264,9 @@ class KeepVideosMutedFixtureTest {
                     }
                 }
                 val x = ControlFlow.of(old)
-                val y = ControlFlow.of(now)
-                assertEquals("$name: $signature same paths", x.normal.toList(), y.normal.toList())
-                assertEquals("$name: $signature same handlers", x.exceptional.toList(), y.exceptional.toList())
+                val y = now.pathsWithoutTracks()
+                assertEquals("$name: $signature same paths", x.normal.toList(), y.first)
+                assertEquals("$name: $signature same handlers", x.exceptional.toList(), y.second)
             }
             assertEquals(1L, status(context, "videoOnlyFromButton"))
         }
@@ -281,7 +287,7 @@ class KeepVideosMutedFixtureTest {
             assertEquals(0L, status(c, "videoOnlyFromButton"))
             for (edit in upright.edits.filter { it.hook != LISTENER_ON_HOOK }) {
                 val m = c.tgMutableClassDefBy(edit.type).methods.single { it.toString() == edit.signature }
-                assertTrue("${build.name}: ${edit.signature} ${edit.index} stays Telegram's", m.controlBody()[edit.index].controlRef() != edit.hook)
+                assertTrue("${build.name}: ${edit.signature} ${edit.index} stays Telegram's", m.withoutTracks()[edit.index].controlRef() != edit.hook)
             }
         }
     }
@@ -300,6 +306,96 @@ class KeepVideosMutedFixtureTest {
             assertEquals(1L, status(c, "keepVideosMuted"))
             assertEquals(0L, status(c, "videoEitherLandscape"))
             assertEquals(0L, status(c, "videoOnlyFromButton"))
+        }
+    }
+
+    @Test fun `the video menu, its taps and the player's subtitles reach the extension and the rest stays Telegram's`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = context(build)
+            val tracks = context.resolveVideoTracks()
+            assertEquals("$name", null, tracks.missing)
+            val refs = tracks.refs!!
+            assertEquals("$name: the menu, its click handler and the player's subtitles", listOf(TRACKS_MENU_HOOK, TRACKS_CHOICE_HOOK, TRACKS_CUES_HOOK),
+                tracks.edits.map { it.smali.substringAfterLast(", ") })
+            val before = tracks.edits.associate { it.signature to ImmutableMethod.of(it.method(context)) }
+            assertEquals("$name: three methods", 3, before.size)
+            val turn = context.resolveFullScreenTurn()
+            val others = (context.resolveVideoUpright(turn).edits.map { it.signature to it.index } +
+                context.resolveVideoSound().edits.map { it.signature to it.index } + turn.calls.map { turn.method.toString() to it }).toSet()
+            assertEquals("$name", emptyList<String>(), PatchLogCapture.warnings { keepVideosMutedPatch.execute(context) })
+
+            for (edit in tracks.edits) {
+                val old = before.getValue(edit.signature)
+                val now = edit.method(context)
+                val hook = now.controlBody()[edit.index]
+                assertEquals("$name: ${edit.signature}", Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+                assertEquals("$name: one track call in ${edit.signature}", 1, now.controlBody().count { it.controlRef() in trackHooks })
+                // A call put in ahead of a payload can move the nop that aligns it, so nops don't count.
+                val a = old.controlBody().withIndex().filter { it.value.opcode != Opcode.NOP }
+                val b = now.controlBody().filter { it.opcode != Opcode.NOP && it.controlRef() !in trackHooks }
+                assertEquals("$name: ${edit.signature} keeps the rest", a.size, b.size)
+                for ((k, stock) in a.withIndex()) {
+                    if ((edit.signature to stock.index) !in others) {
+                        assertEquals("$name: ${edit.signature} stock operand ${stock.index}", stock.value.operand(), b[k].operand())
+                    }
+                }
+                val x = old.pathsWithout { it.opcode == Opcode.NOP }
+                val y = now.pathsWithout { it.opcode == Opcode.NOP || it.controlRef() in trackHooks }
+                assertEquals("$name: ${edit.signature} same paths", x.first, y.first)
+                assertEquals("$name: ${edit.signature} same handlers", x.second, y.second)
+            }
+            val (menu, click, cue) = tracks.edits
+            // Right after the viewer keeps its Loop video row, on the viewer it kept it on.
+            val built = before.getValue(menu.signature).controlBody()
+            val store = built[menu.index - 1]
+            assertEquals("$name", PHOTO_VIEWER, menu.type)
+            assertEquals("$name: the Loop video row", refs.addSubItem, built[menu.index - 3].controlRef())
+            assertEquals("$name: kept on the viewer", Opcode.IPUT_OBJECT, store.opcode)
+            assertEquals("$name: the viewer", listOf(store.namedRegisters()[1]), menu.method(context).controlBody()[menu.index].namedRegisters())
+            // First thing in the click handler and the player's subtitles, with what they were handed.
+            val tapped = click.method(context)
+            assertEquals("$name", 0, click.index)
+            assertEquals("$name: a tap's id", listOf("I"), tapped.parameterTypes.map(CharSequence::toString))
+            assertEquals("$name: the id", listOf(tapped.implementation!!.registerCount - 1), tapped.controlBody()[0].namedRegisters())
+            val cues = cue.method(context)
+            assertEquals("$name", 0, cue.index)
+            assertEquals("$name: the viewer's player", refs.player, cue.type)
+            assertEquals("$name: its subtitles", listOf("Ljava/util/List;"), cues.parameterTypes.map(CharSequence::toString))
+            val count = cues.implementation!!.registerCount
+            assertEquals("$name: the player and its lines", listOf(count - 2, count - 1), cues.controlBody()[0].namedRegisters())
+
+            val stubs = context.tgMutableClassDefBy(VIDEO_TRACKS).methods
+            fun calls(stub: String) = stubs.single { it.origName == stub }.controlBody().mapNotNull { it.controlRef() }
+            assertTrue("$name: a row on Telegram's menu", refs.addSubItem in calls("addRow"))
+            assertTrue("$name: the viewer's player", refs.viewerPlayer in calls("player"))
+            assertTrue("$name: the choice goes back to the player's selector", refs.setParameters in calls("apply"))
+            assertTrue("$name: an override for the track picked", refs.overrideInit in calls("override"))
+            if (name == "telegram-web-13.2.2-73039.apk") {
+                assertEquals("Lorg/telegram/ui/ActionBar/t0;->e(IILjava/lang/CharSequence;)Lorg/telegram/ui/ActionBar/b1;", refs.addSubItem)
+            }
+            assertEquals(1L, status(context, "videoTracks"))
+        }
+    }
+
+    @Test fun `a video menu without its Loop row keeps the rest of the patch and goes on without the track choice`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val c = context(build)
+            val tracks = c.resolveVideoTracks()
+            val menu = tracks.edits.first()
+            menu.method(c).replaceInstruction(menu.index - 1, "nop")
+            val warnings = PatchLogCapture.warnings { keepVideosMutedPatch.execute(c) }
+            assertEquals("${build.name}: $warnings", 1, warnings.size)
+            assertTrue(warnings.single(), "in one place (0)" in warnings.single() && "goes on without the audio and subtitle track choice" in warnings.single())
+            assertEquals(1L, status(c, "keepVideosMuted"))
+            assertEquals(1L, status(c, "videoOnlyFromButton"))
+            assertEquals(1L, status(c, "videoStartsSilent"))
+            assertEquals(0L, status(c, "videoTracks"))
+            for (edit in tracks.edits) {
+                assertTrue("${build.name}: ${edit.signature} stays Telegram's", edit.method(c).controlBody().none { it.controlRef() in trackHooks })
+            }
+            val apply = c.tgMutableClassDefBy(VIDEO_TRACKS).methods.single { it.origName == "apply" }.controlBody()
+            assertTrue("${build.name}: the stubs keep their own bodies", apply.none { it.controlRef() == tracks.refs!!.setParameters })
         }
     }
 
@@ -326,6 +422,10 @@ class KeepVideosMutedFixtureTest {
                 "private sound hook" to { c, _ -> val h = c.tgMutableClassDefBy(VIDEO_SOUND).methods.single { it.origName == "setMute" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
                 "missing sound stub" to { c, _ -> c.tgMutableClassDefBy(VIDEO_SOUND).methods.removeAll { it.origName == "stockSetVolume" } },
+                "missing tracks flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "videoTracks" } },
+                "private tracks hook" to { c, _ -> val h = c.tgMutableClassDefBy(VIDEO_TRACKS).methods.single { it.origName == "menuChoice" }
+                    h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
+                "missing tracks stub" to { c, _ -> c.tgMutableClassDefBy(VIDEO_TRACKS).methods.removeAll { it.origName == "apply" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -340,7 +440,7 @@ class KeepVideosMutedFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun status(c: BytecodePatchContext, name: String) =
         (c.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.controlBody().first() as WideLiteralInstruction).wideLiteral
-    private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(VOLUME_KEYS, VIDEO_TURN, VIDEO_UPRIGHT, VIDEO_SOUND, SETTINGS_STATUS))
+    private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(VOLUME_KEYS, VIDEO_TURN, VIDEO_UPRIGHT, VIDEO_SOUND, VIDEO_TRACKS, SETTINGS_STATUS))
         .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
@@ -368,7 +468,10 @@ class KeepVideosMutedFixtureTest {
             val refs = m.instructions().mapNotNull { it.origRef() }
             refs.any { it.startsWith("$PHOTO_VIEWER->") } &&
                 (refs.any { it == SET_ORIENTATION || it == GET_ORIENTATION || it == LISTENER_ON || it == LISTENER_OFF } ||
-                    refs.any { it.startsWith("$PHOTO_VIEWER->") && it.endsWith(":Z") } && refs.any { it.endsWith("(Z)V") || it.endsWith("(F)V") })
+                    refs.any { it.startsWith("$PHOTO_VIEWER->") && it.endsWith(":Z") } && refs.any { it.endsWith("(Z)V") || it.endsWith("(F)V") } ||
+                    // The action bar's click handler, which tells Loop video's id 22 apart from the rest.
+                    m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                    m.instructions().any { (it as? WideLiteralInstruction)?.wideLiteral == 22L })
         }
         // The viewer's player, whose mute and volume calls the extension makes.
         val players = turns.flatMap { cls -> cls.methods.flatMap { it.instructions() } }
@@ -377,10 +480,62 @@ class KeepVideosMutedFixtureTest {
             .filter { it.returnType == "V" && it.parameterTypes.map(CharSequence::toString).let { p -> p == listOf("Z") || p == listOf("F") } }
             .map { it.origDefiningClass }.filter { it.startsWith("Lorg/telegram/") && it != PHOTO_VIEWER }.toSet() -
             turns.map { it.origType }.toSet()
-        return (listOf(launch) + FixtureDex.classes(build, chats).values + FixtureDex.classes(build, players).values).map(ImmutableClassDef::of) + turns
+        val playerDefs = FixtureDex.classes(build, players).values
+        // The player's listeners, every media3 piece its quality choice names and the viewer's action bar
+        // classes, each with its parents: what the track choice reads and calls.
+        val quality = playerDefs.flatMap { cls ->
+            cls.interfaces + cls.methods.filter { m ->
+                m.instructions().any { it.origRef() == "Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I" } &&
+                    m.instructions().any { it.origRef() == "Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;" }
+            }.flatMap { it.namedTypes() }
+        }
+        val menus = turns.filter { it.origType == PHOTO_VIEWER }.flatMap { it.fields }.map { it.type }.filter { it.startsWith("Lorg/telegram/ui/ActionBar/") }
+        val known = (listOf(launch.type) + chats + players + turns.map { it.origType }).toMutableSet()
+        val tracks = mutableListOf<ClassDef>()
+        var wanted = (quality + menus).filter { it !in known && !it.startsWith("Lorg/telegram/messenger/") }.toSet()
+        while (wanted.isNotEmpty()) {
+            val found = FixtureDex.classes(build, wanted)
+            known += wanted
+            tracks += found.values
+            wanted = found.values.flatMap { listOfNotNull(it.superclass) + it.interfaces }
+                .filter { it !in known && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") && !it.startsWith("Lorg/telegram/messenger/") }.toSet()
+        }
+        return (listOf(launch) + FixtureDex.classes(build, chats).values + playerDefs + tracks).map(ImmutableClassDef::of) + turns
     }
 
+    /** Every app class a method names: owners, field types, parameters, results and the types it makes. */
+    private fun Method.namedTypes(): Set<String> = instructions().mapNotNull { (it as? ReferenceInstruction)?.reference }.flatMap { ref ->
+        when (ref) {
+            is FieldReference -> listOf(ref.definingClass, ref.type)
+            is MethodReference -> listOf(ref.definingClass, ref.returnType) + ref.parameterTypes.map(CharSequence::toString)
+            is TypeReference -> listOf(ref.type)
+            else -> emptyList()
+        }
+    }.map { it.trimStart('[') }.filter { it.startsWith("L") && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") }.toSet()
+
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private val trackHooks = setOf(TRACKS_MENU_HOOK, TRACKS_CHOICE_HOOK, TRACKS_CUES_HOOK)
+
+    /** The body with the track choice's calls taken out, which is what the other edits are checked against. */
+    private fun Method.withoutTracks(): List<Instruction> = controlBody().filter { it.controlRef() !in trackHooks }
+
+    /** The paths between the instructions of [withoutTracks], numbered as if the track calls were never put in. */
+    private fun Method.pathsWithoutTracks() = pathsWithout { it.controlRef() in trackHooks }
+
+    /** The paths between the instructions [drop] leaves, numbered among those, a path into a dropped one going on to the next. */
+    private fun Method.pathsWithout(drop: (Instruction) -> Boolean): Pair<List<List<Int>>, List<List<Int>>> {
+        val body = controlBody()
+        val gone = body.indices.filter { drop(body[it]) }.toSet()
+        val flow = ControlFlow.of(this)
+        fun kept(i: Int): Int {
+            var at = i
+            while (at in gone) at++
+            return at - gone.count { it < at }
+        }
+        fun Array<List<Int>>.cut() = indices.filter { it !in gone }.map { i -> this[i].map(::kept) }
+        return flow.normal.cut() to flow.exceptional.cut()
+    }
 
     private fun Method.state(): List<Any?> {
         val body = controlBody(); val flow = if (body.isEmpty()) null else ControlFlow.of(this)

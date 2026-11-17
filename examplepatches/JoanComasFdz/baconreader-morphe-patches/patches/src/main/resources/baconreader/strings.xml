@@ -189,4 +189,19 @@
     <string name="revanced_baconreader_account_color_orange">Orange</string>
     <string name="revanced_baconreader_account_color_brown">Brown</string>
     <string name="revanced_baconreader_account_color_description">Color of %s</string>
+    <string name="revanced_settings_baconreader_screen_6_backup_title">Backup</string>
+    <string name="revanced_baconreader_export_settings_title">Export settings</string>
+    <string name="revanced_baconreader_export_settings_summary">Saves BaconReader\'s settings, the patches\' settings and the accounts\' colors to a YAML file</string>
+    <string name="revanced_baconreader_import_settings_title">Import settings</string>
+    <string name="revanced_baconreader_import_settings_summary">Replaces BaconReader\'s settings, the patches\' settings and the accounts\' colors with those of a YAML file, then restarts BaconReader. Accounts and logins are not in the file</string>
+    <string name="revanced_baconreader_settings_backup_exported">Settings exported to %1$s</string>
+    <string name="revanced_baconreader_settings_backup_export_failed">Could not export the settings: %1$s</string>
+    <string name="revanced_baconreader_settings_backup_import_title">Import settings?</string>
+    <string name="revanced_baconreader_settings_backup_import_message">%1$s has %2$s settings. They replace BaconReader\'s settings, the patches\' settings and the accounts\' colors: a setting the file doesn\'t list goes back to its default. BaconReader then restarts.</string>
+    <string name="revanced_baconreader_settings_backup_import">Import and restart</string>
+    <string name="revanced_baconreader_settings_backup_cancel">Cancel</string>
+    <string name="revanced_baconreader_settings_backup_import_failed">Could not import the settings</string>
+    <string name="revanced_baconreader_settings_backup_not_a_backup">This file has no BaconReader settings. Pick a file made by \"Export settings\".</string>
+    <string name="revanced_baconreader_settings_backup_bad_line">Line %1$s: %2$s</string>
+    <string name="revanced_baconreader_settings_backup_close">Close</string>
 </resources>

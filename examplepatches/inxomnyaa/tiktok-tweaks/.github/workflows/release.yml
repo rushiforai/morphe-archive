@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'extension/**'
+      - 'patches/**'
+      - 'stubs/**'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a release (off builds only)
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Pick the next version
+        id: version
+        run: |
+          last=$(git tag --list 'v*' --sort=-v:refname | head -1)
+          IFS=. read -r major minor patch <<< "${last#v}"
+          echo "version=${major:-1}.${minor:-0}.$(( ${patch:-0} + 1 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: ./build.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tiktok-tweaks-mpp
+          path: dist/tiktok-tweaks.mpp
+
+      - name: Publish release
+        if: github.event_name == 'push' || inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" dist/tiktok-tweaks.mpp \
+            --title "v$VERSION" --generate-notes --target "$GITHUB_SHA"
+
+          # Morphe Manager reads this file from main to find new releases.
+          gh release view "v$VERSION" --json body --jq .body > notes.txt
+          python3 -I - <<'EOF'
+          import datetime, json, os
+          version = os.environ["VERSION"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          info = {
+              "version": version,
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": open("notes.txt").read().strip() or f"Release {version}",
+              "download_url": f"https://github.com/{repo}/releases/download/v{version}/tiktok-tweaks.mpp",
+          }
+          with open("patches-bundle.json", "w") as out:
+              json.dump(info, out, indent=2)
+              out.write("\n")
+          EOF
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add patches-bundle.json
+          git commit -m "chore: publish v$VERSION [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

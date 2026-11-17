@@ -1,24 +1,25 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.entity;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.content.Context;
 import android.net.Uri;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.Utils;
 import app.morphe.extension.rex.downloader.MediaType;
 import app.morphe.extension.instagram.constants.PostType;
 
@@ -42,6 +43,10 @@ public class MediaData extends Entity {
         super(obj);
         this.obj = obj;
         this.userSession = userSession;
+    }
+
+    public UserSession getUserSession() {
+        return this.userSession;
     }
 
     private Class<?> getHelperClass() throws Exception {
@@ -70,49 +75,64 @@ public class MediaData extends Entity {
     }
 
     public String getShortcode() {
-        long instaId = Long.valueOf(this.getPostID());
-
-        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-
-        // Handle the edge case where the ID is 0
-        if (instaId == 0) {
-            return String.valueOf(alphabet.charAt(0));
+        try {
+            long instaId = Long.parseLong(this.getPostID());
+            String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+            if (instaId == 0) {
+                return String.valueOf(alphabet.charAt(0));
+            }
+            StringBuilder shortCode = new StringBuilder();
+            while (instaId > 0) {
+                int remainder = (int) (instaId % 64);
+                shortCode.append(alphabet.charAt(remainder));
+                instaId = instaId / 64;
+            }
+            return shortCode.reverse().toString();
+        } catch (Throwable ignored) {
+            return "";
         }
-
-        StringBuilder shortCode = new StringBuilder();
-
-        while (instaId > 0) {
-            int remainder = (int) (instaId % 64);
-            shortCode.append(alphabet.charAt(remainder));
-            instaId = instaId / 64;
-        }
-
-        return shortCode.reverse().toString();
     }
 
     public String getPostID() {
         try {
             String postId_ts = (String) super.getMethod(this.getExtendedData(), "getId");
-            return postId_ts.split("_")[0];
-        } catch (Exception e) {
+            if (postId_ts != null && !postId_ts.isEmpty()) {
+                return postId_ts.split("_")[0];
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String pk = this.getMediaPkId();
+            if (pk != null && !pk.isEmpty()) {
+                return pk.split("_")[0];
+            }
+        } catch (Exception ignored) {
         }
         return "0";
     }
 
     public PostType getPostType() {
-        try{
-            String postType = this.getPostTypeKey().toLowerCase();
-            if(postType.equals("clips")){
-                return PostType.REEL;
-            }
-            if(postType.equals("story")){
-                return PostType.STORY;
-            }
-            if(postType.contains("carousel")){
+        try {
+            if (this.getCarouselSize() > 1) {
                 return PostType.CAROUSEL;
             }
-        } catch (Exception e) {
-
+        } catch (Throwable ignored) {
+        }
+        try {
+            String postType = this.getPostTypeKey();
+            if (postType != null) {
+                String lower = postType.toLowerCase();
+                if (lower.equals("clips") || lower.contains("reel")) {
+                    return PostType.REEL;
+                }
+                if (lower.equals("story") || lower.contains("reel_media")) {
+                    return PostType.STORY;
+                }
+                if (lower.contains("carousel")) {
+                    return PostType.CAROUSEL;
+                }
+            }
+        } catch (Exception ignored) {
         }
         return PostType.POST;
     }
@@ -124,30 +144,141 @@ public class MediaData extends Entity {
     private List<MediaData> getCarouselMediaData() throws Exception {
         List<MediaData> carouselMediaData = new ArrayList<>();
         List<Object> mediaList = this.getMediaList();
-        if (mediaList.isEmpty()){
+        if (mediaList == null || mediaList.isEmpty()) {
             carouselMediaData.add(new MediaData(this.obj, this.userSession));
         } else {
-            mediaList.forEach(item->{
-                carouselMediaData.add(new MediaData(item, this.userSession));
+            mediaList.forEach(item -> {
+                if (item != null) {
+                    carouselMediaData.add(new MediaData(item, this.userSession));
+                }
             });
+            if (carouselMediaData.isEmpty()) {
+                carouselMediaData.add(new MediaData(this.obj, this.userSession));
+            }
         }
         return carouselMediaData;
     }
 
     public String getMediaPkId() throws Exception {
-        return (String) super.getMethod("methodName");
+        try {
+            String id = (String) super.getMethod("methodName");
+            if (id != null && !id.isEmpty()) return id.split("_")[0];
+        } catch (Exception ignored) {
+        }
+        try {
+            String id = (String) super.getMethod(this.getExtendedData(), "getId");
+            if (id != null && !id.isEmpty()) return id.split("_")[0];
+        } catch (Exception ignored) {
+        }
+        return String.valueOf(System.currentTimeMillis() / 1000L);
     }
 
     public Long getTakenAtSeconds() throws Exception {
-        return (Long) super.getMethod(this.getExtendedData(), "taken_at");
+        try {
+            return (Long) super.getMethod(this.getExtendedData(), "taken_at");
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public boolean isVideo() throws Exception {
-        return (boolean) super.getMethod(this.obj, "methodName");
+        try {
+            return (boolean) super.getMethod(this.obj, "methodName");
+        } catch (Exception ignored) {
+        }
+        try {
+            List<VideoData> v = this.getVideoVariants();
+            if (v != null && !v.isEmpty()) return true;
+        } catch (Exception ignored) {
+        }
+        try {
+            String dash = this.getVideoDashManifest();
+            if (dash != null && !dash.isEmpty()) return true;
+        } catch (Exception ignored) {
+        }
+        return false;
     }
 
     public boolean hasAudio() throws Exception {
-        return this.getAudioMedia() != null;
+        try {
+            AudioMediaInterface audio = this.getAudioMedia();
+            if (audio != null && audio.getAudioUrl() != null && !audio.getAudioUrl().trim().isEmpty()) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            if (this.isVideo() && this.hasAudioTrack()) {
+                for (DashVideoData dash : this.getDashVideos()) {
+                    if (dash != null && dash.getAudioUrl() != null && !dash.getAudioUrl().trim().isEmpty()) {
+                        return true;
+                    }
+                }
+                String videoUrl = this.getVideoLink();
+                if (videoUrl != null && !videoUrl.trim().isEmpty()) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
+    }
+
+    /**
+     * Resolves a direct downloadable audio URL (or fallback video stream containing audio)
+     * across OriginalSoundDataIntf, TrackDataIntf, DASH audio renditions, DM voice notes,
+     * and progressive MP4 streams so "Download Audio (.mp3)" never crashes with NullPointerException.
+     */
+    public String resolveAudioDownloadUrl() {
+        try {
+            AudioMediaInterface audio = this.getAudioMedia();
+            if (audio != null) {
+                String url = audio.getAudioUrl();
+                if (url != null && !url.trim().isEmpty()) return url;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            for (DashVideoData dash : this.getDashVideos()) {
+                if (dash != null && dash.getAudioUrl() != null && !dash.getAudioUrl().trim().isEmpty()) {
+                    return dash.getAudioUrl();
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            String msgAudio = this.getMessageAudioUrl();
+            if (msgAudio != null && !msgAudio.trim().isEmpty()) return msgAudio;
+        } catch (Throwable ignored) {
+        }
+        try {
+            if (this.isVideo()) {
+                String videoUrl = this.getVideoLink();
+                if (videoUrl != null && !videoUrl.trim().isEmpty()) return videoUrl;
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    public String resolveAudioDownloadFileName(String fallbackUsername) {
+        try {
+            AudioMediaInterface audio = this.getAudioMedia();
+            if (audio != null) {
+                String name = audio.getDownloadName();
+                if (name != null && !name.trim().isEmpty()) {
+                    return name.endsWith(".mp3") ? name : (name + ".mp3");
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        String safeUser = (fallbackUsername == null || fallbackUsername.isEmpty()) ? "instagram" : fallbackUsername;
+        String pk = "audio";
+        try {
+            pk = getMediaPkId();
+        } catch (Throwable ignored) {
+        }
+        return safeUser + "_" + pk + "_audio.mp3";
     }
 
     private String getMediaExtension(MediaType mediaType) throws Exception {
@@ -166,7 +297,6 @@ public class MediaData extends Entity {
         if (mediaType.equals(MediaType.VIDEO)) return videoExtension;
         if (mediaType.equals(MediaType.AUDIO)) return audioExtension;
 
-        // Default fallback just in case.
         return imageExtension;
     }
 
@@ -180,7 +310,7 @@ public class MediaData extends Entity {
         String mediaPkId = this.getMediaPkId();
         String variantTag = mediaIntfData.getVariantTag();
         String extension = this.getMediaExtension(mediaIntfData.getMediaType());
-        return mediaPkId + "_" +variantTag + extension;
+        return mediaPkId + "_" + variantTag + extension;
     }
 
     public UserData getUserDataWithoutUserSession() throws Exception {
@@ -196,18 +326,24 @@ public class MediaData extends Entity {
 
     public UserData getUserData() throws Exception {
         UserSession userSession = this.userSession;
-        if(userSession!=null){
-            return this.getUserDataWithUserSession();
+        if (userSession != null) {
+            try {
+                UserData withSession = this.getUserDataWithUserSession();
+                if (withSession != null && withSession.getObject() != null) {
+                    return withSession;
+                }
+            } catch (Throwable ignored) {
+            }
         }
         return this.getUserDataWithoutUserSession();
     }
 
     public HashSet<UserData> getMentionSet() throws Exception {
-        Object result =  super.getMethod(this.getExtendedData(), "methodName");
+        Object result = super.getMethod(this.getExtendedData(), "methodName");
         if (result != null) {
             List userInteractionList = (List) result;
             HashSet<UserData> userDataHashSet = new HashSet<>();
-            for(Object data:userInteractionList){
+            for (Object data : userInteractionList) {
                 Object userData = super.getMethod(data, "methodName2");
                 userDataHashSet.add(new UserData(userData));
             }
@@ -216,21 +352,97 @@ public class MediaData extends Entity {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object> getMediaList() throws Exception {
-        List mediaList = (List) super.getMethod(this.getExtendedData(), "methodName");
-        if (mediaList != null) {
-            return mediaList;
+        // 1. Primary bytecode-patched carousel getter on Media
+        try {
+            Object raw = super.getMethod(this.getExtendedData(), "methodName");
+            if (raw instanceof List) {
+                List<Object> list = filterMediaElementList((List<?>) raw);
+                if (!list.isEmpty()) {
+                    return list;
+                }
+            }
+        } catch (Throwable ignored) {
         }
-        return Arrays.asList(this.obj);
+
+        // 2. Fallback scan across Media and its underlying dict/Pando tree for List<Media>
+        List<Object> fallback = resolveCarouselMediaFallback();
+        if (fallback != null && !fallback.isEmpty()) {
+            return fallback;
+        }
+
+        // 3. Single-item post fallback (never return an empty list of size 0)
+        return this.obj != null ? Arrays.asList(this.obj) : Collections.emptyList();
+    }
+
+    private List<Object> filterMediaElementList(List<?> rawList) {
+        if (rawList == null || rawList.isEmpty() || this.obj == null) return Collections.emptyList();
+        Class<?> mediaClass = this.obj.getClass();
+        List<Object> valid = new ArrayList<>(rawList.size());
+        for (Object item : rawList) {
+            if (item == null) continue;
+            if (mediaClass.isInstance(item) || "com.instagram.feed.media.Media".equals(item.getClass().getName())) {
+                valid.add(item);
+            }
+        }
+        return valid;
+    }
+
+    private List<Object> resolveCarouselMediaFallback() {
+        if (this.obj == null) return Collections.emptyList();
+        Object[] targets;
+        try {
+            targets = new Object[]{this.getExtendedData(), this.getMoreExtendedData(), this.obj};
+        } catch (Throwable ignored) {
+            targets = new Object[]{this.obj};
+        }
+
+        for (Object target : targets) {
+            if (target == null) continue;
+            // Check fields holding a List of Media objects
+            for (Class<?> c = target.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    if (Modifier.isStatic(f.getModifiers()) || !List.class.isAssignableFrom(f.getType())) continue;
+                    try {
+                        f.setAccessible(true);
+                        Object val = f.get(target);
+                        if (val instanceof List) {
+                            List<Object> filtered = filterMediaElementList((List<?>) val);
+                            if (filtered.size() > 1) return filtered;
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+            // Check no-arg methods returning List of Media objects
+            for (Method m : target.getClass().getDeclaredMethods()) {
+                if (Modifier.isStatic(m.getModifiers())
+                        || m.getParameterCount() != 0
+                        || !List.class.isAssignableFrom(m.getReturnType())) {
+                    continue;
+                }
+                try {
+                    m.setAccessible(true);
+                    Object val = m.invoke(target);
+                    if (val instanceof List) {
+                        List<Object> filtered = filterMediaElementList((List<?>) val);
+                        if (filtered.size() > 1) return filtered;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return Collections.emptyList();
     }
 
     public int getCarouselSize() throws Exception {
-        return this.getMediaList().size();
+        List<Object> list = this.getMediaList();
+        return (list == null || list.isEmpty()) ? 1 : list.size();
     }
 
     public MediaData getMediaAt(int position) throws Exception {
         List<MediaData> mediaList = this.getCarouselMediaData();
-
         int safePosition = Math.max(0, Math.min(position, mediaList.size() - 1));
         return mediaList.get(safePosition);
     }
@@ -238,57 +450,313 @@ public class MediaData extends Entity {
     private Object getMoreExtendedData() throws Exception {
         // This field always exists (unlike getExtendedData()'s), so there's no exception overhead
         // to save here - always read fresh since the instance can outlive a single call.
-        return super.getField(this.getExtendedData(), "fieldName");
+        try {
+            Object more = super.getField(this.getExtendedData(), "fieldName");
+            if (more != null) return more;
+        } catch (Throwable ignored) {
+        }
+        return this.getExtendedData();
     }
 
-    private List getVideoVariantsV1() throws Exception {
+    private List<VideoData> getVideoVariantsV1() throws Exception {
         Object variantObject = super.getMethod(this.getExtendedData(), "methodName");
-        if (variantObject != null){
-            List variantList = (List) variantObject;
-
+        if (variantObject instanceof List) {
+            List<?> variantList = (List<?>) variantObject;
             List<VideoData> videoList = new ArrayList<>();
-            variantList.forEach(item -> videoList.add(new VideoData(item)));
+            for (Object item : variantList) {
+                if (item != null) videoList.add(new VideoData(item));
+            }
             return videoList;
-
         }
         return null;
     }
 
-    private List getVideoVariantsV2() throws Exception {
-        List variantList = (List) super.getField(this.getMoreExtendedData(), "fieldName");
-
-        List<VideoData> videoList = new ArrayList<>();
-        variantList.forEach(item -> videoList.add(new VideoData(item)));
-        return videoList;
+    private List<VideoData> getVideoVariantsV2() throws Exception {
+        Object variantObject = super.getField(this.getMoreExtendedData(), "fieldName");
+        if (variantObject instanceof List) {
+            List<?> variantList = (List<?>) variantObject;
+            List<VideoData> videoList = new ArrayList<>();
+            for (Object item : variantList) {
+                if (item != null) videoList.add(new VideoData(item));
+            }
+            return videoList;
+        }
+        return null;
     }
 
     public List<VideoData> getVideoVariants() throws Exception {
         try {
-            return this.getVideoVariantsV2();
-        } catch (Exception e) {
-            return this.getVideoVariantsV1();
+            List<VideoData> v1 = this.getVideoVariantsV1();
+            if (v1 != null && !v1.isEmpty()) return v1;
+        } catch (Exception ignored) {
         }
+        try {
+            List<VideoData> v2 = this.getVideoVariantsV2();
+            if (v2 != null && !v2.isEmpty()) return v2;
+        } catch (Exception ignored) {
+        }
+        List<VideoData> fallback = resolveVideoVariantsFallback();
+        if (!fallback.isEmpty()) return fallback;
+        return new ArrayList<>();
     }
 
+    private List<VideoData> resolveVideoVariantsFallback() {
+        List<VideoData> results = new ArrayList<>();
+        Object[] targets;
+        try {
+            targets = new Object[]{this.getExtendedData(), this.getMoreExtendedData(), this.obj};
+        } catch (Throwable ignored) {
+            targets = new Object[]{this.obj};
+        }
+        for (Object target : targets) {
+            if (target == null) continue;
+            for (Class<?> c = target.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    if (Modifier.isStatic(f.getModifiers()) || !List.class.isAssignableFrom(f.getType())) continue;
+                    try {
+                        f.setAccessible(true);
+                        Object v = f.get(target);
+                        if (v instanceof List && isVideoCandidateList((List<?>) v)) {
+                            for (Object item : (List<?>) v) {
+                                if (item != null) results.add(new VideoData(item));
+                            }
+                            if (!results.isEmpty()) return results;
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+            for (Method m : target.getClass().getDeclaredMethods()) {
+                if (Modifier.isStatic(m.getModifiers())
+                        || m.getParameterCount() != 0
+                        || !List.class.isAssignableFrom(m.getReturnType())) {
+                    continue;
+                }
+                try {
+                    m.setAccessible(true);
+                    Object v = m.invoke(target);
+                    if (v instanceof List && isVideoCandidateList((List<?>) v)) {
+                        for (Object item : (List<?>) v) {
+                            if (item != null) results.add(new VideoData(item));
+                        }
+                        if (!results.isEmpty()) return results;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return results;
+    }
+
+    private static boolean isVideoCandidateList(List<?> list) {
+        if (list == null || list.isEmpty()) return false;
+        Object first = null;
+        for (Object item : list) {
+            if (item != null) {
+                first = item;
+                break;
+            }
+        }
+        if (first == null) return false;
+        String clsName = first.getClass().getName();
+        if (clsName.contains("VideoUrlImpl") || clsName.contains("VideoVersion")) {
+            return true;
+        }
+        for (Class<?> iface : first.getClass().getInterfaces()) {
+            if (iface.getName().contains("VideoVersion")) return true;
+        }
+        return false;
+    }
+
+    private Object getImageInfoByMethod() throws Exception {
+        return super.getMethod(this.getExtendedData(), "imageInfoGetterMethod");
+    }
+
+    private Object resolveImageInfoObject() throws Exception {
+        try {
+            Object info = getImageInfoByMethod();
+            if (info != null) return info;
+        } catch (Exception ignored) {
+        }
+        try {
+            Object info = super.getField(this.getMoreExtendedData(), "fieldName");
+            if (info != null) return info;
+        } catch (Exception ignored) {
+        }
+        // Fallback: locate any field or no-arg method returning ImageInfo (ImageInfoImpl / ImmutablePandoImageInfo)
+        Object[] targets;
+        try {
+            targets = new Object[]{this.getExtendedData(), this.getMoreExtendedData(), this.obj};
+        } catch (Throwable ignored) {
+            targets = new Object[]{this.obj};
+        }
+        for (Object target : targets) {
+            if (target == null) continue;
+            for (Method m : target.getClass().getMethods()) {
+                if (m.getParameterCount() == 0 && m.getReturnType().getName().endsWith(".ImageInfo")) {
+                    try {
+                        Object v = m.invoke(target);
+                        if (v != null) return v;
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+            for (Class<?> c = target.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    if (f.getType().getName().endsWith(".ImageInfo")) {
+                        try {
+                            f.setAccessible(true);
+                            Object v = f.get(target);
+                            if (v != null) return v;
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Resolves image variants across both {@code com.instagram.model.mediasize.ImageInfoImpl}
+     * and {@code com.instagram.model.mediasize.ImmutablePandoImageInfo} without crashing when
+     * obfuscated method or field names shift across Instagram versions (BUG-DL-001 & BUG-DL-002).
+     */
     public List<ImageData> getImageVariants() throws Exception {
-        Object imageInfoObject = (Object) super.getField(this.getMoreExtendedData(), "fieldName");
-        List variantList = (List) super.getMethod(imageInfoObject, "methodName");
+        Object imageInfoObject = resolveImageInfoObject();
+        if (imageInfoObject == null) return new ArrayList<>();
+
+        List<?> variantList = null;
+        try {
+            Object res = super.getMethod(imageInfoObject, "methodName");
+            if (res instanceof List && !((List<?>) res).isEmpty()) {
+                variantList = (List<?>) res;
+            }
+        } catch (Throwable ignored) {
+        }
+
+        if (variantList == null || variantList.isEmpty()) {
+            variantList = resolveImageCandidateListFallback(imageInfoObject);
+        }
 
         List<ImageData> imageList = new ArrayList<>();
-        variantList.forEach(item -> imageList.add(new ImageData(item)));
+        if (variantList != null) {
+            for (Object item : variantList) {
+                if (item != null) {
+                    imageList.add(new ImageData(item));
+                }
+            }
+        }
         return imageList;
     }
 
+    private static List<?> resolveImageCandidateListFallback(Object imageInfoObject) {
+        if (imageInfoObject == null) return Collections.emptyList();
+        // 1. Check methods declared on com.instagram.model.mediasize.ImageInfo interface
+        try {
+            Class<?> imageInfoIface = Class.forName("com.instagram.model.mediasize.ImageInfo");
+            if (imageInfoIface.isInstance(imageInfoObject)) {
+                for (Method m : imageInfoIface.getDeclaredMethods()) {
+                    if (m.getParameterCount() == 0 && List.class.isAssignableFrom(m.getReturnType())) {
+                        try {
+                            m.setAccessible(true);
+                            Object v = m.invoke(imageInfoObject);
+                            if (v instanceof List && !((List<?>) v).isEmpty()) {
+                                return (List<?>) v;
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        // 2. Check no-arg List-returning methods on concrete class (ImageInfoImpl / ImmutablePandoImageInfo)
+        for (Method m : imageInfoObject.getClass().getMethods()) {
+            if (m.getParameterCount() == 0 && List.class.isAssignableFrom(m.getReturnType())) {
+                try {
+                    m.setAccessible(true);
+                    Object v = m.invoke(imageInfoObject);
+                    if (v instanceof List && isImageCandidateList((List<?>) v)) {
+                        return (List<?>) v;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        // 3. Check List fields on concrete class
+        for (Class<?> c = imageInfoObject.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (Modifier.isStatic(f.getModifiers()) || !List.class.isAssignableFrom(f.getType())) continue;
+                try {
+                    f.setAccessible(true);
+                    Object v = f.get(imageInfoObject);
+                    if (v instanceof List && isImageCandidateList((List<?>) v)) {
+                        return (List<?>) v;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private static boolean isImageCandidateList(List<?> list) {
+        if (list == null || list.isEmpty()) return false;
+        for (Object item : list) {
+            if (item == null) continue;
+            String name = item.getClass().getName();
+            if (name.contains("ExtendedImageUrl") || name.contains("ImageUrl") || name.contains("mediasize")) {
+                return true;
+            }
+            try {
+                ImageData candidate = new ImageData(item);
+                String url = candidate.getUrl();
+                if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    return true;
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        return false;
+    }
+
     private Object[] getAdditionalImageCandidates() throws Exception {
-        Object imageInfo = super.getField(this.getMoreExtendedData(), "fieldName");
-        if (imageInfo == null) return new Object[0];
-        Class<?> imageInfoType = Class.forName("com.instagram.model.mediasize.ImageInfo");
-        Object additional = imageInfoType.getMethod("additionalMethod").invoke(imageInfo);
-        if (additional == null) return new Object[0];
-        Class<?> additionalType = Class.forName("com.instagram.model.mediasize.AdditionalCandidates");
-        return new Object[]{additionalType.getMethod("firstFrameMethod").invoke(additional),
-                additionalType.getMethod("igtvFrameMethod").invoke(additional),
-                additionalType.getMethod("smartFrameMethod").invoke(additional)};
+        try {
+            Object imageInfo = resolveImageInfoObject();
+            if (imageInfo == null) return new Object[0];
+            Class<?> imageInfoType = Class.forName("com.instagram.model.mediasize.ImageInfo");
+            Object additional = null;
+            try {
+                additional = imageInfoType.getMethod("additionalMethod").invoke(imageInfo);
+            } catch (Throwable ignored) {
+                for (Method m : imageInfoType.getDeclaredMethods()) {
+                    if (m.getParameterCount() == 0 && m.getReturnType().getName().endsWith(".AdditionalCandidates")) {
+                        additional = m.invoke(imageInfo);
+                        break;
+                    }
+                }
+            }
+            if (additional == null) return new Object[0];
+            Class<?> additionalType = Class.forName("com.instagram.model.mediasize.AdditionalCandidates");
+            try {
+                return new Object[]{
+                        additionalType.getMethod("firstFrameMethod").invoke(additional),
+                        additionalType.getMethod("igtvFrameMethod").invoke(additional),
+                        additionalType.getMethod("smartFrameMethod").invoke(additional)
+                };
+            } catch (Throwable ignored) {
+                List<Object> frames = new ArrayList<>();
+                for (Method m : additionalType.getDeclaredMethods()) {
+                    if (m.getParameterCount() == 0 && m.getReturnType().getName().endsWith(".ExtendedImageUrl")) {
+                        frames.add(m.invoke(additional));
+                    }
+                }
+                return frames.toArray(new Object[0]);
+            }
+        } catch (Throwable ignored) {
+            return new Object[0];
+        }
     }
 
     public boolean isFirstFrameCover() {
@@ -346,13 +814,21 @@ public class MediaData extends Entity {
     // Through the app's getter, not the dict field it caches into: that field can stay null until
     // the getter has run once.
     private String getVideoDashManifest() throws Exception {
-        return (String) super.getMethod(this.getExtendedData(), "methodName");
+        try {
+            return (String) super.getMethod(this.getExtendedData(), "methodName");
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /** Whether the video has a sound track, by the app's has_audio flag; true when the flag is missing. */
     public boolean hasAudioTrack() throws Exception {
-        Boolean hasAudio = (Boolean) super.getMethod(this.getExtendedData(), "methodName");
-        return hasAudio == null || hasAudio;
+        try {
+            Boolean hasAudio = (Boolean) super.getMethod(this.getExtendedData(), "methodName");
+            return hasAudio == null || hasAudio;
+        } catch (Exception ignored) {
+            return true;
+        }
     }
 
     /**
@@ -436,7 +912,14 @@ public class MediaData extends Entity {
 
     public String getVideoLink() throws Exception {
         VideoData video = this.getBestVideo();
-        return video == null ? null : video.getUrl();
+        if (video != null && video.getUrl() != null && !video.getUrl().isEmpty()) {
+            return video.getUrl();
+        }
+        List<DashVideoData> dash = this.getDashVideos();
+        if (!dash.isEmpty() && dash.get(0).getUrl() != null) {
+            return dash.get(0).getUrl();
+        }
+        return null;
     }
 
     public String getImageLink() throws Exception {
@@ -445,30 +928,40 @@ public class MediaData extends Entity {
     }
 
     public String getMediaLink() throws Exception {
-        return this.isVideo() ? this.getVideoLink() : this.getImageLink();
+        if (this.isVideo()) {
+            String videoLink = this.getVideoLink();
+            if (videoLink != null && !videoLink.isEmpty()) return videoLink;
+        }
+        return this.getImageLink();
     }
 
     private OriginalSoundDataIntf getOriginalSoundDataIntf() throws Exception {
-        Class<?> helperClass = this.getHelperClass();
-        Object result = super.getMethod(helperClass, "A06", this.obj);
-        if (result != null) {
-            return new OriginalSoundDataIntf(result);
+        try {
+            Class<?> helperClass = this.getHelperClass();
+            Object result = super.getMethod(helperClass, "A06", this.obj);
+            if (result != null) {
+                return new OriginalSoundDataIntf(result);
+            }
+        } catch (Throwable ignored) {
         }
         return null;
     }
 
     private TrackDataIntf getTrackDataIntf() throws Exception {
-        Object metadata = super.getMethod(this.obj, "clipsMetadata");
-        Object result;
-        if (metadata != null) {
-            result = super.getMethod(metadata, "clipsMusicInfo");
-        } else {
-            metadata = super.getMethod(this.obj, "musicMetadata");
-            if (metadata == null) return null;
-            result = super.getMethod(metadata, "musicInfo");
-        }
-        if (result != null) {
-            return new TrackDataIntf((MusicInfo) result);
+        try {
+            Object metadata = super.getMethod(this.obj, "clipsMetadata");
+            Object result;
+            if (metadata != null) {
+                result = super.getMethod(metadata, "clipsMusicInfo");
+            } else {
+                metadata = super.getMethod(this.obj, "musicMetadata");
+                if (metadata == null) return null;
+                result = super.getMethod(metadata, "musicInfo");
+            }
+            if (result != null) {
+                return new TrackDataIntf((MusicInfo) result);
+            }
+        } catch (Throwable ignored) {
         }
         return null;
     }
@@ -479,22 +972,29 @@ public class MediaData extends Entity {
             return originalSoundDataIntf;
         }
 
-        AudioMediaInterface TrackDataIntf = this.getTrackDataIntf();
-        if (TrackDataIntf != null) {
-            return TrackDataIntf;
+        AudioMediaInterface trackDataIntf = this.getTrackDataIntf();
+        if (trackDataIntf != null) {
+            return trackDataIntf;
         }
         return null;
     }
 
     public String getDescriptionText() throws Exception {
-        Class<?> helperClass = this.getHelperClass();
-        Object result = super.getMethod(helperClass, "A0J", this.obj);
-        return result != null ? (String) super.getField(result, "A0Z") : null;
+        try {
+            Class<?> helperClass = this.getHelperClass();
+            Object result = super.getMethod(helperClass, "A0J", this.obj);
+            return result != null ? (String) super.getField(result, "A0Z") : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     public String getMessageAudioUrl() throws Exception {
-        Object audioIntfObject = super.getMethod(this.getExtendedData(), "methodName");
-        return audioIntfObject != null ? (String) super.getMethod(audioIntfObject, "BAj") : null;
+        try {
+            Object audioIntfObject = super.getMethod(this.getExtendedData(), "methodName");
+            return audioIntfObject != null ? (String) super.getMethod(audioIntfObject, "BAj") : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
-
 }

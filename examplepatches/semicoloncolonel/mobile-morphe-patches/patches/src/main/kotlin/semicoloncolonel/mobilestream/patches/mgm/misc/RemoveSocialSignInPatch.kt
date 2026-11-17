@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.mgm.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 private const val CREDENTIAL_MANAGER = "Landroidx/credentials/CredentialManager;"
 
@@ -49,7 +50,7 @@ val removeSocialSignInPatch = bytecodePatch(
     description = "Removes the Google and Apple sign-in buttons and the Google sign-in sheet at startup.",
 ) {
     category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
 
     execute {
         listOf(GoogleSignInButtonFingerprint, AppleSignInButtonFingerprint).forEach {

@@ -6,9 +6,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import app.morphe.patcher.util.smali.ExternalLabel
 
 private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
@@ -21,7 +20,7 @@ private const val SDUI_FRAGMENT = "Lcom/linkedin/android/infra/sdui/view/SduiFra
  * Declares the Fakh Patches settings activity. It is reached from LinkedIn's Settings screen and by long
  * pressing the download button.
  */
-private val settingsManifestPatch = resourcePatch {
+private val settingsManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0)
@@ -50,7 +49,7 @@ private val settingsManifestPatch = resourcePatch {
  * Settings screen, reached from a "Fakh Patches" row on LinkedIn's Settings screen (SduiSettingsEntry), and
  * SduiFragment lifecycle hooks that drive the SDUI download button.
  */
-val settingsPatch = bytecodePatch {
+val settingsPatch = patch {
     dependsOn(settingsManifestPatch)
 
     extendWith("extensions/extension.mpe")
@@ -101,7 +100,7 @@ private object SduiComponentTransformFingerprint : Fingerprint(
 )
 
 /** Lets the extension skip (hide) any server driven UI component. */
-val sduiComponentFilterPatch = bytecodePatch {
+val sduiComponentFilterPatch = patch {
     dependsOn(settingsPatch)
 
     execute {
@@ -131,6 +130,14 @@ val sduiComponentFilterPatch = bytecodePatch {
     }
 }
 
+/** AndroidComposeView.dispatchTouchEvent(MotionEvent): every touch that enters a Compose screen. */
+object ComposeTouchFingerprint : Fingerprint(
+    definingClass = "Landroidx/compose/ui/platform/AndroidComposeView;",
+    name = "dispatchTouchEvent",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/MotionEvent;"),
+)
+
 /** Version of this patch bundle, from the manifest the build writes into the .mpp (Version attribute). */
 /** Version of this patch bundle, read from the manifest of the .mpp. */
 fun bundleVersion(): String {
@@ -145,7 +152,7 @@ fun bundleVersion(): String {
 }
 
 /** Makes Settings.<method>() return true, marking a feature as patched in. */
-fun BytecodePatchContext.markIncluded(method: String) {
+fun markIncluded(method: String) {
     Fingerprint(
         definingClass = SETTINGS_CLASS,
         name = method,

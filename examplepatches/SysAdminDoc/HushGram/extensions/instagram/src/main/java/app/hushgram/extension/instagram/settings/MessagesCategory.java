@@ -10,6 +10,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.callBlockModeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.changePinRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.chatGlassTintRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.lockDelayRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.lockToggle;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
@@ -35,6 +36,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.DM_MEDIA_SEEN)
                 || build.contains(PatchFamily.ACTIVE_STATUS)
                 || build.contains(PatchFamily.LAST_ACTIVE)
+                || build.contains(PatchFamily.SHORT_ACTIVE_NOW)
                 || build.contains(PatchFamily.MESSAGES_LOCK)
                 || build.contains(PatchFamily.SCREENSHOT_REPORTS)
                 || build.contains(PatchFamily.BLEND_VISITS)
@@ -140,6 +142,11 @@ final class MessagesCategory {
                         L10n.t("Under a name in your messages and in a chat, the exact time they were last on, like "
                                 + "Active at 3:42 PM, replaces Active 3h ago. Active now stays as it is.")));
             }
+            if (build.contains(PatchFamily.SHORT_ACTIVE_NOW)) {
+                messages.addPreference(toggle(context, Settings.SHORT_ACTIVE_NOW, L10n.t("Shorter Active now"),
+                        L10n.t("Someone shows as Active now for one minute after they leave, like on the website, "
+                                + "instead of six and a half. Restart Instagram to see the change.")));
+            }
             if (build.contains(PatchFamily.SCREENSHOT_REPORTS)) {
                 messages.addPreference(toggle(context, Settings.HIDE_SCREENSHOTS, L10n.t("Don't report screenshots"),
                         L10n.t("Instagram doesn't notice when you take a screenshot, so whoever sent you a disappearing photo or video isn't told. Your screenshots save as usual.")));
@@ -200,10 +207,20 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.HIDE_CALL_BUTTONS, L10n.t("Hide the call buttons in chats"),
                         L10n.t("Takes the voice and video call buttons off the top of a chat. The name keeps its room. "
                                 + "Turn it off and they're back the next time a chat opens.")));
+                messages.addPreference(toggle(context, Settings.HIDE_CHAT_BLEND, L10n.t("Hide Blend in chats"),
+                        L10n.t("Takes the Blend button off the top of a chat. Turn it off and it's back the next time "
+                                + "a chat opens.")));
+                messages.addPreference(toggle(context, Settings.HIDE_CHAT_BACK_BUTTON, L10n.t("Hide the back button in chats"),
+                        L10n.t("Leaves the back arrow off the top left of a chat, and the picture and the name move "
+                                + "over. Swipe back or use the phone's back button to leave the chat. Shows the next "
+                                + "time a chat opens.")));
             }
             if (build.contains(PatchFamily.CALL_BLOCKER)) {
                 messages.addPreference(callBlockModeRow(context));
                 messages.addPreference(callBlockAccountsRow(context));
+                messages.addPreference(toggle(context, Settings.CALL_BLOCK_DECLINE, L10n.t("Decline calls that don't ring"),
+                        L10n.t("Calls kept quiet by Who can call you are also declined, the same as tapping Decline, "
+                                + "instead of being left unanswered.")));
             }
             if (build.contains(PatchFamily.KINDNESS_REMINDER)) {
                 messages.addPreference(toggle(context, Settings.HIDE_KINDNESS_REMINDER, L10n.t("Hide the Community Standards reminder"),
@@ -230,6 +247,10 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.GLASS_CHAT_TOP_BAR, L10n.t("Glass top bar in chats"),
                         L10n.t("Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. "
                                 + "The round glass buttons and the glass message bar stay.")));
+                messages.addPreference(chatGlassTintRow(context, Settings.GLASS_CHAT_TOP_BAR_OPACITY,
+                        L10n.t("Top bar tint in chats")));
+                messages.addPreference(chatGlassTintRow(context, Settings.GLASS_CHAT_BOX_OPACITY,
+                        L10n.t("Message bar tint")));
             }
             if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
                 messages.addPreference(toggle(context, Settings.FULL_SCREEN_MESSAGES, L10n.t("Full screen Messages"),
@@ -253,6 +274,7 @@ final class MessagesCategory {
                 messages.addPreference(unlockWithRow(context));
                 messages.addPreference(changePinRow(context));
                 messages.addPreference(page.lockedChatsRow(context));
+                messages.addPreference(page.lockedCollectionsRow(context));
                 messages.addPreference(page.hiddenChatsRow(context));
                 messages.addPreference(toggle(context, Settings.DOUBLE_TAP_HIDDEN_CHATS,
                         L10n.t("Double-tap Messages for hidden chats"),

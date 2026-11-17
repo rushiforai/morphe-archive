@@ -2023,8 +2023,8 @@ public final class L10nTranslations {
                 "Links zu instagram.com werden \u00fcber %1$s geteilt.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Links zu instagram.com, die du kopierst oder teilst, gehen stattdessen \u00fcber diese Domain raus, f\u00fcr eine Seite, die Instagram-Beitr\u00e4ge und -Reels in Chat-Apps anzeigt. Gib nur die Domain ein, etwa example.com. Lass das Feld leer, um instagram.com zu behalten.");
-        table.put("Liquid glass look",
-                "Liquid-Glass-Look");
+        table.put("AMOLED blur look",
+                "AMOLED blur-Look");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Zeigt unter der Suchleiste alle letzten Suchen, nicht nur die ersten paar. \u201eAlle ansehen\u201c und das x an jeder Zeile funktionieren wie vorher.");
         table.put("Lives you watch don't put you on the host's viewer list, so they aren't told you're there. Commenting or reacting still shows you. The viewer count you see stops updating, and a live that ends can keep looking live until you leave it.",
@@ -2948,7 +2948,7 @@ public final class L10nTranslations {
         table.put("Screenshots and screen recordings work wherever Instagram blocks them, like disappearing photos and videos. Turn on Don't report screenshots too if the sender shouldn't hear about it.",
                 "Screenshots und Bildschirmaufnahmen funktionieren \u00fcberall, wo Instagram sie sperrt, etwa bei verschwindenden Fotos und Videos. Schalte auch \u201eScreenshots nicht melden\u201c ein, wenn der Absender nichts davon erfahren soll.");
         table.put("Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.",
-                "Scrollst du eine Liste nach unten, bleibt die Liquid-Glass-Pille, wie sie ist, mit jedem Tab an seinem Platz. Starte Instagram nach der \u00c4nderung neu.");
+                "Scrollst du eine Liste nach unten, bleibt die AMOLED blur-Pille, wie sie ist, mit jedem Tab an seinem Platz. Starte Instagram nach der \u00c4nderung neu.");
         table.put("Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.",
                 "Wenn du eine Liste nach unten scrollst, gleitet die Tab-Leiste aus dem Weg. Nach oben scrollen, das Erreichen des Anfangs oder ein Tab-Wechsel holt sie zur\u00fcck. Das geht mit und ohne Glas-Tab-Leiste. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("Search",
@@ -4013,8 +4013,8 @@ public final class L10nTranslations {
                 "Breit");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Mit aufklappbaren Kategorien \u00f6ffnet ein Tippen eine Kategorie auf einer eigenen Seite. Zur\u00fcck bringt dich zur Liste.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
-                "Ist der Liquid-Glass-Look aus, wird die Pille kleiner, wenn du eine Liste nach unten scrollst, und nach oben scrollen oder ein Tabwechsel bringt sie in voller Gr\u00f6\u00dfe zur\u00fcck. Ist Tab-Leiste beim Scrollen ausblenden an, hat das Vorrang. Starte Instagram nach der \u00c4nderung neu.");
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+                "Ist der AMOLED blur-Look aus, wird die Pille kleiner, wenn du eine Liste nach unten scrollst, und nach oben scrollen oder ein Tabwechsel bringt sie in voller Gr\u00f6\u00dfe zur\u00fcck. Ist Tab-Leiste beim Scrollen ausblenden an, hat das Vorrang. Starte Instagram nach der \u00c4nderung neu.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Ist \u201eGespeichertes nach Konto und Beitragszeit benennen\u201c an, gilt dieser Name nur f\u00fcr Gespeichertes, bei dem nicht bekannt ist, wer es gepostet hat oder wann.");
         table.put("With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.",
@@ -6058,7 +6058,7 @@ public final class L10nTranslations {
                 "Los enlaces a instagram.com salen con %1$s.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Los enlaces a instagram.com que copias o compartes salen con este dominio, para un sitio que muestra publicaciones y reels de Instagram en apps de chat. Escribe solo el dominio, como example.com. D\u00e9jalo en blanco para mantener instagram.com.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "Aspecto de cristal l\u00edquido");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Muestra todas las b\u00fasquedas recientes bajo la barra de b\u00fasqueda, no solo las primeras. Ver todo y la x de cada fila funcionan como antes.");
@@ -8048,7 +8048,7 @@ public final class L10nTranslations {
                 "Amplio");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Con Categor\u00edas desplegables activado, al tocar una categor\u00eda se abre en su propia p\u00e1gina. Atr\u00e1s te lleva de vuelta a la lista.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "Con Aspecto de cristal l\u00edquido desactivado, al desplazarte hacia abajo en una lista la p\u00edldora se hace m\u00e1s peque\u00f1a, y al subir o cambiar de pesta\u00f1a vuelve a su tama\u00f1o completo. Si Ocultar la barra de pesta\u00f1as al desplazarte est\u00e1 activado, manda ese. Reinicia Instagram tras cambiarlo.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Con \u00abNombrar lo guardado por cuenta y hora de publicaci\u00f3n\u00bb activado, este nombre solo se usa cuando no se sabe qui\u00e9n lo public\u00f3 o cu\u00e1ndo.");
@@ -10093,7 +10093,7 @@ public final class L10nTranslations {
                 "Tautan ke instagram.com dikirim dengan %1$s.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Tautan ke instagram.com yang Anda salin atau bagikan dikirim dengan domain ini, untuk situs yang menampilkan postingan dan reel Instagram di aplikasi chat. Ketik domainnya saja, seperti example.com. Biarkan kosong untuk tetap memakai instagram.com.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "Tampilan kaca cair");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Menampilkan semua pencarian terbaru di bawah kolom pencarian, bukan hanya beberapa yang pertama. Lihat semua dan tanda x di tiap baris tetap berfungsi seperti biasa.");
@@ -12083,7 +12083,7 @@ public final class L10nTranslations {
                 "Lebar");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Dengan Kategori yang dapat diperluas aktif, ketukan membuka kategori di halamannya sendiri. Kembali membawamu ke daftar.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "Saat Tampilan kaca cair mati, menggulir daftar ke bawah membuat pil lebih kecil, dan menggulir ke atas atau berganti tab mengembalikannya ke ukuran penuh. Jika Sembunyikan bilah tab saat menggulir aktif, pengaturan itu yang berlaku. Mulai ulang Instagram setelah mengubahnya.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Jika Beri nama simpanan menurut akun dan waktu posting aktif, nama ini hanya dipakai saat tidak diketahui siapa yang memposting atau kapan.");
@@ -14128,8 +14128,8 @@ public final class L10nTranslations {
                 "I link a instagram.com escono su %1$s.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "I link a instagram.com che copi o condividi escono invece su questo dominio, per un sito che mostra post e reel di Instagram nelle app di chat. Scrivi solo il dominio, come example.com. Lascia vuoto per mantenere instagram.com.");
-        table.put("Liquid glass look",
-                "Aspetto liquid glass");
+        table.put("AMOLED blur look",
+                "Aspetto AMOLED blur");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Mostra tutte le ricerche recenti sotto la barra di ricerca, non solo le prime. Mostra tutto e la x su ogni riga funzionano come prima.");
         table.put("Lives you watch don't put you on the host's viewer list, so they aren't told you're there. Commenting or reacting still shows you. The viewer count you see stops updating, and a live that ends can keep looking live until you leave it.",
@@ -15053,7 +15053,7 @@ public final class L10nTranslations {
         table.put("Screenshots and screen recordings work wherever Instagram blocks them, like disappearing photos and videos. Turn on Don't report screenshots too if the sender shouldn't hear about it.",
                 "Screenshot e registrazioni dello schermo funzionano dove Instagram li blocca, come foto e video a scomparsa. Attiva anche Non segnalare gli screenshot se chi li ha inviati non deve saperlo.");
         table.put("Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.",
-                "Scorrendo un elenco verso il basso la pillola liquid glass resta com'\u00e8, con ogni scheda al suo posto. Riavvia Instagram dopo averlo cambiato.");
+                "Scorrendo un elenco verso il basso la pillola AMOLED blur resta com'\u00e8, con ogni scheda al suo posto. Riavvia Instagram dopo averlo cambiato.");
         table.put("Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.",
                 "Scorrere una lista verso il basso fa scivolare via la barra delle schede. Scorrere verso l'alto, arrivare in cima o cambiare scheda la riporta. Funziona con o senza Barra delle schede di vetro. Riavvia Instagram dopo averlo cambiato.");
         table.put("Search",
@@ -16118,8 +16118,8 @@ public final class L10nTranslations {
                 "Ampio");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Con Categorie espandibili attivo, un tocco apre una categoria su una pagina tutta sua. Indietro ti riporta all'elenco.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
-                "Con Aspetto liquid glass disattivato, scorrendo un elenco verso il basso la pillola si rimpicciolisce, e scorrendo in su o cambiando scheda torna a grandezza piena. Se Nascondi la barra delle schede durante lo scorrimento \u00e8 attivo, vale quello. Riavvia Instagram dopo averlo cambiato.");
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+                "Con Aspetto AMOLED blur disattivato, scorrendo un elenco verso il basso la pillola si rimpicciolisce, e scorrendo in su o cambiando scheda torna a grandezza piena. Se Nascondi la barra delle schede durante lo scorrimento \u00e8 attivo, vale quello. Riavvia Instagram dopo averlo cambiato.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Con \u00abDai un nome ai salvataggi con account e ora del post\u00bb attivo, questo nome vale solo per i salvataggi di cui non si sa chi li ha pubblicati o quando.");
         table.put("With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.",
@@ -18163,7 +18163,7 @@ public final class L10nTranslations {
                 "instagram.com \ub9c1\ud06c\ub294 %1$s(\uc73c)\ub85c \ub098\uac11\ub2c8\ub2e4.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "\ubcf5\uc0ac\ud558\uac70\ub098 \uacf5\uc720\ud558\ub294 instagram.com \ub9c1\ud06c\uac00 \ub300\uc2e0 \uc774 \ub3c4\uba54\uc778\uc73c\ub85c \ub098\uac11\ub2c8\ub2e4. \ucc44\ud305 \uc571\uc5d0\uc11c Instagram \uac8c\uc2dc\ubb3c\uacfc \ub9b4\uc2a4\ub97c \ubcf4\uc5ec \uc8fc\ub294 \uc0ac\uc774\ud2b8\uc6a9\uc785\ub2c8\ub2e4. example.com\ucc98\ub7fc \ub3c4\uba54\uc778\ub9cc \uc785\ub825\ud558\uc138\uc694. instagram.com\uc744 \uc720\uc9c0\ud558\ub824\uba74 \ube44\uc6cc \ub450\uc138\uc694.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "\ub9ac\ud034\ub4dc \uae00\ub798\uc2a4 \uc2a4\ud0c0\uc77c");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "\uac80\uc0c9\ucc3d \uc544\ub798\uc5d0 \ucc98\uc74c \uba87 \uac1c\ub9cc\uc774 \uc544\ub2c8\ub77c \ucd5c\uadfc \uac80\uc0c9\uc744 \uc804\ubd80 \ubcf4\uc5ec \uc90d\ub2c8\ub2e4. \ubaa8\ub450 \ubcf4\uae30\uc640 \uac01 \uc904\uc758 x\ub294 \uc804\uacfc \ub611\uac19\uc774 \uc791\ub3d9\ud569\ub2c8\ub2e4.");
@@ -20153,7 +20153,7 @@ public final class L10nTranslations {
                 "\ub113\uac8c");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "\ud3bc\uce60 \uc218 \uc788\ub294 \uce74\ud14c\uace0\ub9ac\uac00 \ucf1c\uc838 \uc788\uc73c\uba74 \uce74\ud14c\uace0\ub9ac\ub97c \ud0ed\ud560 \ub54c \ubcc4\ub3c4 \ud398\uc774\uc9c0\ub85c \uc5f4\ub9bd\ub2c8\ub2e4. \ub4a4\ub85c\ub97c \ub204\ub974\uba74 \ubaa9\ub85d\uc73c\ub85c \ub3cc\uc544\uac11\ub2c8\ub2e4.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "\ub9ac\ud034\ub4dc \uae00\ub798\uc2a4 \uc2a4\ud0c0\uc77c\uc774 \uaebc\uc838 \uc788\uc744 \ub54c \ubaa9\ub85d\uc744 \uc544\ub798\ub85c \uc2a4\ud06c\ub864\ud558\uba74 \uc54c\uc57d\uc774 \uc791\uc544\uc9c0\uace0, \uc704\ub85c \uc2a4\ud06c\ub864\ud558\uac70\ub098 \ud0ed\uc744 \ubc14\uafb8\uba74 \uc6d0\ub798 \ud06c\uae30\ub85c \ub3cc\uc544\uc635\ub2c8\ub2e4. \uc2a4\ud06c\ub864\ud560 \ub54c \ud0ed \ubc14 \uc228\uae30\uae30\uac00 \ucf1c\uc838 \uc788\uc73c\uba74 \uadf8 \uc124\uc815\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4. \ubcc0\uacbd\ud55c \ub4a4\uc5d0\ub294 Instagram\uc744 \ub2e4\uc2dc \uc2dc\uc791\ud558\uc138\uc694.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "\u2018\uacc4\uc815\uacfc \uac8c\uc2dc \uc2dc\uac04\uc73c\ub85c \uc800\uc7a5 \ud30c\uc77c \uc774\ub984 \uc9d3\uae30\u2019\ub97c \ucf1c\uba74 \uac8c\uc2dc\ud55c \uc0ac\ub78c\uc774\ub098 \uc2dc\uac04\uc744 \ubaa8\ub974\ub294 \uc800\uc7a5 \ud30c\uc77c\uc5d0\ub9cc \uc774 \uc774\ub984\uc774 \ubd99\uc2b5\ub2c8\ub2e4.");
@@ -22198,7 +22198,7 @@ public final class L10nTranslations {
                 "Os links para instagram.com saem com %1$s.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Os links para instagram.com que voc\u00ea copia ou compartilha saem com este dom\u00ednio, para um site que mostra posts e reels do Instagram em apps de conversa. Digite s\u00f3 o dom\u00ednio, como example.com. Deixe em branco para manter instagram.com.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "Visual de vidro l\u00edquido");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Lista todas as pesquisas recentes abaixo da barra de pesquisa, e n\u00e3o s\u00f3 as primeiras. Ver tudo e o x de cada linha funcionam como antes.");
@@ -24188,7 +24188,7 @@ public final class L10nTranslations {
                 "Amplo");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Com Categorias expans\u00edveis ativado, tocar em uma categoria a abre em uma p\u00e1gina pr\u00f3pria. Voltar leva voc\u00ea de volta \u00e0 lista.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "Com Visual de vidro l\u00edquido desligado, rolar uma lista para baixo deixa a p\u00edlula menor, e rolar para cima ou trocar de aba a traz de volta ao tamanho cheio. Se Ocultar a barra de abas ao rolar estiver ligado, ele vale. Reinicie o Instagram depois de alterar.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Com Nomear o que \u00e9 salvo por conta e hora do post ativado, s\u00f3 recebe este nome o que for salvo sem saber quem postou ou quando.");
@@ -26233,8 +26233,8 @@ public final class L10nTranslations {
                 "\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e44\u0e1b\u0e22\u0e31\u0e07 instagram.com \u0e08\u0e30\u0e16\u0e39\u0e01\u0e2a\u0e48\u0e07\u0e2d\u0e2d\u0e01\u0e42\u0e14\u0e22\u0e43\u0e0a\u0e49 %1$s");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e44\u0e1b\u0e22\u0e31\u0e07 instagram.com \u0e17\u0e35\u0e48\u0e04\u0e38\u0e13\u0e04\u0e31\u0e14\u0e25\u0e2d\u0e01\u0e2b\u0e23\u0e37\u0e2d\u0e41\u0e0a\u0e23\u0e4c\u0e08\u0e30\u0e16\u0e39\u0e01\u0e2a\u0e48\u0e07\u0e2d\u0e2d\u0e01\u0e42\u0e14\u0e22\u0e43\u0e0a\u0e49\u0e42\u0e14\u0e40\u0e21\u0e19\u0e19\u0e35\u0e49\u0e41\u0e17\u0e19 \u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e40\u0e27\u0e47\u0e1a\u0e44\u0e0b\u0e15\u0e4c\u0e17\u0e35\u0e48\u0e41\u0e2a\u0e14\u0e07\u0e42\u0e1e\u0e2a\u0e15\u0e4c\u0e41\u0e25\u0e30\u0e23\u0e35\u0e25\u0e2a\u0e4c\u0e02\u0e2d\u0e07 Instagram \u0e43\u0e19\u0e41\u0e2d\u0e1b\u0e41\u0e0a\u0e17 \u0e1b\u0e49\u0e2d\u0e19\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e0a\u0e37\u0e48\u0e2d\u0e42\u0e14\u0e40\u0e21\u0e19 \u0e40\u0e0a\u0e48\u0e19 example.com \u0e40\u0e27\u0e49\u0e19\u0e27\u0e48\u0e32\u0e07\u0e44\u0e27\u0e49\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e04\u0e07\u0e40\u0e1b\u0e47\u0e19 instagram.com \u0e15\u0e32\u0e21\u0e40\u0e14\u0e34\u0e21");
-        table.put("Liquid glass look",
-                "\u0e23\u0e39\u0e1b\u0e25\u0e31\u0e01\u0e29\u0e13\u0e4c\u0e01\u0e23\u0e30\u0e08\u0e01\u0e40\u0e2b\u0e25\u0e27 (Liquid glass)");
+        table.put("AMOLED blur look",
+                "\u0e23\u0e39\u0e1b\u0e25\u0e31\u0e01\u0e29\u0e13\u0e4c\u0e01\u0e23\u0e30\u0e08\u0e01\u0e40\u0e2b\u0e25\u0e27 (AMOLED blur)");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "\u0e41\u0e2a\u0e14\u0e07\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e04\u0e49\u0e19\u0e2b\u0e32\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e43\u0e15\u0e49\u0e41\u0e16\u0e1a\u0e04\u0e49\u0e19\u0e2b\u0e32 \u0e44\u0e21\u0e48\u0e43\u0e0a\u0e48\u0e41\u0e04\u0e48\u0e2a\u0e2d\u0e07\u0e2a\u0e32\u0e21\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e41\u0e23\u0e01 \u0e42\u0e14\u0e22 \"\u0e14\u0e39\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\" \u0e41\u0e25\u0e30\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e2b\u0e21\u0e32\u0e22 x \u0e43\u0e19\u0e41\u0e15\u0e48\u0e25\u0e30\u0e41\u0e16\u0e27\u0e08\u0e30\u0e22\u0e31\u0e07\u0e04\u0e07\u0e17\u0e33\u0e07\u0e32\u0e19\u0e40\u0e2b\u0e21\u0e37\u0e2d\u0e19\u0e40\u0e14\u0e34\u0e21");
         table.put("Lives you watch don't put you on the host's viewer list, so they aren't told you're there. Commenting or reacting still shows you. The viewer count you see stops updating, and a live that ends can keep looking live until you leave it.",
@@ -28223,7 +28223,7 @@ public final class L10nTranslations {
                 "\u0e01\u0e27\u0e49\u0e32\u0e07");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e34\u0e14\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19 \"\u0e2b\u0e21\u0e27\u0e14\u0e2b\u0e21\u0e39\u0e48\u0e17\u0e35\u0e48\u0e02\u0e22\u0e32\u0e22\u0e44\u0e14\u0e49\" \u0e01\u0e32\u0e23\u0e41\u0e15\u0e30\u0e08\u0e30\u0e40\u0e1b\u0e34\u0e14\u0e2b\u0e21\u0e27\u0e14\u0e2b\u0e21\u0e39\u0e48\u0e43\u0e19\u0e2b\u0e19\u0e49\u0e32\u0e02\u0e2d\u0e07\u0e15\u0e31\u0e27\u0e40\u0e2d\u0e07 \u0e1b\u0e38\u0e48\u0e21\u0e22\u0e49\u0e2d\u0e19\u0e01\u0e25\u0e31\u0e1a\u0e08\u0e30\u0e19\u0e33\u0e04\u0e38\u0e13\u0e01\u0e25\u0e31\u0e1a\u0e44\u0e1b\u0e22\u0e31\u0e07\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e1b\u0e34\u0e14\u0e23\u0e39\u0e1b\u0e25\u0e31\u0e01\u0e29\u0e13\u0e4c\u0e01\u0e23\u0e30\u0e08\u0e01\u0e40\u0e2b\u0e25\u0e27 \u0e01\u0e32\u0e23\u0e40\u0e25\u0e37\u0e48\u0e2d\u0e19\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e25\u0e07\u0e08\u0e30\u0e17\u0e33\u0e43\u0e2b\u0e49\u0e41\u0e16\u0e1a\u0e41\u0e04\u0e1b\u0e0b\u0e39\u0e25\u0e40\u0e25\u0e47\u0e01\u0e25\u0e07 \u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e40\u0e25\u0e37\u0e48\u0e2d\u0e19\u0e02\u0e36\u0e49\u0e19\u0e2b\u0e23\u0e37\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e17\u0e47\u0e1a\u0e08\u0e30\u0e17\u0e33\u0e43\u0e2b\u0e49\u0e01\u0e25\u0e31\u0e1a\u0e40\u0e1b\u0e47\u0e19\u0e02\u0e19\u0e32\u0e14\u0e40\u0e15\u0e47\u0e21 \u0e2b\u0e32\u0e01\u0e40\u0e1b\u0e34\u0e14\u0e0b\u0e48\u0e2d\u0e19\u0e41\u0e16\u0e1a\u0e41\u0e17\u0e47\u0e1a\u0e02\u0e13\u0e30\u0e40\u0e25\u0e37\u0e48\u0e2d\u0e19\u0e2b\u0e19\u0e49\u0e32\u0e08\u0e2d\u0e2d\u0e22\u0e39\u0e48 \u0e08\u0e30\u0e43\u0e0a\u0e49\u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19\u0e41\u0e17\u0e19 \u0e23\u0e35\u0e2a\u0e15\u0e32\u0e23\u0e4c\u0e17 Instagram \u0e2b\u0e25\u0e31\u0e07\u0e08\u0e32\u0e01\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e34\u0e14 \"\u0e15\u0e31\u0e49\u0e07\u0e0a\u0e37\u0e48\u0e2d\u0e44\u0e1f\u0e25\u0e4c\u0e17\u0e35\u0e48\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e15\u0e32\u0e21\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e41\u0e25\u0e30\u0e40\u0e27\u0e25\u0e32\u0e17\u0e35\u0e48\u0e42\u0e1e\u0e2a\u0e15\u0e4c\" \u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e1a\u0e1a\u0e19\u0e35\u0e49\u0e08\u0e30\u0e43\u0e0a\u0e49\u0e40\u0e09\u0e1e\u0e32\u0e30\u0e01\u0e31\u0e1a\u0e01\u0e32\u0e23\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e17\u0e35\u0e48\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a\u0e27\u0e48\u0e32\u0e43\u0e04\u0e23\u0e40\u0e1b\u0e47\u0e19\u0e1c\u0e39\u0e49\u0e42\u0e1e\u0e2a\u0e15\u0e4c\u0e2b\u0e23\u0e37\u0e2d\u0e42\u0e1e\u0e2a\u0e15\u0e4c\u0e40\u0e21\u0e37\u0e48\u0e2d\u0e43\u0e14\u0e40\u0e17\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19");
@@ -30268,7 +30268,7 @@ public final class L10nTranslations {
                 "instagram.com ba\u011flant\u0131lar\u0131 %1$s ile gider.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n instagram.com ba\u011flant\u0131lar\u0131 bunun yerine bu alan ad\u0131yla gider. Bu, Instagram g\u00f6nderilerini ve reel'lerini sohbet uygulamalar\u0131nda g\u00f6steren bir site i\u00e7indir. Yaln\u0131zca alan ad\u0131n\u0131 yaz, \u00f6rne\u011fin example.com. instagram.com'u korumak i\u00e7in bo\u015f b\u0131rak.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "S\u0131v\u0131 cam g\u00f6r\u00fcn\u00fcm\u00fc");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Arama \u00e7ubu\u011funun alt\u0131nda yaln\u0131zca ilk birka\u00e7\u0131n\u0131 de\u011fil, t\u00fcm son aramalar\u0131 listeler. T\u00fcm\u00fcn\u00fc g\u00f6r ve her sat\u0131rdaki x eskisi gibi \u00e7al\u0131\u015f\u0131r.");
@@ -32258,7 +32258,7 @@ public final class L10nTranslations {
                 "Geni\u015f");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Geni\u015fletilebilir kategoriler a\u00e7\u0131kken bir kategoriye dokunmak onu kendi sayfas\u0131nda a\u00e7ar. Geri, listeye d\u00f6nd\u00fcr\u00fcr.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "S\u0131v\u0131 cam g\u00f6r\u00fcn\u00fcm\u00fc kapal\u0131yken bir listeyi a\u015fa\u011f\u0131 kayd\u0131r\u0131nca hap k\u00fc\u00e7\u00fcl\u00fcr, yukar\u0131 kayd\u0131r\u0131nca ya da sekme de\u011fi\u015ftirince tam boyutuna d\u00f6ner. Kayd\u0131r\u0131rken sekme \u00e7ubu\u011funu gizle a\u00e7\u0131ksa o ge\u00e7erli olur. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Kaydedilenleri hesaba ve payla\u015f\u0131m zaman\u0131na g\u00f6re adland\u0131r a\u00e7\u0131kken bu ad yaln\u0131zca kimin ya da ne zaman payla\u015ft\u0131\u011f\u0131 bilinmeyen kay\u0131tlara verilir.");
@@ -34303,7 +34303,7 @@ public final class L10nTranslations {
                 "Li\u00ean k\u1ebft instagram.com g\u1eedi \u0111i qua %1$s.");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "Li\u00ean k\u1ebft instagram.com b\u1ea1n sao ch\u00e9p ho\u1eb7c chia s\u1ebb s\u1ebd g\u1eedi \u0111i qua t\u00ean mi\u1ec1n n\u00e0y, d\u00e0nh cho trang hi\u1ec7n b\u00e0i vi\u1ebft v\u00e0 reel Instagram trong \u1ee9ng d\u1ee5ng tr\u00f2 chuy\u1ec7n. Ch\u1ec9 nh\u1eadp t\u00ean mi\u1ec1n, nh\u01b0 example.com. \u0110\u1ec3 tr\u1ed1ng \u0111\u1ec3 gi\u1eef instagram.com.");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "Ki\u1ec3u k\u00ednh l\u1ecfng");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "Li\u1ec7t k\u00ea m\u1ecdi n\u1ed9i dung t\u00ecm g\u1ea7n \u0111\u00e2y d\u01b0\u1edbi thanh t\u00ecm ki\u1ebfm, kh\u00f4ng ch\u1ec9 v\u00e0i m\u1ee5c \u0111\u1ea7u. Xem t\u1ea5t c\u1ea3 v\u00e0 d\u1ea5u x tr\u00ean m\u1ed7i h\u00e0ng ho\u1ea1t \u0111\u1ed9ng nh\u01b0 tr\u01b0\u1edbc.");
@@ -36293,7 +36293,7 @@ public final class L10nTranslations {
                 "R\u1ed9ng");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "Khi b\u1eadt Danh m\u1ee5c m\u1edf r\u1ed9ng \u0111\u01b0\u1ee3c, nh\u1ea5n v\u00e0o m\u1ed9t danh m\u1ee5c s\u1ebd m\u1edf n\u00f3 tr\u00ean m\u1ed9t trang ri\u00eang. Quay l\u1ea1i s\u1ebd \u0111\u01b0a b\u1ea1n v\u1ec1 danh s\u00e1ch.");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "Khi t\u1eaft Ki\u1ec3u k\u00ednh l\u1ecfng, cu\u1ed9n danh s\u00e1ch xu\u1ed1ng s\u1ebd l\u00e0m vi\u00ean thanh nh\u1ecf l\u1ea1i, c\u00f2n cu\u1ed9n l\u00ean ho\u1eb7c \u0111\u1ed5i tab s\u1ebd \u0111\u01b0a n\u00f3 v\u1ec1 \u0111\u1ee7 c\u1ee1. N\u1ebfu \u1ea8n thanh tab khi cu\u1ed9n \u0111ang b\u1eadt th\u00ec c\u00e0i \u0111\u1eb7t \u0111\u00f3 \u0111\u01b0\u1ee3c \u01b0u ti\u00ean. H\u00e3y kh\u1edfi \u0111\u1ed9ng l\u1ea1i Instagram sau khi thay \u0111\u1ed5i.");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "Khi b\u1eadt \u0110\u1eb7t t\u00ean b\u1ea3n l\u01b0u theo t\u00e0i kho\u1ea3n v\u00e0 gi\u1edd \u0111\u0103ng, ch\u1ec9 b\u1ea3n l\u01b0u kh\u00f4ng r\u00f5 ai \u0111\u0103ng ho\u1eb7c \u0111\u0103ng l\u00fac n\u00e0o m\u1edbi \u0111\u01b0\u1ee3c \u0111\u1eb7t t\u00ean theo c\u00e1ch n\u00e0y.");
@@ -38338,7 +38338,7 @@ public final class L10nTranslations {
                 "instagram.com \u7684\u94fe\u63a5\u4f1a\u6539\u7528 %1$s \u5206\u4eab\u3002");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "\u590d\u5236\u6216\u5206\u4eab instagram.com \u94fe\u63a5\u65f6\uff0c\u6539\u7528\u6b64\u7f51\u57df\uff0c\u4ee5\u4fbf\u901a\u8fc7\u5176\u4ed6\u7f51\u7ad9\u5728\u804a\u5929\u5e94\u7528\u7a0b\u5e8f\u4e2d\u663e\u793a Instagram \u5e16\u5b50\u4e0e Reels\u3002\u4ec5\u8f93\u5165\u7f51\u57df\uff0c\u4f8b\u5982 example.com\u3002\u7559\u7a7a\u5219\u4fdd\u7559 instagram.com\u3002");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "\u6db2\u6001\u73bb\u7483\u5916\u89c2");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "\u5728\u641c\u7d22\u680f\u4e0b\u65b9\u680f\u51fa\u6240\u6709\u6700\u8fd1\u641c\u7d22\uff0c\u800c\u975e\u4ec5\u524d\u51e0\u7b14\u3002\u201c\u67e5\u770b\u5168\u90e8\u201d\u4e0e\u6bcf\u5217\u7684 x \u4ecd\u53ef\u7167\u5e38\u4f7f\u7528\u3002");
@@ -40328,7 +40328,7 @@ public final class L10nTranslations {
                 "\u5bbd");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "\u6253\u5f00\u201c\u53ef\u5c55\u5f00\u7684\u5206\u7c7b\u201d\u65f6\uff0c\u70b9\u51fb\u5206\u7c7b\u4f1a\u5728\u72ec\u7acb\u9875\u9762\u6253\u5f00\u3002\u6309\u8fd4\u56de\u5373\u53ef\u56de\u5230\u6e05\u5355\u3002");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "\u5173\u95ed\u6db2\u6001\u73bb\u7483\u5916\u89c2\u65f6\uff0c\u5411\u4e0b\u5377\u52a8\u6e05\u5355\u4f1a\u8ba9\u80f6\u56ca\u53d8\u5c0f\uff0c\u5411\u4e0a\u5377\u52a8\u6216\u5207\u6362\u6807\u7b7e\u9875\u5c31\u4f1a\u6062\u590d\u5b8c\u6574\u5927\u5c0f\u3002\u6253\u5f00\u5377\u52a8\u65f6\u9690\u85cf\u6807\u7b7e\u680f\u65f6\uff0c\u4ee5\u8be5\u8bbe\u7f6e\u4e3a\u51c6\u3002\u53d8\u66f4\u540e\u8bf7\u91cd\u65b0\u542f\u52a8 Instagram\u3002");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "\u6253\u5f00\u201c\u6309\u8d26\u6237\u4e0e\u53d1\u5e03\u65f6\u95f4\u547d\u540d\u201d\u65f6\uff0c\u53ea\u6709\u4e0d\u77e5\u9053\u662f\u8c01\u6216\u4f55\u65f6\u53d1\u5e03\u7684\u4fdd\u5b58\u9879\u76ee\u624d\u4f1a\u7528\u8fd9\u4e2a\u540d\u79f0\u3002");
@@ -42373,7 +42373,7 @@ public final class L10nTranslations {
                 "instagram.com \u7684\u9023\u7d50\u6703\u6539\u7528 %1$s \u5206\u4eab\u3002");
         table.put("Links to instagram.com that you copy or share go out on this domain instead, for a site that shows Instagram posts and reels in chat apps. Type the domain alone, like example.com. Leave it blank to keep instagram.com.",
                 "\u8907\u88fd\u6216\u5206\u4eab instagram.com \u9023\u7d50\u6642\uff0c\u6539\u7528\u6b64\u7db2\u57df\uff0c\u4ee5\u4fbf\u900f\u904e\u5176\u4ed6\u7db2\u7ad9\u5728\u804a\u5929\u61c9\u7528\u7a0b\u5f0f\u4e2d\u986f\u793a Instagram \u8cbc\u6587\u8207 Reels\u3002\u50c5\u8f38\u5165\u7db2\u57df\uff0c\u4f8b\u5982 example.com\u3002\u7559\u7a7a\u5247\u4fdd\u7559 instagram.com\u3002");
-        table.put("Liquid glass look",
+        table.put("AMOLED blur look",
                 "\u6db2\u614b\u73bb\u7483\u5916\u89c0");
         table.put("Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.",
                 "\u5728\u641c\u5c0b\u5217\u4e0b\u65b9\u5217\u51fa\u6240\u6709\u6700\u8fd1\u641c\u5c0b\uff0c\u800c\u975e\u50c5\u524d\u5e7e\u7b46\u3002\u300c\u67e5\u770b\u5168\u90e8\u300d\u8207\u6bcf\u5217\u7684 x \u4ecd\u53ef\u7167\u5e38\u4f7f\u7528\u3002");
@@ -44363,7 +44363,7 @@ public final class L10nTranslations {
                 "\u5bec");
         table.put("With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.",
                 "\u958b\u555f\u300c\u53ef\u5c55\u958b\u7684\u5206\u985e\u300d\u6642\uff0c\u9ede\u9078\u5206\u985e\u6703\u5728\u7368\u7acb\u9801\u9762\u958b\u555f\u3002\u6309\u8fd4\u56de\u5373\u53ef\u56de\u5230\u6e05\u55ae\u3002");
-        table.put("With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
+        table.put("With AMOLED blur look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.",
                 "\u95dc\u9589\u6db2\u614b\u73bb\u7483\u5916\u89c0\u6642\uff0c\u5411\u4e0b\u6372\u52d5\u6e05\u55ae\u6703\u8b93\u81a0\u56ca\u8b8a\u5c0f\uff0c\u5411\u4e0a\u6372\u52d5\u6216\u5207\u63db\u5206\u9801\u5c31\u6703\u6062\u5fa9\u5b8c\u6574\u5927\u5c0f\u3002\u958b\u555f\u6372\u52d5\u6642\u96b1\u85cf\u5206\u9801\u5217\u6642\uff0c\u4ee5\u8a72\u8a2d\u5b9a\u70ba\u6e96\u3002\u8b8a\u66f4\u5f8c\u8acb\u91cd\u65b0\u555f\u52d5 Instagram\u3002");
         table.put("With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.",
                 "\u958b\u555f\u300c\u6309\u5e33\u865f\u8207\u767c\u4f48\u6642\u9593\u547d\u540d\u300d\u6642\uff0c\u53ea\u6709\u4e0d\u77e5\u9053\u662f\u8ab0\u6216\u4f55\u6642\u767c\u4f48\u7684\u5132\u5b58\u9805\u76ee\u624d\u6703\u7528\u9019\u500b\u540d\u7a31\u3002");

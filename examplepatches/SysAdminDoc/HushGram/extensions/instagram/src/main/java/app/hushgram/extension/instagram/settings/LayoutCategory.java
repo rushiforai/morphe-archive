@@ -10,10 +10,12 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.accentHueRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.appIconRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.headerFontRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.headerTextRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.info;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.mark;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.textSizeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -53,7 +55,10 @@ final class LayoutCategory {
             }
             // Rows whose key words name no icon get one that says what they change, not the
             // category's grid on every other row.
-            if (build.contains(PatchFamily.FONT)) layout.addPreference(mark(page.fontRow(context), SettingsIcons.WRITING));
+            if (build.contains(PatchFamily.FONT)) {
+                layout.addPreference(mark(page.fontRow(context), SettingsIcons.WRITING));
+                layout.addPreference(mark(textSizeRow(context), SettingsIcons.WRITING));
+            }
             if (build.contains(PatchFamily.EMOJI_STYLE)) {
                 layout.addPreference(toggle(context, Settings.NOTO_EMOJI, L10n.t("Google's emoji everywhere"),
                         L10n.t("Shows every emoji in Google's style instead of your phone's own. Restart Instagram "
@@ -109,6 +114,10 @@ final class LayoutCategory {
                 layout.addPreference(mark(headerTextRow(context), SettingsIcons.WRITING));
                 layout.addPreference(mark(page.headerPictureRow(context), SettingsIcons.STORIES));
                 layout.addPreference(mark(page.removeHeaderPictureRow(context), SettingsIcons.DELETE));
+                layout.addPreference(mark(headerFontRow(context, build.contains(PatchFamily.FONT)), SettingsIcons.WRITING));
+                layout.addPreference(toggle(context, Settings.HEADER_TEXT_CENTER, L10n.t("Center the header text"),
+                        L10n.t("Puts your words or picture in the middle of the top of Home instead of where "
+                                + "Instagram puts its logo.")));
             }
             if (build.contains(PatchFamily.REFRESH_RATE)) {
                 layout.addPreference(mark(onFlip(toggle(context, Settings.HIGHEST_REFRESH_RATE, L10n.t("Use the highest refresh rate"),

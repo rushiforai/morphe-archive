@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -37,8 +37,9 @@ public class CategoryPref extends PreferenceCategory {
     @Override
     protected View onCreateView(ViewGroup parent) {
         TextView title = new TextView(getContext());
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        title.setLetterSpacing(0.03f);
         applyCategoryStyle(title);
         title.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -51,19 +52,19 @@ public class CategoryPref extends PreferenceCategory {
     protected void onBindView(View view) {
         TextView title = (TextView) view;
         title.setText(getTitle());
-        title.setTextColor(InstagramPreferenceStyle.primaryTextColor());
+        title.setTextColor(InstagramPreferenceStyle.REX_CYAN_ACCENT);
         applyCategoryStyle(title);
         title.setEnabled(isEnabled());
     }
 
     private void applyCategoryStyle(TextView title) {
-        int topPadding = firstCategory ? 20 : 30;
+        int topPadding = firstCategory ? 14 : 22;
         title.setPadding(
-                InstagramPreferenceStyle.dp(getContext(), 15),
+                InstagramPreferenceStyle.dp(getContext(), 22),
                 InstagramPreferenceStyle.dp(getContext(), topPadding),
-                InstagramPreferenceStyle.dp(getContext(), 15),
-                InstagramPreferenceStyle.dp(getContext(), 10)
+                InstagramPreferenceStyle.dp(getContext(), 22),
+                InstagramPreferenceStyle.dp(getContext(), 8)
         );
-        title.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+        title.setBackgroundColor(InstagramPreferenceStyle.AMOLED_BLACK);
     }
 }

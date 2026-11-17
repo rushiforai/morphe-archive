@@ -20,6 +20,7 @@ public final class SiteThreadMetadata {
     private static final ThreadLocal<Binding> CURRENT=new ThreadLocal<>();
     private static final AtomicBoolean REFRESH=new AtomicBoolean();
     private static final AtomicInteger WRITES=new AtomicInteger();
+    private static final Map<String,Set<String>> LISTINGS=Collections.synchronizedMap(new LinkedHashMap<String,Set<String>>(32,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,Set<String>> e){return size()>64;}});
     private static Database database;
     private static final class Binding {final SiteBoardGateway gateway;final String board;long thread;int count;Binding(SiteBoardGateway gateway,String board){this.gateway=gateway;this.board=board;}}
     private static final class Database extends SQLiteOpenHelper {
@@ -61,6 +62,25 @@ public final class SiteThreadMetadata {
         if(id==null)return;try{state.thread=field(row,id).getLong(row);state.count=field(row,count).getInt(row);String source=SiteThreadIds.source(Long.toString(state.thread));String key=state.board+":"+source;if(!CACHE.containsKey(key))acquire(state.gateway,state.board,source);}catch(Exception ignored){state.thread=0;state.count=0;}
     }
     static String currentBoard(){Binding binding=CURRENT.get();return binding==null?null:binding.board;}
+    /** Fetch dates for the whole returned list, including rows outside the visible viewport. */
+    static void listing(Context context,SiteBoardGateway gateway,String board,List<SiteBoardProtocol.Topic> topics){
+        if(context==null)return;initialize(context);Set<String> ids=new HashSet<>();
+        for(SiteBoardProtocol.Topic topic:topics)ids.add(topic.id);
+        LISTINGS.put(board,ids);
+        for(SiteBoardProtocol.Topic topic:topics)if(cachedCreation(board,topic.id)==0)acquire(gateway,board,topic.id);
+    }
+    static String sortBoard(List<?> rows){
+        String bound=currentBoard();if(bound!=null)return bound;
+        Set<String> ids=new HashSet<>();
+        for(Object row:rows)try{long[] values=SiteMomentumSort.row(row);if(values!=null&&values[0]>SiteThreadIds.BASE&&values[0]<SiteThreadIds.BASE*2)ids.add(Long.toString(values[0]-SiteThreadIds.BASE));}catch(Exception ignored){}
+        if(ids.isEmpty())return null;
+        String match=null;synchronized(LISTINGS){for(Map.Entry<String,Set<String>> entry:LISTINGS.entrySet())if(entry.getValue().containsAll(ids)){if(match!=null)return null;match=entry.getKey();}}
+        return match;
+    }
+    static Map<String,Long> creationSnapshot(){
+        Context context=Haiagaru.applicationContextForExtension();if(context!=null)initialize(context);
+        synchronized(CACHE){return new HashMap<>(CACHE);}
+    }
     static long cachedCreation(String key,String id){
         Long value=CACHE.get(key+":"+id);return value==null?0:value;
     }
@@ -93,7 +113,7 @@ public final class SiteThreadMetadata {
             }
         }catch(Exception unknown){return original;}
     }
-    public static long momentum(long original){Binding state=CURRENT.get();if(state==null||state.thread<SiteThreadIds.BASE)return original;long created=epoch(state.thread);return created==state.thread?original:SiteThreadDates.momentum(state.count,created,System.currentTimeMillis()/1000);}
+    public static long momentum(long original){Binding state=CURRENT.get();if(state==null||state.thread<SiteThreadIds.BASE)return original;long created=epoch(state.thread);return created==state.thread?0:SiteThreadDates.momentum(state.count,created,System.currentTimeMillis()/1000);}
     public static void end(){CURRENT.remove();}
     static void remember(String board,String thread,long created){
         if(created<=0||!board.matches(SiteBoardGateway.KEY_PATTERN))return;Context context=Haiagaru.applicationContextForExtension();if(context==null)return;initialize(context);String key=board+":"+thread;Long previous=CACHE.put(key,created);if(previous!=null&&previous==created)return;

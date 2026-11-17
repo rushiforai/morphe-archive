@@ -229,6 +229,13 @@ final class SiteBoardGateway {
         }catch(IOException unavailable){return null;}
         return port>0&&("127.0.0.1:"+port).equals(host)&&key!=null&&boards.containsKey(key)?key:null;
     }
+    SiteBoardProtocol.Board postingLimitBoard(String address){
+        try{URI uri=URI.create(address);String path=uri.getPath().replaceAll("^/+|/+$","");String key=registeredKey(uri.getRawAuthority(),path);return key==null?null:boards.get(key);}catch(Exception invalid){return null;}
+    }
+    String postingLimitPage(SiteBoardProtocol.Board board)throws IOException{
+        if(!siteEnabled(board.kind))throw new IOException("使用しない板です");
+        return page(board.kind.equals("futaba")?board.url+"futaba.htm":board.url);
+    }
     String popupBoardKey(String key,String thread){
         SiteBoardProtocol.Board original=boards.get(key);
         if(original==null||!original.kind.equals("animanch")||thread==null)return key;
@@ -498,7 +505,7 @@ final class SiteBoardGateway {
                 if(board.kind.equals("futaba")&&board.host.equals("www.2chan.net")&&board.path.equals("script"))throw new IOException("ふたばの「配布」はスクリプト配布ページのため、スレ一覧はありません。元のURLをブラウザで開いてください");
                 String listing=page(board.indexUrl());
                 if(board.path.equals("yamibaito/")||SiteBoardProtocol.webDestination(board,listing)!=null){prefs.edit().putBoolean("yamiBoard:"+key,true).apply();data=SiteNativeData.subject(newsTopics(),true);}
-                else{prefs.edit().remove("yamiBoard:"+key).apply();List<SiteBoardProtocol.Topic> topics=board.kind.equals("futaba")?FutabaCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):board.kind.equals("bakusai")?BakusaiCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):SiteBoardProtocol.topics(board,listing);rememberAnimanchTopics(board,topics);data=SiteNativeData.subject(topics);}
+                else{prefs.edit().remove("yamiBoard:"+key).apply();List<SiteBoardProtocol.Topic> topics=board.kind.equals("futaba")?FutabaCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):board.kind.equals("bakusai")?BakusaiCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):SiteBoardProtocol.topics(board,listing);rememberAnimanchTopics(board,topics);if(board.kind.equals("futaba"))for(SiteBoardProtocol.Topic topic:topics){long created=FutabaCatalogue.creation(board,topic.id);if(created>0)SiteThreadMetadata.remember(key,topic.id,created);}SiteThreadMetadata.listing(Haiagaru.applicationContextForExtension(),this,key,topics);data=SiteNativeData.subject(topics);}
                 android.content.Context app=Haiagaru.applicationContextForExtension();if(app!=null)GlobalTitleSearch.rememberSubject(app,registrationUrl(key),new String(data,java.nio.charset.Charset.forName("windows-31j")));
             }
             else{

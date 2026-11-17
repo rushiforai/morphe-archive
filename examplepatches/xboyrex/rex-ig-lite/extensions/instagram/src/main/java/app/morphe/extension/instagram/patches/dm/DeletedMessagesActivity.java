@@ -477,7 +477,7 @@ public final class DeletedMessagesActivity {
 
             String prompt = String.format(Locale.getDefault(),
                     str("rex_delete_selected_confirm"), selectedIds.size());
-            new AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(activity))
+            AlertDialog dlgConfirm = new AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(activity))
                     .setMessage(prompt)
                     .setPositiveButton(str("rex_delete"), (dialog, which) -> {
                         RexMessageDb db = RexMessageDb.getInstance(activity);
@@ -490,7 +490,9 @@ public final class DeletedMessagesActivity {
                         updateSelectionUi();
                     })
                     .setNegativeButton(str("rex_cancel"), null)
-                    .show();
+                    .create();
+            app.morphe.extension.instagram.settings.preference.widgets.RexDialogs.styleSystemPreferenceDialog(dlgConfirm, activity);
+            dlgConfirm.show();
         }
 
         private void showMediaOptions(String messageId, String url, String type) {

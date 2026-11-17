@@ -68,6 +68,7 @@ public class AccentColorTest {
         Settings.ACCENT_COLOR.resetToDefault();
         Settings.ACCENT_HUE.resetToDefault();
         MaterialYou.reset();
+        AccentColor.verifiedBadgeIdForTests = null;
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -163,6 +164,16 @@ public class AccentColorTest {
             assertEquals(Integer.toHexString(pale), 0xff000000 | purple.pale, AccentColor.color(pale));
         }
         assertEquals("a see-through link keeps its alpha", 0x99000000 | purple.linkOnDark, AccentColor.color(0x99708dff));
+    }
+
+    /** #187: Home's "Older posts" link over its suggested posts is Prism's indigo_02 on a dark screen. */
+    @Test
+    public void theOlderPostsLinkTakesTheColor() {
+        Settings.ACCENT_COLOR.save(true);
+        AccentHue purple = AccentHue.PURPLE;
+        assertEquals(AccentColor.Role.LINK_ON_DARK, AccentColor.role(0xff7595ff));
+        assertEquals(0xff000000 | purple.linkOnDark, AccentColor.color(0xff7595ff));
+        assertEquals("its indigo_01 neighbor isn't a link", 0xffa1bbff, AccentColor.color(0xffa1bbff));
     }
 
     /** No other color changes: text, backgrounds, grays and Instagram's other pale blues stay as they are. */
@@ -395,6 +406,62 @@ public class AccentColorTest {
         assertSame("the switch off leaves Instagram's blue", blue, view.getTextColors());
 
         AccentColor.text(null);
+    }
+
+    /** An image view tinted blue in its layout, as a profile's verified badge is, takes the color; no tint or a gray one stays (#187). */
+    @Test
+    public void anImageViewTintedBlueTakesTheColor() {
+        Settings.ACCENT_COLOR.save(true);
+        android.widget.ImageView view = new android.widget.ImageView(RuntimeEnvironment.getApplication());
+        AccentColor.image(view);
+        assertNull("no tint stays no tint", view.getImageTintList());
+
+        view.setImageTintList(ColorStateList.valueOf(BLUE));
+        AccentColor.image(view);
+        assertEquals(0xff7638fa, view.getImageTintList().getDefaultColor());
+
+        ColorStateList gray = new ColorStateList(new int[][] {DISABLED, {}}, new int[] {0x4d737373, 0xff737373});
+        view.setImageTintList(gray);
+        AccentColor.image(view);
+        assertSame(gray, view.getImageTintList());
+
+        Settings.ACCENT_COLOR.save(false);
+        ColorStateList blue = ColorStateList.valueOf(BLUE);
+        view.setImageTintList(blue);
+        AccentColor.image(view);
+        assertSame("the switch off leaves Instagram's blue", blue, view.getImageTintList());
+
+        AccentColor.image(null);
+    }
+
+    /**
+     * The verified badge by a profile's name has its blue drawn in, with no tint, so it takes the
+     * picked fill laid over it; the switch off or another image view leaves it alone (#187, #721).
+     */
+    @Test
+    public void theTopBarVerifiedBadgeTakesTheFill() {
+        int badgeId = 0x7f0b00f7;
+        AccentColor.verifiedBadgeIdForTests = badgeId;
+        android.widget.ImageView badge = new android.widget.ImageView(RuntimeEnvironment.getApplication());
+        badge.setId(badgeId);
+        android.widget.ImageView other = new android.widget.ImageView(RuntimeEnvironment.getApplication());
+        other.setId(0x7f0b00f3);
+
+        AccentColor.image(badge);
+        assertNull("the switch off leaves the badge blue", badge.getColorFilter());
+
+        Settings.ACCENT_COLOR.save(true);
+        AccentColor.image(badge);
+        AccentColor.image(other);
+        assertEquals(new android.graphics.PorterDuffColorFilter(0xff7638fa, android.graphics.PorterDuff.Mode.SRC_IN), badge.getColorFilter());
+        assertNull("only the badge", other.getColorFilter());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains(AccentColor.BADGES + " 1"));
+
+        Settings.ACCENT_HUE.save(AccentHue.BLUE);
+        android.widget.ImageView blue = new android.widget.ImageView(RuntimeEnvironment.getApplication());
+        blue.setId(badgeId);
+        AccentColor.image(blue);
+        assertNull("Instagram's blue picked leaves it as it is", blue.getColorFilter());
     }
 
     /** Paused, not ready yet or Instagram blue picked: the stock blue, in a color and in a list. */

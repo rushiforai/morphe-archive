@@ -2,7 +2,7 @@ package app.template.patches.wunderground.premium
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_WUNDERGROUND
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 
 @Suppress("unused")
 val removeAdsPatch = bytecodePatch(

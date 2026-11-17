@@ -437,12 +437,69 @@ val removeAdsTelemetryAndRestrictionsPatch = bytecodePatch(
                 smaliBody = "return-void",
             )
 
-            // Skip the Android 13+ POST_NOTIFICATIONS permission prompt.
-            val promptTarget =
-                (splashOnCreate.instructions[splashPostNotifIfLtIdx] as BuilderOffsetInstruction).target
+            // Skip the Android 13+ POST_NOTIFICATIONS prompt without stranding
+            // the splash screen on its spinner (issue #50).
+            //
+            // Stock shape:
+            //   if-lt SDK_INT, 33, :done              <- the fingerprint match
+            //   const-string "android.permission.POST_NOTIFICATIONS"
+            //   invoke-static checkSelfPermission
+            //   if-eqz granted, :checked
+            //   ... register launcher, launch(permission), return-void
+            // :checked  <viewmodel>.d.c("permissionChecked", TRUE)
+            // :done     return-void
+            //
+            // `permissionChecked` starts FALSE on SDK >= 33 (`od.n0.<init>`),
+            // and `:checked` is one of only two instructions in the whole app
+            // that ever sets it. This used to jump to the IF_LT's own target,
+            // `:done` — the method's exit — so the flag stayed false forever,
+            // `od.m0`'s combine() kept returning the loading state, and the
+            // splash never advanced on Android 13+. Jump to `:checked`
+            // instead: the same place stock lands when the permission is
+            // already granted. Nothing else needs the permission, because the
+            // manifest patch removes it.
+            //
+            // Both ends are selected semantically, not positionally:
+            // `onCreate` also contains a second `if-lt` (the SDK 35
+            // edge-to-edge inset check at the top) and a second
+            // `if-eqz`-after-`move-result`-shaped pair is easy to add in a
+            // future build, so neither "the first IF_LT" nor "the next IF_EQZ"
+            // is safe. The branch has to lead to the statement that writes the
+            // flag — that is the only property this edit depends on.
+            val notificationInsns = splashOnCreate.instructions
+            if (splashPostNotifIfLtIdx !in notificationInsns.indices ||
+                notificationInsns[splashPostNotifIfLtIdx].opcode != Opcode.IF_LT
+            ) {
+                throw PatchException(
+                    "POST_NOTIFICATIONS fingerprint did not resolve to the SDK gate in SplashActivity.onCreate",
+                )
+            }
+            val checkedTargetIdx =
+                (splashPostNotifIfLtIdx + 1 until minOf(notificationInsns.size, splashPostNotifIfLtIdx + 13))
+                    .firstOrNull { idx ->
+                        val candidate = notificationInsns[idx]
+                        candidate.opcode == Opcode.IF_EQZ &&
+                            idx > 0 &&
+                            notificationInsns[idx - 1].opcode == Opcode.MOVE_RESULT &&
+                            (candidate as BuilderOffsetInstruction).target.location.index.let { checkedBlock ->
+                                (checkedBlock until minOf(notificationInsns.size, checkedBlock + 10)).any { followIdx ->
+                                    val follow = notificationInsns[followIdx]
+                                    val stringRef =
+                                        (follow as? ReferenceInstruction)?.reference as? StringReference
+                                    (follow.opcode == Opcode.CONST_STRING ||
+                                        follow.opcode == Opcode.CONST_STRING_JUMBO) &&
+                                        stringRef?.string == "permissionChecked"
+                                }
+                            }
+                    }
+                    ?: throw PatchException(
+                        "Could not find the POST_NOTIFICATIONS branch that marks permissionChecked",
+                    )
+            val checkedTarget =
+                (notificationInsns[checkedTargetIdx] as BuilderOffsetInstruction).target
             splashOnCreate.replaceInstruction(
                 splashPostNotifIfLtIdx,
-                BuilderInstruction30t(Opcode.GOTO_32, promptTarget),
+                BuilderInstruction30t(Opcode.GOTO_32, checkedTarget),
             )
         }
 

@@ -1,3 +1,20 @@
+## [4.1.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.1.0...v4.1.1) (2026-11-16)
+
+### Bug Fixes
+
+* Song pill in the vertical view, and review fixes for the screen lock ([8b462b7](https://github.com/[secure]/overhypedcat-twitch-patches/commit/8b462b71b7f2346c5d582553e9fe0c8d18fd262c))
+* The screen lock works on both of Twitch's players and moves aside for labels ([bef5262](https://github.com/[secure]/overhypedcat-twitch-patches/commit/bef5262b356539e0da30aa9a4fc69bb5246f3f02))
+
+## [4.1.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.0.1...v4.1.0) (2026-11-16)
+
+### Bug Fixes
+
+* Display ads beside the stream (LeftThird, Banner) are declined ([0c61303](https://github.com/[secure]/overhypedcat-twitch-patches/commit/0c613037f5d70a73b29ca6270714766b323a2048))
+
+### New Features
+
+* Screen lock in full screen, and a song removal pill on the player ([651b810](https://github.com/[secure]/overhypedcat-twitch-patches/commit/651b81079092fb9a23fd1226c543b810d2d70c7c))
+
 ## [4.0.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.0.0...v4.0.1) (2026-11-15)
 
 ### Bug Fixes

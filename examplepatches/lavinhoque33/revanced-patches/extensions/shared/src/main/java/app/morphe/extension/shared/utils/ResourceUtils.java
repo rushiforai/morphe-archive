@@ -28,7 +28,8 @@ public class ResourceUtils extends Utils {
     public static Context getActivityOrContext() {
         if (useActivityContextIfAvailable) {
             Activity activity = getActivity();
-            if (activity != null) {
+            // The constructor hook publishes the Activity before Activity.attach supplies its base context.
+            if (activity != null && activity.getBaseContext() != null) {
                 return activity;
             }
         }

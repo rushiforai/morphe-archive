@@ -357,12 +357,38 @@ Saved.	Kaydedildi.
 The emoji next to the chat list title will change.	Sohbet listesi başlığının yanındaki emoji değişecek.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Holiday look all year that draws the emoji after the chat list title.
 emoji next to the chat list title	sohbet listesi başlığının yanındaki emoji
+# context: Look and feel page switch title, below Emoji next to the chat list title. When on, the person's own text takes the place of Telegram's name (its logo) at the top of the chat list.
+Your own chat list title	Kendi sohbet listesi başlığınız
+# context: Summary under the Your own chat list title switch. The text is drawn in the title's own bold font and theme color.
+Shows text of your choice in place of Telegram's name at the top of the chat list, in the title's own font and color. It stays on this phone. Restart Telegram to see the change.	Sohbet listesinin üstünde Telegram adı yerine seçtiğiniz bir metni, başlığın kendi yazı tipi ve rengiyle gösterir. Bu telefonda kalır. Değişikliği görmek için Telegram'ı yeniden başlatın.
+# context: Look and feel page row title below the Your own chat list title switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s".
+Text for the chat list title	Sohbet listesi başlığı metni
+# context: Summary under the Text for the chat list title row while nothing is saved. Your own chat list title is the switch above it.
+Type what shows in place of Telegram's name while Your own chat list title is on. Empty keeps Telegram's name.	Kendi sohbet listesi başlığınız açıkken Telegram adı yerine görünecek metni yazın. Boş bırakılırsa Telegram adı kalır.
+# context: Summary under the Text for the chat list title row once something is saved. %1$s is the text the person saved. Your own chat list title is the switch above it.
+%1$s shows in place of Telegram's name while Your own chat list title is on. Tap to change it.	%1$s, Kendi sohbet listesi başlığınız açıkken Telegram adı yerine görünür. Değiştirmek için dokunun.
+# context: Label and hint of the one text field in the Text for the chat list title editor dialog.
+A short name	Kısa bir ad
+# context: Instructions at the top of the Text for the chat list title editor dialog. Your own chat list title is the switch on the same page.
+Shown in place of Telegram's name at the top of the chat list while Your own chat list title is on, in the title's own font and color. It stays on this phone, so nothing goes to Telegram. Leave it empty to keep Telegram's name, and restart Telegram to see a change.	Kendi sohbet listesi başlığınız açıkken sohbet listesinin üstünde Telegram adı yerine, başlığın kendi yazı tipi ve rengiyle görünür. Bu telefonda kalır, yani Telegram'a hiçbir şey gitmez. Telegram adını korumak için boş bırakın ve değişikliği görmek için Telegram'ı yeniden başlatın.
+# context: Error under the field and toast when the chat list title text is too long to save. Must fit two short toast lines.
+That's too long. Try a shorter name.	Bu çok uzun. Daha kısa bir ad deneyin.
+# context: Error under the field and toast when saving the chat list title text failed. Must fit two short toast lines.
+Couldn't save the title. Try again in a moment.	Başlık kaydedilemedi. Birazdan tekrar deneyin.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that puts the person's own text in place of Telegram's name at the top of the chat list.
+your own chat list title	kendi sohbet listesi başlığınız
 Use system font	Sistem yazı tipini kullan
 Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	Kalın, italik ve kod metni, Telegram'ın yerleşik yazı tipi yerine telefonunuzun yazı tipini kullanır. Değişikliği görmek için Telegram'ı yeniden başlatın.
 AMOLED black	AMOLED siyahı
 Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Gece ve Koyu temalar saf siyah ekranlar kullanır. Mesaj balonları ve menüler renklerini korur. Değişikliği görmek için Telegram'ı yeniden başlatın.
 Hide translate bar	Çeviri çubuğunu gizle
 Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Başka dildeki sohbetler üstte çeviri çubuğunu göstermez. Çevir, sohbet menüsüne taşınır ve çevirdiğiniz bir sohbet çubuğunu korur.
+# context: Conversations page switch title, below Hide translate bar. It hides the bar under a chat's top bar that shows the pinned message (Telegram's PinnedMessage strings).
+Hide pinned message bar	Sabitlenmiş mesaj çubuğunu gizle
+# context: Summary under the Hide pinned message bar switch. The counter is the multi-pin indicator and the list button opens all pinned messages.
+The bar under a chat's top bar that shows pinned messages is gone, along with its counter and list button. Messages stay pinned and nothing is marked as read.	Sohbetin üst çubuğunun altında sabitlenmiş mesajları gösteren çubuk, sayacı ve liste düğmesiyle birlikte kaybolur. Mesajlar sabitli kalır ve hiçbir şey okundu olarak işaretlenmez.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide translate bar that hides the pinned message bar in chats.
+pinned message bar in chats	sohbetlerdeki sabitlenmiş mesaj çubuğu
 Exact numbers	Sayıları tam göster
 Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Üye, abone, görüntülenme, yanıt ve tepki sayıları tam gösterilir, örneğin 12,3 B yerine 12.345.
 Reveal spoilers	Spoilerları göster
@@ -440,6 +466,9 @@ Messages others delete stay in your chat on this phone, marked deleted next to t
 Show deleted in red	Silindi etiketini kırmızı göster
 # context: that switch's summary. "deleted" is the label shown next to the time, "Keep deleted messages" the name of the switch above it.
 The deleted label next to a kept message's time turns red, so it stands out in the chat. Works with Keep deleted messages on.	Saklanan bir mesajın saatinin yanındaki silindi etiketi kırmızı olur, böylece sohbette göze çarpar. Silinen mesajları sakla açıkken çalışır.
+# context: Keep deleted messages sub-switch that also keeps your own messages when a chat is deleted for both sides.
+Keep my messages too	Benim mesajlarımı da sakla
+When someone deletes a whole chat for both of you, your own messages stay here along with theirs. So do messages you delete on another of your devices. Works with Keep deleted messages on.	Biri tüm sohbeti ikiniz için de sildiğinde, kendi mesajlarınız da onunkilerle birlikte burada kalır. Başka bir cihazınızda sildiğiniz mesajlar da kalır. Silinen mesajları sakla açıkken çalışır.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that draws the deleted label in red.
 red deleted label	kırmızı silindi etiketi
 # context: an action row under Keep deleted messages; a tap deletes every message that switch kept
@@ -453,6 +482,16 @@ Removing %1$d kept messages.	%1$d saklanan mesaj kaldırılıyor.
 # context: the notice once Telegram has finished removing them, with how many went
 Removed %1$d kept message.	%1$d saklanan mesaj kaldırıldı.
 Removed %1$d kept messages.	%1$d saklanan mesaj kaldırıldı.
+# context: A row under Clear kept messages on the Keep deleted messages page (#91). A tap lists how long a kept deleted message stays on the phone before it's removed: Never, 1 day, 7 days, 30 days, 90 days.
+Remove kept messages after	Saklanan mesajları şu süre sonra kaldır
+# context: Line under Remove kept messages after when it's set to Never. Clear kept messages is the name of the row above it.
+Kept messages stay until you clear them.	Saklanan mesajlar siz temizleyene kadar kalır.
+# context: Line under Remove kept messages after once a number of days is picked, singular. The days count from when the other person deleted the message.
+Kept messages are removed %1$d day after they were deleted.	Saklanan mesajlar silindikten %1$d gün sonra kaldırılır.
+# context: The same line, plural.
+Kept messages are removed %1$d days after they were deleted.	Saklanan mesajlar silindikten %1$d gün sonra kaldırılır.
+# context: The first choice in the Remove kept messages after list, and how a settings file's preview names it: kept messages are never removed on their own.
+Never	Asla
 # context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
 Keep edit history	Düzenleme geçmişini sakla
 # context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
@@ -467,6 +506,22 @@ Keep view-once and timed media	Tek görüntülemelik ve süreli medyaları sakla
 View-once and timed photos, videos and voice messages someone sends you stay in the chat after you open them, with no timer. The sender doesn't see them opened. Secret chats work as usual.	Birinin size gönderdiği tek görüntülemelik ve süreli fotoğraflar, videolar ve sesli mesajlar, açtıktan sonra zamanlayıcı olmadan sohbette kalır. Gönderen, onları açtığınızı görmez. Gizli sohbetler her zamanki gibi çalışır.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps view-once and timed media.
 view-once and timed media	tek görüntülemelik ve süreli medyaları
+# context: a fifth switch under Keep deleted messages (#82). Turned on, messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still goes on their own timer. Same secret chat term as Also save from secret chats.
+Keep self-destructing secret chat messages	Gizli sohbetlerde kendini imha eden mesajları sakla
+# context: that switch's summary. "They aren't told" means the other person gets no notice that the messages were kept.
+Messages, photos and videos in secret chats stay on this phone when their self-destruct timer runs out. The other person's copy still disappears on their own timer, and they aren't told.	Gizli sohbetlerdeki mesajlar, fotoğraflar ve videolar, kendini imha zamanlayıcıları dolduğunda bu telefonda kalır. Karşı tarafın kopyası yine kendi zamanlayıcısıyla kaybolur ve ona haber verilmez.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps self-destructing secret chat messages.
+self-destructing secret chat messages	gizli sohbetlerde kendini imha eden mesajları
+# context: a sixth switch under Keep deleted messages (#71). Turned on, a group or channel that removes you or bans you stays in the chat list with the messages this phone already saved, and opens read-only. Same removed and banned terms Telegram uses for a member an admin takes out.
+Keep chats you're removed from	Çıkarıldığınız sohbetleri sakla
+# context: that switch's summary. "Let it go" means deleting the kept chat from the chat list removes it for good, from the list and from this phone.
+When a group or channel removes or bans you, it stays in your chats with what this phone saved, and you can still open and scroll it. Delete it from the chat list to let it go.	Bir grup veya kanal sizi çıkardığında ya da engellediğinde sohbet, bu telefonun kaydettikleriyle sohbetlerinizde kalır ve onu açıp kaydırmaya devam edebilirsiniz. Tamamen kaldırmak için sohbet listesinden silin.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps chats you're removed from.
+chats you're removed from	çıkarıldığınız sohbetler
+# context: Toast when you open a chat Keep chats you're removed from kept, in place of Telegram's alert that the chat can't be opened. Short, two lines at most.
+You were removed. This is what's saved on this phone.	Çıkarıldınız. Bu telefonda kayıtlı olanlar bunlar.
+# context: Name of the list Keep chats you're removed from keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats you were removed from	Çıkarıldığınız sohbetler
 Forgets the earlier text this phone kept for edited messages, in every account.	Bu telefonun düzenlenen mesajlar için sakladığı önceki metni her hesapta unutur.
 # context: the notice after that tap when nothing was kept. A toast: two short lines at most.
 There's no edit history to clear.	Temizlenecek düzenleme geçmişi yok.
@@ -490,10 +545,24 @@ Lots to translate at once. The rest will follow.	Aynı anda çevrilecek çok şe
 Turn chat translation on again. It's now set per account.	Sohbet çevirisini yeniden açın. Artık her hesap için ayrı.
 Ask before sending a GIF	GIF göndermeden önce sor
 Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Dokunduğunuz bir GIF sohbete girmeden önce Gönder veya İptal sorar. İptal onu atar. Zamanlanmış GIF'ler sormadan gider.
-Ask before sending a voice or video message	Sesli veya görüntülü mesaj göndermeden önce sor
-Asks Send or Cancel before a voice or video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Kaydettiğiniz sesli veya görüntülü mesaj gitmeden önce Gönder veya İptal sorar. Kayıt önce duraklatılır, İptal ise onu oynatmaya, silmeye veya göndermeye hazır şekilde duraklatılmış bırakır.
+# context: Title of the switch on the Conversations page, next to Ask before sending a GIF (#79), that asks before a recorded voice message goes out
+Ask before sending a voice message	Sesli mesaj göndermeden önce sor
+# context: Summary of the Ask before sending a voice message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a voice message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Kaydettiğiniz sesli mesaj gitmeden önce Gönder veya İptal sorar. Kayıt önce duraklatılır, İptal ise onu oynatmaya, silmeye veya göndermeye hazır şekilde duraklatılmış bırakır.
+# context: Title of the switch on the Conversations page (#79) that asks before a recorded round video message (Telegram's video in a circle) goes out
+Ask before sending a round video message	Yuvarlak görüntülü mesaj göndermeden önce sor
+# context: Summary of the Ask before sending a round video message switch. Send and Cancel are the dialog's buttons
+Asks Send or Cancel before a round video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Kaydettiğiniz yuvarlak görüntülü mesaj gitmeden önce Gönder veya İptal sorar. Kayıt önce duraklatılır, İptal ise onu oynatmaya, silmeye veya göndermeye hazır şekilde duraklatılmış bırakır.
+# context: Title of the switch on the Conversations page (#79) that asks before a typed text message goes out
+Ask before sending a message	Mesaj göndermeden önce sor
+# context: Summary of the Ask before sending a message switch. Send and Cancel are the dialog's buttons; silent messages are the ones sent without sound from the send button's menu
+Asks Send or Cancel before the send button or the keyboard's send key sends what you typed. Cancel leaves the text as it was. Scheduled and silent messages, edits and forwards go out without asking.	Gönder düğmesi veya klavyenin gönder tuşu yazdığınızı göndermeden önce Gönder veya İptal sorar. İptal metni olduğu gibi bırakır. Zamanlanmış ve sessiz mesajlar, düzenlemeler ve iletmeler sormadan gider.
 Ask before starting a call	Arama başlatmadan önce sor
 Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Bir sohbetteki veya profildeki arama düğmesi arama başlatmadan önce Ara veya İptal sorar.
+# context: Title of the switch on the Conversations page (#79) that asks before you join a group's voice chat or a channel's live stream
+Ask before joining a voice chat	Sesli sohbete katılmadan önce sor
+# context: Summary of the Ask before joining a voice chat switch. Join and Cancel are the dialog's buttons
+Asks Join or Cancel before you join a group's voice chat or a channel's live stream. Starting a new one doesn't ask.	Bir grubun sesli sohbetine veya bir kanalın canlı yayınına katılmadan önce Katıl veya İptal sorar. Yeni bir tane başlatmak sormaz.
 Send sticker	Çıkartma gönder
 Send this sticker to this chat?	Bu çıkartma bu sohbete gönderilsin mi?
 Send GIF	GIF gönder
@@ -507,6 +576,20 @@ Start a call	Arama başlat
 Start a voice call?	Sesli arama başlatılsın mı?
 Start a video call?	Görüntülü arama başlatılsın mı?
 Call	Ara
+# context: Title of the dialog that asks before a typed message goes out (#79)
+Send message	Mesaj gönder
+# context: The question in that dialog, above its Send and Cancel buttons
+Send this message to this chat?	Bu mesaj bu sohbete gönderilsin mi?
+# context: Title of the dialog that asks before you join a group's voice chat (#79)
+Join voice chat	Sesli sohbete katıl
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this voice chat?	Bu sesli sohbete katılınsın mı?
+# context: Title of the dialog that asks before you join a channel's live stream (#79)
+Join live stream	Canlı yayına katıl
+# context: The question in that dialog, above its Join and Cancel buttons
+Join this live stream?	Bu canlı yayına katılınsın mı?
+# context: The button in those two dialogs that joins the voice chat or live stream
+Join	Katıl
 # context: the label before the time of a message someone else deleted that this phone kept
 deleted	silindi
 Add Copy photo to the message menu	Mesaj menüsüne Fotoğrafı kopyala ekle
@@ -525,6 +608,16 @@ Original sender ID: %1$s	Asıl gönderenin kimliği: %1$s
 Originally sent: %1$s	İlk gönderilme: %1$s
 File data center: %1$s	Dosyanın veri merkezi: %1$s
 File size: %1$s	Dosya boyutu: %1$s
+# context: a line in Message details (#87): the attached file's name as it was sent
+File name: %1$s	Dosya adı: %1$s
+# context: a line in Message details (#87): the file's MIME type, such as video/mp4. Keep the word MIME as is
+MIME type: %1$s	MIME türü: %1$s
+# context: a line in Message details (#87): a photo's or video's size in pixels, width x height, such as 1920x1080
+Resolution: %1$s	Çözünürlük: %1$s
+# context: a line in Message details (#87): a song's, voice message's or video's length, such as 1:02:09
+Duration: %1$s	Süre: %1$s
+# context: a line in Message details (#87): the file's average bitrate in kilobits a second, worked out from its size and length. %1$s is a whole number
+Bitrate: %1$s kbps	Bit hızı: %1$s kbps
 Copy	Kopyala
 Message details copied	Mesaj ayrıntıları kopyalandı
 Add Quick forward to the message menu	Mesaj menüsüne Hızlı ilet ekle
@@ -738,11 +831,14 @@ Each file or song you download also goes to Download/Telegram on your phone, whe
 # context: a second switch under Save downloaded files (#29). Turned on, it also copies files from chats whose owner turned on Telegram's content protection. Secret chats stay excluded.
 Also save from chats that don't allow saving	Kaydetmeye izin vermeyen sohbetlerden de kaydet
 # context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
-With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	İndirilen dosyaları kaydet açıkken, sahibi kaydetmeyi kapatmış sohbetlerdeki dosyalar da kopyalanır. Bunu yalnızca sahibinin bir kopya saklamana itiraz etmediği yerlerde kullan, çünkü onun ayarını aşar. Gizli sohbetler yine Telegram'da kalır.
+With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats need Also save from secret chats too.	İndirilen dosyaları kaydet açıkken, sahibi kaydetmeyi kapatmış sohbetlerdeki dosyalar da kopyalanır. Bunu yalnızca sahibinin bir kopya saklamana itiraz etmediği yerlerde kullan, çünkü onun ayarını aşar. Gizli sohbetler için Gizli sohbetlerden de kaydet de açık olmalı.
 # context: a third switch under Save downloaded files (#9). Turned on, it also copies view-once and self-destructing (timed) photos, videos, voice and video messages. Secret chats stay excluded.
 Also save view-once and timed media	Tek görüntülemelik ve süreli medyaları da kaydet
 # context: that switch's summary, a warning that it goes past the sender's choice to have the media disappear. "Save downloaded files" is the name of the first switch.
-With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.	İndirilen dosyaları kaydet açıkken, tek görüntülemelik ya da kendini imha eden fotoğraflar, videolar, sesli ve görüntülü mesajlar da indirildiklerinde Download/Telegram klasörüne kopyalanır. Gönderen bunların kaybolmasını istedi, bu yüzden yalnızca bir kopya saklamana itiraz etmediği yerlerde kullan. Gizli sohbetler yine Telegram'da kalır.
+With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret chats too.	İndirilen dosyaları kaydet açıkken, tek görüntülemelik ya da kendini imha eden fotoğraflar, videolar, sesli ve görüntülü mesajlar da indirildiklerinde Download/Telegram klasörüne kopyalanır. Gönderen bunların kaybolmasını istedi, bu yüzden yalnızca bir kopya saklamana itiraz etmediği yerlerde kullan. Gizli sohbetler için Gizli sohbetlerden de kaydet de açık olmalı.
+# context: a fourth switch under Save downloaded files (#82). Turned on, it also copies files, photos and videos from Telegram secret chats, on top of Also save from chats that don't allow saving. The names in it are the switches above it and the message menu item Save to Downloads.
+Also save from secret chats	Gizli sohbetlerden de kaydet
+Works with Also save from chats that don't allow saving on. Files, photos and videos from secret chats get copied too, and the message menu's Save to Downloads shows up there. Their view-once and timed media also need Also save view-once and timed media. A secret chat is meant to stay on your two phones, so only use it where the other person is fine with that.	Kaydetmeye izin vermeyen sohbetlerden de kaydet açıkken çalışır. Gizli sohbetlerdeki dosyalar, fotoğraflar ve videolar da kopyalanır ve İndirilenlere kaydet orada mesaj menüsünde görünür. Tek görüntülemelik ve süreli medyaları için Tek görüntülemelik ve süreli medyaları da kaydet de açık olmalı. Gizli sohbet yalnızca ikinizin telefonunda kalmak içindir, bu yüzden bunu yalnızca karşı tarafın sorun etmediği yerlerde kullan.
 # context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
 Folders by chat type	Sohbet türüne göre klasörler
 # context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
@@ -1161,7 +1257,10 @@ Puts Save to Gallery in a story's three-dot menu without Premium, stories that d
 Save to Gallery in stories	Hikâyelerde Galeriye Kaydet
 # context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
 Allow screenshots in chats that don't allow saving	Kaydetmeye izin vermeyen sohbetlerde ekran görüntüsüne izin ver
-Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Ekran görüntüsü ve ekran kaydı bu sohbetlerde, fotoğraflarında, profillerinde ve hikâyelerinde çalışır. Telegram kimseye haber vermez. Gizli sohbetler, tek görüntülemelik medya ve Şifre Kilidi ekranı engelli kalır.
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats need Also allow screenshots in secret chats. View-once media and the passcode screen stay blocked.	Ekran görüntüsü ve ekran kaydı bu sohbetlerde, fotoğraflarında, profillerinde ve hikâyelerinde çalışır. Telegram kimseye haber vermez. Gizli sohbetler için Gizli sohbetlerde de ekran görüntüsüne izin ver gerekir. Tek görüntülemelik medya ve Şifre Kilidi ekranı engelli kalır.
+# context: Switch under Allow screenshots in chats that don't allow saving (#82). Turned on with it, screenshots and screen recording work in secret chats, their photo viewer and profile too. Telegram sends the other person a screenshot notice unless the Suppress screenshot notification patch is on. View-once media keeps its own block.
+Also allow screenshots in secret chats	Gizli sohbetlerde de ekran görüntüsüne izin ver
+Works with Allow screenshots in chats that don't allow saving on. Secret chats, their photos and profiles can be captured too. Telegram tells the other person when you take one, unless Suppress screenshot notification is on. Their view-once media stays blocked.	Kaydetmeye izin vermeyen sohbetlerde ekran görüntüsüne izin ver açıkken çalışır. Gizli sohbetler, fotoğrafları ve profilleri de kaydedilebilir. Ekran görüntüsü bildirimini engelle açık değilse Telegram, görüntü aldığında karşı tarafa haber verir. Tek görüntülemelik medyaları engelli kalır.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
 screenshots in chats that don't allow saving	kaydetmeye izin vermeyen sohbetlerdeki ekran görüntülerini
 # context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
@@ -1399,6 +1498,20 @@ Start videos without sound	Videoları sessiz başlat
 A video you open plays muted until you press a volume key. Round videos keep their sound.	Açtığın bir video, bir ses tuşuna basana kadar sessiz oynar. Yuvarlak videolar seslerini korur.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
 videos starting without sound	videoları sessiz başlatma
+# context: a switch under Keep videos muted on volume keys (#79). With it on, Telegram's video viewer menu offers a choice of audio track and subtitles.
+Audio track and subtitles	Ses parçası ve altyazılar
+# context: that switch's summary. Audio track and Subtitles are the names of the two rows it adds to the menu that opens from the three dots in Telegram's video viewer.
+A video's settings menu gets Audio track when the video has more than one, and Subtitles when it has any. The subtitles you pick show over the video.	Bir videonun ayarlar menüsüne, birden fazla ses parçası varsa Ses parçası, altyazısı varsa Altyazılar eklenir. Seçtiğin altyazılar videonun üzerinde görünür.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets you pick a video's audio track and subtitles.
+audio track and subtitle choice	ses parçası ve altyazı seçme
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which audio track (language) of a video plays.
+Audio track	Ses parçası
+# context: a row in the menu of Telegram's video viewer, and the title of the list it opens. Picks which subtitles show over a video.
+Subtitles	Altyazılar
+# context: the first choice in the Audio track list. Telegram's player picks the audio track itself.
+Automatic	Otomatik
+# context: a name for an audio or subtitle track that has no language or label. %1$d is its place in the list, starting at 1.
+Track %1$d	Parça %1$d
 # context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
 Ghost mode button	Hayalet modu düğmesi
 # context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
@@ -1762,6 +1875,12 @@ Add Delete for them to the message menu	Mesaj menüsüne Diğerleri için sil ek
 Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Sohbetlerdeki ve gruplardaki kendi mesajlarınıza Diğerleri için sil ekler. Mesaj diğer herkes için silinir ve bu telefonda silindi olarak işaretlenmiş şekilde kalır. Saklanan mesajları temizle onu buradan da kaldırır.
 # context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
 Deleted for them, kept here.	Diğerleri için silindi, burada kaldı.
+# context: Title of the switch on the Conversations page under Add Repeat to the message menu (#83). Also delete for is the checkbox in Telegram's delete messages dialog, "Also delete for [name]" (key DeleteMessagesOptionAlso on translations.telegram.org). Telegram's Turkish label is "%1$s için de sil", written here with the name left out as an ellipsis
+Check Also delete for by default	… için de sil kutusunu önceden işaretle
+# context: Summary of the Check Also delete for by default switch. Also delete for is the checkbox in Telegram's delete messages dialog (key DeleteMessagesOptionAlso), offered only in a chat with one person. Telegram's Turkish label is "%1$s için de sil", written here with the name left out as an ellipsis
+When you delete messages in a chat with a person, Telegram's Also delete for box starts checked, so they're deleted for both of you. Uncheck it to delete them just for you.	Bir kişiyle sohbette mesaj sildiğinizde Telegram'ın … için de sil kutusu işaretli gelir, böylece mesajlar ikiniz için de silinir. Yalnızca kendiniz için silmek için işareti kaldırın.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Check Also delete for by default switch (key DeleteMessagesOptionAlso). Telegram's Turkish label is "%1$s için de sil", written here with the name left out as an ellipsis
+checking Also delete for by default	… için de sil kutusunu önceden işaretleme
 # context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
 Lyrics	Şarkı sözleri
 # context: Line in the lyrics panel while the song's lyrics load
@@ -1784,6 +1903,10 @@ Dates on your profile songs	Profil şarkılarınızda tarihler
 Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	Bundan sonra profilinize eklediğiniz şarkılar, sanatçıdan sonra eklediğiniz günü gösterir. Tarihler yalnızca bu telefonda tutulur.
 # context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
 dates on your profile songs	profil şarkılarında tarihler
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before a typed message goes out (#79)
+asking before a typed message goes out	yazılan bir mesaj gitmeden önce sorma
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Ask before sending a sticker that asks before you join a voice chat or live stream (#79)
+asking before you join a voice chat	sesli sohbete katılmadan önce sorma
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
 Open chat	Sohbeti aç
 # context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
@@ -1917,3 +2040,333 @@ Skip between voice messages	Sesli mesajlar arasında geç
 Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Kulaklıkta, arabada, bildirimde, kilit ekranında ve tam müzik çalarda ileri ve geri, şarkılarda olduğu gibi bir sohbetin sesli mesajları arasında geçer.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
 skipping between voice messages	sesli mesajlar arasında geçiş
+# context: Row title on the Privacy page (#79), under Don't notify contacts, and the title of its dialog. Active sessions is the list under Settings > Devices in Telegram, so use Telegram's own word for it in your language
+Device in Active sessions	Aktif oturumlardaki cihaz
+# context: Summary under that row. %1$s is the device name and %2$s the system version your other phones and computers show for this one, for example samsungSM-S901U and SDK 36
+Your other sessions see %1$s, %2$s.	Diğer oturumlarınız %1$s, %2$s görüyor.
+# context: Instructions at the top of that dialog. Settings and Devices are Telegram's own menu names, so use Telegram's words in your language. Each box left empty sends what Telegram would send anyway
+Settings > Devices on your other phones and computers shows this phone with these. Leave a box empty for what Telegram sends, and restart Telegram after a change.	Diğer telefonlarınızdaki ve bilgisayarlarınızdaki Ayarlar > Cihazlar, bu telefonu bu bilgilerle gösterir. Telegram'ın gönderdiğini kullanmak için bir kutuyu boş bırakın ve bir değişiklikten sonra Telegram'ı yeniden başlatın.
+# context: Label over the first box in that dialog, the name your other sessions show for this phone
+Device name	Cihaz adı
+# context: Label over the second box in that dialog, shown beside the device name, for example SDK 36
+System version	Sistem sürümü
+# context: Shown when saving the device name and system version didn't work
+Couldn't save the device. Try again in a moment.	Cihaz kaydedilemedi. Birazdan tekrar deneyin.
+# context: Lowercase noun phrase naming the Device in Active sessions row (#79) in the patch status list
+the device in Active sessions	aktif oturumlardaki cihaz
+# context: Item in a message's long-press menu (#79) while Ghost mode keeps the chat's read receipts back. It tells the sender this message, and the ones before it, were read
+Send read receipt	Okundu bilgisi gönder
+# context: Shown once the read receipt for that message has gone out
+Read receipt sent.	Okundu bilgisi gönderildi.
+# context: Shown when the read receipt for that message couldn't go out
+Couldn't send the read receipt. Try again.	Okundu bilgisi gönderilemedi. Tekrar deneyin.
+# context: Row in a person's profile menu (#79), under the ID row. %1$s is a month and year such as "March 2016", already in the phone's language. It's an estimate worked out from the user ID
+Registered about %1$s	Yaklaşık %1$s tarihinde kaydoldu
+# context: Row in a person's profile menu (#79) for an account newer than every known point. %1$s is a month and year such as "September 2026", already in the phone's language
+Registered after %1$s	%1$s tarihinden sonra kaydoldu
+# context: Spoken label of a profile menu row that copies its own text when tapped. %1$s is the row's text
+Copy %1$s	Kopyala: %1$s
+# context: Short message after the registration month row in a profile menu was tapped and its text copied
+Registration date copied	Kayıt tarihi kopyalandı
+# context: Title of a switch under Show user and chat IDs (#79). It adds about when a person's account was made to their profile menu
+Show when an account was made	Hesabın ne zaman açıldığını göster
+# context: Summary under the Show when an account was made switch
+A person's profile menu also shows about which month they joined Telegram, worked out from their user ID. It's an estimate, and nothing is asked of Telegram. Bots, groups and channels get none.	Bir kişinin profil menüsü, kullanıcı kimliğinden hesaplanarak Telegram'a yaklaşık hangi ay katıldığını da gösterir. Bu bir tahmindir ve Telegram'dan hiçbir şey istenmez. Botlar, gruplar ve kanallar bunu almaz.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows about when an account was made
+account registration dates	hesap kayıt tarihleri
+# context: Second line of a row in a group's member list (#79). %1$s is Telegram's own text there, such as "last seen recently" or "online", and %2$s is the date and time the person joined the group, already written the way the phone writes dates
+%1$s · joined %2$s	%1$s · katılma: %2$s
+# context: Title of a switch under Show user and chat IDs (#79). It adds when each person joined to a group's member lists
+Show when members joined	Üyelerin ne zaman katıldığını göster
+# context: Summary under the Show when members joined switch. Members is the title of Telegram's page listing a group's members (Telegram key ChannelMembers); last seen is the text Telegram shows under a person's name
+A group's member lists, on its profile and its Members page, also show when each person joined, next to their last seen. The date comes with the list, so nothing more is asked of Telegram. Admins and the owner keep their role.	Bir grubun üye listeleri, profilinde ve Üyeler sayfasında, her kişinin ne zaman katıldığını da son görülme bilgisinin yanında gösterir. Tarih listeyle birlikte gelir, bu yüzden Telegram'dan başka bir şey istenmez. Yöneticiler ve sahip rollerini korur.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when each person joined a group
+member join dates	üyelerin katılma tarihleri
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Pin chats on this phone is on (#79). It pins the selected chats on this phone only, without Telegram's own pin
+Pin on this phone	Bu telefonda sabitle
+# context: Item in the chat list's long press menu in place of Pin on this phone when every selected chat is already pinned that way (#79). It takes them off this phone's pins
+Unpin on this phone	Bu telefonda sabitlemeyi kaldır
+# context: Toast after Pin on this phone. All Chats is Telegram's name for the first folder tab (Telegram key FilterAllChats); use the name Telegram shows in that language. Two short lines at most
+Pinned in All Chats on this phone.	Bu telefonda Tüm Sohbetler'e sabitlendi.
+# context: Toast after Unpin on this phone. Two short lines at most
+Unpinned on this phone.	Bu telefonda sabitleme kaldırıldı.
+# context: Toast when Pin on this phone would go past the limit. %1$d is the most chats one phone keeps pinned this way, 20 today. Two short lines at most
+You can pin up to %1$d chats on this phone.	Bu telefonda en fazla %1$d sohbet sabitleyebilirsin.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#79). With it on, the long press menu offers Pin on this phone
+Pin chats on this phone	Sohbetleri bu telefonda sabitle
+# context: Summary of Pin chats on this phone. Pin on this phone is the long press menu item above; All Chats is Telegram's first folder tab (Telegram key FilterAllChats); the pin limit is how many chats Telegram lets you pin
+Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and Telegram's pin limit stay as they are.	Sohbet listesinde uzun basınca açılan menüye Bu telefonda sabitle seçeneğini ekler. Bu sohbetler Tüm Sohbetler'de sabitlenmiş sohbetlerinin hemen altında, en yenisi önce olacak şekilde durur. Telegram'a hiçbir şey gönderilmez, bu yüzden diğer cihazların ve Telegram'ın sabitleme sınırı olduğu gibi kalır.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that pins chats on this phone only
+chats pinned on this phone	bu telefonda sabitlenen sohbetler
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default (#89). With it on, chat pictures (avatars) in the chat list show at the size picked under Avatar size, a percent of Telegram's own size
+Change avatar size	Avatar boyutunu değiştir
+# context: Summary of Change avatar size. The size is picked in the Avatar size row right below it; each chat list row keeps its height and the picture shrinks or grows around its own center
+Chat pictures in the chat list show at the size you pick below. Each row keeps its height, and the picture stays centered where Telegram puts it.	Sohbet listesindeki sohbet resimleri aşağıda seçtiğin boyutta görünür. Her satır yüksekliğini korur ve resim Telegram'ın koyduğu yerde ortalı kalır.
+# context: Row title and dialog title. The person picks the chat list's avatar size as a percent of Telegram's own size (70%, 80%, 90%, 110% or 120%); the row's summary reads "%1$s of Telegram's size"
+Avatar size	Avatar boyutu
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that changes the size of chat pictures in the chat list
+avatar size in the chat list	sohbet listesindeki avatar boyutu
+# context: Name of the list Pin on this phone keeps, in the import preview line "%1$s: %2$s to %3$s", where the counts follow
+Chats pinned on this phone	Bu telefonda sabitlenen sohbetler
+# context: Count of chats in the import preview, singular form. %1$d is the number
+%1$d chat	%1$d sohbet
+# context: Count of chats in the import preview, plural form. %1$d is the number
+%1$d chats	%1$d sohbet
+# context: Item at the end of the menu that opens from the top of the chat list (New Group, Saved Messages and so on), shown while Do Not Disturb in the chat list menu is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn on Do Not Disturb	Rahatsız Etmeyin'i aç
+# context: The same chat list menu item while Do Not Disturb is on (#79). Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Turn off Do Not Disturb	Rahatsız Etmeyin'i kapat
+# context: Toast after Turn on Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is on.	Rahatsız Etmeyin açık.
+# context: Toast after Turn off Do Not Disturb in the chat list menu. Two short lines at most
+Do Not Disturb is off.	Rahatsız Etmeyin kapalı.
+# context: Switch title on the Chat list page under Proxy in the chat list menu, off by default (#79). With it on, the menu at the top of the chat list gets a Do Not Disturb item. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb in the chat list menu	Sohbet listesi menüsünde Rahatsız Etmeyin
+# context: Summary of Do Not Disturb in the chat list menu. The menu is the one that opens from the top of the chat list; a message notification is the one Telegram posts for a new message; calls still ring
+Adds Do Not Disturb to the menu at the top of the chat list. While it's on, no message notification shows or makes a sound, and messages still arrive. Calls ring as usual.	Sohbet listesinin üstündeki menüye Rahatsız Etmeyin seçeneğini ekler. Açıkken hiçbir mesaj bildirimi görünmez veya ses çıkarmaz, mesajlar yine de gelir. Aramalar her zamanki gibi çalar.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Do Not Disturb item that Proxy in the chat list menu adds to the menu at the top of the chat list. Do Not Disturb here is HushTelegram's own quiet mode, named like Android's Do Not Disturb (use that name in this language), not Telegram's per-chat mute
+Do Not Disturb menu item	Rahatsız Etmeyin menü öğesi
+# context: Privacy page switch under Draft link previews. It makes the preview of a link you send come from another site, the way the rules in Link preview rules say
+Fix link previews	Bağlantı önizlemelerini düzelt
+# context: Line under the Fix link previews switch. fixupx.com and x.com are web sites and stay as they are
+When you send a link to a site in your rules, its preview comes from the other site the rule names, like fixupx.com for x.com. Your message keeps the link you typed.	Kurallarınızdaki bir siteye bağlantı gönderdiğinizde, önizlemesi kuralın belirttiği diğer siteden gelir, örneğin x.com için fixupx.com. Mesajınız yazdığınız bağlantıyı korur.
+# context: Privacy page row title under the Fix link previews switch, the title of its editor dialog, and a label in the settings import preview line "%1$s: %2$s to %3$s"
+Link preview rules	Bağlantı önizleme kuralları
+# context: Summary of the Link preview rules row when it holds no rules. x.com -> fixupx.com is a rule as typed and stays as it is
+No rules yet. Add one per line, like x.com/*/status -> fixupx.com.	Henüz kural yok. Her satıra bir tane ekleyin, örneğin x.com/*/status -> fixupx.com.
+# context: Summary of the Link preview rules row with the number of rules. Fix link previews is the name of the switch above it
+Rules: %1$s. Fix link previews follows these for the links you send.	Kurallar: %1$s. Bağlantı önizlemelerini düzelt, gönderdiğiniz bağlantılarda bunları izler.
+# context: Hint and label of the box in the Link preview rules dialog, where each line is one rule. x.com -> fixupx.com stays as it is
+One rule per line, like x.com/*/status -> fixupx.com	Her satıra bir kural, örneğin x.com/*/status -> fixupx.com
+# context: Note in the Link preview rules dialog. The arrow is the -> typed between two sites; *. and the sites stay as they are
+Each line is a site, an arrow and the site its previews come from. Put *. in front of both to cover subdomains too, like *.tiktok.com -> *.kktiktok.com. A path after the first site covers only links that start with it, * standing for any one part, like x.com/*/status -> fixupx.com. Lines that aren't rules are left out.	Her satır bir site, bir ok ve önizlemelerin geldiği sitedir. Alt alan adlarını da kapsamak için ikisinin de önüne *. koyun, örneğin *.tiktok.com -> *.kktiktok.com. İlk sitenin ardından gelen bir yol yalnızca onunla başlayan bağlantıları kapsar, * herhangi bir parçanın yerini tutar, örneğin x.com/*/status -> fixupx.com. Kural olmayan satırlar atlanır.
+# context: Button in the Link preview rules dialog, next to Save and Cancel. It puts the starting rules back in the box. Short
+Default rules	Varsayılan kurallar
+# context: Toast when the rules typed in Link preview rules are too long to keep. Two short lines at most.
+Too many rules to keep. Take some out.	Çok fazla kural var. Birkaçını silin.
+# context: Toast after saving Link preview rules when some lines weren't rules; %1$s is how many were left out. Two short lines at most.
+Lines left out: %1$s. They aren't rules.	Atlanan satırlar: %1$s. Bunlar kural değil.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Draft link previews that points a sent link's preview at another site
+link preview rules	bağlantı önizleme kuralları
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's one
+%1$d rule	%1$d kural
+# context: Count of rules in the settings import preview line "Link preview rules: 6 rules to 7 rules", when it's more than one
+%1$d rules	%1$d kural
+# context: Playback page switch under Save downloaded files. It gives APK and EXE files their own icon and shows a downloaded PDF's first page or a video's frame as the file's picture
+File icons and thumbnails	Dosya simgeleri ve küçük resimler
+# context: Line under the File icons and thumbnails switch. APK, EXE and PDF are file types and stay as they are. Shared media is the page of a chat's photos, files and links
+APK and EXE files get their own icon in chats and in Shared media. Once downloaded, a PDF shows its first page and a video a frame from it. Files with a thumbnail from Telegram keep it.	APK ve EXE dosyaları sohbetlerde ve paylaşılan medyada kendi simgesini alır. İndirildikten sonra bir PDF ilk sayfasını, bir video da ondan bir kare gösterir. Telegram'dan küçük resmi olan dosyalar onu korur.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in chat bubbles
+file icons and thumbnails in chats	sohbetlerdeki dosya simgeleri ve küçük resimler
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that draws file icons in a chat's Shared media page
+file icons and thumbnails in Shared media	paylaşılan medyadaki dosya simgeleri ve küçük resimler
+# context: Playback page switch under Save downloaded files, off by default (#79). With it on, a file Telegram already has on the phone shows as downloaded instead of with a download button.
+Recognize files you already have	Zaten sahip olduğun dosyaları tanı
+# context: Line under the Recognize files you already have switch. Keep Telegram's files in internal storage is the name of another switch on the same page, so use its translation.
+A file Telegram already downloaded, in another account for example, shows as downloaded here too when its folders hold one with the same name and size. With Keep Telegram's files in internal storage on, files from before a reinstall count too.	Telegram'ın zaten indirdiği bir dosya, örneğin başka bir hesapta, klasörlerinde aynı ad ve boyutta bir dosya varsa burada da indirilmiş görünür. Telegram dosyalarını dahili depolamada tut açıkken yeniden yüklemeden önceki dosyalar da sayılır.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Save downloaded files that shows files already on the phone as downloaded.
+how files you already have show up	zaten sahip olduğun dosyaların nasıl göründüğü
+# context: Switch title on the Look and feel page under AMOLED black, off by default (#88). It shows a picture from the gallery behind Telegram's list screens.
+Picture behind the lists	Listelerin arkasında resim
+# context: Summary of Picture behind the lists. Settings is Telegram's own Settings screen; built-in themes are the ones Telegram ships (Day, Classic, Night, Dark), not a theme installed from a file.
+Shows a picture from your gallery behind the chat list, Settings, profiles and the other lists. Chats keep their wallpaper, and menus and dialogs stay solid. Works with Telegram's built-in themes.	Galerinizden bir resmi sohbet listesinin, Ayarlar'ın, profillerin ve diğer listelerin arkasında gösterir. Sohbetler kendi duvar kağıdını korur, menüler ve iletişim kutuları opak kalır. Telegram'ın yerleşik temalarıyla çalışır.
+# context: Row title under Picture behind the lists. A tap picks the picture from the gallery, or changes how dim it is.
+Background picture	Arka plan resmi
+# context: Summary of the Background picture row before a picture is picked. Must fit two short lines.
+No picture yet. Tap to pick one.	Henüz resim yok. Seçmek için dokunun.
+# context: Summary of the Background picture row once a picture is saved. %1$s is a percentage like 40%. Must fit two short lines.
+Dimmed by %1$s. Tap to change it.	%1$s karartıldı. Değiştirmek için dokunun.
+# context: Title of the dialog that lists how much the background picture is dimmed (20%, 40%, 60%, 80%).
+Dim the picture	Resmi karart
+# context: Toast when the dim picked for the background picture could not be saved. Must fit two short toast lines.
+Couldn't save the dim. Try again in a moment.	Karartma kaydedilemedi. Birazdan tekrar deneyin.
+# context: Button in the Dim the picture dialog that opens the gallery to pick a different background picture.
+Choose another picture	Başka resim seç
+# context: Button in the Dim the picture dialog. It deletes the background picture and turns Picture behind the lists off at once.
+Remove background	Arka planı kaldır
+# context: Toast after Remove background. Must fit two short toast lines.
+Background removed.	Arka plan kaldırıldı.
+# context: Toast when no app on the phone can pick a picture. Must fit two short toast lines.
+This phone has no gallery picker.	Bu telefonda galeri seçici yok.
+# context: Toast when the file picked for a background picture can't be read as a picture. Must fit two short toast lines.
+That file isn't a picture.	Bu dosya bir resim değil.
+# context: Toast when the file picked for a background picture is over 40 MB. Must fit two short toast lines.
+That picture is too large.	Bu resim çok büyük.
+# context: Toast when copying the picked background picture into Telegram's files failed. Must fit two short toast lines.
+Couldn't save the picture. Try again.	Resim kaydedilemedi. Tekrar deneyin.
+# context: Toast once the picked picture is saved and shows behind the lists. Must fit two short toast lines.
+Background picture saved.	Arka plan resmi kaydedildi.
+# context: Label in the settings import preview, as in "Background dim: 40% to 60%". It names how much the background picture is dimmed.
+Background dim	Arka plan karartması
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of AMOLED black that shows a gallery picture behind the list screens.
+a picture behind the lists	listelerin arkasında bir resim
+# context: Row title on the Look and feel page under Your own chat list title (#86), and the label in the settings import preview, as in "Chat list banner: None to Ocean". A tap paints the chat list's top bar with two colors or a picture from the gallery.
+Chat list banner	Sohbet listesi afişi
+# context: Name of a Chat list banner gradient, pink fading into violet. A color mood, not a time of day setting.
+Dusk	Alacakaranlık
+# context: Name of a Chat list banner gradient, blue fading into sea green.
+Ocean	Okyanus
+# context: Name of a Chat list banner gradient, green fading into olive.
+Forest	Orman
+# context: Name of a Chat list banner gradient, orange fading into red, like glowing coals.
+Ember	Kor
+# context: Name of a Chat list banner gradient, two cool grays like slate stone.
+Slate	Arduvaz
+# context: What the Chat list banner row and the import preview call a banner made from a picture the person picked from the gallery.
+Your picture	Resminiz
+# context: Last choice in the Chat list banner list. Picking it opens the phone's gallery when no picture is saved yet.
+Picture from your gallery	Galerinizden resim
+# context: Summary of the Chat list banner row while no banner is set. Must fit two short lines.
+None. Tap to pick colors or a picture.	Yok. Renk ya da resim seçmek için dokunun.
+# context: Toast after None is picked for the Chat list banner. The bar looks like Telegram's own again. Must fit two short toast lines.
+Banner removed.	Afiş kaldırıldı.
+# context: Toast once the picture picked for the Chat list banner is saved and shows on the chat list's top bar. Must fit two short toast lines.
+Banner picture saved.	Afiş resmi kaydedildi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of New Year look all year that paints the chat list's top bar with colors or a picture.
+the chat list banner	sohbet listesi afişi
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Bookmark in the message menu and the Bookmarks page
+bookmarking messages	mesajlara yer imi ekleme
+# context: Item in a message's long-press menu. It saves a bookmark of that message on this phone only, to open again later from the Bookmarks page
+Bookmark	Yer imi
+# context: Item in a message's long-press menu when that message already has a bookmark. It removes the bookmark from this phone
+Remove bookmark	Yer imini kaldır
+# context: Toast after Bookmark in the message menu saves the message. Must fit two short toast lines
+Bookmarked.	Yer imi eklendi.
+# context: Toast after Remove bookmark in the message menu, or Remove on the Bookmarks page. Must fit two short toast lines
+Bookmark removed.	Yer imi kaldırıldı.
+# context: Toast when a bookmark couldn't be saved or removed on this phone. Must fit two short toast lines
+Couldn't save the bookmark. Try again.	Yer imi kaydedilemedi. Tekrar deneyin.
+# context: Toast when Bookmark is tapped while the Bookmarks page is full. %1$d is the most it keeps (100). Must fit two short toast lines
+You can keep up to %1$d bookmarks.	En fazla %1$d yer imi tutabilirsiniz.
+# context: Sender name on the Bookmarks page for a message you sent yourself, as in "You: see you at 5"
+You	Sen
+# context: Preview on the Bookmarks page for a bookmarked photo with no caption
+Photo	Fotoğraf
+# context: Preview on the Bookmarks page for a bookmarked video with no caption
+Video	Video
+# context: Preview on the Bookmarks page for a bookmarked message with no text, picture or file name (a sticker, poll or location)
+Message	Mesaj
+# context: A bookmark's preview on the Bookmarks page. %1$s is who sent the message, %2$s is the start of its text
+%1$s: %2$s	%1$s: %2$s
+# context: Toast when a bookmark on the Bookmarks page belongs to a Telegram account that's no longer signed in on this phone. Must fit two short toast lines
+That account isn't signed in here.	Bu hesapla burada oturum açılmamış.
+# context: Toast when a bookmark on the Bookmarks page is in a chat this phone no longer has. Must fit two short toast lines
+That chat isn't on this phone anymore.	Bu sohbet artık bu telefonda yok.
+# context: Toast when a bookmark on the Bookmarks page is in a group or channel you've left. Must fit two short toast lines
+You're not in that chat anymore.	Artık bu sohbette değilsiniz.
+# context: Toast when a bookmarked message is no longer stored on this phone. The chat still opens. Must fit two short toast lines
+That message isn't on this phone anymore.	Bu mesaj artık bu telefonda yok.
+# context: Title of the Bookmarks page, its row on the Conversations page and in the side menu, and the line for them in a settings import preview
+Bookmarks	Yer imleri
+# context: What the Bookmarks page shows while it's empty. Bookmark is the message menu item (use its translation)
+No bookmarks yet. Long-press a message and tap Bookmark.	Henüz yer imi yok. Bir mesajı basılı tutun ve Yer imi seçeneğine dokunun.
+# context: Button on each row of the Bookmarks page that removes that bookmark
+Remove	Kaldır
+# context: Title of the switch on the Conversations page that adds Bookmark to a message's long-press menu. Bookmark is the menu item (use its translation)
+Add Bookmark to the message menu	Mesaj menüsüne Yer imi ekle
+# context: Summary of the Add Bookmark to the message menu switch. Bookmark is the menu item and Bookmarks the page (use their translations)
+Adds Bookmark to any message, post, photo, video or file. Bookmarks stay on this phone only. Tap one on the Bookmarks page to open its chat at that message.	Her mesaja, gönderiye, fotoğrafa, videoya ve dosyaya Yer imi ekler. Yer imleri yalnızca bu telefonda kalır. Sohbeti o mesajda açmak için Yer imleri sayfasında birine dokunun.
+# context: Summary of the Bookmarks row on the Conversations page, which opens the Bookmarks page
+Every message you bookmarked, newest first. Tap one to open it, or long-press it to remove it.	Yer imine eklediğiniz her mesaj, en yenisi önce. Açmak için dokunun, kaldırmak için basılı tutun.
+# context: Count of bookmarks in the settings import preview, singular form. %1$d is the number
+%1$d bookmark	%1$d yer imi
+# context: Count of bookmarks in the settings import preview, plural form. %1$d is the number
+%1$d bookmarks	%1$d yer imi
+# context: Chat list page switch title, under Hide Contacts tab. When on, the bar at the bottom of the main screen (Chats, Contacts, Calls or Settings, Profile) gets a thin outline in Telegram's blue.
+Outline the bottom bar	Alt çubuğa kenarlık ekle
+# context: Summary under that switch. Telegram blue is Telegram's own light blue brand color. The black background is AMOLED black or any dark theme.
+Draws a thin Telegram blue line around the bar at the bottom of the main screen, so it stands out on a black background. Restart Telegram to see the change.	Ana ekranın altındaki çubuğun çevresine ince bir Telegram mavisi çizgi çizer, böylece siyah arka planda öne çıkar. Değişikliği görmek için Telegram'ı yeniden başlatın.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Contacts tab that outlines the bottom bar.
+bottom bar outline	alt çubuk kenarlığı
+# context: Title of a switch under Show user and chat IDs (#79). It adds the date and time a forwarded message was originally sent to the header of that message in a chat
+Show when forwards were first sent	İletilen mesajın ilk gönderildiği zamanı göster
+# context: Summary under the Show when forwards were first sent switch. Forwarded from is Telegram's own header on a forwarded message (Telegram key ForwardedFrom); use Telegram's wording for it
+A forwarded message's header also shows the date and time it was first sent, after Forwarded from. The date comes with the message, so nothing more is asked of Telegram.	İletilen bir mesajın başlığı, İletildi yazısından sonra mesajın ilk gönderildiği tarihi ve saati de gösterir. Tarih mesajla birlikte gelir, bu yüzden Telegram'dan başka bir şey istenmez.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Show user and chat IDs that shows when a forwarded message was first sent
+forward dates	iletilen mesaj tarihleri
+# context: Title of a row under the Use system font switch (#79). A tap picks a font file (.ttf or .otf) from the phone, or changes or removes the one picked
+Font file	Yazı tipi dosyası
+# context: Summary under the Font file row when no font file is picked yet. Use system font is the switch above it
+No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.	Henüz yazı tipi dosyası yok. Telegram'ın tüm metinleri için bir .ttf veya .otf dosyası seçmek için dokunun.
+# context: Summary under the Font file row once a font file is picked. %1$s is the file's name, such as Inter.ttf. Use system font is the switch above it
+%1$s, used for all of Telegram's text while Use system font is on. Tap to change it.	%1$s, Sistem yazı tipini kullan açıkken Telegram'ın tüm metinlerinde kullanılır. Değiştirmek için dokunun.
+# context: Button in the dialog the Font file row opens once a font is picked. It opens the file picker again
+Choose another font	Başka yazı tipi seç
+# context: Button in the dialog the Font file row opens once a font is picked. It deletes the font file so Telegram's text goes back to its usual font after a restart
+Remove font	Yazı tipini kaldır
+# context: Short message after Remove font
+Font removed.	Yazı tipi kaldırıldı.
+# context: Short message when the file picked for Font file can't be read as a font
+That file isn't a font.	Bu dosya bir yazı tipi değil.
+# context: Short message when the file picked for Font file is over the size HushTelegram copies
+That font file is too large.	Bu yazı tipi dosyası çok büyük.
+# context: Short message when copying the picked font file failed
+Couldn't save the font. Try again.	Yazı tipi kaydedilemedi. Tekrar deneyin.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Use system font that draws Telegram's text in a font file you picked
+a font file of your own	kendi yazı tipi dosyanız
+# context: Item in the menu at the top of a group or channel the user owns or manages, and the title of its switch on the Chats page under My messages. It opens a list of Telegram's admin screens
+Admin tools	Yönetici araçları
+# context: Summary of the Admin tools switch. Recent Actions and Invite Links are Telegram's own screen names; use Telegram's translations of them
+A group or channel you own or manage gets Admin tools in its menu at the top. It opens Recent Actions, the member lists and Invite Links, as far as your rights there go.	Sahibi olduğun veya yönettiğin bir grup ya da kanalın üstteki menüsüne Yönetici araçları eklenir. Buradan, oradaki yetkilerin ölçüsünde Son Eylemler, üye listeleri ve Davet Bağlantıları açılır.
+# context: Toast when Admin tools is tapped in a chat where none of its screens can open
+Couldn't open admin tools here.	Yönetici araçları burada açılamadı.
+# context: Row in the Admin tools list. Telegram's own name for the admin log screen (its key EventLog); Telegram's translation
+Recent Actions	Son Eylemler
+# context: Row in the Admin tools list for a group. Telegram's own name for the member list (its key ChannelMembers); Telegram's translation
+Members	Üyeler
+# context: Row in the Admin tools list for a channel. Telegram's own name for the subscriber list (its key ChannelSubscribers); Telegram's translation
+Subscribers	Aboneler
+# context: Row in the Admin tools list for a group. Telegram's own name for the group permissions screen (its key ChannelPermissions); Telegram's translation
+Permissions	İzinler
+# context: Row in the Admin tools list for a channel. Telegram's own name for the removed users list (its key ChannelBlacklist); Telegram's translation
+Removed Users	Çıkarılan Kullanıcılar
+# context: Row in the Admin tools list. Telegram's own name for the invite links screen (its key InviteLinks); Telegram's translation
+Invite Links	Davet Bağlantıları
+# context: Name of the Telegram chat folder the Admin folder switch makes, shown as a tab above the chat list and on the user's other devices. Telegram allows at most 12 characters
+Admin	Yönetici
+# context: Switch title on the Folders by chat type page, off by default. It makes a Telegram folder named Admin with the chats the user owns or manages
+Admin folder	Yönetici klasörü
+# context: Summary of the Admin folder switch. Admin is the folder's name
+Turning this on makes an Admin folder with the groups and channels you own or manage, and keeps it up to date as that changes. Turning it off removes it, unless you renamed or changed it.	Açınca sahibi olduğun veya yönettiğin grup ve kanallarla bir Yönetici klasörü oluşur ve bunlar değiştikçe güncel kalır. Kapatınca klasör kaldırılır, adını veya içeriğini değiştirmediysen.
+# context: Toast when the Admin folder switch is turned on but the user owns or manages no group or channel; the switch goes back off
+You don't manage any groups or channels yet.	Henüz yönettiğin bir grup veya kanal yok.
+# context: Toast after Telegram made the Admin folder
+Made the Admin folder.	Yönetici klasörü oluşturuldu.
+# context: Toast after Telegram made the Admin folder when the user manages more chats than a folder can hold
+Made the Admin folder. Some chats didn't fit.	Yönetici klasörü oluşturuldu. Bazı sohbetler sığmadı.
+# context: Toast after the Admin folder switch was turned off and Telegram removed the folder
+Removed the Admin folder.	Yönetici klasörü kaldırıldı.
+# context: Toast when the Admin folder switch is turned off but the user renamed or edited the folder, so it isn't removed
+You changed the Admin folder, so it stays.	Yönetici klasörünü değiştirdin, o yüzden kalıyor.
+# context: Toast when Telegram refused to make the Admin folder; the switch goes back off
+Telegram didn't make the folder. Try again later.	Telegram klasörü oluşturmadı. Daha sonra tekrar dene.
+# context: Toast when Telegram refused to remove the Admin folder; the switch goes back on
+Telegram kept the Admin folder. Try again later.	Telegram Yönetici klasörünü tuttu. Daha sonra tekrar dene.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of My messages that adds Admin tools to the menu at the top of a group or channel
+admin tools in a chat's menu	bir sohbetin menüsündeki yönetici araçları
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Folders by chat type that makes the Admin folder
+the Admin folder	Yönetici klasörü
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record
+Voice changer	Ses değiştirici
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: no change
+Off	Kapalı
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a baby's voice
+Baby	Bebek
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a woman's voice
+Woman	Kadın
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a man's voice
+Man	Erkek
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a deep, echoing voice
+Horror movie	Korku filmi
+# context: The Voice changer row on the Playback page and its list of voices for the voice messages you record: a robot's voice
+Robot	Robot
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Play voice messages one at a time that changes how the voice messages you record sound
+the voice changer	ses değiştiriciyi
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Edit a copy in the message menu, which opens a chat photo in Telegram's photo editor
+editing a copy of a photo	bir fotoğrafın kopyasını düzenleme
+# context: Item in a photo message's long-press menu. It opens a copy of the photo in Telegram's photo editor, and sending it sends the edited copy to the chat
+Edit a copy	Kopyasını düzenle
+# context: Switch title in HushTelegram settings that adds Edit a copy to a photo message's long-press menu
+Add Edit a copy to the message menu	Mesaj menüsüne Kopyasını düzenle ekle
+# context: Summary under the Edit a copy switch in HushTelegram settings
+Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. Sending it sends the edited copy to the chat. The photo in the chat stays as it was.	Sohbetteki bir fotoğrafı Telegram'ın fotoğraf düzenleyicisinde açar. Orada çizim yapabilir, metin ekleyebilir veya bazı kısımları bulanıklaştırabilirsiniz. Gönderdiğinizde düzenlenmiş kopya sohbete gider. Sohbetteki fotoğraf olduğu gibi kalır.

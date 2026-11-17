@@ -223,6 +223,25 @@ Hide comment previews	Sembunyikan pratinjau komentar
 Hide topic suggestions	Sembunyikan saran topik
 Quiet email reminders	Sembunyikan pengingat email
 Hide survey prompts	Sembunyikan ajakan survei
+Hide pop-up banners	Sembunyikan banner pop-up
+Hide related pins	Sembunyikan pin terkait
+Hide creator name on pins	Sembunyikan nama kreator di pin
+Custom save sound	Suara simpan sendiri
+Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound picked, Pinterest's plays.	Memutar suara yang kamu pilih di bawah saat kamu menyimpan pin, bukan suara Pinterest. Jika belum ada suara yang dipilih, suara Pinterest yang diputar.
+Pick a save sound	Pilih suara simpan
+Pick a sound file for Custom save sound to play when you save a pin.	Pilih file suara yang akan diputar Suara simpan sendiri saat kamu menyimpan pin.
+A sound is picked, but Custom save sound is off, so Pinterest's sound plays.	Suara sudah dipilih, tetapi Suara simpan sendiri nonaktif, jadi suara Pinterest yang diputar.
+%s is picked, but Custom save sound is off, so Pinterest's sound plays.	%s sudah dipilih, tetapi Suara simpan sendiri nonaktif, jadi suara Pinterest yang diputar.
+Saving a pin plays the sound you picked. Tap to pick another sound or use Pinterest's again.	Menyimpan pin memutar suara yang kamu pilih. Ketuk untuk memilih suara lain atau kembali ke suara Pinterest.
+Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Menyimpan pin memutar %s. Ketuk untuk memilih suara lain atau kembali ke suara Pinterest.
+Pick another sound	Pilih suara lain
+Use Pinterest's sound again	Gunakan suara Pinterest lagi
+That app won't let Pinterest keep the sound. Pick one saved on the phone.	Aplikasi itu tidak mengizinkan Pinterest menyimpan suaranya. Pilih yang tersimpan di ponsel.
+Saving a pin will play the sound you picked.	Menyimpan pin akan memutar suara yang kamu pilih.
+Saving a pin will play %s.	Menyimpan pin akan memutar %s.
+Saving a pin will play Pinterest's sound again.	Menyimpan pin akan memutar suara Pinterest lagi.
+Custom splash logo	Logo pembuka khusus
+Shows the logo picked when patching on the screen you see while Pinterest starts, instead of Pinterest's. Android 13 and newer. It shows from the next start.	Menampilkan logo yang dipilih saat menambal di layar yang kamu lihat saat Pinterest dimulai, bukan logo Pinterest. Android 13 dan yang lebih baru. Tampil mulai dari pembukaan berikutnya.
 Disable update nag	Sembunyikan pemberitahuan pembaruan
 Download pin	Unduh Pin
 Share pin	Bagikan Pin
@@ -346,6 +365,9 @@ Hide comments is on and already hides the whole comments section, previews inclu
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Menyembunyikan baris "Ide yang mungkin Anda sukai" berisi gelembung topik di bawah Pin saat Pinterest menampilkannya lagi. Komentar dan Pin terkait tetap ada.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Menutup pengingat opsional untuk mengonfirmasi email Anda. Pengingat yang sudah terbuka tetap ada. Pemeriksaan akun dan masuk tetap berjalan seperti biasa.
 Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An invite that's already open stays.	Menolak undangan survei "Punya waktu sebentar?" dari Pinterest sebelum muncul, seperti tombol "Mungkin nanti", agar survei itu tidak muncul lagi. Polling bersponsor dari pengiklan juga tidak muncul. Undangan yang sudah terbuka tetap ada.
+Closes the banners Pinterest pops up over your feed, such as "Shop recommended merchants", the way their X does, so that one doesn't come back. A banner that's already open stays.	Menutup banner yang dimunculkan Pinterest di atas feed kamu, seperti "Belanja di penjual yang direkomendasikan", seperti tombol X-nya, agar banner itu tidak muncul lagi. Banner yang sudah terbuka tetap ada.
+Leaves the grid of more pins out from under a pin you open, so it doesn't load. The change shows on the next pin you open.	Menghilangkan kisi pin lainnya di bawah pin yang Anda buka, sehingga tidak dimuat. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hides the creator's name and badge under a pin you open. Their picture stays and still opens their profile. The change shows on the next pin you open.	Menyembunyikan nama dan lencana kreator di bawah pin yang Anda buka. Fotonya tetap ada dan masih membuka profilnya. Perubahan terlihat pada pin berikutnya yang Anda buka.
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer shows the "Saved to" message or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan pesan "Disimpan ke" atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
 Original-quality images	Gambar kualitas asli
@@ -417,10 +439,18 @@ Hide Save in the long-press menu	Sembunyikan Simpan di menu tekan lama
 Takes Pinterest's Save button out of a grid pin's long-press menu. Saving from the pin itself still works.	Mengeluarkan tombol Simpan Pinterest dari menu tekan lama pin di kisi. Menyimpan dari pin itu sendiri tetap berfungsi.
 Hide Send in the long-press menu	Sembunyikan Kirim di menu tekan lama
 Takes Pinterest's Send button out of a grid pin's long-press menu. Sharing from the pin itself still works.	Mengeluarkan tombol Kirim Pinterest dari menu tekan lama pin di kisi. Berbagi dari pin itu sendiri tetap berfungsi.
+Hide Send with an app in the long-press menu	Sembunyikan Kirim dengan aplikasi di menu tekan lama
+Takes the button that sends a pin straight to WhatsApp or the app you last shared with out of a grid pin's long-press menu. Send still lists every app.	Mengeluarkan tombol yang mengirim pin langsung ke WhatsApp atau aplikasi terakhir yang kamu pakai untuk berbagi dari menu tekan lama pin di kisi. Kirim tetap menampilkan semua aplikasi.
 Hide Search image in the long-press menu	Sembunyikan Cari gambar di menu tekan lama
 Takes Pinterest's Search image button out of a grid pin's long-press menu. The lens on a pin you open still searches.	Mengeluarkan tombol Cari gambar Pinterest dari menu tekan lama pin di kisi. Lens di pin yang Anda buka tetap mencari.
 With nothing left in it, the menu keeps Pinterest's buttons.	Tanpa tombol lain, menu tetap menampilkan tombol Pinterest.
 hiding Pinterest's long-press buttons	menyembunyikan tombol tekan lama Pinterest
+# context: Long-press view, a View button added after Download in the round menu a held grid pin opens (Pinterest's own word for it in that menu: Lihat), and its switch on the Pin actions page. It shows the pin's picture full screen. The toasts show when the picture can't be opened. The third line names this part of the patch in a coverage summary.
+Long-press view	Lihat dengan tekan lama
+Adds View to a grid pin's long-press menu. It shows the picture full screen without opening the pin. Pinch or double-tap to zoom.	Menambahkan Lihat ke menu tekan lama pin di kisi. Gambar ditampilkan layar penuh tanpa membuka pin. Cubit atau ketuk dua kali untuk zoom.
+View in the long-press menu	Lihat di menu tekan lama
+That image is too big to open.	Gambar itu terlalu besar untuk dibuka.
+Couldn't open the image. Check your connection and try again.	Tidak bisa membuka gambar. Periksa koneksi lalu coba lagi.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	pin promosi di halaman feed
 promoted pins in paged results	pin promosi di hasil per halaman
@@ -521,6 +551,10 @@ Black pin menu	Menu pin hitam
 In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	Dalam mode gelap, mewarnai menu pin hitam pekat. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda membuka menu berikutnya.
 Black Save to sheet	Lembar Simpan hitam
 In dark mode, paints the sheet that lists your boards when you save a pin pure black. Light mode stays as it is. The change shows the next time you save a pin.	Dalam mode gelap, mewarnai lembar berisi papan Anda yang muncul saat menyimpan pin menjadi hitam pekat. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda menyimpan pin berikutnya.
+Black menus and sheets	Menu dan lembar hitam
+In dark mode, paints the other menus and sheets that slide up pure black, such as Create and a board's sort and options menus. Light mode stays as it is. The change shows the next time you open one.	Dalam mode gelap, mewarnai menu dan lembar lain yang muncul dari bawah menjadi hitam pekat, seperti Buat serta menu urutkan dan opsi papan. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda membuka salah satunya berikutnya.
+Black board and profile buttons	Tombol papan dan profil hitam
+In dark mode, paints the gray bar that floats over a board and the filter buttons on your profile pure black, along with the empty cover on Edit board. Light mode stays as it is. The change shows the next time you open a board or your profile.	Dalam mode gelap, mewarnai bilah abu-abu yang mengambang di atas papan dan tombol filter di profil Anda menjadi hitam pekat, juga sampul kosong di Edit papan. Mode terang tetap seperti biasa. Perubahan terlihat saat Anda membuka papan atau profil Anda berikutnya.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Sembunyikan panah kembali di pin
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Menyembunyikan panah kembali yang mengambang di atas pin yang Anda buka. Gestur atau tombol kembali ponsel Anda tetap membawa Anda keluar dari pin. Perubahan terlihat pada pin berikutnya yang Anda buka.
@@ -707,9 +741,12 @@ Save and download	Simpan dan unduh
 # context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
 Hide Assistant	Sembunyikan Asisten
 Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Menghapus Asisten AI Pinterest dari pencarian, papan, dan pin. Pencarian tetap berfungsi seperti biasa. Perubahan terlihat saat layar diperbarui berikutnya.
-# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards still show them, and the switch under it covers search. The title is also the name of that part of the patch in the build report.
 Hide pins you've already saved	Sembunyikan pin yang sudah disimpan
-Takes pins you've saved out of your home feed. Your boards and search still show them.	Menghapus pin yang sudah Anda simpan dari beranda. Papan dan pencarian Anda tetap menampilkannya.
+Takes pins you've saved out of your home feed. Your boards still show them.	Menghapus pin yang sudah Anda simpan dari beranda. Papan Anda tetap menampilkannya.
+# context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes pins the person has already saved out of search results and out of the "More to explore" pins Pinterest shows under a pin they open. "More to explore" is Pinterest's own name for that section, so use the app's translation of it. The title is also the name of that part of the patch in the build report.
+Hide saved pins in search and More to explore	Sembunyikan pin tersimpan di pencarian dan "Lainnya untuk dijelajahi"
+Takes pins you've saved out of search results and the More to explore pins under a pin you open. Your boards still show them.	Menghapus pin yang sudah Anda simpan dari hasil pencarian dan dari "Lainnya untuk dijelajahi" di bawah pin yang Anda buka. Papan Anda tetap menampilkannya.
 # context: toast when Download pin can't save a streamed video on the current network
 Your download settings block this network. Try again on Wi-Fi.	Setelan unduhan Anda memblokir jaringan ini. Coba lagi melalui Wi-Fi.
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.
@@ -720,3 +757,8 @@ See more like this? bubble	Gelembung "Lihat lainnya seperti ini?"
 # context: a Notifications switch from the Hide Inbox updates patch. It leaves the Updates section (Pinterest's activity and pin suggestions) out of the Inbox screen, and messages stay. "Updates" and "Inbox" are the names Pinterest gives them, so use the app's own translations.
 Hide Inbox updates	Sembunyikan Pembaruan di Kotak Masuk
 Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages stay. The change shows the next time you open the Inbox.	Menghilangkan bagian Pembaruan dari Kotak Masuk Anda, dan Pinterest tidak memuatnya. Pesan Anda tetap ada. Perubahan terlihat saat Anda membuka Kotak Masuk berikutnya.
+saved pins in search	pin tersimpan di pencarian
+saved pins in More to explore	pin tersimpan di "Lainnya untuk dijelajahi"
+Shop the look under pins	Shop the look di bawah pin
+Back leaves Home right away	Kembali langsung keluar dari Beranda
+When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Saat Anda sudah menggulir ke bawah di Beranda, Kembali keluar dari Pinterest alih-alih melompat ke atas dan memuat pin baru dulu.

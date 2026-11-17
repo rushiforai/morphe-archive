@@ -1,7 +1,7 @@
 package app.fakh.patches.smartlife
 
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 // BARDI renames the visibility method (`d` instead of `f`), so the cells are matched by their signature alone.
 private val advertisingFingerprint = cellVisibilityFingerprint("AdvertisingCell", name = null)
@@ -9,7 +9,7 @@ private val miniWidgetFingerprint = cellVisibilityFingerprint("PersonalMiniWidge
 private val appMallFingerprint = cellVisibilityFingerprint("MallCell", name = null)
 
 @Suppress("unused")
-val hideMallTabPatch = bytecodePatch(
+val hideMallTabPatch = patch(
     name = "Hide Mall tab",
     description = "Removes the Mall tab from the navigation bar.",
     default = true,
@@ -20,7 +20,7 @@ val hideMallTabPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideMeBannerPatch = bytecodePatch(
+val hideMeBannerPatch = patch(
     name = "Hide Me banner",
     description = "Removes the promo banner (\"Enjoy Your Smart Life\") and the ad slot from the Me tab.",
     default = true,
@@ -38,7 +38,7 @@ val hideMeBannerPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideAppMallPatch = bytecodePatch(
+val hideAppMallPatch = patch(
     name = "Hide App Mall",
     description = "Removes the \"App Mall\" row from the Me tab.",
     default = true,

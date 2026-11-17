@@ -210,6 +210,7 @@ public final class CopyTextPatch {
                 continue;
             }
             if (Character.isWhitespace(c) || Character.isSpaceChar(c)) {
+                //noinspection SizeReplaceableByIsEmpty
                 space = builder.length() > 0;
                 continue;
             }
@@ -317,7 +318,11 @@ public final class CopyTextPatch {
                 }
             }
             if (COPY_COMMENTS) {
-                String comment = findComment(itemText);
+                // The full comment of the text, which can be a collapsed comment.
+                String comment;
+                synchronized (commentTexts) {
+                    comment = findShownText(itemText, commentTexts.keySet());
+                }
                 if (comment != null) {
                     setTouchedText(comment, "morphe_copy_comments_success", false);
                     return true;
@@ -396,16 +401,6 @@ public final class CopyTextPatch {
             }
         }
         return null;
-    }
-
-    /**
-     * @return The full comment of the text, which can be a collapsed comment.
-     */
-    @Nullable
-    private static String findComment(String text) {
-        synchronized (commentTexts) {
-            return findShownText(text, commentTexts.keySet());
-        }
     }
 
     /**

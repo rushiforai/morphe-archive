@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+build/
+patches/build/
+META-INF/
+*.mpp
+*.apk
+local.properties
+.idea/

@@ -331,15 +331,18 @@ internal val NAVER_SITES: List<Site> = listOf(
         labels = mapOf(),
     ),
     Site(
-        cls = "Lcom/naver/maps/navi/mapmatching/internal/gpsSelection/dualGps/SwitchBuffer;", note = "a(", desc = null, count = 1,
-        anchor = listOf("add-int/lit8 v2, v2, 0x1"),
-        ops = listOf(Op("R", 0, "invoke-static {v2}, Lcom/naver/maps/navi/mapmatching/RateGate;->inc(I)I\nmove-result v2")),
+        // a(GpsType)GpsType: registers changed in 6.12 (v2 -> v0, log-level checks added) -> wildcards + {A0}
+        cls = "Lcom/naver/maps/navi/mapmatching/internal/gpsSelection/dualGps/SwitchBuffer;", note = "a(", count = 1,
+        desc = "(Lcom/naver/maps/navi/mapmatching/internal/model/location/GpsType;)Lcom/naver/maps/navi/mapmatching/internal/model/location/GpsType;",
+        anchor = listOf("add-int/lit8 *, *, 0x1"),
+        ops = listOf(Op("R", 0, "invoke-static {{A0}}, Lcom/naver/maps/navi/mapmatching/RateGate;->inc(I)I\nmove-result {A0}")),
         labels = mapOf(),
     ),
     Site(
-        cls = "Lcom/naver/maps/navi/mapmatching/internal/gpsSelection/dualGps/SwitchBuffer;", note = "a(", desc = null, count = 1,
-        anchor = listOf("const/4 v3, 0x3", "if-lt v2, v3"),
-        ops = listOf(Op("R", 0, "const/16 v3, 0xbb8")),
+        cls = "Lcom/naver/maps/navi/mapmatching/internal/gpsSelection/dualGps/SwitchBuffer;", note = "a(", count = 1,
+        desc = "(Lcom/naver/maps/navi/mapmatching/internal/model/location/GpsType;)Lcom/naver/maps/navi/mapmatching/internal/model/location/GpsType;",
+        anchor = listOf("const/4 *, 0x3", "if-lt *, *, L"),
+        ops = listOf(Op("R", 0, "const/16 {A0}, 0xbb8")),
         labels = mapOf(),
     ),
     Site(

@@ -15,6 +15,7 @@ import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.localcontrols.Mention
@@ -64,15 +65,30 @@ val holidayLookPatch = bytecodePatch(
     execute {
         requireStatusMethod("holidayLook")
         requireStatusMethod("titleEmoji")
+        requireStatusMethod("chatListTitle")
+        requireStatusMethod("chatListBanner")
         val sites = resolveHolidayLookSites()
         val logo = resolveHolidayLogoSites(sites)
+        // The banner stands alone: a top bar that changed shape leaves it out and the rest goes in.
+        val banner = try {
+            resolveChatListBanner(sites).also { it.rehearse() }
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without the chat list banner.")
+            null
+        }
         // Assemble and check every insertion on copies before changing any host or build fact.
         sites.apply(MutableMethod(ImmutableMethod.of(sites.check)))
         logo.prepare()
         sites.apply(sites.check)
         logo.apply(this)
-        // The title emoji goes in with the logo's span registration, inside the same pinned window.
+        if (banner != null) {
+            banner.apply(this)
+            enableCapability("chatListBanner")
+        }
+        // The title emoji and the person's own title go in with the logo's span registration, inside
+        // the same pinned window: TitleEmoji.decorate gets the stock title builder before the action bar.
         enableCapability("titleEmoji")
+        enableCapability("chatListTitle")
         enableStatus("holidayLook")
     }
 }

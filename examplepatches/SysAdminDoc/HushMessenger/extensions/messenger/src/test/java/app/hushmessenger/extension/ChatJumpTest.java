@@ -2,6 +2,7 @@ package app.hushmessenger.extension;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -9,14 +10,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import org.junit.After;
@@ -254,7 +258,10 @@ public class ChatJumpTest {
     }
 
     private final List<ChatJump.Target> asked = new ArrayList<>();
+    /** The day each ask for a date started on. */
+    private final List<Long> opened = new ArrayList<>();
     private final ChatJump.Chooser shown = ChatJump.chooser;
+    private final ChatJump.Picker picks = ChatJump.picker;
     private ActivityController<Activity> controller;
     private Activity activity;
     private FrameLayout chat;
@@ -271,10 +278,15 @@ public class ChatJumpTest {
         CrashGuard.resetForTests();
         CrashGuard.onProcessStart(context);
         ChatJump.chooser = (where, target) -> asked.add(target);
+        ChatJump.picker = (where, day, target) -> {
+            opened.add(day);
+            asked.add(target);
+        };
     }
 
     @After public void restore() {
         ChatJump.chooser = shown;
+        ChatJump.picker = picks;
         if (ChatJump.running != null) ChatJump.running.stop(ChatJump.Outcome.CANCELLED);
         if (controller != null) controller.pause().stop().destroy();
     }
@@ -375,6 +387,97 @@ public class ChatJumpTest {
         assertTrue(asked.isEmpty());
     }
 
+    private void tap(View on) {
+        touch(MotionEvent.ACTION_DOWN, on);
+        idle(50);
+        touch(MotionEvent.ACTION_UP, on);
+        idle(0);
+    }
+
+    /**
+     * A date row the way the list keeps one: nothing in it answers a tap, and the day it names sits behind it. A list
+     * with no layout manager lays none of its rows out, so the row is given its place by hand.
+     */
+    private View dateRow(long when, int top, int height) {
+        Bubble row = new Bubble(activity, when);
+        list.addView(row, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
+        idle(0);
+        row.layout(0, top, list.getWidth(), top + height);
+        return row;
+    }
+
+    /** #177: tapping one of the dates between the messages opens the day picker on that day. */
+    @Test public void aTapOnADateBetweenTheMessagesAsksFromThatDay() {
+        on(true);
+        openChat();
+        long when = ChatJump.midnight(2025, 2, 14) + 9 * 3_600_000L;
+        View date = dateRow(when, 80, 40);
+        assertEquals(when, ChatJump.dateAt(chat, screenX(date), screenY(date)));
+        tap(date);
+        assertEquals(List.of(when), opened);
+        assertEquals(1, asked.size());
+        // The day left on the picker pages the chat back, the same as the menu's own Jump to a date.
+        asked.get(0).jump(ChatJump.midnight(2025, 2, 14));
+        assertNotNull(ChatJump.running);
+        assertEquals(0, taps);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** A message, and a row with no date behind it, stay Messenger's. */
+    @Test public void aTapOnAMessageOrARowWithoutADateAsksNothing() {
+        on(true);
+        openChat();
+        // Messenger's own message row answers taps, so whatever time it keeps is never read off it.
+        message.layout(0, 0, list.getWidth(), 60);
+        tap(message);
+        View plain = new View(activity);
+        list.addView(plain, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 40));
+        idle(0);
+        plain.layout(0, 200, list.getWidth(), 240);
+        tap(plain);
+        // A date in a chat that's off keeps the tap as well.
+        on(false);
+        tap(dateRow(ChatJump.midnight(2025, 2, 14), 300, 40));
+        assertTrue(opened.isEmpty());
+        assertTrue(asked.isEmpty());
+        assertNull(ChatJump.running);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    private static int screenX(View view) {
+        int[] at = new int[2];
+        view.getLocationOnScreen(at);
+        return at[0] + view.getWidth() / 2;
+    }
+
+    private static int screenY(View view) {
+        int[] at = new int[2];
+        view.getLocationOnScreen(at);
+        return at[1] + view.getHeight() / 2;
+    }
+
+    /** The picker opens on the day it's given, on today without one, and never past today. */
+    @Test public void theDayPickerOpensOnTheDayItWasGiven() {
+        on(true);
+        openChat();
+        List<Long> jumped = new ArrayList<>();
+        ChatJump.pickDay(activity, ChatJump.midnight(2025, 2, 14) + 3_600_000L, jumped::add);
+        DatePickerDialog tapped = (DatePickerDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertEquals(2025, tapped.getDatePicker().getYear());
+        assertEquals(2, tapped.getDatePicker().getMonth());
+        assertEquals(14, tapped.getDatePicker().getDayOfMonth());
+        tapped.dismiss();
+        Calendar today = Calendar.getInstance();
+        for (long day : new long[] {0, today.getTimeInMillis() + 30 * ChatJump.DAY}) {
+            ChatJump.pickDay(activity, day, jumped::add);
+            DatePickerDialog open = (DatePickerDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertEquals(today.get(Calendar.YEAR), open.getDatePicker().getYear());
+            assertEquals(today.get(Calendar.DAY_OF_MONTH), open.getDatePicker().getDayOfMonth());
+            open.dismiss();
+        }
+        assertTrue(jumped.isEmpty());
+    }
+
     @Test public void offTheChatIsLeftAlone() {
         on(false);
         openChat();
@@ -431,6 +534,28 @@ public class ChatJumpTest {
         assertNull(bar.bar);
     }
 
+    /**
+     * #172: a chat head has no activity for a dialog to hang a window on, so Jump to a date's menu and its date
+     * picker went up as nothing there. They go up over other apps instead, the way the chat head itself does.
+     */
+    @Test public void aDialogOverAChatHeadGoesUpInAWindowOfItsOwn() {
+        Context head = RuntimeEnvironment.getApplication();
+        assertNull(ChatJump.activity(head));
+        AlertDialog overChatHead = new AlertDialog.Builder(head, MaterialYouTheme.chatDialogTheme())
+            .setTitle("Jump to").create();
+        ChatJump.showOverChat(overChatHead, head);
+        assertTrue(overChatHead.isShowing());
+        assertEquals(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, overChatHead.getWindow().getAttributes().type);
+        overChatHead.dismiss();
+        // In a chat it stays an ordinary dialog on the chat's own window.
+        openChat();
+        AlertDialog overChat = new AlertDialog.Builder(activity, MaterialYouTheme.chatDialogTheme())
+            .setTitle("Jump to").create();
+        ChatJump.showOverChat(overChat, activity);
+        assertTrue(overChat.isShowing());
+        assertEquals(WindowManager.LayoutParams.TYPE_APPLICATION, overChat.getWindow().getAttributes().type);
+    }
+
     /** Whether the menu's title is drawn in a dark color, as it is on a light sheet. */
     private static boolean darkTitle(AlertDialog menu) {
         int id = menu.getContext().getResources().getIdentifier("alertTitle", "id", "android");
@@ -454,6 +579,88 @@ public class ChatJumpTest {
         assertFalse("a dark chat gets a dark menu", darkTitle(dark));
     }
 
+    private ViewGroup content() {
+        return activity.findViewById(android.R.id.content);
+    }
+
+    private ImageView arrow() {
+        ChatJump.Arrow on = ChatJump.arrowOn(chat);
+        assertNotNull("no arrow on the chat", on);
+        return on.button;
+    }
+
+    /** #177: the long press on the chat's name is easy to miss, so the arrow makes the same jump with one tap. */
+    @Test public void theArrowGoesToTheFirstMessage() {
+        on(true);
+        openChat();
+        list.older = 1000;
+        ImageView arrow = arrow();
+        assertSame(content(), arrow.getParent());
+        assertEquals(View.VISIBLE, arrow.getVisibility());
+        arrow.performClick();
+        assertNotNull(ChatJump.running);
+        idle(3 * ChatJump.TICK_MS);
+        assertTrue(list.pulls > 0);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void aLongPressOnTheArrowAsksWhereToGo() {
+        on(true);
+        openChat();
+        assertTrue(arrow().performLongClick());
+        assertEquals(1, asked.size());
+        assertNull(ChatJump.running);
+        asked.get(0).jump(0);
+        assertNotNull(ChatJump.running);
+    }
+
+    @Test public void theArrowStaysOffWithNothingOlderToGoTo() {
+        on(true);
+        openChat();
+        assertEquals(View.VISIBLE, arrow().getVisibility());
+        list.older = 0;
+        // What the window's own observer calls as the list scrolls.
+        ChatJump.arrowOn(chat).onScrollChanged();
+        assertEquals(View.GONE, arrow().getVisibility());
+    }
+
+    @Test public void theArrowStandsDownWhileTheCountBarIsUp() {
+        on(true);
+        openChat();
+        list.older = 1000;
+        arrow().performClick();
+        assertNotNull(ChatJump.running);
+        assertEquals(View.GONE, arrow().getVisibility());
+        ChatJump.running.bar.cancel.performClick();
+        assertNull(ChatJump.running);
+        assertEquals(View.VISIBLE, arrow().getVisibility());
+    }
+
+    @Test public void noArrowGoesUpWithTheSwitchOff() {
+        on(false);
+        openChat();
+        assertNull(ChatJump.arrowOn(chat));
+        assertEquals(1, content().getChildCount());
+    }
+
+    /** The arrow floats over the messages, where a tap used to open the day picker off the same touch. */
+    @Test public void aTapOnTheArrowIsNotATapOnADateUnderIt() {
+        on(true);
+        openChat();
+        long when = ChatJump.midnight(2025, 2, 14) + 9 * 3_600_000L;
+        View date = dateRow(when, 80, 120);
+        ImageView arrow = arrow();
+        int[] row = new int[2], host = new int[2];
+        date.getLocationOnScreen(row);
+        content().getLocationOnScreen(host);
+        int x = row[0] - host[0] + date.getWidth() / 2, y = row[1] - host[1] + date.getHeight() / 2;
+        arrow.layout(x - 20, y - 20, x + 20, y + 20);
+        assertEquals(0, ChatJump.dateAt(chat, screenX(arrow), screenY(arrow)));
+        // With the arrow down, the row under it is a date again, so the arrow is what held that touch back.
+        arrow.setVisibility(View.GONE);
+        assertEquals(when, ChatJump.dateAt(chat, screenX(arrow), screenY(arrow)));
+    }
+
     @Test public void cancelStopsTheJumpWhereItIs() {
         on(true);
         openChat();
@@ -468,7 +675,9 @@ public class ChatJumpTest {
         idle(10 * ChatJump.TICK_MS);
         assertTrue(jump.done());
         assertEquals(pulls, list.pulls);
-        assertEquals(1, ((ViewGroup) activity.findViewById(android.R.id.content)).getChildCount());
+        // The chat and the arrow stay, the bar goes.
+        assertEquals(2, content().getChildCount());
+        assertSame(chat, content().getChildAt(0));
         assertNull(ShadowToast.getTextOfLatestToast());
     }
 
@@ -502,7 +711,8 @@ public class ChatJumpTest {
             Settings.preferences = prefs;
         }
         assertNull(ChatJump.running);
-        assertEquals(1, ((ViewGroup) activity.findViewById(android.R.id.content)).getChildCount());
+        assertEquals(2, content().getChildCount());
+        assertSame(chat, content().getChildAt(0));
         asked.get(0).jump(0);
         assertNotNull(ChatJump.running);
         assertNotNull(ChatJump.running.bar.bar);

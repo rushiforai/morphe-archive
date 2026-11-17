@@ -38,10 +38,11 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference;
 import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig;
 import app.morphe.extension.shared.sponsorblock.SegmentPlaybackController.SponsorBlockDuration;
 import app.morphe.extension.shared.spoof.ClientType;
-import app.morphe.extension.youtube.patches.AddToQueuePatch.MorpheQueueAvailability;
+import app.morphe.extension.youtube.patches.AddToQueuePatch.NativeQueueAvailability;
 import app.morphe.extension.youtube.patches.AddToQueuePatch.NotLocalQueueAvailability;
 import app.morphe.extension.youtube.patches.AddToQueuePatch.QueueType;
 import app.morphe.extension.youtube.patches.AutoCaptionsPatch.AutoCaptionsStyle;
+import app.morphe.extension.youtube.patches.AutoplayRule;
 import app.morphe.extension.youtube.patches.BackgroundPlaybackPatch.AutoPauseOnLockMode;
 import app.morphe.extension.youtube.patches.ChangeFormFactorPatch.FormFactor;
 import app.morphe.extension.youtube.patches.ChangeHeaderPatch.HeaderLogo;
@@ -49,23 +50,25 @@ import app.morphe.extension.youtube.patches.ChangePipActionsPatch.PipAction;
 import app.morphe.extension.youtube.patches.ChangeStartPagePatch.StartPage;
 import app.morphe.extension.youtube.patches.ClassicSubscriptionsLayoutPatch;
 import app.morphe.extension.youtube.patches.CustomSeekbarThumbPatch.ThumbScaleType;
+import app.morphe.extension.youtube.patches.DisableContinueWatchingPromptPatch.ContinueWatchingPromptMode;
+import app.morphe.extension.youtube.patches.DisableVideoCodecsPatch;
 import app.morphe.extension.youtube.patches.DisableVideoCodecsPatch.VideoCodec;
 import app.morphe.extension.youtube.patches.ExitFullscreenPatch.FullscreenMode;
 import app.morphe.extension.youtube.patches.FeedCardLayoutPatch.FeedCardLayout;
+import app.morphe.extension.youtube.patches.FeedEngagementCountsPatch.FeedCountsPosition;
 import app.morphe.extension.youtube.patches.ForceAnimationsPatch.AnimationsMode;
 import app.morphe.extension.youtube.patches.ForceFullscreenLandscapePatch.LargeScreenAvailability;
 import app.morphe.extension.youtube.patches.FullscreenVideoScalePatch.VideoScaleMode;
-import app.morphe.extension.youtube.patches.GlassNavigationBar;
 import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch.RestoreOldPlayerButtonsAvailability;
 import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.DeepLAvailability;
 import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.TranslationProvider;
 import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.TranslationStyle;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerAnyModernAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerDragAndDropAvailability;
+import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerGlassAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHideOverlayButtonsAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalDragAvailability;
-import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalDragPlaybackAvailability;
-import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalRepositioningAvailability;
+import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerHorizontalDragOptionsAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerMinimalBar2Availability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerMinimalBarAvailability;
 import app.morphe.extension.youtube.patches.MiniplayerPatch.MiniplayerOverlayOpacityAvailability;
@@ -80,6 +83,7 @@ import app.morphe.extension.youtube.patches.PlaybackInFeedsPatch;
 import app.morphe.extension.youtube.patches.RestoreOldVideoActionBarPatch.VideoActionBarLayout;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.patches.WideSearchBarPatch.SearchbarType;
+import app.morphe.extension.youtube.patches.YouTubeGlassNavigationBar.GlassAvailability;
 import app.morphe.extension.youtube.patches.components.LayoutComponentsFilter.ExpandableCardStyle;
 import app.morphe.extension.youtube.patches.components.LayoutComponentsFilter.PostButtonsLayout;
 import app.morphe.extension.youtube.patches.components.PlayerFlyoutMenuComponentsFilter.HideAmbientModeFlyoutMenuAvailability;
@@ -89,6 +93,7 @@ import app.morphe.extension.youtube.patches.components.PlayerFlyoutMenuComponent
 import app.morphe.extension.youtube.patches.components.PlayerFlyoutMenuComponentsFilter.HideQualityFlyoutMenuHeaderFooterAvailability;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.DeArrowAvailability;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.DeArrowThumbnailsAvailability;
+import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.DeArrowTitleIconAvailability;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.DeArrowTitlesAvailability;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.StillImagesAvailability;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.ThumbnailOption;
@@ -111,6 +116,7 @@ import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProv
 import app.morphe.extension.youtube.videoplayer.PlayAllButton.PlaylistIDPrefix;
 import app.morphe.extension.youtube.videoplayer.PlayerIcons;
 
+@SuppressWarnings("unused")
 public class Settings extends SharedYouTubeSettings {
     // Video
     public static final EnumSetting<PlaybackBufferSize> PLAYBACK_BUFFER_SIZE = new EnumSetting<>("morphe_playback_buffer_size", PlaybackBufferSize.DEFAULT, true);
@@ -119,12 +125,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting ADVANCED_VIDEO_QUALITY_MENU = new BooleanSetting("morphe_advanced_video_quality_menu", TRUE);
     public static final BooleanSetting DISABLE_HDR_VIDEO = new BooleanSetting("morphe_disable_hdr_video", FALSE);
     public static final BooleanSetting FORCE_HDR_VIDEO = new BooleanSetting("morphe_force_hdr_video", FALSE, true, "morphe_force_hdr_video_user_dialog_message", parentNot(DISABLE_HDR_VIDEO));
-    public static final EnumSetting<VideoCodec> VIDEO_CODEC = new EnumSetting<>("morphe_video_codec", VideoCodec.DEFAULT, true, "morphe_video_codec_user_dialog_message");
+    public static final EnumSetting<VideoCodec> VIDEO_CODEC = new EnumSetting<>("morphe_video_codec", DisableVideoCodecsPatch.getDefaultVideoCodec(), true, "morphe_video_codec_user_dialog_message");
     public static final BooleanSetting HIDE_PREMIUM_VIDEO_QUALITY = new BooleanSetting("morphe_hide_premium_video_quality", TRUE, true);
     public static final BooleanSetting VIDEO_QUALITY_PRIORITIZE = new BooleanSetting("morphe_video_quality_prioritize", TRUE, true, "morphe_video_quality_prioritize_dialog");
-    public static final IntegerSetting VIDEO_QUALITY_DEFAULT_WIFI = new IntegerSetting("morphe_video_quality_default_wifi", -2);
-    public static final IntegerSetting VIDEO_QUALITY_DEFAULT_MOBILE = new IntegerSetting("morphe_video_quality_default_mobile", -2);
-    public static final BooleanSetting REMEMBER_VIDEO_QUALITY_LAST_SELECTED = new BooleanSetting("morphe_remember_video_quality_last_selected", FALSE);
     public static final IntegerSetting SHORTS_QUALITY_DEFAULT_WIFI = new IntegerSetting("morphe_shorts_quality_default_wifi", -2, true);
     public static final IntegerSetting SHORTS_QUALITY_DEFAULT_MOBILE = new IntegerSetting("morphe_shorts_quality_default_mobile", -2, true);
     public static final BooleanSetting REMEMBER_SHORTS_QUALITY_LAST_SELECTED = new BooleanSetting("morphe_remember_shorts_quality_last_selected", FALSE);
@@ -211,6 +214,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_YOU_MAY_LIKE_SECTION = new BooleanSetting("morphe_hide_you_may_like_section", TRUE, true);
     public static final BooleanSetting HIDE_YOUTUBE_DOODLES = new BooleanSetting("morphe_hide_youtube_doodles", TRUE, true, "morphe_hide_youtube_doodles_user_dialog_message");
     public static final IntegerSetting PLAYBACK_IN_FEEDS = new IntegerSetting("morphe_playback_in_feeds", PlaybackInFeedsPatch.MODE_ALWAYS_ON, true);
+    public static final BooleanSetting PLAYBACK_IN_FEEDS_IMPORTED = new BooleanSetting("morphe_playback_in_feeds_imported", FALSE, false, false);
     public static final BooleanSetting RESTORE_ORIGINAL_TITLES = new BooleanSetting("morphe_restore_original_titles", FALSE, true);
     public static final BooleanSetting DISABLE_AUTO_FEED_REFRESH = new BooleanSetting("morphe_disable_auto_feed_refresh", FALSE);
     public static final EnumSetting<FeedCardLayout> FEED_CARD_LAYOUT = new EnumSetting<>("morphe_feed_card_layout", FeedCardLayout.CLASSIC, true);
@@ -239,9 +243,12 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DEARROW_TITLES_LIBRARY = new BooleanSetting("morphe_dearrow_titles_library", FALSE, true);
     public static final BooleanSetting DEARROW_TITLES_PLAYER = new BooleanSetting("morphe_dearrow_titles_player", FALSE, true);
     public static final BooleanSetting DEARROW_TITLES_SEARCH = new BooleanSetting("morphe_dearrow_titles_search", FALSE, true);
-    public static final BooleanSetting DEARROW_TITLES_ICON = new BooleanSetting("morphe_dearrow_titles_icon", TRUE, true, new DeArrowTitlesAvailability());
+    public static final BooleanSetting DEARROW_TITLES_ICON = new BooleanSetting("morphe_dearrow_titles_icon", TRUE, true, new DeArrowTitleIconAvailability());
     public static final BooleanSetting DEARROW_CASUAL_MODE = new BooleanSetting("morphe_dearrow_casual_mode", FALSE, true, new DeArrowTitlesAvailability());
-    public static final IntegerSetting DEARROW_CASUAL_MODE_MIN_VOTES = new IntegerSetting("morphe_dearrow_casual_mode_min_votes", 2, true, parentsAll(new DeArrowTitlesAvailability(), parent(DEARROW_CASUAL_MODE)));
+    public static final BooleanSetting DEARROW_VOTE_BUTTON = new BooleanSetting("morphe_dearrow_vote_button", FALSE, true);
+    public static final IntegerSetting DEARROW_VOTE_TIME_STEP = new IntegerSetting("morphe_dearrow_vote_time_step", 100, parent(DEARROW_VOTE_BUTTON));
+    public static final BooleanSetting DEARROW_SEEN_GUIDELINES = new BooleanSetting("morphe_dearrow_seen_guidelines", FALSE, false, false);
+    public static final IntegerSetting DEARROW_CASUAL_MODE_MIN_VOTES =new IntegerSetting("morphe_dearrow_casual_mode_min_votes", 2, true, parentsAll(new DeArrowTitlesAvailability(), parent(DEARROW_CASUAL_MODE)));
     public static final EnumSetting<ThumbnailOption> DEARROW_THUMBNAIL_HOME = new EnumSetting<>("morphe_dearrow_thumbnail_home", ThumbnailOption.ORIGINAL);
     public static final EnumSetting<ThumbnailOption> DEARROW_THUMBNAIL_SUBSCRIPTIONS = new EnumSetting<>("morphe_dearrow_thumbnail_subscription", ThumbnailOption.ORIGINAL);
     public static final EnumSetting<ThumbnailOption> DEARROW_THUMBNAIL_LIBRARY = new EnumSetting<>("morphe_dearrow_thumbnail_library", ThumbnailOption.ORIGINAL);
@@ -283,6 +290,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final LongSetting KEYWORD_HIDE_COUNT_SEARCH = new LongSetting("morphe_keyword_hide_count_search", 0L);
     public static final LongSetting KEYWORD_HIDE_COUNT_COMMENTS = new LongSetting("morphe_keyword_hide_count_comments", 0L);
     public static final StringSetting KEYWORD_HIDES_24H = new StringSetting("morphe_keyword_hides_24h", "", false, false);
+
     // Channel Blacklist
     public static final BooleanSetting HIDE_CHANNEL_BLACKLIST_HOME = new BooleanSetting("morphe_hide_channel_blacklist_home", FALSE);
     public static final BooleanSetting HIDE_CHANNEL_BLACKLIST_SEARCH = new BooleanSetting("morphe_hide_channel_blacklist_search", FALSE);
@@ -305,8 +313,12 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_HAPTIC_FEEDBACK_TAP_AND_HOLD = new BooleanSetting("morphe_disable_haptic_feedback_tap_and_hold", FALSE);
     public static final BooleanSetting DISABLE_HAPTIC_FEEDBACK_ZOOM = new BooleanSetting("morphe_disable_haptic_feedback_zoom", FALSE);
     public static final BooleanSetting DISABLE_PLAYER_POPUP_PANELS = new BooleanSetting("morphe_disable_player_popup_panels", FALSE);
-    public static final BooleanSetting DISABLE_PLAYLIST_AUTOPLAY = new BooleanSetting("morphe_disable_playlist_autoplay", FALSE);
-    public static final BooleanSetting DISABLE_CONTINUE_WATCHING_PROMPT = new BooleanSetting("morphe_disable_continue_watching_prompt", FALSE);
+    public static final BooleanSetting FULLSCREEN_PLAYLIST_PANEL = new BooleanSetting("morphe_fullscreen_playlist_panel", FALSE);
+    public static final BooleanSetting AUTOPLAY_CONTROL = new BooleanSetting("morphe_autoplay_control", FALSE, true);
+    public static final BooleanSetting DISABLE_PLAYLIST_AUTOPLAY = new BooleanSetting("morphe_disable_playlist_autoplay", FALSE, parentNot(AUTOPLAY_CONTROL));
+    public static final EnumSetting<AutoplayRule.Mode> AUTOPLAY_MODE = new EnumSetting<>("morphe_autoplay_mode", AutoplayRule.Mode.AUTO, parent(AUTOPLAY_CONTROL));
+    public static final IntegerSetting AUTOPLAY_MIX_STOP_AFTER = new IntegerSetting("morphe_autoplay_mix_stop_after", 10, parent(AUTOPLAY_CONTROL));
+    public static final EnumSetting<ContinueWatchingPromptMode> CONTINUE_WATCHING_PROMPT = new EnumSetting<>("morphe_continue_watching_prompt", ContinueWatchingPromptMode.DEFAULT);
     public static final BooleanSetting DISABLE_FULLSCREEN_PULLED_UP_GESTURE = new BooleanSetting("morphe_disable_fullscreen_pulled_up_gesture", FALSE);
     public static final BooleanSetting DISABLE_FULLSCREEN_SLIDING_GESTURE = new BooleanSetting("morphe_disable_fullscreen_sliding_down_gesture", FALSE);
     public static final BooleanSetting DISABLE_FULLSCREEN_DRAGGED_DOWN_GESTURE = new BooleanSetting("morphe_disable_fullscreen_dragged_down_gesture", FALSE);
@@ -345,7 +357,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting EXTERNAL_DOWNLOADER_QUICK_MENU = new BooleanSetting("morphe_external_downloader_quick_menu", FALSE, new ExternalDownloaderAvailability());
     public static final BooleanSetting EXTERNAL_DOWNLOADER_MARK_WATCHED = new BooleanSetting("morphe_external_downloader_mark_watched", FALSE, new ExternalDownloaderAvailability());
     public static final BooleanSetting SHORTS_DOWNLOAD_FLYOUT_BUTTON = new BooleanSetting("morphe_shorts_download_flyout_button", TRUE, DOWNLOAD_MODE.availability(DownloadMode.EXTERNAL, DownloadMode.IN_APP));
-    public static final StringSetting EXPORT_DOWNLOAD_FOLDER = new StringSetting("morphe_export_download_folder", "", DOWNLOAD_MODE.availability(DownloadMode.DEFAULT, DownloadMode.IN_APP));
+    public static final BooleanSetting FEED_DOWNLOAD_FLYOUT_BUTTON = new BooleanSetting("morphe_feed_download_flyout_button", TRUE, DOWNLOAD_MODE.availability(DownloadMode.EXTERNAL, DownloadMode.IN_APP));
 
     // Overlay buttons
     public static final BooleanSetting FULLSCREEN_VIDEO_SCALE_BUTTON = new BooleanSetting("morphe_fullscreen_video_scale_button", FALSE, true);
@@ -363,6 +375,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SETTINGS_BUTTON = new BooleanSetting("morphe_hide_settings_button", FALSE, true);
     public static final BooleanSetting LOOP_VIDEO_BUTTON = new BooleanSetting("morphe_loop_video_button", FALSE, true);
     public static final BooleanSetting LOOP_VIDEO = new BooleanSetting("morphe_loop_video", FALSE);
+    public static final BooleanSetting LOOP_COUNT = new BooleanSetting("morphe_loop_count", FALSE);
+    public static final BooleanSetting LOOP_COUNT_PLAYLISTS = new BooleanSetting("morphe_loop_count_playlists", TRUE, parent(LOOP_COUNT));
+    public static final StringSetting LOOP_COUNT_PLAYLIST_COUNTS = new StringSetting("morphe_loop_count_playlist_counts", "", false, true);
     public static final BooleanSetting DO_NOT_REMEMBER_LOOP_VIDEO = new BooleanSetting("morphe_do_not_remember_loop_video", FALSE, parent(LOOP_VIDEO_BUTTON));
     public static final BooleanSetting MUTE_VIDEO_BUTTON = new BooleanSetting("morphe_mute_video_button", FALSE, true);
     public static final BooleanSetting PIP_OVERLAY_BUTTON = new BooleanSetting("morphe_pip_button_overlay", FALSE, new PipButtonPatchAvailability());
@@ -370,8 +385,11 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting PLAY_ALL_BUTTON = new BooleanSetting("morphe_play_all_button", FALSE);
     public static final EnumSetting<PlaylistIDPrefix> PLAY_ALL_BUTTON_TYPE = new EnumSetting<>("morphe_play_all_button_type", PlaylistIDPrefix.ALL_CONTENTS_WITH_TIME_DESCENDING,  parent(PLAY_ALL_BUTTON));
     public static final BooleanSetting PLAYBACK_SPEED_DIALOG_BUTTON = new BooleanSetting("morphe_playback_speed_dialog_button", FALSE, true);
+    public static final BooleanSetting PLAYBACK_SPEED_BUTTON_CYCLE = new BooleanSetting("morphe_playback_speed_button_cycle", FALSE, parent(PLAYBACK_SPEED_DIALOG_BUTTON));
+    public static final StringSetting PLAYBACK_SPEED_BUTTON_CYCLE_SPEEDS = new StringSetting("morphe_playback_speed_button_cycle_speeds", "1.0\n1.5\n2.0", parent(PLAYBACK_SPEED_BUTTON_CYCLE));
     public static final EnumSetting<PlayerIcons.Style> PLAYER_ICON_STYLE = new EnumSetting<>("morphe_player_icon_style", PlayerIcons.Style.AUTO, true);
     public static final IntegerSetting PLAYER_OVERLAY_OPACITY = new IntegerSetting("morphe_player_overlay_opacity", 100, true);
+    public static final BooleanSetting PLAYLIST_PANEL_BUTTON = new BooleanSetting("morphe_playlist_panel_button", FALSE, true);
     public static final BooleanSetting RELOAD_VIDEO_BUTTON = new BooleanSetting("morphe_reload_video_button", FALSE);
     public static final BooleanSetting RESTORE_OLD_PLAYER_BUTTONS = new BooleanSetting("morphe_restore_old_player_buttons", FALSE, true, new RestoreOldPlayerButtonsAvailability());
     public static final BooleanSetting VIDEO_DELAY_OVERLAY_BUTTON = new BooleanSetting("morphe_video_delay_button_overlay", FALSE, true);
@@ -383,11 +401,13 @@ public class Settings extends SharedYouTubeSettings {
      */
     public static final StringSetting SAVE_TO_WATCH_LATER_REDIRECT_PLAYLIST_ID = new StringSetting("morphe_save_to_watch_later_redirect_playlist_id", "", false);
     public static final StringSetting SAVE_TO_WATCH_LATER_REDIRECT_PLAYLIST_TITLE = new StringSetting("morphe_save_to_watch_later_redirect_playlist_title", "", false);
-    public static final EnumSetting<QueueType> QUEUE_TYPE = new EnumSetting<>("morphe_queue_type", QueueType.MORPHE);
+    public static final EnumSetting<QueueType> QUEUE_TYPE = new EnumSetting<>("morphe_queue_type", QueueType.NATIVE);
     public static final StringSetting LOCAL_QUEUE_ITEMS = new StringSetting("morphe_local_queue_items", "", false, false);
     public static final BooleanSetting QUEUE_RESTORE = new BooleanSetting("morphe_queue_restore", FALSE, parentsAll(parent(SAVE_TO_WATCH_LATER_OVERLAY_BUTTON), new NotLocalQueueAvailability()));
     public static final BooleanSetting SWAP_SAVE_AND_QUEUE_ACTIONS = new BooleanSetting("morphe_swap_save_and_queue_actions", TRUE, true, parent(SAVE_TO_WATCH_LATER_OVERLAY_BUTTON));
-    public static final BooleanSetting QUEUE_ADD_FLYOUT_MENU = new BooleanSetting("morphe_queue_add_flyout_menu", TRUE, new MorpheQueueAvailability());
+    public static final BooleanSetting NATIVE_QUEUE_FETCH_ON_SCROLL = new BooleanSetting("morphe_native_queue_fetch_on_scroll", FALSE, new NativeQueueAvailability());
+    public static final BooleanSetting NATIVE_QUEUE_THUMBNAIL_BUTTON = new BooleanSetting("morphe_native_queue_thumbnail_button", FALSE, true, new NativeQueueAvailability());
+    public static final BooleanSetting NATIVE_QUEUE_THUMBNAIL_SWAP_ACTIONS = new BooleanSetting("morphe_native_queue_thumbnail_swap_actions", FALSE, parentsAll(parent(NATIVE_QUEUE_THUMBNAIL_BUTTON), new NativeQueueAvailability()));
     public static final StringSetting QUEUE_PLAYLIST_ID = new StringSetting("morphe_queue_playlist_id", "");
     public static final BooleanSetting OPEN_CHANNEL_OF_LIVE_AVATAR = new BooleanSetting("morphe_open_channel_of_live_avatar", FALSE);
     public static final BooleanSetting CHANNEL_SEARCH = new BooleanSetting("morphe_channel_search", TRUE);
@@ -398,14 +418,15 @@ public class Settings extends SharedYouTubeSettings {
 
     // Feed video actions
     public static final BooleanSetting FEED_LONG_PRESS_MENU = new BooleanSetting("morphe_feed_long_press_menu", FALSE);
-    public static final BooleanSetting FEED_WATCH_LATER_BUTTON = new BooleanSetting("morphe_feed_watch_later_button", FALSE);
+    public static final BooleanSetting FEED_WATCH_LATER_BUTTON = new BooleanSetting("morphe_feed_watch_later_button", FALSE, true);
     public static final StringSetting FEED_MENU_BUTTON_DESCRIPTION = new StringSetting("morphe_feed_menu_button_description", "", false, false);
     public static final BooleanSetting VIDEO_QUALITY_DIALOG_BUTTON = new BooleanSetting("morphe_video_quality_dialog_button", FALSE, true);
     public static final BooleanSetting VIDEO_QUALITY_DIALOG_BUTTON_RESOLUTION = new BooleanSetting("morphe_video_quality_dialog_button_resolution", FALSE, parent(VIDEO_QUALITY_DIALOG_BUTTON));
 
-    // Watch later
-    public static final BooleanSetting WATCH_LATER_WIDE_DRAG_HANDLES = new BooleanSetting("morphe_watch_later_wide_drag_handles", TRUE);
-    public static final BooleanSetting WATCH_LATER_HIDE_REMOVAL_SNACKBAR = new BooleanSetting("morphe_watch_later_hide_removal_snackbar", FALSE);
+    // Playlists
+    public static final BooleanSetting PLAYLIST_WIDE_DRAG_HANDLES = new BooleanSetting("morphe_playlist_wide_drag_handles", TRUE);
+    public static final BooleanSetting PLAYLIST_HIDE_REMOVAL_SNACKBAR = new BooleanSetting("morphe_playlist_hide_removal_snackbar", FALSE);
+    public static final BooleanSetting PLAYLIST_LONG_PRESS_DRAG = new BooleanSetting("morphe_playlist_long_press_drag", FALSE);
 
     // Post image download
     public static final BooleanSetting POST_IMAGE_DOWNLOAD = new BooleanSetting("morphe_post_image_download", TRUE, true);
@@ -421,6 +442,7 @@ public class Settings extends SharedYouTubeSettings {
     // Return YouTube Dislike, feed videos
     public static final BooleanSetting RYD_FEED_LIKE_COUNT = new BooleanSetting("morphe_ryd_feed_like_count", FALSE, true, parent(RYD_ENABLED));
     public static final BooleanSetting RYD_FEED_LIKE_RATIO = new BooleanSetting("morphe_ryd_feed_like_ratio", FALSE, true, parent(RYD_ENABLED));
+    public static final EnumSetting<FeedCountsPosition> RYD_FEED_COUNTS_POSITION = new EnumSetting<>("morphe_ryd_feed_counts_position", FeedCountsPosition.NEXT_TO_VIEW_COUNT, true, parent(RYD_ENABLED));
 
     // Quick actions
     public static final BooleanSetting HIDE_QUICK_ACTIONS = new BooleanSetting("morphe_hide_quick_actions", FALSE);
@@ -438,9 +460,17 @@ public class Settings extends SharedYouTubeSettings {
     public static final IntegerSetting QUICK_ACTIONS_TOP_MARGIN = new IntegerSetting("morphe_quick_actions_top_margin", 0, true);
 
     // Ambient mode
-    public static final BooleanSetting DISABLE_AMBIENT_MODE = new BooleanSetting("morphe_disable_ambient_mode", FALSE, true);
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE = new BooleanSetting("morphe_enhanced_ambient_mode", FALSE, true,
+            () -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+    public static final IntegerSetting ENHANCED_AMBIENT_MODE_STRENGTH = new IntegerSetting("morphe_enhanced_ambient_mode_strength", 100, parent(ENHANCED_AMBIENT_MODE));
+    public static final IntegerSetting ENHANCED_AMBIENT_MODE_SMOOTHING = new IntegerSetting("morphe_enhanced_ambient_mode_smoothing", 0, parent(ENHANCED_AMBIENT_MODE));
+    public static final IntegerSetting ENHANCED_AMBIENT_MODE_BLUR = new IntegerSetting("morphe_enhanced_ambient_mode_blur", 0, parent(ENHANCED_AMBIENT_MODE));
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE_READABLE_TEXT =new BooleanSetting("morphe_enhanced_ambient_mode_readable_text", FALSE, parent(ENHANCED_AMBIENT_MODE));
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE_DIM_WHILE_SCROLLING = new BooleanSetting("morphe_enhanced_ambient_mode_dim_while_scrolling", TRUE, parent(ENHANCED_AMBIENT_MODE));
+    public static final IntegerSetting ENHANCED_AMBIENT_MODE_DIM_DURATION = new IntegerSetting("morphe_enhanced_ambient_mode_dim_duration", 3, parentsAll(ENHANCED_AMBIENT_MODE, ENHANCED_AMBIENT_MODE_DIM_WHILE_SCROLLING));
+    public static final BooleanSetting DISABLE_AMBIENT_MODE = new BooleanSetting("morphe_disable_ambient_mode", FALSE, true, parentNot(ENHANCED_AMBIENT_MODE));
     public static final BooleanSetting BYPASS_AMBIENT_MODE_RESTRICTIONS = new BooleanSetting("morphe_bypass_ambient_mode_restrictions", FALSE, false, parentNot(DISABLE_AMBIENT_MODE));
-    public static final BooleanSetting DISABLE_FULLSCREEN_AMBIENT_MODE = new BooleanSetting("morphe_disable_fullscreen_ambient_mode", FALSE, true, parentNot(DISABLE_AMBIENT_MODE));
+    public static final BooleanSetting DISABLE_FULLSCREEN_AMBIENT_MODE = new BooleanSetting("morphe_disable_fullscreen_ambient_mode", FALSE, true, parentsAll(parentNot(ENHANCED_AMBIENT_MODE), parentNot(DISABLE_AMBIENT_MODE)));
 
     // Captions
     public static final EnumSetting<AutoCaptionsStyle> AUTO_CAPTIONS_STYLE = new EnumSetting<>("morphe_auto_captions_style", AutoCaptionsStyle.BOTH_ENABLED, false);
@@ -462,12 +492,13 @@ public class Settings extends SharedYouTubeSettings {
     public static final EnumSetting<MiniplayerType> MINIPLAYER_TYPE = new EnumSetting<>("morphe_miniplayer_type", VersionCheckPatch.IS_21_29_OR_GREATER ? MiniplayerType.MODERN_4 : MiniplayerType.DEFAULT, true);
     public static final BooleanSetting MINIPLAYER_DISABLE_DRAG_AND_DROP = new BooleanSetting("morphe_miniplayer_disable_drag_and_drop", FALSE, true, new MiniplayerDragAndDropAvailability());
     public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_DRAG = new BooleanSetting("morphe_miniplayer_disable_horizontal_drag", FALSE, true, new MiniplayerHorizontalDragAvailability());
-    public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_DRAG_PLAYBACK = new BooleanSetting("morphe_miniplayer_disable_horizontal_drag_playback", FALSE, true, new MiniplayerHorizontalDragPlaybackAvailability());
-    public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_REPOSITION = new BooleanSetting("morphe_miniplayer_disable_horizontal_reposition", FALSE, true, new MiniplayerHorizontalRepositioningAvailability());
+    public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_DRAG_PLAYBACK = new BooleanSetting("morphe_miniplayer_disable_horizontal_drag_playback", FALSE, true, new MiniplayerHorizontalDragOptionsAvailability());
+    public static final BooleanSetting MINIPLAYER_DISABLE_HORIZONTAL_REPOSITION = new BooleanSetting("morphe_miniplayer_disable_horizontal_reposition", FALSE, true, new MiniplayerHorizontalDragOptionsAvailability());
     public static final BooleanSetting MINIPLAYER_DISABLE_ROUNDED_CORNERS = new BooleanSetting("morphe_miniplayer_disable_rounded_corners", FALSE, true, new MiniplayerAnyModernAvailability());
     public static final BooleanSetting MINIPLAYER_HIDE_TITLE = new BooleanSetting("morphe_miniplayer_hide_title", FALSE, true, new MiniplayerMinimalBar2Availability());
     public static final BooleanSetting MINIPLAYER_SWIPE_UP_EXPAND = new BooleanSetting("morphe_miniplayer_swipe_up_expand", FALSE, new MiniplayerMinimalBarAvailability());
     public static final BooleanSetting MINIPLAYER_DOCKED = new BooleanSetting("morphe_miniplayer_docked", FALSE, true, new MiniplayerMinimalBarAvailability());
+    public static final BooleanSetting MINIPLAYER_GLASS = new BooleanSetting("morphe_miniplayer_glass", TRUE, true, new MiniplayerGlassAvailability());
     public static final BooleanSetting MINIPLAYER_HIDE_OVERLAY_BUTTONS = new BooleanSetting("morphe_miniplayer_hide_overlay_buttons", FALSE, true, new MiniplayerHideOverlayButtonsAvailability());
     public static final IntegerSetting MINIPLAYER_WIDTH_DIP = new IntegerSetting("morphe_miniplayer_width_dip", 192, true, new MiniplayerAnyModernAvailability());
     public static final IntegerSetting MINIPLAYER_OPACITY = new IntegerSetting("morphe_miniplayer_opacity", 100, true, new MiniplayerOverlayOpacityAvailability());
@@ -614,6 +645,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_QUALITY_HEADER = new BooleanSetting("morphe_hide_player_flyout_quality_header", FALSE, true, new HideQualityFlyoutMenuHeaderFooterAvailability());
     public static final BooleanSetting HIDE_PLAYER_FLYOUT_WATCH_IN_VR = new BooleanSetting("morphe_hide_player_flyout_watch_in_vr", FALSE, parentNot(HIDE_SETTINGS_BUTTON));
 
+    // On-the-go
+    public static final BooleanSetting ON_THE_GO = new BooleanSetting("morphe_on_the_go", TRUE);
+
     // Picture-in-picture actions
     public static final EnumSetting<PipAction> PIP_ACTION_LEFT = new EnumSetting<>("morphe_pip_action_left", PipAction.DEFAULT);
     public static final EnumSetting<PipAction> PIP_ACTION_CENTER = new EnumSetting<>("morphe_pip_action_center", PipAction.DEFAULT);
@@ -631,7 +665,6 @@ public class Settings extends SharedYouTubeSettings {
     public static final EnumSetting<HeaderLogo> HEADER_LOGO = new EnumSetting<>("morphe_header_logo", HeaderLogo.DEFAULT, true);
     public static final BooleanSetting DISABLE_SIGN_IN_TO_TV_POPUP = new BooleanSetting("morphe_disable_sign_in_to_tv_popup", FALSE);
     public static final BooleanSetting DISABLE_CONNECT_YOUR_DEVICES_POPUP = new BooleanSetting("morphe_disable_connect_your_devices_popup", FALSE);
-    public static final BooleanSetting OPEN_SYSTEM_SHARE_SHEET = new BooleanSetting("morphe_open_system_share_sheet", FALSE);
     public static final BooleanSetting OVERRIDE_YOUTUBE_MUSIC_BUTTONS = new BooleanSetting("morphe_override_youtube_music_buttons", FALSE, true);
     public static final StringSetting CUSTOM_MUSIC_PACKAGE_NAME = new StringSetting("morphe_custom_music_package_name", "", true, parent(OVERRIDE_YOUTUBE_MUSIC_BUTTONS));
     public static final EnumSetting<StartPage> CHANGE_START_PAGE = new EnumSetting<>("morphe_change_start_page", StartPage.DEFAULT, true);
@@ -670,11 +703,12 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_AUTO_HIDE_NAVIGATION_BAR = new BooleanSetting("morphe_disable_auto_hide_navigation_bar", FALSE, true, parentNot(HIDE_NAVIGATION_BAR));
     public static final BooleanSetting NAVIGATION_BAR_ANIMATIONS = new BooleanSetting("morphe_navigation_bar_animations", FALSE, parentNot(HIDE_NAVIGATION_BAR));
     public static final EnumSetting<NavigationBarStyle> NAVIGATION_BAR_STYLE = new EnumSetting<>("morphe_navigation_bar_style", NavigationBarStyle.DEFAULT, true, "morphe_navigation_bar_style_user_dialog_message", parentNot(HIDE_NAVIGATION_BAR));
-    public static final BooleanSetting NAVIGATION_BAR_GLASS = new BooleanSetting("morphe_navigation_bar_glass", FALSE, true, parentsAll(parentNot(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
-    public static final IntegerSetting NAVIGATION_BAR_GLASS_OPACITY = new IntegerSetting("morphe_navigation_bar_glass_opacity", 50, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
-    public static final IntegerSetting NAVIGATION_BAR_GLASS_HEIGHT = new IntegerSetting("morphe_navigation_bar_glass_height", 100, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
-    public static final IntegerSetting NAVIGATION_BAR_GLASS_WIDTH = new IntegerSetting("morphe_navigation_bar_glass_width", 100, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
-    public static final IntegerSetting NAVIGATION_BAR_GLASS_BUTTON_SPACING = new IntegerSetting("morphe_navigation_bar_glass_button_spacing", 48, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
+    public static final BooleanSetting NAVIGATION_BAR_GLASS = new BooleanSetting("morphe_navigation_bar_glass", FALSE, true, parentsAll(parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_OPACITY = new IntegerSetting("morphe_navigation_bar_glass_opacity", 20, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
+    public static final BooleanSetting NAVIGATION_BAR_GLASS_ROUND = new BooleanSetting("morphe_navigation_bar_glass_round", FALSE, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_HEIGHT = new IntegerSetting("morphe_navigation_bar_glass_height", 100, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_WIDTH = new IntegerSetting("morphe_navigation_bar_glass_width", 100, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
+    public static final IntegerSetting NAVIGATION_BAR_GLASS_BUTTON_SPACING = new IntegerSetting("morphe_navigation_bar_glass_button_spacing", 48, true, parentsAll(parent(NAVIGATION_BAR_GLASS), parentNot(HIDE_NAVIGATION_BAR), new GlassAvailability()));
     // The glass navigation bar sets the spacing of its buttons.
     public static final BooleanSetting NARROW_NAVIGATION_BUTTONS = new BooleanSetting("morphe_narrow_navigation_buttons", FALSE, true, parentsAll(parentNot(HIDE_NAVIGATION_BAR), parentNot(NAVIGATION_BAR_GLASS)));
 
@@ -718,6 +752,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SHORTS_LOCATION_LABEL = new BooleanSetting("morphe_hide_shorts_location_label", FALSE);
     public static final BooleanSetting HIDE_SHORTS_NAVIGATION_BAR = new BooleanSetting("morphe_hide_shorts_navigation_bar", FALSE, true, parentNot(HIDE_NAVIGATION_BAR));
     public static final BooleanSetting HIDE_SHORTS_NEW_POSTS_BUTTON = new BooleanSetting("morphe_hide_shorts_new_posts_button", TRUE);
+    public static final BooleanSetting HIDE_SHORTS_NOTIFICATIONS = new BooleanSetting("morphe_hide_shorts_notifications", FALSE);
     public static final BooleanSetting HIDE_SHORTS_PAUSED_OVERLAY_BUTTONS = new BooleanSetting("morphe_hide_shorts_paused_overlay_buttons", FALSE);
     public static final BooleanSetting HIDE_SHORTS_PREVIEW_COMMENT = new BooleanSetting("morphe_hide_shorts_preview_comment", TRUE);
     public static final BooleanSetting HIDE_SHORTS_REMIX_BUTTON = new BooleanSetting("morphe_hide_shorts_remix_button", FALSE);
@@ -769,8 +804,6 @@ public class Settings extends SharedYouTubeSettings {
     public static final IntegerSetting CUSTOM_SNACKBAR_CORNER_RADIUS = new IntegerSetting("morphe_custom_snackbar_corner_radius", 8, true, parentsAll(parentNot(HIDE_SNACKBAR), parent(CUSTOM_SNACKBAR_THEME)));
 
     // Miscellaneous
-    public static final BooleanSetting ANNOUNCEMENTS = new BooleanSetting("morphe_announcements", TRUE);
-    public static final IntegerSetting ANNOUNCEMENT_LAST_ID = new IntegerSetting("morphe_announcement_last_id", -1, false, false);
     public static final BooleanSetting BACK_BUTTON_ALWAYS_EXITS_FEED = new BooleanSetting("morphe_back_button_always_exits_feed", TRUE, true);
     public static final BooleanSetting DISABLE_SCROLLING_SPEED = new BooleanSetting("morphe_disable_scrolling_speed_limit", TRUE, true);
 
@@ -780,7 +813,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting EXTERNAL_BROWSER = new BooleanSetting("morphe_external_browser", TRUE, true);
     public static final BooleanSetting SPOOF_DEVICE_DIMENSIONS = new BooleanSetting("morphe_spoof_device_dimensions", FALSE, true,
             "morphe_spoof_device_dimensions_user_dialog_message");
-    public static final EnumSetting<ClientType> SPOOF_VIDEO_STREAMS_CLIENT_TYPE = new EnumSetting<>("morphe_spoof_video_streams_client_type", ClientType.TV_SIMPLY, true, parent(SPOOF_VIDEO_STREAMS));
+    public static final EnumSetting<ClientType> SPOOF_VIDEO_STREAMS_CLIENT_TYPE = new EnumSetting<>("morphe_spoof_video_streams_client_type", ClientType.TV_SABR, true, parent(SPOOF_VIDEO_STREAMS));
     public static final BooleanSetting SPOOF_VIDEO_STREAMS_AV1 = new BooleanSetting("morphe_spoof_video_streams_av1", FALSE, true,
             "morphe_spoof_video_streams_av1_user_dialog_message", new SpoofClientAv1Availability());
 
@@ -817,10 +850,16 @@ public class Settings extends SharedYouTubeSettings {
     // Niconico comments
     public static final BooleanSetting NICONICO_COMMENTS = new BooleanSetting("morphe_niconico_comments", FALSE, true);
     public static final BooleanSetting NICONICO_COMMENTS_SHOWN = new BooleanSetting("morphe_niconico_comments_shown", TRUE);
+    public static final BooleanSetting NICONICO_COMMENTS_PIP = new BooleanSetting("morphe_niconico_comments_pip", TRUE, parent(NICONICO_COMMENTS));
     public static final IntegerSetting NICONICO_COMMENTS_FONT_SIZE = new IntegerSetting("morphe_niconico_comments_font_size", 20, parent(NICONICO_COMMENTS));
     public static final IntegerSetting NICONICO_COMMENTS_OPACITY = new IntegerSetting("morphe_niconico_comments_opacity", 100, parent(NICONICO_COMMENTS));
     public static final IntegerSetting NICONICO_COMMENTS_TRAVEL_DURATION = new IntegerSetting("morphe_niconico_comments_travel_duration", 7, parent(NICONICO_COMMENTS));
     public static final IntegerSetting NICONICO_COMMENTS_DISPLAY_AREA = new IntegerSetting("morphe_niconico_comments_display_area", 100, parent(NICONICO_COMMENTS));
+    public static final BooleanSetting NICONICO_COMMENTS_PORTRAIT = new BooleanSetting("morphe_niconico_comments_portrait", TRUE, parent(NICONICO_COMMENTS));
+    public static final BooleanSetting NICONICO_COMMENTS_SEPARATE_PORTRAIT = new BooleanSetting("morphe_niconico_comments_separate_portrait", FALSE, parentsAll(NICONICO_COMMENTS, NICONICO_COMMENTS_PORTRAIT));
+    public static final IntegerSetting NICONICO_COMMENTS_PORTRAIT_FONT_SIZE = new IntegerSetting("morphe_niconico_comments_portrait_font_size", 20, parentsAll(NICONICO_COMMENTS, NICONICO_COMMENTS_PORTRAIT, NICONICO_COMMENTS_SEPARATE_PORTRAIT));
+    public static final IntegerSetting NICONICO_COMMENTS_PORTRAIT_TRAVEL_DURATION = new IntegerSetting("morphe_niconico_comments_portrait_travel_duration", 7, parentsAll(NICONICO_COMMENTS, NICONICO_COMMENTS_PORTRAIT, NICONICO_COMMENTS_SEPARATE_PORTRAIT));
+    public static final IntegerSetting NICONICO_COMMENTS_PORTRAIT_DISPLAY_AREA = new IntegerSetting("morphe_niconico_comments_portrait_display_area", 100, parentsAll(NICONICO_COMMENTS, NICONICO_COMMENTS_PORTRAIT, NICONICO_COMMENTS_SEPARATE_PORTRAIT));
     public static final BooleanSetting NICONICO_COMMENTS_HIDE_CROWDED = new BooleanSetting("morphe_niconico_comments_hide_crowded", FALSE, parent(NICONICO_COMMENTS));
     /** Max comment length slider value that shows all comments. */
     public static final int NICONICO_COMMENTS_MAX_LENGTH_NO_LIMIT = 100;
@@ -863,7 +902,7 @@ public class Settings extends SharedYouTubeSettings {
     // SponsorBlock
     public static final BooleanSetting SB_ENABLED = new BooleanSetting("morphe_sb_enabled", TRUE);
     /** Do not use id setting directly. Instead, use {@link SponsorBlockSettings}. */
-    public static final StringSetting SB_PRIVATE_USER_ID = new StringSetting("morphe_sb_private_user_id_Do_Not_Share", "", true, parent(SB_ENABLED));
+    public static final StringSetting SB_PRIVATE_USER_ID = new StringSetting("morphe_sb_private_user_id_Do_Not_Share", "", true, parentsAny(SB_ENABLED, DEARROW_VOTE_BUTTON));
     public static final IntegerSetting SB_CREATE_NEW_SEGMENT_STEP = new IntegerSetting("morphe_sb_create_new_segment_step", 150, parent(SB_ENABLED));
     public static final LongSetting SB_NEW_SEGMENT_PANEL_POSITION = new LongSetting("morphe_sb_new_segment_panel_position", 0L);
     public static final BooleanSetting SB_VOTING_BUTTON = new BooleanSetting("morphe_sb_voting_button", FALSE, parent(SB_ENABLED));
@@ -925,10 +964,13 @@ public class Settings extends SharedYouTubeSettings {
     private static final EnumSetting<ThumbnailStillTime> DEPRECATED_ALT_THUMBNAIL_STILLS_TIME = new EnumSetting<>("morphe_alt_thumbnail_stills_time", ThumbnailStillTime.MIDDLE);
     private static final BooleanSetting DEPRECATED_DEARROW_TITLES = new BooleanSetting("morphe_dearrow_titles", FALSE);
     private static final BooleanSetting DEPRECATED_BYPASS_URL_REDIRECTS = new BooleanSetting("morphe_bypass_url_redirects", TRUE);
+    private static final BooleanSetting DEPRECATED_WATCH_LATER_WIDE_DRAG_HANDLES = new BooleanSetting("morphe_watch_later_wide_drag_handles", TRUE);
+    private static final BooleanSetting DEPRECATED_WATCH_LATER_HIDE_REMOVAL_SNACKBAR = new BooleanSetting("morphe_watch_later_hide_removal_snackbar", FALSE);
     private static final BooleanSetting DEPRECATED_COPY_VIDEO_URL = new BooleanSetting("morphe_copy_video_url", FALSE, true);
     private static final BooleanSetting DEPRECATED_COPY_VIDEO_URL_TIMESTAMP = new BooleanSetting("morphe_copy_video_url_timestamp", TRUE, true, parent(DEPRECATED_COPY_VIDEO_URL));
     private static final BooleanSetting DEPRECATED_COPY_VIDEO_URL_BUTTON = new BooleanSetting("morphe_copy_video_url_button", FALSE, true);
     private static final BooleanSetting DEPRECATED_COPY_VIDEO_URL_BUTTON_TIMESTAMP = new BooleanSetting("morphe_copy_video_url_button_timestamp", TRUE, true, parent(DEPRECATED_COPY_VIDEO_URL_BUTTON));
+    private static final BooleanSetting DEPRECATED_DISABLE_CONTINUE_WATCHING_PROMPT = new BooleanSetting("morphe_disable_continue_watching_prompt", FALSE);
     private static final BooleanSetting DEPRECATED_RESTORE_OLD_VIDEO_ACTION_BAR = new BooleanSetting("morphe_restore_old_video_action_bar", VersionCheckPatch.IS_21_36_OR_GREATER ? FALSE : TRUE);
     private static final BooleanSetting DEPRECATED_DISABLE_RESUMING_SHORTS_PLAYER = new BooleanSetting("morphe_disable_resuming_shorts_player", FALSE);
     private static final BooleanSetting DEPRECATED_DISABLE_SIGNIN_TO_TV_POPUP = new BooleanSetting("morphe_disable_signin_to_tv_popup", FALSE);
@@ -1023,7 +1065,14 @@ public class Settings extends SharedYouTubeSettings {
             DEPRECATED_RESTORE_OLD_VIDEO_ACTION_BAR.resetToDefault();
         }
 
+        if (DEPRECATED_DISABLE_CONTINUE_WATCHING_PROMPT.get()) {
+            CONTINUE_WATCHING_PROMPT.save(ContinueWatchingPromptMode.DISABLED);
+            DEPRECATED_DISABLE_CONTINUE_WATCHING_PROMPT.resetToDefault();
+        }
+
         migrateOldSettingToNew(DEPRECATED_BYPASS_URL_REDIRECTS, BYPASS_LINK_REDIRECTS);
+        migrateOldSettingToNew(DEPRECATED_WATCH_LATER_WIDE_DRAG_HANDLES, PLAYLIST_WIDE_DRAG_HANDLES);
+        migrateOldSettingToNew(DEPRECATED_WATCH_LATER_HIDE_REMOVAL_SNACKBAR, PLAYLIST_HIDE_REMOVAL_SNACKBAR);
         migrateOldSettingToNew(DEPRECATED_COPY_VIDEO_URL, DEPRECATED_COPY_VIDEO_URL_BUTTON);
         migrateOldSettingToNew(DEPRECATED_COPY_VIDEO_URL_TIMESTAMP, DEPRECATED_COPY_VIDEO_URL_BUTTON_TIMESTAMP);
         migrateOldSettingToNew(DEPRECATED_COPY_VIDEO_URL_BUTTON, COPY_VIDEO_LINK_BUTTON);
@@ -1233,14 +1282,17 @@ public class Settings extends SharedYouTubeSettings {
             SharedYouTubeSettings.SPLASH_SCREEN_STYLE.resetToDefault();
         }
 
-        // Android XR, Android XR Downgraded, and visionOS 1.03 are not selectable in the settings and are selected by spoof stream patch if needed.
+        // The Android XR and visionOS AV1 clients are not selectable in the settings and are selected by spoof stream patch if needed.
         ClientType client = SPOOF_VIDEO_STREAMS_CLIENT_TYPE.get();
-        if (client == ClientType.ANDROID_XR_SABR || client == ClientType.ANDROID_XR_DASH || client == ClientType.VISIONOS_1_03) {
+        if (client == ClientType.ANDROID_XR_SABR || client == ClientType.ANDROID_XR_DASH
+                || client == ClientType.ANDROID_XR_EXPERIMENTAL
+                || client == ClientType.VISIONOS_1_03 || client == ClientType.VISIONOS_1_06_AV1) {
             SPOOF_VIDEO_STREAMS_CLIENT_TYPE.resetToDefault();
         }
 
         Setting.addImportExportCallback(SponsorBlockSettings.SB_IMPORT_EXPORT_CALLBACK);
         Setting.addImportExportCallback(VoiceOverTranslationPatch.VOT_IMPORT_EXPORT_CALLBACK);
+        Setting.addImportExportCallback(PlaybackInFeedsPatch.IMPORT_EXPORT_CALLBACK);
 
         // Must run before any code reads a SegmentCategory setting.
         YouTubeSponsorBlockConfig.install();
@@ -1389,6 +1441,14 @@ public class Settings extends SharedYouTubeSettings {
                 5, 75, 1, "%"));
         SeekBarPreference.register(new SeekBarConfig(QUICK_ACTIONS_TOP_MARGIN,
                 0, 32, 1, "dp"));
+        SeekBarPreference.register(new SeekBarConfig(ENHANCED_AMBIENT_MODE_STRENGTH,
+                10, 100, 5, "%"));
+        SeekBarPreference.register(new SeekBarConfig(ENHANCED_AMBIENT_MODE_SMOOTHING,
+                0, 30, 1, "s", 10));
+        SeekBarPreference.register(new SeekBarConfig(ENHANCED_AMBIENT_MODE_BLUR,
+                0, 100, 5, "%"));
+        SeekBarPreference.register(new SeekBarConfig(ENHANCED_AMBIENT_MODE_DIM_DURATION,
+                0, 10, 1, "s"));
         SeekBarPreference.register(new SeekBarConfig(VOT_ORIGINAL_AUDIO_VOLUME,
                 0, 100, 10, "%"));
         SeekBarPreference.register(new SeekBarConfig(VOT_TRANSLATION_VOLUME,
@@ -1406,6 +1466,12 @@ public class Settings extends SharedYouTubeSettings {
         SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_TRAVEL_DURATION,
                 3, 15, 1, "s"));
         SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_DISPLAY_AREA,
+                10, 100, 10, "%"));
+        SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_PORTRAIT_FONT_SIZE,
+                12, 40, 1, "sp"));
+        SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_PORTRAIT_TRAVEL_DURATION,
+                3, 15, 1, "s"));
+        SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_PORTRAIT_DISPLAY_AREA,
                 10, 100, 10, "%"));
         SeekBarPreference.register(new SeekBarConfig(NICONICO_COMMENTS_MAX_LENGTH,
                 10, NICONICO_COMMENTS_MAX_LENGTH_NO_LIMIT, 10, "", 1,

@@ -57,7 +57,12 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
     val runtime = mutableClassDefBy(QUICK_TOGGLE)
 
     val addButton = utils.methods.staticMethod(FLYOUT_UTILS, "addFlyoutButton", "I", OBJECT, DRAWABLE, STRING, CLICK_LISTENER, "I")
-    val menuInfo = utils.methods.staticMethod(FLYOUT_UTILS, "getFlyoutMenuInfo", null, OBJECT, "I")
+    // 2.3 resolves the outer container independently of the insertion index; older bundles
+    // accept an index and adjust it while resolving the same typed menu-info record.
+    val menuInfo = utils.methods.filter {
+        it.name == "getFlyoutMenuInfo" && it.isStatic() &&
+            it.parameterNames() in listOf(listOf(OBJECT), listOf(OBJECT, "I"))
+    }.unique("supported flyout menu info")
     val containerClass = classDefBy(menuInfo.returnType)
     if (containerClass.methods.none {
             it.name == "menuContainer" && it.parameterTypes.isEmpty() && it.returnType == LINEAR_LAYOUT &&
@@ -112,8 +117,9 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
         code[index].call()?.let { call ->
             call.definingClass == utils.type && (
                 call.name == "addDivider" && call.returnType == "I" && call.parameterNames() == listOf(OBJECT, "I") ||
-                call.name == "addFlyoutMenuItem" && call.returnType == "I" && call.parameterNames() == listOf(
-                    OBJECT, DRAWABLE, STRING, CLICK_LISTENER, "I", "Z", utils.type.removeSuffix(";") + "\$FlyoutButtonResource;"
+                call.name == "addFlyoutMenuItem" && call.returnType == "I" && call.parameterNames() in listOf(
+                    listOf(OBJECT, DRAWABLE, STRING, CLICK_LISTENER, "I", "Z", utils.type.removeSuffix(";") + "\$FlyoutButtonResource;"),
+                    listOf(OBJECT, DRAWABLE, STRING, CLICK_LISTENER, "I", "Z", utils.type.removeSuffix(";") + "\$FlyoutButtonResource;", "Landroid/view/View;", "Z")
                 )
             )
         } == true
@@ -171,7 +177,7 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
             1,
             """
                 const/4 v0, 0x0
-                invoke-static {p0, v0}, ${menuInfo.id()}
+                ${if (menuInfo.parameterTypes.size == 1) "invoke-static {p0}" else "invoke-static {p0, v0}"}, ${menuInfo.id()}
                 move-result-object v0
                 if-nez v0, :container
                 const/4 v0, 0x0

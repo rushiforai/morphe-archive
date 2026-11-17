@@ -32,6 +32,30 @@ final class VideoFrameThumbnail {
     static void request(String url) {
         enqueue(url,false);
     }
+    /** Reuse a user-downloaded video even when the streaming request previously failed. */
+    static void requestLocal(String url,File source){
+        if(!DirectVideoUrls.supported(url)||!FeatureSwitches.enabled("videoFrameThumbnailsEnabled",true)||Haiagaru.mediaAutoFetchMode()==3)return;
+        boolean four=fourAllowed();int minimum=Haiagaru.videoPreviewMinimumSeconds(),count=Haiagaru.videoPreviewCount();
+        String variant=variant(four,minimum,count);
+        WORKER.execute(()->{
+            Context context=Haiagaru.applicationContextForExtension();if(context==null)return;File staging=null;
+            try{
+                if(!FeatureSwitches.enabled("videoFrameThumbnailsEnabled",true)||Haiagaru.mediaAutoFetchMode()==3||four&&!fourAllowed()||XMediaAttachments.hasFramePoster(url,variant)||!source.isFile())return;
+                byte[] digest=MessageDigest.getInstance("SHA-256").digest((variant+":"+url).getBytes("UTF-8"));StringBuilder key=new StringBuilder();
+                for(byte value:digest)key.append(String.format(java.util.Locale.ROOT,"%02x",value&255));
+                File directory=new File(context.getCacheDir(),"haiagaru-video-frames");if(!directory.isDirectory()&&!directory.mkdirs())return;
+                File image=new File(directory,key+".jpg");
+                if(!image.isFile()||image.length()==0){
+                    if(VideoFrameDecodeService.blocked(context))return;
+                    staging=File.createTempFile("external-preview-",".jpg",directory);
+                    if(!VideoFrameDecodeService.decode(context,source,staging,four,minimum,count)||!staging.renameTo(image))return;
+                }
+                XMediaAttachments.setFramePoster(url,variant,VideoThumbnailServer.register(key.toString(),image));
+                ImgurAlbumAttachments.refreshVideoModels();ThreadListThumbnail.frameReady(url);
+            }catch(Exception error){android.util.Log.w("HaiagaruMedia","Downloaded video preview unavailable",error);}
+            finally{if(staging!=null)staging.delete();}
+        });
+    }
     static boolean retry(String url){return enqueue(url,true);}
     static boolean running(String url){return ATTEMPTED.running(currentVariant()+":"+url);}
     private static boolean enqueue(String url,boolean manual) {
@@ -56,6 +80,29 @@ final class VideoFrameThumbnail {
     }
     private static HttpURLConnection connection(Context context, String url, boolean four) throws IOException {
         return connectionForPreview(context, url, four && Haiagaru.videoPreviewWifiOnly());
+    }
+    private static HttpURLConnection previewResponse(Context context,String url,boolean four,long timeoutMs)throws IOException {
+        long deadline=android.os.SystemClock.elapsedRealtime()+timeoutMs;URL current=new URL(url);
+        for(int redirects=0;redirects<=5;redirects++){
+            long remaining=deadline-android.os.SystemClock.elapsedRealtime();
+            if(remaining<=0)throw new VideoThumbnailFailure(VideoThumbnailFailure.TIMEOUT);
+            HttpURLConnection response=connection(context,current.toString(),four);
+            try{
+                response.setInstanceFollowRedirects(false);
+                response.setConnectTimeout((int)Math.min(8000,remaining));response.setReadTimeout((int)Math.min(8000,remaining));
+                int status=response.getResponseCode();
+                if(status!=301&&status!=302&&status!=303&&status!=307&&status!=308)return response;
+                String location=response.getHeaderField("Location");
+                if(location==null||redirects==5)throw new VideoThumbnailFailure(VideoThumbnailFailure.HTTP,status);
+                URL next=new URL(current,location);
+                if(!("https".equals(next.getProtocol())||"http".equals(next.getProtocol()))
+                        ||next.getUserInfo()!=null||"https".equals(current.getProtocol())&&!"https".equals(next.getProtocol()))
+                    throw new VideoThumbnailFailure(VideoThumbnailFailure.HTTP,status);
+                current=next;
+            }catch(IOException|RuntimeException error){response.disconnect();throw error;}
+            response.disconnect();
+        }
+        throw new VideoThumbnailFailure(VideoThumbnailFailure.NETWORK);
     }
     static HttpURLConnection connectionForPreview(Context context, String url, boolean wifiOnly) throws IOException {
         URL address = new URL(url);
@@ -92,11 +139,14 @@ final class VideoFrameThumbnail {
                 long maxBytes = Haiagaru.videoThumbnailMaxMb() * 1024L * 1024L;
                 long timeoutMs = Haiagaru.videoThumbnailTimeoutSeconds() * 1000L;
                 long started = android.os.SystemClock.elapsedRealtime();
-                connection = connection(context, url, four);
-                connection.setInstanceFollowRedirects(false);
-                connection.setConnectTimeout((int) Math.min(8000L, timeoutMs));
-                connection.setReadTimeout((int) Math.min(8000L, timeoutMs));
+                connection = previewResponse(context, url, four, timeoutMs);
                 int status = connection.getResponseCode();
+                if("challenge".equalsIgnoreCase(connection.getHeaderField("cf-mitigated")))
+                    throw new VideoThumbnailFailure(VideoThumbnailFailure.ACCESS_CHECK);
+                String contentType=connection.getContentType();
+                if(contentType!=null&&(contentType.toLowerCase(java.util.Locale.ROOT).contains("text/html")
+                        ||contentType.toLowerCase(java.util.Locale.ROOT).contains("application/xhtml")))
+                    throw new VideoThumbnailFailure(VideoThumbnailFailure.ACCESS_CHECK);
                 boolean rangePreview = status == 200 && connection.getContentLengthLong() > maxBytes
                         && android.os.Build.VERSION.SDK_INT >= 23 && rangeSupported(url);
                 if (status != 200 || (connection.getContentLengthLong() > maxBytes && !rangePreview)) {
@@ -196,7 +246,8 @@ final class VideoFrameThumbnail {
             long duration=0;
             try{duration=Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));}catch(RuntimeException ignored){}
             frame=VideoPreviewPolicy.split(four,false,true,duration,minimumSeconds)?grid(retriever,duration,count):scaledFrame(retriever,0);
-            if(frame==null)frame=scaledFrame(retriever,0);
+            if(frame==null)frame=scaledFrame(retriever,-1);
+            if(frame==null&&duration>0)frame=scaledFrame(retriever,Math.min(1000,duration/2));
             if(frame==null)return false;
             if(Math.max(frame.getWidth(),frame.getHeight())>640){float scale=640f/Math.max(frame.getWidth(),frame.getHeight());Bitmap smaller=Bitmap.createScaledBitmap(frame,Math.max(1,Math.round(frame.getWidth()*scale)),Math.max(1,Math.round(frame.getHeight()*scale)),true);if(smaller!=frame)frame.recycle();frame=smaller;}
             try(OutputStream out=new FileOutputStream(image)){return frame.compress(Bitmap.CompressFormat.JPEG,85,out);}
@@ -204,9 +255,15 @@ final class VideoFrameThumbnail {
     }
 
     private static Bitmap scaledFrame(MediaMetadataRetriever retriever, long milliseconds) {
-        if (android.os.Build.VERSION.SDK_INT >= 27)
-            return retriever.getScaledFrameAtTime(milliseconds * 1000, MediaMetadataRetriever.OPTION_CLOSEST, 640, 640);
-        Bitmap raw = retriever.getFrameAtTime(milliseconds * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+        // Some codecs return no exact frame at timestamp zero, but expose a sync frame.
+        // Keep decoding in the private service process and preserve the output size cap.
+        Bitmap raw=null;
+        if(android.os.Build.VERSION.SDK_INT>=27)try{
+            raw=retriever.getScaledFrameAtTime(milliseconds<0?-1:milliseconds*1000,
+                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,640,640);
+        }catch(IllegalArgumentException ignored){}
+        if(raw==null)raw=retriever.getFrameAtTime(milliseconds<0?-1:milliseconds*1000,
+                MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
         if (raw == null || Math.max(raw.getWidth(), raw.getHeight()) <= 640) return raw;
         float scale = 640f / Math.max(raw.getWidth(), raw.getHeight());
         Bitmap small = Bitmap.createScaledBitmap(raw, Math.max(1, Math.round(raw.getWidth() * scale)),

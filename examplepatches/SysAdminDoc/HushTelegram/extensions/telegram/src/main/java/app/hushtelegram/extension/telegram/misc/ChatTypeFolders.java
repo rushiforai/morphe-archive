@@ -439,10 +439,9 @@ public final class ChatTypeFolders {
         }
         SharedPreferences prefs = prefs(context);
         // An id asked for before stays taken, in case Telegram's server has it and the list hasn't caught up.
-        for (String key : prefs.getAll().keySet()) {
-            int id = id(key, user);
-            if (id >= 0) taken.add(id);
-        }
+        taken.addAll(recordedIds(context, user));
+        // So is the Admin folder's.
+        taken.addAll(AdminFolder.recordedIds(context, user));
         int room = telegram.limit(account) - yours;
         Map<Integer, Record> asking = new LinkedHashMap<>();
         SharedPreferences.Editor sent = prefs.edit();
@@ -774,6 +773,16 @@ public final class ChatTypeFolders {
 
     private static String key(long user, int id) {
         return user + ":" + id;
+    }
+
+    /** The folder ids this has records of for a user, so the Admin folder never asks for one of them. */
+    static Set<Integer> recordedIds(Context context, long user) {
+        Set<Integer> ids = new HashSet<>();
+        for (String key : prefs(context).getAll().keySet()) {
+            int id = id(key, user);
+            if (id >= 0) ids.add(id);
+        }
+        return ids;
     }
 
     /** The folder id in one of this user's record keys, or -1 for anyone else's. */

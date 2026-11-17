@@ -17,12 +17,14 @@ updates workflow, which runs only when the repository variable AUTO_BUMP is
     its "experimental" or "needs review" label. The certificate must still
     match and every patch must still apply, so an untrusted or unbuildable
     download is never shipped.
-  - The app has one version pin in one Compatibility. Apps whose phone and
-    Android TV builds share a package (HBO Max, NewsNation, JustWatch, Apple
-    TV) keep their "ready to bump" issue for a person to handle.
+  - The app has one Compatibility. Apps whose phone and Android TV builds
+    share a package (HBO Max, NewsNation, JustWatch, Apple TV) keep their
+    "ready to bump" issue for a person to handle.
 
-The pin becomes devTarget(new version, versionCode = ...), so dev builds mark
-it experimental, and the tested version and date in docs/apps.md are updated. The
+The new version is added as devTarget(new version, versionCode = ...), so dev
+builds mark it experimental. Every older version stays targeted, so people who
+have not updated the app keep their patches. The tested version and date in
+docs/apps.md are updated. The
 workflow then commits to dev and starts the Release workflow, which publishes
 the next dev pre-release. semantic-release numbers it from the git tags, so it
 follows any dev pre-release published by hand.
@@ -91,42 +93,56 @@ def compatibilities(repo, package):
 
 
 def bump_constants(repo, package, old, new, code):
-    """Rewrites the single pin. Returns a reason when it cannot, else None."""
+    """Adds the new version as a devTarget after the newest pin, old. Every
+    older pin stays, so people on an older version keep their patches.
+    Returns a reason when it cannot, else None."""
     blocks = compatibilities(repo, package)
     if len(blocks) != 1:
         return f"{len(blocks)} Compatibility entries for the package"
     path, start, end = blocks[0]
     text = path.read_text()
     block = text[start:end]
-    targets = list(re.finditer(r"\b(?:AppTarget|devTarget)\(", block))
-    if len(targets) != 1:
-        return f"{len(targets)} version pins"
-    call_start = targets[0].start()
-    call_stop = call_end(block, targets[0].end() - 1)
-    call = block[call_start:call_stop]
-    pinned = re.search(r'(?:version\s*=\s*)?"([^"]+)"', call)
-    if not pinned or pinned.group(1) != old:
-        return f"the pin is not {old}"
+    pin = None
+    for target in re.finditer(r"\b(?:AppTarget|devTarget)\(", block):
+        call_stop = call_end(block, target.end() - 1)
+        call = block[target.start():call_stop]
+        version = re.search(r'(?:version\s*=\s*)?"([^"]+)"', call)
+        if version and version.group(1) == new:
+            return f"{new} is already a target"
+        if version and version.group(1) == old:
+            pin = (target.start(), call_stop, call)
+    if pin is None:
+        return f"no pin is {old}"
+    call_start, call_stop, call = pin
     description = re.search(r'description\s*=\s*("(?:[^"\\]|\\.)*")', call)
     args = [f'"{new}"']
     if code:
         args.append(f"versionCode = {code}")
     if description:
         args.append(f"description = {description.group(1)}")
-    new_block = block[:call_start] + f"devTarget({', '.join(args)})" + block[call_stop:]
+    added = f"devTarget({', '.join(args)})"
+    rest = block[call_stop:]
+    if re.match(r",[ \t]*\n", rest):
+        # One pin per line: a new line with the same indent, after the comma.
+        line_start = block.rfind("\n", 0, call_start) + 1
+        indent = re.match(r"[ \t]*", block[line_start:]).group(0)
+        insert_at = call_stop + 1
+        new_block = block[:insert_at] + f"\n{indent}{added}," + block[insert_at:]
+    else:
+        new_block = block[:call_stop] + f", {added}" + block[call_stop:]
     text = text[:start] + new_block + text[end:]
     if DEV_TARGET_IMPORT not in text:
         imports = list(re.finditer(r"^import .+$", text, re.M))
         at = imports[-1].end() if imports else text.index("\n", text.index("package ")) + 1
         text = text[:at] + "\n" + DEV_TARGET_IMPORT + text[at:]
-    if "AppTarget(" not in text:
-        text = re.sub(r"^import app\.morphe\.patcher\.patch\.AppTarget\n", "", text, flags=re.M)
     path.write_text(text)
     return None
 
 
 def bump_readme(repo, name, old, new):
-    """Updates the app's row in docs/apps.md. Returns False when no row matched."""
+    """Adds the new version above the old one in the app's row in docs/apps.md,
+    and updates the date. The old version stays listed, as it stays targeted.
+    Returns False when no row matched."""
     readme = Path(repo, "docs", "apps.md")
     lines = readme.read_text().split("\n")
     today = datetime.date.today().strftime("%m/%d/%y")
@@ -134,7 +150,7 @@ def bump_readme(repo, name, old, new):
         if re.match(rf"\| {re.escape(name)}( [^|]*)? \|", line) and f"`{old}`" in line:
             cells = line.split("|")
             cells[-2] = f" {today} "
-            lines[i] = "|".join(cells).replace(f"`{old}`", f"`{new}`", 1)
+            lines[i] = "|".join(cells).replace(f"`{old}`", f"`{new}`<br>`{old}`", 1)
             readme.write_text("\n".join(lines))
             return True
     return False
@@ -143,7 +159,7 @@ def bump_readme(repo, name, old, new):
 def qualifies(record, launches):
     """Why the app is not bumped, or None when it is. Dev is for testing, so the
     launch result does not block the bump; only an untrusted download, a patch
-    that did not apply, or an ambiguous pin does."""
+    that did not apply does."""
     if record.get("status") != "update":
         return "no update"
     if record.get("cert") != "matches":
@@ -153,8 +169,6 @@ def qualifies(record, launches):
     launch = launches.get(record["package"])
     if not launch or launch.get("version") != record.get("latest"):
         return "no launch check"
-    if len(record.get("targets") or []) != 1:
-        return "more than one version pin"
     return None
 
 
@@ -177,13 +191,14 @@ def bump(report, repo):
                        "to": record["latest"], "version_code": record.get("version_code"),
                        "launch": launches[record["package"]]["result"], "readme": readme,
                        "rollout": record.get("rollout", False), "play": record.get("play")})
-        print(f"{record['name']}: {record['pinned']} -> {record['latest']}")
+        print(f"{record['name']}: added {record['latest']}, keeping {record['pinned']}")
     (report / "bumped.json").write_text(json.dumps(bumped, indent=2))
     if bumped:
         # "testing", not "support": nobody has checked the bump on a device yet.
         subject = "fix: testing " + ", ".join(f"{b['name']} {b['to']}" for b in bumped)
         body = "\n".join(
-            f"- {b['name']} {b['from']} -> {b['to']}: every patch applied, and the launch check said "
+            f"- {b['name']} {b['to']} added ({b['from']} stays targeted): every patch applied, and the "
+            f"launch check said "
             f"{b['launch']}."
             + (f" Staged rollout: Google Play still serves {b['play']} to an ordinary phone." if b["rollout"] else "")
             for b in bumped)

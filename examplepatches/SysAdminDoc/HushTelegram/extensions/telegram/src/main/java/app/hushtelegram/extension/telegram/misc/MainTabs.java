@@ -4,9 +4,12 @@
  */
 package app.hushtelegram.extension.telegram.misc;
 
+import android.content.res.Resources;
 import android.view.View;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.hushtelegram.extension.shared.Utils;
@@ -39,8 +42,20 @@ public final class MainTabs {
     /** The least the compact bar's tabs stretch to across, in dp: four 48 dp tabs. */
     static final float COMPACT_MIN_WIDTH = 192f;
 
+    /** Telegram's blue, the bar outline's color. */
+    static final int OUTLINE_COLOR = 0xFF2AABEE;
+    /** The bar outline's width in dp. */
+    static final float OUTLINE_WIDTH = 1f;
+
     /** Only views given the compose icon, with the last visibility Telegram requested. */
     private static final Map<View, Integer> newMessageButtons = new WeakHashMap<>();
+
+    /**
+     * The colors the main screen made for its bar's glass. Telegram's other glass (the top panel,
+     * menus, the chat's input) uses the same kind of colors and never lands here. Weak, so a main
+     * screen built again lets the old one's go.
+     */
+    private static final Set<Object> barColors = Collections.newSetFromMap(new WeakHashMap<>());
 
     private MainTabs() {}
 
@@ -147,6 +162,60 @@ public final class MainTabs {
     static void clearNewMessageButtonsForTests() {
         synchronized (newMessageButtons) {
             newMessageButtons.clear();
+        }
+        synchronized (barColors) {
+            barColors.clear();
+        }
+    }
+
+    /**
+     * Called with the colors the main screen just made for its bar's glass, before the glass reads
+     * them. Only these colors answer with an outline.
+     *
+     * @param colors Telegram's colors for the bar's glass
+     */
+    public static void barGlass(Object colors) {
+        if (colors == null) return;
+        synchronized (barColors) {
+            barColors.add(colors);
+        }
+    }
+
+    /**
+     * The outline color a glass asks its colors for. Telegram's answer is 0, no outline.
+     *
+     * @param colors the colors being asked
+     * @return Telegram blue for the bar's glass with the switch on, otherwise 0
+     */
+    public static int barOutlineColor(Object colors) {
+        if (!outlined(colors, "color")) return 0;
+        HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "bar outline drawn");
+        return OUTLINE_COLOR;
+    }
+
+    /**
+     * The outline width a glass asks its colors for, in pixels. Telegram's answer is 0.
+     *
+     * @param colors the colors being asked
+     * @return 1 dp for the bar's glass with the switch on, otherwise 0
+     */
+    public static float barOutlineWidth(Object colors) {
+        return outlined(colors, "width") ? OUTLINE_WIDTH * Resources.getSystem().getDisplayMetrics().density : 0f;
+    }
+
+    /** Whether the colors are the bar's, its outline switch is on and HushTelegram isn't paused. */
+    static boolean outlined(Object colors, String part) {
+        boolean bar;
+        synchronized (barColors) {
+            bar = colors != null && barColors.contains(colors);
+        }
+        if (!bar) return false;
+        HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
+        try {
+            return Utils.settingsReady() && Settings.BAR_OUTLINE.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "bar outline " + part, failure);
+            return false;
         }
     }
 

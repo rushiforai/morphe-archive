@@ -67,6 +67,53 @@ internal fun BytecodePatchContext.resolveBannedChannelAlert(): BannedChannelAler
     controlHook(BANNED_CHANNEL_WEB, "addButton", listOf(OBJECT, STRING, OBJECT), "V")
     controlHook(BANNED_CHANNEL_WEB, "listenerType", emptyList(), "Ljava/lang/Class;")
 
+    val (alert, screen, ok, builder, chat) = cantOpenAlert()
+    val body = alert.controlBody()
+    val okSetter = body[ok].methodRef()!!
+    val listener = okSetter.parameterTypes[1].toString()
+    controlShape(tgClassDefByOrNull(listener)?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } == true,
+        "the alert's button listener isn't a public interface")
+
+    // Telegram's negative and neutral buttons, each taking a text and the same listener: either
+    // puts a second button beside OK, and either closes the alert the way OK does.
+    val builderClass = tgClassDefByOrNull(ALERT_BUILDER)
+    val okFields = builderClass?.methods?.singleOrNull { it.sameAs(okSetter) }?.fieldsWritten().orEmpty()
+    val button = builderClass?.methods?.toList().orEmpty().filter {
+        !AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(STRING, listener) &&
+            it.fieldsWritten().let { written -> written.size == 2 && written.none(okFields::contains) }
+    }.minByOrNull { it.name }
+    controlShape(okFields.size == 2 && button != null && AccessFlags.PUBLIC.isSet(builderClass!!.accessFlags), "the alert's second button")
+
+    // The account the chat screen is in, from Telegram's base screen class, as Outside translate finds it.
+    val account = superclassChain(screen).mapNotNull { tgClassDefByOrNull(it) }
+        .flatMap { it.methods.asSequence() }
+        .firstOrNull { it.origName == "getCurrentAccount" && it.parameterTypes.isEmpty() && it.origReturnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    controlShape(account != null && AccessFlags.PUBLIC.isSet(account.accessFlags) &&
+        tgClassDefByOrNull(account.definingClass)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true,
+        "the chat screen no longer says which account it's in")
+
+    val free = try {
+        alert.getFreeRegisterProvider(ok + 1, 1, builder).getFreeRegister4Bit()
+    } catch (taken: RuntimeException) {
+        null
+    }
+    controlShape(free != null, "no register is free beside the alert's OK")
+    return BannedChannelAlert(alert, ok, builder, free!!, chat, account!!, button!!, listener)
+}
+
+/**
+ * The chat screen's alert for a chat it can't open: [alert], in the chat screen [screen], sets the
+ * alert's OK at [ok] on the builder in [builder], and [chat] is the screen's chat. Keep chats
+ * you're removed from finds it here too (#71).
+ */
+internal data class CantOpenAlert(val alert: MutableMethod, val screen: String, val ok: Int, val builder: Int, val chat: FieldReference)
+
+/**
+ * Finds the alert by the title it gives a channel that banned you, the only place Telegram uses
+ * that title, and refuses with a PatchException, before anything is changed, when a build moved it.
+ */
+internal fun BytecodePatchContext.cantOpenAlert(): CantOpenAlert {
     val found = classDefsMentioning(Mention.allReferences(listOf(BANNED_TITLE, CHANNEL_FORBIDDEN)))
         .filterNot { it.type.startsWith("Lapp/hushtelegram/") }
         .flatMap { cls -> cls.methods.filter { it.isCantOpenAlert() } }
@@ -95,39 +142,9 @@ internal fun BytecodePatchContext.resolveBannedChannelAlert(): BannedChannelAler
         } == true
     }
     controlShape(ok != null, "the alert's OK button")
-    val okSetter = body[ok!!].methodRef()!!
-    val builder = (body[ok] as FiveRegisterInstruction).registerC
+    val builder = (body[ok!!] as FiveRegisterInstruction).registerC
     controlShape(builder < 16, "the alert's builder sits in a register a call can't name")
-    val listener = okSetter.parameterTypes[1].toString()
-    controlShape(tgClassDefByOrNull(listener)?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } == true,
-        "the alert's button listener isn't a public interface")
-
-    // Telegram's negative and neutral buttons, each taking a text and the same listener: either
-    // puts a second button beside OK, and either closes the alert the way OK does.
-    val builderClass = tgClassDefByOrNull(ALERT_BUILDER)
-    val okFields = builderClass?.methods?.singleOrNull { it.sameAs(okSetter) }?.fieldsWritten().orEmpty()
-    val button = builderClass?.methods?.toList().orEmpty().filter {
-        !AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf(STRING, listener) &&
-            it.fieldsWritten().let { written -> written.size == 2 && written.none(okFields::contains) }
-    }.minByOrNull { it.name }
-    controlShape(okFields.size == 2 && button != null && AccessFlags.PUBLIC.isSet(builderClass!!.accessFlags), "the alert's second button")
-
-    // The account the chat screen is in, from Telegram's base screen class, as Outside translate finds it.
-    val account = superclassChain(screen.type).mapNotNull { tgClassDefByOrNull(it) }
-        .flatMap { it.methods.asSequence() }
-        .firstOrNull { it.origName == "getCurrentAccount" && it.parameterTypes.isEmpty() && it.origReturnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) }
-    controlShape(account != null && AccessFlags.PUBLIC.isSet(account.accessFlags) &&
-        tgClassDefByOrNull(account.definingClass)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true,
-        "the chat screen no longer says which account it's in")
-
-    val free = try {
-        alert.getFreeRegisterProvider(ok + 1, 1, builder).getFreeRegister4Bit()
-    } catch (taken: RuntimeException) {
-        null
-    }
-    controlShape(free != null, "no register is free beside the alert's OK")
-    return BannedChannelAlert(alert, ok, builder, free!!, chat, account!!, button!!, listener)
+    return CantOpenAlert(alert, screen.type, ok, builder, chat)
 }
 
 /** Writes the stubs, then hands the extension the builder and the chat screen right after OK is set. */

@@ -9,7 +9,6 @@ package app.rex.patches.instagram.utils
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.SupportedAbi.ARM64_V8A
 
 object Constants {
     val COMPATIBILITY_INSTAGRAM =
@@ -20,20 +19,8 @@ object Constants {
             appIconColor = 0xFC483C,
                         targets =
                 listOf(
-                    AppTarget(
-                        version = "453.0.0.57.79",
-                        versionCodes =
-                            mapOf(
-                                ARM64_V8A to 385914517,
-                            ),
-                    ),
-                    AppTarget(
-                        version = "452.1.0.53.64",
-                        versionCodes =
-                            mapOf(
-                                ARM64_V8A to 385811006,
-                            ),
-                    ),
+                    AppTarget(version = "453.0.0.57.79"),
+                    AppTarget(version = "452.1.0.53.64"),
                     AppTarget(version = "454.0.0.54.77"),
                     AppTarget(version = "455.0.0.51.72"),
                     AppTarget(version = "444.0.0.47.66"),

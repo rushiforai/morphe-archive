@@ -306,8 +306,10 @@ public final class Settings {
 
     /** Puts the People tab back in the bar on accounts where Messenger no longer builds it. */
     static final String SHOW_PEOPLE_TAB = "tab_people_show";
+    /** Puts Messenger's own settings tab in the bar on accounts whose gate for it says no. */
+    static final String SHOW_SETTINGS_TAB = "tab_settings_show";
     /** Bottom tabs with a switch of their own, held for the run like the Meta AI tab. */
-    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", SHOW_PEOPLE_TAB));
+    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB));
     /** First answer this process gave for each of {@link #BOTTOM_TABS}, by key, once the bottom bar asked. */
     static final ConcurrentHashMap<String, Boolean> bottomTabs = new ConcurrentHashMap<>();
 
@@ -337,20 +339,25 @@ public final class Settings {
      * marks the open tab by its place in this full list, so a hidden tab ahead of it lit up its neighbor (with People
      * hidden, opening Notifications showed Menu as open). Dropping the hidden tabs here keeps the two in step; every other
      * tab and its order stay as Messenger built them. Show People tab puts People back right after Chats when the server
-     * left it out, unless Hide People tab is on too.
+     * left it out, unless Hide People tab is on too, and Show settings tab puts Messenger's settings tab at the end.
      */
     public static <T> List<T> visibleTabs(List<T> tabs) {
         try {
-            List<T> kept = new ArrayList<>(tabs.size() + 1);
-            boolean hasPeople = false;
+            List<T> kept = new ArrayList<>(tabs.size() + 2);
+            boolean hasPeople = false, hasSettings = false;
             for (T tab : tabs) {
                 String name = tab instanceof Enum ? ((Enum<?>) tab).name() : null;
                 if ("PEOPLE".equals(name)) hasPeople = true;
+                else if (SETTINGS_TAB.equals(name)) hasSettings = true;
                 String key = name == null ? null : barTabKey(name);
                 if (key == null || !("meta_ai".equals(key) ? hideMetaAiTab() : hideBottomTab(key))) kept.add(tab);
             }
             boolean added = !hasPeople && heldBottomTab(SHOW_PEOPLE_TAB) && !heldBottomTab("tab_people") && addPeopleTab(kept);
             if (added) activeAt.put(SHOW_PEOPLE_TAB, System.currentTimeMillis());
+            if (!hasSettings && heldBottomTab(SHOW_SETTINGS_TAB) && addSettingsTab(kept)) {
+                activeAt.put(SHOW_SETTINGS_TAB, System.currentTimeMillis());
+                added = true;
+            }
             return added || kept.size() != tabs.size() ? kept : tabs;
         } catch (RuntimeException error) {
             // The one list serves every tab switch, so the failure goes on each switch that's on, never on one that's off.
@@ -383,8 +390,31 @@ public final class Settings {
         return false;
     }
 
+    /** Messenger's own name for the settings tab in its bottom-bar tab enum, the one that carries the account picture. */
+    static final String SETTINGS_TAB = "ME_SETTING";
+
+    /**
+     * Puts the settings constant of the list's own tab enum at the end, where Messenger puts it on the accounts its own
+     * gate lets it through for. False, with the list untouched, when the list holds no tab of that enum or the enum has no
+     * settings constant.
+     */
+    private static <T> boolean addSettingsTab(List<T> tabs) {
+        for (T tab : tabs) {
+            if (!(tab instanceof Enum)) continue;
+            for (Object constant : ((Enum<?>) tab).getDeclaringClass().getEnumConstants()) {
+                if (!SETTINGS_TAB.equals(((Enum<?>) constant).name())) continue;
+                @SuppressWarnings("unchecked") T settings = (T) constant;
+                tabs.add(settings);
+                return true;
+            }
+            break;
+        }
+        hookFailed(SHOW_SETTINGS_TAB, "Can't find the settings tab", new IllegalStateException("no " + SETTINGS_TAB + " tab"));
+        return false;
+    }
+
     /** Every switch that changes the bottom bar's tabs, so each one's list goes through {@link #visibleTabs}. */
-    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", "meta_ai", SHOW_PEOPLE_TAB));
+    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", "meta_ai", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB));
 
     /**
      * The switch that hides a bottom tab, by the tab's constant in Messenger's tab enum, or null for a tab with none. MUSE
@@ -426,6 +456,7 @@ public final class Settings {
         owners.put(Settings.AVATAR_ROUNDED, Settings.AVATAR_SHAPE);
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
         owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
+        owners.put(QuietMode.DAILY, QuietMode.KEY);
         owners.put(CameraActivity.ASK, CameraActivity.KEY);
         owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
         owners.put(QuietChats.KEY, MessageLog.KEY);
@@ -435,6 +466,9 @@ public final class Settings {
         owners.put(StoryEye.KEY, StoryEye.OWNER);
         owners.put(CallCaptions.SPEAK, CallCaptions.KEY);
         owners.put(CallCaptions.DUCK, CallCaptions.KEY);
+        owners.put(ViewOnceSave.KEY, "allow_screenshot");
+        owners.put(FloatingMenu.KEY, MenuBlur.KEY);
+        owners.put(Settings.HIDE_DELIVERED, "hide_read_receipts");
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -484,6 +518,24 @@ public final class Settings {
     /** Whether the Facebook button at the top of Chats gets its badge. Without one Messenger draws the plain button. */
     public static boolean facebookButtonBadge(boolean original) {
         return original && !hideTabBadge("facebook");
+    }
+
+    /** Takes the words off the tabs at the bottom and leaves the icons on their own. */
+    static final String HIDE_TAB_LABELS = "hide_tab_labels";
+
+    /**
+     * Asked once per tab as the bar builds its descriptions. True puts an empty title where the tab's word goes, so the
+     * bar draws the icon alone. The content description is left as Messenger wrote it, so TalkBack still names the tab.
+     */
+    public static boolean hideTabLabels() {
+        try {
+            if (!enabled(HIDE_TAB_LABELS)) return false;
+            activeAt.put(HIDE_TAB_LABELS, System.currentTimeMillis());
+            return true;
+        } catch (RuntimeException error) {
+            hookFailed(HIDE_TAB_LABELS, "Can't hide a tab label", error);
+            return false;
+        }
     }
 
     /** First answer this process gave for the emoji drawer, or null before Messenger asked. */
@@ -676,6 +728,35 @@ public final class Settings {
     /** Asked before the inbox visibility event and the ad deep link's entry event are logged; true drops that one event. */
     public static boolean stopAdEvents() { return enabled("ad_events"); }
 
+    static final String DWELL_TRACKING = "dwell_tracking";
+    /**
+     * Messenger's own yes or no on filing an attention report, and on copying its timestamps onto the journey log,
+     * answered no while the switch is on. The session's own bookkeeping and map cleanup run either way, and a failure
+     * here hands back the answer Messenger gave.
+     */
+    public static boolean dwellLogged(boolean would) {
+        try {
+            return would && !enabled(DWELL_TRACKING);
+        } catch (RuntimeException error) {
+            hookFailed(DWELL_TRACKING, "Can't drop the attention report", error);
+            return would;
+        }
+    }
+
+    /**
+     * Asked as a link is about to open, with the screen it was tapped on and the link itself. True means Hush has it
+     * playing in the chat and Messenger's opener stops there. Everything else, a link that isn't a video page and any
+     * failure included, answers false and the link opens the way it always did, so a tap is never swallowed.
+     */
+    public static boolean playVideoLink(android.content.Context context, android.net.Uri link) {
+        try {
+            return enabled(LinkPlayer.KEY) && LinkPlayer.play(context, link);
+        } catch (RuntimeException | LinkageError error) {
+            hookFailedPrivately(LinkPlayer.KEY, "Can't play that link in the chat", error);
+            return false;
+        }
+    }
+
     static final String MQTT_TELEMETRY = "mqtt_telemetry";
     /** The topics Messenger publishes its own connection logging on. Messages, typing and presence use other topics. */
     static final Set<String> MQTT_TELEMETRY_TOPICS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("/mqtt_health_stats", "/fbns_exp_logging")));
@@ -734,7 +815,9 @@ public final class Settings {
      * notification. True takes Messenger's own ringtone-off path and posts the notification without the pop-up. With
      * Only chosen chats on, only a call from a chosen chat gets true.
      */
-    public static boolean quietIncomingCalls() { return QuietCalls.chosen() && enabled(QuietCalls.KEY); }
+    public static boolean quietIncomingCalls() {
+        return (QuietCalls.chosen() && enabled(QuietCalls.KEY)) || QuietMode.call();
+    }
 
     /** What Android tells an app that can't see the phone's location about the Wi-Fi network it's on. */
     static final String HIDDEN_WIFI_NAME = "<unknown ssid>";
@@ -1346,13 +1429,14 @@ public final class Settings {
     /**
      * A chat's composer asks this whether to build Messenger's tray above the message box, which the server turns on for
      * some accounts and not others (#101). With no tray a pick put in the chat lands nowhere, so with Put gallery picks in
-     * the chat and Open your gallery app on, the answer is yes. A chat whose composer was built before the switch went on
-     * has no tray, so its picks keep the Send to sheet or the editor until it's opened again.
+     * the chat and Open your gallery app on, the answer is yes, and with Paste a photo into the chat on as well (#180).
+     * A chat whose composer was built before the switch went on has no tray, so its picks keep the Send to sheet or the
+     * editor until it's opened again.
      */
     public static boolean galleryTray(boolean stock) {
         boolean tray = stock;
         try {
-            tray = stock || wouldUse(GalleryPicker.KEY) && enabled(GalleryPicker.CHAT_KEY);
+            tray = stock || wouldUse(GalleryPicker.KEY) && enabled(GalleryPicker.CHAT_KEY) || wouldUse(PastePhoto.KEY);
         } catch (RuntimeException error) {
             hookFailedPrivately(GalleryPicker.CHAT_KEY, "Couldn't add the tray for what you pick", error);
         }
@@ -1470,9 +1554,11 @@ public final class Settings {
     public static boolean unlockAppThemes() { return enabled("app_themes"); }
     public static void addScreenshotFlags(Window window, int flags) {
         window.addFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags);
+        ViewOnceSave.offer(window);
     }
     public static void setScreenshotFlags(Window window, int flags, int mask) {
         window.setFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags, mask);
+        ViewOnceSave.offer(window);
     }
     /** How long after you send something the open chat may mark itself read, which shows Seen as stock Messenger does. */
     static final long REPLY_READ_MS = 5_000;
@@ -1517,7 +1603,110 @@ public final class Settings {
         } catch (RuntimeException error) {
             hookFailed(MarkReadButton.KEY, "Can't keep the chat's Seen for Mark as read", error);
         }
+        markChatReadLocally(thread);
         return true;
+    }
+
+    /** Hide Delivered, the sub-option under Hide read receipts. */
+    static final String HIDE_DELIVERED = "hide_delivered";
+
+    /**
+     * Whether the Delivered batch is dropped instead of sent. It rides on Hide read receipts, so turning that off
+     * turns this off with it, and it only covers chats that go over this transport. Encrypted chats answer on their own.
+     */
+    public static boolean hideDeliveryReceipts() {
+        if (!enabled("hide_read_receipts")) return false;
+        SharedPreferences prefs = preferences;
+        return prefs != null && prefs.getBoolean(HIDE_DELIVERED, false);
+    }
+
+    /**
+     * Mark chats read on this phone: chats opened while a Seen was held back, as "chat key:time read". Messenger
+     * never hears about them, so the time is kept here and the chat list reads it back for a month.
+     */
+    static final String LOCAL_READ_KEY = "read_chats_locally";
+    static final String LOCAL_READ_CHATS = "local_read_chats";
+    static final long LOCAL_READ_TTL = 30L * 24 * 60 * 60 * 1000L;
+    static final int LOCAL_READ_CHATS_MAX = 512;
+    private static final Object LOCAL_READ_LOCK = new Object();
+    /** Null until the first read, and set back to null by a test standing in for the next launch. */
+    static volatile ConcurrentHashMap<String, Long> localReadChats;
+
+    /** Read back once per launch, then kept in memory: the chat list asks this for every row it draws. */
+    static ConcurrentHashMap<String, Long> localReadMarks() {
+        ConcurrentHashMap<String, Long> marks = localReadChats;
+        if (marks != null) return marks;
+        synchronized (LOCAL_READ_LOCK) {
+            if (localReadChats != null) return localReadChats;
+            ConcurrentHashMap<String, Long> read = new ConcurrentHashMap<>();
+            SharedPreferences prefs = preferences;
+            if (prefs != null) {
+                long now = System.currentTimeMillis();
+                for (String entry : prefs.getStringSet(LOCAL_READ_CHATS, Collections.emptySet())) {
+                    int at = entry.lastIndexOf(':');
+                    if (at <= 0) continue;
+                    try {
+                        long marked = Long.parseLong(entry.substring(at + 1));
+                        if (now - marked <= LOCAL_READ_TTL) read.put(entry.substring(0, at), marked);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            localReadChats = read;
+            return read;
+        }
+    }
+
+    /** The chat was just opened with its Seen held back, so it counts as read here from this moment on. */
+    static void markChatReadLocally(Object chat) {
+        if (chat == null) return;
+        try {
+            if (!enabled(LOCAL_READ_KEY)) return;
+            String key = String.valueOf(chat);
+            if (key.isEmpty()) return;
+            long now = System.currentTimeMillis();
+            ConcurrentHashMap<String, Long> marks = localReadMarks();
+            Long already = marks.get(key);
+            if (already != null && already >= now) return;
+            marks.put(key, now);
+            synchronized (LOCAL_READ_LOCK) {
+                List<Map.Entry<String, Long>> entries = new ArrayList<>(marks.entrySet());
+                // Newest first, and the chat just read ahead of the ones marked in the same millisecond.
+                Collections.sort(entries, (first, second) -> {
+                    if (first.getKey().equals(second.getKey())) return 0;
+                    if (key.equals(first.getKey())) return -1;
+                    if (key.equals(second.getKey())) return 1;
+                    return Long.compare(second.getValue(), first.getValue());
+                });
+                Set<String> kept = new HashSet<>();
+                for (Map.Entry<String, Long> entry : entries) {
+                    if (kept.size() >= LOCAL_READ_CHATS_MAX || now - entry.getValue() > LOCAL_READ_TTL) {
+                        marks.remove(entry.getKey(), entry.getValue());
+                        continue;
+                    }
+                    kept.add(entry.getKey() + ":" + entry.getValue());
+                }
+                SharedPreferences prefs = preferences;
+                if (prefs != null) prefs.edit().putStringSet(LOCAL_READ_CHATS, kept).apply();
+            }
+        } catch (RuntimeException error) {
+            hookFailed(LOCAL_READ_KEY, "Can't keep a chat read on this phone", error);
+        }
+    }
+
+    /**
+     * The chat list's unread check, asked for the bold row, the "n new messages" line and the Chats badge alike. A
+     * chat read on this phone answers read until a message newer than that moment lands in it.
+     */
+    public static boolean chatReadLocally(Object chat, long newestMessage) {
+        try {
+            if (chat == null || !enabled(LOCAL_READ_KEY)) return false;
+            Long marked = localReadMarks().get(String.valueOf(chat));
+            return marked != null && marked >= newestMessage;
+        } catch (RuntimeException error) {
+            hookFailed(LOCAL_READ_KEY, "Can't tell whether a chat was read on this phone", error);
+            return false;
+        }
     }
 
     /** Record the account and thread only after the native composer dispatch returns. */
@@ -1858,7 +2047,20 @@ public final class Settings {
 
     /** Whether an encrypted chat's rows go through {@link #labelKeptUnsentRow} at all. */
     public static boolean watchesUnsentRows() {
-        return wouldUse("keep_unsent");
+        if (!wouldUse("keep_unsent")) return false;
+        // Reads the words kept by an earlier run, on its own thread, before the first row asks for them.
+        UnsentWords.warmUp();
+        return true;
+    }
+
+    /**
+     * The words kept for [key], from this run or an earlier one. {@link #ROW_TEXT} empties when Messenger is swiped
+     * away, so an unsend seen before that reads its words back from {@link UnsentWords} instead (#70, #172).
+     */
+    private static String keptWords(String key) {
+        if (key == null) return null;
+        String words = ROW_TEXT.get(key);
+        return words != null ? words : UnsentWords.words(key);
     }
 
     /**
@@ -1920,9 +2122,16 @@ public final class Settings {
             boolean hasText = text != null && !text.isEmpty();
             String stamp = rowStamp(timestamp, senderId);
             if (contentType == UNSENT_PLACEHOLDER_TYPE && contentSubtype == UNSENT_PLACEHOLDER_SUBTYPE) {
-                String words = stamp == null ? null : ROW_TEXT.get(stamp);
-                if (words == null && stamp != null) words = ROW_TEXT.get(lineStamp(timestamp));
-                return words == null ? text : "[unsent] " + words;
+                String words = stamp == null ? null : keptWords(stamp);
+                String under = stamp;
+                if (words == null && stamp != null) {
+                    under = lineStamp(timestamp);
+                    words = keptWords(under);
+                }
+                if (words == null) return text;
+                // This row is the unsend, so its words are worth keeping for the next run of Messenger.
+                UnsentWords.keep(under, words);
+                return "[unsent] " + words;
             }
             if (!isKeptUnsent(threadingId) && !isKeptUnsent(messageId)) {
                 if (hasText) {
@@ -1931,10 +2140,16 @@ public final class Settings {
                 }
                 return text;
             }
-            String original = hasText ? text : ROW_TEXT.get(key);
+            String original = hasText ? text : keptWords(key);
+            String under = key;
             // A notification keeps its words under the message id, and the row may have been keyed by its threading id.
-            if (original == null && messageId != null && !messageId.equals(key)) original = ROW_TEXT.get(messageId);
-            return original == null ? text : "[unsent] " + original;
+            if (original == null && messageId != null && !messageId.equals(key)) {
+                under = messageId;
+                original = keptWords(under);
+            }
+            if (original == null) return text;
+            UnsentWords.keep(under, original);
+            return "[unsent] " + original;
         } catch (Throwable failure) {
             hookFailedPrivately("keep_unsent", "Can't show an unsent message", failure);
             return text;
@@ -1956,7 +2171,11 @@ public final class Settings {
                     if (shown != null && shown.text != null && !shown.text.isEmpty()) {
                         ROW_TEXT.put(messageId, shown.text);
                         // The chat's "deleted a message" row finds it by the line's time.
-                        rememberStamp(lineStamp(shown.time), messageId, shown.text);
+                        String stamp = lineStamp(shown.time);
+                        rememberStamp(stamp, messageId, shown.text);
+                        // Kept for the next run of Messenger too, under both keys the row looks under.
+                        UnsentWords.keep(messageId, shown.text);
+                        UnsentWords.keep(stamp, shown.text);
                     }
                 } catch (RuntimeException unreadable) {
                     // The row's own earlier text can still answer.
@@ -2457,7 +2676,12 @@ public final class Settings {
             boolean settingsRow = !menuRowHidden();
             Context context = appContext;
             String logRow = MessageLogButton.inMenu() && context != null ? MessageLogButton.label(context) : null;
-            if (list == null || list.isEmpty() || !settingsRow && logRow == null) return;
+            String logOutRow = context != null && MenuRows.logOutInMenu() ? MenuRows.logOutLabel(context) : null;
+            if (list == null || list.isEmpty()) return;
+            // Every row the Menu tab shows, so settings can offer each one, and then out go the ones already picked.
+            MenuRows.remember(list);
+            MenuRows.hide(list);
+            if (list.isEmpty() || !settingsRow && logRow == null && logOutRow == null) return;
             // Messenger builds its QR code row into the same list, so find Settings by its folder key.
             int at = -1;
             for (int i = 0; i < list.size() && at < 0; i++) if (holdsSettingsKey(list.get(i))) at = i;
@@ -2470,7 +2694,11 @@ public final class Settings {
             }
             if (logRow != null) {
                 Object log = menuRowCopy(original, logRow);
-                if (log != null) list.add(at + 1, log);
+                if (log != null) list.add(++at, log);
+            }
+            if (logOutRow != null) {
+                Object out = menuRowCopy(original, logOutRow);
+                if (out != null) list.add(++at, out);
             }
         } catch (Exception | LinkageError e) {
             hookFailed("menu_row", "addMenuSettingsEntry failed", e);
@@ -2515,6 +2743,13 @@ public final class Settings {
         return clone;
     }
 
+    /** Messenger's own Log out, from its Menu tab row. A build that doesn't hand it over says so instead. */
+    private static void logOutFromMenu(Context context) {
+        if (LogOut.start(context, HostScreens.logoutRoute())) return;
+        android.widget.Toast.makeText(context, new SettingsText(context).get("log_out_failed"),
+            android.widget.Toast.LENGTH_LONG).show();
+    }
+
     private static boolean holdsSettingsKey(Object row) throws IllegalAccessException {
         if (row == null) return false;
         for (java.lang.reflect.Field f : row.getClass().getDeclaredFields()) {
@@ -2548,9 +2783,11 @@ public final class Settings {
             }
             if (!settingsKey || context == null) return item;
             boolean settings = titles.contains("HushMessenger");
-            if (!settings && !titles.contains(MessageLogButton.label(context))) return item;
+            boolean logOut = !settings && MenuRows.logOutInMenu() && titles.contains(MenuRows.logOutLabel(context));
+            if (!settings && !logOut && !titles.contains(MessageLogButton.label(context))) return item;
             recognized = true;
             if (settings) HostScreens.open(context, HostScreens.SETTINGS);
+            else if (logOut) logOutFromMenu(context);
             else MessageLogButton.open(context);
             return null;
         } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {

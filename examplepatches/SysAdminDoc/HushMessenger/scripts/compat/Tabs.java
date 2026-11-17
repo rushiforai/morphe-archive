@@ -379,7 +379,77 @@ final class Tabs {
     }
 
     static final String TAB_CONFIG_TRACE = "MessengerTabConfigurationCreator.createTabConfiguration";
+    static final String TAB_ICON_TRACE = "TabBarPresenter.createRenderInfo";
     static final Set<String> HIDABLE_TABS = Set.of("PEOPLE", "JEWEL", "AI", "MUSE");
+
+    /**
+     * tab_labels: one tab's description, built from its icon holder, the content description, the title under the icon
+     * and whether it takes a badge. Named by the two literals Kotlin's null checks carry. Every match must have one
+     * title store, behind a null check on the title, with a scratch register free and nothing jumping to it or
+     * catching around it, or none counts. The patch proves the dataflow too. Mirrors TabLabels.kt.
+     */
+    static List<Method> tabDescriptions(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null || !"<init>".equals(method.getName()) ||
+                AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType())) continue;
+            var params = new ArrayList<String>();
+            for (var t : method.getParameterTypes()) params.add(t.toString());
+            if (params.size() != 4 || !params.get(0).startsWith("L") || !"Ljava/lang/String;".equals(params.get(1)) ||
+                !"Ljava/lang/String;".equals(params.get(2)) || !"Z".equals(params.get(3))) continue;
+            var strings = new HashSet<String>();
+            for (var i : method.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr) strings.add(sr.getString());
+            if (strings.contains("tabIconContentDescription") && strings.contains("title")) found.add(method);
+        }
+        for (var method : found) if (titleStore(method) < 0) return List.of();
+        return found;
+    }
+
+    /**
+     * tab_icons: the one method that builds every tab's render info, found by the name Messenger traces it under.
+     * The patch proves the icon sites inside it. Mirrors TabIcons.kt.
+     */
+    static List<Method> tabIconBuilders(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null) continue;
+            for (var i : method.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr &&
+                    TAB_ICON_TRACE.equals(sr.getString())) { found.add(method); break; }
+        }
+        return found;
+    }
+
+    /** Index of the one store of the title on the holder, with the room and the shape the patch needs, or -1. */
+    static int titleStore(Method method) {
+        var impl = method.getImplementation();
+        var code = instructions(method);
+        int registers = impl.getRegisterCount(), title = registers - 5 + 3, self = registers - 5;
+        // The switch needs a local for its scratch, and the title goes back through a const-string.
+        if (registers - 5 < 1 || title > 255) return -1;
+        int store = -1;
+        for (int i = 0; i < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.IPUT_OBJECT || !(code.get(i) instanceof TwoRegisterInstruction put) ||
+                put.getRegisterA() != title || put.getRegisterB() != self ||
+                !(((ReferenceInstruction) code.get(i)).getReference() instanceof FieldReference field) ||
+                !"Ljava/lang/String;".equals(field.getType())) continue;
+            if (store >= 0) return -1;
+            store = i;
+        }
+        if (store < 0) return -1;
+        boolean checked = false;
+        for (int i = 0; i < store; i++)
+            if (code.get(i).getOpcode() == Opcode.IF_EQZ && register(code.get(i)) == title) checked = true;
+        if (!checked || mediaTargets(method).contains(store)) return -1;
+        int address = 0;
+        for (int i = 0; i < store - 1; i++) address += code.get(i).getCodeUnits();
+        for (var block : impl.getTryBlocks()) {
+            int end = block.getStartCodeAddress() + block.getCodeUnitCount();
+            if (address < end && address + code.get(store - 1).getCodeUnits() + code.get(store).getCodeUnits() > block.getStartCodeAddress()) return -1;
+        }
+        return store;
+    }
 
     /**
      * tab_config: the bottom bar's tab-list builder, an instance (Context, FbUserSession) method naming its trace. Every

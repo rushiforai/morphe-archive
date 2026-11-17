@@ -18,11 +18,23 @@ public final class SendConfirmForTests {
         return SendConfirm.on(Settings.ASK_BEFORE_GIF);
     }
 
-    public static boolean voiceVideoOn() {
+    public static boolean voiceOn() {
         return SendConfirm.on(Settings.ASK_BEFORE_VOICE_VIDEO);
+    }
+
+    public static boolean roundVideoOn() {
+        return SendConfirm.on(Settings.ASK_BEFORE_ROUND_VIDEO);
+    }
+
+    public static boolean messageOn() {
+        return SendConfirm.on(Settings.ASK_BEFORE_MESSAGE);
     }
 
     public static boolean callOn() {
         return SendConfirm.on(Settings.ASK_BEFORE_CALL);
+    }
+
+    public static boolean joinOn() {
+        return SendConfirm.on(Settings.ASK_BEFORE_JOIN);
     }
 }

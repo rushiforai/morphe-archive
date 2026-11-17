@@ -4,7 +4,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.eurosport.shared.AD_SDKS
 import app.template.patches.eurosport.shared.constZero
 import app.template.patches.eurosport.shared.disableSdkConfigs

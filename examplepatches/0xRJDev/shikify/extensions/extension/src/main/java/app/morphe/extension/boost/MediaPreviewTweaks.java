@@ -21,13 +21,16 @@ import java.util.WeakHashMap;
 public final class MediaPreviewTweaks {
     private static final WeakHashMap<ImageView, Controller> CONTROLLERS = new WeakHashMap<>();
     private MediaPreviewTweaks() { }
+    private static WeakReference<Controller> peeking = new WeakReference<>(null);
+    /** True while a hold-to-preview is open; other gestures must leave its touch stream alone. */
+    static boolean peeking() { Controller active = peeking.get(); return active != null && active.holding; }
     public static void bindComment(Object holder) {
-        attach(holder, "mediaPreviewIv", "c0", CommentsChromeTweaks.inlineMediaEnabled());
+        attach(holder, "mediaPreviewIv", "b0", CommentsChromeTweaks.inlineMediaEnabled());
     }
     public static void bindPost(Object holder) {
         if (!CommentsChromeTweaks.mediaPeekEnabled()) return;
-        attach(holder, "previewImageview", "b0", false);
-        attach(holder, "thumbnailIv", "b0", false);
+        attach(holder, "previewImageview", "h0", false);
+        attach(holder, "thumbnailIv", "h0", false);
     }
     private static void attach(Object holder, String field, String modelField, boolean inline) {
         if (!inline && !CommentsChromeTweaks.mediaPeekEnabled()) return;
@@ -155,7 +158,7 @@ public final class MediaPreviewTweaks {
             panel.layout(0,0,parent.getWidth(),parent.getHeight());
             // ViewGroupOverlay is visual-only: do not disturb the native child hierarchy or input.
             parent.getOverlay().add(panel);
-            holding=true;
+            holding=true; peeking=new WeakReference<>(this);
             cancelTap(image);
             if (preview instanceof Animatable) ((Animatable)preview).start();
             image.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);

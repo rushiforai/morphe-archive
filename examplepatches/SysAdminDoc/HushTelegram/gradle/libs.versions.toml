@@ -1,29 +1,31 @@
 [versions]
 # Keep the patcher, fixture CLI and Manager floor together. Manager rejects a bundle built
-# against a newer patcher than it carries. These stable releases all carry patcher 2.3.0, which
-# went stable on 2026-11-06 with Manager 2.5.0 and desktop CLI 2.1.0. 2.3.0 dropped Patch's type
-# parameter and hands PatchClasses a PatcherProgress beside the class set (PatchContexts passes
-# null). 2.1.0 added bundle signature checks and refuses a class file built for anything newer
-# than Java 17. The 2.0 API matches a fingerprint string against the whole literal, decodes only
-# the resources a patch asks for, and hides compatiblePackages behind compatibility
-# (PatchListGenerator rebuilds the old field). 2.3.0 pulls in MorpheApp's ARSCLib 675bed2de3
-# (2.0.1 and 2.1.0 pulled 4695b583ef), and patches/build.gradle.kts provides that same build.
+# against a newer patcher than it carries. These stable releases all carry patcher 2.4.0, which
+# went stable on 2026-11-15 with Manager 2.6.0 and desktop CLI 2.2.0. 2.4.0 reads resource XML
+# through ARSCLib, signs with v2 alone and lets a fingerprint field name another fingerprint.
+# 2.3.0 dropped Patch's type parameter and hands PatchClasses a PatcherProgress beside the class
+# set (PatchContexts passes null). 2.1.0 added bundle signature checks and refuses a class file
+# built for anything newer than Java 17. The 2.0 API matches a fingerprint string against the
+# whole literal, decodes only the resources a patch asks for, and hides compatiblePackages behind
+# compatibility (PatchListGenerator rebuilds the old field). 2.4.0 pulls in MorpheApp's ARSCLib
+# 50418a07a8 (2.3.0 pulled 675bed2de3), and patches/build.gradle.kts provides that same build.
 # Manager 1.x refuses a 2.0 bundle with its update prompt, and desktop CLI 1.19 and newer write
 # its result's step list as stepResults where 1.18.1 wrote patchingSteps.
-morphe-patcher = "2.3.0"
-desktop-cli = "2.1.0"
+morphe-patcher = "2.4.0"
+desktop-cli = "2.2.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
-# README's stated floor to this value.
-manager-floor = "2.5.0"
+# README's stated floor to this value. README states the floor of the published release, so it
+# moves to this value when the next release is cut.
+manager-floor = "2.6.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20: the pin has to be the commit the
-# patcher above requests (2.3.0 back to 2.0.1 ask for ac700e1942; 2.0.0 asked for 4220ae75f7), because a
+# patcher above requests (2.4.0 asks for 5eaff5a2c9, 2.3.0 back to 2.0.1 asked for ac700e1942), because a
 # mismatch puts two copies of dexlib2 on the R8 classpath and buildAndroid fails with
 # "Classpath type already present".
 #noinspection GradleDependency
-smali = "ac700e1942"
+smali = "5eaff5a2c9"
 # The Android Gradle plugin and Kotlin come from the app.morphe.patches settings plugin
 # (1.3.4 brings AGP 9.1.0 and Kotlin 2.4.10); nothing here pins them.
 annotation = "1.10.0"

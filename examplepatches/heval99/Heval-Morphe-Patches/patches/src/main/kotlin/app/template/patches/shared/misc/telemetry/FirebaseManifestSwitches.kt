@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.requireNoBranchTargetAt

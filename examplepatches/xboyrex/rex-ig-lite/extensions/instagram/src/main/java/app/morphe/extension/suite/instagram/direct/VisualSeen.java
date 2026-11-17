@@ -5,6 +5,7 @@
 package app.morphe.extension.suite.instagram.direct;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Logger;
 import app.morphe.extension.suite.shared.Utils;
@@ -18,7 +19,7 @@ public final class VisualSeen {
     public static boolean hold() {
         try {
             HookStatus.invoked(FamilyNames.DM_MEDIA_SEEN);
-            boolean held = Utils.settingsReady() && Settings.VIEW_DM_MEDIA_ANONYMOUSLY.get();
+            boolean held = Pref.hideViewOnceSeen() || (Utils.settingsReady() && Settings.VIEW_DM_MEDIA_ANONYMOUSLY.get());
             if (held) Logger.printDebug(() -> "DM photos and videos: opened receipt held back");
             return held;
         } catch (Throwable failure) {

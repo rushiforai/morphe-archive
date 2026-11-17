@@ -4,7 +4,7 @@ import app.fakh.patches.flipside.shared.Constants.COMPATIBILITY_FLIPSIDE
 import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /**
  * Every premium check in the app funnels through one getter on the unlock store:
@@ -33,7 +33,7 @@ private val isUnlockedFingerprint = Fingerprint(
 )
 
 @Suppress("unused")
-val premiumUnlockPatch = bytecodePatch(
+val premiumUnlockPatch = patch(
     name = "Premium unlock",
     description = "Unlocks premium (every locked feature, no trial limit) and stops the Play license check " +
         "from closing the app.",

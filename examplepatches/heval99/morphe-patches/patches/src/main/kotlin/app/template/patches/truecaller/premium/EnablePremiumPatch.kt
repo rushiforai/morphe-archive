@@ -2,7 +2,7 @@ package app.template.patches.truecaller.premium
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked

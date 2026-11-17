@@ -3,8 +3,11 @@ package app.template.patches.flashscore.misc.telemetry
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
+import app.template.patches.flashscore.shared.ForcedConfigValue
+import app.template.patches.flashscore.shared.forceRemoteConfigValues
 import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
+import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
@@ -29,6 +32,23 @@ private const val CRASHLYTICS_WRAPPER_MARKER = "FirebaseCrashlytics component is
 
 // Apptentive (in-app feedback and surveys) keeps its public API names.
 private const val APPTENTIVE = "Lapptentive/com/android/feedback/Apptentive;"
+
+// Microsoft Clarity is not obfuscated. These are its static entry points, grouped by return type:
+// the Boolean-returning ones answer Boolean.FALSE, sendCustomEvent and setCustomTag (primitive Z)
+// answer false. Pure getters and pause/unmask calls are left alone.
+private const val CLARITY = "Lcom/microsoft/clarity/Clarity;"
+private val CLARITY_BOOLEAN_OBJECT_METHODS = listOf(
+    "initialize", "resume", "consent", "startNewSession", "setCustomUserId",
+    "setCustomSessionId", "setCurrentScreenName", "setOnSessionStartedCallback",
+)
+private val CLARITY_PRIMITIVE_METHODS = listOf("sendCustomEvent", "setCustomTag")
+
+// The app's remote-config keys for Clarity, forced at build time (this patch has no runtime switch).
+private const val TELEMETRY_HELPER_NAME = "morpheTelemetryGet"
+private val CLARITY_KEYS = linkedMapOf(
+    "CLARITY_ENABLED" to ForcedConfigValue.FALSE,
+    "CLARITY_PROJECT_ID" to ForcedConfigValue.EMPTY_STRING,
+)
 
 /**
  * Turns off Firebase Analytics, Performance Monitoring, advertising ID collection and Facebook's
@@ -132,5 +152,46 @@ val disableTelemetryPatch = bytecodePatch(
             throw PatchException("Apptentive register/engage not found")
         }
         apptentive.forEach { it.returnEarly() }
+
+        // 4. Microsoft Clarity (session recording): the SDK keeps its public names. Every entry point
+        // that starts, configures or feeds it answers "false" (the SDK's own result when it did not
+        // start), so nothing is recorded or uploaded. initialize has an Activity and a Context
+        // overload; both must exist.
+        val clarity = mutableClassDefBy(CLARITY).methods.filter { it.implementation != null }
+        for (name in CLARITY_BOOLEAN_OBJECT_METHODS) {
+            val methods = clarity.filter { it.name == name && it.returnType == "Ljava/lang/Boolean;" }
+            if (methods.isEmpty()) throw PatchException("Clarity.$name returning Boolean not found")
+            if (name == "initialize") {
+                val firstParameters = methods.map { it.parameterTypes.firstOrNull()?.toString() }.toSet()
+                if (firstParameters != setOf("Landroid/app/Activity;", "Landroid/content/Context;")) {
+                    throw PatchException("Clarity.initialize overloads are $firstParameters, expected Activity and Context")
+                }
+            }
+            methods.forEach {
+                // A static method: p0 (or v0 when there is a local) is free to hold the result.
+                if (it.implementation!!.registerCount < 1) throw PatchException("Clarity.$name has no register")
+                it.addInstructionsChecked(
+                    0,
+                    """
+                        sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                        return-object v0
+                    """.trimIndent(),
+                )
+            }
+        }
+        for (name in CLARITY_PRIMITIVE_METHODS) {
+            val methods = clarity.filter { it.name == name && it.returnType == "Z" }
+            if (methods.isEmpty()) throw PatchException("Clarity.$name returning boolean not found")
+            methods.forEach { it.returnEarly(false) }
+        }
+
+        // 5. Clarity's remote-config switches: disabled with no project id. The app's own gate for
+        // starting the SDK reads these, so it never gets as far as the calls above.
+        forceRemoteConfigValues(
+            patchName = "Disable telemetry",
+            helperName = TELEMETRY_HELPER_NAME,
+            forced = CLARITY_KEYS,
+            required = CLARITY_KEYS.keys,
+        )
     }
 }

@@ -20,14 +20,18 @@ import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
 /**
- * Hide pins you've already saved, on Home only: a board's pins are all saved, and search or related
- * pins showing one you have isn't what the switch is about.
+ * Hide pins you've already saved, on Home, and on a switch of its own in search results and the More
+ * to explore pins under a pin you open (#34). Never on the shared list hook: a board's pins are all
+ * saved, and that hook can't tell a board from a search.
  *
  * <p>Home never says a pin is saved on its own. Its request doesn't ask for {@code pinned_to_board},
  * and {@code is_repin} only says someone saved it from somewhere. So {@link #homeFields} adds that
  * field to the list the request is about to send, while something here needs it, and {@link #homePage}
  * takes out what comes back saved, along with pins you own and pins in {@link SavedRecord}. Save pins
- * you download reads the same field to tell a pin that's already saved from a new one.
+ * you download reads the same field to tell a pin that's already saved from a new one. Search and More
+ * to explore work the same way: {@link #elsewhereFields} asks their requests for it, then
+ * {@link #searchPage} takes saved pins out of each search page and {@link #dropRelated} tells More to
+ * explore's own filter to drop them.
  *
  * <p>Never add {@code pinned_to_profile} to that list, even though the pin model has it: Home comes up
  * empty with "Oops, something went wrong!" when its request names it. A quick save only sets that field,
@@ -105,15 +109,85 @@ public final class SavedPins {
     /** Takes saved pins out of [items] in place, and out of any module in it, the way the list filter does. */
     static void prune(List<?> items) {
         if (items == null || items.isEmpty()) return;
-        ModuleItems.Verdict verdict = item -> isSaved(item) ? SAVED : null;
         boolean debug = FeedFilter.debugLogging();
         List<String[]> removed = new ArrayList<>();
         try {
             for (Iterator<?> each = items.iterator(); each.hasNext();) {
-                if (FeedFilter.judge(each.next(), verdict, FamilyNames.FILTER_FEED, debug, removed) != null) each.remove();
+                if (FeedFilter.judge(each.next(), VERDICT, FamilyNames.FILTER_FEED, debug, removed) != null) each.remove();
             }
         } finally {
             for (String[] entry : removed) HookStatus.counted(entry[0], entry[1]);
+        }
+    }
+
+    private static final ModuleItems.Verdict VERDICT = item -> isSaved(item) ? SAVED : null;
+
+    /** Whether the search and More to explore switch is on and the settings can be read; never throws. */
+    static boolean elsewhereActive() {
+        try {
+            return Utils.settingsReady() && Settings.HIDE_SAVED_PINS_ELSEWHERE.get();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.FILTER_FEED, "switch read", t);
+            return false;
+        }
+    }
+
+    /**
+     * Called with the field list a search request, or the request for More to explore under a pin, is
+     * about to send. Hands back the list with the saved field added while Hide saved pins in search and
+     * More to explore is on, and the same list untouched otherwise. Never throws.
+     */
+    public static String elsewhereFields(String fields) {
+        try {
+            if (fields == null || !Utils.settingsReady()) return fields;
+            boolean hooked = PatchFamily.Capability.FEED_SAVED_SEARCH.installed() || PatchFamily.Capability.FEED_SAVED_RELATED.installed();
+            if (!hooked || !Settings.HIDE_SAVED_PINS_ELSEWHERE.get()) return fields;
+            return askingSaved(fields);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.FILTER_FEED, "search fields", t);
+            return fields;
+        }
+    }
+
+    /**
+     * Called with each page of search results before the results list takes it. Hands back a copy
+     * without the saved pins, or the same page when none were in it, so a page Pinterest can't change
+     * is never changed. Never throws.
+     */
+    public static List<?> searchPage(List<?> items) {
+        try {
+            if (items == null || items.isEmpty() || !Utils.settingsReady()
+                    || !PatchFamily.Capability.FEED_SAVED_SEARCH.installed()) return items;
+            HookStatus.invoked(FamilyNames.FILTER_FEED);
+            if (!elsewhereActive()) return items;
+            List<Object> kept = new ArrayList<>(items);
+            prune(kept);
+            return kept.size() == items.size() ? items : kept;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.FILTER_FEED, "search page", t);
+            return items;
+        }
+    }
+
+    /**
+     * Asked by More to explore's own filter about each item it loads, before Pinterest's checks. True
+     * drops [item]: a saved pin, or a module that's nothing but saved pins. A module with some left
+     * loses only those. Never throws.
+     */
+    public static boolean dropRelated(Object item) {
+        try {
+            if (item == null || !Utils.settingsReady() || !PatchFamily.Capability.FEED_SAVED_RELATED.installed()) return false;
+            HookStatus.invoked(FamilyNames.FILTER_FEED);
+            if (!elsewhereActive()) return false;
+            List<String[]> removed = new ArrayList<>();
+            try {
+                return FeedFilter.judge(item, VERDICT, FamilyNames.FILTER_FEED, FeedFilter.debugLogging(), removed) != null;
+            } finally {
+                for (String[] entry : removed) HookStatus.counted(entry[0], entry[1]);
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.FILTER_FEED, "related pin", t);
+            return false;
         }
     }
 

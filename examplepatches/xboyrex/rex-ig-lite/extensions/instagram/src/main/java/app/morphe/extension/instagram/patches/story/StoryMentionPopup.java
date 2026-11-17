@@ -1,6 +1,6 @@
 /*
- * Story mentions popup (Morphe): a modern replacement for the plain list dialog.
- * Part of the story mention indicator; see StoryMentionIcon.
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
+ * GNU General Public License v3.0
  */
 
 package app.morphe.extension.instagram.patches.story;
@@ -37,10 +37,10 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Shows the accounts mentioned in a story, in one of three styles chosen in the settings:
- * Instagram-like bottom sheet, modern translucent card, or minimalist floating card.
- */
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
+import app.morphe.extension.instagram.settings.preference.widgets.RexIcon;
+
 @SuppressWarnings("unused")
 public final class StoryMentionPopup {
     public static final int STYLE_SHEET = 0;
@@ -48,7 +48,6 @@ public final class StoryMentionPopup {
     public static final int STYLE_MINIMAL = 2;
     public static final int STYLE_COUNT = 3;
 
-    /** One mentioned account. Details other than the username may be empty. */
     public static final class Mention {
         final String username;
         final String fullName;
@@ -68,15 +67,13 @@ public final class StoryMentionPopup {
         }
     }
 
-    private static final int ACCENT = 0xFF3897F0;
+    private static final int ACCENT = 0xFF3998E8;
 
     private static final ExecutorService POOL = Executors.newFixedThreadPool(3);
     private static final LruCache<String, Bitmap> AVATARS = new LruCache<>(48);
 
     private StoryMentionPopup() {
     }
-
-    // ---- names ---------------------------------------------------------------------------
 
     public static String styleName(int style, boolean pt) {
         switch (style) {
@@ -104,29 +101,25 @@ public final class StoryMentionPopup {
         return "pt".equals(Locale.getDefault().getLanguage());
     }
 
-    // ---- palette -------------------------------------------------------------------------
-
     private static final class Palette {
-        int background = 0xFF10141A;
-        int stroke = 0;
-        int primary = 0xFFF5F7FA;
-        int secondary = 0xFF9AA3AE;
-        int placeholder = 0xFF2A2F36;
+        int background = 0xFF1A1A1A;
+        int stroke = 0xFF343840;
+        int primary = 0xFFF5F5F5;
+        int secondary = 0xFFA1A1AA;
+        int placeholder = 0xFF25282D;
     }
 
-    /** The minimalist style follows the app's light/dark mode; the others are dark, as in their references. */
     private static Palette palette(Activity activity, int style) {
         Palette p = new Palette();
         if (style == STYLE_MODERN) {
-            p.background = 0xCC141820;
-            p.stroke = 0x40FFFFFF;
+            p.background = 0xDD1A1A1A;
+            p.stroke = 0xFF343840;
         } else if (style == STYLE_MINIMAL) {
             boolean dark = (activity.getResources().getConfiguration().uiMode
                     & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-            if (dark) {
-                p.background = 0xFF12161C;
-            } else {
+            if (!dark) {
                 p.background = 0xFFFFFFFF;
+                p.stroke = 0xFFE2E6EC;
                 p.primary = 0xFF121417;
                 p.secondary = 0xFF6B7480;
                 p.placeholder = 0xFFE6EAF0;
@@ -134,8 +127,6 @@ public final class StoryMentionPopup {
         }
         return p;
     }
-
-    // ---- popup ---------------------------------------------------------------------------
 
     public static void show(Activity activity, List<Mention> mentions) {
         if (mentions.isEmpty()) return;
@@ -149,12 +140,12 @@ public final class StoryMentionPopup {
         LinearLayout content = new LinearLayout(activity);
         content.setOrientation(LinearLayout.VERTICAL);
         int pad = dp(activity, 20);
-        content.setPadding(pad, dp(activity, style == STYLE_SHEET ? 10 : 20), pad, dp(activity, 20));
+        content.setPadding(pad, dp(activity, style == STYLE_SHEET ? 12 : 20), pad, dp(activity, 20));
 
         if (style == STYLE_MINIMAL && mentions.size() == 1) {
-            // One account: a large avatar and a "view profile" button.
             Mention only = mentions.get(0);
             content.addView(single(activity, only, p, pt, () -> {
+                RexHaptics.tap(activity);
                 dialog.dismiss();
                 StoryMentionIcon.openProfile(activity, only.username);
             }));
@@ -167,16 +158,28 @@ public final class StoryMentionPopup {
                 handle.setBackground(handleBg);
                 LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(dp(activity, 36), dp(activity, 4));
                 handleLp.gravity = Gravity.CENTER_HORIZONTAL;
-                handleLp.bottomMargin = dp(activity, 18);
+                handleLp.bottomMargin = dp(activity, 16);
                 content.addView(handle, handleLp);
             }
+
+            LinearLayout headerRow = new LinearLayout(activity);
+            headerRow.setOrientation(LinearLayout.HORIZONTAL);
+            headerRow.setGravity(Gravity.CENTER_VERTICAL);
+
+            ImageView headerIcon = new ImageView(activity);
+            headerIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            headerIcon.setImageDrawable(RexIcon.getDrawable(activity, "at-sign", RexDialogs.BRAND_CYAN, 22));
+            LinearLayout.LayoutParams hiLp = new LinearLayout.LayoutParams(dp(activity, 22), dp(activity, 22));
+            hiLp.setMarginEnd(dp(activity, 10));
+            headerRow.addView(headerIcon, hiLp);
 
             TextView title = new TextView(activity);
             title.setText(pt ? "Menções" : "Mentions");
             title.setTextColor(p.primary);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
-            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            content.addView(title);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20.5f);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            headerRow.addView(title);
+            content.addView(headerRow);
 
             int count = mentions.size();
             TextView subtitle = new TextView(activity);
@@ -184,14 +187,15 @@ public final class StoryMentionPopup {
                     ? count + (count == 1 ? " conta mencionada neste story" : " contas mencionadas neste story")
                     : count + (count == 1 ? " account mentioned in this story" : " accounts mentioned in this story"));
             subtitle.setTextColor(p.secondary);
-            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            subtitle.setPadding(0, dp(activity, 2), 0, dp(activity, 12));
+            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            subtitle.setPadding(0, dp(activity, 4), 0, dp(activity, 12));
             content.addView(subtitle);
 
             LinearLayout list = new LinearLayout(activity);
             list.setOrientation(LinearLayout.VERTICAL);
             for (Mention mention : mentions) {
                 list.addView(row(activity, mention, p, () -> {
+                    RexHaptics.tap(activity);
                     dialog.dismiss();
                     StoryMentionIcon.openProfile(activity, mention.username);
                 }));
@@ -201,18 +205,20 @@ public final class StoryMentionPopup {
             scroll.setVerticalScrollBarEnabled(false);
             scroll.addView(list);
             content.addView(scroll);
+
+            RexDialogs.addDialogCloseFooter(activity, content, dialog);
         }
 
         dialog.setContentView(content);
         dialog.setCanceledOnTouchOutside(true);
         configureWindow(activity, dialog.getWindow(), style, p);
-        app.morphe.extension.instagram.settings.preference.widgets.RexDialogs.attachBlurBehind(dialog, activity);
+        RexDialogs.attachBlurBehind(dialog, activity);
         dialog.show();
     }
 
     private static void configureWindow(Activity activity, Window window, int style, Palette p) {
         if (window == null) return;
-        float radius = dp(activity, 24);
+        float radius = dp(activity, 26);
         int margin = style == STYLE_SHEET ? 0 : dp(activity, style == STYLE_MODERN ? 12 : 32);
 
         GradientDrawable bg = new GradientDrawable();
@@ -230,7 +236,6 @@ public final class StoryMentionPopup {
         lp.width = screenWidth - margin * 2;
         lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         if (style == STYLE_MINIMAL) {
-            // Centered in the screen.
             lp.gravity = Gravity.CENTER;
             lp.windowAnimations = android.R.style.Animation_Dialog;
         } else {
@@ -238,24 +243,18 @@ public final class StoryMentionPopup {
             lp.y = style == STYLE_SHEET ? 0 : dp(activity, 12);
             lp.windowAnimations = android.R.style.Animation_InputMethod;
         }
-        lp.dimAmount = 0.5f;
+        lp.dimAmount = 0.52f;
         window.setAttributes(lp);
         window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
         if (style == STYLE_MODERN && Build.VERSION.SDK_INT >= 31) {
-            // Blur of what is behind the window (Android 12+); reflection because the extension may
-            // be compiled against an older SDK. Silently skipped if unavailable.
             try {
                 Window.class.getMethod("setBackgroundBlurRadius", int.class).invoke(window, dp(activity, 24));
             } catch (Throwable ignored) {
-                // Plain translucency is still a fine result.
             }
         }
     }
 
-    // ---- content -------------------------------------------------------------------------
-
-    /** Minimalist, one account: centered large avatar, @username, full name and a "view profile" button. */
     private static View single(Activity activity, Mention mention, Palette p, boolean pt, Runnable open) {
         LinearLayout box = new LinearLayout(activity);
         box.setOrientation(LinearLayout.VERTICAL);
@@ -282,7 +281,7 @@ public final class StoryMentionPopup {
         button.setText(pt ? "Ver perfil" : "View profile");
         button.setTextColor(Color.WHITE);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         button.setGravity(Gravity.CENTER);
         GradientDrawable buttonBg = new GradientDrawable();
         buttonBg.setColor(ACCENT);
@@ -300,8 +299,8 @@ public final class StoryMentionPopup {
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(dp(activity, 56));
         row.setPadding(0, dp(activity, 8), 0, dp(activity, 8));
-        row.setOnClickListener(v -> onClick.run());
 
         row.addView(avatar(activity, mention, p, 18), new LinearLayout.LayoutParams(dp(activity, 48), dp(activity, 48)));
 
@@ -321,17 +320,18 @@ public final class StoryMentionPopup {
         textsLp.setMarginStart(dp(activity, 14));
         row.addView(texts, textsLp);
 
-        TextView chevron = new TextView(activity);
-        chevron.setText("\u203A");
-        chevron.setTextColor(p.secondary);
-        chevron.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26);
-        chevron.setGravity(Gravity.CENTER);
-        row.addView(chevron, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        final ImageView chevron = new ImageView(activity);
+        chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        chevron.setImageDrawable(RexIcon.getDrawable(activity, "chevron-right", p.secondary, 19));
+        row.addView(chevron, new LinearLayout.LayoutParams(dp(activity, 20), dp(activity, 20)));
+
+        row.setOnClickListener(v -> {
+            RexIcon.nudgeChevron(chevron);
+            onClick.run();
+        });
         return row;
     }
 
-    /** "@username" followed by the verified badge, if any. */
     private static LinearLayout nameLine(Activity activity, Mention mention, Palette p, int sp) {
         LinearLayout line = new LinearLayout(activity);
         line.setOrientation(LinearLayout.HORIZONTAL);
@@ -346,23 +346,16 @@ public final class StoryMentionPopup {
         line.addView(handle, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         if (mention.verified) {
-            TextView badge = new TextView(activity);
-            badge.setText("\u2713");
-            badge.setTextColor(Color.WHITE);
-            badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
-            badge.setGravity(Gravity.CENTER);
-            GradientDrawable badgeBg = new GradientDrawable();
-            badgeBg.setShape(GradientDrawable.OVAL);
-            badgeBg.setColor(ACCENT);
-            badge.setBackground(badgeBg);
-            LinearLayout.LayoutParams badgeLp = new LinearLayout.LayoutParams(dp(activity, 14), dp(activity, 14));
+            ImageView badge = new ImageView(activity);
+            badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            badge.setImageDrawable(RexIcon.getDrawable(activity, "badge-check", ACCENT, 16, true));
+            LinearLayout.LayoutParams badgeLp = new LinearLayout.LayoutParams(dp(activity, 16), dp(activity, 16));
             badgeLp.setMarginStart(dp(activity, 6));
             line.addView(badge, badgeLp);
         }
         return line;
     }
 
-    /** Round avatar: a placeholder circle with the initial, replaced by the picture once downloaded. */
     private static View avatar(Activity activity, Mention mention, Palette p, int initialSp) {
         FrameLayout frame = new FrameLayout(activity);
         GradientDrawable circle = new GradientDrawable();
@@ -429,7 +422,6 @@ public final class StoryMentionPopup {
         }
     }
 
-    /** ScrollView that is only as tall as its content, up to a maximum. */
     private static final class MaxHeightScrollView extends ScrollView {
         private final int maxHeight;
 

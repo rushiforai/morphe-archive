@@ -8,11 +8,15 @@
 |---|---|
 | `naver_rules.tsv` | 판정 규칙. 기준 6.10.0.16 |
 | `naver_ledger_6.10.0.16.tsv` | 297행: PATCHED 118 · OK 70 · INACTIVE 20 · OUT 89 · 미분류 0 |
-| `naver_rules_6.11.2.2.tsv` | 6.11.2.2 규칙(6.10 규칙 − 대상 없어진 정확 규칙 + 6.11 판정). **다음 버전은 이 파일에서 시작** |
+| `naver_rules_6.11.2.2.tsv` | 6.11.2.2 규칙(6.10 규칙 − 대상 없어진 정확 규칙 + 6.11 판정) |
 | `naver_ledger_6.11.2.2.tsv` | 410행: PATCHED 120 · OK 78 · INACTIVE 28 · OUT 184 · 미분류 0 (패치 행은 Morphe 사이트) |
-| `kakao_scope.txt` | 카카오맵 스캔 범위(소스 파일 이름 패턴, `pkg:` 패키지) |
+| `naver_rules_6.12.2.4.tsv` | 6.12.2.4 규칙(6.11 규칙 − STALE 4 + 6.12 판정 7: `setInterval` 이름 n1, R2 인자 추가, Compose 차선 UI 등). **다음 버전은 이 파일에서 시작** |
+| `naver_ledger_6.12.2.4.tsv` | 413행: PATCHED 120 · OK 81 · INACTIVE 28 · OUT 184 · 미분류 0 |
+| `kakao_scope.txt` | 카카오맵 스캔 범위(소스 파일 이름 패턴, `module:` Kotlin 모듈, `pkg:` 패키지) |
 | `kakao_rules_5.17.8.tsv` | 카카오맵 5.17.8 규칙. 키가 **원래 소스 파일 이름**(아래 "카카오맵") |
 | `kakao_ledger_5.17.8.tsv` | 389행: PATCHED 6 · OK 87 · INACTIVE 38 · OUT 258 · 미분류 0 |
+| `kakao_rules_6.32.0.tsv` | 6.32.0 규칙(5.17.8 규칙 − STALE 62 + 6.32 재조사 판정). **다음 버전은 이 파일에서 시작** |
+| `kakao_ledger_6.32.0.tsv` | 464행: PATCHED 7 · OK 72 · INACTIVE 35 · OUT 350 · 미분류 0 |
 
 도구는 `../tools/`, 중간 산출물(후보 목록, smali 트리)은 저장소 밖에 둔다(앱 코드가 들어 있음).
 
@@ -20,7 +24,9 @@
 
 KNSDK·KM 위치 SDK는 클래스·패키지 이름이 버전마다 바뀌고(`om/b`, `jo/c`), `.source`(원래 파일 이름)만 남는다. 그래서
 - `dexclasses.py --srcmap`이 dex에서 "클래스 → 소스 파일" 표를 만든다.
-- `scan_smali.py --srcmap … --scope kakao_scope.txt`: 범위는 소스 이름 패턴이 맞는 클래스가 있는 **패키지 전체**(같은 패키지의 새 파일도 스캔). 키는
+- `scan_smali.py --srcmap … --scope kakao_scope.txt`: 범위는 소스 이름 패턴이 맞는 클래스가 있는 **패키지 전체**(같은 패키지의 새 파일도 스캔).
+  6.32.0부터 R8이 난독화 클래스를 **기본 패키지로 평탄화**(`heb`, `ieb`)해서 패키지 단위가 무의미해졌다 → 기본 패키지 클래스는 클래스 단위로 보고,
+  `module:<정규식>` 줄로 Kotlin 내부 멤버 이름 접미사(`$library_release` = KM 위치 SDK, `$app_knsdk_…Release` = KNSDK)가 나오는 클래스의 소스 파일 전체를 범위에 넣는다(새 파일 이름도 잡힘). 키는
   - class = `src:KNGPSData.kt` (라이브러리 내부는 `lib:<artifact>`, 버전 번호 제외)
   - desc 안의 앱 타입 = `<KNGPSData.kt>`, TIMER/LOCREQ detail의 소유자도 같은 방식(`<Delay.kt>->delay`)
   - 난독화 클래스·메서드 이름은 정보 열(`method` = `om/b.a`)에만 남는다.
@@ -30,9 +36,9 @@ KNSDK·KM 위치 SDK는 클래스·패키지 이름이 버전마다 바뀌고(`o
   INACTIVE 중 다시 볼 것: 레거시 경로(서버 `positioning_opt` 1·2), 실내 판정(`InOutCheckerV2` 등, 서버 indoor), GPS 로그 업로드(서버 `gpslog`).
 
 ```bash
-# 카카오맵 <ver>: W = 저장소 밖 작업 폴더, smali는 dex 전부를 $W/smali/classesN/ 에 baksmali(--debug-info false)
-python tools/dexclasses.py <base.apk> --srcmap $W/srcmap_<ver>.tsv
-python tools/scan_smali.py --root $W/smali --srcmap $W/srcmap_<ver>.tsv --scope ledger/kakao_scope.txt --locreq-all --out $W/hits_<ver>.tsv
+# 카카오맵 <ver>: W = 저장소 밖 작업 폴더. decompile.py = dex 전부 baksmali + srcmap.tsv + grep용 idx/
+python tools/decompile.py <base.apk> $W
+python tools/scan_smali.py --root $W/smali --srcmap $W/srcmap.tsv --scope ledger/kakao_scope.txt --locreq-all --out $W/hits_<ver>.tsv
 python tools/export_patches_morphe.py --app kakao --out $W/patches_<ver>.tsv
 python tools/ledger.py --hits $W/hits_<ver>.tsv --hits $W/patches_<ver>.tsv --rules ledger/kakao_rules_<ver>.tsv --out ledger/kakao_ledger_<ver>.tsv --strict
 ```

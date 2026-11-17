@@ -78,7 +78,7 @@ class FirefoxFocusAddonsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "159.0.1",
+            version = "160.0",
             patchNames = setOf("Add-on support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -198,13 +198,18 @@ class FirefoxFocusAddonsSmokeTest {
         val menuEvent = "${COMPOSE_MENU}store/MenuEvent;"
         val menuItemIcon = "${COMPOSE_MENU}ui/MenuItemIcon;"
         val menuItemState = "${COMPOSE_MENU}ui/MenuItemState;"
+        // 160 wraps the title in MenuItemTitle(Text); 159 and older took the Text itself (the extension handles both).
+        val menuItemTitleType = "${COMPOSE_MENU}data/MenuItemTitle;"
+        val hasMenuItemTitle = classes.any { it.type == menuItemTitleType }
+        val title = if (hasMenuItemTitle) menuItemTitleType else TEXT
         assertTrue(
             classDef("${COMPOSE_MENU}data/StandardMenuItem;").methods.any {
                 it.name == "<init>" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
-                    it.params().containsAll(listOf(TEXT, menuEvent, menuItemIcon, menuItemState))
+                    it.params().containsAll(listOf(title, menuEvent, menuItemIcon, menuItemState))
             },
-            "StandardMenuItem has no public constructor taking Text, MenuEvent, MenuItemIcon and MenuItemState",
+            "StandardMenuItem has no public constructor taking a title, MenuEvent, MenuItemIcon and MenuItemState",
         )
+        if (hasMenuItemTitle) publicMethod(menuItemTitleType, "<init>", listOf(TEXT))
         publicMethod("Lmozilla/components/compose/base/text/Text\$String;", "<init>", listOf("Ljava/lang/String;"))
         publicMethod("${COMPOSE_MENU}ui/MenuItemIconDrawable;", "<init>", listOf("Landroid/graphics/drawable/Drawable;"))
         publicField(menuItemState, "DEFAULT", static = true)
@@ -336,7 +341,7 @@ class FirefoxFocusAddonsSmokeTest {
             assertTrue(descriptor in referencedMethods, "the extension no longer calls $descriptor")
         }
         // GeckoView calls the prompt delegate through the interface: AddonPromptDelegate must
-        // override the three methods (158.0 and 159.0.1) with their exact descriptors.
+        // override the three methods (158.0, 159.0.1 and 160.0) with their exact descriptors.
         val focusPromptDelegate = classDef(PROMPT_DELEGATE)
         for (name in listOf("onInstallPromptRequest", "onUpdatePrompt", "onOptionalPrompt")) {
             assertTrue(

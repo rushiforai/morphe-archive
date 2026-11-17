@@ -5,8 +5,8 @@ import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 
 /**
  * The device panels are React Native screens downloaded per device, whose colors live in the panel's own code, so
@@ -14,13 +14,13 @@ import app.morphe.patcher.patch.resourcePatch
  * variant marks the theme light and allows force dark: Android then darkens the panel as it draws it. In light mode
  * the theme is unchanged. Settings gets a switch for it in the patches' group.
  */
-private val forceDarkThemePatch = resourcePatch {
+private val forceDarkThemePatch = patch {
     execute {
         addSettingsSwitch("fakh_dark_panels")
 
         // Android only darkens a window whose theme is light and allows it; the app's DayNight theme is neither at
         // night, and its base theme turns force dark off.
-        get("res/values-night-v29").apply { mkdirs() }.resolve("styles.xml").writeText(
+        resourceFile("res/values-night-v29").apply { mkdirs() }.resolve("styles.xml").writeText(
             """
                 <?xml version="1.0" encoding="utf-8"?>
                 <resources>
@@ -44,7 +44,7 @@ private object PanelCreateFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val darkPanelsPatch = bytecodePatch(
+val darkPanelsPatch = patch(
     name = "Dark device panels",
     description = "Darkens device control panels that have no dark mode of their own while the phone is in dark " +
         "mode, using Android's automatic dark theme. It stays off until its switch in Settings is turned on.",

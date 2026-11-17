@@ -30,12 +30,13 @@ internal val HAND_SITES: List<Site> = listOf(
         anchor = listOf("const-wide/16 *, 0x3e8", "invoke-virtual/range {*}, Landroid/location/LocationManager;->requestLocationUpdates(Ljava/lang/String;JFLandroid/location/LocationListener;)V"),
         ops = listOf(Op("R", 0, "const-wide/16 {A0}, 0x7d")), labels = emptyMap(),
     ),
-    // guide-B3: driving track (NaviStore e1.add) at 1 Hz; the method holding it changed between versions
+    // guide-B3: driving track (NaviStore <list>.add) at 1 Hz; the method holding it changed between versions and
+    // the field is renamed by R8 (e1 in 6.11, g1 in 6.12)
     Site(
         cls = "Lcom/naver/map/core/navigation/NaviStore;", note = "B3 track", desc = null, count = 1,
         anchor = listOf(
             "if-eqz *, L",
-            "iget-object *, *, Lcom/naver/map/core/navigation/NaviStore;->e1:Ljava/util/List;",
+            "iget-object *, *, Lcom/naver/map/core/navigation/NaviStore;->*:Ljava/util/List;",
             "invoke-virtual {*}, Lcom/naver/maps/navi/v2/shared/api/model/GuidePoint;->getLocation()Lcom/naver/maps/geometry/LatLng;",
             "move-result-object *",
             "invoke-interface {*}, Ljava/util/List;->add(Ljava/lang/Object;)Z",

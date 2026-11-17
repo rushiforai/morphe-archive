@@ -140,5 +140,8 @@
   "Hide games": "ゲームを非表示",
   "LinkedIn's daily puzzle games in the Me panel, search and feed.": "自分パネル、検索、フィードにあるLinkedInのデイリーパズルゲーム。",
   "AMOLED black": "AMOLED ブラック",
-  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "ダークモードでダークグレーではなく真の黒を使います。AMOLED画面は黒の画素を消灯するため、バッテリーを節約できます。LinkedInの再起動後に反映。"
+  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "ダークモードでダークグレーではなく真の黒を使います。AMOLED画面は黒の画素を消灯するため、バッテリーを節約できます。LinkedInの再起動後に反映。",
+  "Don't remind me": "今後表示しない",
+  "microG RE battery reminder": "microG RE のバッテリー通知",
+  "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited.": "Android が microG RE のバックグラウンド動作を制限しているときにお知らせします。通知と Google ログインは microG RE を経由するため、制限中は遅れたり失敗したりすることがあります。"
 }

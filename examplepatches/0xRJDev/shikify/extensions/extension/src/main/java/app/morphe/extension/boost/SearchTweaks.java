@@ -17,7 +17,7 @@ public final class SearchTweaks {
         return SurfaceSettingsActivity.prefs(context).getBoolean("shikify_search_collapsed_"+section,false);
     }
     private static Object row(Context context,int type,String label,Object subscription) throws ReflectiveOperationException {
-        if(option==null)option=Class.forName("bn2",true,context.getClassLoader()).getConstructor(int.class,String.class);
+        if(option==null)option=Class.forName("jn2",true,context.getClassLoader()).getConstructor(int.class,String.class);
         Object row=option.newInstance(type,label);
         if(subscription!=null)row.getClass().getField("c").set(row,subscription);
         return row;

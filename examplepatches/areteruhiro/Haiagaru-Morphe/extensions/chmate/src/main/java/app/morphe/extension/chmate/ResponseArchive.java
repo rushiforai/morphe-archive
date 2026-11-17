@@ -120,6 +120,7 @@ public final class ResponseArchive {
     }
 
     private static void append(Object owner, Object menuObject, Object response, Object board) throws Exception {
+        ResponseNotes.append(menuObject,response,board);
         ResponseMultiSelection.append(owner,menuObject,response,board);
         SharedNgResponseExclusion.append(menuObject, response, board);
         PosterHighlight.append(menuObject, response, board);
@@ -136,6 +137,7 @@ public final class ResponseArchive {
     }
 
     public static boolean handle(Object object) {
+        if(ResponseNotes.handle(object))return true;
         if(ResponseMultiSelection.handle(object))return true;
         if (SharedNgResponseExclusion.handle(object)) return true;
         if(ResponseMenuSettings.handleTools(object))return true;
@@ -172,6 +174,7 @@ public final class ResponseArchive {
             SharedNgResponseExclusion.appendSheet(builder, response, board);
             PosterHighlight.appendSheet(builder, response, board);
             ResponseArchiveEntry entry = snapshot(response, board);
+            if(ResponseMenuSettings.visible(ResponseNotes.MENU))appendSheetAction(builder,"メモ",android.R.drawable.ic_menu_edit,()->ResponseNotes.open(Haiagaru.toolbarActivity(null),entry));
             appendSheetAction(builder, "このレスをアーカイブに保存", archiveIcon(true), () -> {
                 Activity a = Haiagaru.toolbarActivity(null);
                 if (a != null) confirm(a, entry);

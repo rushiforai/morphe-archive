@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-16.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -131,6 +131,10 @@ val visualPreferencesIconsPatch = resourcePatch(
 
         if (useBoldIcons) {
             makeSettingsToolbarIconsBold()
+            copyResources(
+                "music/visual/icons/bold",
+                ResourceGroup("drawable", "revanced_toolbar_settings_shortcut_icon.xml"),
+            )
         }
 
         if (applyToAll == true) {

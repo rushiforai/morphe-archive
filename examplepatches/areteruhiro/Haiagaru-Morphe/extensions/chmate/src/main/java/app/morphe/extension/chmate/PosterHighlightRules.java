@@ -57,10 +57,14 @@ final class PosterHighlightRules {
         final int kind, scope, colorIndex;
         final String target, value;
         final boolean enabled;
+        final long expiresAt;
         Rule(int kind, int scope, String target, String value, boolean enabled) {
             this(kind,scope,target,value,enabled,-1);
         }
         Rule(int kind, int scope, String target, String value, boolean enabled, int colorIndex) {
+            this(kind,scope,target,value,enabled,colorIndex,0);
+        }
+        Rule(int kind, int scope, String target, String value, boolean enabled, int colorIndex,long expiresAt) {
             if (kind == 4) value = tripValue(value);
             if (kind < 0 || kind >= KINDS.length || scope < 0 || scope >= SCOPES.length
                     || target == null || value == null || value.length() > 256
@@ -69,15 +73,19 @@ final class PosterHighlightRules {
                 throw new IllegalArgumentException("Invalid poster highlight rule");
             this.kind=kind; this.scope=scope; this.target=target; this.value=value; this.enabled=enabled;
             this.colorIndex=colorIndex>=0 && colorIndex<COLORS.length?colorIndex:-1;
+            this.expiresAt=Math.max(0,expiresAt);
         }
+        boolean expired(long now){return expiresAt>0&&expiresAt<=now;}
+        static long expiration(int kind,boolean automatic,long now){return !automatic?0:kind==1?now+24*60*60*1000L:kind==2||kind==3?now+7*24*60*60*1000L:0;}
         int color(int fallback) { return colorIndex<0?fallback:COLORS[colorIndex]; }
         boolean matches(Poster poster, Poster first, String thread, String board) {
-            if (!enabled || scope == 0 && !target.equals(thread) || scope == 1 && !target.equals(board)) return false;
+            if (!enabled || expired(System.currentTimeMillis()) || scope == 0 && !target.equals(thread) || scope == 1 && !target.equals(board)) return false;
             return kind == 0 ? poster.sameAsStarter(first) : value.equals(poster.value(kind));
         }
         String label() {
             return KINDS[kind] + (kind == 0 ? "" : "：" + (kind == 3 ? "-" : kind == 4 ? "◆" : "") + value)
-                    + "\n" + SCOPES[scope] + (scope == 2 ? "" : " " + target);
+                    + "\n" + SCOPES[scope] + (scope == 2 ? "" : " " + target)
+                    + (expiresAt==0?"":"\n自動削除："+new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm",java.util.Locale.JAPAN).format(new java.util.Date(expiresAt)));
         }
     }
 

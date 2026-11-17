@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * The long-press menu items that forward with a choice (Fast forward, Forward to Saved Messages,
  * Forward as plain text), and the ones beside them (Save video cover, Save album art, Clear from
- * cache, Hide for me, Delete for them), each behind its own switch under Add Repeat to the message menu. {@link MessageMenu} hands them
+ * cache, Hide for me, Delete for them, Bookmark, Edit a copy), each behind its own switch under Add Repeat to the message menu. {@link MessageMenu} hands them
  * the menu's lists as it finishes and the chosen number as it comes back.
  *
  * <p>The first two go through Telegram's own forward with its two flags: the sender's name hidden
@@ -38,11 +38,17 @@ public final class MessageMenuTools {
     static final int HIDE = 0x48544d0d;
     static final int PLAIN = 0x48544d0e;
     static final int UNSEND = 0x48544d0f;
+    /** Send read receipt, which Ghost mode offers rather than a switch of its own ({@link ReadReceipt}). */
+    static final int READ = 0x48544d10;
+    /** Bookmark, or Remove bookmark on a message that has one ({@link Bookmarks}). */
+    static final int BOOKMARK = 0x48544d11;
+    /** Edit a copy, a photo opened in Telegram's photo editor ({@link PhotoEdit}). */
+    static final int EDIT_COPY = 0x48544d12;
 
     /** Whether the number is one of this class's. */
     static boolean owns(int option) {
         return option == FAST_FORWARD || option == FORWARD_SAVED || option == SAVE_COVER || option == SAVE_ART || option == CLEAR_CACHE || option == HIDE
-                || option == PLAIN || option == UNSEND;
+                || option == PLAIN || option == UNSEND || option == READ || option == BOOKMARK || option == EDIT_COPY;
     }
 
     static BooleanSetting setting(int option) {
@@ -52,7 +58,10 @@ public final class MessageMenuTools {
                 : option == CLEAR_CACHE ? Settings.MESSAGE_MENU_CLEAR_CACHE
                 : option == HIDE ? Settings.MESSAGE_MENU_HIDE
                 : option == PLAIN ? Settings.MESSAGE_MENU_PLAIN_FORWARD
-                : option == UNSEND ? Settings.MESSAGE_MENU_DELETE_FOR_THEM : Settings.MESSAGE_MENU_FORWARD_SAVED;
+                : option == UNSEND ? Settings.MESSAGE_MENU_DELETE_FOR_THEM
+                : option == BOOKMARK ? Settings.MESSAGE_MENU_BOOKMARKS
+                : option == EDIT_COPY ? Settings.MESSAGE_MENU_EDIT_COPY
+                : option == READ ? Settings.GHOST_READS : Settings.MESSAGE_MENU_FORWARD_SAVED;
     }
 
     /** Whether any of this class's switches is on. */
@@ -60,7 +69,8 @@ public final class MessageMenuTools {
         return MessageMenu.on(Settings.MESSAGE_MENU_FAST_FORWARD) || MessageMenu.on(Settings.MESSAGE_MENU_FORWARD_SAVED)
                 || MessageMenu.on(Settings.MESSAGE_MENU_SAVE_COVER) || MessageMenu.on(Settings.MESSAGE_MENU_SAVE_ART)
                 || MessageMenu.on(Settings.MESSAGE_MENU_CLEAR_CACHE) || MessageMenu.on(Settings.MESSAGE_MENU_HIDE)
-                || MessageMenu.on(Settings.MESSAGE_MENU_PLAIN_FORWARD) || MessageMenu.on(Settings.MESSAGE_MENU_DELETE_FOR_THEM);
+                || MessageMenu.on(Settings.MESSAGE_MENU_PLAIN_FORWARD) || MessageMenu.on(Settings.MESSAGE_MENU_DELETE_FOR_THEM)
+                || MessageMenu.on(Settings.MESSAGE_MENU_BOOKMARKS) || MessageMenu.on(Settings.MESSAGE_MENU_EDIT_COPY) || ReadReceipt.on();
     }
 
     /** One way to forward: a label, and the two flags Telegram's forward takes. */
@@ -93,15 +103,21 @@ public final class MessageMenuTools {
         if (forwardable && plainAvailable(chat, message)) chosen.add(PLAIN);
         if (MessageMenu.on(Settings.MESSAGE_MENU_SAVE_COVER) && savable(message) && video(message) && MediaArt.hasVideoArt(message)) chosen.add(SAVE_COVER);
         if (MessageMenu.on(Settings.MESSAGE_MENU_SAVE_ART) && savable(message) && music(message) && MediaArt.hasMusicArt(message)) chosen.add(SAVE_ART);
+        if (PhotoEdit.offered(message, forwardable)) chosen.add(EDIT_COPY);
         if (MessageMenu.on(Settings.MESSAGE_MENU_CLEAR_CACHE) && clearable(message)) chosen.add(CLEAR_CACHE);
         if (HiddenMessages.offered(message)) chosen.add(HIDE);
         if (DeleteForThem.offered(message)) chosen.add(UNSEND);
+        if (Bookmarks.offered(message)) chosen.add(BOOKMARK);
+        if (ReadReceipt.offered(message)) chosen.add(READ);
         int at = options.indexOf(MessageMenu.DETAILS);
         for (int option : chosen) {
             int position = at < 0 ? options.size() : at++;
             icons.add(position, option == SAVE_COVER || option == SAVE_ART ? saveIcon()
-                    : option == CLEAR_CACHE || option == UNSEND ? deleteIcon() : option == HIDE ? HiddenMessages.icon() : MessageMenu.quickIcon());
-            items.add(position, label(option));
+                    : option == CLEAR_CACHE || option == UNSEND ? deleteIcon() : option == HIDE ? HiddenMessages.icon()
+                    : option == BOOKMARK ? Bookmarks.icon(message)
+                    : option == EDIT_COPY ? PhotoEdit.icon()
+                    : option == READ ? ReadsMenu.icon() : MessageMenu.quickIcon());
+            items.add(position, option == BOOKMARK ? Bookmarks.label(message) : label(option));
             options.add(position, option);
         }
     }
@@ -113,7 +129,9 @@ public final class MessageMenuTools {
                 : option == CLEAR_CACHE ? L10n.t("Clear from cache")
                 : option == HIDE ? L10n.t("Hide for me")
                 : option == PLAIN ? L10n.t("Forward as plain text")
-                : option == UNSEND ? L10n.t("Delete for them") : L10n.t("Forward to Saved Messages");
+                : option == UNSEND ? L10n.t("Delete for them")
+                : option == EDIT_COPY ? L10n.t("Edit a copy")
+                : option == READ ? L10n.t("Send read receipt") : L10n.t("Forward to Saved Messages");
     }
 
     /** A message whose chat doesn't allow saving only gets a save item when Save to Downloads' switch for protected chats is on. */
@@ -197,6 +215,18 @@ public final class MessageMenuTools {
         }
         if (option == UNSEND) {
             DeleteForThem.unsend(context, chat, message);
+            return;
+        }
+        if (option == READ) {
+            ReadReceipt.send(context, message);
+            return;
+        }
+        if (option == BOOKMARK) {
+            Bookmarks.toggle(context, message);
+            return;
+        }
+        if (option == EDIT_COPY) {
+            PhotoEdit.edit(context, chat, message);
             return;
         }
         if (option == PLAIN) {

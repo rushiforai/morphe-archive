@@ -12,7 +12,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-16.
  */
 
 package app.morphe.extension.youtube.patches.general;
@@ -943,25 +943,25 @@ public final class NavigationButtonsPatch {
      */
     private static List<Object> reorderPivotBarRendererList(List<Object> list) {
         List<NavigationButton> configuredOrder = getConfiguredNavigationButtonOrder();
-        if (configuredOrder.isEmpty()) {
-            return list;
-        }
 
-        EnumMap<NavigationButton, Object> rendererByButton = new EnumMap<>(NavigationButton.class);
+        EnumMap<NavigationButton, Object> rendererByButton = configuredOrder.isEmpty()
+                ? null : new EnumMap<>(NavigationButton.class);
         List<NavigationButton> originalButtons = new ArrayList<>();
         for (Object renderer : list) {
             NavigationButton button = getNavigationButton(renderer);
             if (button != null) {
                 // A guide response should contain one renderer per navigation button. If that
                 // changes, leave the response alone rather than risk replacing the wrong slot.
-                if (rendererByButton.putIfAbsent(button, renderer) != null) {
+                if (originalButtons.contains(button)) {
                     return list;
                 }
                 originalButtons.add(button);
+                if (rendererByButton != null) rendererByButton.put(button, renderer);
             }
         }
 
-        if (rendererByButton.isEmpty()) {
+        NavigationBar.setServerNavigationButtonOrder(originalButtons);
+        if (rendererByButton == null || rendererByButton.isEmpty()) {
             return list;
         }
 
@@ -1050,7 +1050,7 @@ public final class NavigationButtonsPatch {
                 case 66, 408, 1155 -> NavigationButton.SUBSCRIPTIONS;
                 case 292, 777 -> NavigationButton.EXPLORE;
                 case 355, 1156 -> NavigationButton.NOTIFICATIONS;
-                case 405, 650, 670, 730, 734, 1161 -> NavigationButton.CREATE;
+                case 405, 650, 670, 730, 732, 734, 1161 -> NavigationButton.CREATE;
                 case 68, 239, 410, 483, 504 -> NavigationButton.LIBRARY;
                 case 44, 1162 -> NavigationButton.SETTINGS;
                 case 776, 785, 1157 -> NavigationButton.SHORTS;
@@ -1088,6 +1088,7 @@ public final class NavigationButtonsPatch {
                 case "FEwhat_to_watch" -> NavigationButton.HOME;
                 case "FEshorts" -> NavigationButton.SHORTS;
                 case "FEsubscriptions" -> NavigationButton.SUBSCRIPTIONS;
+                case "FEuploads" -> NavigationButton.CREATE;
                 case "FElibrary" -> NavigationButton.LIBRARY;
                 case "FEactivity", "FEnotifications" -> NavigationButton.NOTIFICATIONS;
                 case "FEexplore" -> NavigationButton.EXPLORE;

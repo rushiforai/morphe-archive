@@ -742,3 +742,7 @@ Lo/setContentInsetStartWithNavigation;
 Lo/ToolbarSavedState;
 Lo/setTrackTintMode;
 Lo/setIconified;
+
+[SiteMomentumSort]
+Lo/getWriteBytesTotal$IntentSenderRequest;
+Lo/Yhp5;

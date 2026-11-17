@@ -20,7 +20,7 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -58,7 +58,7 @@ fun spoofSignaturePatch(
     compatibility: Compatibility,
     default: Boolean = false,
     description: String = "Fixes Google features that check the app's original signature.",
-    dependencies: Set<Patch<*>> = emptySet(),
+    dependencies: Set<Patch> = emptySet(),
 ): BytecodePatch {
     // Fail at bundle load, not on the user's device, when the certificate is not a certificate.
     runCatching {

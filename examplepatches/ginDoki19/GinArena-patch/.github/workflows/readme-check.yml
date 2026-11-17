@@ -1,0 +1,119 @@
+name: Check README links
+
+# The patches table links every row to a heading further down the README. Two bugs shipped
+# because nothing verified those links resolved: a wrong anchor() in the generator, and patch
+# names written as bold paragraphs instead of headings. This workflow is the tripwire.
+#
+# The scripts themselves are tested first, against fixtures, because the first version of the
+# checker got four of its five reports wrong and would have blocked good pull requests.
+#
+# The offline job runs in about two seconds (no JVM, no Gradle). The second job asks GitHub
+# itself, and is the one that settles an argument: see verify_anchors_online.py.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readme-links:
+    name: README anchors resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # No setup-python action on purpose: python3 ships on ubuntu-latest (the other
+      # workflows already call it), and every action in this repo is pinned to a SHA.
+      # Adding an unpinned action would be the odd one out.
+      - name: The README scripts still do what they promise
+        run: python3 .github/scripts/test_readme_scripts.py
+
+      - name: Every in-page link must resolve
+        run: python3 .github/scripts/check_readme_links.py README.md
+
+      # Compares the whole file, not just the table rows. It used to compare rows alone, which
+      # left the release line — version, patch count and download link — checked by nothing:
+      # a README claiming an old version and a link that 404s passed the gate green.
+      #
+      # Regenerating on a branch other than the default rewrites the branch label in the
+      # release line, which is the one difference that is expected, so it is normalised out.
+      - name: README must match patches-list.json
+        run: |
+          cp README.md /tmp/README.before
+          python3 .github/scripts/generate_patches_readme.py \
+            "${{ github.repository }}" "${{ github.ref_name }}" patches-list.json README.md
+          python3 - <<'PY'
+          import difflib
+          import re
+          import sys
+
+          BRANCH = re.compile(r'(`[^`\n]*`)(&nbsp;&nbsp;•&nbsp;&nbsp;\d+ patches total)')
+
+          def normalise(path):
+              text = open(path, encoding='utf-8').read()
+              return BRANCH.sub(r'`BRANCH`\2', text).splitlines(keepends=True)
+
+          before = normalise('/tmp/README.before')
+          after = normalise('README.md')
+          if before != after:
+              sys.stderr.writelines(
+                  difflib.unified_diff(before, after, 'committed', 'regenerated', n=1)
+              )
+              print('::error::README does not match patches-list.json. Run '
+                    'generate_patches_readme.py and commit the result.')
+              sys.exit(1)
+          print(f'README matches patches-list.json ({len(after)} lines).')
+          PY
+
+  # The job above checks the README using a Python re-implementation of GitHub's slug rules.
+  # Every anchor bug this repo has had came from that re-implementation being subtly wrong,
+  # so an independent opinion is worth a few seconds: this renders the README through GitHub's
+  # own markdown API, reads back the headings GitHub produced, and slugs them with
+  # github-slugger, the library GitHub uses. Nothing in it is a guess.
+  #
+  # If GitHub cannot be reached, the job warns instead of failing: a network blip must not
+  # block a pull request that the offline job has already cleared, and it must not look like
+  # a pass either. Exit code 3 means "could not check", and this turns it into a warning.
+  render-check:
+    name: Anchors match GitHub's own renderer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # Pinned, and installed outside the repository on purpose: the repo's own package.json
+      # and package-lock.json are left exactly as they are.
+      #
+      # A failure here is a warning, not an error. If npm is having a bad day, the check below
+      # cannot run - and "could not run" must not read as "blocked a good pull request". The
+      # script says so itself (exit 3), which the next step turns into a warning.
+      - name: Install GitHub's slugger
+        run: |
+          if npm install --prefix "$RUNNER_TEMP/slugger" --no-save --silent github-slugger@2.0.0; then
+            node --version
+            node -p "'github-slugger ' + require('$RUNNER_TEMP/slugger/node_modules/github-slugger/package.json').version"
+          else
+            echo "::warning::Could not install github-slugger, so the online anchor check will not run this time."
+          fi
+
+      - name: The online check does what it promises
+        run: python3 .github/scripts/test_verify_anchors_online.py --slugger-dir "$RUNNER_TEMP/slugger"
+
+      - name: Every in-page link must point at a heading GitHub really makes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python3 .github/scripts/verify_anchors_online.py README.md \
+            --slugger-dir "$RUNNER_TEMP/slugger"
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            echo "::warning::The online anchor check could not run - GitHub's markdown API was unreachable or rate limited. Dead links are still blocked by the offline job above; this run simply did not get a second opinion."
+            exit 0
+          fi
+          exit "$code"

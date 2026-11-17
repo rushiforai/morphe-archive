@@ -46,9 +46,12 @@ public final class HomeSuggestions {
     private static final String[] BOARD_IDEAS_CARD = {"board_id", "board_name", "header_text", "image_dominant_color_rgb"};
 
     // Story types of Home's own idea rows, as the String a story carries or the typed enum's
-    // constant name. A board's own "More ideas" tab and search keep theirs.
+    // constant name. A board's own "More ideas" tab and search keep theirs. The two upsell types are
+    // the board-tab Home's "More ideas for your board" row over the viewer's own boards, which no
+    // card shape catches (#30).
     static final Set<String> STORIES = new HashSet<>(Arrays.asList(
-            "homefeed_more_ideas_feed_story", "homefeed_more_ideas_header"));
+            "homefeed_more_ideas_feed_story", "homefeed_more_ideas_header",
+            "boards_more_ideas_feed_upsell_list_items", "boards_more_ideas_feed_upsell_list_cards"));
 
     /** Whether the switch is on and the settings can be read; never throws. */
     static boolean active() {

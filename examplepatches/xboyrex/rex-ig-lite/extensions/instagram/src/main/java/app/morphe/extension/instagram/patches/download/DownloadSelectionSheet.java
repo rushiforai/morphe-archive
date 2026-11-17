@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -10,8 +10,8 @@ import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -41,12 +41,14 @@ import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.entity.ImageData;
 import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexIcon;
 import app.morphe.extension.instagram.utils.MediaUrls;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.ui.SheetBottomDialog;
 
-final class DownloadSelectionSheet {
+public final class DownloadSelectionSheet {
     private final Context context;
     private final List<CheckBox> checks = new ArrayList<>();
     private final DownloadThumbnailLoader thumbnails = new DownloadThumbnailLoader();
@@ -54,7 +56,7 @@ final class DownloadSelectionSheet {
     private final Button download;
     private final SheetBottomDialog.SlideDialog dialog;
 
-    static void show(Context context, DownloadMediaGroup media, DialogInterface.OnDismissListener onDismiss) throws Exception {
+    public static void show(Context context, DownloadMediaGroup media, DialogInterface.OnDismissListener onDismiss) throws Exception {
         Activity activity = findActivity(context);
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
             throw new IllegalStateException("No activity available for media selection");
@@ -67,15 +69,16 @@ final class DownloadSelectionSheet {
         context = InstagramPreferenceStyle.dialogContext(activity);
         int total = media.size();
         SheetBottomDialog.DraggableLinearLayout panel = SheetBottomDialog.createMainLayout(
-                context, InstagramPreferenceStyle.backgroundColor());
+                context, InstagramPreferenceStyle.CARD_SURFACE);
         int screenHeight = activity.getWindow().getDecorView().getHeight();
         if (screenHeight <= 0) screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-        int panelHeight = Math.min((int) (screenHeight * 0.82f), dp(208 + total * 80));
+        int panelHeight = Math.min((int) (screenHeight * 0.82f), dp(220 + total * 80));
         panel.setLayoutParams(new LinearLayout.LayoutParams(-1, panelHeight));
         GradientDrawable background = new GradientDrawable();
-        background.setColor(InstagramPreferenceStyle.backgroundColor());
-        float radius = dp(12);
+        background.setColor(InstagramPreferenceStyle.CARD_SURFACE);
+        float radius = dp(24);
         background.setCornerRadii(new float[]{radius, radius, radius, radius, 0, 0, 0, 0});
+        background.setStroke(Math.max(1, dp(1)), InstagramPreferenceStyle.CARD_DIVIDER);
         panel.setBackground(background);
         panel.setOnApplyWindowInsetsListener((view, insets) -> {
             int left, right, bottom;
@@ -98,6 +101,7 @@ final class DownloadSelectionSheet {
         });
         dialog = SheetBottomDialog.createSlideDialog(context, panel, 180);
         panel.setDialog(dialog);
+        RexDialogs.attachBlurBehind(dialog, activity);
         dialog.setOnDismissListener(d -> {
             thumbnails.close();
             if (onDismiss != null) onDismiss.onDismiss(d);
@@ -110,9 +114,9 @@ final class DownloadSelectionSheet {
         LinearLayout header = new LinearLayout(context);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(20), dp(12), dp(8), 0);
-        TextView title = text(str("rex_select_media_download"), 22, true);
+        TextView title = text(str("rex_select_media_download") + " (" + total + ")", 20, true);
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        ImageButton close = iconButton(UI.DRAWABLE_CLEAR, str("rex_close"));
+        ImageButton close = tablerIconButton("x", str("rex_close"));
         close.setOnClickListener(v -> dialog.cancel());
         header.addView(close, new LinearLayout.LayoutParams(dp(48), dp(48)));
         panel.addView(header);
@@ -131,7 +135,7 @@ final class DownloadSelectionSheet {
         selectAll = new Button(context);
         selectAll.setAllCaps(false);
         selectAll.setTextSize(14);
-        selectAll.setTextColor(InstagramPreferenceStyle.primaryTextColor());
+        selectAll.setTextColor(InstagramPreferenceStyle.REX_CYAN_ACCENT);
         selectAll.setPadding(dp(12), 0, dp(12), 0);
         selectAll.setMinWidth(0);
         selectAll.setMinimumWidth(0);
@@ -152,20 +156,20 @@ final class DownloadSelectionSheet {
 
         download = new Button(context);
         download.setAllCaps(false);
-        download.setTextSize(14);
+        download.setTextSize(14.5f);
         download.setTypeface(download.getTypeface(), Typeface.BOLD);
         download.setGravity(Gravity.CENTER);
-        download.setTextColor(InstagramPreferenceStyle.backgroundColor());
+        download.setTextColor(InstagramPreferenceStyle.AMOLED_BLACK);
         download.setBackgroundTintList(null);
         GradientDrawable downloadBackground = new GradientDrawable();
-        downloadBackground.setColor(InstagramPreferenceStyle.primaryTextColor());
+        downloadBackground.setColor(InstagramPreferenceStyle.REX_CYAN_ACCENT);
         downloadBackground.setCornerRadius(dp(20));
         download.setBackground(new RippleDrawable(ColorStateList.valueOf(0x3cffffff), downloadBackground, null));
         download.setStateListAnimator(null);
         download.setElevation(0);
         download.setPadding(dp(20), 0, dp(20), 0);
-        download.setMinHeight(dp(40));
-        download.setMinimumHeight(dp(40));
+        download.setMinHeight(dp(44));
+        download.setMinimumHeight(dp(44));
         download.setOnClickListener(v -> {
             List<Integer> indexes = selectedIndexes();
             if (indexes.isEmpty()) return;
@@ -190,8 +194,8 @@ final class DownloadSelectionSheet {
         String label = str(video ? "rex_download_video_number" : "rex_download_photo_number", index + 1);
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(dp(80));
-        row.setPadding(dp(8), dp(8), dp(8), dp(8));
+        row.setMinimumHeight(dp(76));
+        row.setPadding(dp(12), dp(8), dp(12), dp(8));
         row.setContentDescription(label);
         row.setFocusable(true);
         applyPressedBackground(row);
@@ -202,10 +206,10 @@ final class DownloadSelectionSheet {
         check.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         check.setButtonTintList(new ColorStateList(
                 new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
-                new int[]{InstagramPreferenceStyle.selectionColor(), InstagramPreferenceStyle.secondaryTextColor()}));
+                new int[]{InstagramPreferenceStyle.ACTIVE_SWITCH_TEAL, InstagramPreferenceStyle.secondaryTextColor()}));
         check.setOnCheckedChangeListener((button, checked) -> refreshSelection());
         checks.add(check);
-        row.addView(check, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        row.addView(check, new LinearLayout.LayoutParams(dp(44), dp(44)));
         row.setOnClickListener(v -> check.toggle());
         row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override
@@ -221,20 +225,25 @@ final class DownloadSelectionSheet {
         image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         image.setScaleType(ImageView.ScaleType.CENTER_CROP);
         GradientDrawable background = new GradientDrawable();
-        background.setColor(InstagramPreferenceStyle.pressedBackgroundColor());
+        background.setColor(InstagramPreferenceStyle.ELEVATED_SURFACE);
         background.setCornerRadius(dp(12));
         image.setBackground(background);
         image.setClipToOutline(true);
-        UI.setThemedIcon(image, video ? "tab_clips_drawable" : "instagram_photo_outline_24");
+        image.setImageDrawable(RexIcon.getDrawable(
+                context,
+                video ? "video" : "image",
+                InstagramPreferenceStyle.primaryTextColor(),
+                22
+        ));
         row.addView(image, new LinearLayout.LayoutParams(dp(48), dp(48)));
         String thumbnail = thumbnailUrl(item);
         image.setTag(thumbnail);
 
-        TextView name = text(label, 16, true);
+        TextView name = text(label, 15, true);
         name.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         name.setPadding(dp(12), 0, dp(4), 0);
         row.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
-        ImageButton copy = iconButton("instagram_link_outline_24", str("rex_download_copy_link_for", label));
+        ImageButton copy = tablerIconButton("link", str("rex_download_copy_link_for", label));
         copy.setOnClickListener(v -> {
             try {
                 String url = item.getMediaLink();
@@ -248,11 +257,15 @@ final class DownloadSelectionSheet {
         });
         row.addView(copy, new LinearLayout.LayoutParams(dp(48), dp(48)));
         image.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override public void onViewAttachedToWindow(View view) {
+            @Override
+            public void onViewAttachedToWindow(View view) {
                 image.removeOnAttachStateChangeListener(this);
                 thumbnails.load(thumbnail, image);
             }
-            @Override public void onViewDetachedFromWindow(View view) {}
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+            }
         });
         return row;
     }
@@ -274,7 +287,6 @@ final class DownloadSelectionSheet {
     private void show() {
         Window window = dialog.getWindow();
         if (window != null) {
-            // Let this WRAP_CONTENT dialog pass navigation insets through to the sheet.
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
                     | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
@@ -298,12 +310,12 @@ final class DownloadSelectionSheet {
         dialog.show();
     }
 
-    private ImageButton iconButton(String drawable, String description) {
+    private ImageButton tablerIconButton(String iconId, String description) {
         ImageButton button = new ImageButton(context);
         applyPressedBackground(button);
         button.setPadding(dp(12), dp(12), dp(12), dp(12));
         button.setContentDescription(description);
-        UI.setThemedIcon(button, drawable);
+        button.setImageDrawable(RexIcon.getDrawable(context, iconId, InstagramPreferenceStyle.primaryTextColor(), 20));
         return button;
     }
 
@@ -316,7 +328,9 @@ final class DownloadSelectionSheet {
         return view;
     }
 
-    private int dp(int value) { return InstagramPreferenceStyle.dp(context, value); }
+    private int dp(int value) {
+        return InstagramPreferenceStyle.dp(context, value);
+    }
 
     private void applyPressedBackground(View view) {
         TypedValue value = new TypedValue();

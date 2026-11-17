@@ -24,12 +24,25 @@ import app.morphe.patcher.patch.patch
 
 private const val UK = "Lapp/kmaps/extension/kakao/UbxKakao;"
 
+private val V5 = setOf("5.17.8")
+private val V6 = setOf("6.32.0")
+
 internal val KAKAO_SITES: List<Site> = listOf(
+    // K1: 5.17.8 ValidCheckerVehicle compares against 100 ms twice (gps and fused branch)
     Site(
         cls = "src:ValidCheckerVehicle.kt", note = "K1 min fix spacing", desc = null, count = 2,
         anchor = listOf("const-wide/16 *, 0x64", "cmp-long *, *, *", "if-gez *, L"),
         ops = listOf(Op("R", 0, "const-wide/16 {A0}, 0x28")), labels = emptyMap(),
+        optional = true, requiredIn = V5,
     ),
+    // K1: 6.32 ValidChecker loads the 100 ms constant once and uses it for both branches
+    Site(
+        cls = "src:ValidChecker.kt", note = "K1 min fix spacing", desc = null, count = 1,
+        anchor = listOf("const-wide/16 *, 0x64"),
+        ops = listOf(Op("R", 0, "const-wide/16 {A0}, 0x28")), labels = emptyMap(),
+        optional = true, requiredIn = V6,
+    ),
+    // K2: 5.17.8 sets isOrigin with "move vX, vTrue" before the goto
     Site(
         cls = "src:KNGPSData.kt", note = "K2 origin 1 Hz", desc = null, count = 1,
         anchor = listOf(
@@ -43,7 +56,25 @@ internal val KAKAO_SITES: List<Site> = listOf(
         ),
         ops = listOf(Op("R", 5, "invoke-static {p1}, $UK->originGate(Landroid/location/Location;)Z\nmove-result {A5}")),
         labels = emptyMap(),
+        optional = true, requiredIn = V5,
     ),
+    // K2: 6.32 keeps "true" preset in the result register and jumps straight on; the false branch is "move vX, vFalse"
+    Site(
+        cls = "src:KNGPSData.kt", note = "K2 origin 1 Hz", desc = null, count = 1,
+        anchor = listOf(
+            "invoke-virtual {p1}, L*;->getEstimatedTimeLag()J",
+            "move-result-wide *",
+            "const-wide/16 *, 0x1f4",
+            "cmp-long *, *, *",
+            "if-gez *, L",
+            "goto L",
+            "move *, *",
+        ),
+        ops = listOf(Op("I", 5, "invoke-static {p1}, $UK->originGate(Landroid/location/Location;)Z\nmove-result {A6}")),
+        labels = emptyMap(),
+        optional = true, requiredIn = V6,
+    ),
+    // K3: 5.17.8 only - 6.32 no longer stores the previous result (fixed upstream)
     Site(
         cls = "src:KNNetworkLinkMatching.kt", note = "K3 result chain leak", desc = null, count = 1,
         anchor = listOf(
@@ -52,6 +83,7 @@ internal val KAKAO_SITES: List<Site> = listOf(
             "if-eqz p6, L",
         ),
         ops = listOf(Op("R", 1, "nop")), labels = emptyMap(),
+        optional = true, requiredIn = V5,
     ),
 )
 

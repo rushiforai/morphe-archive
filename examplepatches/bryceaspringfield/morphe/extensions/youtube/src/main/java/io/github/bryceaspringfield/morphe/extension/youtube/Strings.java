@@ -31,8 +31,26 @@ final class Strings {
         put("length_summary", "m:ss, h:mm:ss, or minutes; blank shows every length",
                 "m:ss, h:mm:ss o minutos; en blanco muestra todas las duraciones");
         put("min_views", "Hide videos with fewer views than", "Ocultar videos con menos visualizaciones que");
-        put("min_views_summary", "5000, 5k, or 1.5m; blank shows every video. Videos under a day old stay, since they have had no time to gain views",
-                "5000, 5k o 1.5m; en blanco muestra todos. Los videos de menos de un día se quedan, pues no tuvieron tiempo de sumar visualizaciones");
+        put("min_views_summary", "5000, 5k, or 1.5m; blank shows every video",
+                "5000, 5k o 1.5m; en blanco muestra todos");
+        put("views_keep_new", "Keep new videos when filtering by views", "Conservar los videos nuevos al filtrar por visualizaciones");
+        put("views_keep_new_summary", "Off: a video under a day old is hidden when it has fewer views than the number above. On: it stays, since it has had little time to gain views",
+                "Desactivado: un video de menos de un día se oculta si tiene menos visualizaciones que el número de arriba. Activado: se queda, pues tuvo poco tiempo para sumar visualizaciones");
+        put("resuggested_related", "Count suggestions under videos too", "Contar también las sugerencias bajo los videos");
+        put("resuggested_related_summary", "Not interested after repeated suggestions also runs on the videos listed under the player",
+                "No me interesa tras sugerencias repetidas también actúa en los videos de debajo del reproductor");
+        put("dislike_channels", "Dislike every video of these channels", "No me gusta en cada video de estos canales");
+        put("dislike_channels_summary", "One channel a line (a name, an @handle, or a channel link). Each video you open from one is disliked, unless it already is, and Like every video skips it",
+                "Un canal por línea (un nombre, un @identificador o un enlace). Cada video que abras de uno recibe No me gusta, salvo que ya lo tenga, y Dar Me gusta a cada video lo omite");
+        put("live_catch_up_delay", "Catch-up delay (seconds)", "Retraso para alcanzar el directo (segundos)");
+        put("live_catch_up_delay_summary", "How far behind the live edge a stream must fall before the speed starts (5 by default, 0 to 15); the speed then runs until the edge is reached. 0 keeps it on at the edge too",
+                "Cuánto debe retrasarse un directo respecto de su borde antes de acelerar (5 por defecto, de 0 a 15); la velocidad dura hasta llegar al borde. Con 0 también sigue en el borde");
+        put("audio_only_low", "Lowest video quality while listening", "Calidad de video mínima al solo escuchar");
+        put("audio_only_low_summary", "Audio only also asks for the lowest video quality, so the player fetches the least video it can; the quality returns when Audio only ends",
+                "Solo audio también pide la calidad de video mínima, para que el reproductor descargue el mínimo de video; la calidad vuelve cuando termina Solo audio");
+        put("auto_pip", "Picture in picture when leaving the app", "Imagen en imagen al salir de la app");
+        put("auto_pip_summary", "A video playing in the watch player opens in picture in picture when you go home or to another app (Android 12 and later)",
+                "Un video que se reproduce en el reproductor pasa a imagen en imagen al ir al inicio o a otra app (Android 12 y posteriores)");
         put("max_age", "Hide videos older than", "Ocultar videos de más de");
         put("max_age_summary", "Days (30), weeks (8w), months (6m), or years (2y); blank shows every age",
                 "Días (30), semanas (8w), meses (6m) o años (2y); en blanco muestra todas las edades");
@@ -109,6 +127,8 @@ final class Strings {
         put("apply_subscriptions", "Subscriptions", "Suscripciones");
         put("apply_search", "Search results", "Resultados de búsqueda");
         put("apply_related", "Videos under the player", "Videos debajo del reproductor");
+        put("apply_channel", "Channel pages", "Páginas de canales");
+        put("cat_watched_where", "Mark watched videos applies to", "Marcar videos vistos se aplica a");
         put("auto_dislike", "Mark hidden videos as not liked",
                 "Marcar los videos ocultos como no me gusta");
         put("auto_dislike_summary", "Each video the filters hide gets Not interested > Tell us why > I don't like the video",
@@ -156,8 +176,8 @@ final class Strings {
         put("dearrow_failed", "The title was not sent (no connection to DeArrow)", "No se envió el título (sin conexión con DeArrow)");
         put("dearrow_no_original", "The video's own title was not found", "No se encontró el título propio del video");
         put("live_catch_up", "Catch up to live streams", "Alcanzar el directo");
-        put("live_catch_up_summary", "A live stream 0 to 15 s behind its live edge plays faster, and stays faster at the edge (where it cannot get ahead), so it catches up again at once whenever it falls behind; a stream more than 15 s behind (rewound on purpose) is left alone",
-                "Un directo a 0 a 15 s de su borde en vivo se reproduce más rápido y sigue así en el borde (donde no puede adelantarse), por lo que se pone al día de inmediato cada vez que se retrasa; un directo a más de 15 s (retrocedido a propósito) no se toca");
+        put("live_catch_up_summary", "A live stream which falls behind its live edge by the delay below (and by at most 15 s) plays faster until it reaches the edge; a stream more than 15 s behind (rewound on purpose) is left alone. Also in the player's settings menu",
+                "Un directo que se retrasa respecto de su borde en vivo lo indicado abajo (y como máximo 15 s) se reproduce más rápido hasta llegar al borde; un directo a más de 15 s (retrocedido a propósito) no se toca. También en el menú de ajustes del reproductor");
         put("live_catch_up_speed", "Catch-up speed", "Velocidad para alcanzar el directo");
         put("live_catch_up_speed_summary", "From 1.25 to 4; 2 by default", "De 1.25 a 4; 2 por defecto");
         put("cat_playback", "Playback", "Reproducción");

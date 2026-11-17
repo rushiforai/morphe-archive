@@ -1,5 +1,11 @@
 # MiXplorer Sharing Fix
 
+> [!IMPORTANT]
+> **This repository has moved.** The MiXplorer patch is now part of
+> [ak800i/morphe-patches](https://github.com/ak800i/morphe-patches), together with patches for other apps.
+> Add that source to Morphe instead: [Add ak800i patches to Morphe](https://morphe.software/add-source?github=ak800i/morphe-patches).
+> The patch name, **Fix scoped-storage file sharing**, is unchanged. This repository is archived and gets no more updates.
+
 A Morphe patch bundle that works around scoped-storage file-sharing failures by returning null for `_data` to external apps. It applies to single-file and multi-file shares without checking the receiving app's package name. MiXplorer's own queries, filenames, sizes, MIME types, and content URI access are preserved.
 
 This independent project is not affiliated with MiXplorer or Morphe. No modified MiXplorer APK is distributed.

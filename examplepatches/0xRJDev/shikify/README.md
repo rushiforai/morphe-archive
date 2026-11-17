@@ -40,7 +40,7 @@ No app APKs, account credentials or OAuth client IDs are included. Keep any patc
 
 <h3 align="center">⭐ Boost for Reddit ⭐</h3>
 
-<p align="center"><sub><code>com.rubenmayayo.reddit</code> • Version 1.14.3 • <a href="docs/PATCHES.md">25 patches</a></sub></p>
+<p align="center"><sub><code>com.rubenmayayo.reddit</code> • Version 1.14.4 • <a href="docs/PATCHES.md">25 patches</a></sub></p>
 
 <p align="center"><img src=".github/assets/features.png" alt="Boost for Reddit features: Material You throughout. Material search. Comments. Gestures. Media. Glass. System font. Faster loading." width="100%"></p>
 
@@ -72,10 +72,10 @@ On x86_64 Linux, install Bash, Git, Python 3.12+ and a Java launcher, then run:
 
 The script downloads a pinned JDK 21, the Android SDK and official Morphe 2.1.0 sources into the ignored `.work/` folder, so no GitHub Packages credentials are needed. This may take a while on a 56k modem.
 
-To also apply every Boost patch and validate the result, supply your own original Boost 1.14.3 APK:
+To also apply every Boost patch and validate the result, supply your own original Boost 1.14.4 APK:
 
 ```bash
-BOOST_APK=/absolute/path/to/boost-1.14.3.apk ./build.sh
+BOOST_APK=/absolute/path/to/boost-1.14.4.apk ./build.sh
 ```
 
 The bundle is written to `output/shikify-1.1.1.mpp`. See [validation](docs/VALIDATION.md) and [releasing](docs/RELEASING.md).
@@ -109,6 +109,10 @@ Built with the official [Morphe patches template](https://github.com/MorpheApp/m
 ```
 
 📬 **[SIGN THE GUESTBOOK](https://github.com/0xRJDev/shikify/issues)** 📬
+
+☕ **[TIP JAR: BUY ME A COFFEE](https://ko-fi.com/shikify)** ☕
+
+<sub>Shikify is free and always will be. Boost itself is made by Ruben Mayayo: support him on <a href="https://ko-fi.com/mayayo">Ko-fi</a> too.</sub>
 
 <sub>© 1997 2026 Shikify Web Productions. All rights reserved, except the ones GPL-3.0 gives you.</sub>
 

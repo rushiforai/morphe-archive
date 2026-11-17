@@ -7,7 +7,6 @@ internal data class NPatchConfig(
     val packageName: String,
     val appComponentFactory: String,
     val injectProvider: Boolean,
-    val useMicroG: Boolean,
     val usesCleartextTraffic: Boolean,
 ) {
     companion object {
@@ -38,7 +37,7 @@ internal data class NPatchConfig(
         append("\"overrideVersionCodeValue\":1,")
         append("\"sigBypassLevel\":0,")
         append("\"useManager\":false,")
-        append("\"useMicroG\":").append(useMicroG).append(',')
+        append("\"useMicroG\":false,")
         append("\"usesCleartextTraffic\":").append(usesCleartextTraffic)
         append('}')
     }.toByteArray(StandardCharsets.UTF_8)

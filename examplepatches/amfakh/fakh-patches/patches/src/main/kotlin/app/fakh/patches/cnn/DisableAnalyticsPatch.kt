@@ -6,13 +6,13 @@ import app.fakh.patches.shared.gms.mutableClass
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /** Detik Analytics' entry points: recording a screen or an event, and pushing what was recorded. */
 private val DETIK_TRACKER_CALLS = setOf("sendEvent", "sendView", "forcePushDataToServer")
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Stops Detik Analytics and Google Analytics from recording screens and events, and turns off " +
         "Firebase Analytics, Crashlytics, Performance and Sessions.",

@@ -84,6 +84,34 @@ abstract class GenerateTvScriptsPayload : DefaultTask() {
                     pointerField = null;
                 }
 
+                // The official YouTube TV app (4.x) builds its navigation observer through the
+                // WebContentsObserver superclass, which keeps the page in a WeakReference field.
+                public static void setWebContentsFromObserver(Object observer) {
+                    try {
+                        for (Class<?> type = observer.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                            for (Field field : type.getDeclaredFields()) {
+                                if (field.getType() != java.lang.ref.WeakReference.class) continue;
+                                field.setAccessible(true);
+                                Object contents = ((java.lang.ref.WeakReference<?>) field.get(observer)).get();
+                                if (contents != null && contents != webContents) setWebContents(contents);
+                                return;
+                            }
+                        }
+                    } catch (Throwable t) {
+                        Log.w(TAG, "could not read the page from the observer", t);
+                    }
+                }
+
+                public static void onObserverNavigation(Object observer) {
+                    setWebContentsFromObserver(observer);
+                    onPageEvent("didFinishNavigation");
+                }
+
+                public static void onObserverDocument(Object observer) {
+                    setWebContentsFromObserver(observer);
+                    onPageEvent("documentElementAvailable");
+                }
+
                 public static void onPageEvent(String event) {
                     if (inject()) Log.d(TAG, "scripts injected (" + event + ")");
                 }
@@ -124,12 +152,17 @@ abstract class GenerateTvScriptsPayload : DefaultTask() {
                     return null;
                 }
 
-                private static Method findEvaluateJavaScript() throws ClassNotFoundException {
-                    Class<?> genJni = Class.forName("org.jni_zero.GEN_JNI");
-                    for (Method method : genJni.getDeclaredMethods()) {
-                        if (!method.getName().endsWith("WebContentsImpl_evaluateJavaScript")) continue;
-                        Class<?>[] parameters = method.getParameterTypes();
-                        if (parameters.length == 3 && parameters[0] == long.class) { method.setAccessible(true); return method; }
+                // YouTube for Android TV keeps the generated JNI bridge in org.jni_zero, and the
+                // official YouTube TV app in org.chromium.base.natives.
+                private static Method findEvaluateJavaScript() {
+                    for (String name : new String[] {"org.jni_zero.GEN_JNI", "org.chromium.base.natives.GEN_JNI"}) {
+                        Class<?> genJni;
+                        try { genJni = Class.forName(name); } catch (ClassNotFoundException e) { continue; }
+                        for (Method method : genJni.getDeclaredMethods()) {
+                            if (!method.getName().endsWith("WebContentsImpl_evaluateJavaScript")) continue;
+                            Class<?>[] parameters = method.getParameterTypes();
+                            if (parameters.length == 3 && parameters[0] == long.class) { method.setAccessible(true); return method; }
+                        }
                     }
                     return null;
                 }

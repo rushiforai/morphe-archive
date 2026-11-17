@@ -6,20 +6,21 @@ import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 /** The Liquid Glass switch in Settings, which turns the glass bar and the glass cards on and off. */
-private val liquidGlassSwitchPatch = resourcePatch {
+private val liquidGlassSwitchPatch = patch {
     execute {
         addSettingsSwitch("fakh_liquid_glass")
     }
 }
 
 /** The Hide tab labels switch in Settings, which hides the text under the icons of the glass bar. */
-private val hideTabLabelsSwitchPatch = resourcePatch {
+private val hideTabLabelsSwitchPatch = patch {
     execute {
         addSettingsSwitch("fakh_hide_tab_labels")
     }
@@ -37,7 +38,7 @@ private object AddTabFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val glassNavigationBarPatch = bytecodePatch(
+val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, " +
         "in the app's own colors. Slide a finger along it to switch tabs.",
@@ -60,6 +61,27 @@ val glassNavigationBarPatch = bytecodePatch(
                 "invoke-static { p0 }, Lapp/fakh/extension/smartlife/GlassNavigationBar;->install(Landroid/widget/TabHost;)V",
             )
         }
+    }
+}
+
+@Suppress("unused")
+val swipeTabsPatch = patch(
+    name = "Swipe between tabs",
+    description = "Swipe sideways to go to the next or previous tab of the navigation bar. Where Scene shows " +
+        "Automation and Tap-to-Run as tabs, it switches between them first.",
+) {
+    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
+    category("Feature")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_swipe_tabs"), settingsSwitchesPatch)
+
+    execute {
+        // p0 is only read. The glass bar's call at the returns stays valid: this one goes in at the start, where
+        // the tab host's widget already exists.
+        AddTabFingerprint.method.addInstructions(
+            0,
+            "invoke-static { p0 }, Lapp/fakh/extension/smartlife/Switches;->swipeTabs(Landroid/widget/TabHost;)V",
+        )
     }
 }
 
@@ -106,7 +128,7 @@ private object CreateCardFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val glassCardsPatch = bytecodePatch(
+val glassCardsPatch = patch(
     name = "Glass cards",
     description = "Draws the cards on the Home tab as glass in the app's own colors, and gives the weather card a glass edge over its weather background.",
 ) {

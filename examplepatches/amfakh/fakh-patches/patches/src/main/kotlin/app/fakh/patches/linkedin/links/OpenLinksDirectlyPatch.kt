@@ -8,7 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 
 private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/OpenLinksDirectlyPatch;"
@@ -29,7 +29,7 @@ private object MessagingLinkShimFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val openLinksDirectlyPatch = bytecodePatch(
+val openLinksDirectlyPatch = patch(
     name = "Open links directly",
     description = "Opens external links without LinkedIn's safety/go warning page.",
     default = true

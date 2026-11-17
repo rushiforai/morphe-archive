@@ -28,6 +28,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_new_indicator_days_title">नई सेटिंग्स को हाइलाइट करें</string>
   <string name="morphe_settings_new_indicator_days_summary">दिनों की संख्या जब अपडेट द्वारा जोड़ी गई सेटिंग्स और विकल्पों के बगल में एक डॉट दिखाया जाता है</string>
   <string name="morphe_settings_new_indicator_days_off">बंद</string>
+  <string name="morphe_settings_new_indicator_clear_title">सभी सेटिंग्स को देखा गया चिह्नित करें</string>
+  <string name="morphe_settings_new_indicator_clear_summary">सभी नई सेटिंग्स और विकल्पों से डॉट हटाएँ</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_title">क्या सभी सेटिंग्स को देखा गया चिह्नित करें?</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_message">सभी नई सेटिंग्स और विकल्पों से डॉट हटा दिया गया है। भविष्य के अपडेट द्वारा जोड़ी गई सेटिंग्स अभी भी हाइलाइट रहेंगी।</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">सेटिंग को पूरा करने के लिए रीस्टार्ट करें</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -67,6 +71,13 @@ Second \"item\" text"</string>
 
 पुष्टि करें कि पैकेज नाम सही है और ऐप इंस्टॉल है"</string>
   <string name="morphe_external_downloader_empty_warning">पैकेज का नाम खाली नहीं हो सकता</string>
+  <string name="morphe_export_download_folder_dialog_title">एक्सपोर्ट फ़ोल्डर</string>
+  <string name="morphe_export_download_folder_change">फ़ोल्डर बदलें</string>
+  <string name="morphe_export_download_folder_changed">एक्सपोर्ट फ़ोल्डर बदल दिया गया</string>
+  <string name="morphe_export_download_folder_reset">एक्सपोर्ट फ़ोल्डर रीसेट किया गया</string>
+  <string name="morphe_export_download_folder_missing">एक्सपोर्ट फ़ोल्डर %s नहीं मिल सका</string>
+  <string name="morphe_export_download_flyout_title">डिवाइस पर एक्सपोर्ट करें</string>
+  <string name="morphe_export_download_canceled">एक्सपोर्ट रद्द कर दिया गया</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">कस्टम</string>
   <string name="morphe_custom_branding_icon_title">ऐप आइकन</string>
@@ -102,7 +113,7 @@ Second \"item\" text"</string>
   <string name="morphe_spoof_video_streams_summary">"अधिकांश उपयोगकर्ताओं के लिए प्लेबैक समस्याओं को ठीक करने के लिए संगत वीडियो स्ट्रीम का अनुरोध करता है।
 
 यदि आप YouTube Premium उपयोगकर्ता हैं, तो यह सेटिंग आवश्यक नहीं हो सकती है।"</string>
-  <string name="morphe_spoof_video_streams_no_clients_toast">कोई क्लायंट स्ट्रीम्स प्राप्त नहीं किए गए</string>
+  <string name="morphe_spoof_video_streams_no_clients_toast">कोई क्लाइंट स्ट्रीम प्राप्त नहीं हुई</string>
   <!-- 'Default client' must use the same translation as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_client_failing_dialog_title">डिफ़ॉल्ट क्लाइंट काम नहीं करता है</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_message">"%1$s ने लगातार कई बार काम नहीं किया, लेकिन %2$s ने काम किया।
@@ -110,42 +121,78 @@ Second \"item\" text"</string>
 क्या %2$s को डिफ़ॉल्ट क्लाइंट बनाया जाए?"</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_switch">बदलें</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">इस सेटिंग को बंद करने से प्लेबैक में समस्या उत्पन्न हो सकती है</string>
+  <!-- "Android System WebView" is the name of the Android app and should not be translated. -->
+  <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"Android System WebView बंद है या इंस्टॉल नहीं है।
+
+वीडियो प्लेबैक के लिए Android System WebView की आवश्यकता है। इसे चालू करें और नवीनतम वर्ज़न में अपडेट करें।
+
+Android System WebView खोलने के लिए OK पर टैप करें।"</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"Android System WebView पुराना हो गया है (वर्ज़न %s)।
+
+जब तक Android System WebView को नवीनतम वर्ज़न में अपडेट नहीं किया जाता, तब तक वीडियो प्लेबैक विफल हो सकता है।
+
+Android System WebView खोलने के लिए OK पर टैप करें।"</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_ignore">दोबारा न दिखाएँ</string>
+  <string name="morphe_spoof_video_streams_webview_toast_not_installed">Android System WebView इंस्टॉल नहीं है। वीडियो प्लेबैक को ठीक करने के लिए इसे इंस्टॉल करें</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
          "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
   <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">सुझाव: वीडियो स्ट्रीम्स को फर्ज़ करें > एंड्रॉइड वीआर साइन इन करें</string>
   <string name="morphe_spoof_video_streams_client_type_title">डिफ़ॉल्ट क्लायंट</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">एंड्रॉइड वीआर साइन इन करें</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">एंड्रॉइड वीआर में साइन इन नहीं किया गया है। यहां क्लिक करें साइन इन करने के लिए</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR के लिए अलग से साइन-इन की आवश्यकता है। जारी रखने के लिए यहाँ टैप करें</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">वर्तमान में एंड्रॉइड वीआर में साइन इन किया गया है</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">इस सुविधा का उपयोग करने के लिए, \'डिफ़ॉल्ट क्लायंट\' को एंड्रॉइड वीआर पर बदलें</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">एंड्रॉइड वीआर में साइन इन करें</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"एंड्रॉइड VR में साइन इन करना कुछユज़र्स के प्लेबैक प्रॉब्लम को ठीक कर सकता है
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"एंड्रॉइड VR में साइन इन करने से कुछ उपयोगकर्ताओं की प्लेबैक समस्याएं ठीक हो सकती हैं
 
-साइन इन करने के लिए, नीचे दिए गए बटन पर प्रेस करें"</string>
+साइन इन करने के लिए नीचे जारी रखें बटन दबाएं"</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">साइन आउट</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">इंस्ट्रक्शंस</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">निर्देश</string>
   <!-- "Open website" must use the same translation as gms_core_dialog_open_website_text -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"एक्टिवेशन कोड: %s
 
-1. 'कनेक्ट ए डिवाइस' वेबसाइट खोलने के लिए नीचे दिए गए बटन पर क्लिक करें
-2. ऊपर दिए गए एक्टिवेशन कोड को क्लिपबोर्ड से पेस्ट करें (या टाइप करें)
-3. यदि आपके पास मल्टीपल अकाउंट हैं, तो इस यूट्यूब अकाउंट को चुनें
-4. 'यूट्यूब वीआर' तक्सेस अनुमति दें
-5. 'डिवाइस कनेक्टेड' संदेश दिखने पर इस एप्लिकेशन पर वापस आएं"</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">एक्टिवेशन कोड जारी करना असमर्थित हुआ</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">एथेंटिकेशन टोकन जारी करना असमर्थित हुआ</string>
+1. 'Connect a device' वेबसाइट खोलने के लिए नीचे 'Open website' बटन पर क्लिक करें
+2. ऊपर दिखाया गया एक्टिवेशन कोड क्लिपबोर्ड से पेस्ट करें (या टाइप करें)
+3. कहे जाने पर Google में साइन इन करें। कई खाते हों तो यही YouTube खाता चुनें
+4. 'YouTube VR' को एक्सेस की अनुमति दें
+5. 'डिवाइस कनेक्टेड' संदेश दिखने के बाद इस ऐप पर वापस आएं"</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">एक्टिवेशन कोड जारी नहीं हो सका</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">प्रमाणीकरण टोकन जारी नहीं हो सका</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">सफलतापूर्वक साइन इन किया गया</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"अथेंटिकेशन सहेजा गया है
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"प्रमाणीकरण सहेजा गया
 
-• आपकी मोरफ सेटिंग्स एंड्रॉइड वीआर अथेंटिकेशन को आयात/निर्यात नहीं करती हैं
-• यदि यह एप्लिकेशन छह महीने के लिए अनुपयोग में रहा, तो गूगल यह अथेंटिकेशन हटा देगा
-• यदि आप अपनी गूगल पासवर्ड बदलते हैं या अपने गूगल सेटिंग्स में इस डिवाइस को डेरेजिस्टर करते हैं, तो आपको फिर से साइन इन करना पड़ेगा"</string>
-  <string name="morphe_oauth2_connection_failure_timeout">ओएथेंटिकेशन अस्थायी रूप से उपलब्ध नहीं है (एपीआई टाइम आउट)</string>
-  <string name="morphe_oauth2_connection_failure_status_400">एंड्रॉइड VR साइन इन की तारीख समाप्त हो गई है, VR में फिर से साइन इन करें</string>
+• आपकी Morphe सेटिंग्स Android VR प्रमाणीकरण को आयात/निर्यात नहीं करती हैं
+• यदि यह ऐप 6 महीने तक उपयोग में न आए तो Google यह प्रमाणीकरण हटा देगा
+• यदि आप अपना Google पासवर्ड बदलते हैं या अपनी Google सेटिंग्स में इस डिवाइस को हटाते हैं, तो आपको फिर से साइन इन करना होगा"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_title">मोबाइल वेब साइन इन</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary">वैकल्पिक: अपने अकाउंट से वीडियो चलाने के लिए YouTube वेबसाइट पर साइन इन करें। जारी रखने के लिए यहां टैप करें</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_signed_in">वर्तमान में मोबाइल वेब पर साइन इन है</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_disabled">इस फीचर का उपयोग करने के लिए, \'डिफ़ॉल्ट क्लाइंट\' को मोबाइल वेब में बदलें</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_title">मोबाइल वेब में साइन इन करें</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_not_signed_in_message">"मोबाइल वेब वीडियो को साइन आउट होकर, या YouTube वेबसाइट पर साइन इन करके चलाता है
+
+• साइन इन होने पर, उन वीडियो को चलाया जा सकता है जिनके लिए अकाउंट की ज़रूरत होती है, जैसे कि आयु-प्रतिबंधित वीडियो
+• इस ऐप में Google साइन-इन पेज खुलता है
+• साइन-इन का उपयोग केवल आपके द्वारा चलाए जाने वाले वीडियो प्राप्त करने के लिए किया जाता है
+• साइन-इन केवल इस डिवाइस पर सहेजा जाता है
+
+साइन इन करने के लिए, नीचे जारी रखें दबाएं"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_success_dialog_message">"साइन-इन सहेजा गया
+
+• आपकी Morphe सेटिंग्स मोबाइल वेब साइन-इन को इम्पोर्ट/एक्सपोर्ट नहीं करेंगी
+• यदि Google साइन-इन समाप्त कर देता है, तो जब तक आप फिर से साइन इन नहीं करते, वीडियो साइन आउट होकर चलाए जाते हैं
+• साइन आउट करने से यह डिवाइस YouTube वेबसाइट से भी साइन आउट हो जाता है"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_expired">मोबाइल वेब साइन इन की अवधि समाप्त हो गई है, मोबाइल वेब में फिर से साइन इन करने का प्रयास करें</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_signed_out">मोबाइल वेब से साइन आउट कर दिया गया</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_webview_missing">Android System WebView उपलब्ध नहीं है। साइन इन करने के लिए इसे इंस्टॉल या सक्षम करें</string>
+  <string name="morphe_oauth2_connection_failure_timeout">OAuth2 अस्थायी रूप से उपलब्ध नहीं है (API टाइमआउट)</string>
+  <string name="morphe_oauth2_connection_failure_status_400">एंड्रॉइड VR साइन इन की अवधि समाप्त हो गई है, VR में फिर से साइन इन करें</string>
   <string name="morphe_oauth2_connection_failure_status">OAuth2 अस्थायी रूप से अनुपलब्ध है (स्थिति %s)</string>
-  <string name="morphe_oauth2_connection_failure_generic">ओएथेंटिकेशन अस्थायी रूप से उपलब्ध नहीं है</string>
+  <string name="morphe_oauth2_connection_failure_generic">OAuth2 अस्थायी रूप से उपलब्ध नहीं है</string>
   <string name="morphe_oauth2_connection_failure_auth_not_approved">VR में साइन इन नहीं हो पा रहा है, वेबसाइट प्रमाणीकरण मंजूर नहीं किया गया था</string>
   <string name="morphe_oauth2_connection_failure_auth_error">VR में प्रवेश नहीं किया जा सकता: %s</string>
   <string name="morphe_oauth2_toast_reset">एंड्रॉइड वीआर से लॉग आउट किया गया</string>
@@ -165,7 +212,7 @@ Second \"item\" text"</string>
   <string name="morphe_seek_notification_media_fast_forward_length_summary">अगले बटन से फास्ट-फॉरवर्ड करने के लिए सेकंड</string>
   <string name="morphe_seek_notification_media_length_invalid">खोज लंबाई 1 और %s सेकंड के बीच होनी चाहिए। डिफ़ॉल्ट का उपयोग किया जा रहा है</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
-  <string name="morphe_disable_quic_protocol_title">QUIC प्रोटोकॉल को अक्षम करना</string>
+  <string name="morphe_disable_quic_protocol_title">QUIC प्रोटोकॉल अक्षम करें</string>
   <!-- misc.audio.drc.disableDRCAudioPatch  -->
   <string name="morphe_disable_drc_audio_title">DRC ध्वनि बंद करें</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
@@ -196,25 +243,41 @@ Second \"item\" text"</string>
   <string name="morphe_proxy_allow_direct_fallback_title">प्रत्यक्ष फ़ॉलबैक की अनुमति दें</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">यदि प्रॉक्सी विफल हो जाती है तो सीधे कनेक्ट करें</string>
   <!-- ad.hideFullscreenAdsPatch -->
-  <string name="morphe_hide_fullscreen_ads_title">छुपाएं फुलस्क्रीन विज्ञापन</string>
+  <string name="morphe_hide_fullscreen_ads_title">फुलस्क्रीन विज्ञापन छुपाएं</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
           'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <string name="morphe_force_original_audio_not_available">इस सुविधा का उपयोग करने के लिए, \'वीडियो स्ट्रीम स्पूफ\' को \'Android Studio\' और \'Android VR Downgraded\' को छोड़कर किसी भी क्लाइंट में बदलें।</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">शेयरिंग लिंक्स को साफ़ करें</string>
   <string name="morphe_sanitize_sharing_links_summary">साझा लिंक से ट्रैकिंग क्वेरी पैरामीटर हटाता है</string>
-  <string name="morphe_replace_music_with_youtube_title">शेयर लिंक्स को यूट्यूब कॉम पर बदलें</string>
+  <string name="morphe_replace_music_with_youtube_title">शेयर लिंक्स को youtube.com पर बदलें</string>
   <string name="morphe_replace_music_with_youtube_summary">साझा लिंक में music.youtube.com को youtube.com से बदलता है।</string>
   <string name="morphe_replace_links_with_shortener_title">youtu.be के साथ शेयर लिंक बदलें</string>
   <string name="morphe_replace_links_with_shortener_summary">वीडियो को संक्षिप्त youtu.be URL प्रारूप का उपयोग करने के लिए बाध्य करता है</string>
+  <!-- video.quality.rememberVideoQualityPatch -->
+  <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
+  <string name="morphe_video_quality_default_entry_1">स्वचालित</string>
+  <string name="morphe_remember_video_quality_last_selected_title">वीडियो क्वालिटी याद रखें</string>
+  <string name="morphe_remember_video_quality_last_selected_summary">आपके मैन्युअल क्वालिटी चयन को सभी भविष्य के वीडियो पर लागू करता है</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_title">क्वालिटी बदलने के नोटिफ़िकेशन</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_summary">जब एक नई डिफ़ॉल्ट क्वालिटी सेव की जाती है तब एक नोटिफ़िकेशन दिखाता है</string>
+  <string name="morphe_video_quality_default_wifi_title">Wi-Fi नेटवर्क पर डिफ़ॉल्ट वीडियो क्वालिटी</string>
+  <string name="morphe_video_quality_default_mobile_title">मोबाइल नेटवर्क पर डिफ़ॉल्ट वीडियो क्वालिटी</string>
+  <string name="morphe_remember_video_quality_toast_mobile">डिफ़ॉल्ट मोबाइल क्वालिटी बदलकर %s कर दी गई</string>
+  <string name="morphe_remember_video_quality_toast_wifi">डिफ़ॉल्ट Wi-Fi क्वालिटी बदलकर %s कर दी गई</string>
+  <!-- misc.sharesheet.openSystemShareSheetPatch -->
+  <string name="morphe_open_system_share_sheet_title">सिस्टम शेयर शीट खोलें</string>
+  <string name="morphe_open_system_share_sheet_summary">कंटेंट शेयर करते समय इन-ऐप शेयर शीट के बजाय सिस्टम शेयर शीट खोलता है</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">डीबग लॉग प्रोटोकॉल बफर</string>
-  <string name="morphe_debug_protobuffer_summary">डेवलपर्स को ऐप घटकों की पहचान करने के लिए अतिरिक्त लॉगिंग जानकारी जोड़ता है</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"इस सेटिंग को सक्षम करने से अतिरिक्त लेआउट डेटा रिकॉर्ड होगा, जिसमें कुछ यूआई घटकों के स्क्रीन पर पाठ शामिल होंगे。
+  <string name="morphe_debug_litho_title">लिथो लॉगिंग</string>
+  <string name="morphe_debug_litho_entry_disabled">बंद किया गया</string>
+  <string name="morphe_debug_litho_entry_path">पाथ</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">पाथ और बफ़र</string>
+  <string name="morphe_debug_litho_user_dialog_message">"Litho logging ऐप के लेआउट घटकों को लॉग करता है, जिसमें कुछ UI घटकों के लिए ऑन-स्क्रीन टेक्स्ट शामिल है।
 
-यह कस्टम फ़िल्टर बनाने के लिए घटकों को पहचानने में मदद करेगा。
+यह कस्टम फ़िल्टर बनाते समय घटकों की पहचान करने में मदद कर सकता है।
 
-लेकिन, इसका सक्षम करना भी कुछ उपयोगकर्ता डेटा जैसे आपके आईपी पते को रिकॉर्ड करेगा"</string>
+हालाँकि, इससे कुछ उपयोगकर्ता डेटा भी लॉग होगा जैसे कि आपका आईपी पता"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">कस्टम फ़िल्टर</string>
   <string name="morphe_custom_filter_screen_summary">किसी भी घटक को छिपाने के लिए कस्टम फ़िल्टर कॉन्फ़िगर करें</string>
@@ -296,7 +359,9 @@ PotHelper डाउनलोड करने के लिए यहां ट�
   <string name="morphe_ryd_estimated_like_summary">उन वीडियो पर अनुमानित लाइक गिनती दिखाता है जहाँ निर्माता ने लाइक को अक्षम कर दिया है</string>
   <string name="morphe_ryd_toast_on_connection_error_title">कनेक्शन त्रुटि अलर्ट दिखाएँ</string>
   <string name="morphe_ryd_toast_on_connection_error_summary">जब Return YouTube Dislike सर्वर अनुपलब्ध हो तो एक सूचना दिखाता है</string>
-  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike 2021 में YouTube ने जो नापसंद गणनाएँ छिपाई थीं, उन्हें पुनर्स्थापित करता है। गणनाएँ हटाने से पहले संग्रहीत डेटा से आती हैं और नए वीडियो के लिए उसके उपयोगकर्ताओं के वोटों से अनुमानित की जाती हैं, इसलिए वे अनुमानित हैं और कुछ दिनों में अपडेट होती हैं\n\nआपके द्वारा देखे गए वीडियो की ID Return YouTube Dislike API को भेजी जाती है, और आपकी पसंद और नापसंद अनाम रूप से भेजी जाती हैं ताकि अनुमानों में सुधार हो सके"</string>
+  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike 2021 में YouTube ने जो नापसंद गणनाएँ छिपाई थीं, उन्हें पुनर्स्थापित करता है। ये गणनाएँ हटाए जाने से पहले के संग्रहीत डेटा से आती हैं और नए वीडियो के लिए उपयोगकर्ताओं के वोटों से अनुमानित की जाती हैं, इसलिए वे अनुमानित हैं और कुछ दिनों में अपडेट होती हैं
+
+आपके द्वारा देखे गए वीडियो की ID Return YouTube Dislike API को भेजी जाती है, और आपकी पसंद और नापसंद अनाम रूप से भेजी जाती हैं ताकि अनुमानों में सुधार हो सके"</string>
   <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
   <string name="morphe_ryd_statistics_category_title">इस डिवाइस के Return YouTube Dislike API आँकड़े</string>
   <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">एपीआई प्रतिक्रिया समय, औसत</string>

@@ -136,6 +136,12 @@ public class SwipeControlsHostActivity extends Activity {
     public boolean dispatchTouchEvent(MotionEvent ev) {
         ensureInitialized();
         if (gesture.submitTouchEvent(ev)) {
+            // The consumed event does not reach Activity.dispatchTouchEvent, which reports the
+            // user interaction. Without it YouTube thinks the user is idle and stops the autoplay
+            // countdown at the end of the video.
+            if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                onUserInteraction();
+            }
             return true;
         }
         return super.dispatchTouchEvent(ev);
@@ -145,6 +151,8 @@ public class SwipeControlsHostActivity extends Activity {
     public boolean dispatchKeyEvent(KeyEvent ev) {
         ensureInitialized();
         if (keys.onKeyEvent(ev)) {
+            // Activity.dispatchKeyEvent reports the user interaction for every key event.
+            onUserInteraction();
             return true;
         }
         return super.dispatchKeyEvent(ev);
@@ -156,6 +164,7 @@ public class SwipeControlsHostActivity extends Activity {
      * @param event The event to dispatch.
      * @return Whether the event was consumed.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean dispatchDownstreamTouchEvent(MotionEvent event) {
         return super.dispatchTouchEvent(event);
     }
@@ -196,7 +205,7 @@ public class SwipeControlsHostActivity extends Activity {
     /**
      * Ensures that swipe controllers are initialized and attached.
      * On some ROMs with SDK <= 23, {@link #onCreate} and {@link #onStart} may not be called correctly.
-     * See https://github.com/revanced/revanced-patches/issues/446
+     * See <a href="https://github.com/revanced/revanced-patches/issues/446">revanced-patches issue 446</a>
      */
     private void ensureInitialized() {
         if (config == null) {
@@ -216,7 +225,7 @@ public class SwipeControlsHostActivity extends Activity {
         config = new SwipeControlsConfigurationProvider();
         keys = new VolumeKeysController(this);
         audio = createAudioController();
-        screen = createScreenController();
+        screen = config.isBrightnessControlEnabled() ? new ScreenBrightnessController(this) : null;
 
         // create overlay
         overlay = new SwipeControlsOverlayLayout(this, config);
@@ -234,7 +243,9 @@ public class SwipeControlsHostActivity extends Activity {
         });
 
         // create the gesture controller
-        gesture = createGestureController();
+        gesture = config.shouldEnablePressToSwipe()
+                ? new PressToSwipeController(this)
+                : new ClassicSwipeController(this);
 
         // listen for changes in the player type
         playerTypeObserver = this::onPlayerTypeChanged;
@@ -317,25 +328,6 @@ public class SwipeControlsHostActivity extends Activity {
         }
         AudioVolumeController controller = new AudioVolumeController(this);
         return controller.isAvailable() ? controller : null;
-    }
-
-    /**
-     * Creates the screen brightness controller instance.
-     */
-    @Nullable
-    private ScreenBrightnessController createScreenController() {
-        return config.isBrightnessControlEnabled()
-                ? new ScreenBrightnessController(this)
-                : null;
-    }
-
-    /**
-     * Creates the gesture controller based on settings.
-     */
-    private GestureController createGestureController() {
-        return config.shouldEnablePressToSwipe()
-                ? new PressToSwipeController(this)
-                : new ClassicSwipeController(this);
     }
 
     /**

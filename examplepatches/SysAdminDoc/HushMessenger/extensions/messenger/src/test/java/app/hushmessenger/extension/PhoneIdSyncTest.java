@@ -53,7 +53,7 @@ public class PhoneIdSyncTest {
         assertTrue(Settings.installed.contains("phone_id_sync"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("phone_id_sync")).findFirst().orElseThrow();
         assertEquals("Stop app list and device ID sharing", row[1]);
-        assertEquals("privacy", row[3]);
+        assertEquals("tracking", row[3]);
         assertTrue(SettingsActivity.EXPERIMENTAL.contains("phone_id_sync"));
         assertFalse(Settings.preferences.contains("phone_id_sync"));
         assertFalse(Settings.wouldUse("phone_id_sync"));

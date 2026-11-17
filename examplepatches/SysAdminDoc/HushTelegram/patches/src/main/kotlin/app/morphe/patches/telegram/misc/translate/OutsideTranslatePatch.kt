@@ -189,7 +189,7 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     for (name in listOf("messageType", "id")) controlHook(OUTSIDE_TRANSLATE, name, listOf(OBJECT), "I")
     for (name in listOf("dialog", "chatDialog", "owner", "chatOwner")) controlHook(OUTSIDE_TRANSLATE, name, listOf(OBJECT), "J")
     controlHook(OUTSIDE_TRANSLATE, "entities", listOf(OBJECT), LIST)
-    controlHook(OUTSIDE_TRANSLATE, "applyTranslated", listOf(OBJECT, "Ljava/lang/String;", "Ljava/lang/String;"), "V")
+    controlHook(OUTSIDE_TRANSLATE, "applyTranslated", listOf(OBJECT, "Ljava/lang/String;", "Ljava/lang/String;", LIST), "V")
     controlHook(OUTSIDE_TRANSLATE, "notifyTranslated", listOf(OBJECT), "V")
     controlHook(OUTSIDE_TRANSLATE, "notifyDialog", listOf("J"), "V")
     controlHook(OUTSIDE_TRANSLATE, "translateIcon", listOf(), "I")
@@ -427,12 +427,15 @@ internal fun BytecodePatchContext.writeOutsideTranslateStubs(site: OutsideTransl
         return v0
     """)
     // The translation goes in the fields Telegram's own layout reads, with the flag set while the text is laid out so its
-    // entities are the translation's, which are none.
-    writeStub(OUTSIDE_TRANSLATE, "applyTranslated", 5, """
+    // entities are the translation's: the formatting the extension carried over, or none.
+    writeStub(OUTSIDE_TRANSLATE, "applyTranslated", 6, """
         check-cast p0, $MESSAGE_OBJECT
         new-instance v0, $TL_TEXT
         invoke-direct {v0}, $TL_TEXT-><init>()V
         iput-object p1, v0, $TL_TEXT->text:Ljava/lang/String;
+        if-eqz p3, :no_entities
+        iput-object p3, v0, $TL_TEXT->entities:$LIST
+        :no_entities
         iget-object v1, p0, $MESSAGE_OBJECT->messageOwner:$TL_MESSAGE
         iput-object v0, v1, $TL_MESSAGE->translatedText:$TL_TEXT
         iput-object p2, v1, $TL_MESSAGE->translatedToLanguage:Ljava/lang/String;

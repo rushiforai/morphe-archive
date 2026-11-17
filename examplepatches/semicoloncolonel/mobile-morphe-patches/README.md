@@ -1,6 +1,6 @@
 # Mobile Morphe Patches
 
-[![Latest release](https://img.shields.io/github/v/release/semicoloncolonel/mobile-morphe-patches?label=release&color=4f46e5)](https://github.com/semicoloncolonel/mobile-morphe-patches/releases/latest) [![81 supported apps](https://img.shields.io/badge/apps-81-0ea5e9)](docs/apps.md) [![7 apps also on Android TV](https://img.shields.io/badge/Android_TV-7_apps-14b8a6)](docs/android-tv.md) [![License: GPL-3.0](https://img.shields.io/github/license/semicoloncolonel/mobile-morphe-patches?color=64748b)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/semicoloncolonel/mobile-morphe-patches?label=release&color=4f46e5)](https://github.com/semicoloncolonel/mobile-morphe-patches/releases/latest) [![83 supported apps](https://img.shields.io/badge/apps-83-0ea5e9)](docs/apps.md) [![20 apps on Android TV](https://img.shields.io/badge/Android_TV-20_apps-14b8a6)](docs/android-tv.md) [![License: GPL-3.0](https://img.shields.io/github/license/semicoloncolonel/mobile-morphe-patches?color=64748b)](LICENSE)
 
 Morphe patches that remove ads and block tracking in the phone versions of streaming, news, social, shopping, carrier, and government apps.
 
@@ -8,6 +8,8 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
   <a href="https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches"><img alt="Add to Morphe Manager" src="https://img.shields.io/badge/%2B_Add_to-Morphe_Manager-4f46e5?style=for-the-badge"></a>
   <br>
   <sub>Open this link on your phone with Morphe Manager installed.</sub>
+  <br><br>
+  <a href="https://morphe.software/add-source?github=semicoloncolonel/tv-morphe-patches"><img alt="Add the Android TV patches to Morphe Manager" src="https://img.shields.io/badge/%2B_Add_the-Android_TV_patches-14b8a6?style=flat-square"></a>
 </p>
 
 <p align="center">
@@ -21,7 +23,7 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 </p>
 
 > [!NOTE]
-> Some patches are phone ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches), and the original hook designs are their work. For Android TV apps that this project does not list, use the original project.
+> **The Android TV patches have moved to their own source, [TV Morphe Patches](https://github.com/semicoloncolonel/tv-morphe-patches).** The pre-releases of this source no longer include them. Its 1.1.0 release is the last stable release that does: from 1.2.0, the Android TV patches are only in the TV source.
 >
 > This project focuses on phone apps that no other patch source covers. The [Morphe patches site](https://morphe-patches.software/) lists the patches from every source, so search it to see what else exists before you request an app. If another source already patches the app you want, please ask its author for updates or new patches.
 >
@@ -42,11 +44,12 @@ On a TV, patch the Android TV build of the app. [Android TV](docs/android-tv.md)
 | Category | Apps |
 |----------|------|
 | [Streaming](docs/apps.md#streaming) | 29 |
-| [News](docs/apps.md#news) | 21 |
+| [News](docs/apps.md#news) | 23 |
 | [Social](docs/apps.md#social) | 1 |
 | [Government](docs/apps.md#government) | 6 |
-| [Shopping](docs/apps.md#shopping) | 15 |
+| [Shopping](docs/apps.md#shopping) | 16 |
 | [Carriers](docs/apps.md#carriers) | 7 |
+| [Utilities](docs/apps.md#utilities) | 1 |
 
 ## What the patches do
 
@@ -63,6 +66,10 @@ On a TV, patch the Android TV build of the app. [Android TV](docs/android-tv.md)
 
 The patches do not currently remove paywalls or unlock paid content.
 
+## Credits
+
+Some patches are phone ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches), and the original hook designs are their work. For Android TV apps that neither this source nor [TV Morphe Patches](https://github.com/semicoloncolonel/tv-morphe-patches) lists, use the original project. [NOTICE](NOTICE) lists every project these patches build on.
+
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or sponsored by any of the companies whose apps it patches. All app names and trademarks belong to their owners and are used here only to identify the apps.
@@ -71,4 +78,4 @@ This project does not distribute any app, APK, or app code. The patches modify a
 
 ## License
 
-GPL-3.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for credits.
+GPL-3.0. See [LICENSE](LICENSE).

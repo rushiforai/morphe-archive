@@ -42,6 +42,7 @@ public class KeepDeletedTest {
     private static final KeepDeleted.Persist REAL_PERSIST = KeepDeleted.persist;
     private static final KeepDeleted.Keys REAL_KEYS = KeepDeleted.keys;
     private static final KeepDeleted.Accounts REAL_ACCOUNTS = KeepDeleted.accounts;
+    private static final java.util.function.LongSupplier REAL_CLOCK = KeepDeleted.clock;
     private static final long SELF = 99;
     private static final long CHANNEL = -1000000000042L;
 
@@ -63,10 +64,13 @@ public class KeepDeletedTest {
         Settings.KEEP_DELETED_MESSAGES.resetToDefault();
         SettingReadsForTests.mend(Settings.RED_DELETED_LABEL);
         Settings.RED_DELETED_LABEL.resetToDefault();
+        Settings.KEEP_OWN_DELETED.resetToDefault();
+        Settings.KEEP_DELETED_DAYS.resetToDefault();
         KeepDeleted.measuring(null);
         KeepDeleted.persist = REAL_PERSIST;
         KeepDeleted.keys = REAL_KEYS;
         KeepDeleted.accounts = REAL_ACCOUNTS;
+        KeepDeleted.clock = REAL_CLOCK;
         KeepDeleted.STOCK.remove();
         KeepDeleted.forgetAllForTests();
         HookStatus.clear();
@@ -100,6 +104,36 @@ public class KeepDeletedTest {
         assertFalse(KeepDeleted.isKept(SELF, SELF, 6));
         assertEquals("your own, timed, protected, saved-messages and unknown ones go the stock way",
                 Arrays.asList("0:[2, 3, 4, 5, 6]:0"), telegram.stock);
+    }
+
+    @Test public void withYourOwnOnAChatDeletedForBothKeepsYourMessagesToo() {
+        Settings.KEEP_DELETED_MESSAGES.save(true);
+        Settings.KEEP_OWN_DELETED.save(true);
+        Fake telegram = new Fake(
+                new KeepDeleted.Row(10, 1, false, false, false),
+                new KeepDeleted.Row(10, 2, true, false, false),
+                new KeepDeleted.Row(10, 3, true, true, false),
+                new KeepDeleted.Row(10, 4, true, false, true),
+                new KeepDeleted.Row(SELF, 6, true, false, false));
+        assertTrue(KeepDeleted.start(telegram, 0, ids(1, 2, 3, 4, 6), 0));
+        telegram.posted.get(0).run();
+
+        assertTrue("theirs", KeepDeleted.isKept(SELF, 10, 1));
+        assertTrue("and yours", KeepDeleted.isKept(SELF, 10, 2));
+        assertEquals("timed, protected and saved messages still go the stock way",
+                Arrays.asList("0:[3, 4, 6]:0"), telegram.stock);
+    }
+
+    @Test public void yourOwnStaysOffWithoutKeepDeletedMessages() {
+        Settings.KEEP_OWN_DELETED.save(true);
+        assertFalse("nothing is taken", KeepDeleted.userUpdate(new Update(1, 2), null));
+        Settings.KEEP_DELETED_MESSAGES.save(true);
+        Settings.KEEP_OWN_DELETED.save(false);
+        Fake telegram = new Fake(new KeepDeleted.Row(10, 2, true, false, false));
+        assertTrue(KeepDeleted.start(telegram, 0, ids(2), 0));
+        telegram.posted.get(0).run();
+        assertFalse(KeepDeleted.isKept(SELF, 10, 2));
+        assertEquals(Arrays.asList("0:[2]:0"), telegram.stock);
     }
 
     @Test public void aFailedLookupLeavesEverythingToTelegramAndKeepsNothing() {
@@ -726,6 +760,197 @@ public class KeepDeletedTest {
         assertEquals("found in the stored chats", 43, bridge.channel(-43));
         assertEquals("a chat found nowhere goes as a plain chat", 0, bridge.channel(-44));
         assertEquals("a person", 0, bridge.channel(10));
+    }
+
+    // Remove kept messages after (#91).
+
+    private static final long HOUR = 60 * 60 * 1000L;
+    private static final long DAY = 24 * HOUR;
+    /** A whole hour, so the hours the times are saved in line up with the days added to it. */
+    private static final long START = 472_222L * HOUR;
+
+    @Test public void keptMessagesPastTheDaysPickedGoBackToTelegramWithoutANotice() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 1}));
+        now[0] += 3 * DAY;
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 2}));
+        Fake telegram = new Fake();
+        KeepDeleted.accounts = () -> Collections.singletonList(telegram);
+        Settings.KEEP_DELETED_DAYS.save(7);
+
+        now[0] = START + 7 * DAY - HOUR;
+        assertEquals("an hour short of a week, nothing is due", 0, KeepDeleted.sweep());
+        telegram.posted.get(0).run();
+        assertTrue(telegram.stock.isEmpty());
+        assertEquals(Arrays.asList("10:1", "10:2"), KeepDeleted.keptBy(SELF));
+
+        now[0] = START + 7 * DAY;
+        assertEquals(1, KeepDeleted.sweep());
+        assertEquals("it moves on the storage queue", 2, telegram.posted.size());
+        assertTrue(telegram.stock.isEmpty());
+        telegram.posted.get(1).run();
+        assertEquals(Arrays.asList("10:[1]:0"), telegram.stock);
+        assertEquals(Arrays.asList("[1]:0"), telegram.cleared);
+        assertEquals(Arrays.asList("10:2"), KeepDeleted.keptBy(SELF));
+        assertTrue("labelled until Telegram's deletion has run", KeepDeleted.isKept(SELF, 10, 1));
+        telegram.posted.get(2).run();
+        ShadowLooper.idleMainLooper();
+        assertNull("no notice", ShadowToast.getLatestToast());
+        assertFalse(KeepDeleted.isKept(SELF, 10, 1));
+        assertTrue(String.join("\n", HookStatus.report()).contains("kept messages past their time handed back"));
+
+        // The second one's time was saved with it, so a restart still knows when it was kept.
+        KeepDeleted.forgetAllForTests();
+        now[0] = START + 10 * DAY - HOUR;
+        assertEquals(0, KeepDeleted.sweep());
+        now[0] = START + 10 * DAY;
+        assertEquals(1, KeepDeleted.sweep());
+        telegram.posted.get(telegram.posted.size() - 1).run();
+        assertEquals(Arrays.asList("10:[1]:0", "10:[2]:0"), telegram.stock);
+        assertTrue(KeepDeleted.keptBy(SELF).isEmpty());
+    }
+
+    @Test public void neverPausedOrADayCountItDoesntOfferKeepsEverything() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 1}));
+        now[0] += 1000 * DAY;
+        int[] asked = {0};
+        KeepDeleted.accounts = () -> {
+            asked[0]++;
+            return Collections.singletonList(new Fake());
+        };
+        assertEquals(0, (int) Settings.KEEP_DELETED_DAYS.get());
+        assertEquals(0, KeepDeleted.sweep());
+        Settings.KEEP_DELETED_DAYS.save(45);
+        assertEquals(0, KeepDeleted.sweep());
+        Settings.KEEP_DELETED_DAYS.save(1);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertEquals(reason.name(), 0, KeepDeleted.sweep());
+            PauseForTests.resume();
+        }
+        assertEquals("no account is asked", 0, asked[0]);
+        Settings.KEEP_DELETED_DAYS.resetToDefault();
+        Settings.KEEP_DELETED_MESSAGES.save(true);
+        Fake telegram = new Fake(new KeepDeleted.Row(10, 2, false, false, false));
+        KeepDeleted.decide(telegram, 0, ids(2), 0);
+        assertTrue("a deletion hands over nothing else", telegram.stock.isEmpty());
+        assertEquals(Arrays.asList("10:1", "10:2"), KeepDeleted.keptBy(SELF));
+    }
+
+    @Test public void aDeletionAlsoHandsOverWhatsPastItsTime() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 1}, new long[] {CHANNEL, 7}));
+        Settings.KEEP_DELETED_MESSAGES.save(true);
+        Settings.KEEP_DELETED_DAYS.save(1);
+        now[0] += DAY;
+        Fake telegram = new Fake(new KeepDeleted.Row(10, 3, false, false, false));
+        telegram.channels.put(CHANNEL, 42L);
+        KeepDeleted.decide(telegram, 0, ids(3), 0);
+        assertEquals(Arrays.asList("10:[1]:0", CHANNEL + ":[7]:42"), telegram.stock);
+        assertEquals("the new one is kept, with a day ahead of it", Arrays.asList("10:3"), KeepDeleted.keptBy(SELF));
+    }
+
+    @Test public void messagesKeptBeforeThereWasATimeStartTheirsWhenFirstSeen() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        memory.values.put("kept_" + SELF, "10:1,10:2");
+        Settings.KEEP_DELETED_DAYS.save(1);
+        Fake telegram = new Fake();
+        KeepDeleted.accounts = () -> Collections.singletonList(telegram);
+        assertEquals("nothing is past a time it doesn't have", 0, KeepDeleted.sweep());
+        telegram.posted.get(0).run();
+        assertTrue(telegram.stock.isEmpty());
+        assertEquals((START / HOUR) + "=10:1,10:2", memory.values.get("kept_at_" + SELF));
+
+        // A clock set back leaves a time ahead of now, which starts again from now too.
+        now[0] = START - 30 * DAY;
+        assertEquals(0, KeepDeleted.sweep());
+        telegram.posted.get(1).run();
+        assertEquals(((START - 30 * DAY) / HOUR) + "=10:1,10:2", memory.values.get("kept_at_" + SELF));
+        now[0] = START - 29 * DAY;
+        assertEquals(2, KeepDeleted.sweep());
+        telegram.posted.get(2).run();
+        assertEquals(Arrays.asList("10:[1, 2]:0"), telegram.stock);
+    }
+
+    @Test public void aMoveThatCantBeSavedOrAnotherAccountInTheSlotChangesNothing() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 1}));
+        Settings.KEEP_DELETED_DAYS.save(1);
+        now[0] += 2 * DAY;
+        Fake telegram = new Fake();
+        KeepDeleted.accounts = () -> Collections.singletonList(telegram);
+        assertEquals(1, KeepDeleted.sweep());
+        memory.failWrites = true;
+        telegram.posted.get(0).run();
+        assertTrue(telegram.stock.isEmpty());
+        assertEquals(Arrays.asList("10:1"), KeepDeleted.keptBy(SELF));
+        memory.failWrites = false;
+
+        assertEquals(1, KeepDeleted.sweep());
+        telegram.self = 77;
+        telegram.posted.get(1).run();
+        assertTrue("another account's slot deletes none of these", telegram.stock.isEmpty());
+        assertEquals(Arrays.asList("10:1"), KeepDeleted.keptBy(SELF));
+
+        // A chat whose deletion can't start goes back on the list with its time, and goes next time.
+        telegram.self = SELF;
+        telegram.failStock = true;
+        assertEquals(1, KeepDeleted.sweep());
+        telegram.posted.get(2).run();
+        assertEquals(Arrays.asList("10:1"), KeepDeleted.keptBy(SELF));
+        telegram.failStock = false;
+        assertEquals("still past its time", 1, KeepDeleted.sweep());
+        telegram.posted.get(3).run();
+        assertEquals(Arrays.asList("10:[1]:0"), telegram.stock);
+    }
+
+    @Test public void bubblesBeingDrawnLookAboutOnceAnHour() {
+        long[] now = {START};
+        KeepDeleted.clock = () -> now[0];
+        KeepDeleted.remember(SELF, Arrays.asList(new long[] {10, 1}));
+        Fake telegram = new Fake();
+        KeepDeleted.accounts = () -> Collections.singletonList(telegram);
+        KeepDeleted.measuring(new Object());
+        assertTrue("set to Never, nothing is looked at", telegram.posted.isEmpty());
+
+        KeepDeleted.forgetAllForTests();
+        Settings.KEEP_DELETED_DAYS.save(7);
+        KeepDeleted.measuring(new Object());
+        assertEquals(1, telegram.posted.size());
+        now[0] += KeepDeleted.SWEEP_EVERY - 1;
+        KeepDeleted.measuring(new Object());
+        assertEquals(1, telegram.posted.size());
+        now[0] += 1;
+        KeepDeleted.measuring(new Object());
+        assertEquals(2, telegram.posted.size());
+
+        // A failure reading the accounts shows in the report and leaves the bubble alone.
+        KeepDeleted.accounts = () -> { throw new ClassNotFoundException("no Telegram"); };
+        now[0] += KeepDeleted.SWEEP_EVERY;
+        KeepDeleted.measuring(new Object());
+        assertTrue(HookStatus.missing(FamilyNames.KEEP_DELETED_MESSAGES).toString().contains("accounts"));
+    }
+
+    @Test public void theTimesAreSavedByHourAndAGroupThatCantBeReadIsLeftOut() {
+        Map<String, Long> stamps = new HashMap<>();
+        stamps.put("10:2", 5L);
+        stamps.put("10:1", 5L);
+        stamps.put("-1000000000042:7", 3L);
+        assertEquals("3=-1000000000042:7;5=10:1,10:2", KeepDeleted.writeStamps(stamps));
+        assertEquals(stamps, KeepDeleted.readStamps(KeepDeleted.writeStamps(stamps)));
+        Map<String, Long> read = KeepDeleted.readStamps("x=10:9;5=10:1,,10:2;=10:3;10:4;");
+        assertEquals(2, read.size());
+        assertEquals(Long.valueOf(5), read.get("10:1"));
+        assertEquals(Long.valueOf(5), read.get("10:2"));
+        assertTrue(KeepDeleted.readStamps(null).isEmpty());
+        assertTrue(KeepDeleted.readStamps("").isEmpty());
     }
 
     private static ArrayList<Integer> ids(Integer... ids) { return new ArrayList<>(Arrays.asList(ids)); }

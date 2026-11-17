@@ -882,7 +882,7 @@ dependencies {
     compileOnly(libs.morphe.patcher)
     // XMLPull is supplied by Android and this exact ARSCLib in the desktop patcher. The
     // matching provided jar avoids duplicate XMLPull classes in the bundle's DEX classpath.
-    compileOnly("com.github.MorpheApp:ARSCLib:675bed2de3")
+    compileOnly("com.github.MorpheApp:ARSCLib:50418a07a8")
 
     // Used by JsonGenerator.
     implementation(libs.gson)
@@ -904,7 +904,7 @@ dependencies {
     // Reads the resource tables of the fixtures, for the Material You theme's colour table. The
     // patcher already brings this exact version at run time; this puts it on the test compile
     // classpath as well.
-    testImplementation("com.github.MorpheApp:ARSCLib:675bed2de3")
+    testImplementation("com.github.MorpheApp:ARSCLib:50418a07a8")
 }
 
 val buildDependencyReport = tasks.register<WriteBuildDependencyReport>("buildDependencyReport") {

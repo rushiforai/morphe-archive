@@ -182,7 +182,7 @@ Full mechanism (verified in smali; classes/labels from recon dumps):
 
 ---
 
-# Era B episode: custom universal APKs v2–v12 (2026-11-13 → 11-15)
+# Era B episode: custom universal APKs v2–v14 (2026-11-13 → 11-16)
 
 Compressed from the per-version PATCH-NOTES (release `sandbox-storage`) and
 `work/DIAGNOSIS-v12.md`. Full ladder with all 35 builds + verdicts:
@@ -195,7 +195,9 @@ Compressed from the per-version PATCH-NOTES (release `sandbox-storage`) and
 | v9 | structural rebuild from stock | boots but **all patches silently absent** (rebuild never replayed the patch layer) → **guardrail: patches/ ledger + apply.py apply/verify** |
 | v10 | v9 structure + full patch replay (40 patches) | **boots — last device-proven build** (sha256 `44a70d1c…29ecd`) |
 | v11 | 40 patches + new adblock asset pipeline (rebuilt abp.manifest, 41 bundled lists) | **crash every launch** (white ~10 s → die; splash+load → white ~6 s → die); no Play Protect warning (user-observed) |
-| v12 | v11's 40 patches + **stock v9/v10 asset layer** (v11 fix) + AB.1–AB.4 maintainer-direct blocklist updates (37 mapped URLs) | **NOT YET DEVICE-TESTED** |
+| v12 | v11's 40 patches + **stock v9/v10 asset layer** (v11 fix) + AB.1–AB.4 maintainer-direct blocklist updates (37 mapped URLs) | **CRASH every launch** (white ~5 s → die; installs w/o Play Protect warning); first real logcat captured → **VerifyError bo3 [0x1D2] v7 ng/I** |
+| v13 | v12 minus AB.1–AB.4 (single-variable revert; MoE round 1) | **NOT TESTED — CONVICTED UNBOOTABLE by miniverify** (carries the same broken bo3 as v11/v12; do not install) |
+| v14 | v13 + PT.1/PT.3 rewritten verifier-safe (invoke-only deletion) + **miniverify gate** in the pipeline | _pending device result_ (sha256 `0bab9fa5…329a1`) |
 
 **v11 root cause (proven):** the v11 asset pipeline's parser only understood
 the manifest's FIRST section; excising `opera_fixes` from the tail actually
@@ -226,3 +228,103 @@ N3 (upgrade-over-crashed-v11 inherits unknown /data). **Decision: install v12
 now; run RD.1 device protocol within 24 h; v10 pinned rollback
 (`adb install -r -d`); bisect, don't rebuild, on failure; v13 = RD.2 + RD.3
 (see `docs/v13-ROADMAP.md`).** Verdict line for v12: _pending device result_.
+
+## v12 device verdict + Mixture-of-Experts root cause + v13 (2026-11-16)
+
+**v12 device result: CRASH.** Installs without the Play Protect dialog
+(retained improvement), then white screen ~5 s → immediate crash, every
+launch. The audit's GO-condition 3 (bisection ladder, not blind rebuild)
+was executed as a Mixture-of-Experts panel instead of sequential device
+rounds: E2 (differential patch audit), E3 (adblock subsystem trace),
+E4 (packaging & signing), gate (chief analyst; E1's startup-timeline
+mandate folded into E3 + gate after its first run overran).
+
+**Root cause (panel verdict, evidence-cited):** the AB.1–AB.4 updater
+patch set. Opera's resolver `k9d` pairs every files-dir blocklist file
+with its manifest entry by the sha256 of the file's **content** (a
+digesting stream — not the filename). AB.4 stored live maintainer bytes
+under the manifest-hash name, so the file can never pair: stale-deleted +
+entry-missing → re-download → mismatch again → endless churn, and every
+launch re-evaluates the pipeline. Additionally AB.3's `f9.v` gzip
+normalizer buffers each entire response body in RAM outside cv2's
+try/catchall (vtp.Q catches only IOException; an OOM Error escapes
+uncaught); with PD.9's 27 unbundled lists, ~27 concurrent maintainer
+fetches run during first launch. Rejected en route: packaging/signature
+(E4: v10 is v3-only too, APK delta = 2 dexes exactly), PD.9-on-stock-code
+(E3: defensive end-to-end), DoH defaults (E3: mode 1 = Cloudflare preset).
+Two prior-audit claims corrected: v10 was never v1+v2+v3 (all builds
+v3-only); the v1 META-INF files are incomplete-coverage, not stale-content.
+
+**v13 (shipped):** single-variable revert of AB.1–AB.4 via the registry
+(`enabled=false`; apply.py SKIP; manifest.json + PATCHES.md record it).
+Built through the standard pipeline with three equivalence gates: v13
+classes3 disassembly == v11's shipped classes3 (tree-identical); v13
+classes.dex == v12's classes.dex bytes; f9/cv2/lj3 == stock v9. APK
+entry-diff vs v12: exactly `classes3.dex` + 3 META-INF signature files.
+40/40 patches verified in the shipped signed file; 45,244/45,244 classes;
+assets byte-identical to stock; same cert → in-place upgrade over
+v9–v12; **self-heals a v12 install** (stale cleanup + CDN re-fetch).
+sha256 `f8fb687b6d27e4e8a4836e6ecf3066e7988063be42a926d5c7b4e7a5037f2918`.
+
+Panel reports: `docs/moe/2026-11-16-v12-crash/` (E2/E3/E4 + gating
+synthesis). Full narrative + verification matrix:
+`Vogelkop-v13-MoE-Analysis-2026-11-16.docx/.pdf` (release sandbox-storage).
+v14 redesign of maintainer-direct updates (filename-pairing / runtime
+manifest-hash refresh / out-of-app updater) documented in the MoE report
+§10. Verdict line for v13: _pending device result_.
+
+## v12 logcat verdict + MoE round 2 + v14 (2026-11-16 evening)
+
+**The decisive evidence finally arrived:** the user captured the crash stack
+from v12 (17:35 local) — the project's first real logcat:
+
+```
+java.lang.VerifyError: Verifier rejected class bo3:
+  bo3.invoke(java.lang/Object;): [0x1D2] register v7 has type
+  Precise Reference: ng but expected Integer  (classes3.dex)
+  at jt3.<init> ← zv3.d ← Lazy.get ← BrowserActivity.U0 …
+```
+
+**MoE round 2 (logcat adjudication)** overturned round 1's AB-set theory:
+a content-hash churn loop / OOM cannot produce a load-time VerifyError. The
+REAL root cause, proven three ways (logcat ↔ smali ↔ patch source):
+
+- `bo3.invoke()` is a fall-through chain of
+  `invoke-static/range {v1..v7}, Ln6j;->c(...)` row-adds; the prologue loads
+  `v7 = Lng;->a:Lng;` and each chain head redefines v5/v6/v7 as ints
+  (`const/4 v5, 0x0 / const/4 v6, 0x0 / const/16 v7, 0x38`).
+- **PT.3 (v11-era) deleted that whole block** (keeping only the `sget-object`)
+  to remove the default-browser row; **PT.1 (v11-era) did the same** to the
+  Rewards row — the only pure-deletion patch in the registry (replacement
+  sha256 = sha256 of "").
+- After deletion, the path reaches the next case's range-invoke at patched
+  offset **0x1D2** with v7 still holding the `ng` reference → ART rejects the
+  class → Lazy DI failure → crash at ~5 s, every launch.
+- Cross-version proof: bo3.smali hash v9 == v10 (stock, boots); v11 == v12 ==
+  v13 (broken). **v13 was shipped hours before the logcat arrived and is
+  UNBOOTABLE — superseded by v14, never install it.**
+
+**v14 (shipped):** PT.1/PT.3 rewritten as **invoke-only deletion** — every
+const kept as a dead store, only the row-add `invoke-static/range` line
+removed → register type state stock-identical at every program point (the
+invoke has no move-result; it cannot affect types) → verifier-clean by
+construction, rows still never added.
+
+**New permanent guardrail — `scripts/miniverify.py`:** a conservative Dalvik
+register-type checker (CFG + worklist dataflow, wide-pair modeling,
+slot-indexed pN, cross-dex hierarchy/interface resolution). Validated against
+ART on the bo3 family: stock/v10 PASS, v12/v13 REJECT with ART's exact error
+(offset/register/types), v14 PASS; all 16 patched classes (293 methods) PASS
+in the v14 build. `build_v14.sh` gate [4b] refuses to ship without it, plus a
+bo3 exact-delta gate (signed-APK bo3 must equal stock minus exactly the two
+row-add invokes). Third structural guardrail of the project, after the v8
+class-set equality and the v9 patch ledger.
+
+v14 verification on the signed artifact's own bytes: 40/40 patches opcode-
+verified; classes3.dex == assembled verified dex (hash); classes.dex == v12
+bytes; assets stock; entry-diff vs v12 = classes3.dex only; same cert
+(62c9fa6f…a96adf) → in-place upgrade over v9–v13. sha256
+`0bab9fa5e8925b0634ff4e15a523eb8054f4687e9b54915a049e5fe6199329a1`.
+
+Panel report: `docs/moe/2026-11-16-v14-logcat/ROOT-CAUSE-ADJUDICATION.md`.
+Verdict line for v14: _pending device result_.

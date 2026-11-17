@@ -253,6 +253,13 @@ public class SettingsPolishTest {
         }
     }
 
+    @Test public void chatListTitleKeyboardMakesRoomForTheButtons() {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = TitleEmojiEditor.openTitle(activity.get(), new Preference(activity.get()), before -> { });
+            try { assertResizesForKeyboard(dialog); } finally { dialog.dismiss(); }
+        }
+    }
+
     @Test public void storageFolderKeyboardMakesRoomForTheButtons() {
         try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
             AlertDialog dialog = StorageFolderEditor.open(activity.get(), new Preference(activity.get()), before -> { });
@@ -275,6 +282,41 @@ public class SettingsPolishTest {
             } finally {
                 dialog.dismiss();
                 Settings.STORAGE_FOLDER_NAME.resetToDefault();
+            }
+        }
+    }
+
+    @Test public void sessionDeviceKeyboardMakesRoomAndDoneSaves() throws Exception {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            String[] before = new String[2];
+            AlertDialog dialog = SessionDeviceEditor.open(activity.get(), new Preference(activity.get()),
+                    (name, system) -> { before[0] = name; before[1] = system; });
+            try {
+                assertResizesForKeyboard(dialog);
+                android.widget.EditText name = dialog.findViewById(SessionDeviceEditor.NAME_FIELD);
+                android.widget.EditText system = dialog.findViewById(SessionDeviceEditor.SYSTEM_FIELD);
+                assertEquals("the keyboard goes on to the system version", android.view.inputmethod.EditorInfo.IME_ACTION_NEXT,
+                        name.getImeOptions() & android.view.inputmethod.EditorInfo.IME_MASK_ACTION);
+                StringBuilder tooLong = new StringBuilder();
+                for (int i = 0; i < app.hushtelegram.extension.telegram.misc.SessionDevice.MAX_LENGTH + 10; i++) tooLong.append('x');
+                name.setText(tooLong);
+                assertEquals("the box takes no more than goes out", app.hushtelegram.extension.telegram.misc.SessionDevice.MAX_LENGTH,
+                        name.getText().length());
+                system.setText("SDK 99");
+                system.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+                app.hushtelegram.extension.shared.Utils.awaitBackgroundTasksForTests();
+                ShadowLooper.idleMainLooper();
+                assertFalse("Done is Save", dialog.isShowing());
+                assertEquals("SDK 99", Settings.SESSION_SYSTEM_VERSION.savedValue());
+                assertEquals("told what was there before", "", before[1]);
+            } finally {
+                dialog.dismiss();
+                Settings.SESSION_DEVICE_NAME.resetToDefault();
+                Settings.SESSION_SYSTEM_VERSION.resetToDefault();
+                app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                        .remove(Settings.SESSION_DEVICE_NAME.key);
+                app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending
+                        .remove(Settings.SESSION_SYSTEM_VERSION.key);
             }
         }
     }

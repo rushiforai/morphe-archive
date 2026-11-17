@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import app.hushgram.extension.instagram.direct.ChatReels;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -266,6 +267,54 @@ public class ReelLinksTest {
         String report = report();
         assertTrue(report, report.contains(ReelLinks.HELD + " 1"));
         assertTrue(report, report.contains(ReelLinks.ADDED + " 1"));
+    }
+
+    /**
+     * With Swipe through a chat's reels on, a shared comment's viewer opened on the chat's first unread
+     * reel (#662). A tap on a comment on a reel tells the chat reels test to keep Instagram's answer for
+     * the viewer it opens, and a comment on anything else leaves the chain alone.
+     */
+    @Test
+    public void aSharedCommentOnAReelOpensUnchained() {
+        Settings.SWIPE_CHAT_REELS.save(true);
+        try {
+            assertTrue("a shared reel chains", ChatReels.chain(0));
+            ReelLinks.sharedCommentOpened("photo");
+            assertTrue("a comment on a post opens no Reels viewer", ChatReels.chain(0));
+            ReelLinks.sharedCommentOpened(ReelLinks.ON_REEL);
+            assertFalse("the comment's reel opens on its own", ChatReels.chain(0));
+        } finally {
+            Settings.SWIPE_CHAT_REELS.resetToDefault();
+        }
+    }
+
+    /**
+     * A report showed a shared comment's chat viewer playing a stranger's reel with no chunk and no
+     * insert at all: Instagram had put its cached reels in front (#662). That viewer skips them like a
+     * link's, and the tap is still there for its chunks after.
+     */
+    @Test
+    public void aSharedCommentsViewerSkipsTheCachedReels() {
+        assertEquals("a chat with no comment tapped", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+        ReelLinks.sharedCommentOpened("photo");
+        assertEquals("a comment on a post", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+
+        ReelLinks.sharedCommentOpened(ReelLinks.ON_REEL);
+        assertEquals("the Reels tab right after the tap", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.CLIPS_TAB));
+        assertEquals("the comment's chat viewer", 1, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+        Adapter viewer = new Adapter(ClipsViewerSource.DIRECT);
+        assertEquals("its chunk still waits for the reel", 1, chunk(viewer, "a"));
+        assertEquals("the chunk spent the tap", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+
+        ReelLinks.sharedCommentOpened(ReelLinks.ON_GLIMMER);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(ReelLinks.COMMENT_MILLIS + 1, TimeUnit.MILLISECONDS);
+        assertEquals("too long after the tap", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+
+        Settings.OPEN_REEL_LINKS_FIRST.save(false);
+        ReelLinks.sharedCommentOpened(ReelLinks.ON_REEL);
+        assertEquals("off", 0, ReelLinks.skipsCachedReels(ClipsViewerSource.DIRECT));
+        String report = report();
+        assertTrue(report, report.contains(ReelLinks.SKIPPED + " 1"));
     }
 
     /**

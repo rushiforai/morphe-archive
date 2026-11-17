@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-15.
  */
 package app.morphe.extension.music.patches.misc.requests;
 
@@ -55,13 +56,23 @@ public final class MusicBrowseRequest {
      * playlist, a continuation, ...), sent exactly as {@link #next(Context, String)} and {@link #browse} are.
      */
     public static JSONObject nextWith(Context context, JSONObject fields) throws IOException, JSONException {
+        return requestWith(context, "next", fields);
+    }
+
+    /** Uses the same authenticated Android Music transport for a server-supplied playlist edit. */
+    public static JSONObject editPlaylist(Context context, JSONObject fields) throws IOException, JSONException {
+        return requestWith(context, "browse/edit_playlist", fields);
+    }
+
+    private static JSONObject requestWith(Context context, String endpoint, JSONObject fields)
+            throws IOException, JSONException {
         JSONObject body = new JSONObject().put("context", context(context));
         java.util.Iterator<String> keys = fields.keys();
         while (keys.hasNext()) {
             String key = keys.next();
             body.put(key, fields.get(key));
         }
-        return post(context, "next", body, "");
+        return post(context, endpoint, body, "");
     }
 
     private static final class BadRequestException extends IOException {

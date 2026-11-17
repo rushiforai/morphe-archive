@@ -57,4 +57,17 @@ public static class PatchesSettingsSnapshotAssertions
             $"The settings don't show \"{place.Setting.ToShownText()}\" under \"{place.Section.ToShownText()}\", but it was expected.");
         return that;
     }
+
+    /// <summary><paramref name="section"/> offers exactly <paramref name="actions"/>, in this order.</summary>
+    public static AssertingThat<PatchesActionsSnapshot> Offers(this AssertingThat<PatchesActionsSnapshot> that, params PatchesAction[] actions)
+    {
+        var shown = that.InstanceToAssert.Actions;
+        Assert.True(
+            shown.SequenceEqual(actions),
+            $"The \"{that.InstanceToAssert.Section.ToShownText()}\" section offers {Actions(shown)}, but {Actions(actions)} were expected, in this order.");
+        return that;
+    }
+
+    private static string Actions(IEnumerable<PatchesAction> actions) =>
+        actions.Any() ? string.Join(", ", actions.Select(action => $"\"{action.ToShownText()}\"")) : "nothing";
 }

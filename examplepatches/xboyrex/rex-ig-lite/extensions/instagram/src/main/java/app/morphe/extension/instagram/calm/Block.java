@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.URI;
+import app.morphe.extension.instagram.utils.Pref;
 
 /**
  * Network content blocking, invoked from Instagram's TigonServiceLayer just
@@ -116,7 +117,9 @@ public final class Block {
             throw blocked();
         }
         if (Config.isSuggestedBlocked() && containsAny(path, SUGGESTED)) throw blocked();
-        if (Config.isAdsBlocked() && containsAny(path, ADS)) throw blocked();
+        if ((Config.isAdsBlocked() || Pref.hideReelsAndStoriesAdPods()) && containsAny(path, ADS)) throw blocked();
+        if (Pref.ghostInstants() && (path.contains("instants") || path.contains("quicksnap")) && path.contains("seen")) throw blocked();
+        if (Pref.hideAudioSeen() && path.contains("/direct_v2/") && (path.contains("voice_media_seen") || path.contains("audio_seen"))) throw blocked();
 
         // --- xboyrex ---
         // Story views are reported here (v2); a blocked report is dropped, not retried.
@@ -137,7 +140,8 @@ public final class Block {
         // --- Always-blocked analytics / commerce ---
         // No trailing slash: the family has a "_www" sibling
         // (/feed/injected_reels_media_www/) that a slash-terminated match misses.
-        if (path.contains("/feed/injected_reels_media")
+        if ((Pref.disableAnalytics() && (path.contains("/logging/") || path.contains("/api/v1/stats/") || path.contains("/api/v1/fbupload/") || path.contains("/async_ads_privacy/")))
+                || path.contains("/feed/injected_reels_media")
                 || path.contains("/logging/")
                 || path.contains("/async_ads_privacy/")
                 || path.contains("/async_critical_notices/")
@@ -160,7 +164,7 @@ public final class Block {
         if (key == null) return null;
         // A new unit starts: whatever media it wraps is parsed right after this.
         MEDIA_IS_AD.get()[0] = false;
-        boolean drop = (Config.isAdsBlocked() && equalsAny(key, AD_FEED_UNITS))
+        boolean drop = ((Config.isAdsBlocked() || Pref.hideReelsAndStoriesAdPods()) && equalsAny(key, AD_FEED_UNITS))
                 || (Config.isSuggestedBlocked() && equalsAny(key, SUGGESTED_FEED_UNITS))
                 || (Config.isMetaAiBlocked() && equalsAny(key, META_AI_FEED_UNITS));
         // Debug builds only (see DebugBridge): shows every unit type the timeline

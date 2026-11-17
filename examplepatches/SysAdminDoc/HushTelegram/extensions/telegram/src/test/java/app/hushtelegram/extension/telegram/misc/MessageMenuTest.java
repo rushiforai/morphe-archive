@@ -135,6 +135,51 @@ public class MessageMenuTest {
         assertEquals("no edit and no original date, so no lines for them", 8, lines.size());
     }
 
+    @Test public void detailsShowAVideosNameTypeResolutionLengthAndBitrate() {
+        Context context = RuntimeEnvironment.getApplication();
+        MessageMenu.Facts facts = new MessageMenu.Facts();
+        facts.id = 42;
+        facts.chat = 5;
+        facts.size = 25_000_000;
+        facts.fileName = "holiday.mp4";
+        facts.mime = "video/mp4";
+        facts.width = 1920;
+        facts.height = 1080;
+        facts.duration = 3729.6;
+        List<String> lines = Arrays.asList(MessageMenu.describe(context, facts).split("\n"));
+        assertTrue(lines.get(2), lines.get(2).startsWith("File size: "));
+        assertEquals("File name: " + L10n.isolate("holiday.mp4"), lines.get(3));
+        assertEquals("MIME type: video/mp4", lines.get(4));
+        assertEquals("Resolution: 1920x1080", lines.get(5));
+        assertEquals("Telegram's player cuts the seconds off", "Duration: 1:02:09", lines.get(6));
+        assertEquals("25 MB over 3729.6 seconds", "Bitrate: 54 kbps", lines.get(7));
+        assertEquals(8, lines.size());
+
+        // A voice message has a length but no picture; a photo has a picture but no length, so no bitrate either.
+        MessageMenu.Facts voice = new MessageMenu.Facts();
+        voice.size = 48_000;
+        voice.mime = "audio/ogg";
+        voice.duration = 12;
+        List<String> heard = Arrays.asList(MessageMenu.describe(context, voice).split("\n"));
+        assertTrue(heard.toString(), heard.contains("Duration: 0:12") && heard.contains("Bitrate: 32 kbps"));
+        assertTrue(heard.toString(), heard.stream().noneMatch(line -> line.startsWith("Resolution: ") || line.startsWith("File name: ")));
+        MessageMenu.Facts photo = new MessageMenu.Facts();
+        photo.size = 300_000;
+        photo.width = 1280;
+        photo.height = 960;
+        List<String> seen = Arrays.asList(MessageMenu.describe(context, photo).split("\n"));
+        assertTrue(seen.toString(), seen.contains("Resolution: 1280x960"));
+        assertTrue(seen.toString(), seen.stream().noneMatch(line -> line.startsWith("Duration: ") || line.startsWith("Bitrate: ") || line.startsWith("MIME type: ")));
+
+        // Unpatched, a message carries none of it, so the dialog stays as it was.
+        MessageMenu.Facts bare = MessageMenu.facts(new Object());
+        assertNull(bare.fileName);
+        assertNull(bare.mime);
+        assertEquals(0, bare.width);
+        assertEquals(0.0, bare.duration, 0.0);
+        assertEquals(0, MessageMenu.kilobitsPerSecond(bare));
+    }
+
     @Test public void detailsListTheTextKeptFromBeforeEachEditOldestFirst() {
         Context context = RuntimeEnvironment.getApplication();
         MessageMenu.Facts facts = new MessageMenu.Facts();

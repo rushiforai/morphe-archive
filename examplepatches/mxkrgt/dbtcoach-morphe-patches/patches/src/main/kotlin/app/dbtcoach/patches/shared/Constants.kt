@@ -3,19 +3,17 @@ package app.dbtcoach.patches.shared
 /**
  * Constantes de compatibilité pour DBT Coach.
  *
- * Version testée : 6.4.2
+ * Version testée : 6.5.0 (versionCode 552)
  * Package        : co.swasth.dbtcoach
  *
- * Pour ajouter une version, ajoute son numéro de build dans la liste.
- * Laisse la liste vide pour accepter toutes les versions (non recommandé).
+ * Seule la version vérifiée est déclarée : le patch dépend de l'API Nitro IAP
+ * (`HybridRnIap.getAvailablePurchases` + `PurchaseAndroid`), qui a changé entre
+ * 6.4.x et 6.5.0. Ajouter une version seulement après avoir vérifié ses smali.
  */
 internal object Constants {
     const val PACKAGE_DBTCOACH = "co.swasth.dbtcoach"
 
     val VERSIONS_DBTCOACH = setOf(
-        "6.4.2",
-        "6.4.1",
-        "6.4.0",
-        "6.1.3",
+        "6.5.0",
     )
 }

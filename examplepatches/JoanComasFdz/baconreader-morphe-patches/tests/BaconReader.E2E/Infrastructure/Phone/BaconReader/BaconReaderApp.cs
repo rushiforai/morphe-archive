@@ -99,6 +99,9 @@ public sealed class BaconReaderApp(
     /// <summary>The patches' settings, which "Patches" in BaconReader's settings opens.</summary>
     public PatchesSettings PatchesSettings { get; } = new(driver);
 
+    /// <summary>"Export and import settings"' dialogs, once "Import settings" was given a file.</summary>
+    public ImportSettings ImportSettings { get; } = new(driver);
+
     /// <summary>
     /// Opens BaconReader on its main screen, as a scenario's "Given BaconReader … is open" says: opens it from the
     /// launcher, taps "GOT IT :(" on the final release announcement

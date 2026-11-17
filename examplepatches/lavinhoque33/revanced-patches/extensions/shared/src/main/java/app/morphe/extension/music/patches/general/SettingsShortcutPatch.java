@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
+ * Modified by lavinhoque33, 2026-11-16.
  * Written by lavinhoque33, 2026-11-14.
  */
 
@@ -47,7 +48,8 @@ public final class SettingsShortcutPatch {
         int touchSize = Math.round(48 * context.getResources().getDisplayMetrics().density);
         button.setLayoutParams(new LinearLayout.LayoutParams(touchSize, touchSize));
         button.setScaleType(ImageView.ScaleType.CENTER);
-        button.setImageDrawable(context.getDrawable(ResourceUtils.getDrawableIdentifier("yt_outline_gear_vd_theme_24")));
+        button.setImageDrawable(context.getDrawable(
+                ResourceUtils.getDrawableIdentifier("revanced_toolbar_settings_shortcut_icon")));
         button.setContentDescription(context.getString(ResourceUtils.getStringIdentifier("settings")));
         button.setTooltipText(context.getString(ResourceUtils.getStringIdentifier("revanced_settings_shortcut_summary")));
 
@@ -87,7 +89,16 @@ public final class SettingsShortcutPatch {
         Intent intent = new Intent().setClassName(context.getPackageName(), rvx
                 ? "com.google.android.gms.common.api.GoogleApiActivity"
                 : "com.google.android.apps.youtube.music.settings.SettingsCompatActivity");
-        if (rvx) intent.setData(Uri.parse("revanced_settings_intent"));
+        if (rvx) {
+            intent.setData(Uri.parse("revanced_settings_intent"));
+        } else {
+            // SettingsCompatActivity does not select a root fragment on its own.
+            // Use the same headers destination and extras as the native profile menu.
+            intent.putExtra(":android:show_fragment",
+                    "com.google.android.apps.youtube.music.settings.fragment.SettingsHeadersFragment");
+            intent.putExtra(":android:no_headers", true);
+        }
+
         context.startActivity(intent);
     }
 }

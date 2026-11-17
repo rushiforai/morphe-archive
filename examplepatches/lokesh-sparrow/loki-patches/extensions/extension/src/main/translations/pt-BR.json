@@ -140,5 +140,8 @@
   "Hide games": "Ocultar jogos",
   "LinkedIn's daily puzzle games in the Me panel, search and feed.": "Os quebra-cabeças diários do LinkedIn no painel Eu, na pesquisa e no feed.",
   "AMOLED black": "Preto AMOLED",
-  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Preto de verdade em vez de cinza-escuro no modo escuro. Telas AMOLED desligam os pixels pretos, o que economiza bateria. Reinicie o LinkedIn para aplicar."
+  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Preto de verdade em vez de cinza-escuro no modo escuro. Telas AMOLED desligam os pixels pretos, o que economiza bateria. Reinicie o LinkedIn para aplicar.",
+  "Don't remind me": "Não lembrar mais",
+  "microG RE battery reminder": "Aviso de bateria do microG RE",
+  "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited.": "Avisa quando o Android limita o microG RE em segundo plano. As notificações e o login com o Google passam pelo microG RE, então podem atrasar ou falhar enquanto ele estiver limitado."
 }

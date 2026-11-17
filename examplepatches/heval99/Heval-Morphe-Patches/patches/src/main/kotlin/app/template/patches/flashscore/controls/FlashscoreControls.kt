@@ -24,6 +24,17 @@ internal object FlashscoreControlsCategory {
     const val DISPLAY = "Display"
     const val LISTS = "Lists"
     const val NOTIFICATIONS = "Notifications"
+
+    /** The same title as Sofascore's betting and promotions section. */
+    const val BETTING = "Betting and promotions"
+    const val MATCH_PAGE = "Match page"
+    const val NEWS = "News"
+
+    /** The same title as Sofascore's and FotMob's spoiler-free section. */
+    const val SPOILER_FREE = "Scores and spoilers"
+
+    /** The same title as Sofascore's "Hide competitions" section. */
+    const val LEAGUES = "Leagues and countries"
 }
 
 /** True for `invoke-virtual setContentView(View)` on the activity. */

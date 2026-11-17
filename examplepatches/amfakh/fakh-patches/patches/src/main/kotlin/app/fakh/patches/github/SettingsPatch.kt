@@ -3,9 +3,12 @@ package app.fakh.patches.github
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.classDefByStrings
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -182,7 +185,7 @@ private fun row(api: PreferenceApi, key: String, title: String, default: Boolean
  * The Fakh Patches section of GitHub's Settings, shared by every patch that has a switch: this patch builds the
  * section and its click listener, and each patch adds its own switches with [addSwitch].
  */
-internal val githubSettingsPatch = bytecodePatch {
+internal val githubSettingsPatch = patch {
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -286,7 +289,7 @@ private val MethodReference.parameters get() = parameterTypes.map(CharSequence::
  * Every method, with its class, that [matches]: of [classes] when given (found through the patcher's indexes, much
  * faster), else of the whole app.
  */
-private fun BytecodePatchContext.methodsWhere(
+private fun methodsWhere(
     classes: List<ClassDef>? = null,
     matches: (Method) -> Boolean,
 ): List<Pair<String, Method>> {
@@ -303,7 +306,7 @@ private fun BytecodePatchContext.methodsWhere(
  * The type of the item a choice sheet takes, a parcelable with a (value, title) constructor: the one class the sheet
  * reads back from its arguments.
  */
-private fun BytecodePatchContext.itemType(sheet: String): String {
+private fun itemType(sheet: String): String {
     val types = classDefBy(sheet).methods.filter { it.implementation != null }.flatMap { method ->
         method.body.filter { it.opcode == Opcode.CONST_CLASS }.mapNotNull { it.typeReference }
     }.distinct()
@@ -333,7 +336,7 @@ private fun List<Instruction>.resultCallAfter(anchor: String): Int? {
  * Calls [EXTENSION]'s `chosen(requestKey, result)` right before a choice sheet reports its result to the fragment
  * manager: the call after the string [anchor] that takes a String and a Bundle. [strings] find the one method.
  */
-private fun BytecodePatchContext.hookChoiceResult(strings: Set<String>, anchor: String) {
+private fun hookChoiceResult(strings: Set<String>, anchor: String) {
     val found = methodsWhere(classDefByStrings(anchor)) {
         it.strings().containsAll(strings) && it.body.resultCallAfter(anchor) != null
     }
@@ -364,7 +367,7 @@ private fun BytecodePatchContext.hookChoiceResult(strings: Set<String>, anchor: 
  * (mask, value, title, subtitle, enabled); the mask is lowered so the flag is read, and the flag is set from
  * [EXTENSION]'s `enabled(value)`. The registers are the contiguous argument block the range call is made from.
  */
-private fun BytecodePatchContext.hookChoiceRowEnabled() {
+private fun hookChoiceRowEnabled() {
     fun Instruction.rowConstructor() = opcode == Opcode.INVOKE_DIRECT_RANGE && method?.let {
         it.name == "<init>" && it.parameters == listOf("I", STRING, STRING, STRING, "Z")
     } == true
@@ -397,7 +400,7 @@ private fun BytecodePatchContext.hookChoiceRowEnabled() {
  * takes its own enabled flag from a default. The flag is recorded at the toggleable call, after the defaults are
  * applied, and handed to the checkbox with its default lowered so it is read.
  */
-private fun BytecodePatchContext.hookChoiceRowStyle() {
+private fun hookChoiceRowStyle() {
     fun Instruction.rangeCall(parameters: Int, vararg booleans: Int): Boolean {
         val call = method
         return opcode == Opcode.INVOKE_STATIC_RANGE && call != null && call.parameters.size == parameters &&
@@ -437,7 +440,7 @@ private fun BytecodePatchContext.hookChoiceRowStyle() {
  * off the code that opens those sheets: one to open the single-choice sheet, one the multi-choice sheet, one to make an
  * item of each, and one to set the summary of a row. The extension is told the fragment, and each result.
  */
-private fun BytecodePatchContext.addChoiceSheets(api: PreferenceApi, build: MutableMethod) {
+private fun addChoiceSheets(api: PreferenceApi, build: MutableMethod) {
     // Theme: SingleChoiceBottomSheet.Companion.a(title, selected, requestKey, items).v3(fragmentManager, tag).
     val theme = methodsWhere(classDefByStrings("key_single_choice_dialog_theme")) { method ->
         "key_single_choice_dialog_theme" in method.strings() &&
@@ -544,7 +547,7 @@ private fun BytecodePatchContext.addChoiceSheets(api: PreferenceApi, build: Muta
  * Adds a row to the Fakh Patches section; run after [githubSettingsPatch] has built it. A null [default] makes a
  * plain row that only reports its click, such as one that opens a sheet.
  */
-internal fun BytecodePatchContext.addSwitch(key: String, title: String, default: Boolean?, summary: String? = null) {
+internal fun addSwitch(key: String, title: String, default: Boolean?, summary: String? = null) {
     val api = switchApi ?: throw PatchException("The Fakh Patches section is not built yet")
     val section = mutableClassDefBy(SETTINGS_FRAGMENT).methods.first { it.name == "fakhAddPatchesSection" }
     section.addInstructions(section.implementation!!.instructions.count() - 1, row(api, key, title, default, summary))

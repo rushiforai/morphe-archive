@@ -48,6 +48,12 @@ final class VideoItem {
      * The buffer's readable strings (runs with a space, outside URLs and tokens), lowercase and joined by newlines,
      * for keyword and topic rules; random tokens in the buffer would match short patterns by chance.
      */
+    /**
+     * A playlist by its identifier, which no language changes: the playlist page's browse ID ("VL" and the playlist
+     * ID, any prefix: PL, UU, LL, FL, OLAK5uy_) or a "list=" parameter, a mix's "RD" IDs aside (they are mixes).
+     */
+    private static final Pattern PLAYLIST_ID = Pattern.compile(
+            "(?<![A-Za-z0-9_-])VL(?!RD)[A-Za-z0-9_-]{12,}|[?&]list=(?!RD)[A-Za-z0-9_-]{12,}");
     final String text;
 
     private VideoItem(String videoId, String feedbackToken, String channelId, String handle,
@@ -140,7 +146,7 @@ final class VideoItem {
         // A playlist lockup may link "watch?v=FIRST&list=PL..." as well as "playlist?list=PL..."; a card (lockup.eml)
         // names the playlist page's browse ID, "VLPL...". Albums are playlists too (OLAK5uy_).
         boolean playlist = text.contains("list=PL") || text.contains("VLPL") || text.contains("list=OLAK5uy")
-                || text.contains("VLOLAK5uy") || Metadata.isCourse(text);
+                || text.contains("VLOLAK5uy") || Metadata.isCourse(text) || PLAYLIST_ID.matcher(text).find();
         boolean mix = !playlist && ((text.contains("youtube.com/playlist?list=RD") && !text.contains("youtube.com/watch?v="))
                 || (p.startsWith("lockup.") && text.contains("VLRD")));
         if (live || playlist || mix) seconds = -1;

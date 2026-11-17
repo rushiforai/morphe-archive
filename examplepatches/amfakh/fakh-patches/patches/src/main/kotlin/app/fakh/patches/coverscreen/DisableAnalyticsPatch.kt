@@ -4,8 +4,8 @@ import app.fakh.patches.coverscreen.shared.Constants.COMPATIBILITY_COVERSCREEN
 import app.fakh.patches.shared.firebase.firebaseManifestPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import org.w3c.dom.Element
 
 /**
@@ -25,7 +25,7 @@ private val adParamsFingerprint = Fingerprint(
  * Only ad SDKs ask for these. Without them the advertising ID reads as zeros and the Privacy
  * Sandbox ad APIs are off limits. READ_PHONE_STATE stays: the cover engine uses it for call state.
  */
-private val adPermissionsPatch = resourcePatch {
+private val adPermissionsPatch = patch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             val permissions = manifest.getElementsByTagName("uses-permission")
@@ -42,7 +42,7 @@ private val adPermissionsPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and stops the GIF " +
         "keyboard from sending your advertising ID, device model, carrier and screen size with its ad requests. " +

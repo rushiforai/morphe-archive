@@ -12,6 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * the message, and the notification manager drops a quiet chat's notification right before it would go up. Unsends
  * still go through, so the log marks them as it does in any chat.
  *
+ * An encrypted chat's push is gated earlier still, in Messenger's native code, which files a muted chat's message as
+ * already shown before any of this runs. {@link MuteQuery} takes that gate out while the switch is on, and the push
+ * then reaches the same check and the same drop as every other chat.
+ *
  * The check and the notification manager run on one push, a moment apart, so a mark only lasts {@link #HOLD_MS}. A chat
  * that notifies again clears its mark on its next message.
  */

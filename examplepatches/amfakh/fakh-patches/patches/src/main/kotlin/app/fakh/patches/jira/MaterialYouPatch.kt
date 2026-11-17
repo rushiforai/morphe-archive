@@ -3,10 +3,10 @@ package app.fakh.patches.jira
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
 import app.fakhradio.patches.shared.writeColors
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -138,7 +138,7 @@ private val PITCH_BLACK_V31 = mapOf(
  * on, so Jira's own colors come back when it is off. Pitch black sits under notlong, forced on only while its
  * switch is on; it outranks round, night and the API level.
  */
-private val materialYouResourcePatch = resourcePatch {
+private val materialYouResourcePatch = patch {
     execute {
         writeColors("values-round-v31", ACCENTS + SURFACES_V31 + ("alertButtonText" to "system_accent1_600"))
         writeColors("values-round-v34", SURFACES_V34)
@@ -149,7 +149,7 @@ private val materialYouResourcePatch = resourcePatch {
 }
 
 /** AppCompatActivity, which R8 renamed: the class overriding attachBaseContext, getMenuInflater and closeOptionsMenu. */
-private fun BytecodePatchContext.appCompatActivity(): MutableClass {
+private fun appCompatActivity(): MutableClass {
     var found: MutableClass? = null
     classDefForEach { classDef ->
         if (classDef.methods.none { it.name == "attachBaseContext" } ||
@@ -163,7 +163,7 @@ private fun BytecodePatchContext.appCompatActivity(): MutableClass {
 }
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch = patch(
     name = "Material You",
     description = "Uses your wallpaper's colors (Android 12+): the accent color instead of Jira blue and tinted " +
         "surfaces, in light and dark mode.",

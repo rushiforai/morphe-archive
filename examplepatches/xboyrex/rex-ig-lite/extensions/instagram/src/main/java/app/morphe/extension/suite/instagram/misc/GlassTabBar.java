@@ -966,7 +966,7 @@ public final class GlassTabBar {
      */
     private static int navTaken;
 
-    static final String TAG = "HushGlass";
+    static final String TAG = "RexTabBar";
     private static final boolean DIAGNOSE = false;
 
     private static volatile boolean registered;

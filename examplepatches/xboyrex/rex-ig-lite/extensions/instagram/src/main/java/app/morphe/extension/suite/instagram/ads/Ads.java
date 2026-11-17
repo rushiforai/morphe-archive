@@ -13,6 +13,7 @@ import java.util.function.ToIntFunction;
 import app.morphe.extension.suite.instagram.feed.FeedItemKinds;
 import app.morphe.extension.suite.instagram.feed.FeedSuggestions;
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.shared.Logger;
 import app.morphe.extension.suite.shared.Utils;
@@ -71,7 +72,7 @@ public final class Ads {
     public static boolean hide() {
         HookStatus.invoked(FamilyNames.HIDE_ADS);
         try {
-            return Utils.settingsReady() && Settings.HIDE_ADS.get();
+            return Pref.hideReelsAndStoriesAdPods() || (Utils.settingsReady() && Settings.HIDE_ADS.get());
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.HIDE_ADS, "switch read", t);
             return false;
@@ -94,7 +95,7 @@ public final class Ads {
         if (item == null) return null;
         HookStatus.invoked(FamilyNames.HIDE_ADS);
         try {
-            if (!Utils.settingsReady() || !Settings.HIDE_ADS.get()) return item;
+            if (!Pref.hideReelsAndStoriesAdPods() && (!Utils.settingsReady() || !Settings.HIDE_ADS.get())) return item;
             String unit = FeedItemKinds.kindIn(item, AD_UNITS, FamilyNames.HIDE_ADS);
             if (unit != null) {
                 FeedFilterCounters.sawKind(ROUTE, unit);

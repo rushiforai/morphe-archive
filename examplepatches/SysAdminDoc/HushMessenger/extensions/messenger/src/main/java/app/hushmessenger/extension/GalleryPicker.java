@@ -230,7 +230,8 @@ final class GalleryPicker {
         return items.toArray(new Intent[0]);
     }
 
-    private static Intent chatItem(Uri item, String type) {
+    /** One item marked and granted the way the chat's handler takes a pick: a pasted photo goes in as one of these too. */
+    static Intent chatItem(Uri item, String type) {
         Intent one = type == null ? new Intent().setData(item) : new Intent().setDataAndType(item, type);
         return one.putExtra(RESULT_PREPARED, true).putExtra(ONE_ITEM, true).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }

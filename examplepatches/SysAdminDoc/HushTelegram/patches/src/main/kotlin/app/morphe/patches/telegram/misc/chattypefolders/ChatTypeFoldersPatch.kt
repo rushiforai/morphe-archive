@@ -7,10 +7,13 @@ package app.morphe.patches.telegram.misc.chattypefolders
 import app.morphe.util.names.origString
 import app.morphe.util.names.origDescriptor
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -252,6 +255,15 @@ val chatTypeFoldersPatch = bytecodePatch(
     execute {
         writeChatTypeFolderStubs(resolveChatTypeFolders())
         enableStatus("chatTypeFolders")
+        // The Admin folder sends the same requests with a few stubs of its own, and a build they don't fit
+        // keeps Folders by chat type.
+        try {
+            resolveAdminFolder()
+            writeAdminFolderStubs()
+            enableCapability("adminFolder")
+        } catch (unfit: PatchException) {
+            patchLog.warning("Folders by chat type: ${unfit.message}. The patch goes on without the Admin folder.")
+        }
     }
 }
 

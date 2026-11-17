@@ -84,6 +84,7 @@ internal val ACCENT_BLUES: Map<Int, AccentRole> = mapOf(
     0x232e67 to AccentRole.DIM,
     0x3143e3 to AccentRole.LINK_ON_LIGHT, 0x3849da to AccentRole.LINK_ON_LIGHT, 0x00376b to AccentRole.LINK_ON_LIGHT,
     0x85a1ff to AccentRole.LINK_ON_DARK, 0x8593ff to AccentRole.LINK_ON_DARK, 0x708dff to AccentRole.LINK_ON_DARK,
+    0x7595ff to AccentRole.LINK_ON_DARK,
     0xe0f1ff to AccentRole.PALE, 0xeff1ff to AccentRole.PALE, 0xebf1ff to AccentRole.PALE,
     0xdbdfff to AccentRole.PALE, 0xccddff to AccentRole.PALE,
 )
@@ -321,15 +322,30 @@ internal enum class BackgroundStep(val darkShare: Float, val lightShare: Float, 
 internal const val BACKGROUND_ATTRIBUTE = "igds_color_primary_background"
 
 /**
+ * The fills of Instagram's secondary buttons, read by its button component and its Compose screens: the
+ * plain one, and the one a button raised on a card takes. They held Prism's grays over the backgrounds
+ * in the accent color (#187). The default secondary button, Edit profile's and Share profile's, reads a
+ * color of its own instead, which [fillSecondaryButtons] swaps for the first of these. Declared before
+ * [BACKGROUND_ATTRIBUTES], which is built from it.
+ */
+internal val SECONDARY_BUTTONS = listOf(
+    "igds_color_secondary_button_panavision",
+    "igds_color_secondary_button_elevated_panavision",
+)
+
+/**
  * The attributes the background styles set, each with its step (#187). Instagram's other backgrounds
  * mostly point at these. The media, Reels and story loading backgrounds aren't here, so a story or a
  * reel still plays over black. Neither are the see-through ones (toasts, blurs), which already show
  * what's behind them. [ROW_ATTRIBUTE] is HushGram's, the one Pure black leaves a Likes row filling with.
+ * [REELS_TAB_BAR] is the tab bar's own color on the Reels tab. [SECONDARY_BUTTONS] fill gray buttons
+ * like a profile's Edit profile and Share profile.
  */
 internal val BACKGROUND_ATTRIBUTES: Map<String, BackgroundStep> = linkedMapOf(
     BACKGROUND_ATTRIBUTE to BackgroundStep.BASE,
     "status_bar_background" to BackgroundStep.BASE,
     "igds_color_cta_banner_background" to BackgroundStep.BASE,
+    REELS_TAB_BAR to BackgroundStep.BASE,
     "igds_color_elevated_background" to BackgroundStep.RAISED,
     ROW_BACKGROUND to BackgroundStep.RAISED,
     ROW_ATTRIBUTE to BackgroundStep.RAISED,
@@ -340,15 +356,23 @@ internal val BACKGROUND_ATTRIBUTES: Map<String, BackgroundStep> = linkedMapOf(
     "igds_color_highlight_background" to BackgroundStep.TOP,
     "igds_color_elevated_highlight_background" to BackgroundStep.TOP,
     "igds_color_pill_background" to BackgroundStep.TOP,
-)
+) + SECONDARY_BUTTONS.associateWith { BackgroundStep.TOP }
+
+/**
+ * The attribute the main screen paints its tab bar and the navigation bar with each time the Reels tab
+ * opens, in place of the page's. Its Prism black stayed under the Reels tab with the backgrounds in
+ * the accent color, so the bar changed color there (#187). Instagram keeps the Reels tab dark on a
+ * light theme too, its icons white, so only a dark style sets it.
+ */
+internal const val REELS_TAB_BAR = "igds_color_clips_tab_bar_background"
 
 /**
  * The ones of [backgrounds] the background styles for [theme] set. Instagram holds a dark gray in the
  * ones named for a dark surface on a light theme too, for pills and buttons with light text on them,
- * so a light style leaves those alone (#639).
+ * so a light style leaves those alone (#639), and [REELS_TAB_BAR] with them.
  */
 internal fun backgroundsFor(theme: IconTheme, backgrounds: Map<String, BackgroundStep>): Map<String, BackgroundStep> =
-    if (theme == IconTheme.LIGHT) backgrounds.filterKeys { !it.endsWith("_dark") } else backgrounds
+    if (theme == IconTheme.LIGHT) backgrounds.filterKeys { !it.endsWith("_dark") && it != REELS_TAB_BAR } else backgrounds
 
 internal fun backgroundColor(palette: String, theme: IconTheme, step: BackgroundStep): String =
     "hushgram_accent_${palette.lowercase(Locale.ROOT)}_background_${theme.name.lowercase(Locale.ROOT)}_${step.name.lowercase(Locale.ROOT)}"

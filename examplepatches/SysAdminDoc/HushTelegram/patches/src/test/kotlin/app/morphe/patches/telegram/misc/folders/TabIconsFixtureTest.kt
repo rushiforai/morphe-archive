@@ -106,7 +106,7 @@ class TabIconsFixtureTest {
             probe.requireLaunchFolderRuntime()
             val strip = probe.resolveLaunchFolder().refs!!.tabs.substringBefore("->")
             val tab = probe.resolveTabIcons(strip).tab!!
-            val hosts = (folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build))
+            val hosts = (folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build))
                 .distinctBy { it.type }.filterNot { it.type == tab }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }

@@ -80,18 +80,18 @@ public final class ThreadCardChecks {
         View post=StyleChecks.inflate("row_submission_comments");ViewStub stub=(ViewStub)StyleChecks.find(post,"main_layout_stub");stub.inflate();
         View image=StyleChecks.find(post,"preview_image");image.setVisibility(View.VISIBLE);((ImageView)image).setImageDrawable(new ColorDrawable(Color.GREEN));
         for(String name:new String[]{"submission_header_thumbnail","poll_view","crosspost_parent","state_submission_view","submission_header_nsfw"}){View v=StyleChecks.find(post,name);if(v!=null)v.setVisibility(View.GONE);}
-        ((TextView)StyleChecks.find(post,"submission_header_info_top")).setText("Dull-Positive-6810 · 7h · reddit");
+        ((TextView)StyleChecks.find(post,"submission_header_info_top")).setText("Example-User-1234 · 7h · reddit");
         ((TextView)StyleChecks.find(post,"submission_header_score")).setText("43");
         ((TextView)StyleChecks.find(post,"submission_header_comment_count")).setText("4 comments");
         View selfPanel=StyleChecks.find(post,"submission_header_selftext_container");selfPanel.setVisibility(View.VISIBLE);selfPanel.setBackgroundColor(Color.BLACK);
-        TextView selfAuthor=(TextView)StyleChecks.find(post,"submission_header_selftext_author");selfAuthor.setText("neodido");
+        TextView selfAuthor=(TextView)StyleChecks.find(post,"submission_header_selftext_author");selfAuthor.setText("sample_user");
         View selfBody=StyleChecks.find(post,"submission_header_selftext");selfBody.setVisibility(View.VISIBLE);selfBody.getClass().getMethod("setTextHtml",String.class).invoke(selfBody,"<p>Here is my hand-painted GameCube. Tell me honestly if you like it.</p>");
         TextView postTitle=(TextView)StyleChecks.find(post,"submission_header_title");postTitle.setText("Metroid Country");
         Post postHolder=new Post();postStrong=postHolder;postHolder.a=post;postHolder.b0=postModel;postHolder.previewImageview=(ImageView)image;postHolder.P=java.lang.Enum.valueOf((Class)Class.forName("jh1",true,loader),"Cards");
         Class.forName("app.morphe.extension.boost.CommentSwipeActions",true,loader).getMethod("bindPost",Object.class).invoke(null,postHolder);
         chrome.getMethod("onRowBound",Object.class).invoke(null,postHolder);
         check(selfPanel.getBackground()==null,"Post completion removes the dark self-text panel before measurement");
-        check(selfBody.getParent()==selfPanel && selfAuthor.getText().toString().equals("neodido"),"Native OP body, author and view ownership are retained outside the dark box");
+        check(selfBody.getParent()==selfPanel && selfAuthor.getText().toString().equals("sample_user"),"Native OP body, author and view ownership are retained outside the dark box");
         viewport.addView(post,new LinearLayout.LayoutParams(-1,-2));
         Object[] models={commentModel(0),commentModel(1),commentModel(2),commentModel(0),commentModel(1)};
         View[] rows=new View[models.length];
@@ -113,7 +113,7 @@ public final class ThreadCardChecks {
         ViewGroup inline=(ViewGroup)postTitle.getParent();
         check(inline.getClass().getName().endsWith("$PostMetadataRow") && postScore.getParent()==inline && postComments.getParent()==inline,"Native title, author metadata and counts use one adaptive header without a dedicated counts row");
         CharSequence originalInfo=postInfo.getText(),originalTitle=postTitle.getText();float titleSize=postTitle.getTextSize(),infoSize=postInfo.getTextSize(),scoreSize=postScore.getTextSize(),commentsSize=postComments.getTextSize();
-        postInfo.setText("u/shiki · 1h");postTitle.setText("A longer post title with enough words to span multiple lines");settle(fragment);
+        postInfo.setText("u/example · 1h");postTitle.setText("A longer post title with enough words to span multiple lines");settle(fragment);
         check(postScore.getLeft()>=info.getRight() && postScore.getTop()<info.getBottom() && postScore.getBottom()>info.getTop(),"Score follows the username metadata on the same line when it fits");
         postInfo.setText("a_long_account_name · a_long_subreddit_name · 12h · reddit");postTitle.setText("Post");settle(fragment);
         check(postScore.getLeft()>=postTitle.getRight() && postScore.getTop()<postTitle.getBottom() && postComments.getTop()<info.getTop(),"Counts use available space after a short title when the author line is full");

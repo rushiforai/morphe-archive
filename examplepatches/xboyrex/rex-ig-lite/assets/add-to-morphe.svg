@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="250" height="54" viewBox="0 0 250 54" fill="none">
-  <rect x="1" y="1" width="248" height="52" rx="16" fill="#111517" stroke="#88C2CE" stroke-width="2"/>
-  <circle cx="32" cy="27" r="14" fill="#1A282B"/>
-  <path d="M32 17L40.66 22V32L32 37L23.34 32V22L32 17Z" stroke="#88C2CE" stroke-width="2.2" fill="none"/>
-  <circle cx="32" cy="27" r="3" fill="#FFFFFF"/>
-  <text x="58" y="24" fill="#88C2CE" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">ONE-CLICK INSTALL</text>
-  <text x="58" y="40" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800">Add to Morphe</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 54" width="280" height="54">
+  <rect x="1.5" y="1.5" width="277" height="51" rx="25.5" fill="#12171C" stroke="#88C2CE" stroke-width="2"/>
+  <polygon points="36,15 48,22 48,34 36,41 24,34 24,22" fill="none" stroke="#88C2CE" stroke-width="2.4" stroke-linejoin="round"/>
+  <circle cx="36" cy="28" r="4.2" fill="#FFFFFF"/>
+  <text x="154" y="33" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16.5" font-weight="700" fill="#FFFFFF">
+    Add to Morphe Manager
+  </text>
 </svg>

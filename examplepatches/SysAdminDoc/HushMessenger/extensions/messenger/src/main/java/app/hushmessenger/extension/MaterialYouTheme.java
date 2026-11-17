@@ -63,6 +63,12 @@ public final class MaterialYouTheme {
         return DARK.get();
     }
 
+    /** Back to never having been asked, so one test's answer isn't read as Messenger's by the next. */
+    static void forgetDarkModeAnswer() {
+        answered = false;
+        DARK.set(true);
+    }
+
     /**
      * Whether a bar Hush puts inside a chat should be light: Messenger's own theme once it has answered, and Hush's
      * Light theme switch before that or without the Material You patch.

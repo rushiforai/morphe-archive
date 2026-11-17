@@ -8,6 +8,7 @@ package app.morphe.extension.instagram.patches;
 
 import android.content.Context;
 
+import app.morphe.extension.instagram.patches.actionbar.ActionBarPatch;
 import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.shared.Logger;
@@ -17,6 +18,7 @@ public class WelcomeMessage {
 
     public static void openWelcomeMessage(Context context) {
         try {
+            ActionBarPatch.attachHomeTabLongPress(RexDialogs.resolveActivity(context));
             if (Pref.firstTimeRex()) {
                 Pref.setFirstTimeRex(false);
                 RexDialogs.showChangelogDialog(context);

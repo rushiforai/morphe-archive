@@ -18,6 +18,9 @@ public partial record PatchesSection
     /// <summary>The "Links" section: "Open web pages in the browser" first.</summary>
     public partial record Links;
 
+    /// <summary>"Export and import settings"' section: "Export settings" and "Import settings".</summary>
+    public partial record Backup;
+
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
 }
@@ -30,5 +33,6 @@ public static class PatchesSectionShowing
         value.Match(
             accountColors => "Account colors",
             links => "Links",
+            backup => "Backup",
             unlisted => unlisted.Shown);
 }

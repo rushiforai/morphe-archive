@@ -319,6 +319,11 @@ private fun MutableMethod.loads(index: Int): Pair<Int, String> = code()[index].l
     (it as OneRegisterInstruction).registerA to ((it as ReferenceInstruction).reference as StringReference).string
 }
 
+/** The register and the extension field a read lands in, for a name the running copy gives itself. */
+private fun MutableMethod.reads(index: Int): Pair<Int, String> = code()[index].let {
+    (it as OneRegisterInstruction).registerA to (it as ReferenceInstruction).reference.toString()
+}
+
 class CloneInstallPatchTest {
     @Test fun theManifestMovesWholeToTheNewPackageAndKeepsClassNames() {
         val manifest = xml(STOCK).apply { addSettingsEntry() }
@@ -824,6 +829,88 @@ class CloneInstallPatchTest {
             val aliases = manifest.elements("activity-alias").filter { it.getAttribute("android:name").startsWith("com.facebook.orca.LauncherAlias") }
             assertEquals(7, aliases.size, code)
             assertTrue(aliases.all { it.getAttribute("android:label") == "@string/$CLONE_LABEL" }, code)
+        }
+    }
+
+    @Test fun aCopyAnotherPatchRenamedStartsAndKeepsItsOwnAttachmentsAndMutes() {
+        val lookup = backupLookup()
+        val check = attachmentCheck()
+        val uris = dedupUris()
+        val matcher = dedupMatcher()
+        val lookupBefore = lookup.code()
+        val checkBefore = check.code()
+        val urisBefore = uris.code()
+        val matcherBefore = matcher.code()
+        assertEquals(RENAMED_PATCH_NAME, renamedCopyPatch.name)
+        assertTrue(renamedCopyPatch.default, "A renamed copy is broken without it, so there's nothing to switch on")
+        assertEquals(5, applyRunningNames(lookup, check, listOf(uris to 4, uris to 8, matcher to 8)))
+
+        // Messenger's own name stays in the lookup, since any other name throws and holds the copy on its loading screen.
+        assertEquals(Opcode.CONST_STRING_JUMBO, lookup.code()[5].opcode)
+        assertEquals(7 to "com.facebook.orca", lookup.loads(5))
+        assertEquals(lookupBefore.take(5), lookup.code().take(5))
+        assertEquals(lookupBefore.drop(5), lookup.code().drop(6))
+        // Attachments, muted chats and friendships name whichever copy is running, which it only knows once it runs.
+        assertEquals(Opcode.SGET_OBJECT, check.code()[6].opcode)
+        assertEquals(0 to RUNNING_NAMES.getValue(TAM_AUTHORITY), check.reads(6))
+        assertEquals(checkBefore.size, check.code().size)
+        assertEquals(checkBefore.filterIndexed { i, _ -> i != 6 }, check.code().filterIndexed { i, _ -> i != 6 })
+        assertEquals(1 to RUNNING_NAMES.getValue(DEDUP_URIS[0]), uris.reads(4))
+        assertEquals(1 to RUNNING_NAMES.getValue(DEDUP_URIS[1]), uris.reads(8))
+        assertEquals(2 to RUNNING_NAMES.getValue(DEDUP_AUTHORITY), matcher.reads(8))
+        // The Facebook app's URI and authority stay, and nothing else moves.
+        assertEquals(urisBefore.filterIndexed { i, _ -> i != 4 && i != 8 }, uris.code().filterIndexed { i, _ -> i != 4 && i != 8 })
+        assertEquals(matcherBefore.filterIndexed { i, _ -> i != 8 }, matcher.code().filterIndexed { i, _ -> i != 8 })
+        // Nothing is left for a second run of the patch to change.
+        assertTrue(findDedupSites(listOf(fixtureClass("LX/6TB;", listOf(uris)), fixtureClass(DEDUP_PROVIDER, listOf(matcher)))).isEmpty())
+        assertEquals(0, applyRunningNames(lookup, check))
+    }
+
+    @Test fun whatCloneInstallAlreadyPinnedIsLeftAsItIs() {
+        val lookup = backupLookup()
+        val check = attachmentCheck()
+        val uris = dedupUris()
+        val matcher = dedupMatcher()
+        applyCloneSites(lookup, check, COPY, dedup = listOf(uris to 4, uris to 8, matcher to 8))
+        val methods = listOf(lookup, check, uris, matcher)
+        val before = methods.map { it.code() }
+        // Clone install wrote the name it chose into all four while patching, so there's nothing here to name again.
+        assertTrue(findDedupSites(listOf(fixtureClass("LX/6TB;", listOf(uris)), fixtureClass(DEDUP_PROVIDER, listOf(matcher)))).isEmpty())
+        assertEquals(0, applyRunningNames(lookup, check))
+        assertEquals(before, methods.map { it.code() })
+    }
+
+    @Test fun everyStockBuildKeepsWorkingUnderAnotherPatchsName() {
+        // opcode-name-ok: the mnemonic without its suffix, since a longer method can widen a goto or drop padding.
+        fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>.shape() =
+            filter { it.opcode != Opcode.NOP }.map { it.opcode.name.substringBefore('/') } // opcode-name-ok
+        for (apk in stockApks()) {
+            val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
+            val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
+            val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val pools = ownNamePoolKeys(classes)
+            fun method(id: String) =
+                MutableMethod(classes.single { it.type == id.substringBefore("->") }.methods.single { it.hookId() == id })
+            val checks = expectedCloneSitesFor(code).filterNot { '@' in it }
+            val lookup = method(checks.single { it.endsWith("-><init>()V") })
+            val check = method(checks.single { it.endsWith(ATTACHMENT_CHECK) })
+            val dedupIds = findDedupSites(classes)
+            assertEquals(3, dedupIds.size, code)
+            val dedupMethods = dedupIds.map { it.substringBefore('@') }.distinct().associateWith { method(it) }
+            val dedup = dedupIds.map { dedupMethods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }
+            val (at, register) = lookup.backupLookupSite(pools)
+            val before = lookup.code()
+            val checkBefore = check.code()
+            assertEquals(5, applyRunningNames(lookup, check, dedup, pools), code)
+
+            assertEquals(register to "com.facebook.orca", lookup.loads(at), code)
+            assertEquals(before.shape(), lookup.code().filterIndexed { i, _ -> i != at }.shape(), code)
+            assertEquals(checkBefore.size, check.code().size, code)
+            assertTrue(check.code().none { (it as? ReferenceInstruction)?.reference.let { r -> r is StringReference && r.string == TAM_AUTHORITY } }, code)
+            assertEquals(1, check.code().count { (it as? ReferenceInstruction)?.reference?.toString() == RUNNING_NAMES.getValue(TAM_AUTHORITY) }, code)
+            assertTrue(findDedupSites(dedupMethods.values.map { fixtureClass(it.definingClass, listOf(it)) }).isEmpty(), code)
+            assertEquals(listOf(RUNNING_NAMES.getValue(DEDUP_AUTHORITY), RUNNING_NAMES.getValue(DEDUP_URIS[0]),
+                RUNNING_NAMES.getValue(DEDUP_URIS[1])).sorted(), dedup.map { (method, i) -> method.reads(i).second }.sorted(), code)
         }
     }
 

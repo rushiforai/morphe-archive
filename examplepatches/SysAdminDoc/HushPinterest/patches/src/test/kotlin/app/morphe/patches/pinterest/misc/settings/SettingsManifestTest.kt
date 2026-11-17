@@ -123,7 +123,7 @@ class SettingsManifestTest {
             module.setTableBlock(TableBlock().apply {
                 getOrCreatePackage(0x7f, "com.pinterest")
                     .getOrCreate("", "string", "settings_menu_teen_safety_resources")
-                    .setValueAsString("Safety resources")
+                    .setDataAsString("Safety resources")
                 refreshFull()
             })
             module.setManifest(AndroidManifestBlock.empty().apply {

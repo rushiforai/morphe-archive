@@ -28,6 +28,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_new_indicator_days_title">Resaltar novas configuracións</string>
   <string name="morphe_settings_new_indicator_days_summary">Número de días que se mostra un punto xunto ás configuracións e opcións engadidas por unha actualización</string>
   <string name="morphe_settings_new_indicator_days_off">Apagado</string>
+  <string name="morphe_settings_new_indicator_clear_title">Marcar todos os axustes como vistos</string>
+  <string name="morphe_settings_new_indicator_clear_summary">Eliminar o punto de todos os novos axustes e opcións</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_title">Marcar todos os axustes como vistos?</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_message">O punto elimínase de todos os novos axustes e opcións. Os axustes engadidos en futuras actualizacións seguirán destacados.</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">Reinicia para rematar a configuración</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -59,14 +63,21 @@ Second \"item\" text"</string>
   <string name="morphe_download_mode_entry_external">Descargador externo</string>
   <string name="morphe_external_downloader_name_title">Nome do paquete do Downloader</string>
   <string name="morphe_external_downloader_name_summary">Nome do paquete da aplicación de descarga externa instalada</string>
-  <string name="morphe_external_downloader_other_item_hint">Introducir o nome do paquete</string>
+  <string name="morphe_external_downloader_other_item_hint">Introduce o nome do paquete</string>
   <string name="morphe_external_downloader_other_item">Outro</string>
   <string name="morphe_external_downloader_not_found_title">Aplicación non instalada</string>
-  <string name="morphe_external_downloader_not_installed_warning">%s non está instalado. Por favor, instáleo</string>
+  <string name="morphe_external_downloader_not_installed_warning">%s non está instalado. Instálao</string>
   <string name="morphe_external_downloader_package_not_found_warning">"Non se puido atopar ningunha aplicación instalada co nome de paquete: %s
 
-Verifique que o nome do paquete sexa correcto e que a aplicación este instalada"</string>
+Verifica que o nome do paquete sexa correcto e que a aplicación estea instalada"</string>
   <string name="morphe_external_downloader_empty_warning">O nome do paquete non pode estar baleiro</string>
+  <string name="morphe_export_download_folder_dialog_title">Cartafol de exportación</string>
+  <string name="morphe_export_download_folder_change">Cambiar cartafol</string>
+  <string name="morphe_export_download_folder_changed">Cartafol de exportación cambiado</string>
+  <string name="morphe_export_download_folder_reset">Cartafol de exportación restablecido</string>
+  <string name="morphe_export_download_folder_missing">Non se puido atopar o cartafol de exportación %s</string>
+  <string name="morphe_export_download_flyout_title">Exportar ao dispositivo</string>
+  <string name="morphe_export_download_canceled">Exportación cancelada</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Personalizado</string>
   <string name="morphe_custom_branding_icon_title">Icona da aplicación</string>
@@ -80,15 +91,15 @@ Verifique que o nome do paquete sexa correcto e que a aplicación este instalada
   <string name="morphe_custom_branding_icon_entry_6">Morphe play black</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Personalizado</string>
-  <string name="morphe_custom_branding_icon_user_dialog_message">"Isto cambia o icona que se amosa no lanzador de aplicacións.
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Isto cambia a icona que se amosa no lanzador de aplicacións.
 
-Esta configuración non cambiará o icona en ningunha destas localizacións:
+Esta configuración non cambiará a icona en ningunha destas localizacións:
 • Lista de aplicacións de configuración do sistema do dispositivo
 • Algunhas notificacións push
 • Selector de aplicacións \"Abrir con\"
 • Icona de Android Auto
 
-Para cambiar o icona en todas as partes, aplica o parche de novo e cambia a opción de parche \"Icona da aplicación\""</string>
+Para cambiar a icona en todas as partes, aplica o parche de novo e cambia a opción de parche \"Icona da aplicación\""</string>
   <string name="morphe_custom_branding_notification_icon_title">Icona de notificación</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Coincidir coa icona da aplicación</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe play</string>
@@ -101,7 +112,7 @@ Para cambiar o icona en todas as partes, aplica o parche de novo e cambia a opci
   <string name="morphe_spoof_video_streams_screen_summary">Configura a imitación do cliente para evitar problemas de reprodución</string>
   <string name="morphe_spoof_video_streams_summary">"Corrixe problemas de reprodución para a maioría dos usuarios solicitando un fluxo de vídeo compatible
 
-Se vostede é un usuario de YouTube Premium, pode que esta configuración non sexa necesaria"</string>
+Se es un usuario de YouTube Premium, pode que esta configuración non sexa necesaria"</string>
   <string name="morphe_spoof_video_streams_no_clients_toast">Non foi posible obter ningún fluxo de clientes</string>
   <!-- 'Default client' must use the same translation as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_client_failing_dialog_title">O cliente predefinido non funciona</string>
@@ -110,13 +121,27 @@ Se vostede é un usuario de YouTube Premium, pode que esta configuración non se
 Establecer %2$s como o cliente predefinido?"</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_switch">Cambiar</string>
   <string name="morphe_spoof_video_streams_user_dialog_message">Desactivar este axuste pode causar problemas de reproducición</string>
+  <!-- "Android System WebView" is the name of the Android app and should not be translated. -->
+  <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"Android System WebView está desactivado ou non está instalado.
+
+A reprodución de vídeo require Android System WebView. Actívao e actualizao á última versión.
+
+Toca en OK para abrir Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"Android System WebView está desactualizado (versión %s).
+
+A reprodución de vídeo pode fallar ata que Android System WebView se actualice á última versión.
+
+Toca en OK para abrir Android System WebView."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_ignore">Non volver mostrar</string>
+  <string name="morphe_spoof_video_streams_webview_toast_not_installed">Android System WebView non está instalado. Instalao para solucionar a reprodución de vídeo</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
          "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
-  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Tente activar: Spoof de fluxos de vídeo &gt; Inicio de sesión en Android VR</string>
+  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Proba a activar: Simular fluxos de vídeo &gt; Inicio de sesión en Android VR</string>
   <string name="morphe_spoof_video_streams_client_type_title">Cliente predefinido</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Inicio de sesión en Android VR</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Non iniciou sesión en Android VR. Toque aquí para iniciar sesión</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR require un inicio de sesión separado. Toca aquí para continuar</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Actualmente iniciou sesión en Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Para usar esta función, cambie \'Cliente predefinido\' a Android VR</string>
@@ -133,17 +158,39 @@ Para iniciar sesión, preme en continuar abaixo"</string>
 2. Pega desde o portapapeles (ou escribe) o código de activación que aparece arriba
 3. Inicia sesión en Google se se solicita. Se tes varias contas, elixe esta conta de YouTube
 4. Toca en \"Permitir acceso a YouTube VR\"
-5. Regresa a esta aplicación despois de chegar á mensaxe \"Dispositivo conectado\""</string>
+5. Volve a esta aplicación despois de chegar á mensaxe \"Dispositivo conectado\""</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Fallou a emisión dun código de activación</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">Fallou a emisión dun token de autenticación</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Sesión iniciada correctamente</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Autenticación gardada
 
-• As súas configuracións de Morphe non importarán/exportarán a autenticación de Android VR
+• As túas configuracións de Morphe non importarán/exportarán a autenticación de Android VR
 • Se esta aplicación non se usa durante 6 meses, Google eliminará esta autenticación
-• Terá que iniciar sesión novamente se cambia a súa contrasinal de Google ou se desrexistra este dispositivo nas súas configuracións de Google"</string>
+• Terás que iniciar sesión de novo se cambias o teu contrasinal de Google ou se desrexistras este dispositivo nas túas configuracións de Google"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_title">Inicio de sesión na web móbil</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary">Opcional: inicia sesión no sitio web de YouTube para reproducir vídeos coa túa conta. Toca aquí para continuar</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_signed_in">Actualmente sesión iniciada na web móbil</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_disabled">Para usar esta función, cambia \'Cliente predefinido\' a Web móbil</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_title">Inicia sesión na Web móbil</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_not_signed_in_message">"A Web móbil reproduce vídeos sen iniciar sesión, ou iniciando sesión no sitio web de YouTube
+
+• Ao iniciar sesión, poden reproducirse vídeos que requiren unha conta, como os vídeos con restrición de idade
+• A páxina de inicio de sesión de Google abrese nesta aplicación
+• O inicio de sesión úsase nura para obter os vídeos que reproduces
+• O inicio de sesión gardase nura neste dispositivo
+
+Para iniciar sesión, preme continuar abaixo"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_success_dialog_message">"Inicio de sesión gardado
+
+• As túas configuracións de Morphe non importarán/exportarán o inicio de sesión da Web móbil
+• Se Google finaliza o inicio de sesión, os vídeos reprodúcense sen iniciar sesión ata que volvas iniciar sesión
+• Ao cerrar sesión tamén se cierra a sesión deste dispositivo no sitio web de YouTube"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_expired">A sesión de Mobile Web expirou, tenta iniciar sesión en Mobile Web de novo</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_signed_out">Sesión cerrada en Mobile Web</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_webview_missing">Android System WebView non está dispoñible. Instálao ou actívao para iniciar sesión</string>
   <string name="morphe_oauth2_connection_failure_timeout">OAuth2 non está dispoñible temporalmente (tempo límite da API esgotado)</string>
-  <string name="morphe_oauth2_connection_failure_status_400">A sesión de Android VR expirou, intenta iniciar sesión en VR de novo</string>
+  <string name="morphe_oauth2_connection_failure_status_400">A sesión de Android VR expirou, tenta iniciar sesión en VR de novo</string>
   <string name="morphe_oauth2_connection_failure_status">OAuth2 non está dispoñible temporalmente (estado %s)</string>
   <string name="morphe_oauth2_connection_failure_generic">OAuth2 non está dispoñible temporalmente</string>
   <string name="morphe_oauth2_connection_failure_auth_not_approved">Non se pode iniciar sesión en VR, a autenticación do sitio web non foi aprobada</string>
@@ -170,7 +217,7 @@ Para iniciar sesión, preme en continuar abaixo"</string>
   <string name="morphe_disable_drc_audio_title">Desactivar o audio DRC</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Forzar o idioma orixinal do audio</string>
-  <string name="morphe_force_original_audio_summary">Reproduce sempre a pista de audio orixinal do vídeo en lugar dunha versión dobre</string>
+  <string name="morphe_force_original_audio_summary">Reproduce sempre a pista de audio orixinal do vídeo en lugar dunha versión doblada</string>
   <!-- misc.audio.silence.skipSilencePatch -->
   <string name="morphe_skip_silence_title">Saltar silencio</string>
   <string name="morphe_skip_silence_summary">Salta automaticamente as pausas silenciosas no audio do vídeo</string>
@@ -199,7 +246,7 @@ Para iniciar sesión, preme en continuar abaixo"</string>
   <string name="morphe_hide_fullscreen_ads_title">Ocultar anuncios a pantalla completa</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
           'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Para usar esta función, cambia \'Spoof video streams\' por calquera cliente que non sexa \'Android Studio\' ou \'Android VR Downgraded\'</string>
+  <string name="morphe_force_original_audio_not_available">Para usar esta función, cambia \'Simular fluxos de vídeo\' por calquera cliente que non sexa \'Android Studio\' ou \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Limpar enlaces compartidos</string>
   <string name="morphe_sanitize_sharing_links_summary">Elimina os parámetros de consulta de seguimento dos ligazóns compartidas</string>
@@ -207,17 +254,33 @@ Para iniciar sesión, preme en continuar abaixo"</string>
   <string name="morphe_replace_music_with_youtube_summary">Substitúe music.youtube.com por youtube.com nos enlaces compartidos</string>
   <string name="morphe_replace_links_with_shortener_title">Cambiar os ligazóns de compartir a youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Obliga aos vídeos a usar o formato de URL acortado youtu.be</string>
+  <!-- video.quality.rememberVideoQualityPatch -->
+  <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
+  <string name="morphe_video_quality_default_entry_1">Automático</string>
+  <string name="morphe_remember_video_quality_last_selected_title">Recordar calidade do vídeo</string>
+  <string name="morphe_remember_video_quality_last_selected_summary">Aplica a túa selección de calidade manual a todos os vídeos futuros</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_title">Notificacións de cambio de calidade</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_summary">Mostra unha notificación cando se garda unha nova calidade predefinida</string>
+  <string name="morphe_video_quality_default_wifi_title">Calidade de vídeo predefinida en rede Wi-Fi</string>
+  <string name="morphe_video_quality_default_mobile_title">Calidade de vídeo predefinida en rede móbil</string>
+  <string name="morphe_remember_video_quality_toast_mobile">Cambiouse a calidade móbil predefinida a: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">Cambiouse a calidade Wi-Fi predefinida a: %s</string>
+  <!-- misc.sharesheet.openSystemShareSheetPatch -->
+  <string name="morphe_open_system_share_sheet_title">Abrir a folla de comparte do sistema</string>
+  <string name="morphe_open_system_share_sheet_summary">Abre a folla de comparte do sistema en lugar da da aplicación ao compartir contido</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Protocol buffer do rexistro de depuración</string>
-  <string name="morphe_debug_protobuffer_summary">Engade información de rexistro adicional para que os desenvolvedores identifiquen os compoñentes da aplicación</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Activar esta configuración rexistrará datos adicionais do deseño, incluíndo o texto en pantalla de algúns compoñentes da UI.
+  <string name="morphe_debug_litho_title">Rexistro de Litho</string>
+  <string name="morphe_debug_litho_entry_disabled">Desactivado</string>
+  <string name="morphe_debug_litho_entry_path">Ruta</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">Ruta e buffer</string>
+  <string name="morphe_debug_litho_user_dialog_message">"O rexistro de Litho rexistra os compoñentes do deseño da aplicación, incluidas as etiquetas de texto en pantalla de algúns compoñentes da UI.
 
 Isto pode axudar a identificar compoñentes ao crear filtros personalizados.
 
-Porén, activar isto tamén rexistrará algúns datos do usuario, como a súa dirección IP"</string>
+Porén, isto tamén rexistrará algúns datos do usuario, como a súa dirección IP"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">Filtro personalizado</string>
-  <string name="morphe_custom_filter_screen_summary">Configure filtros personalizados para ocultar calquera compoñente</string>
+  <string name="morphe_custom_filter_screen_summary">Configura filtros personalizados para ocultar calquera compoñente</string>
   <string name="morphe_custom_filter_title">Activar filtro personalizado</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Lista de cadeas do construtor de rutas de compoñentes para filtrar, separadas por novas liñas</string>
@@ -225,7 +288,7 @@ Porén, activar isto tamén rexistrará algúns datos do usuario, como a súa di
   <!-- layout.hide.settingsmenu.hideSettingsMenuFilterPatch -->
   <string name="morphe_settings_menu_filter_screen_title">Filtro do menú de axustes</string>
   <string name="morphe_settings_menu_filter_screen_summary">Ocultar elementos na pantalla de axustes estándar da aplicación polo seu nome visible</string>
-  <string name="morphe_settings_menu_filter_picker_empty">Abra a pantalla de axustes estándar da aplicación unha vez para poblar a lista</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Abre a pantalla de axustes estándar da aplicación unha vez para poboar a lista</string>
   <!-- interaction.dialog.removeViewerDiscretionDialogPatch -->
   <string name="morphe_remove_viewer_discretion_dialog_title">Eliminar o diálogo de discreción do visor</string>
   <string name="morphe_remove_viewer_discretion_dialog_summary">Isto non ignora a restricción de idade. Simplemente acéptaa automaticamente</string>
@@ -240,7 +303,7 @@ Se é usuario de YouTube Premium, pode que esta configuración non sexa necesari
          'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title -->
   <string name="morphe_external_potoken_provider_unavailable_summary">"Corrixe problemas de reprodución usando un xerador de PoToken externo (Experimental)
 
-Para usar esta función, desactiva 'Falsificar fluxos de vídeo'"</string>
+Para usar esta función, desactiva 'Simular fluxos de vídeo'"</string>
   <string name="morphe_external_potoken_provider_user_dialog_message">Se non funciona, tenta forzar o peche de MicroG</string>
   <string name="morphe_external_potoken_provider_settings_summary">Abrir a configuración de PotHelper</string>
   <string name="morphe_external_potoken_provider_about_summary">"Esta función está actualmente en desenvolvemento e pode que non funcione
@@ -262,7 +325,7 @@ Isto cambiará a aparencia e as funcións da aplicación, pero poden producirse 
 Se se desactiva posteriormente, recoméndase borrar os datos da aplicación para evitar erros na UI"</string>
   <string name="morphe_spoof_app_version_target_title">Simular obxectivo da versión da aplicación</string>
   <!-- misc.framerate.baseAppRefreshRatePatch -->
-  <string name="morphe_app_refresh_rate_title">Tasa de refresco da aplicación</string>
+  <string name="morphe_app_refresh_rate_title">Taxa de actualización da aplicación</string>
   <string name="morphe_app_refresh_rate_default">Predefinido</string>
   <string name="morphe_app_refresh_rate_fps">%s FPS</string>
   <string name="morphe_app_refresh_rate_type_title">Anular a taxa de actualización</string>
@@ -276,7 +339,7 @@ Se se desactiva posteriormente, recoméndase borrar os datos da aplicación para
   <string name="morphe_custom_font_type_entry_system">Fonte do sistema do dispositivo</string>
   <string name="morphe_custom_font_type_entry_custom">Fichero de fonte personalizada</string>
   <string name="morphe_custom_font_file_title">Fichero de fonte personalizada</string>
-  <string name="morphe_custom_font_file_summary">Escolla un ficheiro de fonte TTF ou OTF</string>
+  <string name="morphe_custom_font_file_summary">Escolle un ficheiro de fonte TTF ou OTF</string>
   <string name="morphe_custom_font_file_invalid">O ficheiro seleccionado non é unha fonte TTF ou OTF</string>
   <string name="morphe_custom_font_failed_to_load">Non se puido cargar a fonte personalizada e desactivouse</string>
   <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
@@ -293,10 +356,10 @@ Se se desactiva posteriormente, recoméndase borrar os datos da aplicación para
   <string name="morphe_ryd_dislike_percentage_title">Amosar dislikes como porcentaxe</string>
   <string name="morphe_ryd_dislike_percentage_summary">Amosa os dislikes como unha porcentaxe de likes en lugar dun número</string>
   <string name="morphe_ryd_estimated_like_title">Amosar likes estimados</string>
-  <string name="morphe_ryd_estimated_like_summary">Mostra unha estimación do número de likes en vídeos onde o creador desactivou os likes</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Mostrar alertas de erro de conexión</string>
+  <string name="morphe_ryd_estimated_like_summary">Amosa unha estimación do número de likes en vídeos onde o creador desactivou os likes</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Amosar alertas de erro de conexión</string>
   <string name="morphe_ryd_toast_on_connection_error_summary">Mostra unha notificación cando o servidor de Return YouTube Dislike non está dispoñible</string>
-  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike restaura as contaxes de \"non gosta\" que YouTube ocultou en 2021. As contaxes provén de datos arquivados antes da eliminación e, para os vídeos máis recentes, estímanse a partir dos votos dos seus usuarios, polo que son aproximadas e actualízanse cada Reservation poucos días
+  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike restaura as contaxes de \"non gosta\" que YouTube ocultou en 2021. As contaxes provén de datos arquivados antes da eliminación e, para os vídeos máis recentes, estímanse a partir dos votos dos seus usuarios, polo que son aproximadas e actualízanse cada poucos días
 
 O ID do vídeo que ves envíase á API de Return YouTube Dislike, e os teus \"gústame\" e \"non gosta\" envíanse anonimamente para mellorar as estimacións"</string>
   <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->

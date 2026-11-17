@@ -96,7 +96,7 @@ class LaunchFolderFixtureTest {
     @Test fun `the whole patch fills every stub and turns the switch on`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type })
             val launch = context.resolveLaunchFolder()
             val refs = launch.refs!!
             val all = context.resolveAllChats(launch).refs!!
@@ -327,11 +327,15 @@ class LaunchFolderFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
-            // Without Telegram's MessagesController the hidden chats and the All Chats place are left out too, each with its own warning.
-            assertEquals(build.name, 3, warnings.size)
+            // Without Telegram's MessagesController the hidden chats and the All Chats place are left out too, each with its own
+            // warning, and without ImageReceiver so is the avatar size, refused before the chat row is touched.
+            assertEquals(build.name, 4, warnings.size)
             val launch = warnings.single { it.contains("without opening a folder at launch") }
             assertTrue(launch, launch.contains("the folder tabs' build is missing or ambiguous"))
             assertTrue(warnings.toString(), warnings.any { it.contains("without hiding chats") })
+            val avatar = warnings.single { it.contains("without Change avatar size") }
+            assertTrue(avatar, avatar.contains("ImageReceiver;->getRoundRadius()[I isn't reachable from the extension (before editing)"))
+            assertEquals(0, statusOf(context, "chatListAvatar"))
             assertEquals(1, statusOf(context, "hideFolderCounters"))
             assertEquals(0, statusOf(context, "launchFolder"))
             assertEquals(0, statusOf(context, "hideAllChats"))

@@ -31,6 +31,8 @@ public final class PosterHighlight {
     private static volatile boolean enabled;
     private static volatile int color=COLORS[0], revision;
     private static volatile List<PosterHighlightRules.Rule> rules=Collections.emptyList();
+    private static final android.os.Handler EXPIRY=new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final Runnable EXPIRE=()->{reload();refresh();};
     private static final class Identity {
         final PosterHighlightRules.Poster poster, first;
         final WeakReference<Object> response;
@@ -62,12 +64,17 @@ public final class PosterHighlight {
             color=COLORS[Math.max(0,Math.min(COLORS.length-1,p.getInt("color",0)))];
             JSONArray array=new JSONArray(p.getString("rules","[]"));
             ArrayList<PosterHighlightRules.Rule> loaded=new ArrayList<>();
+            JSONArray kept=new JSONArray();boolean removed=false;long now=System.currentTimeMillis(),nearest=Long.MAX_VALUE;
             for(int i=0;i<array.length() && i<500;i++) {
                 JSONObject j=array.getJSONObject(i);
-                loaded.add(new PosterHighlightRules.Rule(j.getInt("kind"),j.getInt("scope"),j.getString("target"),
-                        j.getString("value"),j.optBoolean("enabled",true),j.optInt("colorIndex",-1)));
+                PosterHighlightRules.Rule rule=new PosterHighlightRules.Rule(j.getInt("kind"),j.getInt("scope"),j.getString("target"),
+                        j.getString("value"),j.optBoolean("enabled",true),j.optInt("colorIndex",-1),j.optLong("expiresAt",0));
+                if(rule.expired(now)){removed=true;continue;}
+                loaded.add(rule);kept.put(j);if(rule.expiresAt>0)nearest=Math.min(nearest,rule.expiresAt);
             }
             rules=Collections.unmodifiableList(loaded);
+            if(removed)p.edit().putString("rules",kept.toString()).apply();
+            EXPIRY.removeCallbacks(EXPIRE);if(nearest!=Long.MAX_VALUE)EXPIRY.postDelayed(EXPIRE,Math.max(1,Math.min(24*60*60*1000L,nearest-now)));
         } catch(Exception error) { enabled=false; rules=Collections.emptyList(); report(error); }
         ++revision;
     }
@@ -76,7 +83,7 @@ public final class PosterHighlight {
         try {
             JSONArray array=new JSONArray();
             for(PosterHighlightRules.Rule r:values) array.put(new JSONObject().put("kind",r.kind).put("scope",r.scope)
-                    .put("target",r.target).put("value",r.value).put("enabled",r.enabled).put("colorIndex",r.colorIndex));
+                    .put("target",r.target).put("value",r.value).put("enabled",r.enabled).put("colorIndex",r.colorIndex).put("expiresAt",r.expiresAt));
             prefs().edit().putString("rules",array.toString()).apply(); reload(); refresh();
         } catch(Exception error){throw new IllegalStateException("強調ルールを保存できませんでした",error);}
     }
@@ -289,6 +296,9 @@ public final class PosterHighlight {
         if(kind!=0)content.addView(input);
         Spinner scope=new Spinner(activity);scope.setAdapter(new ArrayAdapter<>(activity,android.R.layout.simple_spinner_dropdown_item,PosterHighlightRules.SCOPES));
         content.addView(scope);
+        CheckBox automatic=new CheckBox(activity);
+        String expiryKey=kind==1?"autoExpireId":"autoExpireSlip";
+        if(kind>=1&&kind<=3){automatic.setText(kind==1?"登録から24時間後に自動削除":"登録から1週間後に自動削除");automatic.setChecked(prefs().getBoolean(expiryKey,false));content.addView(automatic);}
         TextView colorLabel=new TextView(activity);colorLabel.setText("この登録の背景色");content.addView(colorLabel);
         Spinner ruleColor=colorSpinner(activity,true);content.addView(ruleColor);
         TextView sample=colorSample(activity,color);
@@ -311,7 +321,9 @@ public final class PosterHighlight {
                 String raw=kind==0?"":input.getText().toString().trim();
                 if(kind==3 && raw.startsWith("-"))raw=raw.substring(1);
                 if(kind==4 && raw.startsWith("◆"))raw=raw.substring(1);
-                PosterHighlightRules.Rule rule=new PosterHighlightRules.Rule(kind,selected,target,raw,true,ruleColor.getSelectedItemPosition()-1);
+                PosterHighlightRules.Rule rule=new PosterHighlightRules.Rule(kind,selected,target,raw,true,ruleColor.getSelectedItemPosition()-1,
+                        PosterHighlightRules.Rule.expiration(kind,automatic.isChecked(),System.currentTimeMillis()));
+                if(kind>=1&&kind<=3)prefs().edit().putBoolean(expiryKey,automatic.isChecked()).apply();
                 ArrayList<PosterHighlightRules.Rule> copy=new ArrayList<>(rules);
                 for(int i=copy.size()-1;i>=0;i--) {
                     PosterHighlightRules.Rule old=copy.get(i);
@@ -369,7 +381,7 @@ public final class PosterHighlight {
                 ArrayList<PosterHighlightRules.Rule> copy=new ArrayList<>(rules);
                 if(index>=copy.size())return;
                 PosterHighlightRules.Rule old=copy.get(index);
-                copy.set(index,new PosterHighlightRules.Rule(old.kind,old.scope,old.target,old.value,on,old.colorIndex));save(copy);
+                copy.set(index,new PosterHighlightRules.Rule(old.kind,old.scope,old.target,old.value,on,old.colorIndex,old.expiresAt));save(copy);
             });
             Spinner individualColor=colorSpinner(activity,true);individualColor.setSelection(r.colorIndex+1);content.addView(individualColor);
             TextView individualSample=colorSample(activity,r.colorIndex<0?color:COLORS[r.colorIndex]);content.addView(individualSample);
@@ -383,7 +395,7 @@ public final class PosterHighlight {
                     if(index>=copy.size())return;
                     PosterHighlightRules.Rule old=copy.get(index);
                     if(old.colorIndex==position-1)return;
-                    copy.set(index,new PosterHighlightRules.Rule(old.kind,old.scope,old.target,old.value,old.enabled,position-1));save(copy);
+                    copy.set(index,new PosterHighlightRules.Rule(old.kind,old.scope,old.target,old.value,old.enabled,position-1,old.expiresAt));save(copy);
                 }
             });
         }

@@ -8,7 +8,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -33,7 +34,7 @@ private object ArticleTypeFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val mergePagesPatch = bytecodePatch(
+val mergePagesPatch = patch(
     name = "Merge article pages",
     description = "Shows every page of a multi-page article in one continuous article, without the page numbers.",
     default = true,

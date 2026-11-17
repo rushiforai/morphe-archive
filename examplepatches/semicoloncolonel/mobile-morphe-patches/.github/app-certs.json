@@ -32,6 +32,9 @@
   "com.bydeluxe.d3.android.program.starz": [
     "ad6fee5661fed3145fc6a383df1a79882317ad3a45abe0280f738c84606637d2"
   ],
+  "com.c51": [
+    "c4d04b81325b1d3e95bb4509870f8d7911f33c0c3692257f2fd742b4e4e95152"
+  ],
   "com.cbs.app": [
     "a7520085336e50053de6b8b92e5ab89b6f62b5c22653e5684870586d02fb014e"
   ],
@@ -43,9 +46,6 @@
   ],
   "com.costco.app.android": [
     "cec08537be5151905759a0e0301669582eff8e6b98b6676bbd0a654a535245fc"
-  ],
-  "com.c51": [
-    "c4d04b81325b1d3e95bb4509870f8d7911f33c0c3692257f2fd742b4e4e95152"
   ],
   "com.cvs.launchers.cvs": [
     "37bff7c0ee776177f0fdcb98bca438901149533e4cb82fbcfc948222cbc11050"
@@ -94,6 +94,9 @@
   "com.gotv.nflgamecenter.us.lite": [
     "1d985b3aad0684cf25ea1725f8c73d7b70939ce294122cc18fd0be9be6118870"
   ],
+  "com.hulu.livingroomplus": [
+    "cfbdf8dcd96469243dde618ad6a12fa37685ba98f5c6f4c778ba9fbf75a8b145"
+  ],
   "com.hulu.plus": [
     "cfbdf8dcd96469243dde618ad6a12fa37685ba98f5c6f4c778ba9fbf75a8b145"
   ],
@@ -114,6 +117,10 @@
   ],
   "com.nbcnews.msnbc.mobile": [
     "2d072ce000030dfef5566a1eafdf651c134762fcb05bc05aeb40b73116eb326f"
+  ],
+  "com.netflix.mediaclient": [
+    "86e17577ebe94bd64ff61590651863fb5a2d125f405fcbbf76ba0fe483a31d91",
+    "363863596ea99241eb71b1a985553aa604de3ea3c5f0c546742390e682164e6b"
   ],
   "com.nexstar.newsnation": [
     "7f96e905b4bfed3a431194c364ea0a0c6e3d7c1291ec429cd0cf5bbf632563fd"
@@ -179,15 +186,6 @@
   "com.walmart.android": [
     "f3cfe9b27cf77a414051734b6a07422ed8b8ed71de02e0d1e8a36994c15a17a2"
   ],
-  "com.whaleshark.retailmenot": [
-    "3d2aeb0dc1ad392fa508d3f6f09168e26101c978edcbd8daa8837b4b1077dcbb"
-  ],
-  "com.yahoo.mobile.client.android.finance": [
-    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
-  ],
-  "com.yahoo.mobile.client.android.yahoo": [
-    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
-  ],
   "com.washingtonpost.android": [
     "f2283600a2e11ecf30efb5c756ac8abb7445f274787b67e91be5535312b45e5d"
   ],
@@ -197,6 +195,9 @@
   "com.wbd.stream": [
     "619cbb027b715560b843d15a5599f900485af1cd4294097811a77609bc8273a8"
   ],
+  "com.whaleshark.retailmenot": [
+    "3d2aeb0dc1ad392fa508d3f6f09168e26101c978edcbd8daa8837b4b1077dcbb"
+  ],
   "com.wishabi.flipp": [
     "fe614ad9446f2cf9b073eb433c03761530ffea04f9dea81324404cfe0f96fb9f"
   ],
@@ -205,6 +206,12 @@
   ],
   "com.xumo.xumo": [
     "e15ba6a1defa71a45ff0f43e18af98d0ef5605f535214848c452449f67d175a4"
+  ],
+  "com.yahoo.mobile.client.android.finance": [
+    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
+  ],
+  "com.yahoo.mobile.client.android.yahoo": [
+    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
   ],
   "com.zumobi.msnbc": [
     "42cc360992c161b46ae9474713f005522cff860ccc5fdafbdfd7471e911eedb2"

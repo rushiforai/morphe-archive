@@ -37,7 +37,6 @@ public final class FilterPosition {
         }return null;
     }
     public static void beforeModel(Object model) {
-        if (!Haiagaru.keepQuickFilterPosition()) return;
         for (WeakReference<Object> ref : new ArrayList<>(fragments)) {
             Object fragment = ref.get();
             if (fragment == null) continue;
@@ -52,11 +51,12 @@ public final class FilterPosition {
     }
 
     static void beforeFragment(Object fragment, boolean required) {
-        if (!required && !Haiagaru.keepQuickFilterPosition()) return;
         try {
             View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
             View list = findList(root);
             if (list == null || !list.isShown()) return;
+            XPostPreviewPosition.cancel(list);
+            if (!required && !Haiagaru.keepQuickFilterPosition()) return;
             Pending previous = pending.remove(list);
             if (previous != null) previous.close();
             Pending next = new Pending(list, required);
@@ -68,6 +68,8 @@ public final class FilterPosition {
             next.handler.postDelayed(next.timeout, 3000);
         } catch (Exception error) { Log.w("Haiagaru", "Unable to retain filter position", error); }
     }
+
+    static boolean changing(View list){return pending.containsKey(list);}
 
     static View findList(View root) {
         return findList(root,true);
@@ -149,6 +151,7 @@ public final class FilterPosition {
             Object row=item.invoke(adapter,i);
             if(row==null)continue;
             if(responseNumber(row)==number) {
+                XPostPreviewPosition.cancel(list);
                 if(list instanceof ListView)((ListView)list).setSelectionFromTop(i,offset);
                 else {
                     Object manager=call(list,"getLayoutManager",new Class<?>[0]);

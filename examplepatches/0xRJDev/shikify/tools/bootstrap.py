@@ -6,7 +6,6 @@ import subprocess
 import tarfile
 import urllib.request
 import zipfile
-import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / '.work'
@@ -77,12 +76,9 @@ for directory, filename, checksum, cache in packages:
     (target.parent / top).rename(target)
 
 if not (sdk / 'platform-tools/source.properties').is_file():
-    data = urllib.request.urlopen('https://dl.google.com/android/repository/repository2-3.xml').read()
-    document = ET.fromstring(data)
-    package = next(p for p in document.findall('remotePackage') if p.attrib['path'] == 'platform-tools')
-    item = next(a for a in package.findall('archives/archive') if a.findtext('host-os') == 'linux')
-    archive = download('https://dl.google.com/android/repository/' + item.findtext('complete/url'),
-                       WORK / 'platform-tools.zip', item.findtext('complete/checksum'), 'sha1')
+    archive = download('https://dl.google.com/android/repository/platform-tools_r37.0.1-linux.zip',
+                       WORK / 'platform-tools-37.0.1.zip',
+                       '477254aa5f903c15cf51001717bdf347fb6b53e0', 'sha1')
     with zipfile.ZipFile(archive) as stream:
         stream.extractall(sdk)
         for info in stream.infolist():

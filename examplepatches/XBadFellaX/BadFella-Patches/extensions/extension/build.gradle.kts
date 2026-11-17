@@ -4,9 +4,11 @@ extension {
 
 android {
     namespace = "app.badfella.extension"
+    buildFeatures { buildConfig = true }
     compileSdk = 36
     defaultConfig {
         minSdk = 26
+        buildConfigField("String", "BUNDLE_VERSION", "\"${project.version}\"")
     }
 }
 

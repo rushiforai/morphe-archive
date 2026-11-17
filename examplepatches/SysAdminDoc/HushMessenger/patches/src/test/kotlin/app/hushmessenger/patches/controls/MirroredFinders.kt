@@ -30,7 +30,8 @@ private val PROVED_BY_VALIDATE_HOOK: Set<String> by lazy { controlHooks.filterKe
 private val PROVED_ONLY_BY_THE_PATCH: Map<String, String> =
     (listOf("bubble_mode", "browser", "subtabs", "people_jewel") + pluginGates.keys)
         .associateWith { "CompatReport proves the body through a profile field, and FIELD_CONTROLS fails the control when it changes" } +
-    listOf(HIDE_READ_RECEIPTS, REPLY_READ).associateWith { "the patch proves the account's identity dataflow, CompatReport only the seen handler's and dispatcher's outline" }
+    listOf(HIDE_READ_RECEIPTS, REPLY_READ).associateWith { "the patch proves the account's identity dataflow, CompatReport only the seen handler's and dispatcher's outline" } +
+    mapOf(DELIVERY_RECEIPT to "the patch proves the batch has left its holder under the lock, CompatReport only the sender's outline")
 
 /**
  * findControls, checked against CompatReport's findControls on the same classes. CompatReport must never resolve a
@@ -74,6 +75,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
             val savedPicture = autoReplyPictureRecipe
             val savedGallery = galleryRoute
             val savedGalleryChat = galleryChatRoute
+            val savedPaste = pasteRoute
             val savedCircle = vitoCircleField
             val savedTile = tileShapeSetter
             val savedPinGetters = pinLimitGetters
@@ -103,6 +105,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
                 autoReplyPictureRecipe = savedPicture
                 galleryRoute = savedGallery
                 galleryChatRoute = savedGalleryChat
+                pasteRoute = savedPaste
                 vitoCircleField = savedCircle
                 tileShapeSetter = savedTile
                 pinLimitGetters = savedPinGetters

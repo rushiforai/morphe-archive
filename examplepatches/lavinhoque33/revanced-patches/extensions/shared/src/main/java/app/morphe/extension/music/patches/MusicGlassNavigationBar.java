@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-16.
  * Written by lavinhoque33, 2026-11-13.
  */
 
@@ -218,8 +218,8 @@ public final class MusicGlassNavigationBar {
     private static final int[] layoutLocation = new int[2];
 
     /**
-     * The views at the bottom of the page, with the bottom padding or margin the app gave them
-     * and the bottom padding or margin they were given here.
+     * The views at the bottom of the page, with the bottom padding the app gave them
+     * and the bottom padding they were given here.
      */
     private static final Map<View, int[]> bottomRoom = new WeakHashMap<>();
 
@@ -233,7 +233,8 @@ public final class MusicGlassNavigationBar {
     private static final int MINI_PLAYER = ResourceUtils.getIdentifier(ResourceType.ID, "mini_player");
     private static final int NATIVE_MINIPLAYER_HEIGHT = ResourceUtils.getDimension("mini_player_height");
     private static WeakReference<View> insetMiniplayer = new WeakReference<>(null);
-    private static final Map<View, Boolean> watchedFloatingButtons = new WeakHashMap<>();
+    private static final Map<View, FloatingButtonWatcher> watchedFloatingButtons = new WeakHashMap<>();
+    private static final Rect floatingButtonVisibleRect = new Rect();
 
     /**
      * The title and the buttons at the bottom of a video of Samples.
@@ -451,7 +452,7 @@ public final class MusicGlassNavigationBar {
         if (id != View.NO_ID && id == OVERLAY_ELEMENTS_CONTAINER) {
             // The title and the buttons at the bottom of a video of Samples. Their layer shades the video
             // and ends below them, so the shade is continued below them, behind the bar.
-            setBottomRoom(view, room, true, false);
+            setBottomRoom(view, room, true);
             final int shadeHeight = bottomRoom.containsKey(view) ? view.getPaddingBottom()
                     - Objects.requireNonNull(bottomRoom.get(view))[0] : 0;
             if (view.getBackground() instanceof BottomShadeDrawable shade) {
@@ -472,7 +473,7 @@ public final class MusicGlassNavigationBar {
             // Its items are looked into instead, as the room is left inside each item.
             View first = list.getChildCount() > 0 ? list.getChildAt(0) : null;
             final boolean pager = first != null && first.getHeight() >= view.getHeight() * 9 / 10;
-            setBottomRoom(view, room, atBottom && !pager && !list.getClipToPadding(), false);
+            setBottomRoom(view, room, atBottom && !pager && !list.getClipToPadding());
             if (!pager || depth >= MAX_LIST_DEPTH) return;
         }
 
@@ -483,52 +484,140 @@ public final class MusicGlassNavigationBar {
     }
 
     /**
-     * Stock gives both FAB variants a bottom margin containing mini_player_height and the page's
-     * edge spacing (plus a snackbar inset on detail pages). Keep those margins and animations;
-     * replace only the fixed miniplayer reserve with the real collapsed player's occupied height.
+     * Preserve native edge/snackbar margins and animations. Verify the laid-out rectangle too,
+     * including before the Library's asynchronous native miniplayer reserve arrives.
      */
-    private static int getFloatingButtonRoom(View content) {
-        if (isKeyboardShown(content)) return 0;
+    private static boolean insetFloatingButton(View content, View button,
+                                               MusicGlassFloatingButtonInsets.MarginState margins) {
+        if (!(button.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)) return true;
 
-        final int barRoom = ENABLED ? getContentRoom(content) : 0;
-        View miniplayer = insetMiniplayer.get();
-        if (miniplayer != null && !miniplayer.isAttachedToWindow()) miniplayer = null;
-        if (miniplayer == null || !miniplayer.isShown() || miniplayer.getAlpha() < 0.85f
-                || miniplayer.getHeight() == 0) {
-            return barRoom;
+        int room = 0;
+        int minimumMargin = Integer.MIN_VALUE;
+        boolean violatesFloor = false;
+        if (!isKeyboardShown(content)) {
+            room = ENABLED ? getContentRoom(content) : 0;
+            content.getLocationInWindow(layoutLocation);
+            final int contentBottom = layoutLocation[1] + content.getHeight();
+            int obstacleTop = room > 0 ? contentBottom - room : Integer.MAX_VALUE;
+            View miniplayer = insetMiniplayer.get();
+            if (miniplayer != null && miniplayer.isAttachedToWindow() && miniplayer.isShown()
+                    && miniplayer.getAlpha() >= 0.85f && miniplayer.getHeight() > 0) {
+                miniplayer.getLocationInWindow(layoutLocation);
+                final int miniplayerTop = layoutLocation[1];
+                if (miniplayerTop > contentBottom / 2) {
+                    obstacleTop = Math.min(obstacleTop, miniplayerTop);
+                    room = MusicGlassFloatingButtonInsets.extraRoom(
+                            contentBottom, miniplayerTop, NATIVE_MINIPLAYER_HEIGHT, room);
+                }
+            }
+            if (obstacleTop != Integer.MAX_VALUE && button.getParent() instanceof View parent) {
+                // Exclude native show/hide translations and scale animations from the layout rectangle.
+                parent.getLocationInWindow(layoutLocation);
+                final int buttonBottom = layoutLocation[1] + button.getBottom() - parent.getScrollY();
+                final int edgeSpacing = Math.max(0, params.getMarginEnd());
+                violatesFloor = buttonBottom + edgeSpacing > obstacleTop
+                        && button.getGlobalVisibleRect(floatingButtonVisibleRect);
+                if (!button.isLayoutRequested()) {
+                    minimumMargin = MusicGlassFloatingButtonInsets.minimumMargin(
+                            params.bottomMargin, buttonBottom, obstacleTop, edgeSpacing);
+                }
+            }
         }
 
-        content.getLocationInWindow(layoutLocation);
-        final int contentBottom = layoutLocation[1] + content.getHeight();
-        miniplayer.getLocationInWindow(layoutLocation);
-        final int miniplayerTop = layoutLocation[1];
-        if (miniplayerTop <= contentBottom / 2) return barRoom;
-
-        return MusicGlassFloatingButtonInsets.extraRoom(
-                contentBottom, miniplayerTop, NATIVE_MINIPLAYER_HEIGHT, barRoom);
+        final int target = margins.target(params.bottomMargin, room, minimumMargin);
+        final boolean changed = params.bottomMargin != target;
+        if (changed) {
+            params.bottomMargin = target;
+            button.setLayoutParams(params);
+        }
+        return margins.shouldDraw(changed, button.isLayoutRequested(), violatesFloor);
     }
 
     private static void watchFloatingButton(View content, View button) {
-        if (watchedFloatingButtons.put(button, true) != null) return;
+        FloatingButtonWatcher existing = watchedFloatingButtons.get(button);
+        if (existing != null) {
+            if (existing.content.get() == content) {
+                existing.registerObserver();
+                return;
+            }
+            existing.dispose();
+        }
 
-        final WeakReference<View> reference = new WeakReference<>(button);
-        content.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                View current = reference.get();
-                if (current == null || !current.isAttachedToWindow() || currentContent.get() != content) {
-                    content.getViewTreeObserver().removeOnPreDrawListener(this);
-                    if (current != null) watchedFloatingButtons.remove(current);
-                    return true;
-                }
-                if (current.getVisibility() != View.VISIBLE) return true;
+        FloatingButtonWatcher watcher = new FloatingButtonWatcher(content, button);
+        watchedFloatingButtons.put(button, watcher);
+        button.addOnAttachStateChangeListener(watcher);
+        watcher.registerObserver();
+    }
 
-                // Pre-draw also follows player translations that do not request a page layout.
-                final int room = getFloatingButtonRoom(content);
-                setBottomRoom(current, room, true, true);
+    private static final class FloatingButtonWatcher
+            implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
+        private final WeakReference<View> content;
+        private final WeakReference<View> button;
+        private final MusicGlassFloatingButtonInsets.MarginState margins =
+                new MusicGlassFloatingButtonInsets.MarginState();
+        @Nullable
+        private ViewTreeObserver observer;
+
+        FloatingButtonWatcher(View content, View button) {
+            this.content = new WeakReference<>(content);
+            this.button = new WeakReference<>(button);
+        }
+
+        private void registerObserver() {
+            View current = button.get();
+            if (current == null || !current.isAttachedToWindow()) return;
+
+            ViewTreeObserver next = current.getViewTreeObserver();
+            if (observer == next) return;
+
+            removeObserver();
+            observer = next;
+            observer.addOnPreDrawListener(this);
+        }
+
+        private void removeObserver() {
+            if (observer != null) {
+                if (observer.isAlive()) observer.removeOnPreDrawListener(this);
+                observer = null;
+            }
+            margins.resetDrawCancellation();
+        }
+
+        private void dispose() {
+            removeObserver();
+            View current = button.get();
+            if (current != null) {
+                current.removeOnAttachStateChangeListener(this);
+                watchedFloatingButtons.remove(current);
+            }
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View view) {
+            registerObserver();
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            removeObserver();
+        }
+
+        @Override
+        public boolean onPreDraw() {
+            View current = button.get();
+            View page = content.get();
+            if (current == null || page == null || currentContent.get() != page) {
+                dispose();
                 return true;
             }
-        });
+            if (!current.isAttachedToWindow() || !current.isShown()) {
+                margins.resetDrawCancellation();
+                return true;
+            }
+
+            registerObserver();
+            return insetFloatingButton(page, current, margins);
+        }
     }
 
     /**
@@ -576,19 +665,13 @@ public final class MusicGlassNavigationBar {
     }
 
     /**
-     * Adds the room behind the bar to the bottom padding or the bottom margin of a view, or takes it away.
-     * The padding or the margin the app gave the view is kept, also if the app sets it again.
+     * Adds the room behind the bar to the bottom padding of a view, or takes it away.
+     * The padding the app gave the view is kept, also if the app sets it again.
      *
      * @param applies If the view gets the room.
-     * @param margin  If the room is added to the bottom margin instead of the bottom padding.
      */
-    private static void setBottomRoom(View view, int room, boolean applies, boolean margin) {
-        ViewGroup.MarginLayoutParams params = null;
-        if (margin) {
-            if (!(view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams marginParams)) return;
-            params = marginParams;
-        }
-        final int current = margin ? params.bottomMargin : view.getPaddingBottom();
+    private static void setBottomRoom(View view, int room, boolean applies) {
+        final int current = view.getPaddingBottom();
 
         int[] state = bottomRoom.get(view);
         if (state == null) {
@@ -596,19 +679,14 @@ public final class MusicGlassNavigationBar {
             state = new int[]{current, current};
             bottomRoom.put(view, state);
         } else if (current != state[1]) {
-            // The app set the padding or the margin again.
+            // The app set the padding again.
             state[0] = current;
         }
 
         final int target = state[0] + (applies ? room : 0);
         state[1] = target;
         if (current == target) return;
-        if (margin) {
-            params.bottomMargin = target;
-            view.setLayoutParams(params);
-        } else {
-            view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), target);
-        }
+        view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), target);
     }
 
     /**

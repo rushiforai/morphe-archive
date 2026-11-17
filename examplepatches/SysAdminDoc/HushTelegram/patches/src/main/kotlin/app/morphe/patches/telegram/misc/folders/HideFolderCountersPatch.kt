@@ -117,6 +117,15 @@ val hideFolderCountersPatch = bytecodePatch(
         } catch (failed: Exception) {
             "the date order's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
         } else null
+        // Pin on this phone needs all three: the sort hook, the date order's stubs and the long press item.
+        val localPinsReady = unhidden == null && noMenu == null && noSort == null
+        val noLocalPins = if (localPinsReady) try {
+            requireLocalPinsRuntime()
+            writeLocalPinsStubs(menu!!.refs!!)
+            null
+        } catch (failed: Exception) {
+            "the long press pin's stub doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
+        } else null
         // So does the passcode that hidden chats can ask for, which reads Telegram's own passcode state.
         val noPasscode = if (unhidden == null) try {
             requireAppPasscodeRuntime()
@@ -206,6 +215,13 @@ val hideFolderCountersPatch = bytecodePatch(
             }
             if (noMenu == null) {
                 menu!!.apply()
+                if (localPinsReady) {
+                    if (noLocalPins == null) {
+                        enableCapability("localPins")
+                    } else {
+                        patchLog.warning("Hide folder tab counters: $noLocalPins. Hidden chats go on without Pin on this phone.")
+                    }
+                }
             } else {
                 patchLog.warning("Hide folder tab counters: $noMenu. Hidden chats go on without Hide from chat list in the long press menu.")
             }
@@ -231,6 +247,22 @@ val hideFolderCountersPatch = bytecodePatch(
             enableCapability("allChatsPlace")
         } else {
             patchLog.warning("Hide folder tab counters: $unplaced. The patch goes on with All Chats first.")
+        }
+        // The avatar size touches only the chat row's layout, so it stands alone: found, assembled on a
+        // copy, its stubs built, and only then Telegram's layout changed.
+        val unsized = try {
+            val avatar = resolveChatListAvatar()
+            avatar.apply(MutableMethod(ImmutableMethod.of(avatar.method)))
+            writeChatListAvatarStubs(avatar)
+            avatar.apply()
+            null
+        } catch (failed: Exception) {
+            "the chat list's avatar size doesn't fit (${failed.javaClass.simpleName}: ${failed.message})"
+        }
+        if (unsized == null) {
+            enableCapability("chatListAvatar")
+        } else {
+            patchLog.warning("Hide folder tab counters: $unsized. The patch goes on without Change avatar size.")
         }
     }
 }

@@ -3,7 +3,7 @@ package app.template.patches.shazam.misc.telemetry
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_SHAZAM
 
 // Crashlytics' data-collection arbiter reads this SharedPreferences/manifest key; the pref key

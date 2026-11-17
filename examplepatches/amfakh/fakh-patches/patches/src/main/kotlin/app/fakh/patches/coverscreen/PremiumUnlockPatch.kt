@@ -5,8 +5,8 @@ import app.fakh.patches.shared.disableProviders
 import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 
 /**
  * The Pro state lives on the Room entity `apps.ijp.coverscreenos.db.OSProperties`
@@ -113,7 +113,7 @@ private val billingStateFingerprint = Fingerprint(
  * `Application.onCreate`. Facebook also logs app events (its own analytics)
  * from the same init.
  */
-private val adSdksManifestPatch = resourcePatch {
+private val adSdksManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
             manifest.disableProviders(
@@ -126,7 +126,7 @@ private val adSdksManifestPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val premiumUnlockPatch = bytecodePatch(
+val premiumUnlockPatch = patch(
     name = "Premium unlock",
     description = "Unlocks Pro on your phone (every premium feature, no ads), keeps the trial from expiring, " +
         "stops the Play license check from closing the app, and stops the ad SDKs from starting so they cannot " +

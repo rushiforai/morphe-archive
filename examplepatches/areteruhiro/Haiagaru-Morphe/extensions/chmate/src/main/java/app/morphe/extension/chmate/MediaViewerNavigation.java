@@ -284,7 +284,7 @@ public final class MediaViewerNavigation {
         if(action!=MotionEvent.ACTION_DOWN&&swipe==null)return false;
         boolean dedicated=activity instanceof VideoViewerActivity||activity instanceof GifViewerActivity;
         boolean doubleBack=dedicated&&VideoViewerSettings.prefs(activity).getBoolean(MediaViewerBackGesture.DOUBLE_BACK,false);
-        boolean paging=Haiagaru.videoViewerEnabled()
+        boolean paging=!NativeImagePaging.disabled(activity)&&Haiagaru.videoViewerEnabled()
                 &&VideoViewerSettings.prefs(activity).getBoolean("videoViewerEnabled",true)
                 &&VideoViewerSettings.prefs(activity).getBoolean(activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)
                         ?VideoViewerSettings.THREAD_MEDIA:VideoViewerSettings.MEDIA_SWIPE,!activity.getIntent().getBooleanExtra(THREAD_EXTRA,false));
@@ -296,12 +296,12 @@ public final class MediaViewerNavigation {
             boolean canPage=paging&&links(activity).size()>=2;
             if(!canPage&&!doubleBack)return false;
             swipe=new Swipe();swipe.canPage=canPage;swipe.selected=current(activity);swipe.x=event.getRawX();swipe.y=event.getRawY();
-            swipe.custom=NativeImagePaging.isNativeActivity(activity)&&NativeImagePaging.enabled(activity);
+            swipe.custom=NativeImagePaging.enabled(activity);
             if(swipe.custom){
                 android.content.SharedPreferences prefs=VideoViewerSettings.prefs(activity);
                 swipe.next=NativeImagePaging.direction(prefs,NativeImagePaging.NEXT);
                 swipe.previous=NativeImagePaging.direction(prefs,NativeImagePaging.PREVIOUS);
-                swipe.horizontalPriority=NativeImagePaging.legacy191(activity)&&(swipe.next>=NativeImagePaging.LEFT||swipe.previous>=NativeImagePaging.LEFT);
+                swipe.horizontalPriority=true;
             }
             Rect bounds=new Rect();View area=surface!=null?surface:activity.getWindow().getDecorView();
             swipe.blocked=!area.getGlobalVisibleRect(bounds)||!bounds.contains((int)swipe.x,(int)swipe.y)
@@ -317,7 +317,7 @@ public final class MediaViewerNavigation {
         if(swipe.blocked){if(action==MotionEvent.ACTION_UP)SWIPES.remove(activity);return swipe.dragging;}
         float dx=event.getRawX()-swipe.x,dy=event.getRawY()-swipe.y;
         float threshold=Math.max(48,48*activity.getResources().getDisplayMetrics().density);
-        boolean pageFlick=swipe.canPage&&swipe.horizontalPriority&&NativeImagePaging.assignedHorizontal(dx,dy,threshold,swipe.next,swipe.previous);
+        boolean pageFlick=swipe.canPage&&swipe.horizontalPriority&&NativeImagePaging.step(NativeImagePaging.axis(dx,dy,ViewConfiguration.get(activity).getScaledTouchSlop()),swipe.next,swipe.previous)!=0;
         if(!pageFlick&&swipe.back!=null&&swipe.back.dispatch(event)){SWIPES.remove(activity);return true;}
         if(!swipe.canPage){if(action==MotionEvent.ACTION_UP)SWIPES.remove(activity);return false;}
         boolean backPriority=!pageFlick&&swipe.back!=null&&swipe.back.active();

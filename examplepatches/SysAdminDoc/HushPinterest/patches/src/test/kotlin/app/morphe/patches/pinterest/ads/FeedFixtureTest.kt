@@ -16,6 +16,7 @@ import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.HOOK_TARGETS
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.pinterest.ui.UI_HOOKS
 import app.morphe.patches.pinterest.ui.calls
 import app.morphe.patches.pinterest.ui.mutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -38,6 +39,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
+/** The field set search's requests name, as the enum spells it, and More to explore's item filter. */
+private const val ELSEWHERE_SEARCH_SET = "SEARCH_PIN_FEED"
+private const val ELSEWHERE_RELATED_FILTER = "Lcom/pinterest/feature/pin/closeup/datasource/RelatedModulesModelFilter;"
+
 /**
  * Hide ads and Hide AI-labeled pins against the Pinterest builds the bundle declares: each list
  * holder text names exactly one class, all three holders and all four ad-only views are hooked,
@@ -48,6 +53,7 @@ import org.junit.experimental.categories.Category
 class FeedFixtureTest {
     private val literals = listOf(", _items count:", "PagedResponse(bookmark=", "ModelListWithBookmark(models=")
     private val interstitialStrings = setOf(INTERSTITIAL_KILLSWITCH, HOUSE_INTERSTITIAL, GMA_INTERSTITIAL)
+    private val elsewhereSets = setOf(ELSEWHERE_SEARCH_SET, "RELATED_PIN_FIELDS")
 
     @Test
     fun `every list holder and ad-only view in each declared build is hooked without a warning`() {
@@ -68,8 +74,20 @@ class FeedFixtureTest {
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "interstitialAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
-                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedHomeSuggestions", "feedbackFlyout")) assertFlag(context, flag)
+            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "interstitialAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping", "closeupShopping",
+                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedSavedSearch", "feedSavedRelated", "feedHomeSuggestions",
+                    "feedbackFlyout")) assertFlag(context, flag)
+            // #6: Shop the look under a pin is a closeup module of its own, and Hide shopping folds it.
+            val shopTheLook = classes.filter { it.isShopTheLookModule() }
+            assertEquals("${build.name}: $SHOP_THE_LOOK_COMPONENT modules", 1, shopTheLook.size)
+            val module = context.mutableClassDefBy(shopTheLook.single().type)
+            for ((parameters, hook) in listOf(listOf("I") to "closeupShoppingVisibility", listOf("I", "I") to "closeupShoppingMeasureSpec")) {
+                val name = if (parameters.size == 1) "setVisibility" else "onMeasure"
+                val code = module.methods.single { it.name == name && it.parameterTypes.map(CharSequence::toString) == parameters }
+                    .implementation!!.instructions.toList()
+                val calls = code.take(parameters.size * 2).mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+                assertEquals("${build.name}: ${module.type}->$name starts with the hook", List(parameters.size) { "$UI_HOOKS->$hook(I)I" }, calls)
+            }
             // The pin's "See more like this?" getter hands every answer through the hook on its way out, once.
             val flyout = context.feedbackFlyoutOrNull()!!
             context.installFeedbackFlyout(flyout)
@@ -88,6 +106,33 @@ class FeedFixtureTest {
             assertEquals(build.name, 1, context.mutable(homeFields.request).calls().count { it.name == "homeFields" })
             val homePage = context.homePageOrNull()!!
             assertEquals(build.name, 1, context.mutable(homePage.callback).calls().count { it.name == "homePage" })
+            // #34: every read of search's and More to explore's field lists hands the list through the
+            // hook right where it's kept, each search page goes through it first, and so does each item
+            // More to explore's filter judges. Asking again adds no second hook.
+            context.installSavedElsewhere(context.savedElsewhere(), "Filter feed")
+            val elsewhere = context.savedElsewhere()
+            assertTrue(build.name, elsewhere.search && elsewhere.related)
+            for (read in elsewhere.searchFields + elsewhere.relatedFields) {
+                val body = context.mutable(read.method).implementation!!.instructions.toList()
+                assertEquals("${build.name}: ${read.method.definingClass}->${read.method.name} field list",
+                    "$EXTENSION_PACKAGE/ads/SavedPins;->elsewhereFields(Ljava/lang/String;)Ljava/lang/String;",
+                    (body[read.after] as ReferenceInstruction).reference.toString())
+                assertEquals(build.name, read.register, (body[read.after + 1] as OneRegisterInstruction).registerA)
+            }
+            assertEquals(build.name, 3, elsewhere.searchFields.size)
+            assertEquals(build.name, 2, elsewhere.relatedFields.size)
+            assertEquals(build.name, 2, elsewhere.searchPages.size)
+            for (page in elsewhere.searchPages) {
+                val body = context.mutable(page).implementation!!.instructions.toList()
+                assertEquals("${build.name}: search page ${page.name}", "$EXTENSION_PACKAGE/ads/SavedPins;->searchPage(Ljava/util/List;)Ljava/util/List;",
+                    (body[0] as ReferenceInstruction).reference.toString())
+                assertEquals(build.name, 1, context.mutable(page).calls().count { it.name == "searchPage" })
+            }
+            val judged = context.mutable(elsewhere.relatedFilter!!).implementation!!.instructions.toList()
+            assertEquals("${build.name}: More to explore's filter", "$EXTENSION_PACKAGE/ads/SavedPins;->dropRelated(Ljava/lang/Object;)Z",
+                (judged[0] as ReferenceInstruction).reference.toString())
+            assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN), judged.subList(1, 4).map { it.opcode })
+            assertEquals(build.name, 1, context.mutable(elsewhere.relatedFilter!!).calls().count { it.name == "dropRelated" })
             // Full coverage by target, not only by flag: both feed constructors, each holder and both methods of every view.
             assertEquals(build.name, "feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
             assertEquals(build.name, "TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=2/2;" +
@@ -149,6 +194,22 @@ class FeedFixtureTest {
                         (it as? ReferenceInstruction)?.reference?.toString() == "$EXTENSION_PACKAGE/ads/Ads;->$helper(I)I"
                     })
                 }
+            }
+        }
+    }
+
+    // #30: the board-tab Home's "More ideas for your board" row is a story of one of these types, which
+    // the app's own story binder compares. Hide Home suggestions names them, so a build that renames
+    // them would show the row again.
+    @Test
+    fun `each declared build still compares the board ideas upsell story types`() {
+        val types = listOf("boards_more_ideas_feed_upsell_list_items", "boards_more_ideas_feed_upsell_list_cards")
+        fun strings(method: Method) = method.implementation?.instructions
+            ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }.orEmpty()
+        for (build in Fixtures.declaredBuilds()) {
+            val comparing = FixtureDex.methodsWhere(build, { true }) { method -> strings(method).any { it in types } }
+            for (type in types) {
+                assertTrue("${build.name}: some method compares $type", comparing.any { type in strings(it) })
             }
         }
     }
@@ -252,7 +313,16 @@ class FeedFixtureTest {
                 // Every class naming an interstitial experiment, so a second holder would show up as one.
                 val interstitial = classDef.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string in interstitialStrings } == true }
-                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home || interstitial) wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                // #34: the request field sets, every class asking for search's or More to explore's
+                // fields, and More to explore's item filter.
+                val fieldSets = classDef.fields.any { it.name == ELSEWHERE_SEARCH_SET && it.type == classDef.type && AccessFlags.STATIC.isSet(it.accessFlags) }
+                val asksElsewhere = classDef.methods.any { method -> method.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name in elsewhereSets } == true }
+                val elsewhere = fieldSets || asksElsewhere || classDef.type == ELSEWHERE_RELATED_FILTER
+                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home || interstitial || elsewhere ||
+                    classDef.isShopTheLookModule()) {
+                    wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                }
             }
         }
         wanted += FixtureDex.classes(build, (vendors.flatMap { askers[it].orEmpty() } + models).toSet() - wanted.keys)

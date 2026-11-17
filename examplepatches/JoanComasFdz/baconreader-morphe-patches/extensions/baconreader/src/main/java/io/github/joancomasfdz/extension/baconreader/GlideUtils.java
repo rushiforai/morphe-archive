@@ -4,7 +4,9 @@
 
 package io.github.joancomasfdz.extension.baconreader;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.ImageView;
@@ -57,6 +59,19 @@ public final class GlideUtils {
                 .invoke(null, view.getContext());
     }
 
+    /** Whether the view's activity is closing or closed: Glide refuses to load into a destroyed one. */
+    static boolean isClosed(View view) {
+        Context context = view.getContext();
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) {
+                Activity activity = (Activity) context;
+                return activity.isFinishing() || activity.isDestroyed();
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return false;
+    }
+
     /**
      * Loads an image into the view.
      *
@@ -87,6 +102,11 @@ public final class GlideUtils {
     private static void load(final ImageView imageView, final Class<?> modelType, final Object model,
                              final String thumbnailUrl, final LoadCallback callback, final Object request,
                              final int attempt) throws Exception {
+        // An image downloaded in the background can arrive after its screen closed.
+        if (isClosed(imageView)) {
+            Logger.printInfo(() -> "Not loading the image: its screen is closed");
+            return;
+        }
         LATEST.put(imageView, request);
         Object requestManager = with(imageView);
         Object requestBuilder = requestManager.getClass().getMethod("load", modelType).invoke(requestManager, model);

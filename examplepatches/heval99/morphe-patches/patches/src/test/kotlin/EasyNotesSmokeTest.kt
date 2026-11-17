@@ -47,7 +47,7 @@ class EasyNotesSmokeTest {
 
         val wanted = setOf("Enable Premium", "Disable ads")
 
-        val all: Set<Patch<*>> = loadPatchesFromJar(setOf(bundle))
+        val all: Set<Patch> = loadPatchesFromJar(setOf(bundle))
         val target = all.filter { patch ->
             patch.name in wanted && patch.compatibility.orEmpty().any { it.packageName == PKG }
         }.toList()

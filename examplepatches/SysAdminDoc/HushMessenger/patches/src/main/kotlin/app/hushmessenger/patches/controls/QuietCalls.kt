@@ -45,6 +45,9 @@ internal const val QUIET_CALL_NOTIFICATION_CALL =
     "$QUIET_CALLS_HELPER->incomingNotification(Landroid/app/Notification;Landroid/content/Context;)Landroid/app/Notification;"
 internal const val QUIET_CALL_CHAT_CALL = "$QUIET_CALLS_HELPER->incoming(Ljava/lang/String;J)V"
 
+/** The extension's answer on whether this call may come in quietly, and the mark that the ring hook is already in. */
+internal const val QUIET_CALLS_DECISION = "$SETTINGS->quietIncomingCalls()Z"
+
 private const val NOTIFICATION = "Landroid/app/Notification;"
 private const val CONTEXT = "Landroid/content/Context;"
 private const val THREAD_KEY = "Lcom/facebook/messaging/model/threadkey/ThreadKey;"
@@ -161,7 +164,18 @@ internal fun findQuietCallRing(classes: Iterable<ClassDef>): List<Method> {
     return if (decider.quietRing() != null) listOf(decider) else emptyList()
 }
 
-internal fun MutableMethod.validateQuietCallRing(): QuietRing = quietRing() ?: quietCallsChanged("no ringtone branch in ${hookId()}")
+/**
+ * Quiet incoming calls and Quiet mode both carry this hook, since both decide whether a call may come in quietly, so
+ * whichever patches first puts it in and the other leaves it alone. Once it's in, the ringtone branch the finder looks
+ * for is behind the extension's own check, so there's nothing left to find.
+ */
+private fun MutableMethod.quietCallHooked(call: String) =
+    implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == call } == true
+
+internal fun MutableMethod.validateQuietCallRing() {
+    if (quietCallHooked(QUIET_CALLS_DECISION)) return
+    quietRing() ?: quietCallsChanged("no ringtone branch in ${hookId()}")
+}
 
 /**
  * While the switch is on the decision takes Messenger's own ringtone-off path, the one Do Not Disturb and a silenced
@@ -171,7 +185,8 @@ internal fun MutableMethod.validateQuietCallRing(): QuietRing = quietRing() ?: q
  * chosen chats can tell whose call it is.
  */
 internal fun MutableMethod.injectQuietCallRing() {
-    val ring = validateQuietCallRing()
+    if (quietCallHooked(QUIET_CALLS_DECISION)) return
+    val ring = quietRing() ?: quietCallsChanged("no ringtone branch in ${hookId()}")
     addInstructionsWithLabels(ring.index, """
         invoke-static {}, $SETTINGS->quietIncomingCalls()Z
         move-result v${ring.flag}
@@ -197,6 +212,7 @@ internal fun findQuietCallNotification(classes: Iterable<ClassDef>): List<Method
         .singleOrNull()?.let(::listOf).orEmpty()
 
 internal fun MutableMethod.validateQuietCallNotification() {
+    if (quietCallHooked(QUIET_CALL_NOTIFICATION_CALL)) return
     if (!isCallNotificationPoster()) quietCallsChanged("${hookId()} isn't the call notification poster")
     if (0 in jumpTargets()) quietCallsChanged("${hookId()} branches back to its start")
 }
@@ -208,6 +224,7 @@ internal fun MutableMethod.validateQuietCallNotification() {
  * and every notification with the switch off, comes back as it was.
  */
 internal fun MutableMethod.injectQuietCallNotification() {
+    if (quietCallHooked(QUIET_CALL_NOTIFICATION_CALL)) return
     validateQuietCallNotification()
     addInstructions(0, """
         invoke-static/range {p0 .. p1}, $QUIET_CALL_NOTIFICATION_CALL

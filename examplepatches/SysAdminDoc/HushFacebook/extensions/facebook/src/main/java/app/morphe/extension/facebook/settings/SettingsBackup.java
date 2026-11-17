@@ -190,6 +190,9 @@ public final class SettingsBackup {
             Settings.SHOW_FULL_REEL_CAPTIONS,
             Settings.DIM_OPEN_REEL_CAPTIONS,
             Settings.DIM_FOLDED_REEL_CAPTIONS,
+            Settings.DIM_REEL_NAMES,
+            Settings.DIM_STORY_NAMES,
+            Settings.SOFT_TEXT_BOXES,
             Settings.TRANSLATE_POST_LINK,
             Settings.TRANSLATE_POSTS_BY_THEMSELVES,
             Settings.SEE_WHO_SHARED,
@@ -203,6 +206,7 @@ public final class SettingsBackup {
             Settings.HIDE_CREATE_STORY,
             Settings.HIDE_PAGE_STORIES,
             Settings.HIDE_SEEN_STORIES,
+            Settings.SEEN_STORIES_LAST,
             Settings.SHOW_ONLY_WATCHED_STORIES,
             Settings.HIDE_PASSED_STORIES,
             Settings.BLOCK_STORY_AUTO_ADVANCE,
@@ -285,6 +289,7 @@ public final class SettingsBackup {
             Settings.HIDE_FEED_VIDEO_BUTTONS,
             Settings.FEED_VIDEOS_ALONE,
             Settings.SHARED_REELS_ALONE,
+            Settings.HIDE_SHARED_REEL_FRIEND_SHEET,
             Settings.WATCH_AGAIN_IN_PLACE,
             Settings.SAVED_VIDEOS_IN_PLAYER,
             Settings.SAVED_VIDEOS_IN_ORDER,
@@ -350,6 +355,7 @@ public final class SettingsBackup {
             Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
             Settings.HIDE_COMMENT_LIKE_BUTTON,
             Settings.HIDE_COMMENT_REPLY_BUTTON,
+            Settings.HIDE_COMMENTER_BADGES,
             Settings.COMMENT_BLOCK_BUTTON,
             Settings.REACTOR_BLOCK_BUTTON,
             Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
@@ -357,6 +363,7 @@ public final class SettingsBackup {
             Settings.HIDE_COMMENTS_WITH_WORDS,
             Settings.HIDE_INCOMING_COMMENT_TYPING,
             Settings.HIDE_NEW_COMMENTS_PILL,
+            Settings.SHOW_EVERY_COMMENT_REACTION,
             Settings.HIDE_VIDEO_COMMENT_COMPOSER,
             Settings.PAUSE_REELS_UNDER_COMMENTS,
             Settings.TAP_REELS_ABOVE_COMMENTS,
@@ -373,7 +380,9 @@ public final class SettingsBackup {
             Settings.FEED_VIDEO_SEEK_BAR_FADE,
             Settings.FEED_VIDEO_SEEK_BAR_LOWER,
             Settings.FEED_VIDEO_SEEK_BAR_EDGE,
+            Settings.FEED_VIDEO_SEEK_BAR_THIN,
             Settings.FEED_VIDEO_SEEK_BAR_TIMES,
+            Settings.FEED_VIDEO_SEEK_BAR_LENGTH,
             Settings.FEED_VIDEO_FULL_PLAYER_BUTTON,
             Settings.FEED_VIDEO_FULL_PLAYER_CORNER,
             Settings.FEED_VIDEO_SKIP_BUTTONS,
@@ -1907,9 +1916,12 @@ public final class SettingsBackup {
     static final class Saved {
         private final Map<Setting<?>, Object> values = new HashMap<>();
 
-        private Saved() {
-            for (BooleanSetting setting : ALLOWLIST) values.put(setting, setting.savedValue());
-            for (Setting<?> setting : VALUES) values.put(setting, setting.savedValue());
+        /** What's saved, or with [defaults] what a new install starts with. */
+        private Saved(boolean defaults) {
+            for (BooleanSetting setting : ALLOWLIST) {
+                values.put(setting, defaults ? setting.defaultValue : setting.savedValue());
+            }
+            for (Setting<?> setting : VALUES) values.put(setting, defaults ? setting.defaultValue : setting.savedValue());
         }
 
         @SuppressWarnings("unchecked")
@@ -1995,7 +2007,12 @@ public final class SettingsBackup {
 
     /** What's saved right now, read in one pass on this thread. An export asks on the main thread. */
     static Saved savedNow() {
-        return new Saved();
+        return new Saved(false);
+    }
+
+    /** Every value a file carries as a new install has it, which Reset settings applies. */
+    static Saved defaults() {
+        return new Saved(true);
     }
 
     /** The file for the switches as they're saved now, read and written out on this thread. */

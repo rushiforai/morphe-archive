@@ -4,6 +4,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.newsnation.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
+import semicoloncolonel.mobilestream.patches.shared.misc.tvName
+import semicoloncolonel.mobilestream.patches.shared.misc.tvText
 
 // NewsNation Android TV 4.71. The "rate this app" dialog is gated by a server
 // rule, RatingDialogRules, whose `enabled` flag the app reads through
@@ -22,10 +25,14 @@ internal object RatingDialogEnabledFingerprint : Fingerprint(
 
 @Suppress("unused")
 val hideRatingPromptPatch = bytecodePatch(
-    name = "Hide rating prompt (Android TV)",
-    description = "Stops the \"rate this app\" dialog in the Android TV app.",
+    name = tvName("Hide rating prompt (Android TV)"),
+    description = tvText("Stops the \"rate this app\" dialog in the Android TV app."),
 ) {
     compatibleWith(Constants.TV_COMPATIBILITY)
+
+    // Also blocks the Play review sheet, as the shared Hide rating prompt does,
+    // so the TV build needs only this patch.
+    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
         val method = RatingDialogEnabledFingerprint.methodOrNull ?: return@execute

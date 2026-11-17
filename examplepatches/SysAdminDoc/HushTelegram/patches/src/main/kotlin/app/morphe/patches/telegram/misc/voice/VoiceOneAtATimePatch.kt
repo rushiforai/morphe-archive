@@ -49,11 +49,14 @@ val voiceOneAtATimePatch = bytecodePatch(
     execute {
         val setter = resolveVoiceOneAtATime()
         requireStatusMethod("lockedVoice")
+        requireStatusMethod("voiceChanger")
         val guard = resolveLockedVoiceGuard()
+        val changer = resolveVoiceChanger()
         controlShape(guard.play !== setter, "the voice playlist setter is the play method")
         // Assembled on copies first, so a refusal leaves the app untouched.
         insertQueue(MutableMethod(ImmutableMethod.of(setter)))
         if (guard.missing == null) guard.rehearse()
+        if (changer.missing == null) changer.rehearse(this)
         insertQueue(setter)
         // The locked phone guard's own target: a build whose player changed keeps the queue switch.
         if (guard.missing == null) {
@@ -62,6 +65,13 @@ val voiceOneAtATimePatch = bytecodePatch(
             enableCapability("lockedVoice")
         } else {
             patchLog.warning("Play voice messages one at a time: ${guard.missing}. The patch goes on without the locked phone guard.")
+        }
+        // The voice changer's own targets: a build whose recorders changed keeps the rest.
+        if (changer.missing == null) {
+            changer.apply(this)
+            enableCapability("voiceChanger")
+        } else {
+            patchLog.warning("Play voice messages one at a time: ${changer.missing}. The patch goes on without the voice changer.")
         }
         enableStatus("voiceOneAtATime")
     }

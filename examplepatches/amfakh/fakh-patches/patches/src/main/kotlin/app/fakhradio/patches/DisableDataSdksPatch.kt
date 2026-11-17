@@ -2,7 +2,7 @@ package app.fakhradio.patches
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.fakhradio.patches.shared.Constants.COMPATIBILITY_RADIO_ID
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -63,7 +63,7 @@ private val geoTruthFlagFingerprint = Fingerprint(
 )
 
 @Suppress("unused")
-val disableDataSdksPatch = bytecodePatch(
+val disableDataSdksPatch = patch(
     name = "Disable data collection SDKs",
     description = "Stops the location, Wi-Fi and network data SDKs (Weplan, Wavebrook and its partners, Speedchecker, LowLagLabs, GeoTruth) through the app's own off switches.",
     default = true,

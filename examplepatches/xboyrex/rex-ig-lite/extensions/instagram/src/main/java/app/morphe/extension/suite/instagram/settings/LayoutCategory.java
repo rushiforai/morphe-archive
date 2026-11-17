@@ -88,7 +88,7 @@ final class LayoutCategory {
             if (!build.contains(PatchFamily.PURE_BLACK)) {
                 android.preference.Preference hint = info(context, L10n.t("Pure black dark mode isn't in this build"),
                         L10n.t("To make dark mode pure black instead of dark gray, which can save battery on an "
-                                + "OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch "
+                                + "OLED screen, enable Pure AMOLED Black Theme in UI Tweaks "
                                 + "Instagram."));
                 hint.setKey(PURE_BLACK_HINT_ROW);
                 layout.addPreference(mark(hint, SettingsIcons.MOON));

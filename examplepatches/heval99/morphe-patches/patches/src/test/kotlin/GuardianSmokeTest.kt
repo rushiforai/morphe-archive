@@ -93,7 +93,7 @@ class GuardianSmokeTest {
             workDir = workDir,
             pkg = PKG,
             version = "6.241.23504",
-            patchNames = setOf("Disable article limit", "Disable ads", "Disable telemetry"),
+            patchNames = setOf("Disable article limit", "Disable ads", "Disable telemetry", "Spoof signature"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val allMethods = classes.methods()
@@ -336,6 +336,10 @@ class GuardianSmokeTest {
                 (ret as OneRegisterInstruction).registerA == (load as OneRegisterInstruction).registerA,
             "$beaconLabel does not return the Boolean.FALSE it loaded; found ${ret?.opcode}"
         )
+
+        // Spoof signature: the extension carries com.guardian and the Guardian certificate (SHA-1
+        // from the Play base split), and no direct getPackageInfo(String, ...) call is left.
+        assertSpoofSignature(classes, PKG, "caeb0b8799edba54d60cc7bcf2c15d1a98560058")
     }
 
     /** The class's single concrete instance method returning V with exactly [parameters]. */

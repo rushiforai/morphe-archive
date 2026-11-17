@@ -11,6 +11,8 @@
 
 package app.morphe.extension.youtube.niconicocomments;
 
+import android.app.Activity;
+import android.content.res.Configuration;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.preference.SeekBarPreference;
 import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.settings.Settings;
@@ -37,11 +42,19 @@ public final class NiconicoCommentsController {
     private static final long SEEK_THRESHOLD_MS = 12_000;
     private static final Object SOURCE_LOCK = new Object();
     private static final Object VIDEO_CLOCK_LOCK = new Object();
+    /**
+     * Layout that YouTube keeps above the player overlays. Unlike the controls overlay,
+     * it stays in the player while in picture-in-picture.
+     */
+    private static final int PIP_OVERLAY_ROOT_ID =
+            ResourceUtils.getIdentifier(ResourceType.ID, "player_overlays_custom_views_container");
 
+    private static WeakReference<ViewGroup> overlayRootRef = new WeakReference<>(null);
     private static WeakReference<NiconicoCommentsOverlayView> overlayViewRef = new WeakReference<>(null);
 
     private static volatile String currentVideoId = "";
-    private static volatile boolean playerVisible;
+    private static volatile PlayerType playerType = PlayerType.NONE;
+    private static volatile boolean portrait;
     private static volatile boolean videoPlaying;
     // Main thread only.
     private static boolean observersRegistered;
@@ -92,7 +105,7 @@ public final class NiconicoCommentsController {
 
     private static boolean isAcceptingComments(String videoId, long liveSpreadWindowMs) {
         return Settings.NICONICO_COMMENTS_SHOWN.get() && videoId.equals(currentVideoId)
-                && shouldAcceptComments(liveSpreadWindowMs, videoPlaying, playerVisible);
+                && shouldAcceptComments(liveSpreadWindowMs, videoPlaying, isPlayerShowingComments());
     }
 
     static boolean shouldAcceptComments(long liveSpreadWindowMs, boolean playing, boolean visible) {
@@ -128,6 +141,7 @@ public final class NiconicoCommentsController {
                 setPlaybackRate(VideoInformation.getPlaybackSpeed());
             }
 
+            portrait = isPortrait(overlayRoot.getResources().getConfiguration());
             NiconicoCommentsOverlayView view = new NiconicoCommentsOverlayView(overlayRoot.getContext());
             view.setVideoId(currentVideoId);
             view.setClickable(false);
@@ -135,6 +149,7 @@ public final class NiconicoCommentsController {
             view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             overlayRoot.addView(view, 0, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            overlayRootRef = new WeakReference<>(overlayRoot);
             overlayViewRef = new WeakReference<>(view);
 
             setPlayerType(PlayerType.getCurrent());
@@ -217,8 +232,66 @@ public final class NiconicoCommentsController {
         }
     }
 
+    private static boolean isPortrait(Configuration configuration) {
+        return configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
+    }
+
+    /**
+     * Called by the overlay when the configuration changes, such as when the screen is rotated.
+     */
+    static void onConfigurationChanged(Configuration configuration) {
+        final boolean nextPortrait = isPortrait(configuration);
+        if (portrait == nextPortrait) {
+            return;
+        }
+        portrait = nextPortrait;
+        if (Settings.NICONICO_COMMENTS_SEPARATE_PORTRAIT.get()) {
+            // Its sliders change the values of the previous orientation.
+            NiconicoCommentsToggleButton.dismissQuickSettings();
+        }
+        updateViewState();
+        maybeStartChatSource();
+    }
+
+    /**
+     * @return If the player is in picture-in-picture and comments are shown there, or the full size
+     *         player is open and comments are shown in the current orientation.
+     */
+    private static boolean isPlayerShowingComments() {
+        final PlayerType type = playerType;
+        if (type == PlayerType.WATCH_WHILE_PICTURE_IN_PICTURE) {
+            return Settings.NICONICO_COMMENTS_PIP.get();
+        }
+        return type.isMaximizedOrFullscreen() && (!portrait || Settings.NICONICO_COMMENTS_PORTRAIT.get());
+    }
+
+    /**
+     * @return If the portrait font size, travel duration and display area are used.
+     */
+    static boolean usesPortraitSettings() {
+        return portrait && Settings.NICONICO_COMMENTS_SEPARATE_PORTRAIT.get();
+    }
+
+    static IntegerSetting getFontSizeSetting() {
+        return usesPortraitSettings()
+                ? Settings.NICONICO_COMMENTS_PORTRAIT_FONT_SIZE
+                : Settings.NICONICO_COMMENTS_FONT_SIZE;
+    }
+
+    static IntegerSetting getTravelDurationSetting() {
+        return usesPortraitSettings()
+                ? Settings.NICONICO_COMMENTS_PORTRAIT_TRAVEL_DURATION
+                : Settings.NICONICO_COMMENTS_TRAVEL_DURATION;
+    }
+
+    static IntegerSetting getDisplayAreaSetting() {
+        return usesPortraitSettings()
+                ? Settings.NICONICO_COMMENTS_PORTRAIT_DISPLAY_AREA
+                : Settings.NICONICO_COMMENTS_DISPLAY_AREA;
+    }
+
     private static void setPlayerType(PlayerType type) {
-        playerVisible = type.isMaximizedOrFullscreen();
+        playerType = type;
         updateViewState();
         maybeStartChatSource();
     }
@@ -284,7 +357,7 @@ public final class NiconicoCommentsController {
     }
 
     static double sanitizePlaybackRate(double rate) {
-        return rate > 0.0 && !Double.isNaN(rate) && !Double.isInfinite(rate) ? rate : 1.0;
+        return rate > 0.0 && !Double.isInfinite(rate) ? rate : 1.0;
     }
 
     /**
@@ -323,23 +396,49 @@ public final class NiconicoCommentsController {
     }
 
     private static void applyViewState(NiconicoCommentsOverlayView view) {
-        view.setCommentFontSizeSp(SeekBarPreference.clampToRange(Settings.NICONICO_COMMENTS_FONT_SIZE));
+        final boolean pictureInPicture = playerType == PlayerType.WATCH_WHILE_PICTURE_IN_PICTURE
+                && Settings.NICONICO_COMMENTS_PIP.get();
+        moveOverlay(view, pictureInPicture);
+        view.setPictureInPicture(pictureInPicture);
+        view.setCommentFontSizeSp(SeekBarPreference.clampToRange(getFontSizeSetting()));
         view.setCommentOpacityPercent(SeekBarPreference.clampToRange(Settings.NICONICO_COMMENTS_OPACITY));
-        view.setTravelDurationSeconds(SeekBarPreference.clampToRange(Settings.NICONICO_COMMENTS_TRAVEL_DURATION));
-        view.setDisplayAreaPercent(SeekBarPreference.clampToRange(Settings.NICONICO_COMMENTS_DISPLAY_AREA));
+        view.setTravelDurationSeconds(SeekBarPreference.clampToRange(getTravelDurationSetting()));
+        view.setDisplayAreaPercent(SeekBarPreference.clampToRange(getDisplayAreaSetting()));
         view.setHideCrowdedComments(Settings.NICONICO_COMMENTS_HIDE_CROWDED.get());
         view.setMaxRefreshRate(SeekBarPreference.clampToRange(Settings.NICONICO_COMMENTS_MAX_REFRESH_RATE));
         view.setOverlayActive(Settings.NICONICO_COMMENTS_SHOWN.get()
-                && playerVisible && !currentVideoId.isEmpty());
+                && isPlayerShowingComments() && !currentVideoId.isEmpty());
         view.setVideoPlaying(videoPlaying);
     }
 
     /**
-     * Starts loading the chat of the current video, if it is shown in the full size player.
+     * YouTube removes the controls overlay, which holds the comments, from the player while in
+     * picture-in-picture. The comments move to a layout that stays in the player, and back afterward.
+     */
+    private static void moveOverlay(NiconicoCommentsOverlayView view, boolean pictureInPicture) {
+        ViewGroup parent = pictureInPicture ? findPictureInPictureOverlayRoot() : overlayRootRef.get();
+        if (parent == null || parent == view.getParent()) {
+            return;
+        }
+        if (view.getParent() instanceof ViewGroup currentParent) {
+            currentParent.removeView(view);
+        }
+        parent.addView(view, 0, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    @Nullable
+    private static ViewGroup findPictureInPictureOverlayRoot() {
+        Activity activity = Utils.getActivity();
+        return activity == null ? null : activity.findViewById(PIP_OVERLAY_ROOT_ID);
+    }
+
+    /**
+     * Starts loading the chat of the current video, if the player shows comments.
      */
     private static void maybeStartChatSource() {
         final String videoId = currentVideoId;
-        if (!Settings.NICONICO_COMMENTS_SHOWN.get() || !playerVisible
+        if (!Settings.NICONICO_COMMENTS_SHOWN.get() || !isPlayerShowingComments()
                 || videoId.isEmpty() || overlayViewRef.get() == null) {
             return;
         }

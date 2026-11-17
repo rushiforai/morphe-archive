@@ -67,4 +67,14 @@ class RegistersTest {
         checkNoJumpTo(sheet, 1, "the row")
         assertThrows(IllegalStateException::class.java) { checkNoJumpTo(sheet, 2, "the row") }
     }
+
+    @Test
+    fun aTwoAddrOperationReadsItsFirstRegister() {
+        // add-int/2addr v1, v2 reads v1 before writing it
+        val add = ImmutableInstruction12x(Opcode.ADD_INT_2ADDR, 1, 2)
+        assertEquals(listOf(2, 1), reads(add))
+        assertThrows(IllegalStateException::class.java) {
+            checkRegistersFree(method(const(0), add, returnValue(1)), 0, setOf(1), "the row")
+        }
+    }
 }

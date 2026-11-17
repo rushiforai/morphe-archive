@@ -123,7 +123,7 @@ public final class FeedDoubleTapSkip {
             } finally {
                 if (held) feed.play(player);
             }
-            flash(video, side, skip / 1000);
+            if (Settings.FEED_SKIP_ARROWS.get()) flash(video, side, skip / 1000);
             if (!logged) {
                 logged = true;
                 Logger.printDebug(() -> "Double tap to skip on feed videos: moved a feed video " + (side < 0 ? "back" : "ahead"));
@@ -162,12 +162,16 @@ public final class FeedDoubleTapSkip {
 
     /**
      * Shows the arrows on [side] of [video] with the [seconds] moved under them, over what came before
-     * them, and takes them away after {@link #FLASH_MS}.
+     * them, and takes them away after {@link #FLASH_MS}. Reels flash the same arrows after a double
+     * tap skip (#691). A skip the same way while the last arrows still show on [video] adds its seconds
+     * to theirs, so quick double taps read 10, 20, 30 (#554). Main thread only.
      */
-    private static void flash(FrameLayout video, int side, int seconds) {
+    public static void flash(FrameLayout video, int side, int seconds) {
         Flash old = shown == null ? null : shown.get();
+        int total = seconds;
+        if (old != null && old.getParent() == video && old.side == side) total += old.seconds;
         if (old != null) old.remove();
-        Flash arrows = new Flash(video.getContext(), side, seconds);
+        Flash arrows = new Flash(video.getContext(), side, total);
         int size = dp(video, FLASH_DP);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size,
                 Gravity.CENTER_VERTICAL | (side < 0 ? Gravity.LEFT : Gravity.RIGHT));
@@ -181,13 +185,13 @@ public final class FeedDoubleTapSkip {
 
     @VisibleForTesting
     @Nullable
-    static Flash flashForTests() {
+    public static Flash flashForTests() {
         Flash arrows = shown == null ? null : shown.get();
         return arrows == null || arrows.getParent() == null ? null : arrows;
     }
 
     @VisibleForTesting
-    static void resetForTests() {
+    public static void resetForTests() {
         Flash arrows = shown == null ? null : shown.get();
         if (arrows != null) arrows.remove();
         shown = null;
@@ -199,9 +203,9 @@ public final class FeedDoubleTapSkip {
     }
 
     /** Two arrows on a dark circle, pointing the way the video moved, with the seconds under them. */
-    static final class Flash extends View {
-        final int side;
-        final int seconds;
+    public static final class Flash extends View {
+        public final int side;
+        public final int seconds;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         Flash(Context context, int side, int seconds) {

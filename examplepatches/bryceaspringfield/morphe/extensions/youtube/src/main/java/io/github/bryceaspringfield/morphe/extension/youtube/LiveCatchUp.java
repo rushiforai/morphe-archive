@@ -15,6 +15,8 @@ import app.morphe.extension.youtube.shared.PlayerType;
  * seekable span, 12 hours on a long stream, and its time counts from the stream's start), so the edge is the furthest
  * point ahead of the clock playback has reached: a stream opens at its edge, and the edge then moves at the clock's pace.
  * A speed the user picks while catching up ends the catch-up for that video. Checked twice a second while a video plays.
+ * The delay setting (default 5 s) is how far behind the edge the stream must fall before the speed starts, and the
+ * speed then runs until the edge is reached; a delay of 0 keeps it on at the edge too, so it catches up at once.
  */
 final class LiveCatchUp {
 
@@ -54,6 +56,40 @@ final class LiveCatchUp {
         });
     }
 
+    /** Seconds behind the edge before the speed starts: 0 to 15; 5 when blank or unreadable. */
+    static long delayMs() {
+        try {
+            String raw = XSettings.LIVE_CATCH_UP_DELAY.get().trim();
+            if (raw.isEmpty()) return 5000;
+            double s = Double.parseDouble(raw.replace(',', '.'));
+            return Math.round(Math.max(0, Math.min(MAX_BEHIND_S, s)) * 1000);
+        } catch (Exception e) {
+            return 5000;
+        }
+    }
+
+    /** Whether a stream behind its edge by this long starts the catch-up (and 0 s starts it at the edge too). */
+    static boolean starts(long behindMs, long delayMs) {
+        return behindMs >= delayMs && behindMs <= MAX_BEHIND_S * 1000;
+    }
+
+    /** With a delay above 0, the speed ends once the edge is reached. */
+    static boolean reachedEdge(long behindMs, long delayMs) {
+        return delayMs > 0 && behindMs < 400;
+    }
+
+    /** Called when the option is switched (the player menu's row): turning it off restores the speed at once. */
+    static void optionChanged() {
+        MAIN.post(() -> {
+            if (!XSettings.LIVE_CATCH_UP.get() && catching) restore("option off");
+            if (XSettings.LIVE_CATCH_UP.get() && !ticking) {
+                ticking = true;
+                openedAt = System.currentTimeMillis();
+                MAIN.postDelayed(LiveCatchUp::tick, TICK_MS);
+            }
+        });
+    }
+
     private static float speed() {
         try {
             float s = Float.parseFloat(XSettings.LIVE_CATCH_UP_SPEED.get().trim());
@@ -67,10 +103,17 @@ final class LiveCatchUp {
         try {
             boolean on = XSettings.LIVE_CATCH_UP.get();
             boolean live = VideoInformation.isLiveStream();
-            if (!on || (!live && System.currentTimeMillis() - openedAt > GIVE_UP_MS)
+            if (!on) {
+                // Off: a speed this option set goes back at once, and the check goes on slowly, so switching it on
+                // again mid-stream works without a new video.
+                if (catching) restore("option off");
+                MAIN.postDelayed(LiveCatchUp::tick, 2000);
+                return;
+            }
+            if ((!live && System.currentTimeMillis() - openedAt > GIVE_UP_MS)
                     || !videoId.equals(VideoInformation.getVideoId()) && !videoId.isEmpty()
                     && System.currentTimeMillis() - openedAt > GIVE_UP_MS) {
-                if (catching) restore(on ? "not live" : "option off");
+                if (catching) restore("not live");
                 ticking = false;
                 return;
             }
@@ -94,7 +137,9 @@ final class LiveCatchUp {
                     } else {
                         Logger.printDebug(() -> "YouTube Extras: live catch-up speed reset to 1x by the player, applied again");
                     }
-                } else if (!catching && behindMs <= MAX_BEHIND_S * 1000 && Math.abs(now - 1f) < 0.02f) {
+                } else if (catching && reachedEdge(behindMs, delayMs())) {
+                    restore("caught up, " + behind + " s behind");
+                } else if (!catching && starts(behindMs, delayMs()) && Math.abs(now - 1f) < 0.02f) {
                     before = now;
                     applied = speed();
                     if (set(applied)) {

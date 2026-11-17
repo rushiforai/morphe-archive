@@ -1,3 +1,35 @@
+## [1.7.1](https://github.com/6zev/morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* never call the engine's verification routine, leave it intact ([6dcc8c2](https://github.com/6zev/morphe-patches/commit/6dcc8c27f2ec9ebfaf114116226f7fa8cbc1d28f))
+
+## [1.7.1](https://github.com/6zev/morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **keep the engine's verification routine intact and stop calling it.** Both earlier attempts edited the routine itself, and both failed on the device: overwriting its prologue with `mov w0, wzr; ret` left the engine half-initialised, so `nativeActions` - the JNI entry point behind every key-code injection - silently did nothing and a remote's dialpad stayed dead; running it in full made the app ANR during startup (`failed to complete startup`, 98% CPU). The routine has exactly four callers in the ARM64 build (and four in the ARM32 one), so those `bl` sites are now no-ops and the routine is never entered. The prologue and body are untouched, which is also what a build without the protection does - 3.6.0 ships the same `nativeActions` key-code path and its dialpad works.
+* **drop the dialpad patch that went through `InputManager`**: it made every dialpad key raise `SecurityException: Injecting to another application requires INJECT_EVENTS permission`, since `INJECT_EVENTS` is a signature permission the app cannot hold. It also replaced the fallback unconditionally, so it broke key injection even with "ADB speed up" off.
+
+## [1.7.0](https://github.com/6zev/morphe-patches/compare/v1.6.10...v1.7.0) (2026-11-16)
+
+### ✨ New Features
+
+* inject dialpad key codes without the native engine ([31a5e44](https://github.com/6zev/morphe-patches/commit/31a5e44582b956e3b2a806603a25f34511b45ea4))
+
+## [1.6.10](https://github.com/6zev/morphe-patches/compare/v1.6.9...v1.6.10) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* disarm libd traps without removing the verification routine ([2e79d09](https://github.com/6zev/morphe-patches/commit/2e79d09d6dfbc9004ce3f9975f1407ab54358c6e))
+
+## [1.6.11](https://github.com/6zev/morphe-patches/compare/v1.6.10...v1.6.11) (2026-11-16)
+
+### 🐛 Bug Fixes
+
+* **dialpad without the engine**: the key code was the one input still injected through the native engine (`nativeActions`), which silently does nothing on a re-signed APK - that is why a remote's numpad was dead while pointer input, which uses the app's own `InputManager` path, kept working. The fallback now builds a `KeyEvent` DOWN/UP pair and injects it with `K1/o.R(int, int)`, the same call the app already uses for its own server endpoints.
+* revert the native engine change that removed the verification routine: running it in full made the app ANR (`failed to complete startup`, 98% CPU). The traps are disarmed and the routine is skipped again, which is known to start.
+
 ## [1.6.9](https://github.com/6zev/morphe-patches/compare/v1.6.8...v1.6.9) (2026-11-10)
 
 ### 🐛 Bug Fixes

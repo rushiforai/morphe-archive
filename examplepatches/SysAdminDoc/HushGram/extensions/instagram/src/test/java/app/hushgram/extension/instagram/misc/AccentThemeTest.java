@@ -489,6 +489,51 @@ public class AccentThemeTest {
         }
     }
 
+    /**
+     * Meta's own menus, the account switcher among them: its blues take the picked fill on either
+     * screen, its dark grays the dark theme's shades with the accent backgrounds on, its white page and
+     * wash the light theme's with Classic colors on, and its text grays stay (#187).
+     */
+    @Test
+    public void metasMenuColorsTakeTheAccent() {
+        int[] dark = {0xff101820, 0xff182030, 0xff203040};
+        int[] light = {0xfffafafa, 0xfff0f0f0, 0xffe8e8e8};
+        AccentTheme.darkSurfacesForTests(dark);
+        AccentTheme.lightSurfacesForTests(light);
+        try {
+            assertEquals("the switch off", 0xff0064e0, AccentTheme.dspLight(0xff0064e0));
+            assertEquals("the switch off", 0xff1f1f20, AccentTheme.dspDark(0xff1f1f20));
+
+            Settings.ACCENT_COLOR.save(true);
+            Settings.ACCENT_HUE.save(AccentHue.PINK);
+            int fill = 0xff000000 | AccentHue.PINK.fill & 0xffffff;
+            assertEquals(fill, AccentTheme.dspLight(0xff0064e0));
+            assertEquals(fill, AccentTheme.dspDark(0xff0082fb));
+            assertEquals("the blue's own alpha", 0x80000000 | fill & 0xffffff, AccentTheme.dspDark(0x800082fb));
+            assertEquals("backgrounds off", 0xff1f1f20, AccentTheme.dspDark(0xff1f1f20));
+
+            Settings.ACCENT_BACKGROUNDS.save(true);
+            assertEquals("the menu", dark[1], AccentTheme.dspDark(0xff1f1f20));
+            assertEquals("the wash", dark[2], AccentTheme.dspDark(0xff28292b));
+            assertEquals("a scrim keeps its alpha", 0xb2000000 | dark[1] & 0xffffff, AccentTheme.dspDark(0xb21f1f20));
+            assertEquals("the light text gray", 0xffd1d3d5, AccentTheme.dspDark(0xffd1d3d5));
+            assertEquals("a dark gray on a light screen is text", 0xff28292b, AccentTheme.dspLight(0xff28292b));
+            assertEquals("a light page without Classic colors", 0xffffffff, AccentTheme.dspLight(0xffffffff));
+
+            Settings.CLASSIC_COLORS.save(true);
+            assertEquals(light[0], AccentTheme.dspLight(0xffffffff));
+            assertEquals(light[2], AccentTheme.dspLight(0xfff3f4f5));
+            assertEquals("the white page's share of a see-through white", 0x33000000 | light[0] & 0xffffff, AccentTheme.dspLight(0x33ffffff));
+
+            BaseSettings.PAUSED.save(true);
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertEquals("paused", 0xff0064e0, AccentTheme.dspLight(0xff0064e0));
+        } finally {
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
     /** An attribute the theme doesn't hold, one holding a size or one that isn't opaque isn't a background of its own (#187). */
     @Test
     public void onlyASolidColorIsABackgroundOfItsOwn() {
@@ -702,6 +747,63 @@ public class AccentThemeTest {
             assertTrue(hue.name(), AccentTheme.readsLight(hue.linkOnDark));
             assertFalse(hue.name(), AccentTheme.readsLight(hue.linkOnLight));
         }
+    }
+
+    /**
+     * The default secondary button, Edit profile's and Share profile's, takes the color its theme points
+     * the other secondary buttons at once that's one of the patch's (#187), and keeps its own fill while
+     * the theme holds Instagram's, with no context or no attribute.
+     */
+    @Test
+    public void theDefaultSecondaryButtonTakesTheThemesShadeOnceItsThePatchs() {
+        Context ours = new ContextThemeWrapper(named(THEMED + ".buttons", "hushgram_accent_teal_background_dark_top"),
+                android.R.style.Theme_Material);
+        TypedValue held = new TypedValue();
+        assertTrue(ours.getTheme().resolveAttribute(android.R.attr.colorBackground, held, false));
+        assertEquals("the theme points at a color", TypedValue.TYPE_REFERENCE, held.type);
+        int fill = 0x7f060355;
+
+        assertEquals(held.data, AccentTheme.secondaryButtonFill(ours, fill));
+        assertEquals("already that color, not counted", held.data, AccentTheme.secondaryButtonFill(ours, held.data));
+        Context instagrams = new ContextThemeWrapper(named(THEMED + ".buttons.stock", "igds_prism_secondary_button_background"),
+                android.R.style.Theme_Material);
+        assertEquals("Instagram's own color", fill, AccentTheme.secondaryButtonFill(instagrams, fill));
+        assertEquals("no context", fill, AccentTheme.secondaryButtonFill(null, fill));
+        Context bare = new ContextThemeWrapper(themed(THEMED + ".buttons.bare", (name, type) -> 0), android.R.style.Theme_Material);
+        assertEquals("no attribute", fill, AccentTheme.secondaryButtonFill(bare, fill));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.SECONDARY_BUTTONS + " 1"));
+    }
+
+    /**
+     * The app's context under [pkg], whose resources answer {@code android:colorBackground} for
+     * {@link AccentTheme#SECONDARY_BUTTON_ATTRIBUTE} and name every resource [entry].
+     */
+    private static Context named(String pkg, String entry) {
+        Context app = RuntimeEnvironment.getApplication();
+        Resources resources = new Resources(app.getAssets(), app.getResources().getDisplayMetrics(), app.getResources().getConfiguration()) {
+            @Override
+            public int getIdentifier(String name, String type, String defPackage) {
+                return pkg.equals(defPackage) && type.equals("attr") && name.equals(AccentTheme.SECONDARY_BUTTON_ATTRIBUTE)
+                        ? android.R.attr.colorBackground : 0;
+            }
+
+            @Override
+            public String getResourceEntryName(int resid) {
+                return entry;
+            }
+        };
+        return new ContextWrapper(app) {
+            @Override
+            public Resources getResources() {
+                return resources;
+            }
+
+            @Override
+            public String getPackageName() {
+                return pkg;
+            }
+        };
     }
 
     /** Answers a resource's number by name and type for {@link #themed}. */

@@ -5,7 +5,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.brave.LocalStatePrefsGetterFingerprint
 import app.template.patches.brave.LocalStatePrefsLoadedFingerprint
 import app.template.patches.brave.P3A_ENABLED_PREF

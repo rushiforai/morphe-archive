@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4324
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-16.
  */
 
 package app.morphe.extension.youtube.patches;
@@ -55,8 +57,7 @@ public final class WatchLaterPatch {
     private static final int DRAG_HANDLE_CONTAINER_ID = ResourceUtils.getIdentifier(
             ResourceType.ID, "drag_handle_container");
 
-    private static final int DRAG_HANDLE_DESCRIPTION_ID = ResourceUtils.getIdentifier(
-            ResourceType.STRING, "accessibility_drag_handle");
+    private static int dragHandleDescriptionId;
 
     private static volatile boolean watchLaterShown;
 
@@ -103,7 +104,13 @@ public final class WatchLaterPatch {
      */
     @Nullable
     private static View findDragHandle(ViewGroup host) {
-        String description = host.getResources().getString(DRAG_HANDLE_DESCRIPTION_ID);
+        if (dragHandleDescriptionId == 0) {
+            dragHandleDescriptionId = ResourceUtils.getIdentifier("accessibility_drag_handle",
+                    ResourceType.STRING, host.getContext());
+        }
+        if (dragHandleDescriptionId == 0) return null;
+
+        String description = host.getResources().getString(dragHandleDescriptionId);
         for (int i = 0, count = host.getChildCount(); i < count; i++) {
             View child = host.getChildAt(i);
             CharSequence childDescription = child.getContentDescription();

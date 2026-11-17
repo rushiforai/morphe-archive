@@ -1,6 +1,6 @@
 package androidx.recyclerview.widget;
 
-/** Compile-only ABI stub verified against Boost 1.14.3's actual RecyclerView$g.
+/** Compile-only ABI stub verified against Boost 1.14.4's actual RecyclerView$g.
  * Never packaged: the app supplies this renamed AdapterDataObserver at runtime.
  */
 public abstract class RecyclerView$g {

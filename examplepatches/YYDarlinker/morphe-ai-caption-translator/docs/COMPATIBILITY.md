@@ -1,9 +1,15 @@
 # Compatibility and evidence
 
+The current local maintenance candidate adds official **Morphe Patches 2.3.0** and **2.3.0-dev.9** support with Patcher **2.4.0**. Their current targets at or above 21.30.216 are **21.30.216**, **21.43.523**, **21.44.528** and **21.45.82**; the latter three are experimental. The two new versions are explicit declarations, with original APK signature and composition checks required. This does not change the older released packages. Exact candidate package, completed checks and pending phone acceptance belong to [PROJECT-STATE](PROJECT-STATE.md).
+
+In both official 2.3 bundles, `getFlyoutMenuInfo(Object,int)` becomes `getFlyoutMenuInfo(Object)`, and `addFlyoutMenuItem` adds the typed `View` and `boolean` arguments. The addon resolves either known menu-info signature and all three known divider layouts, retaining the live-panel/index provenance checks. The outer menu container remains a typed `LinearLayout` even though official buttons now sit in a scroll container. The runtime still uses the official inflater and menu lifecycle. Unknown or ambiguous interfaces fail the named AI root before `aiInstalled` permission is published. No translation, native CC/language ownership, cache or request-budget changes are involved.
+
 Release 1.6.0 includes the compat2 host repair for official Morphe Patches 2.0.0 and Patcher 2.0.0. Declarations come from `patches/src/main/kotlin/app/yydarlinker/patches/shared/Constants.kt`. Published 1.6.0 metadata contains these declarations. Official 2.0.0 declares exactly three YouTube targets at or above 21.30.216: **21.30.216**, **21.42.241** and **21.43.523**. The last two remain experimental. This is a discrete list, not a continuous range or a promise for unpublished versions. [PROJECT-STATE](PROJECT-STATE.md) records the exact published package, completed evidence and phone status.
 
 | YouTube | Declaration | APK minSdk | Evidence boundary |
 | --- | --- | --- | --- |
+| 21.45.82 | 2.3.0 / 2.3.0-dev.9 experimental | 29 | code1561310996 original input; exact candidate composition status in state; phone acceptance pending |
+| 21.44.528 | 2.3.0 / 2.3.0-dev.9 experimental | 29 | code1561310186 original input; exact candidate composition status in state; phone acceptance pending |
 | 21.43.523 | 2.0.0 experimental | 29 | code1561307650 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |
 | 21.42.241 | 2.0.0 experimental | 29 | code1561304923 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |
 | 21.30.216 | 2.0.0 regular target | 29 | User-supplied code1561187872 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |

@@ -25,7 +25,7 @@ Each app has its own README with the full patch list.
 | LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
 | Radio Indonesia | `com.appmind.radios.id` | `4.2.30` | XAPK from APKPure | [apps/radio](apps/radio/README.md) |
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
-| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
+| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
 | Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |
 
 ## Use

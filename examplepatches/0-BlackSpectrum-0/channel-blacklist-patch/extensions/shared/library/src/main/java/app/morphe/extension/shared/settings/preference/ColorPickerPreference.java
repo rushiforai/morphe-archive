@@ -26,6 +26,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -59,7 +60,7 @@ import app.morphe.extension.shared.ui.Dim;
  * reflecting the currently selected color. The dot is dimmed when the preference is disabled.
  */
 @SuppressWarnings({"unused", "deprecation"})
-public class ColorPickerPreference extends EditTextPreference {
+public class ColorPickerPreference extends EditTextPreference implements SettingPreference {
     /** Length of a valid color string of format #RRGGBB (without alpha) or #AARRGGBB (with alpha). */
     public static final int COLOR_STRING_LENGTH_WITHOUT_ALPHA = 7;
     public static final int COLOR_STRING_LENGTH_WITH_ALPHA = 9;
@@ -88,9 +89,6 @@ public class ColorPickerPreference extends EditTextPreference {
 
     /** Dialog color picker view. */
     protected ColorPickerView dialogColorPickerView;
-
-    /** Listener for color changes. */
-    protected OnColorChangeListener colorChangeListener;
 
     /** Whether the opacity slider is enabled. */
     private boolean opacitySliderEnabled = false;
@@ -130,20 +128,6 @@ public class ColorPickerPreference extends EditTextPreference {
     }
 
     /**
-     * Interface for notifying color changes.
-     */
-    public interface OnColorChangeListener {
-        void onColorChanged(String key, int newColor);
-    }
-
-    /**
-     * Sets the listener for color changes.
-     */
-    public void setOnColorChangeListener(OnColorChangeListener listener) {
-        this.colorChangeListener = listener;
-    }
-
-    /**
      * Enables or disables the opacity slider in the color picker dialog.
      */
     public void setOpacitySliderEnabled(boolean enabled) {
@@ -173,6 +157,9 @@ public class ColorPickerPreference extends EditTextPreference {
             colorSetting = (StringSetting) Setting.getSettingFromPath(getKey());
             if (colorSetting == null) {
                 Logger.printException(() -> "Could not find color setting for: " + getKey());
+            } else {
+                // The setting saves the value.
+                setPersistent(false);
             }
         } else {
             Logger.printDebug(() -> "initialized without key, settings will be loaded later");
@@ -185,6 +172,20 @@ public class ColorPickerPreference extends EditTextPreference {
 
         // Set the widget layout to a custom layout containing the colored dot.
         setWidgetLayoutResource(LAYOUT_MORPHE_COLOR_DOT_WIDGET);
+    }
+
+    @Override
+    protected void onAttachedToHierarchy(PreferenceManager preferenceManager) {
+        super.onAttachedToHierarchy(preferenceManager);
+        updateFromSetting();
+    }
+
+    @Override
+    public void updateFromSetting() {
+        if (colorSetting != null) {
+            setText(colorSetting.get());
+            setEnabled(colorSetting.isAvailable());
+        }
     }
 
     /**
@@ -202,11 +203,6 @@ public class ColorPickerPreference extends EditTextPreference {
             }
             updateDialogColorDot();
             updateWidgetColorDot();
-
-            // Notify the listener about the color change.
-            if (colorChangeListener != null) {
-                colorChangeListener.onColorChanged(getKey(), currentColor);
-            }
         } catch (IllegalArgumentException ex) {
             // This code is reached if the user pastes settings JSON with an invalid color
             // since this preference is updated with the new setting text.

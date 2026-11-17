@@ -120,12 +120,16 @@ public final class OutsideTranslate {
 
         String original();
 
+        /** The formatting over {@link #original()}, Telegram's entities, or null. */
+        List<?> entities();
+
         boolean translated();
 
         /** The language Telegram's translate bar shows for the message's chat, in Telegram's code, or null. */
         String telegramTarget();
 
-        void apply(String text, String language);
+        /** Shows [text] with [entities], its formatting, in place of the original. */
+        void apply(String text, ArrayList<Object> entities, String language);
 
         void refresh();
     }
@@ -175,9 +179,12 @@ public final class OutsideTranslate {
             @Override public int id() { return OutsideTranslate.id(message); }
             @Override public boolean eligible() { return OutsideTranslate.eligible(message); }
             @Override public String original() { return OutsideTranslate.original(message); }
+            @Override public List<?> entities() { return OutsideTranslate.entities(message); }
             @Override public boolean translated() { return isTranslated(message); }
             @Override public String telegramTarget() { return dialogTarget(message); }
-            @Override public void apply(String text, String language) { applyTranslated(message, text, language); }
+            @Override public void apply(String text, ArrayList<Object> entities, String language) {
+                applyTranslated(message, text, language, entities);
+            }
             @Override public void refresh() { notifyTranslated(message); }
         };
     }
@@ -217,6 +224,8 @@ public final class OutsideTranslate {
     private static ExecutorService pool;
 
     static Fetcher fetcher = OutsideTranslate::fetchWith;
+    /** How formatting is read off Telegram's entities and made again at its new place. */
+    static final TranslateMarkup.Entities ENTITIES = new TranslateMarkup.TelegramEntities();
     static LongSupplier clock = System::currentTimeMillis;
     static Executor executor = task -> {
         synchronized (LOCK) {
@@ -264,13 +273,19 @@ public final class OutsideTranslate {
             // Telegram's own translation is showing, so it stays.
             if (message.translated() && !APPLIED.containsKey(key)) return false;
             if (!message.eligible()) return false;
-            String original = message.original();
+            TranslateMarkup.Marked marked = TranslateMarkup.mark(message.original(), message.entities(), ENTITIES);
+            if (marked == null) {
+                // A spoiler that can't be kept out of the request: its words would come back uncovered.
+                HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "message kept as written for its spoiler");
+                APPLIED.remove(key);
+                return false;
+            }
             // A Translate into pick wins, then the language picked in Telegram's own translate bar, then Telegram's language.
             String picked = TranslateTarget.chosen() == null ? telegramPick(message) : null;
             String target = picked != null ? picked : target();
-            GoogleTranslate.Result result = cached(owner, target, original);
+            GoogleTranslate.Result result = cached(owner, target, marked.text);
             if (result == null) {
-                request(new Waiter(message, owner, dialog, id), target, original);
+                request(new Waiter(message, owner, dialog, id), target, marked.text);
                 APPLIED.remove(key);
                 return false;
             }
@@ -278,9 +293,15 @@ public final class OutsideTranslate {
                 APPLIED.remove(key);
                 return false;
             }
-            String shown = result.text + "\n\n" + L10n.t("(Translated. Open the message menu for the original.)");
+            TranslateMarkup.Restored restored = TranslateMarkup.restore(marked, result.text, ENTITIES);
+            if (restored == null) {
+                HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "message kept as written, the service changed words that stay as written");
+                APPLIED.remove(key);
+                return false;
+            }
+            String shown = restored.text + "\n\n" + L10n.t("(Translated. Open the message menu for the original.)");
             if (shown.equals(APPLIED.get(key)) && message.translated()) return true;
-            message.apply(shown, target);
+            message.apply(shown, restored.entities, target);
             APPLIED.put(key, shown);
             HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "message translated");
             return true;
@@ -333,11 +354,11 @@ public final class OutsideTranslate {
         if (!known) return false;
         String text = original(message);
         if (text == null || text.trim().isEmpty()) return false;
-        return !hasCode(entities(message));
+        return !keptAsWritten(entities(message));
     }
 
     /** A code block or a run of code stays as written. */
-    static boolean hasCode(List<?> entities) {
+    static boolean keptAsWritten(List<?> entities) {
         if (entities == null) return false;
         for (Object entity : entities) {
             if (entity == null) continue;
@@ -1092,8 +1113,8 @@ public final class OutsideTranslate {
     /** Whether the message is showing a translation, ours or Telegram's. */
     public static boolean isTranslated(Object message) { return false; }
 
-    /** Shows the text as the message's translation into the language. */
-    public static void applyTranslated(Object message, String text, String language) {}
+    /** Shows the text, with the entities as its formatting, as the message's translation into the language. */
+    public static void applyTranslated(Object message, String text, String language, ArrayList<Object> entities) {}
 
     /** Tells the chat on screen the message's translation changed, so it draws the message again. */
     public static void notifyTranslated(Object message) {}

@@ -61,6 +61,18 @@ final class VideoPages {
         return forced != null ? forced.contains(PatchFamily.FULL_POST_TEXT) : CaptionBackdrop.inBuild();
     }
 
+    /** Whether this build carries the dark box behind a reel's name (#490), counted in as the caption's is. */
+    static boolean reelNamesInBuild() {
+        Set<PatchFamily> forced = PatchFamily.inBuildForTests;
+        return forced != null ? forced.contains(PatchFamily.FULL_POST_TEXT) : CaptionBackdrop.reelNamesInBuild();
+    }
+
+    /** Whether this build carries the dark box behind story names (#490), counted in as the caption's is. */
+    static boolean storyNamesInBuild() {
+        Set<PatchFamily> forced = PatchFamily.inBuildForTests;
+        return forced != null ? forced.contains(PatchFamily.FULL_POST_TEXT) : CaptionBackdrop.storyNamesInBuild();
+    }
+
     /** Reels and Watch, in every build, with the map of the four places Reels show up. */
     static void reels(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
@@ -255,6 +267,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SHARED_REELS_ALONE,
                     L10n.t("A reel you open from a link in another app or from a chat plays by itself, with no "
                             + "reels to swipe to after it.")));
+            // Asked as a shared reel's viewer posts the Add friend sheet, so a change shows from the next one (#486).
+            reels.addPreference(toggle(context, Settings.HIDE_SHARED_REEL_FRIEND_SHEET,
+                    L10n.t("Opening a reel from someone who isn't your friend yet no longer pops up a sheet asking "
+                            + "you to add them. A change shows from the next shared reel.")));
             // Asked as Watch again is tapped, so a change shows on the next tap (#403).
             reels.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_PLACE,
                     L10n.t("Watch again at the end of a feed video plays it again right there, instead of "
@@ -300,6 +316,19 @@ final class VideoPages {
                 reels.addPreference(toggle(context, Settings.DIM_FOLDED_REEL_CAPTIONS,
                         L10n.t("A folded reel caption, the short one with more at the end, sits on the same dark box. "
                                 + "Turn on both to box every caption. A change shows from the next reel.")));
+            }
+            // Asked as each reel's name is built (#490).
+            if (reelNamesInBuild()) {
+                reels.addPreference(toggle(context, Settings.DIM_REEL_NAMES,
+                        L10n.t("The name at the bottom of a reel sits on the same dark box, so it's easy to read over a "
+                                + "bright video. A change shows from the next reel.")));
+            }
+            // Every box's look, story names' included, read as each box is made (#490).
+            if (captionBackdropInBuild() || reelNamesInBuild() || storyNamesInBuild()) {
+                reels.addPreference(HushfacebookPreferenceFragment.boxDarknessRow(context));
+                reels.addPreference(toggle(context, Settings.SOFT_TEXT_BOXES,
+                        L10n.t("The dark boxes fade out at their edges instead of ending sharp. A change shows from the "
+                                + "next reel or story.")));
             }
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
@@ -486,9 +515,16 @@ final class VideoPages {
                         L10n.t("Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. "
                                 + "Facebook's speaker and tagged people buttons move up to sit above it. "
                                 + "Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_THIN,
+                        L10n.t("Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. "
+                                + "Live videos get it too while they can be rewound. Let go at the far right end to go back to live. "
+                                + "Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.")));
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_TIMES,
                         L10n.t("Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. "
                                 + "Needs Seek bar on feed videos on.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_LENGTH,
+                        L10n.t("Shows a feed video's full length at the right end of its seek bar, in place of the time left. "
+                                + "Needs Times on the seek bar on.")));
                 // The tap hands over the file the video patch's player record found.
                 if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                     playback.addPreference(toggle(context, Settings.FEED_VIDEO_CAST_BUTTON,

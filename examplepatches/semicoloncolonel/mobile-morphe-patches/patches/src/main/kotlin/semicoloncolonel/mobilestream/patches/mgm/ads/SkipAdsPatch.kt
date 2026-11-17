@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.mgm.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // MGM+ phone 240.0.2026240000. The app plays through Amazon's AIV player (the
 // same stack Prime Video's phone app uses: the native libAIV*.so libraries and
@@ -28,7 +29,7 @@ val skipAdsPatch = bytecodePatch(
     description = "Gives every title an empty ad plan, so no ad break is scheduled.",
 ) {
     category("Ads")
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
 
     execute {
         // getAdPlan has .registers 18, so v0 is free.

@@ -16,9 +16,9 @@ public final class ThreadPositionTweaks {
     private ThreadPositionTweaks(){}
     static String text(Object owner,String field){Object value=CommentsChromeTweaks.field(owner,field);return value instanceof String ? (String)value:"";}
     static String key(Object fragment,View view){
-        String post=text(fragment,"y");
+        String post=text(fragment,"x");
         if(post.isEmpty())post=text(CommentsChromeTweaks.field(fragment,"c"),"b");
-        if(post.isEmpty() || !text(fragment,"z").isEmpty() || CommentsChromeTweaks.field(fragment,"v0")!=null || !text(fragment,"P").isEmpty())return "";
+        if(post.isEmpty() || !text(fragment,"y").isEmpty() || CommentsChromeTweaks.field(fragment,"v0")!=null || !text(fragment,"P").isEmpty())return "";
         Object sort=CommentsChromeTweaks.field(CommentsChromeTweaks.field(fragment,"b"),"c");
         return HomeAvatarTweaks.currentUser(view.getContext())+"/"+post+"/"+String.valueOf(sort);
     }
@@ -26,7 +26,7 @@ public final class ThreadPositionTweaks {
         if(model==null)return "";
         boolean comment=false;
         for(Class<?> type=model.getClass();type!=null;type=type.getSuperclass())if(type.getName().equals("com.rubenmayayo.reddit.models.reddit.CommentViewModel"))comment=true;
-        if(!comment || Boolean.FALSE.equals(CommentsChromeTweaks.field(model,"S")))return "";
+        if(!comment || Boolean.FALSE.equals(CommentsChromeTweaks.field(model,"R")))return "";
         String identifier=text(model,"b");return identifier.isEmpty() ? text(model,"a"):identifier;
     }
     static SharedPreferences prefs(View view){return view.getContext().getSharedPreferences("shikify_thread_positions",0);}
@@ -42,7 +42,7 @@ public final class ThreadPositionTweaks {
         }catch(Exception error){}
     }
     public static void pause(Object fragment){
-        Object value=CommentsChromeTweaks.field(fragment,"mRecyclerView"),data=CommentsChromeTweaks.field(fragment,"B");
+        Object value=CommentsChromeTweaks.field(fragment,"mRecyclerView"),data=CommentsChromeTweaks.field(fragment,"A");
         if(!(value instanceof ViewGroup) || !(data instanceof List))return;
         ViewGroup recycler=(ViewGroup)value;
         if(!SurfaceSettingsActivity.enabled(recycler.getContext(),"remember_position"))return;
@@ -102,10 +102,10 @@ public final class ThreadPositionTweaks {
             ViewGroup view=recycler.get();Object owner=fragment.get();if(view==null || owner==null){detach();return true;}
             try{
                 if(SystemClock.uptimeMillis()>deadline || (Integer)view.getClass().getMethod("getScrollState").invoke(view)!=0){detach();return true;}
-                Object value=CommentsChromeTweaks.field(owner,"B");if(!(value instanceof List))return true;
+                Object value=CommentsChromeTweaks.field(owner,"A");if(!(value instanceof List))return true;
                 List<?> models=(List<?>)value;if(value==lastData && models.size()==lastSize)return true;lastData=value;lastSize=models.size();
                 for(int index=0;index<models.size();index++)if(identifier.equals(commentId(models.get(index)))){
-                    Object manager=CommentsChromeTweaks.field(owner,"D");if(manager!=null)manager.getClass().getMethod("p1",int.class,int.class).invoke(manager,index,offset);
+                    Object manager=CommentsChromeTweaks.field(owner,"C");if(manager!=null)manager.getClass().getMethod("p1",int.class,int.class).invoke(manager,index,offset);
                     detach();break;
                 }
             }catch(Exception error){detach();}

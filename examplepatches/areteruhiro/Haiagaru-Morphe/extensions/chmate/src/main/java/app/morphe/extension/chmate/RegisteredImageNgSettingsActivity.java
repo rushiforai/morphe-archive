@@ -144,7 +144,19 @@ public final class RegisteredImageNgSettingsActivity extends Activity {
         status = new TextView(this);
         layout.addView(status);
         updateLabels();
-        RegisteredImageNg.refresh(this::complete);
+        RegisteredImageNg.recoverOnSettingsOpen(this, message -> runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            updateLabels(); showRegistered();
+            status.setText(status.getText() + "\n" + message);
+            SharedPreferences preferences = RegisteredImageNg.prefs(this);
+            if (!preferences.getBoolean("migrationNoticeShown", false)
+                    && preferences.edit().putBoolean("migrationNoticeShown", true).commit()) {
+                new AlertDialog.Builder(this).setTitle("登録画像の自動復元")
+                        .setMessage("旧保存先に残っている登録画像を自動で確認します。URLから登録した画像も対象です。"
+                                + "元画像を保持し、重複と手動で削除した画像は追加しません。次回からこの案内は表示しません。\n\n" + message)
+                        .setPositiveButton("閉じる", null).show();
+            }
+        }));
     }
 
     private void pickFolder(int next) {

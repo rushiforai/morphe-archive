@@ -62,6 +62,7 @@
         "me.bluemail.mail",
         "eu.faircode.email",
         "com.truecaller",
+        "com.beeper.android",
         "com.mail.mobile.android.mail"
       ]
     },
@@ -86,7 +87,8 @@
         "dk.dr.webplayer",
         "com.viaplay.android",
         "yiuo.mobile.tv",
-        "kgs.com.addmusictovideos"
+        "kgs.com.addmusictovideos",
+        "com.camerasideas.trimmer"
       ]
     },
     {
@@ -131,7 +133,6 @@
         "easynotes.notes.notepad.notebook.privatenotes.note",
         "com.appgenix.bizcal",
         "com.alarmclock.xtreme.free",
-        "net.dinglisch.android.taskerm",
         "com.gmail.jmartindev.timetune"
       ]
     },
@@ -154,7 +155,8 @@
         "app.prolauncher",
         "com.qqlabs.minimalistlauncher",
         "app.pinya.mango",
-        "bitpit.launcher"
+        "bitpit.launcher",
+        "com.actionlauncher.playstore"
       ]
     },
     {
@@ -162,6 +164,8 @@
       "emoji": "🛠️",
       "packages": [
         "me.piebridge.brevent",
+        "com.piriform.ccleaner",
+        "nextapp.fx",
         "com.macdom.ble.blescanner",
         "com.pzolee.bluetoothscanner",
         "ru.wasiliysoft.ircodefindernec",
@@ -171,7 +175,8 @@
         "com.fyxtech.muslim",
         "com.dev47apps.obsdroidcam",
         "com.soosu.notialarm",
-        "com.ace.ex.file.manager"
+        "com.ace.ex.file.manager",
+        "com.samsung.android.honeyboard"
       ]
     }
   ]

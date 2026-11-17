@@ -223,6 +223,25 @@ Hide comment previews	Yorum önizlemelerini gizle
 Hide topic suggestions	Konu önerilerini gizle
 Quiet email reminders	E-posta hatırlatmalarını sustur
 Hide survey prompts	Anket davetlerini gizle
+Hide pop-up banners	Açılır bannerları gizle
+Hide related pins	İlgili pinleri gizle
+Hide creator name on pins	Pinlerde içerik üreticisinin adını gizle
+Custom save sound	Özel kaydetme sesi
+Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound picked, Pinterest's plays.	Bir pini kaydettiğinde Pinterest'in sesi yerine aşağıda seçtiğin sesi çalar. Ses seçilmemişse Pinterest'in sesi çalar.
+Pick a save sound	Kaydetme sesi seç
+Pick a sound file for Custom save sound to play when you save a pin.	Özel kaydetme sesinin bir pini kaydettiğinde çalacağı ses dosyasını seç.
+A sound is picked, but Custom save sound is off, so Pinterest's sound plays.	Bir ses seçili ama Özel kaydetme sesi kapalı, bu yüzden Pinterest'in sesi çalar.
+%s is picked, but Custom save sound is off, so Pinterest's sound plays.	%s seçili ama Özel kaydetme sesi kapalı, bu yüzden Pinterest'in sesi çalar.
+Saving a pin plays the sound you picked. Tap to pick another sound or use Pinterest's again.	Bir pini kaydetmek seçtiğin sesi çalar. Başka bir ses seçmek ya da Pinterest'in sesine dönmek için dokun.
+Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Bir pini kaydetmek %s sesini çalar. Başka bir ses seçmek ya da Pinterest'in sesine dönmek için dokun.
+Pick another sound	Başka ses seç
+Use Pinterest's sound again	Yeniden Pinterest'in sesini kullan
+That app won't let Pinterest keep the sound. Pick one saved on the phone.	Bu uygulama Pinterest'in sesi saklamasına izin vermiyor. Telefonda kayıtlı bir ses seç.
+Saving a pin will play the sound you picked.	Bir pini kaydetmek artık seçtiğin sesi çalacak.
+Saving a pin will play %s.	Bir pini kaydetmek artık %s sesini çalacak.
+Saving a pin will play Pinterest's sound again.	Bir pini kaydetmek yeniden Pinterest'in sesini çalacak.
+Custom splash logo	Özel açılış logosu
+Shows the logo picked when patching on the screen you see while Pinterest starts, instead of Pinterest's. Android 13 and newer. It shows from the next start.	Yamalama sırasında seçilen logoyu, Pinterest açılırken gördüğün ekranda Pinterest'inkinin yerine gösterir. Android 13 ve sonrası. Bir sonraki açılıştan itibaren görünür.
 Disable update nag	Güncelleme uyarısını kapat
 Download pin	Pini indir
 Share pin	Pini paylaş
@@ -346,6 +365,9 @@ Hide comments is on and already hides the whole comments section, previews inclu
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Pinlerin altındaki konu baloncuklarından oluşan "Sevebileceğin fikirler" satırını, Pinterest onu bir sonraki gösterdiğinde gizler. Yorumlar ve ilgili Pinler yerinde kalır.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	E-postanı doğrulamanı isteyen isteğe bağlı hatırlatmayı kapatır. Zaten açık olan hatırlatma kalır. Hesap kontrolleri ve giriş her zamanki gibi çalışır.
 Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An invite that's already open stays.	Pinterest'in "Bir dakikan var mı?" anket davetini, "Belki daha sonra" gibi, görünmeden önce reddeder, böylece o anket geri gelmez. Reklamverenlerin sponsorlu anketleri de açılmaz. Zaten açık olan bir davet kalır.
+Closes the banners Pinterest pops up over your feed, such as "Shop recommended merchants", the way their X does, so that one doesn't come back. A banner that's already open stays.	Pinterest'in akışının üstünde açtığı bannerları, örneğin "Önerilen satıcılardan alışveriş yap", X düğmeleri gibi kapatır, böylece o banner geri gelmez. Zaten açık olan bir banner kalır.
+Leaves the grid of more pins out from under a pin you open, so it doesn't load. The change shows on the next pin you open.	Açtığın bir pinin altındaki diğer pinler ızgarasını kaldırır, böylece yüklenmez. Değişiklik açtığın bir sonraki pinde görünür.
+Hides the creator's name and badge under a pin you open. Their picture stays and still opens their profile. The change shows on the next pin you open.	Açtığın bir pinin altındaki içerik üreticisinin adını ve rozetini gizler. Fotoğrafı kalır ve profilini açmaya devam eder. Değişiklik açtığın bir sonraki pinde görünür.
 Hide save toasts	Kaydetme bildirimlerini gizle
 Saving a pin no longer shows the "Saved to" message or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık "Kaydedildi" mesajı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
 Original-quality images	Orijinal kalitede görseller
@@ -417,10 +439,18 @@ Hide Save in the long-press menu	Uzun basma menüsünde Kaydet'i gizle
 Takes Pinterest's Save button out of a grid pin's long-press menu. Saving from the pin itself still works.	Pinterest'in Kaydet düğmesini ızgaradaki bir pine basılı tutunca açılan menüden çıkarır. Pinin kendisinden kaydetmek çalışmaya devam eder.
 Hide Send in the long-press menu	Uzun basma menüsünde Gönder'i gizle
 Takes Pinterest's Send button out of a grid pin's long-press menu. Sharing from the pin itself still works.	Pinterest'in Gönder düğmesini ızgaradaki bir pine basılı tutunca açılan menüden çıkarır. Pinin kendisinden paylaşmak çalışmaya devam eder.
+Hide Send with an app in the long-press menu	Uzun basma menüsünde uygulamayla Gönder'i gizle
+Takes the button that sends a pin straight to WhatsApp or the app you last shared with out of a grid pin's long-press menu. Send still lists every app.	Bir pini doğrudan WhatsApp'a veya en son paylaştığın uygulamaya gönderen düğmeyi ızgaradaki bir pine basılı tutunca açılan menüden çıkarır. Gönder tüm uygulamaları göstermeye devam eder.
 Hide Search image in the long-press menu	Uzun basma menüsünde Görüntü ara'yı gizle
 Takes Pinterest's Search image button out of a grid pin's long-press menu. The lens on a pin you open still searches.	Pinterest'in Görüntü ara düğmesini ızgaradaki bir pine basılı tutunca açılan menüden çıkarır. Açtığın bir pindeki mercek aramaya devam eder.
 With nothing left in it, the menu keeps Pinterest's buttons.	Başka düğme kalmayınca menü Pinterest'in düğmelerini korur.
 hiding Pinterest's long-press buttons	Pinterest'in uzun basma düğmelerini gizleme
+# context: Long-press view, a View button added after Download in the round menu a held grid pin opens (Pinterest's own word for it in that menu: Görüntüle), and its switch on the Pin actions page. It shows the pin's picture full screen. The toasts show when the picture can't be opened. The third line names this part of the patch in a coverage summary.
+Long-press view	Uzun basarak görüntüleme
+Adds View to a grid pin's long-press menu. It shows the picture full screen without opening the pin. Pinch or double-tap to zoom.	Izgaradaki bir pine uzun basınca açılan menüye Görüntüle ekler. Pini açmadan görseli tam ekran gösterir. Yakınlaştırmak için iki parmakla açın veya iki kez dokunun.
+View in the long-press menu	Uzun basma menüsünde Görüntüle
+That image is too big to open.	Bu görsel açılamayacak kadar büyük.
+Couldn't open the image. Check your connection and try again.	Görsel açılamadı. Bağlantını kontrol edip tekrar dene.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	akış sayfalarındaki reklamlı pinler
 promoted pins in paged results	sayfalı sonuçlardaki reklamlı pinler
@@ -521,6 +551,10 @@ Black pin menu	Siyah pin menüsü
 In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	Karanlık modda bir pinin menüsünü tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik menüyü bir sonraki açışında görünür.
 Black Save to sheet	Siyah Kaydet sayfası
 In dark mode, paints the sheet that lists your boards when you save a pin pure black. Light mode stays as it is. The change shows the next time you save a pin.	Karanlık modda, bir pini kaydederken açılan ve panolarını listeleyen sayfayı tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik bir sonraki pin kaydedişinde görünür.
+Black menus and sheets	Siyah menüler ve sayfalar
+In dark mode, paints the other menus and sheets that slide up pure black, such as Create and a board's sort and options menus. Light mode stays as it is. The change shows the next time you open one.	Karanlık modda, alttan açılan diğer menüleri ve sayfaları, örneğin Oluştur'u ve bir panonun sıralama ve seçenek menülerini tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik bir sonraki açışında görünür.
+Black board and profile buttons	Siyah pano ve profil düğmeleri
+In dark mode, paints the gray bar that floats over a board and the filter buttons on your profile pure black, along with the empty cover on Edit board. Light mode stays as it is. The change shows the next time you open a board or your profile.	Karanlık modda, bir panonun üstünde duran gri çubuğu ve profilindeki filtre düğmelerini, Panoyu düzenle'deki boş kapakla birlikte tamamen siyaha boyar. Aydınlık mod olduğu gibi kalır. Değişiklik bir panoyu ya da profilini bir sonraki açışında görünür.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Pinlerde geri okunu gizle
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Açtığın bir pinin üzerinde duran geri okunu gizler. Telefonunun geri hareketi veya düğmesi seni yine pinden çıkarır. Değişiklik açtığın bir sonraki pinde görünür.
@@ -707,9 +741,12 @@ Save and download	Kaydet ve indir
 # context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
 Hide Assistant	Asistanı gizle
 Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Pinterest'in yapay zeka Asistanı'nı aramadan, panolardan ve pinlerden kaldırır. Arama her zamanki gibi çalışır. Değişiklik, ekran bir sonraki güncellendiğinde görünür.
-# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards still show them, and the switch under it covers search. The title is also the name of that part of the patch in the build report.
 Hide pins you've already saved	Kaydettiğin pinleri gizle
-Takes pins you've saved out of your home feed. Your boards and search still show them.	Kaydettiğin pinleri ana akışından kaldırır. Panoların ve arama onları göstermeye devam eder.
+Takes pins you've saved out of your home feed. Your boards still show them.	Kaydettiğin pinleri ana akışından kaldırır. Panoların onları göstermeye devam eder.
+# context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes pins the person has already saved out of search results and out of the "More to explore" pins Pinterest shows under a pin they open. "More to explore" is Pinterest's own name for that section, so use the app's translation of it. The title is also the name of that part of the patch in the build report.
+Hide saved pins in search and More to explore	Aramada ve "Daha fazlasını keşfet" bölümünde kayıtlı pinleri gizle
+Takes pins you've saved out of search results and the More to explore pins under a pin you open. Your boards still show them.	Kaydettiğin pinleri arama sonuçlarından ve açtığın bir pinin altındaki "Daha fazlasını keşfet" bölümünden kaldırır. Panoların onları göstermeye devam eder.
 # context: toast when Download pin can't save a streamed video on the current network
 Your download settings block this network. Try again on Wi-Fi.	İndirme ayarların bu ağı engelliyor. Wi-Fi'da yeniden dene.
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.
@@ -720,3 +757,8 @@ See more like this? bubble	"Bunun gibi daha fazla Pin görmek ister misiniz?" ba
 # context: a Notifications switch from the Hide Inbox updates patch. It leaves the Updates section (Pinterest's activity and pin suggestions) out of the Inbox screen, and messages stay. "Updates" and "Inbox" are the names Pinterest gives them, so use the app's own translations.
 Hide Inbox updates	Gelen Kutusu güncellemelerini gizle
 Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages stay. The change shows the next time you open the Inbox.	Gelen Kutusu'ndaki Güncellemeler bölümünü dışarıda bırakır ve Pinterest onu yüklemez. Mesajların yerinde kalır. Değişiklik Gelen Kutusu'nu bir sonraki açışında görünür.
+saved pins in search	aramadaki kayıtlı pinler
+saved pins in More to explore	"Daha fazlasını keşfet" bölümündeki kayıtlı pinler
+Shop the look under pins	pinlerin altındaki Shop the look bölümü
+Back leaves Home right away	Geri, Ana Sayfa'dan hemen çıkar
+When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Ana Sayfa'da aşağı kaydırdığında Geri, önce en üste atlayıp yeni pinler yüklemek yerine Pinterest'ten çıkar.

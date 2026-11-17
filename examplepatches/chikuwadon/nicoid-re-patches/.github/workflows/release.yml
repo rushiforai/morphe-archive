@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -64,6 +64,8 @@ jobs:
             python3 porting/revisions/v2.0.4-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.5[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.5-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.6[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.6-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -156,8 +158,10 @@ jobs:
       - name: Install lockfile-pinned release dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
 
-      - name: Verify locked release-tool dependencies
-        run: node .github/scripts/verify-release-npm.cjs
+      - name: Verify locked release-tool dependencies and release metadata compatibility
+        run: |
+          node .github/scripts/verify-release-npm.cjs
+          node .github/scripts/test-release-toolchain.cjs
 
       - name: Make Gradle dependency downloads resilient
         run: |
@@ -214,6 +218,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.4-mpp.sh
           elif grep -Fq "version = 2.0.5" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.5-mpp.sh
+          elif grep -Fq "version = 2.0.6" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.6-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

@@ -45,7 +45,7 @@ val hidePlaybackControlsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_CRICFY_TV)
     execute {
         check(packageMetadata.packageName == "com.cricfytv.sports" &&
-              packageMetadata.versionName == "7.4" && packageMetadata.versionCode == "54") {
+              packageMetadata.versionName == "7.5" && packageMetadata.versionCode == "55") {
             "Unsupported app/version for playback controls patch."
         }
         val ctor = StartupPlayerConstructor.repairedMethod

@@ -45,7 +45,7 @@ Every app with its highlights, the version it is built for, and which file to do
 for its features, patches and FAQ.
 
 <!-- APPS_START -->
-> **[v3.0.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**4** apps&nbsp;&nbsp;•&nbsp;&nbsp;**36** patches
+> **[v3.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**4** apps&nbsp;&nbsp;•&nbsp;&nbsp;**36** patches
 
 ### Featured
 

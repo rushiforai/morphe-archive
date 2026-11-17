@@ -24,6 +24,9 @@ internal fun amoledBlackResourcePatch(
     colorsPath: String,
     colors: Map<String, AmoledColor>,
     named: Boolean = true,
+    // Night colors that do not exist in [colorsPath] yet (a color that follows a recolored one through
+    // its default value gets a night entry of its own); name to opaque value.
+    added: Map<String, String> = emptyMap(),
 ) = resourcePatch(
     name = if (named) "AMOLED black" else null,
     description = "Makes the dark theme pure black on OLED screens.",
@@ -49,6 +52,21 @@ internal fun amoledBlackResourcePatch(
             }
         }
         if (remaining.isNotEmpty()) throw PatchException("$colorsPath: missing colors $remaining")
+        if (added.isNotEmpty()) {
+            document(colorsPath).use { doc ->
+                val resources = doc.documentElement ?: throw PatchException("$colorsPath has no root element")
+                val present = doc.getElementsByTagName("color").let { nodes ->
+                    (0 until nodes.length).map { (nodes.item(it) as Element).getAttribute("name") }.toSet()
+                }
+                added.forEach { (name, value) ->
+                    if (name in present) throw PatchException("$colorsPath: $name already has a night value")
+                    resources.appendChild(doc.createElement("color").apply {
+                        setAttribute("name", name)
+                        textContent = value.opaqueColor()
+                    })
+                }
+            }
+        }
     }
 }
 

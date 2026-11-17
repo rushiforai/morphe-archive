@@ -105,17 +105,31 @@ class StorageFolderFixtureTest {
             assertEquals(name, 1, older.size)
             assertEquals(name, 1, context.attachPaths().sumOf { m -> m.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE } })
             val k = older.single()
-            val file = path[k + 2].namedRegisters().single()
+            // Files you already have are looked for after the older folder has had its say.
+            val q = k + 2
+            val file = path[q + 2].namedRegisters().single()
             assertEquals(name, Opcode.INVOKE_STATIC_RANGE, path[k].opcode)
             assertEquals(name, listOf(file), path[k].namedRegisters())
             assertEquals(name, Opcode.MOVE_RESULT_OBJECT, path[k + 1].opcode)
             assertEquals(name, listOf(file), path[k + 1].namedRegisters())
-            assertEquals(name, Opcode.RETURN_OBJECT, path[k + 2].opcode)
+            assertEquals(name, Opcode.RETURN_OBJECT, path[q + 2].opcode)
             assertEquals(name, GALLERY_FILE_IN, path[k - 1].controlRef())
             assertEquals(name, file, path[k - 1].namedRegisters().first())
             assertTrue(name, path[k - 3].callsAttachName())
+            // The name call writes over the object, so a register nothing else names keeps it from right before.
+            val named = path[k - 3]
+            val attach = named.namedRegisters()[named.call()!!.origParameterTypes.indexOf(TL_OBJECT)]
+            assertEquals(name, Opcode.MOVE_OBJECT_FROM16, path[k - 4].opcode)
+            val spare = path[k - 4].namedRegisters().first()
+            assertEquals(name, listOf(spare, attach), path[k - 4].namedRegisters())
+            assertTrue(name, (k - 3..q + 2).none { spare in path[it].namedRegisters() && it != q })
+            assertEquals(name, KNOWN_FILE, path[q].controlRef())
+            assertEquals(name, listOf(spare, file), path[q].namedRegisters())
+            assertEquals(name, Opcode.MOVE_RESULT_OBJECT, path[q + 1].opcode)
+            assertEquals(name, listOf(file), path[q + 1].namedRegisters())
+            assertEquals(name, 1, context.attachPaths().sumOf { m -> m.controlBody().count { it.controlRef() == KNOWN_FILE } })
             assertEquals(name, stockPath.filter { it[0] != Opcode.NOP },
-                path.filterIndexed { i, _ -> i != k && i != k + 1 }.map { it.shape() }.filter { it[0] != Opcode.NOP })
+                path.filterIndexed { i, _ -> i !in setOf(k - 4, k, k + 1, q, q + 1) }.map { it.shape() }.filter { it[0] != Opcode.NOP })
 
             val start = context.loadStart().controlBody()
             val loads = start.indices.filter { start[it].controlRef() == STORAGE_OLDER_FILE }
@@ -156,6 +170,7 @@ class StorageFolderFixtureTest {
                 edits.filterIndexed { i, _ -> i != j && i != j + 1 }.map { it.shape() }.filter { it[0] != Opcode.NOP })
             assertEquals(name, 1L, context.flag("storageFolder"))
             assertEquals(name, 1L, context.flag("galleryFolder"))
+            assertEquals(name, 1L, context.flag("knownFiles"))
             assertEquals(name, 1L, context.flag("saveDownloads"))
         }
     }
@@ -198,6 +213,9 @@ class StorageFolderFixtureTest {
             // With Telegram's folder where it was, its paths are left alone too.
             assertEquals(why, 0, context.attachPaths().sumOf { m -> m.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE } })
             assertEquals(why, 0, context.olderLoads())
+            // Another account's files don't need the storage folder.
+            assertEquals(why, 1, context.attachPath().controlBody().count { it.controlRef() == KNOWN_FILE })
+            assertEquals(why, 1L, context.flag("knownFiles"))
         }
     }
 
@@ -221,8 +239,10 @@ class StorageFolderFixtureTest {
             change(context)
             val untouched = context.attachPaths().map { m -> m.controlBody().map { it.shape() } }
             val warnings = PatchLogCapture.warnings { saveDownloadsPatch.execute(context) }
-            assertEquals(why, listOf("Save downloaded files: $why. Files from before the storage folder moved download again."), warnings)
+            assertEquals(why, listOf("Save downloaded files: $why. Files from before the storage folder moved download again.",
+                "Save downloaded files: $why. The patch goes on without recognizing files you already have."), warnings)
             assertEquals(why, untouched, context.attachPaths().map { m -> m.controlBody().map { it.shape() } })
+            assertEquals(why, 0L, context.flag("knownFiles"))
             assertEquals(why, 1, context.mediaPaths().controlBody().count { it.controlRef() == STORAGE_TELEGRAM_FOLDER })
             // Photos and videos still find theirs.
             assertEquals(why, 1, context.olderLoads())
@@ -276,12 +296,46 @@ class StorageFolderFixtureTest {
                 val method = plan.method!!
                 method.addInstructionsWithLabels(0, "goto/32 :hush_site", ExternalLabel("hush_site", method.getInstruction(plan.at)))
             }
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
+            // The jump doesn't pass the object's copy, so files you already have are left as Telegram shows them.
+            assertEquals(listOf("Save downloaded files: Telegram's download path is reached another way. The patch goes on without recognizing files you already have."),
+                PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
             for (method in listOf(context.attachPath(), context.loadStart())) {
                 val target = method.getInstruction<BuilderOffsetInstruction>(0).target.location.index
                 assertEquals("${build.name}: ${method.name}", STORAGE_OLDER_FILE, method.getInstruction(target).controlRef())
                 assertEquals("${build.name}: ${method.name}", 1, method.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
             }
+            assertEquals(build.name, 0, context.attachPath().controlBody().count { it.controlRef() == KNOWN_FILE })
+            assertEquals(build.name, 0L, context.flag("knownFiles"))
+        }
+    }
+
+    @Test fun `files you already have are read by name and size`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
+            fun body(method: String) = context.tgMutableClassDefBy(KNOWN_FILES).methods.single { it.origName == method }
+                .controlBody().map { it.controlRef() }
+            assertTrue(build.name, DOCUMENT_NAME in body("documentName"))
+            assertTrue(build.name, "$DOCUMENT->size:J" in body("size"))
+            assertTrue(build.name, "$KNOWN_PHOTO_SIZE->size:I" in body("size"))
+        }
+    }
+
+    @Test fun `a changed known files runtime refuses before anything is edited`() {
+        val build = Fixtures.declaredBuilds().first()
+        for (method in listOf("knownFile", "documentName", "size")) {
+            val why = "$method runtime hook is missing or ambiguous"
+            val context = context(build)
+            context.tgMutableClassDefBy(KNOWN_FILES).methods.removeAll { it.origName == method }
+            val stock = context.attachPath().controlBody().map { it.shape() }
+            try {
+                saveDownloadsPatch.execute(context)
+                fail("$why: the patch went ahead")
+            } catch (refused: PatchException) {
+                assertTrue("$why: ${refused.message}", refused.message!!.contains(why))
+            }
+            assertEquals(why, stock, context.attachPath().controlBody().map { it.shape() })
+            assertEquals(why, 0L, context.flag("saveDownloads"))
         }
     }
 

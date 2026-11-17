@@ -7,8 +7,13 @@
 package app.hushpinterest.extension.pinterest.ui;
 
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -91,6 +96,110 @@ public final class UiHooks {
         if (!enabled(FamilyNames.HIDE_SURVEY_PROMPTS, Settings.HIDE_SURVEY_PROMPTS)) return false;
         HookStatus.counted(FamilyNames.HIDE_SURVEY_PROMPTS, "sponsored poll skipped");
         return true;
+    }
+
+    /** The close button on Pinterest's pop-up banner, a resource name it keeps. */
+    static final String BANNER_DISMISS = "bannerOverlay_dismiss_icon_button";
+
+    /**
+     * Pinterest has finished putting up a pop-up banner over the feed, such as "Shop recommended
+     * merchants", the education container's banner it hands over before anything is drawn. With
+     * Hide pop-up banners on, the banner's own X is clicked, so Pinterest closes it and marks it
+     * dismissed the way it does when you tap that. A banner whose X has no listener is hidden
+     * instead. Null, already hidden, off or paused, the banner is left as it is. Never throws.
+     */
+    public static void popupBanner(View banner) {
+        if (!enabled(FamilyNames.HIDE_POPUP_BANNERS, Settings.HIDE_POPUP_BANNERS)) return;
+        if (banner == null || banner.getVisibility() != View.VISIBLE) return;
+        try {
+            int id = banner.getResources().getIdentifier(BANNER_DISMISS, "id", banner.getContext().getPackageName());
+            View dismiss = id == 0 ? null : banner.findViewById(id);
+            if (dismiss != null && dismiss.performClick()) {
+                HookStatus.counted(FamilyNames.HIDE_POPUP_BANNERS, "pop-up banner dismissed");
+                return;
+            }
+            banner.setVisibility(View.GONE);
+            HookStatus.counted(FamilyNames.HIDE_POPUP_BANNERS, "pop-up banner hidden without its X");
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_POPUP_BANNERS, "pop-up banner", failure);
+        }
+    }
+
+    /**
+     * A pin page is about to add its related pins grid, or the refined list that stands in for it.
+     * True leaves that list out of the page, so it never loads. Off or paused, the grid shows as it
+     * always did.
+     */
+    public static boolean hideRelatedPins() {
+        if (!enabled(FamilyNames.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS)) return false;
+        HookStatus.counted(FamilyNames.HIDE_RELATED_PINS, "related pins left out");
+        return true;
+    }
+
+    /**
+     * A pin page is about to wait for its related pins grid to load, showing gray placeholder tiles
+     * until it does. With Hide related pins on, the grid was never added and would never load, so
+     * true tells the page there's nothing to wait for. Off or paused, the page waits as usual.
+     * Never throws.
+     */
+    public static boolean relatedPinsLoading() {
+        if (!enabled(FamilyNames.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS)) return false;
+        HookStatus.counted(FamilyNames.HIDE_RELATED_PINS, "related pins loading skipped");
+        return true;
+    }
+
+    /**
+     * A pin's creator row has been drawn, handed over by its avatar. With Hide creator name on pins
+     * on, everything next to the avatar in its row goes: the name and its badges. The row keeps its
+     * own click, so the avatar still opens the profile. Null, off or paused, the row stays as it is.
+     * Never throws.
+     */
+    public static void creatorName(View avatar) {
+        if (!enabled(FamilyNames.HIDE_CREATOR_NAME, Settings.HIDE_CREATOR_NAME)) return;
+        if (avatar == null || !(avatar.getParent() instanceof ViewGroup)) return;
+        try {
+            ViewGroup row = (ViewGroup) avatar.getParent();
+            boolean hid = false;
+            for (int i = 0; i < row.getChildCount(); i++) {
+                View child = row.getChildAt(i);
+                if (child == avatar || child.getVisibility() == View.GONE) continue;
+                child.setVisibility(View.GONE);
+                hid = true;
+            }
+            if (hid) HookStatus.counted(FamilyNames.HIDE_CREATOR_NAME, "creator name hidden");
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.HIDE_CREATOR_NAME, "creator row", failure);
+        }
+    }
+
+    /**
+     * Pinterest is making the player for the chime it plays when a pin is saved, and {@code sound}
+     * is that chime. With Custom save sound on and a file picked, the player plays the file instead.
+     * Off, paused, with nothing picked, or with a file that no longer opens, Pinterest gets the
+     * player for its own chime, made the way it makes it.
+     */
+    public static MediaPlayer saveSound(Context context, int sound) {
+        MediaPlayer picked = pickedSaveSound(context);
+        return picked != null ? picked : MediaPlayer.create(context, sound);
+    }
+
+    /** A player for the picked sound while Custom save sound is on, or null for Pinterest's own. */
+    @Nullable
+    static MediaPlayer pickedSaveSound(Context context) {
+        if (context == null || !enabled(FamilyNames.CUSTOM_SAVE_SOUND, Settings.CUSTOM_SAVE_SOUND)) return null;
+        Uri picked = SaveSound.picked();
+        if (picked == null) return null;
+        try {
+            MediaPlayer player = MediaPlayer.create(context, picked);
+            if (player != null) {
+                HookStatus.counted(FamilyNames.CUSTOM_SAVE_SOUND, "picked sound played");
+                return player;
+            }
+            HookStatus.counted(FamilyNames.CUSTOM_SAVE_SOUND, "picked sound didn't open, Pinterest's played");
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.CUSTOM_SAVE_SOUND, "picked sound", failure);
+        }
+        return null;
     }
 
     /** The toast class a test stands in for the save toasts patching names. */
@@ -345,6 +454,16 @@ public final class UiHooks {
     /** A hidden typing-screen row measures zero, the same way {@link #topicSuggestionsMeasureSpec} folds a topic row. */
     public static int recentSearchRowMeasureSpec(View row, int requested) {
         return foldedMeasure(HIDDEN_RECENT_ROWS, FamilyNames.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY, row, requested);
+    }
+
+    /** The Shop the look section under a pin (#6), its own closeup module, folds under Hide shopping. */
+    public static int closeupShoppingVisibility(int requested) {
+        return enabled(FamilyNames.HIDE_SHOPPING, Settings.HIDE_SHOPPING) ? View.GONE : requested;
+    }
+
+    public static int closeupShoppingMeasureSpec(int requested) {
+        return enabled(FamilyNames.HIDE_SHOPPING, Settings.HIDE_SHOPPING)
+                ? View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY) : requested;
     }
 
     public static int commentsVisibility(int requested) {

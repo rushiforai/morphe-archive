@@ -65,7 +65,7 @@ Addict, Windy, Hermit, Calimoto, Nova Launcher, Sleep as Android, MiXplorer.
 
 ## Not suggested (checked, rejected or deferred)
 
-- myTuner Radio (`com.mytuner.mobile`), Forza Football (`com.forzafootball`), The Free
+- myTuner Radio (`com.mytuner.mobile`), Forza Football (`se.footballaddicts.livescore`), The Free
   Dictionary (`com.tfd.mobile.TfdSearch`) - not on APKMirror; try APKPure/Aptoide first.
 - Squid (`com.steadfastinnovation.android.projectpapyrus`) - premium validated server-side.
 - Root Explorer (`com.speedsoftware.rootexplorer`), Titanium Backup

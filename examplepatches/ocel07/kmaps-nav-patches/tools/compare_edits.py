@@ -54,13 +54,17 @@ def class_files(apk, classes, tmp, tag):
 
 
 def changed_classes(orig, patched):
+    """app classes the patch rewrote (extension classes, which the original does not have, are left out)"""
     zo, zp = zipfile.ZipFile(orig), zipfile.ZipFile(patched)
     od = {n for n in zo.namelist() if n.startswith('classes') and n.endswith('.dex')}
+    orig_classes = set()
+    for n in od:
+        orig_classes |= set(dexclasses.classes(zo.read(n)))
     cs = set()
     for n in zp.namelist():
         if n.startswith('classes') and n.endswith('.dex') and n not in od:
             cs |= set(dexclasses.classes(zp.read(n)))
-    return cs - {'Lcom/naver/maps/navi/mapmatching/RateGate;'}
+    return cs & orig_classes
 
 
 def main(oa, pa, ob, pb):

@@ -31,19 +31,23 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 internal const val SCREENSHOTS = "Lapp/hushtelegram/extension/telegram/misc/Screenshots;"
 internal const val SCREENSHOTS_PROTECTED = "$SCREENSHOTS->protectedContent(I)Z"
 internal const val SCREENSHOTS_STORY = "$SCREENSHOTS->storyAllowed(I)Z"
+internal const val SCREENSHOTS_SECRET = "$SCREENSHOTS->secretChat(Ljava/lang/Object;)Ljava/lang/Object;"
 
 private const val SECURE = 8192
 private const val WINDOW = "Landroid/view/Window;"
 private const val ADD_FLAGS = "Landroid/view/Window;->addFlags(I)V"
 private const val CLEAR_FLAGS = "Landroid/view/Window;->clearFlags(I)V"
 private const val LAYOUT_FLAGS = "Landroid/view/WindowManager\$LayoutParams;->flags:I"
-private const val ENCRYPTED_CHAT = "Lorg/telegram/tgnet/TLRPC\$EncryptedChat;"
+internal const val ENCRYPTED_CHAT = "Lorg/telegram/tgnet/TLRPC\$EncryptedChat;"
 private const val NO_FORWARDS = "Lorg/telegram/tgnet/TLRPC\$Message;->noforwards:Z"
 private const val SURFACE_SECURE = "Landroid/view/SurfaceView;->setSecure(Z)V"
 private const val SELECTABLE = "Landroid/widget/TextView;->setTextIsSelectable(Z)V"
 
-/** One spot to ask the extension: the answer in [register] is handed over just before instruction [at]. */
-internal class ScreenshotSpot(val at: Int, val register: Int, val hook: String)
+/**
+ * One spot to ask the extension: the answer in [register] is handed over just before instruction [at].
+ * With [cast] it's an object, cast back to that type so the verifier still sees what Telegram read.
+ */
+internal class ScreenshotSpot(val at: Int, val register: Int, val hook: String, val cast: String? = null)
 
 /** The kinds of spot, each a finder that reads them off a method again at apply time. */
 internal enum class ScreenshotSite(val find: (Method) -> List<ScreenshotSpot>?) {
@@ -67,7 +71,8 @@ internal class ScreenshotsPlan(val missing: String?, internal val targets: List<
 }
 
 private fun MutableMethod.askAbout(spot: ScreenshotSpot) = addInstructions(spot.at,
-    "invoke-static/range {v${spot.register} .. v${spot.register}}, ${spot.hook}\nmove-result v${spot.register}")
+    "invoke-static/range {v${spot.register} .. v${spot.register}}, ${spot.hook}\n" +
+        if (spot.cast == null) "move-result v${spot.register}" else "move-result-object v${spot.register}\ncheck-cast v${spot.register}, ${spot.cast}")
 
 /** Every index a branch, a switch case or an exception handler lands on. */
 private fun Method.landings(): Set<Int> {
@@ -116,18 +121,19 @@ private fun Method.takesOneBoolean() = parameterTypes.map { it.toString() } == l
 
 /**
  * The chat's and the profile's FlagSecureReason conditions read
- * `currentEncryptedChat != null || <the chat or user doesn't allow saving>()`. Only the second
- * answer is handed over, right before the branch that tests it, so a secret chat stays secure on
- * the first read whatever the switch says.
+ * `currentEncryptedChat != null || <the chat or user doesn't allow saving>()`. Both answers are
+ * handed over, each right before the branch that tests it: the secret chat to its own hook (#82)
+ * and the second answer to the one every chat that doesn't allow saving goes through.
  */
 internal fun Method.conditionSpots(): List<ScreenshotSpot>? {
     if (name != "run" || parameterTypes.isNotEmpty() || returnType != "Z") return null
     val code = code() ?: return null
-    val spot = code.indices.mapNotNull { code.conditionSpotAt(it) }.singleOrNull() ?: return null
-    return if (spot.at in landings()) null else listOf(spot)
+    val spots = code.indices.mapNotNull { code.conditionSpotsAt(it) }.singleOrNull() ?: return null
+    val landings = landings()
+    return if (spots.any { it.at in landings }) null else spots
 }
 
-private fun List<Instruction>.conditionSpotAt(at: Int): ScreenshotSpot? {
+private fun List<Instruction>.conditionSpotsAt(at: Int): List<ScreenshotSpot>? {
     val read = this[at]
     if (read.opcode != Opcode.IGET_OBJECT) return null
     val field = (read as ReferenceInstruction).reference as? FieldReference ?: return null
@@ -142,7 +148,8 @@ private fun List<Instruction>.conditionSpotAt(at: Int): ScreenshotSpot? {
     val answer = getOrNull(at + 3)?.takeIf { it.opcode == Opcode.MOVE_RESULT }?.register() ?: return null
     val branch = getOrNull(at + 4) ?: return null
     if (branch.opcode != Opcode.IF_EQZ || branch.register() != answer) return null
-    return ScreenshotSpot(at + 4, answer, SCREENSHOTS_PROTECTED)
+    return listOf(ScreenshotSpot(at + 1, read.registerA, SCREENSHOTS_SECRET, ENCRYPTED_CHAT),
+        ScreenshotSpot(at + 4, answer, SCREENSHOTS_PROTECTED))
 }
 
 /**
@@ -181,7 +188,8 @@ private fun List<Instruction>.securesLayoutAt(at: Int): Boolean {
  * a secret chat, the avatar's chat not allowing saving, the message's chat not allowing saving,
  * the message itself not allowing saving, revealed paid media and the place's own forceSecure.
  * The two "chat doesn't allow saving" calls and the message's noforwards are handed over, each
- * right before its jump. The secret chat, paid media and forceSecure checks are left alone.
+ * right before its jump, and so is the secret chat (#82). The paid media and forceSecure checks are
+ * left alone.
  */
 internal fun Method.viewerSpots(): List<ScreenshotSpot>? {
     val code = code() ?: return null
@@ -189,12 +197,19 @@ internal fun Method.viewerSpots(): List<ScreenshotSpot>? {
     val landings = landings()
     var calls = 0
     var fields = 0
+    var secrets = 0
     val spots = mutableListOf<ScreenshotSpot>()
     for (at in 1 until block) {
         val jump = code[at + 1]
         if (jump.opcode != Opcode.IF_NEZ || code.landingOf(at + 1) != block) continue
         val answer = jump.register() ?: continue
         val read = code[at]
+        if (read.opcode == Opcode.IGET_OBJECT && ((read as ReferenceInstruction).reference as? FieldReference)?.type == ENCRYPTED_CHAT &&
+            (read as TwoRegisterInstruction).registerA == answer) {
+            secrets++
+            spots += ScreenshotSpot(at + 1, answer, SCREENSHOTS_SECRET, ENCRYPTED_CHAT)
+            continue
+        }
         val counted = when {
             read.opcode == Opcode.IGET_BOOLEAN && read.controlRef() == NO_FORWARDS &&
                 (read as TwoRegisterInstruction).registerA == answer -> { fields++; true }
@@ -204,7 +219,7 @@ internal fun Method.viewerSpots(): List<ScreenshotSpot>? {
         }
         if (counted) spots += ScreenshotSpot(at + 1, answer, SCREENSHOTS_PROTECTED)
     }
-    if (calls != 2 || fields != 1 || spots.any { it.at in landings }) return null
+    if (calls != 2 || fields != 1 || secrets != 1 || spots.any { it.at in landings }) return null
     return spots
 }
 

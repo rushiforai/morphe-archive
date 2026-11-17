@@ -55,6 +55,9 @@ tasks {
 // See patches/src/test/kotlin/.
 dependencies {
     testImplementation(kotlin("test"))
+    // Truecaller smoke test reads resource ids from the stock resources.arsc (patcher 2.3.0 writes no decoded
+    // public.xml); same ARSCLib build as morphe-patcher 2.3.0 (a runtime-only dependency there).
+    testImplementation("com.github.MorpheApp:ARSCLib:675bed2de3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 

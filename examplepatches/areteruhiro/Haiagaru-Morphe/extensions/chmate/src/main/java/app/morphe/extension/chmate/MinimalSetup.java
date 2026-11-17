@@ -23,9 +23,9 @@ final class MinimalSetup {
         LinearLayout panel=new LinearLayout(a);panel.setOrientation(1);
         TextView info=new TextView(a);info.setText("最低限パッチとして以下を有効にし、他のHaiagaru追加機能を無効にします。\n\n"
             +"・エッヂの記者ID表示＆NG\n・エッヂ過去ログ検索のツールバー\n・Kyodemo／必死チェッカーの専用ビューア\n"
-            +"・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n・191の接続再利用抑止・代替IPへの切替高速化・進捗通知の集約\n\n"
+            +"・5ch.netのリンクを5ch.ioに変換\n・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n・191の接続再利用抑止・代替IPへの切替高速化・進捗通知の集約\n\n"
             +"ログ・認証情報・登録済みルールは削除しません。通信互換性の修正や安全対策は残ります。元のChMate標準機能は変更しません。"
-            +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");if(adsOnly)info.setText("広告削除だけを有効にし、ほかのHaiagaru追加機能をオフにします。保存済みログやNGルールは保持します。");panel.addView(info);
+            +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");if(adsOnly)info.setText("広告削除と「5ch.netのリンクを5ch.ioに変換」を有効にし、ほかのHaiagaru追加機能をオフにします。保存済みログやNGルールは保持します。");panel.addView(info);
         Switch on=new Switch(a);on.setText(adsOnly?"広告削除だけの構成を有効にする":"最低限構成を有効にする");on.setChecked(false);panel.addView(on);
         new HaiagaruDialog.Builder(a).setTitle("Haiagaruの初期設定").setView(panel)
             .setNegativeButton("今は変更しない",(d,w)->SettingsProfiles.prefs(a).edit().putBoolean(PROMPT,true).apply())

@@ -4,7 +4,7 @@ import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
 import app.fakh.patches.shared.gms.gmsCoreSupportResourcePatch
 import app.fakh.patches.shared.gms.redirectToGmsCore
 import app.fakh.patches.shared.gms.warnWithoutGmsCore
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 private const val DODO_PACKAGE = "com.dundunstudio.autoplay"
 
@@ -18,7 +18,7 @@ private const val DODO_SIGNATURE = "7dd6724c683c33fbe5cb0d3332d4e5204a938c14"
  * Play services. GmsCore presents the original certificate instead.
  */
 @Suppress("unused")
-val gmsCoreSupportPatch = bytecodePatch(
+val gmsCoreSupportPatch = patch(
     name = "GmsCore support",
     description = "Makes \"Sign in with Google\" work by signing in through microG RE (GmsCore) instead of Google Play " +
         "services, so your collection and playlists saved to your Google account come back. Needs microG RE " +

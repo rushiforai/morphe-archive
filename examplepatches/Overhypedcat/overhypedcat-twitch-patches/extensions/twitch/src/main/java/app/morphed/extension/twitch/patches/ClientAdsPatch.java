@@ -57,6 +57,21 @@ public final class ClientAdsPatch {
         }
     }
 
+    /**
+     * Injected where the app gets an ad trigger: a display ad beside the stream in full screen (LeftThird,
+     * Banner) or a video ad. True sends it down the app's own decline path, while the ad blocker is on.
+     */
+    public static boolean declineAdTrigger() {
+        try {
+            if (!app.morphed.extension.twitch.settings.PatchSettings.adBlock()) return false; // switched off: ads play
+            StreamAdsPatch.LOGGER.log("Ad trigger declined (a display ad beside the stream, or a video ad)");
+            StreamAdsPatch.playbackAdBlocked();
+        } catch (Throwable t) { // the decline itself mustn't fail: the ad is declined, the problem is told
+            StreamAdsPatch.PROBLEMS.report(Problem.CLIENT_ADS_NOT_BLOCKED, t.toString());
+        }
+        return true;
+    }
+
     static boolean containsTurboReason(Set<?> reasons) {
         for (Object reason : reasons) {
             if (reason instanceof Enum && TURBO.equals(((Enum<?>) reason).name())) return true;

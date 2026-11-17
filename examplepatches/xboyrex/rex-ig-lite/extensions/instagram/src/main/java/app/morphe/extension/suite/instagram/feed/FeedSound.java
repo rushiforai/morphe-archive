@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.instagram.stories.StorySound;
 import app.morphe.extension.suite.shared.Logger;
@@ -59,6 +60,7 @@ public final class FeedSound {
     public static int startWithSound(Object controller) {
         try {
             HookStatus.invoked(FamilyNames.FEED_SOUND);
+            if (Pref.startFeedVideosMuted()) return 0;
             if (controller == null || !Utils.settingsReady() || !Settings.START_FEED_VIDEOS_WITH_SOUND.get()) return 0;
             if (!StorySound.phoneAllowsSound()) return 0;
             synchronized (FeedSound.class) {
@@ -78,5 +80,9 @@ public final class FeedSound {
         synchronized (FeedSound.class) {
             served.clear();
         }
+    }
+
+    public static boolean shouldForceMuteOnStart() {
+        return Pref.startFeedVideosMuted();
     }
 }

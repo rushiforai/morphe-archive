@@ -1833,6 +1833,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Mantener la pantalla limpia en el siguiente LIVE
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Un LIVE al que deslizas vuelve a mostrar su chat, regalos y botones. Esto mantiene la pantalla limpia de sala en sala hasta que la desactives.
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	Ofrecer pantalla completa en más LIVE
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	TikTok muestra su botón de pantalla completa solo en los LIVE transmitidos desde una computadora o una pantalla compartida. Esto lo muestra en cualquier otro LIVE con video ancho.
 Dark LIVE panels in dark mode	Paneles de LIVE oscuros en modo oscuro
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Con TikTok en modo oscuro, una sala LIVE sigue abriendo su menú de compartir, el club de fans y otros paneles en colores claros. Esto los abre en oscuro.
 Keep watching in a small window	Seguir viendo en una ventana pequeña
@@ -2449,6 +2453,8 @@ search suggestions	sugerencias de búsqueda
 AI chat	chat de IA
 AI Tako	IA Tako
 save photos	guardar fotos
+download button	botón de descarga descargar
+It's in %1$s, under %2$s. Tap to go there.	Está en %1$s, en %2$s. Toca para ir allí.
 Lock the feed at set times	Bloquear el feed a ciertas horas
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	El feed se bloquea solo durante estas horas, según el reloj de tu teléfono. Escribe días y horas así: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Omite los días para que valga todos los días. Un horario que termina antes de empezar pasa de la medianoche.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	No se pudo leer %1$s. Escribe días y horas así: Mon-Fri 21:00-07:00.
@@ -2861,3 +2867,50 @@ Account country on profiles	País de la cuenta en los perfiles
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	El menú para compartir de un perfil tiene un botón País de la cuenta. Le pregunta a TikTok dónde está esa cuenta, o desde dónde se publicaron sus últimos videos.
 Account country	País de la cuenta
 Videos posted from %1$s	Videos publicados desde %1$s
+Long-press Profile for Activity center	Mantener pulsado Perfil para abrir el Centro de actividad
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	Mantén pulsada la pestaña Perfil para abrir el Centro de actividad de TikTok. Tocar Perfil funciona como antes. Mientras Mantener pulsado Perfil para abrir el historial de visualización esté activado, ocupa ese gesto.
+Share the video after a save	Compartir el vídeo después de guardarlo
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	Abre el panel de compartir de Android con el archivo en cuanto se guarda un vídeo, historias de vídeo incluidas, para que puedas enviarlo directamente a WhatsApp, Telegram o cualquier otra app. Los vídeos elegidos que se guardan juntos reciben el aviso habitual.
+Caption spot in Clear display	Posición de los subtítulos con los controles ocultos
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	Donde TikTok los muestra
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	Más abajo, cerca del borde inferior
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	Recortar y estirar para llenar la pantalla
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Cubre toda la ventana con la mitad del recorte de Llenar y la mitad del estiramiento de Estirar, así ninguno se nota mucho. Un video con una forma muy distinta a la de la pantalla mantiene el tamaño de TikTok.
+Watch LIVEs unseen	Ver LIVE sin que te vean
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	No aparecerás en la lista de espectadores de los LIVE que abras. Toca el ojo en un LIVE para que su anfitrión te vea. Necesita el modo fantasma activado.
+The host can see you	El anfitrión puede verte
+Let the host see you	Dejar que el anfitrión te vea
+Couldn't tell which LIVE this is. Open it again.	No se sabe qué LIVE es este. Vuelve a abrirlo.
+The host can already see you in this LIVE	El anfitrión ya puede verte en este LIVE
+Letting the host see you	Dejando que el anfitrión te vea
+The host can see you now	Ahora el anfitrión puede verte
+The host sees you next time you open it	El anfitrión te verá la próxima vez que lo abras
+Couldn't reach TikTok. Open this LIVE again.	Sin conexión con TikTok. Abre este LIVE de nuevo.
+LIVE name alerts	Avisos de tu nombre en LIVE
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	Te avisa cuando tu nombre sale en un LIVE, en el chat o dicho en voz alta en una sala con subtítulos activados. Recibes una notificación si las notificaciones de TikTok están activadas, y un banner en la sala si no lo están.
+Names to listen for	Nombres que escuchar
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	Tu usuario y tu nombre de TikTok ya están en la lista. Añade otros nombres con los que te llaman, separados por comas.
+Your name came up in a LIVE	Tu nombre salió en un LIVE
+Listen for your name	Escuchar tu nombre
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	También escucha el sonido del LIVE, así tu nombre cuenta cuando lo dicen en voz alta en salas sin subtítulos. Escucha el reconocimiento de voz de tu propio teléfono, con el permiso de micrófono de TikTok. Solo oye el LIVE, aunque Android muestre su punto de micrófono, y usa un poco más de datos.
+Needs Android 13 or newer.	Requiere Android 13 o posterior.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	Desactivado: el reconocimiento de voz de este teléfono solo oye el micrófono. Desactívalo y vuelve a activarlo para intentarlo otra vez.
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	Este teléfono no tiene reconocimiento de voz. Elige uno en los ajustes de entrada de voz de Android y vuelve a abrir el LIVE.
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	TikTok necesita el permiso de micrófono para el reconocimiento de voz. Permítelo en los ajustes de aplicaciones de Android y vuelve a abrir el LIVE.
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	El reconocimiento de voz no tiene un modelo para el idioma de tu teléfono. Descarga uno en los ajustes de voz de Android y vuelve a abrir el LIVE.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	El reconocimiento de voz falló una y otra vez en el último LIVE. Vuelve a abrir el LIVE para intentarlo de nuevo.
+Save the photo posts as one video?	¿Guardar las publicaciones de fotos como un solo vídeo?
+One video	Un vídeo
+One per post	Uno por publicación
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	Mantener el centro sin estirar
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	Cubre toda la ventana y mantiene el centro del video con su propia forma. Se recorta un poco de los lados y solo se estiran la parte de arriba y la de abajo. Un video con una forma muy distinta a la de la pantalla mantiene el tamaño de TikTok.
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	Búsqueda visual en videos pausados

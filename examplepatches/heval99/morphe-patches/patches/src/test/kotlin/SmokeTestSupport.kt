@@ -45,7 +45,7 @@ fun repoRoot(): File {
 fun newestPatchBundle(root: File): File =
     selectPatchBundle(File(root, "patches/build/libs"), requirePatchesVersion())
 
-fun loadAllPatches(bundle: File): Set<Patch<*>> = loadPatchesFromJar(setOf(bundle))
+fun loadAllPatches(bundle: File): Set<Patch> = loadPatchesFromJar(setOf(bundle))
 
 fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 
@@ -74,24 +74,6 @@ fun assertForcedBoolean(method: Method, expected: Boolean, label: String, diagno
         (second as OneRegisterInstruction).registerA ==
             (first as OneRegisterInstruction).registerA,
         "$label returns a different register than the one set\n$diagnostics"
-    )
-}
-
-fun assertReturnsLicensedEnum(method: Method, label: String, diagnostics: String = "") {
-    val insns = method.instructions()
-    val first = insns.getOrNull(0) as? ReferenceInstruction
-    val ref = first?.reference as? FieldReference
-    assertTrue(
-        first != null &&
-            first.opcode == Opcode.SGET_OBJECT &&
-            ref != null &&
-            ref.definingClass == "Lcom/joaomgcd/taskerm/licensing/LicenseStatus;" &&
-            ref.name == "Licensed",
-        "$label does not return LicenseStatus.Licensed; first instruction is ${insns.getOrNull(0)?.opcode}\n$diagnostics"
-    )
-    assertTrue(
-        insns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT,
-        "$label does not return immediately; second instruction is ${insns.getOrNull(1)?.opcode}\n$diagnostics"
     )
 }
 
@@ -275,7 +257,7 @@ private fun assertFixtureMatches(
     pkg: String,
     version: String,
     versionCode: Int?,
-    patches: List<Patch<*>>,
+    patches: List<Patch>,
 ) {
     val where = "fixture ${apk.absolutePath}"
     val actual = metadata.versionName.orEmpty()
@@ -315,7 +297,7 @@ fun applyPatches(
     pkg: String,
     version: String,
     patchNames: Set<String>,
-    allPatches: Set<Patch<*>>,
+    allPatches: Set<Patch>,
     filterByCompatibility: Boolean = true,
     versionCode: Int? = null,
 ): List<ClassDef> {

@@ -45,9 +45,10 @@ public final class OutsideTranslateForTests {
             @Override public int id() { return 1; }
             @Override public boolean eligible() { return true; }
             @Override public String original() { return "Привет, мир"; }
+            @Override public List<?> entities() { return null; }
             @Override public boolean translated() { return false; }
             @Override public String telegramTarget() { return null; }
-            @Override public void apply(String text, String language) {}
+            @Override public void apply(String text, ArrayList<Object> entities, String language) {}
             @Override public void refresh() {}
         };
         Executor kept = OutsideTranslate.executor;

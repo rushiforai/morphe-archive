@@ -8,19 +8,24 @@ package app.hushpinterest.extension.pinterest.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.view.View;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -47,7 +52,9 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowMediaPlayer;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.shadows.util.DataSource;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -71,6 +78,7 @@ public class UiHooksTest {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET,
+            Settings.BLACK_SHEETS, Settings.BLACK_BOARDS,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
             Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
             Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
@@ -78,14 +86,16 @@ public class UiHooksTest {
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
             Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
             Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
-            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
+            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
             Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
-            Settings.DISABLE_UPDATE_NAG
+            Settings.DISABLE_UPDATE_NAG, Settings.HIDE_SHOPPING
     }; }
 
     @After public void restore() {
         PauseForTests.resume();
         for (BooleanSetting setting : switches()) setting.resetToDefault();
+        SaveSound.PICKED.resetToDefault();
+        SaveSound.NAME.resetToDefault();
         HookStatus.clear();
     }
 
@@ -192,6 +202,158 @@ public class UiHooksTest {
         Settings.HIDE_SURVEY_PROMPTS.save(false);
         assertFalse(UiHooks.hideSurveyPrompts());
         assertFalse(UiHooks.hideSponsoredPolls());
+    }
+
+    @Test public void aPopUpBannerIsClosedThroughItsOwnXOnlyWhileTheSwitchIsOnAndCounted() {
+        int[] taps = {0};
+        android.widget.FrameLayout banner = popupBanner(true, taps);
+        UiHooks.popupBanner(banner);
+        assertEquals("off by default, nobody taps the X", 0, taps[0]);
+        assertEquals(View.VISIBLE, banner.getVisibility());
+        Settings.HIDE_POPUP_BANNERS.save(true);
+        UiHooks.popupBanner(banner);
+        assertEquals("on, the X is tapped once", 1, taps[0]);
+        assertEquals("Pinterest's own dismissal hid it", View.GONE, banner.getVisibility());
+        UiHooks.popupBanner(banner);
+        assertEquals("a banner already closed isn't tapped again", 1, taps[0]);
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("pop-up banner dismissed"));
+        android.widget.FrameLayout next = popupBanner(true, taps);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        UiHooks.popupBanner(next);
+        assertEquals("paused, the banner stays", View.VISIBLE, next.getVisibility());
+        assertEquals(1, taps[0]);
+        assertTrue(Settings.HIDE_POPUP_BANNERS.savedValue());
+        PauseForTests.resume();
+        UiHooks.popupBanner(null);
+    }
+
+    @Test public void relatedPinsAreLeftOutOnlyWhileTheSwitchIsOnAndCounted() {
+        assertFalse("off by default, the grid is added", UiHooks.hideRelatedPins());
+        Settings.HIDE_RELATED_PINS.save(true);
+        assertTrue(UiHooks.hideRelatedPins());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("related pins left out"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse("paused, the grid is added", UiHooks.hideRelatedPins());
+        PauseForTests.resume();
+    }
+
+    @Test public void theRelatedPinsLoadingWaitEndsOnlyWhileTheGridIsLeftOut() {
+        assertFalse("off by default, the page waits for the grid", UiHooks.relatedPinsLoading());
+        Settings.HIDE_RELATED_PINS.save(true);
+        assertTrue(UiHooks.relatedPinsLoading());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("related pins loading skipped"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse("paused, the grid is added and loads", UiHooks.relatedPinsLoading());
+        PauseForTests.resume();
+    }
+
+    @Test public void aPickedSaveSoundPlaysOnlyWhileTheSwitchIsOnAndTheFileOpens() {
+        Context app = RuntimeEnvironment.getApplication();
+        Uri sound = Uri.parse("content://com.android.providers.media.documents/document/audio%3A41");
+        DataSource file = DataSource.toDataSource(app, sound);
+        ShadowMediaPlayer.addMediaInfo(file, new ShadowMediaPlayer.MediaInfo(800, 0));
+        SaveSound.PICKED.save(sound.toString());
+        assertNull("off by default, Pinterest's chime plays", UiHooks.pickedSaveSound(app));
+
+        Settings.CUSTOM_SAVE_SOUND.save(true);
+        MediaPlayer player = UiHooks.saveSound(app, 0x7f130001);
+        assertNotNull(player);
+        assertEquals("the picked file plays in place of the chime", file, shadowOf(player).getDataSource());
+        player.release();
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("picked sound played"));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertNull("paused, Pinterest's chime plays", UiHooks.pickedSaveSound(app));
+        PauseForTests.resume();
+        assertNull("no context, nothing to open the file with", UiHooks.pickedSaveSound(null));
+
+        SaveSound.PICKED.save("");
+        assertNull("nothing picked, Pinterest's chime plays", UiHooks.pickedSaveSound(app));
+
+        Uri gone = Uri.parse("content://com.android.providers.media.documents/document/audio%3A42");
+        ShadowMediaPlayer.addException(DataSource.toDataSource(app, gone), new IOException("deleted"));
+        SaveSound.PICKED.save(gone.toString());
+        assertNull("a file that won't open leaves Pinterest's chime", UiHooks.pickedSaveSound(app));
+        report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("picked sound didn't open, Pinterest's played"));
+    }
+
+    @Test public void theCreatorNameGoesAndTheAvatarAndItsRowStayOnlyWhileTheSwitchIsOn() {
+        Context app = RuntimeEnvironment.getApplication();
+        LinearLayout outer = new LinearLayout(app);
+        LinearLayout row = new LinearLayout(app);
+        View avatar = new View(app);
+        TextView name = new TextView(app);
+        View badge = new View(app);
+        TextView below = new TextView(app);
+        row.addView(avatar);
+        row.addView(name);
+        row.addView(badge);
+        outer.addView(row);
+        outer.addView(below);
+        int[] opened = {0};
+        row.setOnClickListener(clicked -> opened[0]++);
+
+        UiHooks.creatorName(avatar);
+        assertEquals("off by default, the name stays", View.VISIBLE, name.getVisibility());
+
+        Settings.HIDE_CREATOR_NAME.save(true);
+        UiHooks.creatorName(avatar);
+        assertEquals(View.VISIBLE, avatar.getVisibility());
+        assertEquals(View.GONE, name.getVisibility());
+        assertEquals(View.GONE, badge.getVisibility());
+        assertEquals("only the avatar's own row changes", View.VISIBLE, below.getVisibility());
+        assertEquals(View.VISIBLE, row.getVisibility());
+        assertTrue("the row still opens the profile", row.performClick());
+        assertEquals(1, opened[0]);
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("creator name hidden"));
+
+        name.setVisibility(View.VISIBLE);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        UiHooks.creatorName(avatar);
+        assertEquals("paused, the name stays", View.VISIBLE, name.getVisibility());
+        PauseForTests.resume();
+        UiHooks.creatorName(null);
+        UiHooks.creatorName(new View(app));
+    }
+
+    @Test public void aPopUpBannerWhoseXDoesNothingIsHiddenInstead() {
+        Settings.HIDE_POPUP_BANNERS.save(true);
+        android.widget.FrameLayout banner = popupBanner(false, new int[1]);
+        UiHooks.popupBanner(banner);
+        assertEquals(View.GONE, banner.getVisibility());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("pop-up banner hidden without its X"));
+    }
+
+    /**
+     * A banner like the one Pinterest's education container shows: its resources know the X's id,
+     * and with [listening] the X closes the banner the way Pinterest's dismissal does, counted in [taps].
+     */
+    private static android.widget.FrameLayout popupBanner(boolean listening, int[] taps) {
+        Context base = RuntimeEnvironment.getApplication();
+        Resources original = base.getResources();
+        Resources resources = new Resources(base.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) {
+                return UiHooks.BANNER_DISMISS.equals(name) && "id".equals(type) ? 7 : 0;
+            }
+        };
+        android.widget.FrameLayout banner = new android.widget.FrameLayout(base) {
+            @Override public Resources getResources() { return resources; }
+        };
+        View dismiss = new View(base);
+        dismiss.setId(7);
+        if (listening) dismiss.setOnClickListener(clicked -> {
+            taps[0]++;
+            banner.setVisibility(View.GONE);
+        });
+        banner.addView(dismiss);
+        return banner;
     }
 
     @Test public void saveToastsDropOnlyTheNamedModelsWhileTheSwitchIsOn() {
@@ -490,6 +652,24 @@ public class UiHooksTest {
         assertEquals(spec, UiHooks.searchHistoryMeasureSpec(spec));
         assertEquals(spec, UiHooks.commentsMeasureSpec(spec));
         assertTrue(UiHooks.commentsVisible(true));
+    }
+
+    /** The Shop the look section under a pin (#6) folds with Hide shopping and comes back when it's off or paused. */
+    @Test public void shopTheLookFoldsWithHideShopping() {
+        int spec = View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.AT_MOST);
+        assertEquals("off by default", View.VISIBLE, UiHooks.closeupShoppingVisibility(View.VISIBLE));
+        assertEquals("off by default", spec, UiHooks.closeupShoppingMeasureSpec(spec));
+        Settings.HIDE_SHOPPING.save(true);
+        assertEquals(View.GONE, UiHooks.closeupShoppingVisibility(View.VISIBLE));
+        assertEquals(0, View.MeasureSpec.getSize(UiHooks.closeupShoppingMeasureSpec(spec)));
+        assertEquals(View.MeasureSpec.EXACTLY, View.MeasureSpec.getMode(UiHooks.closeupShoppingMeasureSpec(spec)));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals(View.INVISIBLE, UiHooks.closeupShoppingVisibility(View.INVISIBLE));
+        assertEquals(spec, UiHooks.closeupShoppingMeasureSpec(spec));
+        PauseForTests.resume();
+        Settings.HIDE_SHOPPING.save(false);
+        assertEquals(View.VISIBLE, UiHooks.closeupShoppingVisibility(View.VISIBLE));
+        assertEquals(spec, UiHooks.closeupShoppingMeasureSpec(spec));
     }
 
     /** The suggested replies over the comment box fold on their own switch, and Hide comments never folds them. */

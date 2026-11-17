@@ -61,6 +61,8 @@ public final class MenuBlur {
      * and Off, Pause or safe mode, leave the window as it is.
      */
     public static void shown(Dialog dialog) {
+        // The long-press menu's own card (#176) rides along, since this is where every menu Messenger opens turns up.
+        FloatingMenu.shown(dialog);
         try {
             if (dialog == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !dialog.isShowing()) return;
             Window window = dialog.getWindow();
@@ -81,17 +83,22 @@ public final class MenuBlur {
      * that draws its own dim, so the system never dims behind it. Every supported 587 build keeps the class name.
      */
     static boolean holdsMessageMenu(View root) {
-        if (root == null) return false;
+        return messageMenu(root) != null;
+    }
+
+    /** That menu's own view inside a dialog, or null when the dialog is anything else. */
+    static View messageMenu(View root) {
+        if (root == null) return null;
         ArrayDeque<View> queue = new ArrayDeque<>();
         queue.add(root);
         for (int looked = 0; !queue.isEmpty() && looked < MENU_SEARCH_LIMIT; looked++) {
             View view = queue.poll();
-            if (MESSAGE_MENU.equals(view.getClass().getName())) return true;
+            if (MESSAGE_MENU.equals(view.getClass().getName())) return view;
             if (!(view instanceof ViewGroup)) continue;
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
         }
-        return false;
+        return null;
     }
 
     @TargetApi(Build.VERSION_CODES.S)
@@ -150,7 +157,7 @@ public final class MenuBlur {
         return Math.round(RADIUS_DP * window.getContext().getResources().getDisplayMetrics().density);
     }
 
-    private static Activity activity(Context context) {
+    static Activity activity(Context context) {
         for (int depth = 0; context != null && depth < 16; depth++) {
             if (context instanceof Activity) return (Activity) context;
             if (!(context instanceof ContextWrapper)) return null;

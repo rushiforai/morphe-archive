@@ -52,6 +52,7 @@ class KeepHomeFeedFixtureTest {
     private class Build(val name: String, val fragment: ClassDef, val presenter: ClassDef, val masks: Map<Int, Int>) {
         val classes get() = listOf(fragment, presenter)
         val resume get() = fragment.methods.single { it.isReturnCheck() }
+        val back get() = fragment.methods.single { it.isBackHandler() }
         /** The presenter's check of the time away, or from 14.44.0 the return check it's inlined into. */
         val check: Method get() {
             if (isHomeAwayCheck(resume)) return resume
@@ -77,11 +78,33 @@ class KeepHomeFeedFixtureTest {
             assertTrue("${build.name}: the presenter compares the time away with five minutes", isHomeAwayCheck(build.check))
             requireMaskShape(build.refresh)
 
+            val back = build.back
+            val branch = homeBackBranch(back)
+            val backBefore = back.implementation!!.instructions.toList()
+
             val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
             keepHomeFeedPatch.execute(context)
-            for (flag in listOf("keepHomeFeed", "homeFeed")) {
+            for (flag in listOf("keepHomeFeed", "homeFeed", "homeBack")) {
                 assertEquals("${build.name}: $flag", 1, flag(context, flag))
             }
+
+            // #36: past Pinterest's mark, Back asks before the jump to the top, and a yes takes the
+            // path a feed near the top takes, the original false.
+            assertEquals("${build.name}: the Back branch", Opcode.IF_LE, backBefore[branch.fallThrough - 1].opcode)
+            assertEquals("${build.name}: Back near the top returns", Opcode.RETURN, backBefore.drop(branch.leave).first {
+                it.opcode == Opcode.RETURN || it.opcode == Opcode.RETURN_VOID }.opcode)
+            val backAfter = patched(context, back)
+            val at = branch.fallThrough
+            assertEquals("${build.name}: Back asks past the branch", BACK_HOOK, reference(backAfter[at]))
+            assertEquals(build.name, Opcode.MOVE_RESULT, backAfter[at + 1].opcode)
+            val answer = (backAfter[at + 1] as OneRegisterInstruction).registerA
+            assertEquals(build.name, Opcode.IF_NEZ, backAfter[at + 2].opcode)
+            assertEquals(build.name, answer, (backAfter[at + 2] as OneRegisterInstruction).registerA)
+            assertEquals("${build.name}: a yes goes where a feed near the top goes", address(backAfter, branch.leave + 3),
+                address(backAfter, at + 2) + (backAfter[at + 2] as OffsetInstruction).codeOffset)
+            assertTrue("${build.name}: the answer borrows a local", answer < back.implementation!!.registerCount - 1)
+            assertEquals("${build.name}: the Back handler stays", backBefore.map { it.opcode }.filter { it != Opcode.NOP },
+                (backAfter.take(at) + backAfter.drop(at + 3)).map { it.opcode }.filter { it != Opcode.NOP })
 
             val resume = build.resume
             val resumeBefore = resume.implementation!!.instructions.toList()
@@ -110,6 +133,23 @@ class KeepHomeFeedFixtureTest {
             assertEquals("${build.name}: the refresh stays", refreshBefore.map { it.opcode }.filter { it != Opcode.NOP },
                 refreshAfter.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
         }
+    }
+
+    /** A build whose Back handler moved still gets both holds, and only Back's switch goes missing. */
+    @Test
+    fun `without the Back handler the holds go in and Back's capability stays off`() {
+        val build = read(Fixtures.declaredBuilds().last())
+        val fragment = build.fragment
+        val noBack = ImmutableClassDef(fragment.type, fragment.accessFlags, fragment.superclass, fragment.interfaces,
+            fragment.sourceFile, fragment.annotations, fragment.fields, fragment.methods.filterNot { it.isBackHandler() })
+        val context = PatchContexts.of(ExtensionDex.classes() + noBack + build.presenter)
+        keepHomeFeedPatch.execute(context)
+        assertEquals(1, flag(context, "keepHomeFeed"))
+        assertEquals(1, flag(context, "homeFeed"))
+        assertEquals(0, flag(context, "homeBack"))
+        assertEquals(RESUME_HOOK, reference(patched(context, build.resume)[0]))
+        val asked = context.mutableClassDefBy(HOME_FEED_FRAGMENT).methods.flatMap { it.instructions() }.count { reference(it) == BACK_HOOK }
+        assertEquals("nothing asks about Back", 0, asked)
     }
 
     @Test
@@ -250,9 +290,15 @@ class KeepHomeFeedFixtureTest {
     private companion object {
         const val RESUME_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdResumeRefresh(J)Z"
         const val REFRESH_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdHomeRefresh(Ljava/util/Map;I)Z"
+        const val BACK_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->leave()Z"
         val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
     }
 }
+
+/** The Home fragment's `()Z` Back handler: the scroll offset read and the presenter's refresh. */
+private fun Method.isBackHandler() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "Z" && parameterTypes.isEmpty() &&
+    instructions().any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "computeVerticalScrollOffset" } &&
+    homeRefreshCalls(this).isNotEmpty()
 
 /** The Home fragment's `(J)V` that reads the scroll offset and hands the time away to the presenter, or checks it itself. */
 private fun Method.isReturnCheck() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&

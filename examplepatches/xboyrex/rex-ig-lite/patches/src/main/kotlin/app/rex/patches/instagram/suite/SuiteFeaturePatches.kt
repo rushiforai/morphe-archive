@@ -79,8 +79,8 @@ val startMediaWithSoundPatch = patch(
 
 @Suppress("unused")
 val liquidGlassNavigationPatch = patch(
-    name = "Liquid Glass UI & Navigation",
-    description = "Enables Liquid Glass floating navigation bar, rounded post corners, and real-time Gaussian blur dialogs.",
+    name = "AMOLED Blur UI & Navigation",
+    description = "Enables AMOLED rounded post corners, custom navigation bar, and real-time Gaussian blur dialogs.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)

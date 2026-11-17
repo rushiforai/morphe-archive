@@ -4,7 +4,7 @@ import app.fakh.patches.cnn.shared.Constants.COMPATIBILITY_CNN
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 
 /** The article fragment's page setup: it receives every page and shows one at a time with page numbers. */
@@ -15,7 +15,7 @@ private object ShowMultiplePageFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val mergePagesPatch = bytecodePatch(
+val mergePagesPatch = patch(
     name = "Merge article pages",
     description = "Shows every page of a multi-page article in one continuous article, without the page numbers.",
     default = true,

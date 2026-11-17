@@ -1,7 +1,8 @@
 package app.fakhradio.patches.shared
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.resourceFile
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -54,8 +55,8 @@ fun setStyleItems(document: Document, style: String, items: Map<String, String>)
  * Sets [colors] (resource name to framework color, or a #AARRGGBB value) in the directory's colors.xml, creating it
  * when the app has none. Entries are merged into the existing file, so its other colors stay.
  */
-fun ResourcePatchContext.writeColors(directory: String, colors: Map<String, String>) {
-    val file = get("res").resolve(directory).resolve("colors.xml")
+fun writeColors(directory: String, colors: Map<String, String>) {
+    val file = resourceFile("res").resolve(directory).resolve("colors.xml")
     if (!file.exists()) {
         file.parentFile.mkdirs()
         file.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n")
@@ -92,6 +93,6 @@ fun setElementAttributes(
 }
 
 /** Writes [text] to [path] under the decoded res directory, replacing the file the app ships with. */
-fun ResourcePatchContext.writeResourceFile(path: String, text: String) {
-    get("res").resolve(path).writeText(text)
+fun writeResourceFile(path: String, text: String) {
+    resourceFile("res").resolve(path).writeText(text)
 }

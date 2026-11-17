@@ -415,6 +415,54 @@ public class CallCaptionsTest {
         }
     }
 
+    @Test public void theOtherLanguagesLeaveOutWhatThePhoneAlreadyOfferedAndReadInOrder() {
+        List<String> others = CallCaptions.others(Arrays.asList("en-US", "es-ES", ""));
+
+        assertFalse("English is already in the sheet", others.contains("en"));
+        assertFalse("so is Spanish", others.contains("es"));
+        assertTrue("Filipino isn't, and the phone never listed it", others.contains("fil"));
+        List<String> names = new ArrayList<>();
+        for (String language : others) names.add(CallCaptions.name(language));
+        List<String> inOrder = new ArrayList<>(names);
+        Collections.sort(inOrder, String::compareToIgnoreCase);
+        assertEquals(inOrder, names);
+    }
+
+    /** #159: the reporter's language wasn't in what the phone reported, so the sheet has to offer the rest. */
+    @Test public void aLanguageThePhoneNeverListedCanStillBePicked() {
+        on(CallCaptions.KEY);
+        try (var page = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = page.get().getWindow().getDecorView();
+            root.findViewWithTag("call_captions_heard").performClick();
+            idle();
+            View sheet = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            assertNull("the phone didn't report Filipino", sheet.findViewWithTag("call_captions_language_fil"));
+
+            sheet.findViewWithTag("call_captions_language_other").performClick();
+            idle();
+
+            TextView filipino = sheet.findViewWithTag("call_captions_language_fil");
+            assertEquals(CallCaptions.name("fil"), filipino.getText().toString());
+            assertNull("the phone's own list stepped aside", sheet.findViewWithTag("call_captions_language_en-US"));
+            filipino.performClick();
+            idle();
+            assertEquals("fil", Settings.preferences.getString(CallCaptions.HEARD_LANGUAGE, null));
+            assertEquals("the phone fetches the model first", "fil", phone.downloaded);
+
+            phone.downloaded = null;
+            Button shownButton = root.findViewWithTag("call_captions_shown");
+            shownButton.performClick();
+            idle();
+            sheet = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            sheet.findViewWithTag("call_captions_language_other").performClick();
+            idle();
+            sheet.findViewWithTag("call_captions_language_fil").performClick();
+            idle();
+            assertEquals("fil", Settings.preferences.getString(CallCaptions.SHOWN_LANGUAGE, null));
+            assertNull("nothing to download for a language captions are shown in", phone.downloaded);
+        }
+    }
+
     @Test public void aPhoneWithoutOnDeviceRecognitionSaysSoInTheSheet() {
         phone.installed = null;
         phone.targets = Collections.emptyList();

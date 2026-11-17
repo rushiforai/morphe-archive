@@ -30,7 +30,9 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
@@ -52,6 +54,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * seconds is taken as that profile's, and the id is dropped when it's destroyed, so Back from the
  * profile forgets it.
  *
+ * <p>With Keep the tab bar on a reel's profile on, the profile goes onto the tab the reel plays on
+ * and no activity is created, so nothing was ever looked for (#693). That switch calls
+ * {@link #profileOnTab} instead, and the activity the reel plays in is taken as the profile's. It
+ * holds every tab, so a grid there is looked in only when it sits in the profile's screen
+ * (UserDetailFragment, found up the grid's parent fragments): the first screen a grid resumes in is
+ * taken as the profile's, a grid in another is left alone, and the id is dropped once that screen
+ * is gone.
+ *
  * <p>The patch also calls {@link #reelsTabResumed} first in the onResume of a profile's Reels tab
  * (ClipsProfileTabFragment). When that tab is in the profile's activity and shows the reel's author
  * (the id ends with the author's user id), the tab's grid is dragged up most of a screen at a time,
@@ -69,7 +79,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * (ProfileMediaTabFragment), from the patch's call first in its onResume, while the Reels tab leaves
  * it alone. The posts grid's arguments name which of the profile's grids it is but not whose, so the
  * first main posts grid resumed in the profile's activity is taken as the author's, and another one
- * resumed there later, a profile reached from it, is left alone. A video reel is looked for in the
+ * resumed there later, a profile reached from it, is left alone. 454 names a posts tile by nothing
+ * the search can match, so the patch also calls {@link #postsTileBound} first in the grid's tile
+ * binder, and while a photo reel is held each tile is named by its media's id (#689). A video reel is looked for in the
  * Reels tab alone, as before, and so is any reel while the media type can't be read.
  *
  * <p>A trial reel, which Instagram shows to people who don't follow its poster, isn't on the
@@ -116,8 +128,10 @@ public final class ReelOrigin {
     static final String OPENING = "profile opened from a reel";
     static final String RESUME = "reels tab resumed";
     static final String POSTS_RESUME = "posts grid resumed";
+    static final String TILE_BOUND = "posts tile bound";
     static final String LOOK = "looking for the reel";
     static final String WATCH = "profile screen watched";
+    static final String ON_TAB = "profile opened on the tab";
     /** Counted when a reel's id is held, found in the grid, not found, and when the tab was left first. */
     static final String REMEMBERED = "reel remembered";
     static final String FOUND = "reel found";
@@ -144,11 +158,15 @@ public final class ReelOrigin {
     static final String OTHER_PROFILE = "other profile's tab";
     /** Counted when the reel tapped is a trial reel, which isn't on the profile, so nothing is held. */
     static final String TRIAL = "trial reel, not looked for";
+    /** Counted when a posts tile is named by its media's id while a photo reel is held. */
+    static final String TILE_NAMED = "posts tile named";
     /** How many reels or posts Instagram pins to the top of a profile's grid at most, older ones as likely as not. */
     static final int PINNED_MAX = 3;
 
     /** How long after the tap the profile's activity may take to be created. */
     static final long HOST_WINDOW_MS = 5000;
+    /** How many parent fragments up from a grid its profile's screen is looked for. */
+    static final int SCREEN_DEPTH = 6;
     /** How often the grid moves on while the reel is looked for. */
     static final long STEP_MS = 150;
     /**
@@ -198,12 +216,22 @@ public final class ReelOrigin {
     private static WeakReference<Activity> host;
     /** The first main posts grid resumed in the profile's activity, the author's, while a photo is held. */
     private static WeakReference<Object> postsGrid;
+    /**
+     * Whether the profile went onto the tab, in [host] with the tab's other screens, and the
+     * profile's screen once a grid resumes in it.
+     */
+    private static boolean onTab;
+    private static WeakReference<Object> tabProfile;
     /** Where the watcher is registered while an id is held. */
     private static Application watched;
     /** The search running, at most one. */
     private static Look looking;
     /** View's computeVerticalScrollOffset, read once. */
     private static Method scrollOffset;
+    /** The id of the media each posts tile was last bound to while a photo reel was held, by tile. */
+    private static final Map<View, String> TILE_IDS = new WeakHashMap<>();
+    /** Media's getId, read once. */
+    private static Method getId;
 
     private ReelOrigin() {
     }
@@ -245,6 +273,8 @@ public final class ReelOrigin {
                 heldAt = SystemClock.uptimeMillis();
                 host = null;
                 postsGrid = null;
+                onTab = false;
+                tabProfile = null;
                 if (watched == null) {
                     application.registerActivityLifecycleCallbacks(WATCHER);
                     watched = application;
@@ -255,6 +285,69 @@ public final class ReelOrigin {
             HookStatus.threw(FamilyNames.REEL_ORIGIN, OPENING, failure);
             forget();
         }
+    }
+
+    /**
+     * Called when Keep the tab bar on a reel's profile put the profile onto [activity]'s tab instead
+     * of an activity of its own (#693), so that activity is taken as the profile's. Never throws.
+     */
+    public static void profileOnTab(Object activity) {
+        try {
+            if (!(activity instanceof Activity)) return;
+            synchronized (LOCK) {
+                if (held == null || host != null) return;
+                if (SystemClock.uptimeMillis() - heldAt > HOST_WINDOW_MS) {
+                    forget();
+                    return;
+                }
+                host = new WeakReference<>((Activity) activity);
+                onTab = true;
+                tabProfile = null;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_ORIGIN, ON_TAB, failure);
+        }
+    }
+
+    /**
+     * Whether [fragment] may be the profile's when the profile went onto the tab: true when it didn't,
+     * or when no profile screen is found up the fragment's parents. Otherwise the first screen asked
+     * about is taken as the profile's when [take], a fragment in another is refused, and once the
+     * profile's screen is gone the id is dropped.
+     */
+    private static boolean inTabProfile(Object fragment, boolean take) {
+        synchronized (LOCK) {
+            if (!onTab) return true;
+        }
+        Object screen = profileScreen(fragment);
+        if (screen == null) return true;
+        synchronized (LOCK) {
+            if (!onTab) return true;
+            if (tabProfile == null) {
+                if (take) tabProfile = new WeakReference<>(screen);
+                return true;
+            }
+            Object first = tabProfile.get();
+            if (first == null) {
+                forget();
+                return false;
+            }
+            return first == screen;
+        }
+    }
+
+    /** The profile's screen [fragment] sits in, up its parent fragments, or null. */
+    private static Object profileScreen(Object fragment) {
+        Object at = fragment;
+        for (int up = 0; at != null && up <= SCREEN_DEPTH; up++) {
+            if (ReelProfileTabBar.PROFILE_SCREEN.equals(at.getClass().getName())) return at;
+            try {
+                at = at.getClass().getMethod("getParentFragment").invoke(at);
+            } catch (ReflectiveOperationException missing) {
+                return null;
+            }
+        }
+        return null;
     }
 
     /** True only when [trial] reads true. A flag that can't be read, even by throwing, is no trial reel. */
@@ -299,7 +392,7 @@ public final class ReelOrigin {
             Object found = arguments.invoke(tab);
             String user = found instanceof Bundle ? ((Bundle) found).getString(USER_KEY) : null;
             if (user == null || user.isEmpty()) return;
-            if (!id.endsWith("_" + user)) {
+            if (!id.endsWith("_" + user) || !inTabProfile(tab, true)) {
                 HookStatus.counted(FamilyNames.REEL_ORIGIN, OTHER_PROFILE);
                 return;
             }
@@ -341,6 +434,10 @@ public final class ReelOrigin {
             if (arguments == null) return;
             Object found = arguments.invoke(grid);
             if (!(found instanceof Bundle) || !POSTS.equals(((Bundle) found).getString(GRID_KEY))) return;
+            if (!inTabProfile(grid, true)) {
+                HookStatus.counted(FamilyNames.REEL_ORIGIN, OTHER_PROFILE);
+                return;
+            }
             boolean other;
             synchronized (LOCK) {
                 if (!id.equals(held)) return;
@@ -355,6 +452,36 @@ public final class ReelOrigin {
             look(grid, id, on, profile, waits);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_ORIGIN, POSTS_RESUME, failure);
+        }
+    }
+
+    /**
+     * Called first in the posts grid's tile binder with the tile and its media. While a photo reel
+     * is held, the tile is named by the media's id, since 454 gives a posts tile no name the search
+     * can match (#689); otherwise any name it had is dropped. Never throws.
+     */
+    public static void postsTileBound(Object tile, Object media) {
+        postsTileBound(tile, media, ReelOrigin::switchedOn);
+    }
+
+    static void postsTileBound(Object tile, Object media, BooleanSupplier on) {
+        try {
+            if (!(tile instanceof View)) return;
+            boolean wanted;
+            synchronized (LOCK) {
+                wanted = held != null && heldPhoto;
+            }
+            String id = wanted && media != null && on.getAsBoolean() ? mediaId(media) : null;
+            synchronized (TILE_IDS) {
+                if (id == null || id.isEmpty()) {
+                    TILE_IDS.remove(tile);
+                    return;
+                }
+                TILE_IDS.put((View) tile, id);
+            }
+            HookStatus.counted(FamilyNames.REEL_ORIGIN, TILE_NAMED);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_ORIGIN, TILE_BOUND, failure);
         }
     }
 
@@ -380,7 +507,7 @@ public final class ReelOrigin {
             Method arguments = method(grid, "getArguments");
             if (profile == null || activity == null || arguments == null || activity.invoke(grid) != profile) return false;
             Object found = arguments.invoke(grid);
-            return found instanceof Bundle && POSTS.equals(((Bundle) found).getString(GRID_KEY));
+            return found instanceof Bundle && POSTS.equals(((Bundle) found).getString(GRID_KEY)) && inTabProfile(grid, false);
         } catch (Throwable failure) {
             return false;
         }
@@ -410,6 +537,13 @@ public final class ReelOrigin {
         }
     }
 
+    /** The activity taken as the profile's, for tests. */
+    static Activity hostForTests() {
+        synchronized (LOCK) {
+            return host == null ? null : host.get();
+        }
+    }
+
     /** Drops the id and anything looking for it, and stops watching activities. */
     static void forget() {
         synchronized (LOCK) {
@@ -417,7 +551,12 @@ public final class ReelOrigin {
             heldPhoto = false;
             host = null;
             postsGrid = null;
+            onTab = false;
+            tabProfile = null;
             stopLooking();
+            synchronized (TILE_IDS) {
+                TILE_IDS.clear();
+            }
             if (watched != null) {
                 watched.unregisterActivityLifecycleCallbacks(WATCHER);
                 watched = null;
@@ -714,9 +853,21 @@ public final class ReelOrigin {
         }
     }
 
+    /**
+     * What [view] is named by: the transition name Instagram gives a Reels tile, or else the id of the
+     * media a posts tile was bound to while a photo reel was held, or null.
+     */
+    static String nameOf(View view) {
+        String name = view.getTransitionName();
+        if (name != null && !name.isEmpty()) return name;
+        synchronized (TILE_IDS) {
+            return TILE_IDS.get(view);
+        }
+    }
+
     /** The first view under [view] Instagram named for the reel, or null while none is bound. */
     static View tile(View view, String id) {
-        if (matches(view.getTransitionName(), id)) return view;
+        if (matches(nameOf(view), id)) return view;
         if (!(view instanceof ViewGroup)) return null;
         ViewGroup group = (ViewGroup) view;
         for (int i = 0; i < group.getChildCount(); i++) {
@@ -746,7 +897,7 @@ public final class ReelOrigin {
      */
     static int sortTiles(View view, String number, Set<String> older) {
         int newer = 0;
-        String name = view.getTransitionName();
+        String name = nameOf(view);
         String own = name == null || name.isEmpty() ? null : reelNumber(name);
         if (own != null) {
             if (olderThan(own, number)) {
@@ -787,7 +938,7 @@ public final class ReelOrigin {
 
     /** How many views under [view] Instagram named, its reels' tiles: none while only placeholders show. */
     static int named(View view) {
-        String name = view.getTransitionName();
+        String name = nameOf(view);
         int found = name == null || name.isEmpty() ? 0 : 1;
         if (!(view instanceof ViewGroup)) return found;
         ViewGroup group = (ViewGroup) view;
@@ -938,12 +1089,15 @@ public final class ReelOrigin {
 
     /** The reel's id, the string Instagram names its grid tile by, or null after reporting it missing. */
     private static String mediaId(Object media) throws ReflectiveOperationException {
-        Method id;
-        try {
-            id = media.getClass().getMethod("getId");
-        } catch (NoSuchMethodException missing) {
-            HookStatus.missingMember(FamilyNames.REEL_ORIGIN, "method", media.getClass().getName(), "getId");
-            return null;
+        Method id = getId;
+        if (id == null || !id.getDeclaringClass().isInstance(media)) {
+            try {
+                id = media.getClass().getMethod("getId");
+            } catch (NoSuchMethodException missing) {
+                HookStatus.missingMember(FamilyNames.REEL_ORIGIN, "method", media.getClass().getName(), "getId");
+                return null;
+            }
+            getId = id;
         }
         Object value = id.invoke(media);
         return value instanceof String ? (String) value : null;

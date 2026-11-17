@@ -37,7 +37,7 @@ class BoxBoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "5.4.18",
+            version = "5.4.19",
             patchNames = setOf("Enable Premium", "Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

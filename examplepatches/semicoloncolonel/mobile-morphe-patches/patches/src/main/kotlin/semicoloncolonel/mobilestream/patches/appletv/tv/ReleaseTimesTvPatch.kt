@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.appletv.tv
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.tvName
 
 // Apple TV Android TV 17.0.2. Every "Coming ..." label for an upcoming title
 // or episode comes from ProductNode.comingSoonData (app.js), which reads only
@@ -47,7 +48,7 @@ private const val COMING_SOON_DATA = "static comingSoonData(e){if(null==e?void 0
 
 @Suppress("unused")
 val releaseTimesTvPatch = resourcePatch(
-    name = "Show release times (Android TV)",
+    name = tvName("Show release times (Android TV)"),
     description = "Shows the day and time in your time zone when an upcoming episode or title is released.",
 ) {
     compatibleWith(Constants.TV_COMPATIBILITY)

@@ -10,19 +10,23 @@ package app.morphe.patches.youtube.layout.feedcards
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.addPatchInterface
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.layout.theme.lithoColorHookPatch
 import app.morphe.patches.shared.layout.theme.lithoDrawableColorHook
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
+import app.morphe.patches.shared.misc.litho.filter.ElementItemConstructorFingerprint
 import app.morphe.patches.shared.misc.proto.hookElement
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.youtube.misc.commandrouter.commandRouterHookPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_14_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -83,7 +87,6 @@ private fun MutableClass.hookViewGroupMethod(name: String, parameterType: String
     )
 }
 
-@Suppress("unused")
 val feedCardLayoutPatch = patch(
     name = "Feed card layout",
     description = "Adds an option to show or hide the card layout of feed videos, which YouTube sends as an A/B test."
@@ -149,30 +152,28 @@ val feedCardLayoutPatch = patch(
                 val elementBytesField = it.instructionMatches[1].fieldReference
 
                 it.classDef.apply {
-                    interfaces.add(EXTENSION_ELEMENT_ITEM_INTERFACE)
-
-                    methods.add(
-                        ImmutableMethod(
-                            type,
-                            "patch_getElementBytes",
-                            listOf(),
-                            "[B",
-                            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                            null,
-                            null,
-                            MutableMethodImplementation(2),
-                        ).toMutable().apply {
-                            addInstructions(
-                                0,
-                                """
-                                    iget-object v0, p0, $elementBytesField
-                                    return-object v0
-                                """
-                            )
-                        }
+                    addPatchInterface(
+                        EXTENSION_ELEMENT_ITEM_INTERFACE,
+                        "patch_getElementBytes",
+                        """
+                            iget-object v0, p0, $elementBytesField
+                            return-object v0
+                        """
                     )
                 }
             }
+        }
+
+        // Some lists, such as the Home feed of the accounts of a newer A/B test, add a gap between the rows
+        // of a section, and the cards have their own spacing.
+        if (is_21_14_or_greater) {
+            SectionLayoutDescriptorConstructorFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static { p1, p2 }, $EXTENSION_CLASS->getSectionRowGap(IF)F
+                    move-result p2
+                """
+            )
         }
 
         mutableClassDefBy(RECYCLER_VIEW_CLASS).apply {
@@ -186,5 +187,41 @@ val feedCardLayoutPatch = patch(
 
         // The comment button opens the comments panel of the video, instead of the video.
         hookVideoIntentInterceptor(EXTENSION_CLASS, "openCommentsPanel")
+
+        // The comments panel is shown over the feed, and the commands of the comments,
+        // such as the command that opens the replies, show their panel over the feed too.
+        EngagementPanelControllerOfSurfaceFingerprint.let {
+            val feedControllerProvider = it.instructionMatches[3].fieldReference
+            val getController = it.instructionMatches[4].methodReference
+            val controllerClass = it.method.returnType
+            val getShownPanelId = EngagementPanelControllerShownPanelIdFingerprint.method.let { method ->
+                "${method.definingClass}->${method.name}()Ljava/lang/String;"
+            }
+
+            it.method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { p1 }, $EXTENSION_CLASS->isPanelWithoutSurface(Ljava/lang/Enum;)Z
+                    move-result v0
+                    if-eqz v0, :surface_controller
+                    iget-object v0, p0, $feedControllerProvider
+                    invoke-interface { v0 }, $getController
+                    move-result-object v0
+                    check-cast v0, $controllerClass
+                    invoke-virtual { v0 }, $getShownPanelId
+                    move-result-object v0
+                    invoke-static { v0 }, $EXTENSION_CLASS->showPanelOverFeed(Ljava/lang/String;)Z
+                    move-result v0
+                    if-eqz v0, :surface_controller
+                    iget-object v0, p0, $feedControllerProvider
+                    invoke-interface { v0 }, $getController
+                    move-result-object v0
+                    check-cast v0, $controllerClass
+                    return-object v0
+                    :surface_controller
+                    nop
+                """
+            )
+        }
     }
 }

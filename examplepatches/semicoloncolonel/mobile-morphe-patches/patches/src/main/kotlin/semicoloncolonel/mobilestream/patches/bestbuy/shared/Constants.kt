@@ -11,6 +11,6 @@ object Constants {
         description = "The Best Buy shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0046BE,
-        targets = listOf(AppTarget("26.10.10"))
+        targets = listOf(AppTarget("26.10.10"), AppTarget("26.11.10", versionCode = 2012312346))
     )
 }

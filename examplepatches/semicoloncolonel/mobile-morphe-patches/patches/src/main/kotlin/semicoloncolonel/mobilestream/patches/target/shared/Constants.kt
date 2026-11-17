@@ -11,6 +11,6 @@ object Constants {
         description = "The Target shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xCC0000,
-        targets = listOf(AppTarget("2026.44.0", versionCode = 1906002918))
+        targets = listOf(AppTarget("2026.44.0", versionCode = 1906002918), AppTarget("2026.43.0", versionCode = 1906002917))
     )
 }

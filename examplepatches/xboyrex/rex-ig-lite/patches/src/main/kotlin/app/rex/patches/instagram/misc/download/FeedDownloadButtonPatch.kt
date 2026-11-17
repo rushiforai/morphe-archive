@@ -269,24 +269,27 @@ private fun hookFeedRowBinder(): String {
  * pinned to it; other modules keep the original selector result.
  */
 private fun pinMainFeedToViewUfi() {
-    FeedUfiRendererSelectorFingerprint.let {
-        val viewVariantField = it.instructionMatches.last().fieldReference
-        val method = it.method
-        val moduleRegister = method.parameterRegister(STRING_DESCRIPTOR)
-        val (expected, module) = method.reserveFreeRegisters(0, 2, maximum = 15)
+    val selectors = FeedUfiRendererSelectorFingerprint.matchAllOrNull().orEmpty()
+    selectors.forEach { match ->
+        runCatching {
+            val viewVariantField = match.instructionMatches.last().fieldReference
+            val method = match.method
+            val moduleRegister = method.parameterRegister(STRING_DESCRIPTOR)
+            val (expected, module) = method.reserveFreeRegisters(0, 2, maximum = 15)
 
-        method.addInstructionsWithLabels(
-            0,
-            """
-                const-string v$expected, "$MAIN_FEED_MODULE"
-                ${moveObject(module, moduleRegister)}
-                invoke-virtual {v$expected, v$module}, $STRING_DESCRIPTOR->equals($OBJECT_DESCRIPTOR)Z
-                move-result v$expected
-                if-eqz v$expected, :original
-                sget-object v$expected, $viewVariantField
-                return-object v$expected
-            """.trimIndent(),
-            ExternalLabel("original", method.getInstruction(0)),
-        )
+            method.addInstructionsWithLabels(
+                0,
+                """
+                    const-string v$expected, "$MAIN_FEED_MODULE"
+                    ${moveObject(module, moduleRegister)}
+                    invoke-virtual {v$expected, v$module}, $STRING_DESCRIPTOR->equals($OBJECT_DESCRIPTOR)Z
+                    move-result v$expected
+                    if-eqz v$expected, :original
+                    sget-object v$expected, $viewVariantField
+                    return-object v$expected
+                """.trimIndent(),
+                ExternalLabel("original", method.getInstruction(0)),
+            )
+        }
     }
 }

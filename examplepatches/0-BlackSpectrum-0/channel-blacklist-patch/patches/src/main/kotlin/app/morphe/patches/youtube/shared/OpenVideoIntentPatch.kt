@@ -7,10 +7,8 @@
 
 package app.morphe.patches.youtube.shared
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.patch
-import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.all.misc.resources.addResourcesPatch
@@ -37,7 +35,6 @@ private val videoIntentContextHooks = mutableListOf<Pair<String, String>>()
 private val videoIntentCommandTransforms = mutableListOf<Pair<String, String>>()
 private val videoIntentInterceptors = mutableListOf<Pair<String, String>>()
 
-@Suppress("unused")
 val openVideoIntentPatch = patch(
     description = "Provides hooks into intent components to open videos for extension filtering."
 ) {
@@ -56,15 +53,15 @@ val openVideoIntentPatch = patch(
         VideoPlaybackIntentFingerprint.let {
             it.method.apply {
                 val match = it.instructionMatches[1]
-                var moveResultRegister = match.getInstruction<OneRegisterInstruction>().registerA
+                val moveResultRegister = match.getInstruction<OneRegisterInstruction>().registerA
                 val insertIndex = match.index + 1
                 val registerProvider = getFreeRegisterProvider(
                     insertIndex,
                     2,
                     moveResultRegister
                 )
-                var free1 = registerProvider.getFreeRegister()
-                var free2 = registerProvider.getFreeRegister()
+                val free1 = registerProvider.getFreeRegister()
+                val free2 = registerProvider.getFreeRegister()
 
                 videoPlaybackIntentMethod = WeakReference(this)
                 videoPlaybackIntentInsertIndex = insertIndex
@@ -99,14 +96,15 @@ val openVideoIntentPatch = patch(
                 """
             )
         }
+        // Index 0: no local register is written yet, and the method has local registers
+        // (the hooks inserted during execute use them), so v0 is free.
         videoIntentInterceptors.asReversed().forEach { (classDescriptor, methodName) ->
-            val consumed = method.findFreeRegister(0)
             method.addInstructionsAtControlFlowLabel(
                 0,
                 """
                     invoke-static/range {p1 .. p2}, $classDescriptor->$methodName(Lcom/google/protobuf/MessageLite;Ljava/util/Map;)Z
-                    move-result v$consumed
-                    if-eqz v$consumed, :continue_video_intent
+                    move-result v0
+                    if-eqz v0, :continue_video_intent
                     return-void
                     :continue_video_intent
                     nop
@@ -141,19 +139,6 @@ fun hookVideoIntentCommandTransform(classDescriptor: String, methodName: String)
 /** Intercept a normalized watch command before context mutations or playback starts. */
 fun hookVideoIntentInterceptor(classDescriptor: String, methodName: String) {
     videoIntentInterceptors += classDescriptor to methodName
-}
-
-/**
- * Hooks the command that opens a regular video, before the video is opened.
- *
- * @param methodDescriptor Method with the signature (Ljava/lang/Object;Ljava/util/Map;)V.
- */
-fun hookVideoIntentCommand(methodDescriptor: String) {
-    videoPlaybackIntentMethod.get()!!.addInstruction(
-        0,
-        "invoke-static/range { p1 .. p2 }, $methodDescriptor"
-    )
-    videoPlaybackIntentInsertIndex++
 }
 
 fun hookVideoIntent(

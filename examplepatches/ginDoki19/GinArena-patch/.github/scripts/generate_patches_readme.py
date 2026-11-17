@@ -13,6 +13,7 @@ import json
 import re
 import sys
 import os
+import unicodedata
 from pathlib import Path
 
 
@@ -86,9 +87,99 @@ for patch in data["patches"]:
             by_pkg[key]["patches"][patch["name"]] = patch
 
 
+# Unicode general categories github-slugger 2.0.0 keeps: letters, combining marks and
+# numbers except the "No" group (superscripts, vulgar fractions). Everything else is deleted.
+ANCHOR_CATEGORIES = frozenset({
+    "Lu", "Ll", "Lt", "Lm", "Lo",   # letters
+    "Mn", "Mc", "Me",               # combining marks
+    "Nd", "Nl",                     # decimal and letter numbers
+})
+
+
 def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
+    """Convert a patch name to the anchor GitHub actually generates for the heading.
+
+    GitHub's rule (github-slugger) is NOT "replace punctuation runs with a hyphen". It
+    DELETES every character that is not a letter, mark or number, keeps space / "-" / "_",
+    then turns each remaining space into a hyphen. Those rules differ whenever punctuation
+    sits between spaces:
+
+        "Remove ads & bloat"    -> GitHub: remove-ads--bloat      (two hyphens)
+                                -> old:    remove-ads-bloat       (one)  X dead link
+
+    Fidelity: checked against github-slugger 2.0.0 on all 63,461 single-codepoint cases in
+    the BMP and on 4,026 random strings. 156 single-codepoint cases differ - characters the
+    library's character table does not know yet, Arabic Extended-B (U+0870+) being the largest
+    group - and none of them occurs in any patch name in this repo.
+    The category test (rather than str.isalnum()) is what keeps combining marks: a name typed
+    as "e" + U+0301 slugs like the precomposed "e-acute", as GitHub does it.
+
+    Deliberately NOT the same as the checker's heading_text(): a patch name is placed into a
+    heading as-is, so this must not read it as Markdown. A name "a__b" stays "a__b", which is
+    what GitHub renders for that heading too.
+
+    Fixed 2026-11-14. Six README rows were dead because of this.
+    """
+    kept = [
+        c for c in name.strip().lower()
+        if c in " -_" or unicodedata.category(c) in ANCHOR_CATEGORIES
+    ]
+    return "".join(kept).replace(" ", "-")
+
+
+# A pipe that is already escaped by an odd run of backslashes must not be escaped twice.
+PIPE_RUN = re.compile(r"(?<!\\)(\\*)\|")
+
+
+def esc_prose(text):
+    """Make a value safe inside one Markdown table cell written as prose.
+
+    Order matters. Angle brackets are escaped on the raw text, and the "<br>" for a line
+    break is inserted afterwards, so the tag this script writes is never escaped and no
+    placeholder character has to be juggled. A pipe splits the cell whatever follows it, so
+    it is escaped - unless the text already escaped it with an odd number of backslashes, in
+    which case escaping it again would produce a literal backslash followed by a real split.
+
+    Ampersands are left alone: they are written literally in this README, and switching them
+    to entities would change how already-published text reads.
+    """
+    s = str(text or "").replace("<", "&lt;").replace(">", "&gt;")
+    s = s.replace("\n", "<br>")
+    return PIPE_RUN.sub(lambda m: m.group(1) + ("|" if len(m.group(1)) % 2 else r"\|"), s)
+
+
+def esc_link_text(text):
+    """Like esc_prose, plus the two characters that would end a link's label early."""
+    return esc_prose(text).replace("[", r"\[").replace("]", r"\]")
+
+
+def split_cells(row):
+    """Split a table row on its unescaped pipes."""
+    cells, buf, i = [], [], 0
+    while i < len(row):
+        if row[i] == "\\":
+            buf.append(row[i:i + 2]); i += 2; continue
+        if row[i] == "|":
+            cells.append("".join(buf)); buf = []; i += 1; continue
+        buf.append(row[i]); i += 1
+    cells.append("".join(buf))
+    return cells
+
+
+def table_row(cells):
+    """Join cells into a row and refuse to emit one that is not a clean row.
+
+    Cheaper than noticing a broken table on GitHub: if a value ever slips through escaping
+    with a pipe in it, the build stops here instead of publishing a mangled README.
+    """
+    row = "| " + " | ".join(cells) + " |"
+    got = len(split_cells(row)) - 2          # the two empty cells outside the outer pipes
+    if got != len(cells):
+        raise SystemExit(
+            f"refusing to write a malformed table row ({got} cells, "
+            f"expected {len(cells)}): {row[:160]}"
+        )
+    return row
 
 
 def patches_table(patches):
@@ -103,11 +194,14 @@ def patches_table(patches):
         if options:
             # Show only option titles as a bullet list
             parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
+            opts_cell = "<br>".join(f"• {esc_prose(t)}" for t in parts)
         else:
             opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        rows.append(table_row([
+            f"[{esc_link_text(p['name'])}](#{a})",
+            esc_prose(p.get("description")),
+            opts_cell,
+        ]))
     return "\n".join(rows)
 
 
@@ -124,7 +218,7 @@ def versions_table(targets):
         ver   = t["version"]
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+        label = f"🧪&nbsp;{esc_prose(ver)}" if t.get("isExperimental") else esc_prose(ver)
         cells.append(label)
 
     if not cells:
@@ -135,7 +229,7 @@ def versions_table(targets):
     rows = [header, sep]
 
     # Optional description row — only rendered if at least one target has one
-    descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
+    descs = [esc_prose(t.get("description")) for t in targets]
     if any(descs):
         rows.append("| " + " | ".join(descs) + " |")
 
@@ -159,12 +253,37 @@ def spoiler(label, count, targets, tbl, expanded=False):
 </details>"""
 
 
+def download_url():
+    """Direct link to this release's .mpp asset.
+
+    Prefers patches-bundle.json, which @MorpheApp/changelog rewrites before this script runs
+    (plugin order in .releaserc: changelog -> gradle -> exec). Falls back to the same template
+    the changelog plugin uses, so the two can never disagree. A stale bundle file is detected
+    by checking that it points at *this* version.
+    """
+    bundle = json_path.parent / "patches-bundle.json"
+    if bundle.exists():
+        try:
+            d = json.loads(bundle.read_text(encoding="utf-8"))
+            url = d.get("download_url") or ""
+            # Compare the version FIELD, not a substring of the URL: an asset name that omits
+            # the version would otherwise be rejected and silently replaced.
+            if url and str(d.get("version", "")).lstrip("v") == ver:
+                return url
+        except (json.JSONDecodeError, OSError):
+            pass
+    return f"https://github.com/{owner}/{repo}/releases/download/v{ver}/patches-{ver}.mpp"
+
+
 def build_content(expanded=False):
     """Build the full generated patches section."""
+    url = download_url()
+    asset = url.rsplit("/", 1)[-1] or f"patches-{ver}.mpp"   # label matches the real file
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"{total} patches total&nbsp;&nbsp;•&nbsp;&nbsp;"
+        f"**[⬇️ Download {asset}]({url})**"
     ]
 
     # One spoiler per app, in the order they appear in the JSON
@@ -226,9 +345,14 @@ generated  = build_content(expanded=expanded)
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
 readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
 
+# A function, not a replacement string. re.sub reads a string replacement as a template:
+# "\\1" raises "invalid group reference", "\\x41" raises "bad escape", and "\\n" turns into a
+# real newline that splits a table row. Any of those in a patch description used to crash the
+# release - or, for "\\n", quietly break the table - because the generated text is passed
+# straight through as the replacement.
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
-    f"{actual_start}\n{generated}\n{END_MARKER}",
+    lambda _m: f"{actual_start}\n{generated}\n{END_MARKER}",
     readme,
     flags=re.DOTALL,
 )

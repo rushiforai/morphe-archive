@@ -172,6 +172,7 @@ class LockedVoiceFixtureTest {
         instruction.controlRef(), (instruction as? NarrowLiteralInstruction)?.narrowLiteral)
 }
 
-/** MediaController and the message class its guard asks, from [build]. */
+/** MediaController, the message class its guard asks and the voice recorders' microphone reads, from [build]. */
 internal fun lockedVoiceHosts(build: File): List<ClassDef> =
-    FixtureDex.classes(build, setOf(MEDIA_CONTROLLER, MESSAGE)).values.map(ImmutableClassDef::of)
+    (FixtureDex.classes(build, setOf(MEDIA_CONTROLLER, MESSAGE)).values.map(ImmutableClassDef::of) + voiceRecorderHosts(build))
+        .distinctBy { it.type }

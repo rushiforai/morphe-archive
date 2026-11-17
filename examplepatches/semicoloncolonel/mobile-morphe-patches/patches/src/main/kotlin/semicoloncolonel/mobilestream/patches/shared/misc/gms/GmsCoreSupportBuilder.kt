@@ -24,6 +24,7 @@ import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -32,8 +33,11 @@ import app.morphe.patcher.util.matchAllMethodIndicesForEach
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
@@ -91,6 +95,23 @@ internal object AnyCredentialProviderFactoryFingerprint : Fingerprint(
     strings = listOf("androidx.credentials.TYPE_CLEAR_RESTORE_CREDENTIAL", "android.software.leanback"),
 )
 
+// The provider factory of older androidx.credentials versions
+// (CredentialProviderFactory.getBestAvailableProvider without the restore
+// credential type, NewsBreak 26.46.1). On Android 14 and up it returns the
+// system provider without asking whether it is available. Below that, it
+// loads the provider named in the manifest, which is the Play services one.
+internal object LegacyCredentialProviderFactoryFingerprint : Fingerprint(
+    strings = listOf("androidx.credentials.CREDENTIAL_PROVIDER_KEY"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { insn ->
+            insn.opcode == Opcode.SGET &&
+                ((insn as ReferenceInstruction).reference as FieldReference).let {
+                    it.definingClass == "Landroid/os/Build\$VERSION;" && it.name == "SDK_INT"
+                }
+        } == true
+    },
+)
+
 // CredentialProviderPlayServicesImpl.onGetCredential, the overload that picks
 // between the identitycredentials service and the older sign-in flow.
 internal object AnyPlayServicesGetCredentialFingerprint : Fingerprint(
@@ -146,10 +167,14 @@ internal fun gmsCoreSupportPatch(
     launcherActivity: String,
     required: Boolean = false,
     category: String? = null,
+    // App-specific fixes that only matter when sign-in goes through GmsCore.
+    extraPatches: Set<Patch> = emptySet(),
 ): BytecodePatch {
     lateinit var cloneApp: Option<Boolean>
     lateinit var clonePackage: Option<String>
     fun targetPackage() = if (cloneApp.value == false) packageName else clonePackage.value ?: clonePackageName
+    // The app's own provider authorities that clone mode renames, old to new.
+    val renamedAuthorities = mutableMapOf<String, String>()
 
     val resources = resourcePatch {
         execute {
@@ -174,7 +199,9 @@ internal fun gmsCoreSupportPatch(
                     val providers = document.getElementsByTagName("provider")
                     for (i in 0 until providers.length) {
                         (providers.item(i) as Element).renameAttribute("android:authorities") { authorities ->
-                            authorities.split(';').joinToString(";") { own(it) }
+                            authorities.split(';').joinToString(";") { authority ->
+                                own(authority).also { if (it != authority) renamedAuthorities[authority] = it }
+                            }
                         }
                     }
                 }
@@ -256,6 +283,7 @@ internal fun gmsCoreSupportPatch(
         }
 
         dependsOn(resources)
+        extraPatches.forEach { dependsOn(it) }
 
         extendWith("extensions/extension.mpe")
 
@@ -286,6 +314,29 @@ internal fun gmsCoreSupportPatch(
 
             (GmsCoreConstants.PERMISSIONS + GmsCoreConstants.ACTIONS + GmsCoreConstants.AUTHORITIES).forEach {
                 replaceStrings(it, it.replace("com.google", VENDOR))
+            }
+
+            // In clone mode, the code that names the app's own providers, such as
+            // "content://com.wishabi.flipp.content.Flyer/flyers" or a bare
+            // authority in a UriMatcher. Without this, the app asks for a
+            // provider that no longer exists and crashes at launch (Flipp 116.0.0).
+            renamedAuthorities.forEach { (from, to) ->
+                replaceStrings(from, to)
+                string("content://$from", StringComparisonType.STARTS_WITH).matchAllMethodIndicesForEach(
+                    requireMatches = false,
+                ) { index ->
+                    val instruction = getInstruction<ReferenceInstruction>(index)
+                    val uri = (instruction.reference as StringReference).string
+                    if (uri != "content://$from" && !uri.startsWith("content://$from/")) return@matchAllMethodIndicesForEach
+                    replaceInstruction(
+                        index,
+                        BuilderInstruction21c(
+                            Opcode.CONST_STRING,
+                            (instruction as OneRegisterInstruction).registerA,
+                            ImmutableStringReference("content://$to" + uri.removePrefix("content://$from")),
+                        ),
+                    )
+                }
             }
 
             val authorityPrefixes = GmsCoreConstants.AUTHORITIES.map { it to "content://$it" }
@@ -347,6 +398,22 @@ internal fun gmsCoreSupportPatch(
                     """,
                 )
             }
+            // The oldest factory picks the system provider by Android version
+            // alone. It reads Android 13 instead, so it loads the Play services
+            // provider named in the manifest.
+            if (AnyCredentialProviderFactoryFingerprint.methodOrNull == null) {
+                LegacyCredentialProviderFactoryFingerprint.methodOrNull?.apply {
+                    instructions.withIndex().filter { (_, insn) ->
+                        insn.opcode == Opcode.SGET &&
+                            ((insn as ReferenceInstruction).reference as FieldReference).let {
+                                it.definingClass == "Landroid/os/Build\$VERSION;" && it.name == "SDK_INT"
+                            }
+                    }.forEach { (index, _) ->
+                        val register = getInstruction<OneRegisterInstruction>(index).registerA
+                        replaceInstruction(index, "const/16 v$register, 0x21")
+                    }
+                }
+            }
             // Older androidx.credentials versions, where neither of the above
             // matches: the system provider reports itself unavailable, so the
             // factory falls back to the Play services provider.
@@ -359,6 +426,41 @@ internal fun gmsCoreSupportPatch(
                 }
                 val result = getInstruction<OneRegisterInstruction>(call + 1)
                 replaceInstruction(call + 1, "const/4 v${result.registerA}, 0x0")
+            }
+
+            // Google API keys restricted to Android apps check the package and
+            // the signing certificate that the app sends in X-Android-Package
+            // and X-Android-Cert. GmsCore does this for calls that go through
+            // it, but Firebase Auth, Firebase Installations, and Places call
+            // Google's servers themselves, with the re-signed certificate, and
+            // are refused ("Requests from this Android client application are
+            // blocked"). NewsBreak 26.46.1 signs in with Google through
+            // Firebase Auth. The headers now carry the original values.
+            mapOf(
+                "X-Android-Cert" to signature.uppercase(),
+                "X-Android-Package" to packageName,
+            ).forEach { (header, value) ->
+                string(header).matchAllMethodIndicesForEach(requireMatches = false) { index ->
+                    val key = getInstruction<OneRegisterInstruction>(index).registerA
+                    for (call in index + 1 until instructions.size) {
+                        val insn = instructions[call]
+                        val registers = when (insn) {
+                            is FiveRegisterInstruction -> listOf(
+                                insn.registerC, insn.registerD, insn.registerE, insn.registerF, insn.registerG,
+                            ).take(insn.registerCount)
+                            is RegisterRangeInstruction -> (0 until insn.registerCount).map { insn.startRegister + it }
+                            else -> continue
+                        }
+                        // dexlib2 names opcodes in smali form, such as "invoke-virtual".
+                        if (!insn.opcode.name.startsWith("invoke")) continue
+                        val position = registers.indexOf(key)
+                        if (position < 0 || position + 1 >= registers.size) continue
+                        val target = registers[position + 1]
+                        // const-string reaches registers v0 to v255.
+                        if (target < 256) addInstruction(call, "const-string v$target, \"$value\"")
+                        break
+                    }
+                }
             }
 
             OriginalPackageNameFingerprint.method.returnEarly(packageName)

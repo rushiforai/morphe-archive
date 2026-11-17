@@ -4,9 +4,11 @@ import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefByStrings
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -61,7 +63,7 @@ private fun MutableMethod.tabCall(): RangeCall = rangeCall {
  * NavigationBar (modifier, containerColor, contentColor, windowInsets, content, composer, changed) but lives in
  * another class: the one static method that calls it. Null when the app has no such call.
  */
-private fun BytecodePatchContext.railCall(portrait: RangeCall): Pair<MutableMethod, RangeCall>? {
+private fun railCall(portrait: RangeCall): Pair<MutableMethod, RangeCall>? {
     fun Method.callsRail() = implementation!!.instructions.any {
         it.opcode == Opcode.INVOKE_STATIC_RANGE && (it as ReferenceInstruction).reference.let { reference ->
             reference is MethodReference && reference.definingClass != portrait.callee &&
@@ -86,7 +88,7 @@ private fun BytecodePatchContext.railCall(portrait: RangeCall): Pair<MutableMeth
 }
 
 /** The method of the bar's class that calls NavigationBar(modifier, containerColor: J, contentColor: J, windowInsets, content, ...). */
-private fun BytecodePatchContext.barCall(): Pair<MutableMethod, RangeCall> {
+private fun barCall(): Pair<MutableMethod, RangeCall> {
     for (method in mutableClassDefBy(NavigationItemFingerprint.method.definingClass).methods) {
         if (method.implementation == null) continue
         val call = method.rangeCall { it.size == 7 && it[1] == "J" && it[2] == "J" } ?: continue
@@ -96,7 +98,7 @@ private fun BytecodePatchContext.barCall(): Pair<MutableMethod, RangeCall> {
 }
 
 @Suppress("unused")
-val navigationBarPatch = bytecodePatch(
+val navigationBarPatch = patch(
     name = "Navigation bar",
     description = "Adds settings in Fakh Patches that hide the labels of the navigation bar tabs and choose which tabs it shows.",
     default = true,
@@ -156,7 +158,7 @@ val navigationBarPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val glassNavigationBarPatch = bytecodePatch(
+val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it. The switch is in Fakh Patches.",
     default = true,
@@ -291,7 +293,7 @@ val glassNavigationBarPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val navigationBarRightPatch = bytecodePatch(
+val navigationBarRightPatch = patch(
     name = "Landscape navigation bar position",
     description = "Adds a setting in Fakh Patches that moves the landscape navigation bar to the left or right edge.",
     default = true,
@@ -313,7 +315,7 @@ val navigationBarRightPatch = bytecodePatch(
  * color)), the ripple built by a static call taking (Z, F, J) just before. [NAVIGATION_BAR]'s tabIndication turns that
  * indication into null, which Compose draws as nothing.
  */
-private fun BytecodePatchContext.removeTabRipple() {
+private fun removeTabRipple() {
     val found = mutableListOf<Pair<String, String>>()
     classDefByStrings("indicatorRipple").distinctBy { it.type }.forEach { classDef ->
         for (method in classDef.methods) {
@@ -348,7 +350,7 @@ private fun BytecodePatchContext.removeTabRipple() {
  * space between the icon's indicator and the label, used both for the tab's content height and for the label's top;
  * [NAVIGATION_BAR]'s labelGap turns it into 0.
  */
-private fun BytecodePatchContext.tightenTabLabel() {
+private fun tightenTabLabel() {
     fun Method.gapIndex(): Int? {
         val instructions = implementation?.instructions?.toList() ?: return null
         fun literal(index: Int) = (instructions[index] as? NarrowLiteralInstruction)
@@ -408,7 +410,7 @@ private fun Method.indicationCall(): Pair<Int, String>? {
  * just before that read it copies the style. The copy now gets the same text color the read picks, through a method
  * added to the item colors, and [NAVIGATION_BAR]'s labelStyleMask lets it use that color only while the bar is glass.
  */
-private fun BytecodePatchContext.tintLabels(colors: String) {
+private fun tintLabels(colors: String) {
     val stored = mutableClassDefBy(colors).methods.first { it.name == "<init>" }.implementation!!.instructions
         .filter { it.opcode == Opcode.IPUT_WIDE }
         .sortedBy { (it as TwoRegisterInstruction).registerA }
@@ -489,7 +491,7 @@ private fun BytecodePatchContext.tintLabels(colors: String) {
  * Has every activity's bottom bar shaped once it comes to the front, through [NAVIGATION_BAR]'s watch at the start of
  * attachBaseContext. Both the glass and the landscape position patches need it, and neither leans on Material You.
  */
-private fun BytecodePatchContext.watchActivities() {
+private fun watchActivities() {
     appCompatActivity().methods.first { it.name == "attachBaseContext" }.addInstructions(
         0,
         "invoke-static/range { p1 .. p1 }, $NAVIGATION_BAR->watch(Landroid/content/Context;)V",

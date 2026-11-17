@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
 import semicoloncolonel.mobilestream.patches.shared.misc.OKHTTP_INTERCEPTOR_API
 import semicoloncolonel.mobilestream.patches.shared.misc.missingMethods
+import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared layers of every "Block analytics & tracking" patch.
@@ -116,7 +117,48 @@ private fun Instruction.isUrlOpenConnection(): Boolean {
 private fun Method.callsUrlOpenConnection() =
     implementation?.instructions?.any { it.isUrlOpenConnection() } == true
 
+// Statsig (feature flags with event logging). When its event host is blocked,
+// the SDK asks Cloudflare's DNS-over-HTTPS service for a TXT record that lists
+// fallback hosts, to route around the block. NYT 12.0.0 did this right after
+// prodregistryv2.org was blocked. The lookup is made to find nothing, so
+// Statsig keeps using its normal hosts and the flags still load.
+private const val STATSIG_DNS_TXT_QUERY = "Lcom/statsig/androidsdk/DnsTxtQueryKt;"
+
+private fun BytecodePatchContext.disableStatsigFallbackLookup() {
+    if (classDefByOrNull(STATSIG_DNS_TXT_QUERY) == null) return
+    mutableClassDefBy(STATSIG_DNS_TXT_QUERY).methods
+        .filter { it.name == "fetchTxtRecords" && it.implementation != null }
+        .forEach {
+            it.returnEarly(
+                """
+                    invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+                    move-result-object v0
+                    return-object v0
+                """.trimIndent(),
+            )
+        }
+}
+
+// TrackerBlocker's switch for its Incognito reading lists.
+private object IncognitoReadingFingerprint : Fingerprint(
+    definingClass = TRACKER_BLOCKER,
+    name = "incognitoReading",
+    returnType = "Z",
+)
+
+/**
+ * Turns on TrackerBlocker's Incognito reading lists: the publisher's own
+ * services that record which articles are read. Call it from a news app's
+ * Incognito reading patch, which also needs blockTrackers() so the blocker is
+ * attached to the app's network calls.
+ */
+internal fun BytecodePatchContext.enableIncognitoReading() {
+    IncognitoReadingFingerprint.method.returnEarly("const/4 v0, 0x1\nreturn v0")
+}
+
 internal fun BytecodePatchContext.blockTrackers() {
+    disableStatsigFallbackLookup()
+
     // Every OkHttp client gets the blocking interceptor, where the app keeps
     // OkHttp's public API (see the probes above). The call sits before the
     // super() call, which the verifier allows because it doesn't touch `this`.

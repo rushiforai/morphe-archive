@@ -192,6 +192,8 @@ class OutsideTranslateFixtureTest {
             assertTrue("$name: the selected message", stub("selected").any { (it as? ReferenceInstruction)?.reference?.toString() == site.selected.toString() })
             assertTrue("$name: Telegram's content check", stub("translatable").any { it.controlRef() == "Lorg/telegram/messenger/TranslateController;->isTranslatable(Lorg/telegram/messenger/MessageObject;)Z" })
             assertTrue("$name: the translation goes in Telegram's fields", stub("applyTranslated").any { it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$Message;->translatedText:Lorg/telegram/tgnet/TLRPC\$TL_textWithEntities;" })
+            assertTrue("$name: the formatting carried over goes in the translation's entities", stub("applyTranslated").any {
+                it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$TL_textWithEntities;->entities:Ljava/util/ArrayList;" })
             assertTrue("$name: the flag is set", stub("applyTranslated").any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == "Lorg/telegram/messenger/MessageObject;->translated:Z" })
             assertTrue("$name: the chat is told through Telegram's own notice", stub("notifyTranslated").any { it.controlRef() == "Lorg/telegram/messenger/NotificationCenter;->messageTranslated:I" })
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_translate:I", stub("translateIcon").first().controlRef())

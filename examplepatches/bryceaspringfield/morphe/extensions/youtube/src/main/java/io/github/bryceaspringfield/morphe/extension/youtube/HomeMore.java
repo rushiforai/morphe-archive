@@ -28,6 +28,11 @@ final class HomeMore {
     private static final long AT_END_MS = 2500;
     private static final int MAX_EMPTY_BATCHES = 3;
     private static final int MAX_SEEN = 5000;
+    /** Shortest time between two reloads; a filtered Home of a few videos is at its end at once, and reloaded without it every few seconds. */
+    private static final long MIN_GAP_MS = 45_000;
+    /** Reloads in a row while the list was never scrolled down by the user (a list too short to scroll); then it waits for a scroll. */
+    private static final int MAX_UNSCROLLED = 2;
+    private static int unscrolled;
 
     private static boolean registered;
     private static Activity resumed;
@@ -113,7 +118,9 @@ final class HomeMore {
                         + ", last item " + (now - lastItemAt) + " ms ago, shown " + SEEN.size());
             }
             // A tab the bar cannot name (null) passes when the last feed item read was a Home item.
-            if (tab != null ? tab != NavigationBar.NavigationButton.HOME : !lastWasHome) {
+            // 2026-11-16: a null tab no longer passes: a programmatic Home tap while another page was shown left the bar's
+            // Home selected over the Subscriptions page (and the reverse).
+            if (tab != NavigationBar.NavigationButton.HOME) {
                 atEndSince = 0;
                 return;
             }
@@ -121,8 +128,12 @@ final class HomeMore {
                 atEndSince = 0;
                 return;
             }
+            // The list scrolled down to its end is the user's own scroll: the reloads of a short list start over.
+            if (list.canScrollVertically(-1)) unscrolled = 0;
             if (atEndSince == 0) atEndSince = now;
             if (now - atEndSince < AT_END_MS || now - lastItemAt < AT_END_MS) return;
+            if (batchAt > 0 && now - batchAt < MIN_GAP_MS) return;
+            if (!list.canScrollVertically(-1) && unscrolled >= MAX_UNSCROLLED) return;
             if (batchAt > 0 && shownSinceBatch == 0) {
                 emptyBatches++;
                 if (emptyBatches >= MAX_EMPTY_BATCHES) {
@@ -132,10 +143,13 @@ final class HomeMore {
             }
             // The Home button scrolls Home to its top; at the end of Home the bar is often hidden, and the list is then
             // scrolled to its top directly. Either way a pull down at the top reloads Home.
-            View home = FeedRefresh.findHome(decor, decor.getHeight() * 3 / 4);
+            View found = FeedRefresh.findHome(decor, decor.getHeight() * 3 / 4);
+            // Never tap a Home button which is not the selected one: the tap would switch pages.
+            final View home = found != null && found.isSelected() ? found : null;
             synchronized (HomeMore.class) {
                 batchAt = now;
                 shownSinceBatch = 0;
+                if (!list.canScrollVertically(-1)) unscrolled++;
             }
             atEndSince = 0;
             Logger.printDebug(() -> "YouTube Extras: Home ended, loading a new batch (" + SEEN.size() + " videos shown so far, "
@@ -150,7 +164,7 @@ final class HomeMore {
                 toTop(list);
                 Utils.runOnMainThreadDelayed(() -> {
                     View h = FeedRefresh.findHome(decor, decor.getHeight() * 3 / 4);
-                    if (h != null) h.performClick();
+                    if (h != null && h.isSelected()) h.performClick();
                     else FeedRefresh.pullDown(decor);
                 }, 500);
                 Utils.runOnMainThreadDelayed(() -> FeedRefresh.pullDown(decor), 1500);

@@ -27,7 +27,7 @@ class BbcNewsSmokeTest {
         firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
 
     @Test
-    fun `Disable ads neuters every Google Mobile Ads load`() {
+    fun `Disable ads and Spoof signature change the real code`() {
         val root = repoRoot()
         val apk = File(root, "apks/bbcnews/base.apk")
 
@@ -40,7 +40,7 @@ class BbcNewsSmokeTest {
             workDir = workDir,
             pkg = PKG,
             version = "2026.10.0",
-            patchNames = setOf("Disable ads"),
+            patchNames = setOf("Disable ads", "Spoof signature"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val diagnostics = "emitted classes=${classes.size}"
@@ -57,5 +57,9 @@ class BbcNewsSmokeTest {
                 }
             }
         }
+
+        // Spoof signature: the extension carries the package and the BBC Worldwide certificate
+        // (SHA-1 from META-INF/BNDLTOOL.RSA), and no direct getPackageInfo(String, ...) call is left.
+        assertSpoofSignature(classes, PKG, "25a95fddc952150c80b9c33ab8d17d8e8e139f40")
     }
 }

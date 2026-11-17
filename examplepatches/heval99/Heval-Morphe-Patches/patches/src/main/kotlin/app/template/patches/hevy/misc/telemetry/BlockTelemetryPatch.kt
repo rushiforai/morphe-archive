@@ -4,18 +4,25 @@
 // array (what the method itself returns on error) instead of null.
 package app.template.patches.hevy.misc.telemetry
 
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_HEVY
 import app.template.patches.shared.addInstructionsChecked
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
+import java.util.logging.Logger
 
 // Push (Firebase Messaging) and purchases (RevenueCat) must keep working; nothing here touches them.
 
@@ -24,7 +31,6 @@ import org.w3c.dom.Element
 private const val SENTRY_MODULE = "Lio/sentry/react/RNSentryModule;"
 private const val ADJUST_PACKAGE_HANDLER = "Lcom/adjust/sdk/PackageHandler;"
 private const val AMPLITUDE_MODULE = "Lcom/amplitude/reactnative/AmplitudeReactNativeModule;"
-private const val BRANCH_MODULE = "Lio/branch/rnbranch/RNBranchModule;"
 private const val PROMISE = "Lcom/facebook/react/bridge/Promise;"
 
 // Sentry's auto-init is already off in the manifest (React Native starts it); these providers
@@ -96,17 +102,28 @@ val blockTelemetryPatch = bytecodePatch(
         // flushAndWait, where every flush ends up, is hooked instead of flush.
         FacebookFlushAndWaitFingerprint.method.returnEarly()
 
-        // 4. Amplitude: the ad ID is never read, so limit ad tracking keeps its default (on) and
-        // no ad ID reaches JS; the legacy-database migration finds no events to upload.
-        // 3.2.2 no longer has AndroidContextProvider.isLimitAdTrackingEnabled or prefetch (R8
-        // removed them as unused), so the two ad-ID readers they guarded return null instead.
-        listOf(AmplitudeGoogleAdIdFingerprint, AmplitudeAmazonAdIdFingerprint).forEach {
-            it.method.addInstructionsChecked(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return-object v0
-                """.trimIndent(),
+        // 4. Amplitude: the ad ID is never read and no ad ID reaches JS; the legacy-database
+        // migration finds no events to upload.
+        // Since 3.2.7 both ad-ID readers are inlined into the CachedInfo constructor, which skips
+        // them when its "advertising ID enabled" flag (a boolean of the outer provider class, tested
+        // by the first conditional branch after the read) is false: force that flag to 0.
+        AmplitudeCachedInfoFingerprint.method.apply {
+            val outer = parameterTypes.firstOrNull()?.toString()
+                ?: throw PatchException("Amplitude CachedInfo constructor has no outer-class parameter")
+            val instructions = implementation!!.instructions.toList()
+            val flagIndex = instructions.indices.firstOrNull { i ->
+                val insn = instructions[i]
+                if (insn.opcode != Opcode.IGET_BOOLEAN) return@firstOrNull false
+                val field = (insn as ReferenceInstruction).reference as FieldReference
+                if (field.type != "Z" || field.definingClass != outer) return@firstOrNull false
+                val branch = instructions.drop(i + 1).firstOrNull { it.opcode.name.lowercase().replace('_', '-').startsWith("if-") }
+                    ?: return@firstOrNull false
+                (branch as OneRegisterInstruction).registerA == (insn as TwoRegisterInstruction).registerA
+            } ?: throw PatchException("Amplitude CachedInfo advertising-ID flag read not found")
+            val flagRegister = (instructions[flagIndex] as TwoRegisterInstruction).registerA
+            addInstructionsChecked(
+                flagIndex + 1,
+                "${if (flagRegister < 16) "const/4" else "const/16"} v$flagRegister, 0x0",
             )
         }
         methods(AMPLITUDE_MODULE, "getLegacyEvents", listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE)).forEach {
@@ -121,17 +138,64 @@ val blockTelemetryPatch = bytecodePatch(
             )
         }
 
-        // 5. Branch: tracking reads as disabled. Branch is renamed since 3.2.2; its
-        // isTrackingDisabled()Z is the one the bridge method of the same name calls.
-        val bridge = methods(BRANCH_MODULE, "isTrackingDisabled", listOf(PROMISE)).single()
-        val target = bridge.implementation!!.instructions
-            .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
-            .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-            .singleOrNull { it.returnType == "Z" && it.parameterTypes.isEmpty() }
-            ?: throw PatchException("$BRANCH_MODULE.isTrackingDisabled no longer calls a single ()Z method")
-        methods(target.definingClass, target.name, emptyList())
-            .filter { it.returnType == "Z" }
-            .ifEmpty { throw PatchException("${target.definingClass}.${target.name}()Z not found") }
-            .forEach { it.returnEarly(true) }
+        // 5. Branch: tracking reads as disabled. Branch is renamed since 3.2.2.
+        // Since 3.2.7 there is no isTrackingDisabled()Z method any more: the RN bridge, the SDK and
+        // the activity-lifecycle callbacks (R8 inlined updateTrackingState into onActivityStopped)
+        // read the tracking-state object's boolean field directly, and that field is reloaded from
+        // the "bnc_tracking_state" preference or written by disableTracking(Context, Z). So the
+        // field is resolved from the Branch constructor's load of the preference, and every read of
+        // it, wherever it happens, is replaced by true.
+        val trackingField = BranchTrackingStateFingerprint.method.let { ctor ->
+            val instructions = ctor.implementation!!.instructions.toList()
+            val keyIndex = instructions.indexOfFirst {
+                it.opcode == Opcode.CONST_STRING &&
+                    ((it as ReferenceInstruction).reference as StringReference).string == "bnc_tracking_state"
+            }
+            if (keyIndex < 0) throw PatchException("Branch tracking-state key not found")
+            val resultIndex = (keyIndex + 1 until instructions.size).firstOrNull {
+                instructions[it].opcode == Opcode.MOVE_RESULT
+            } ?: throw PatchException("Branch tracking-state preference read has no result")
+            val resultRegister = (instructions[resultIndex] as OneRegisterInstruction).registerA
+            val put = instructions.drop(resultIndex + 1).firstOrNull {
+                it.opcode == Opcode.IPUT_BOOLEAN && (it as TwoRegisterInstruction).registerA == resultRegister &&
+                    ((it as ReferenceInstruction).reference as FieldReference).type == "Z"
+            } ?: throw PatchException("Branch tracking-state field store not found")
+            (put as ReferenceInstruction).reference as FieldReference
+        }
+
+        // Collect first, read-only, then rewrite in the mutable classes.
+        val readers = mutableListOf<ClassDef>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { m -> m.implementation?.instructions?.any { it.isRead(trackingField) } == true }) {
+                readers += classDef
+            }
+        }
+        var forced = 0
+        for (classDef in readers) {
+            for (method in mutableClassDefBy(classDef).methods) {
+                val instructions = method.implementation?.instructions?.toList() ?: continue
+                for ((index, insn) in instructions.withIndex()) {
+                    if (!insn.isRead(trackingField)) continue
+                    val register = (insn as TwoRegisterInstruction).registerA
+                    method.replaceInstruction(index, "${if (register < 16) "const/4" else "const/16"} v$register, 0x1")
+                    forced++
+                }
+            }
+        }
+        if (forced < MIN_TRACKING_READS) {
+            throw PatchException(
+                "Branch tracking-state field ${trackingField.definingClass}->${trackingField.name}: only $forced reads found",
+            )
+        }
+        logger.info("Block telemetry: forced $forced reads of ${trackingField.definingClass}->${trackingField.name} to true")
     }
+}
+
+private val logger = Logger.getLogger("HevyBlockTelemetry")
+private const val MIN_TRACKING_READS = 5
+
+private fun Instruction.isRead(field: FieldReference): Boolean {
+    if (opcode != Opcode.IGET_BOOLEAN) return false
+    val read = (this as ReferenceInstruction).reference as FieldReference
+    return read.definingClass == field.definingClass && read.name == field.name && read.type == field.type
 }

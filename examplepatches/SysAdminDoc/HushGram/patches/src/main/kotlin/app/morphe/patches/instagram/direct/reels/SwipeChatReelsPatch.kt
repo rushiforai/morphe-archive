@@ -16,6 +16,7 @@ import app.morphe.patches.instagram.direct.history.MessageFields
 import app.morphe.patches.instagram.direct.history.findMessageFields
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesAccessing
+import app.morphe.patches.instagram.misc.extension.classesCalling
 import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.freeLocalsAt
@@ -34,8 +35,9 @@ import app.morphe.patches.instagram.misc.flags.FlagLoad
 import app.morphe.patches.instagram.misc.flags.answerFlagLoads
 import app.morphe.patches.instagram.misc.flags.findFlagLoads
 import app.morphe.patches.instagram.misc.settings.settingsPatch
-import app.morphe.patches.instagram.reels.scrolling.PAGER_SETUP
 import app.morphe.patches.instagram.reels.scrolling.VIEW_PAGER
+import app.morphe.patches.instagram.reels.scrolling.reelsPager
+import app.morphe.patches.instagram.reels.scrolling.reelsPagerSetup
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.extendsClass
@@ -56,7 +58,7 @@ private const val PATCH = "Swipe through a chat's reels"
 internal const val CHAT_REELS = "$EXTENSION_PACKAGE/direct/ChatReels;"
 internal const val CHAIN = "$CHAT_REELS->chain(I)Z"
 internal const val STOP = "$CHAT_REELS->stop()Z"
-internal const val RECEIVED = "$CHAT_REELS->received(Ljava/lang/Object;Ljava/lang/Object;)Z"
+internal const val RECEIVED = "$CHAT_REELS->received(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"
 internal const val LEAVE_OUT_SENT = "$CHAT_REELS->leaveOutSent(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;"
 
 /** What a reel item holds and the id the extension keys a sent reel by. Redex keeps both names. */
@@ -70,13 +72,13 @@ internal const val THREAD_KEY = "Lcom/instagram/model/direct/DirectThreadKey;"
 internal const val MESSAGE_ID = "Lcom/instagram/model/direct/messageid/MessageIdentifier;"
 
 /**
- * The server flag behind Instagram's own chat reels test. On 454 it's read once, in a test taking
- * the session and answering it (LX/04Yq;->A00 on 386014758, an instance method of a singleton),
+ * The server flag behind Instagram's own chat reels test. On 456 it's read once, in a test taking
+ * the session and answering it (LX/05IB;->A00 on 386214574),
  * which the opener of a reel shared in a chat asks before it hands the chat's other shared reels to
- * the Reels viewer, and which the chat and the Reels viewer ask too. 453's was 0x81153c00006fb6 and
- * 452.1's 0x81155f00006ed0.
+ * the Reels viewer, and which the chat and the Reels viewer ask too. 455's was 0x8114d60000718c,
+ * 454's 0x8114ef00007096, 453's 0x81153c00006fb6 and 452.1's 0x81155f00006ed0.
  */
-internal const val CHAT_REELS_FLAG = 0x8114ef00007096L
+internal const val CHAT_REELS_FLAG = 0x8114b00000723cL
 
 /**
  * The trace name of the Reels viewer's dual paging request (LX/0Dyz;->A03 on 385914557, LX/0Fit;->A03
@@ -86,8 +88,9 @@ internal const val CHAT_REELS_FLAG = 0x8114ef00007096L
 internal const val DUAL_PAGING = "AbstractPaginatingClipsItemsFetcher.makeDualPaginationRequest"
 
 /**
- * What the source of a chat's reels asks the server for to page the chat's own shared reels
- * (LX/0Mes;->BYn on 385914557, LX/0Mkk;->BYs on 385914556). Only that method loads it.
+ * What the source of a chat's reels asks the server for to page the chat's own shared reels. Up to
+ * 455 only that source's page loads it. 456 moved the request into a static builder of its own,
+ * which the page calls, and which the blend source calls too when a blend was opened from a chat.
  */
 internal const val CHAT_REELS_PATH = "clips/direct_thread_clips/"
 
@@ -145,7 +148,7 @@ internal const val REFRESH_NOT_ALLOWED = "refresh_not_allowed"
 internal const val CHAT_REELS_EXIT = "$EXTENSION_PACKAGE/direct/ChatReelsExit;"
 internal const val VIEWER = "$CHAT_REELS_EXIT->viewer(Ljava/lang/Object;Ljava/lang/Object;)V"
 
-internal const val COLLECTED = "$CHAT_REELS->collected(Ljava/lang/Object;Ljava/lang/Object;)V"
+internal const val COLLECTED = "$CHAT_REELS->collected(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
 internal const val REPLY_TO = "$CHAT_REELS->replyTo(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;I)Ljava/lang/Object;"
 internal const val REPLY_INFO = "$CHAT_REELS->replyInfo(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 
@@ -279,7 +282,7 @@ private fun fieldsTouched(method: Method, opcode: Opcode, owner: String): Set<St
  * holding it has a constructor, handed the session first, that asks the chat reels test [read] and keeps
  * the answer in a flag; the method is the one instance method of that class taking one object and
  * returning nothing that reads such a flag. The object holds one field typed as a subclass of the
- * direct message class [fields] reads (the message itself), with two locals for the hook and nothing
+ * direct message class [fields] reads (the message itself), with three locals for the hook and nothing
  * jumping to the method's first instruction. The method asks the object, with nothing, for one reel
  * item: an object holding one [MEDIA], which has its `getId()`. Fails when any of it isn't so.
  */
@@ -299,7 +302,7 @@ internal fun BytecodePatchContext.findReelCollector(
     }
     val collector = collectors.singleOrNull() ?: refuse("expected one method registering a chat's messages for the chain, found ${collectors.size}")
     val where = "${collector.definingClass}->${collector.name}"
-    if (collector.localRegisterCount() < 2) refuse("$where has fewer than two locals for the hook")
+    if (collector.localRegisterCount() < 3) refuse("$where has fewer than three locals for the hook")
     if (0 in collector.jumpTargets()) refuse("a jump or exception handler enters $where at its first instruction")
 
     val wrapper = collector.parameterTypes.single().toString()
@@ -346,8 +349,9 @@ internal fun checkAddTakesReels(placeholders: Placeholders, collector: ReelColle
 }
 
 /**
- * Has the collector ask the extension through [RECEIVED] first, handing it the message and its wrapper,
- * and return on a no, so a message the extension turns away never joins the chain. Also writes the
+ * Has the collector ask the extension through [RECEIVED] first, handing it the message, its wrapper and
+ * itself, one collector per chat (#658), and return on a no, so a message the extension turns away never
+ * joins the chain. Also writes the
  * bodies of the extension's message bridges, `sentByViewer` and `itemId` from the fields the chat
  * history reads, `reel` from the wrapper's reel item and `mediaId` from an item's [MEDIA].
  */
@@ -358,7 +362,8 @@ internal fun BytecodePatchContext.skipSentReels(found: ReelCollector = findReelC
         """
             move-object/from16 v1, p1
             iget-object v0, v1, ${found.message.definingClass}->${found.message.name}:${found.message.type}
-            invoke-static { v0, v1 }, $RECEIVED
+            move-object/from16 v2, p0
+            invoke-static { v0, v1, v2 }, $RECEIVED
             move-result v0
             if-nez v0, :instagram
             return-void
@@ -510,7 +515,8 @@ private val INTERFACE_CALLS = setOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTER
  * The request is the one method loading [DUAL_PAGING]: an instance method taking a source and three
  * flags, with a local for the hook's answer and nothing jumping to its first instruction. Its first
  * branch is an `if-eqz` on the last flag that goes to the source's page of the chat's own reels, the
- * one method loading [CHAT_REELS_PATH], in a class that is that source. Falling through asks for the
+ * one method loading [CHAT_REELS_PATH] or, where a static builder loads it, the page [chatReelsPage]
+ * finds calling that builder, in a class that is that source. Falling through asks for the
  * stock side, Instagram's suggested reels. Fails when any of it isn't so.
  */
 internal fun BytecodePatchContext.findChatReelsEnd(): ChatReelsEnd {
@@ -527,8 +533,15 @@ internal fun BytecodePatchContext.findChatReelsEnd(): ChatReelsEnd {
     if (0 in paging.jumpTargets()) refuse("a jump or exception handler enters $where at its first instruction")
     val source = takes[0]
 
-    val pages = classesLoadingString(CHAT_REELS_PATH).flatMap { holder -> holder.methods.filter { loadsString(it, CHAT_REELS_PATH) } }
-    val page = pages.singleOrNull() ?: refuse("expected one method asking for $CHAT_REELS_PATH, found ${pages.size}")
+    // A pool's own getter holds every string it pools, so it's left out.
+    val asks = classesLoadingString(CHAT_REELS_PATH).flatMap { holder ->
+        holder.methods.filter { method ->
+            !(method.parameterTypes.map(Any::toString) == listOf("I") && method.returnType == "Ljava/lang/String;") &&
+                loadsString(method, CHAT_REELS_PATH)
+        }
+    }
+    val ask = asks.singleOrNull() ?: refuse("expected one method asking for $CHAT_REELS_PATH, found ${asks.size}")
+    val page = if (AccessFlags.STATIC.isSet(ask.accessFlags)) chatReelsPage(ask, source) else ask
     val chat = page.definingClass
     if (source !in classDefBy(chat).interfaces) refuse("$chat asks for $CHAT_REELS_PATH but isn't a $source, what $where pages")
 
@@ -553,6 +566,33 @@ internal fun BytecodePatchContext.findChatReelsEnd(): ChatReelsEnd {
         method.name == paging.name && method.parameterTypes.map(CharSequence::toString) == takes
     }
     return ChatReelsEnd(mutable, chat)
+}
+
+/**
+ * The page of the source of a chat's reels where [builder], a static request builder, is what asks
+ * for [CHAT_REELS_PATH], as on 456. The page is the one method of a [source] that calls [builder]
+ * and no other static method answering what it answers. The blend source calls [builder] too, for a
+ * blend opened from a chat, but asks for blends otherwise, so it isn't the chat's own.
+ */
+private fun BytecodePatchContext.chatReelsPage(builder: Method, source: String): Method {
+    val takes = builder.parameterTypes.map(Any::toString)
+    fun requestAt(instruction: Instruction): MethodReference? {
+        if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) return null
+        return ((instruction as ReferenceInstruction).reference as? MethodReference)?.takeIf { it.returnType == builder.returnType }
+    }
+    val pages = classesCalling(builder.definingClass, builder.name, takes, builder.returnType)
+        .filter { source in it.interfaces }
+        .flatMap { it.methods }
+        .filter { method ->
+            val requests = method.implementation?.instructions?.mapNotNull(::requestAt).orEmpty()
+            requests.isNotEmpty() && requests.all { request ->
+                request.definingClass == builder.definingClass && request.name == builder.name &&
+                    request.parameterTypes.map(Any::toString) == takes
+            }
+        }
+    return pages.singleOrNull() ?: refuse(
+        "expected one $source asking only ${builder.definingClass}->${builder.name} for $CHAT_REELS_PATH, found ${pages.size}",
+    )
 }
 
 /**
@@ -1006,14 +1046,13 @@ internal class ChatViewers(
 )
 
 /**
- * Finds where the Reels viewer stores its pager before anything changes: the setup is the one method
- * loading [PAGER_SETUP], and it stores one [VIEW_PAGER] field, with nothing jumping to the store. The
+ * Finds where the Reels viewer stores its pager before anything changes: the setup is
+ * [reelsPagerSetup], and it stores one [VIEW_PAGER] field, with nothing jumping to the store. The
  * field's class holds one [VIEWER_CONFIG] field, and a local up to v15 is free at the store. Fails
  * when any of it isn't so.
  */
 internal fun BytecodePatchContext.findChatViewers(): ChatViewers {
-    val setups = classesLoadingString(PAGER_SETUP).flatMap { holder -> holder.methods.filter { loadsString(it, PAGER_SETUP) } }
-    val setup = setups.singleOrNull() ?: refuse("expected one method loading \"$PAGER_SETUP\", found ${setups.size}")
+    val setup = reelsPagerSetup(reelsPager(::refuse), ::refuse)
     val where = "${setup.definingClass}->${setup.name}"
     val code = setup.implementation!!.instructions.toList()
     val stores = code.indices.filter { at ->
@@ -1062,15 +1101,17 @@ internal fun BytecodePatchContext.watchChatViewers(found: ChatViewers = findChat
 
 /**
  * The reply bar under a reel opened from a chat, ClipsViewerDirectReplyBarController (LX/0T5D on 453's
- * 385914557): its hint update for a page ([REPLY_HINT]) and its reply info for the reel on screen
+ * 385914557): its hint update for a page ([REPLY_HINT]), the method that reads the page's info for it
+ * ([hintAsks], the hint update itself up to 454), and its reply info for the reel on screen
  * ([REPLY_CURRENT_INFO]), each with the register holding Instagram's info where its two ways in meet and
  * the locals the hook borrows there, its reel on screen ([REPLY_CURRENT_ITEM]), the info class with its
  * constructor and message field, the controller's adapter field with the adapter's count and item at a
  * position, and the controller's [VIEWER_SOURCE] field. Also the collector's register holding the info it
- * just built and the local its hook borrows.
+ * just built and the two locals its hook borrows, for the message's wrapper and the collector itself.
  */
 internal class ReplyBar(
     val hint: MutableMethod,
+    val hintAsks: MutableMethod,
     val hintInfo: Int,
     val hintFree: List<Int>,
     val current: MutableMethod,
@@ -1086,6 +1127,7 @@ internal class ReplyBar(
     val source: String,
     val built: Int,
     val wrapper: Int,
+    val chat: Int,
 )
 
 private val INFO_TESTS = setOf(Opcode.IF_EQZ, Opcode.IF_NEZ)
@@ -1114,6 +1156,36 @@ private fun replyJoin(method: Method, info: String): Int? {
 private fun replyRegister(method: Method, at: Int) =
     (method.implementation!!.instructions.elementAt(at) as OneRegisterInstruction).registerA
 
+/**
+ * The one instance method of [hint]'s class taking a page that [hint] hands its own this and page to,
+ * and that has one place its ways to [info] meet, with the calls handing them over. From 455 the hint
+ * update leaves reading the page's info to handleReshareChaining (`LX/0TRG;->A1J(I)Z` on 386113969,
+ * which casts it at 21 and tests it at 22). Null when there isn't exactly one.
+ */
+private fun BytecodePatchContext.hintAsks(hint: Method, info: String): Pair<Method, List<Int>>? {
+    val code = hint.implementation?.instructions?.toList() ?: return null
+    val self = hint.localRegisterCount()
+    val page = hint.parameterRegisterNumber(0)
+    val handed = code.indices.mapNotNull { at ->
+        val call = code[at]
+        val reference = (call as? ReferenceInstruction)?.reference as? MethodReference
+        if (call.opcode != Opcode.INVOKE_VIRTUAL || reference == null || reference.definingClass != hint.definingClass ||
+            reference.parameterTypes.map(CharSequence::toString) != listOf("I")
+        ) return@mapNotNull null
+        val registers = call as FiveRegisterInstruction
+        if (registers.registerCount != 2 || registers.registerC != self || registers.registerD != page) null else reference to at
+    }
+    val asked = handed.groupBy { (reference, _) -> "$reference" }.mapNotNull { (_, calls) ->
+        val reference = calls.first().first
+        val method = classDefBy(hint.definingClass).methods.singleOrNull { method ->
+            method.name == reference.name && method.returnType == reference.returnType && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.parameterTypes.map(CharSequence::toString) == listOf("I")
+        }
+        if (method == null || replyJoin(method, info) == null) null else method to calls.map { it.second }
+    }
+    return asked.singleOrNull()
+}
+
 /** The virtual calls in [code]. */
 private fun virtualCalls(code: List<Instruction>) = code.mapNotNull { instruction ->
     if (instruction.opcode != Opcode.INVOKE_VIRTUAL) null else (instruction as ReferenceInstruction).reference as MethodReference
@@ -1127,8 +1199,9 @@ private fun virtualCalls(code: List<Instruction>) = code.mapNotNull { instructio
  * item comes from one virtual call on an adapter taking a position, next to one call of the adapter's
  * count, on one field of the controller, and the controller keeps one [VIEWER_SOURCE]. The info class
  * has one constructor, storing its first String, the message, in one field, and the collector builds
- * one with a free local after it where nothing jumps. Both reply methods test the info they cast where
- * their two ways in meet, with free locals there. Fails when any of it isn't so.
+ * one with two free locals after it where nothing jumps. Both reply methods test the info they cast where
+ * their two ways in meet, with free locals there, the hint update through [hintAsks] where it doesn't
+ * itself. Fails when any of it isn't so.
  */
 internal fun BytecodePatchContext.findReplyBar(collector: ReelCollector = findReelCollector()): ReplyBar {
     val names = listOf(REPLY_HINT, REPLY_CURRENT_INFO, REPLY_CURRENT_ITEM)
@@ -1198,34 +1271,43 @@ internal fun BytecodePatchContext.findReplyBar(collector: ReelCollector = findRe
     val built = builds.singleOrNull() ?: refuse("$where builds ${builds.size} $info, not one")
     if (built + 1 >= collectCode.size || built + 1 in collect.jumpTargets()) refuse("something in $where jumps to just after it builds a $info")
     val infoRegister = (collectCode[built] as FiveRegisterInstruction).registerC
-    val wrapper = collect.freeLocalsAt(PATCH, built + 1, 1, except = listOf(infoRegister)).single()
+    val (wrapper, chat) = collect.freeLocalsAt(PATCH, built + 1, 2, except = listOf(infoRegister))
 
-    val hintJoin = replyJoin(hint, info) ?: refuse("$controller->${hint.name} has no one place its ways to a $info meet")
-    val hintInfo = replyRegister(hint, hintJoin)
-    val hintFree = hint.freeLocalsAt(PATCH, hintJoin, 3, except = listOf(hintInfo))
+    val (asks, handing) = if (replyJoin(hint, info) != null) hint to emptyList() else {
+        hintAsks(hint, info) ?: refuse("$controller->${hint.name} has no one place its ways to a $info meet")
+    }
+    val hintJoin = replyJoin(asks, info)!!
+    val hintInfo = replyRegister(asks, hintJoin)
+    val hintFree = asks.freeLocalsAt(PATCH, hintJoin, 3, except = listOf(hintInfo))
     val currentJoin = replyJoin(current, info) ?: refuse("$controller->${current.name} has no one place its ways to a $info meet")
     val currentInfo = replyRegister(current, currentJoin)
     val currentFree = current.freeLocalsAt(PATCH, currentJoin, 2, except = listOf(currentInfo))
-    // Each hook reads a parameter where it goes in: the collector's message wrapper, the hint's
-    // controller and page, and the reply info's controller. Nothing before may write over them.
+    // Each hook reads a parameter where it goes in: the collector's message wrapper and the collector,
+    // the hint's controller and page, and the reply info's controller. Nothing before may write over them.
     collect.requireParameterIntact(PATCH, 0, listOf(built + 1))
-    hint.requireThisIntact(PATCH, listOf(hintJoin))
-    hint.requireParameterIntact(PATCH, 0, listOf(hintJoin))
+    collect.requireThisIntact(PATCH, listOf(built + 1))
+    asks.requireThisIntact(PATCH, listOf(hintJoin))
+    asks.requireParameterIntact(PATCH, 0, listOf(hintJoin))
+    if (handing.isNotEmpty()) {
+        hint.requireThisIntact(PATCH, handing)
+        hint.requireParameterIntact(PATCH, 0, handing)
+    }
     current.requireParameterIntact(PATCH, 0, listOf(currentJoin))
 
     val mutable = mutableClassDefBy(controller).methods
     fun mutableOf(method: Method) = mutable.single { it.name == method.name && takes(it) == takes(method) }
     return ReplyBar(
-        mutableOf(hint), hintInfo, hintFree, mutableOf(current), currentInfo, currentFree, replyCall(currentItem),
-        info, initCall, message, adapter, count, item, "$controller->${source.name}:$VIEWER_SOURCE", infoRegister, wrapper,
+        mutableOf(hint), mutableOf(asks), hintInfo, hintFree, mutableOf(current), currentInfo, currentFree, replyCall(currentItem),
+        info, initCall, message, adapter, count, item, "$controller->${source.name}:$VIEWER_SOURCE", infoRegister, wrapper, chat,
     )
 }
 
 /**
  * Gives each reel swiped to from a chat the reply bar and reactions for its own message there (#488).
  * Instagram keeps the reply info of the reel tapped and asks for it by position, so past the first reel
- * the bar hid, and a quick reaction or a reply typed on another reel quoted the tapped one. The collector
- * hands each info it builds to the extension with its message's wrapper through [COLLECTED], and the
+ * the bar hid, and a quick reaction or a reply typed on another reel quoted the tapped one. The collector,
+ * one per chat that goes through the chat's messages as it loads (#658), hands each info it builds to
+ * the extension with its message's wrapper and itself through [COLLECTED], and the
  * hint update and the reply info ask [REPLY_TO] and [REPLY_INFO] with Instagram's info, the viewer's
  * source and the reel on screen, and take what comes back. Nothing is sent: the bar only gets the message
  * a reply would quote. Also writes the extension's bridges reading an info's message and an adapter's
@@ -1241,11 +1323,12 @@ internal fun BytecodePatchContext.giveSwipedReelsTheirReplies(collector: ReelCol
         built + 1,
         """
             move-object/from16 v${found.wrapper}, p1
-            invoke-static { v${found.built}, v${found.wrapper} }, $COLLECTED
+            move-object/from16 v${found.chat}, p0
+            invoke-static { v${found.built}, v${found.wrapper}, v${found.chat} }, $COLLECTED
         """,
     )
 
-    val hint = found.hint
+    val hint = found.hintAsks
     val hintJoin = replyJoin(hint, found.info) ?: refuse("${hint.definingClass}->${hint.name} no longer tests a ${found.info}")
     val (page, adapter, source) = found.hintFree
     hint.addInstructionsAtControlFlowLabel(

@@ -66,7 +66,8 @@ public class LaunchCrashCleanupTest {
                 Arrays.copyOf(kept, TIKTOK_KEEPS.length));
         assertEquals(Arrays.asList("morphe_prefs", "morphe_feature_gate_lab",
                         "hushfeed_release_notes", "hushfeed_device_identity", "hushfeed_group_chats",
-                        "hushfeed_sticker_recents", "hushfeed_new_dots"),
+                        "hushfeed_sticker_recents", "hushfeed_new_dots", "hushfeed_story_reads",
+                        "hushfeed_picture_in_picture"),
                 Arrays.asList(kept).subList(TIKTOK_KEEPS.length, kept.length));
         assertArrayEquals(LaunchCrashCleanup.HUSHFEED_FILES, LaunchCrashCleanup.keepHushfeedFiles(null));
     }
@@ -78,11 +79,13 @@ public class LaunchCrashCleanupTest {
         expected.put("comment/StickerRecents.java", Arrays.asList("PREFS_NAME"));
         expected.put("diagnostics/JavaCrashCapture.java", Arrays.asList("PREFS_NAME"));
         expected.put("featuregatelab/FeatureGateLabStore.java", Arrays.asList("PREFS_NAME"));
+        expected.put("ghostmode/StoryReads.java", Arrays.asList("PREFS_NAME"));
         expected.put("settings/preference/NewSettingDots.java", Arrays.asList("FILE"));
         expected.put("settings/preference/ReleaseNotes.java", Arrays.asList(
                 "PREFS_NAME", "PREFS_NAME", "PREFS_NAME"));
         expected.put("inbox/GroupChats.java", Arrays.asList("PREFS_NAME", "PREFS_NAME"));
         expected.put("misc/RemoteConfigFreeze.java", Arrays.asList("Setting.PREFERENCES_NAME"));
+        expected.put("playback/PictureInPicture.java", Arrays.asList("STATE"));
         expected.put("privacy/DeviceIdentity.java", Arrays.asList("PREFERENCES", "PREFERENCES"));
         expected.put("translation/DmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
         expected.put("translation/ReceivedDmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
@@ -103,6 +106,8 @@ public class LaunchCrashCleanupTest {
         assertTrue(kept.contains(app.morphe.extension.tiktok.inbox.GroupChats.PREFS_NAME));
         assertTrue(kept.contains(app.morphe.extension.tiktok.comment.StickerRecents.PREFS_NAME));
         assertTrue(kept.contains(app.morphe.extension.tiktok.settings.preference.NewSettingDots.FILE));
+        assertTrue(kept.contains(app.morphe.extension.tiktok.ghostmode.StoryReads.PREFS_NAME));
+        assertTrue(kept.contains(app.morphe.extension.tiktok.playback.PictureInPicture.STATE));
     }
 
     private static String constant(Class<?> owner, String name) throws ReflectiveOperationException {

@@ -3,7 +3,7 @@ package app.template.patches.fotmob.misc.telemetry
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_FOTMOB
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.misc.telemetry.forceAnalyticsDeactivated

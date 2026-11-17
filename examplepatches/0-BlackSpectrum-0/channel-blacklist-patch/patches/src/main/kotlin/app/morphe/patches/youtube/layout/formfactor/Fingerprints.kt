@@ -29,19 +29,33 @@ private object FormFactorEnumConstructorFingerprint : Fingerprint(
     )
 )
 
-internal fun getInnerTubeClientConfigFingerprint() = object : Fingerprint(
+internal object InnerTubeClientConfigFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "L",
     parameters = listOf(),
     filters = listOf(
         fieldAccess(smali = "Landroid/os/Build;->MODEL:Ljava/lang/String;"),
         fieldAccess(
-            definingClass = FormFactorEnumConstructorFingerprint.originalClassDef.type,
+            definingClass = { FormFactorEnumConstructorFingerprint.originalClassDef.type },
             type = "I",
             location = MatchAfterWithin(50)
         )
     )
-) {}
+)
+
+private object ResponsiveContainerPropertiesToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("ResponsiveContainerProperties{usingResponsiveContainerConfiguration=")
+)
+
+/**
+ * Picks the responsive container properties by the width and height of a container.
+ * Since 21.30 the home feed lays out its items by the size class of the picked properties.
+ */
+internal object ResponsiveContainerPropertiesFingerprint : Fingerprint(
+    returnType = { ResponsiveContainerPropertiesToStringFingerprint.originalClassDef.type },
+    parameters = listOf("I", "I")
+)
 
 internal object RepeatedItemSectionRendererFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),

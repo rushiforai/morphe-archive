@@ -15,9 +15,14 @@ import app.fakh.patches.shared.gms.GmsCoreStrings.PERMISSIONS
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefByStrings
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -43,9 +48,9 @@ fun gmsCoreSupportResourcePatch(packageName: String, signature: String) =
  * Same as above for a patch that targets several apps: the package and certificate are picked by the package the
  * manifest declares.
  */
-fun gmsCoreSupportResourcePatch(signatures: Map<String, String>) = resourcePatch {
+fun gmsCoreSupportResourcePatch(signatures: Map<String, String>) = patch {
     execute {
-        val manifest = get("AndroidManifest.xml")
+        val manifest = resourceFile("AndroidManifest.xml")
         manifest.writeText(manifest.readText().replace("com.google.android.c2dm", "$GMS_CORE_VENDOR.android.c2dm"))
 
         document("AndroidManifest.xml").use { document ->
@@ -94,7 +99,7 @@ private const val PLAY_SERVICES_UTIL = "Lcom/google/android/gms/common/GooglePla
  * Sends every Google Play services call of the app to GmsCore and makes GmsCore pass the availability checks.
  * [signature] is the SHA-1 of the app's own signing certificate, which Firebase gets in place of the patched app's.
  */
-fun BytecodePatchContext.redirectToGmsCore(signature: String) {
+fun redirectToGmsCore(signature: String) {
     val replacements = buildMap {
         put("com.google", GMS_CORE_VENDOR)
         put("com.google.android.gms", "$GMS_CORE_VENDOR.android.gms")
@@ -144,7 +149,7 @@ fun BytecodePatchContext.redirectToGmsCore(signature: String) {
  * [sha1] instead. Firebase names the header with a string constant and passes it straight to URLConnection, so the
  * value register is found from that call, whatever the obfuscated class around it is called.
  */
-private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
+private fun spoofFirebaseCertificate(sha1: String) {
     val holders = mutableListOf<ClassDef>()
     classDefForEach { classDef ->
         if (classDef.methods.any { method ->
@@ -179,7 +184,7 @@ private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
  * Calls [hook], a static no-argument method of the app's extension that tells the user GmsCore is missing, first thing
  * in each method of [entries] (class type to method name), where the app starts its Google sign-in.
  */
-fun BytecodePatchContext.warnWithoutGmsCore(hook: String, vararg entries: Pair<String, String>) {
+fun warnWithoutGmsCore(hook: String, vararg entries: Pair<String, String>) {
     var hooked = 0
     classDefForEach { classDef ->
         val names = entries.filter { it.first == classDef.type }.map { it.second }
@@ -193,13 +198,13 @@ fun BytecodePatchContext.warnWithoutGmsCore(hook: String, vararg entries: Pair<S
 }
 
 /** The class with type [type]. */
-internal fun BytecodePatchContext.mutableClass(type: String): MutableClass =
+internal fun mutableClass(type: String): MutableClass =
     mutableClassDefByOrNull(type) ?: throw PatchException("$type not found")
 
 /**
  * Replaces every string constant in [classes] for which [replacement] returns a value. Returns how many were replaced.
  */
-private fun BytecodePatchContext.replaceStrings(classes: List<ClassDef>, replacement: (String) -> String?): Int {
+private fun replaceStrings(classes: List<ClassDef>, replacement: (String) -> String?): Int {
     var replaced = 0
     classes.forEach { classDef ->
         mutableClassDefBy(classDef).methods.forEach { method ->

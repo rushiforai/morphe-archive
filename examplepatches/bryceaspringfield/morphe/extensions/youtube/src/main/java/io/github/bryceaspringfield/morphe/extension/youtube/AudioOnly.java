@@ -80,6 +80,7 @@ public final class AudioOnly {
                 }
             }
             on = audioOnly;
+            PlaybackExtras.audioOnlyQuality(audioOnly, "resolution picked".equals(why));
             Logger.printDebug(() -> "YouTube Extras: audio only " + audioOnly + " (" + why + "), players " + live.size());
         });
         return true;

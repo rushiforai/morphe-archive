@@ -25,7 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The code half on every build of Instagram 454.0.0.54.77. Each build names its own package by the same
+ * The code half on every build of Instagram 456.0.0.53.78. Each build names its own package by the same
  * uses, Redex's names aside, and every use that means the running app moves while the rest stay.
  */
 class CloneCodeTest {
@@ -33,54 +33,67 @@ class CloneCodeTest {
 
     /**
      * The const-string loads of an authority each build has, and the loads of Instagram's package that stay,
-     * as each build's plan counts them. 454's builds differ more than 453's did: between 35 and 39 authority
-     * loads, and 386014704 keeps one package load fewer than the rest.
+     * as each build's plan counts them. 455's builds had between 35 and 38 authority loads and kept 89 or 90
+     * package loads; 456's have 34, or 37 on the x86 build, and keep 93.
      */
     private val authorityLoads = mapOf(
-        "386014704" to 38, "386014705" to 37, "386014712" to 39, "386014714" to 35, "386014718" to 39,
-        "386014747" to 39, "386014757" to 37, "386014758" to 39, "386014759" to 37, "386014760" to 35,
-        "386014775" to 39,
+        "386214534" to 34, "386214562" to 34, "386214574" to 34, "386214575" to 37,
     )
     private val keptLoads = mapOf(
-        "386014704" to 87, "386014705" to 88, "386014712" to 88, "386014714" to 88, "386014718" to 88,
-        "386014747" to 88, "386014757" to 88, "386014758" to 88, "386014759" to 88, "386014760" to 88,
-        "386014775" to 88,
+        "386214534" to 93, "386214562" to 93, "386214574" to 93, "386214575" to 93,
     )
+
+    /**
+     * 455 moved the release and debug list checks 454 made in three places (Ig4aAppComponentFactory among
+     * them) into one shared helper, and 456 drops the two checks 455 still made of its own beside it
+     * (LX/04Ch;->A09 and A0D on 386113969), so the helper's two (LX/07BL;->A0O and A0c on 386214574) are
+     * the only ones left. 456 also opens one screen of its own fewer from a click.
+     */
     private val uses = mapOf(
-        SelfUse.INLINED to 5, SelfUse.PACKAGE_MANAGER to 7, SelfUse.OWN_INTENT to 9,
-        SelfUse.NAME_CHECK to 6, SelfUse.CALLER_CHECK to 3, SelfUse.PROVIDER_OWNER to 4, SelfUse.RELEASE_AND_DEBUG to 7,
+        SelfUse.INLINED to 5, SelfUse.PACKAGE_MANAGER to 7, SelfUse.OWN_INTENT to 11,
+        SelfUse.NAME_CHECK to 6, SelfUse.CALLER_CHECK to 3, SelfUse.PROVIDER_OWNER to 4, SelfUse.RELEASE_AND_DEBUG to 2,
         SelfUse.DEX_LOAD_REPORT to 2,
     )
 
     /**
-     * The builds whose uses differ from the rest. 386014704 and 386014757 open one more screen of their own
-     * from a click (0JOV.onClick, 0UoN.onClick), and 386014704 and 386014705 lack the pair of checks of the
-     * running app's release and debug names (01Gh.A08 and A0C on 386014758): neither loads the debug name there.
+     * The builds whose uses differ from the rest: the armeabi-v7a build 386214562 opens one screen of its own
+     * more from a click.
      */
     private val usesBy = mapOf(
-        "386014704" to mapOf(SelfUse.OWN_INTENT to 10, SelfUse.RELEASE_AND_DEBUG to 5),
-        "386014705" to mapOf(SelfUse.RELEASE_AND_DEBUG to 5),
-        "386014757" to mapOf(SelfUse.OWN_INTENT to 10),
+        "386214562" to mapOf(SelfUse.OWN_INTENT to 12),
     )
 
-    /** Google Play's uses, the one count that differs by build: R8 keeps more or fewer of its helpers in each. */
+    /**
+     * Google Play's uses, a count that differed by build on 455 as R8 kept more or fewer of its helpers in each.
+     * 456 keeps five on every build, two fewer than 455's arm64 build (LX/0KTt;->A00 and LX/0Kw1;->A00 on
+     * 386113969 have no counterpart).
+     */
     private val googlePlayUses = mapOf(
-        "386014704" to 7, "386014705" to 7, "386014712" to 7, "386014714" to 7, "386014718" to 7,
-        "386014747" to 7, "386014757" to 7, "386014758" to 7, "386014759" to 7, "386014760" to 7,
-        "386014775" to 7,
+        "386214534" to 5, "386214562" to 5, "386214574" to 5, "386214575" to 5,
     )
 
-    /** The uses in classes Redex leaves named, the same in every build. 453 renames the Play billing classes, so theirs count among the LX/ ones. */
-    private val namedUses = listOf(
+    /**
+     * The share handler's caller check: in BaseShareHandlerActivity on the armeabi-v7a and x86 builds, and on
+     * 456's arm64 builds in its subclass ClipsMusicShareHandlerActivity instead.
+     */
+    private val shareHandler = mapOf(
+        "386214534" to "ClipsMusicShareHandlerActivity", "386214562" to "BaseShareHandlerActivity",
+        "386214574" to "ClipsMusicShareHandlerActivity", "386214575" to "BaseShareHandlerActivity",
+    )
+
+    /**
+     * The uses in classes Redex leaves named, the same in every build but for [shareHandler]. 453 renames the
+     * Play billing classes, so theirs count among the LX/ ones.
+     */
+    private fun namedUses(build: String) = listOf(
         "Lcom/facebook/common/dextricks/achilles/Achilles; DEX_LOAD_REPORT",
         "Lcom/facebook/common/dextricks/achilles/Achilles; DEX_LOAD_REPORT",
         "Lcom/facebook/rti/mqtt/manager/MqttBackgroundServiceDelegate; NAME_CHECK",
         "Lcom/instagram/common/resources/downloadable/impl/WaitingForStringsActivity; OWN_INTENT",
         "Lcom/instagram/inappbrowser/service/BrowserLiteCallbackService\$BrowserLiteCallbackImpl; CALLER_CHECK",
-        "Lcom/instagram/process/instagram/Ig4aAppComponentFactory; RELEASE_AND_DEBUG",
-        "Lcom/instagram/share/handleractivity/BaseShareHandlerActivity; CALLER_CHECK",
+        "Lcom/instagram/share/handleractivity/${shareHandler.getValue(build)}; CALLER_CHECK",
         "Linstagram/features/stories/fragment/ReelViewerFragment; CALLER_CHECK",
-    )
+    ).sorted()
 
     private fun ownPackage() = ExtensionDex.classDef(OWN_PACKAGE_CLASS)
 
@@ -98,7 +111,7 @@ class CloneCodeTest {
         run {
             val authorities = readCloneManifest(CloneFixtures.manifest(file)).authorities
             val classes = CloneFixtures.classes(file, authorities)
-            if (build == "386014758") {
+            if (build == "386214574") {
                 val withoutAnswer = PatchContexts.of(classes).planClone(clone, authorities)
                 val refusal = assertThrows(PatchException::class.java) { withoutAnswer.requireComplete() }
                 assertTrue(refusal.message, refusal.message!!.contains("OwnPackage.name()"))
@@ -110,7 +123,7 @@ class CloneCodeTest {
             plan.sites.forEach { println("[$build]   $it") }
 
             assertEquals("[$build] uses", uses + usesBy[build].orEmpty() + (SelfUse.GOOGLE_PLAY to googlePlayUses[build]), SelfUse.entries.associateWith(plan::count))
-            assertEquals("[$build] uses in named classes", namedUses, plan.sites.filter { it.use != null && !it.type.startsWith("LX/") }
+            assertEquals("[$build] uses in named classes", namedUses(build), plan.sites.filter { it.use != null && !it.type.startsWith("LX/") }
                 .map { "${it.type} ${it.use!!.name}" }.sorted())
             assertTrue("[$build] each use moves to the copy", plan.sites.filter { it.use != null }.all { it.to == clone })
             assertEquals("[$build] authority loads", authorityLoads[build], plan.rewrites.count { it.use == null })

@@ -58,7 +58,7 @@ class ProLauncherSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "v2.4.3",
+            version = "v2.4.4",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

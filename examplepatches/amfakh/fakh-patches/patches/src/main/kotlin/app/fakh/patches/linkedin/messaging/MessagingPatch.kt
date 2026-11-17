@@ -8,7 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
 
 private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/MessagingPatch;"
@@ -37,7 +37,7 @@ private object UpdateReadStatusFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val messagingPatch = bytecodePatch(
+val messagingPatch = patch(
     name = "Messaging",
     description = "Hides sponsored messages, and adds an optional ghost mode that does not send " +
         "typing indicators or read status.",

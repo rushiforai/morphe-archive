@@ -122,7 +122,7 @@ private fun List<Instruction>.galleryNext(i: Int): List<Int>? {
 }
 
 /** Every instruction the code can run from [start] on, or null when that takes a switch or runs off the end. */
-private fun List<Instruction>.galleryReach(start: Int): Set<Int>? {
+internal fun List<Instruction>.galleryReach(start: Int): Set<Int>? {
     val reach = mutableSetOf<Int>()
     val pending = ArrayDeque(listOf(start))
     while (pending.isNotEmpty()) {
@@ -134,7 +134,7 @@ private fun List<Instruction>.galleryReach(start: Int): Set<Int>? {
 }
 
 /** Whether every way on from [start] writes [register] before it reads it, or ends without touching it. */
-private fun List<Instruction>.galleryFree(start: Int, register: Int): Boolean {
+internal fun List<Instruction>.galleryFree(start: Int, register: Int): Boolean {
     val seen = mutableSetOf<Int>()
     val pending = ArrayDeque(listOf(start))
     while (pending.isNotEmpty()) {

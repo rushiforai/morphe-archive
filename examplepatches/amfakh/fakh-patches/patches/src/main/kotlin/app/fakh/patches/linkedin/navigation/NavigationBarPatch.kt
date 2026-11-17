@@ -10,7 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -38,7 +38,7 @@ private object TabsSizedFingerprint : Fingerprint(
  * The only two hooks into the bottom bar, shared by every patch that changes it: the filter that decides which tabs
  * it has (the More tab is one of them) and the point where its tabs have been sized.
  */
-internal val navigationHooksPatch = bytecodePatch {
+internal val navigationHooksPatch = patch {
     dependsOn(settingsPatch)
 
     execute {
@@ -74,10 +74,10 @@ internal val navigationHooksPatch = bytecodePatch {
 }
 
 @Suppress("unused")
-val navigationBarPatch = bytecodePatch(
+val navigationBarPatch = patch(
     name = "Navigation bar",
     description = "Adds options in Fakh Patches to hide the More, Jobs, Network and Notifications tabs " +
-        "of the navigation bar, its count badges and its labels.",
+        "of the navigation bar (and Post, Video and News where LinkedIn shows them), its count badges and its labels.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -87,9 +87,10 @@ val navigationBarPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val swipeTabsPatch = bytecodePatch(
+val swipeTabsPatch = patch(
     name = "Swipe between tabs",
-    description = "Swipe sideways to go to the next or previous tab of the navigation bar.",
+    description = "Swipe sideways to go to the next or previous tab of the navigation bar. On My Network it " +
+        "first switches between Grow and Catch up.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -99,7 +100,7 @@ val swipeTabsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val glassNavigationBarPatch = bytecodePatch(
+val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it.",
     default = true
@@ -119,7 +120,7 @@ private object ScrollDirectionFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val alwaysShowNavigationBarPatch = bytecodePatch(
+val alwaysShowNavigationBarPatch = patch(
     name = "Always show navigation bar",
     description = "Adds an option in Fakh Patches to keep the navigation bar on screen while you scroll.",
     default = true

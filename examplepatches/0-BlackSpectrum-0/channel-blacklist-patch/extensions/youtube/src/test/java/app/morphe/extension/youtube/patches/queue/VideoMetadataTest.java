@@ -8,9 +8,12 @@
 package app.morphe.extension.youtube.patches.queue;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+
+import java.util.Objects;
 
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.AttributedText;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.Avatar;
@@ -24,16 +27,17 @@ import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.LockupMeta
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.LockupMetadataViewModel;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.MetadataPart;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.MetadataRow;
+import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.ThemePalette;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.VideoData;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.VideoWithContextData;
 import app.morphe.extension.youtube.innertube.queue.QueueCardRenderer.VideoWithContextModel;
+import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
 
 public class VideoMetadataTest {
     private static AttributedText text(String content) {
         return AttributedText.newBuilder().setContent(content).build();
     }
-    private static String[] parse(String url, String title, String info,
-            String channel, String label, String description) throws Exception {
+    private static Element card(String url, String title, String info, String label, String description) {
         var row = MetadataRow.newBuilder().addMetadataParts(MetadataPart.newBuilder().setText(text(info)));
         var metadata = LockupMetadataViewModel.newBuilder().setTitle(text(title)).setMetadata(
             ContentMetadata.newBuilder().setContentMetadataViewModel(
@@ -45,16 +49,22 @@ public class VideoMetadataTest {
             VideoWithContextData.newBuilder().setVideoData(video).setAccessibilityText(description));
         var element = Element.newBuilder().setType(ElementType.newBuilder().setComponentType(
             ComponentType.newBuilder().setModel(CardModel.newBuilder().setVideoWithContextModel(contextual))));
-        var parsed = VideoMetadata.fromElement(element.build().toByteArray());
-        if (parsed == null) return null;
+        return element.build();
+    }
+    private static String[] parse(String url, String title, String info,
+            String channel, String label, String description) throws Exception {
+        var parsed = VideoMetadata.fromElement(card(url, title, info, label, description).toByteArray());
+        if (parsed == null) {
+            return null;
+        }
         parsed = parsed.withChannelName(channel);
         return new String[]{parsed.videoId(), parsed.title(), parsed.channelName(), parsed.videoInfo()};
     }
-    private static String[] merge(String json, String videoId, String title) throws Exception {
-        var card = new VideoMetadata(videoId, title, "Starbound Extra", "157 views · 46 minutes ago", "29:04", false);
-        var lookup = VideoMetadata.fromSearch(new org.json.JSONObject(json), videoId);
+    private static String[] merge(String json, String title) throws Exception {
+        var card = new VideoMetadata("waZyE4Xl6bo", title, "Starbound Extra", "157 views · 46 minutes ago", "29:04", false);
+        var lookup = VideoMetadata.fromSearch(new org.json.JSONObject(json), "waZyE4Xl6bo");
         var merged = card.withLookup(lookup).withCapture(card).withChannelName("Starbound Extra");
-        var reverse = lookup.withCapture(card).withChannelName("Starbound Extra");
+        var reverse = Objects.requireNonNull(lookup).withCapture(card).withChannelName("Starbound Extra");
         merged = merged.withLookup(card);
         return new String[]{Boolean.toString(card.isComplete()), merged.channelName(),
             reverse.channelName(), merged.title(), Boolean.toString(merged.isComplete())};
@@ -66,6 +76,71 @@ public class VideoMetadataTest {
     }
     private static String[] parse(String url, String title) throws Exception {
         return parse(url, title, "", "", "", "");
+    }
+
+    @Test
+    public void individualCardsRetainTheirNativeBackgroundAndContrastingTextAcrossLookups() throws Exception {
+        var light = ThemePalette.newBuilder().setBaseBackground(0xfffff3f0).setTextPrimary(0xff3d1103).build();
+        var dark = ThemePalette.newBuilder().setBaseBackground(0xff1e0801).setTextPrimary(0xfffde5dd).build();
+        var element = card("https://www.youtube.com/watch?v=abcdefghijk", "Title", "Channel · 10 views",
+                "Go to channel Channel", "");
+        var data = element.getType().getComponentType().getModel().getVideoWithContextModel().getVideoWithContextData()
+                .toBuilder().setLightThemePalette(light).setDarkThemePalette(dark);
+        var contextual = VideoWithContextModel.newBuilder().setVideoWithContextData(data);
+        var colored = Element.newBuilder().setType(ElementType.newBuilder().setComponentType(ComponentType.newBuilder()
+                .setModel(CardModel.newBuilder().setVideoWithContextModel(contextual)))).build();
+        var captured = VideoMetadata.fromElement(colored.toByteArray());
+        var fetched = new VideoMetadata("abcdefghijk", "Lookup title", "Channel", "10 views", "1:23", true);
+        var metadata = Objects.requireNonNull(captured).withLookup(fetched);
+
+        assertEquals(light.getBaseBackground(), Objects.requireNonNull(metadata.lightColorPalette()).getSection4Color());
+        assertEquals(dark.getBaseBackground(), Objects.requireNonNull(metadata.darkColorPalette()).getSection4Color());
+        assertEquals(dark.getTextPrimary(), metadata.darkColorPalette().getPrimaryTitleColor());
+        assertEquals(dark.getTextPrimary(), metadata.darkColorPalette().getSecondaryTitleColor());
+
+        var incomplete = colored.toBuilder().setType(ElementType.newBuilder().setComponentType(ComponentType.newBuilder()
+                .setModel(CardModel.newBuilder().setVideoWithContextModel(contextual.setVideoWithContextData(
+                        data.clearLightThemePalette().setDarkThemePalette(dark.toBuilder().clearTextPrimary())))))).build();
+        var fallback = VideoMetadata.fromElement(incomplete.toByteArray());
+        assertEquals("abcdefghijk", Objects.requireNonNull(fallback).videoId());
+        assertNull(fallback.lightColorPalette());
+        assertNull(fallback.darkColorPalette());
+    }
+
+    @Test
+    public void nativeRowsPreferThumbnailPalettesAndRetainTheOtherThemeFromTheRow() {
+        var light = PlaylistQueueRenderer.ColorPalette.newBuilder().setSection2Color(0xffedddd0).setSection4Color(0xffedddd0)
+                .setPrimaryTitleColor(0xff111111).setSecondaryTitleColor(0xff333333).build();
+        var dark = PlaylistQueueRenderer.ColorPalette.newBuilder().setSection2Color(0xff341b12).setSection4Color(0xff341b12)
+                .setPrimaryTitleColor(0xffffeeee).setSecondaryTitleColor(0xffccaaaa).build();
+        var thumbnailLight = light.toBuilder().setSection4Color(0xffd0ddee).build();
+        var video = PlaylistQueueRenderer.Video.newBuilder().setVideoId("abcdefghijk")
+                .setTitle(PlaylistQueueRenderer.Text.newBuilder().setSimpleText("Title"))
+                .setLightColorPalette(light).setDarkColorPalette(dark)
+                .setThumbnails(PlaylistQueueRenderer.Thumbnails.newBuilder().setLightColorPalette(thumbnailLight));
+        var metadata = VideoMetadata.fromPanelVideo(video.build());
+
+        assertEquals(thumbnailLight, metadata.lightColorPalette());
+        assertEquals(dark, metadata.darkColorPalette());
+        assertEquals(light, VideoMetadata.fromPanelVideo(video.setThumbnails(PlaylistQueueRenderer.Thumbnails.newBuilder()
+                .setLightColorPalette(light.toBuilder().clearSection4Color())).build()).lightColorPalette());
+        assertNull(VideoMetadata.fromPanelVideo(video.clearLightColorPalette().clearDarkColorPalette()
+                .clearThumbnails().build()).lightColorPalette());
+    }
+
+    @Test
+    public void textOnlyCapturesAndLookupsDoNotDiscardNativeColors() {
+        var light = PlaylistQueueRenderer.ColorPalette.newBuilder().setSection2Color(0xffeeeeee).build();
+        var dark = PlaylistQueueRenderer.ColorPalette.newBuilder().setSection2Color(0xff221111).build();
+        var original = new VideoMetadata("abcdefghijk", "Title", "", "Channel · 10 views", "1:23",
+                false, false, light, dark);
+        var capture = new VideoMetadata("abcdefghijk", "Title", "", "Channel · 10 views", "1:23", false);
+        var lookup = new VideoMetadata("abcdefghijk", "Lookup title", "Channel", "10 views", "1:23", true);
+        var merged = original.withCapture(capture).withChannelName("Channel").withLookup(lookup).withCapture(capture);
+
+        assertEquals(light, merged.lightColorPalette());
+        assertEquals(dark, merged.darkColorPalette());
+        assertEquals("Channel", merged.channelName());
     }
 
     @Test public void lookupPreservesCollaboratorsAndLocalizedDetailsForRequestedVideo() throws Exception {
@@ -98,11 +173,11 @@ public class VideoMetadataTest {
                 """;
         assertArrayEquals(new String[]{"false", "Starbound Extra and Starbound HFY",
                 "Starbound Extra and Starbound HFY", "Native title", "true"},
-                merge(response, "waZyE4Xl6bo", "Native title"));
+                merge(response, "Native title"));
         for (String title : new String[]{"", "   ", "waZyE4Xl6bo"}) {
             assertArrayEquals(new String[]{"false", "Starbound Extra and Starbound HFY",
                     "Starbound Extra and Starbound HFY", "Search title", "true"},
-                    merge(response, "waZyE4Xl6bo", title));
+                    merge(response, title));
         }
     }
 

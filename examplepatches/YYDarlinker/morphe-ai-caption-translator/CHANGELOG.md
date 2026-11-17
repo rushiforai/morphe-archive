@@ -1,3 +1,7 @@
+## [1.6.2](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.6.1...v1.6.2) (2026-11-17)
+
+- Adapted to the latest Morphe Patches version.
+
 ## [1.6.1](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.6.0...v1.6.1) (2026-11-06)
 
 - Fix captions getting stuck on “Translating…” when a speaker marker is omitted.

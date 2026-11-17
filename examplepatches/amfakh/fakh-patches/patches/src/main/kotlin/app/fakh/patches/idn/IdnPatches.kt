@@ -10,10 +10,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -29,7 +28,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val EXTENSION_SETTINGS = "Lapp/fakh/extension/idn/IdnSettings;"
 
 /** Makes IdnSettings.<method>() return true, marking a feature as patched in so its switch shows on the settings page. */
-private fun BytecodePatchContext.markIncluded(method: String) {
+private fun markIncluded(method: String) {
     Fingerprint(
         definingClass = EXTENSION_SETTINGS,
         name = method,
@@ -56,7 +55,7 @@ private fun isEnumValueOf(instruction: Instruction): Boolean {
 }
 
 /** Declares the settings activity of the extension. */
-private val settingsManifestPatch = resourcePatch {
+private val settingsManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val activity = document.createElement("activity")
@@ -78,7 +77,7 @@ private object SettingsScreenFingerprint : Fingerprint(
 )
 
 /** The "Fakh Patches" row on the app's Settings screen, and the page it opens. Every feature below depends on it. */
-private val settingsPatch = bytecodePatch(description = "Adds a Fakh Patches page to the app's Settings screen.") {
+private val settingsPatch = patch(description = "Adds a Fakh Patches page to the app's Settings screen.") {
     compatibleWith(COMPATIBILITY_IDN)
     dependsOn(settingsManifestPatch)
     extendWith("extensions/extension.mpe")
@@ -106,7 +105,7 @@ private object ShowInAppFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Removes the Google ad banners from the home, article, quiz, event and live screens, and the promo popups.",
     default = true,
@@ -165,7 +164,7 @@ private object CreateMenuDelegateFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hideCreateButtonPatch = bytecodePatch(
+val hideCreateButtonPatch = patch(
     name = "Hide Create button",
     description = "Removes the \"+\" button (write news, start a live stream) from the middle of the navigation bar. The switch is in Fakh Patches.",
     default = true,
@@ -213,7 +212,7 @@ private object DeviceSecurityCheckFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val allowDeveloperOptionsPatch = bytecodePatch(
+val allowDeveloperOptionsPatch = patch(
     name = "Allow Developer options",
     description = "Lets short movies play while Developer options are turned on, instead of asking to turn them off.",
     default = true,
@@ -249,7 +248,7 @@ private object HomeTabsFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hideHomeTabsPatch = bytecodePatch(
+val hideHomeTabsPatch = patch(
     name = "Hide home tabs",
     description = "Adds switches to hide the Nonton, IDN Live, Berita and Quiz tabs in Fakh Patches.",
     default = true,
@@ -301,7 +300,7 @@ private object PreviewVideoBindFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val stopAutoplayPatch = bytecodePatch(
+val stopAutoplayPatch = patch(
     name = "Stop autoplay",
     description = "Adds a switch to stop the video previews and the automatic sliding of the home banners in Fakh Patches.",
     default = true,
@@ -359,7 +358,7 @@ private object ProfileScreenFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val redirectGoldPurchasePatch = bytecodePatch(
+val redirectGoldPurchasePatch = patch(
     name = "Redirect Gold purchase",
     description = "Opens connect.idn.media/my-account/gold in the browser instead of the in-app Gold top up.",
     default = true,
@@ -413,7 +412,7 @@ private object SubscriptionFrameFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hidePackageBannerPatch = bytecodePatch(
+val hidePackageBannerPatch = patch(
     name = "Hide package banner",
     description = "Removes the \"Beli Paket\" banner from the profile, since packages cannot be bought in a patched app. The switch is in Fakh Patches.",
     default = true,
@@ -488,7 +487,7 @@ val hidePackageBannerPatch = bytecodePatch(
 }
 
 /** Switches the analytics SDKs off that have a manifest switch. The values replace the entry if the app already has it. */
-private val analyticsManifestPatch = resourcePatch {
+private val analyticsManifestPatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0)
@@ -544,7 +543,7 @@ private object FirebaseInitFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Stops the analytics and crash reporting SDKs (AppsFlyer, Firebase Analytics, Crashlytics, Google Tag Manager, comScore and Facebook events) from collecting data. CleverTap stays for push and popups, without the advertising ID.",
     default = true,
@@ -612,7 +611,7 @@ private object TokenAuthenticatorFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val fixExpiredLoginPatch = bytecodePatch(
+val fixExpiredLoginPatch = patch(
     name = "Fix server error after idle",
     description = "Retries a request with a fresh login when the old one has expired, instead of showing \"kesalahan server\" on the first open after a long break.",
 ) {

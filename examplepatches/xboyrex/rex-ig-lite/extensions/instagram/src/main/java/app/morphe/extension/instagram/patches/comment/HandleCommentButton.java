@@ -4,12 +4,12 @@
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.patches.comment;
 
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import java.util.List;
+import android.app.Activity;
 import android.content.Context;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,8 +30,9 @@ import app.morphe.extension.instagram.patches.comment.copyTextButton.CopyTextBut
 import app.morphe.extension.instagram.patches.comment.copyTextButton.CopyUsernameButton;
 import app.morphe.extension.instagram.patches.comment.debugButton.DebugButton;
 import app.morphe.extension.instagram.patches.comment.saveMediaButton.SaveMediaButton;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
 
-// Thanks to MyInsta.
 @SuppressWarnings("unused")
 public class HandleCommentButton {
 
@@ -60,8 +61,6 @@ public class HandleCommentButton {
         }
     }
 
-    // return true = xboyrex button clicked no need to check Instagram's buttons.
-    // return false = xboyrex button not clicked, check Instagram's buttons.
     public static boolean checkOnCommentButtonClick(Object button, List list) {
         try {
             if (list.isEmpty()) return false;
@@ -73,6 +72,15 @@ public class HandleCommentButton {
                     String commentText = (String) commentData.getText();
                     app.morphe.extension.shared.Utils.setClipboard(commentText);
                     RexUtils.toast(str("rex_comment_copied_success"));
+                    try {
+                        Activity act = Utils.getActivity();
+                        if (act != null) {
+                            RexHaptics.tap(act);
+                            UserData ud = commentData.getCommentUserData();
+                            String uname = ud != null ? ud.getUsername() : "comment";
+                            RexDialogs.showTextStudioDialog(act, "Comment Studio", uname, commentText, "");
+                        }
+                    } catch (Throwable ignored) {}
                 } else {
                     RexUtils.toast(str("rex_comment_copied_failed"));
                 }
@@ -98,36 +106,34 @@ public class HandleCommentButton {
                 return true;
 
             } else if (button.equals(SaveMediaButton.A00)) {
-                    CommentData commentData = new CommentData(commentObject);
+                CommentData commentData = new CommentData(commentObject);
 
-                    Context context = Utils.getContext();
-                    if (commentData.hasGifMedia()) {
-                        String gifUrl = commentData.getGifUrl();
-                        String fileName = commentData.getGifDownloadName();
-                        DownloadUtils.downloadMediaUrl(context, gifUrl, Constants.DEFAULT_GIF_FOLDER, fileName);
-                    } else if (commentData.hasImageMedia()) {
-                        MediaData imageData = commentData.getImageMedia();
-                        UserData userData = commentData.getCommentUserData();
+                Context context = Utils.getContext();
+                if (commentData.hasGifMedia()) {
+                    String gifUrl = commentData.getGifUrl();
+                    String fileName = commentData.getGifDownloadName();
+                    DownloadUtils.downloadMediaUrl(context, gifUrl, Constants.DEFAULT_GIF_FOLDER, fileName);
+                } else if (commentData.hasImageMedia()) {
+                    MediaData imageData = commentData.getImageMedia();
+                    UserData userData = commentData.getCommentUserData();
 
-                        String userName = (userData != null) ? userData.getUsername() : "comment_"+LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-                        String mediaLink = imageData.getMediaLink();
-                        String fileName = userName + "_" + imageData.getDownloadFilename(MediaType.ANY);
+                    String userName = (userData != null) ? userData.getUsername() : "comment_"+LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                    String mediaLink = imageData.getMediaLink();
+                    String fileName = userName + "_" + imageData.getDownloadFilename(MediaType.ANY);
 
-                        String subFolder = DownloadUtils.getSubfolderName(userName);
+                    String subFolder = DownloadUtils.getSubfolderName(userName);
 
-                        DownloadUtils.downloadMediaUrl(context, mediaLink, subFolder, fileName);
-                    }
-                
+                    DownloadUtils.downloadMediaUrl(context, mediaLink, subFolder, fileName);
+                }
+
                 return true;
             }
 
         } catch (Exception e) {
             RexUtils.logger(e);
             RexUtils.toast(e.getMessage());
-            // If exception happens, we need not check Instagram's button.
             return true;
         }
         return false;
     }
-
 }

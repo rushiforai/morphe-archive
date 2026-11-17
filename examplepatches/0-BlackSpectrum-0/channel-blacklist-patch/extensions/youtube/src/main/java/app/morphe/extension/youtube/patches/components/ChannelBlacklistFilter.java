@@ -266,4 +266,158 @@ public final class ChannelBlacklistFilter extends BufferPhraseFilter {
 
     private static final BufferHideStatsTracker sharedTracker =
             new BufferHideStatsTracker(Settings.CHANNEL_BLACKLIST_HIDES_24H);
+    // Helpers below were removed from BufferPhraseFilter upstream (v2.3.0-dev.7, #4530)
+    // and are kept here as private copies for the channel blacklist.
+
+    private static final int UTF8_MAX_BYTE_COUNT = 4;
+
+    /**
+     * Strings found in the buffer for every video. Full strings should be specified.
+     * <p>
+     * This list does not include every common buffer string, and this can be added/changed as needed.
+     * Words must be entered with the exact casing as found in the buffer.
+     */
+    private static final String[] STRINGS_IN_EVERY_BUFFER = {
+            // Video playback data.
+            "googlevideo.com/initplayback?source=youtube", // Video url.
+            "ANDROID", // Video url parameter.
+            "https://i.ytimg.com/vi/", // Thumbnail url.
+            "mqdefault.jpg",
+            "hqdefault.jpg",
+            "sddefault.jpg",
+            "hq720.jpg",
+            "webp",
+            "_custom_", // Custom thumbnail set by video creator.
+            // Video decoders.
+            "OMX.ffmpeg.vp9.decoder",
+            "OMX.Intel.sw_vd.vp9",
+            "OMX.MTK.VIDEO.DECODER.SW.VP9",
+            "OMX.google.vp9.decoder",
+            "OMX.google.av1.decoder",
+            "OMX.sprd.av1.decoder",
+            "c2.android.av1.decoder",
+            "c2.android.av1-dav1d.decoder",
+            "c2.android.vp9.decoder",
+            "c2.mtk.sw.vp9.decoder",
+            // Analytics.
+            "searchR",
+            "browse-feed",
+            "FEwhat_to_watch",
+            "FEsubscriptions",
+            "search_vwc_description_transition_key",
+            "g-high-recZ",
+            // Text and litho components found in the buffer that belong to path filters.
+            "expandable_metadata.e",
+            "thumbnail.e",
+            "avatar.e",
+            "overflow_button.e",
+            "shorts-lockup-image",
+            "shorts-lockup.overlay-metadata.secondary-text",
+            "YouTubeSans-SemiBold",
+            "sans-serif"
+    };
+
+    /**
+     * Change first letter of the first word to use title case.
+     */
+    private static String titleCaseFirstWordOnly(String sentence) {
+        if (sentence.isEmpty()) {
+            return sentence;
+        }
+        final int firstCodePoint = sentence.codePointAt(0);
+        // In some non-English languages title case is different from uppercase.
+        return new StringBuilder()
+                .appendCodePoint(Character.toTitleCase(firstCodePoint))
+                .append(sentence, Character.charCount(firstCodePoint), sentence.length())
+                .toString();
+    }
+
+    /**
+     * Uppercase the first letter of each word.
+     */
+    private static String capitalizeAllFirstLetters(String sentence) {
+        if (sentence.isEmpty()) {
+            return sentence;
+        }
+
+        final int delimiter = ' ';
+        // Use code points and not characters to handle Unicode surrogates.
+        int[] codePoints = sentence.codePoints().toArray();
+        boolean capitalizeNext = true;
+        for (int i = 0, length = codePoints.length; i < length; i++) {
+            final int codePoint = codePoints[i];
+            if (codePoint == delimiter) {
+                capitalizeNext = true;
+            } else if (capitalizeNext) {
+                codePoints[i] = Character.toUpperCase(codePoint);
+                capitalizeNext = false;
+            }
+        }
+
+        return new String(codePoints, 0, codePoints.length);
+    }
+
+    /**
+     * @return If any of the given phrases would match a string in {@link #STRINGS_IN_EVERY_BUFFER}
+     * (which would cause the filter to hide all videos).
+     */
+    private static boolean phrasesWillHideAllVideos(String[] phrases, boolean matchWholeWords) {
+        for (String phrase : phrases) {
+            for (String commonString : STRINGS_IN_EVERY_BUFFER) {
+                if (matchWholeWords) {
+                    byte[] commonStringBytes = commonString.getBytes(StandardCharsets.UTF_8);
+                    int matchIndex = 0;
+                    while (true) {
+                        matchIndex = commonString.indexOf(phrase, matchIndex);
+                        if (matchIndex < 0) break;
+
+                        if (keywordMatchIsWholeWord(commonStringBytes, matchIndex, phrase.length())) {
+                            return true;
+                        }
+
+                        matchIndex++;
+                    }
+                } else if (Utils.containsAny(commonString, phrases)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return If the start and end indexes are not surrounded by other letters.
+     *         If the indexes are surrounded by numbers/symbols/punctuation it is considered a whole word.
+     */
+    private static boolean keywordMatchIsWholeWord(byte[] text, int keywordStartIndex, int keywordLength) {
+        final Integer codePointBefore = getUtf8CodePointBefore(text, keywordStartIndex);
+        if (codePointBefore != null && Character.isLetter(codePointBefore)) {
+            return false;
+        }
+
+        final Integer codePointAfter = getUtf8CodePointAt(text, keywordStartIndex + keywordLength);
+        //noinspection RedundantIfStatement
+        if (codePointAfter != null && Character.isLetter(codePointAfter)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return The UTF8 character point immediately before the index,
+     *         or null if the bytes before the index is not a valid UTF8 character.
+     */
+    @Nullable
+    private static Integer getUtf8CodePointBefore(byte[] data, int index) {
+        int characterByteCount = 0;
+        while (--index >= 0 && ++characterByteCount <= UTF8_MAX_BYTE_COUNT) {
+            if (isValidUtf8(data, index, characterByteCount)) {
+                return decodeUtf8ToCodePoint(data, index, characterByteCount);
+            }
+        }
+
+        return null;
+    }
 }

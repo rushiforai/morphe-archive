@@ -118,6 +118,11 @@ internal class HermesBundle(private val bytes: ByteArray) {
         return false
     }
 
+    /** The id of string [text], for building instruction bytes that load it. */
+    fun stringId(text: String): Int =
+        (0 until stringCountField).firstOrNull { stringAt(it) == text }
+            ?: throw PatchException("Hermes string \"$text\" not found")
+
     /** The one function named [name] that loads every string in [using]. */
     private fun single(name: String, using: List<String>): Function {
         val ids = using.map { text ->
@@ -139,6 +144,11 @@ internal class HermesBundle(private val bytes: ByteArray) {
         patch(single(name, listOf(using)), name, value)
     }
 
+    /** Like [returnAtStart], for the one function named [name] that loads every string in [using]. */
+    fun returnAtStart(name: String, using: List<String>, value: Value) {
+        patch(single(name, using), name, value)
+    }
+
     /**
      * Replaces the one occurrence of the instruction bytes [find] with
      * [replace] (the same length) in the function named [name] that loads
@@ -154,6 +164,33 @@ internal class HermesBundle(private val bytes: ByteArray) {
         }
         if (hits.size != 1) {
             throw PatchException("Hermes function \"$name\": expected the instructions once, found ${hits.size}")
+        }
+        replace.copyInto(bytes, hits.single())
+    }
+
+    /**
+     * Like [replaceInstructions], when several functions named [name] load
+     * every string in [using]: [find] must occur exactly once across all of
+     * them, and that occurrence is replaced.
+     */
+    fun replaceInstructionsInAny(
+        name: String,
+        using: List<String>,
+        forVersion: Int,
+        find: ByteArray,
+        replace: ByteArray,
+    ) {
+        if (version != forVersion) throw PatchException("Expected Hermes bytecode version $forVersion, found $version")
+        if (find.size != replace.size) throw PatchException("Replacement must keep the instruction length")
+        val ids = using.map { stringId(it) }
+        val hits = functions.filter { function -> function.name == name && ids.all { function.mentions(it) } }
+            .flatMap { function ->
+                (function.offset..function.offset + function.size - find.size).filter { at ->
+                    find.indices.all { bytes[at + it] == find[it] }
+                }
+            }
+        if (hits.size != 1) {
+            throw PatchException("Hermes functions \"$name\" using $using: expected the instructions once, found ${hits.size}")
         }
         replace.copyInto(bytes, hits.single())
     }

@@ -64,6 +64,8 @@ public class SideMenuTest {
             @Override public void accounts(Object screen, View anchor) { asked.add("accounts"); }
 
             @Override public void hushSettings(Activity activity) { asked.add("hush"); }
+
+            @Override public void bookmarks(Activity activity) { asked.add("bookmarks"); }
         };
     }
 
@@ -277,6 +279,34 @@ public class SideMenuTest {
         }
     }
 
+    @Test public void theBookmarksRowFollowsBookmarksSwitchAndOpensThePage() {
+        Activity activity = activity();
+        FrameLayout parent = new FrameLayout(activity);
+        activity.setContentView(parent);
+        SideMenuPanel panel = SideMenuPanel.in(parent, new Object());
+        try {
+            panel.showHush();
+            assertEquals("off by default", View.GONE, panel.bookmarksRow.getVisibility());
+            Settings.MESSAGE_MENU_BOOKMARKS.save(true);
+            PatchFamilyForTests.installed();
+            panel.showHush();
+            assertEquals("a build without Bookmark", View.GONE, panel.bookmarksRow.getVisibility());
+            PatchFamilyForTests.installed(PatchFamily.Capability.BOOKMARKS);
+            panel.showHush();
+            assertEquals(View.VISIBLE, panel.bookmarksRow.getVisibility());
+            assertEquals("Bookmarks", ((TextView) panel.bookmarksRow).getText().toString());
+            panel.bookmarksRow.performClick();
+            assertEquals(List.of("bookmarks"), asked);
+            PauseForTests.pause(HushTelegramPause.Reason.CRASH_LOOP);
+            panel.showHush();
+            assertEquals("paused", View.GONE, panel.bookmarksRow.getVisibility());
+        } finally {
+            PauseForTests.resume();
+            Settings.MESSAGE_MENU_BOOKMARKS.resetToDefault();
+            PatchFamilyForTests.resetCapabilities();
+        }
+    }
+
     @Test public void theMenuHasItsRowsAndIsAddedOnce() {
         Activity activity = activity();
         FrameLayout parent = new FrameLayout(activity);
@@ -296,6 +326,7 @@ public class SideMenuTest {
         expected.add("line");
         expected.add(SettingsEntry.nativeSettingsTitle());
         expected.add("Downloads");
+        expected.add("Bookmarks");
         assertEquals(expected, rows);
         panel.menu.getChildAt(1).performClick();
         panel.menu.getChildAt(4).performClick();

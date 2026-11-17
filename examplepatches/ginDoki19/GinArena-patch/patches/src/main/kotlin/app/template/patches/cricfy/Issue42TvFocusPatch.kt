@@ -27,7 +27,7 @@ private data class Target(
     val combinedId: Int, val progressId: Int, val progressField: String,
     val constructorArgs: List<String>
 )
-private val cric = Target("com.cricfytv.sports", "7.4", "54",
+private val cric = Target("com.cricfytv.sports", "7.5", "55",
     "Lcom/android/vending/player/PlayerActivity;", "Lcom/android/vending/player/CricfyPlayerView;", 0x7f0a02f8,
     "j", "Landroidx/media3/ui/PlayerControlView;", "K", 0x7f0a0185, 0x7f0a0189, "d0",
     listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;", "Landroid/util/AttributeSet;"))

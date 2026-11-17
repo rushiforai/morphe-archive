@@ -22,6 +22,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
@@ -89,9 +90,14 @@ import app.hushtelegram.extension.telegram.misc.AccountGuard;
 import app.hushtelegram.extension.telegram.misc.Accounts;
 import app.hushtelegram.extension.telegram.misc.AutoForwarding;
 import app.hushtelegram.extension.telegram.misc.CallRecorder;
+import app.hushtelegram.extension.telegram.misc.ChatListAvatar;
+import app.hushtelegram.extension.telegram.misc.ChatListBanner;
+import app.hushtelegram.extension.telegram.misc.AdminFolder;
 import app.hushtelegram.extension.telegram.misc.ChatTypeFolders;
+import app.hushtelegram.extension.telegram.misc.CustomFont;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DeleteAccount;
+import app.hushtelegram.extension.telegram.misc.DoNotDisturb;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
 import app.hushtelegram.extension.telegram.misc.FolderIcons;
 import app.hushtelegram.extension.telegram.misc.FreeProxies;
@@ -104,10 +110,13 @@ import app.hushtelegram.extension.telegram.misc.KeepAlive;
 import app.hushtelegram.extension.telegram.misc.KeepDeleted;
 import app.hushtelegram.extension.telegram.misc.KeepEdits;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
+import app.hushtelegram.extension.telegram.misc.ListBackground;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.ProxyOrder;
 import app.hushtelegram.extension.telegram.misc.RecordChats;
+import app.hushtelegram.extension.telegram.misc.VoiceChanger;
 import app.hushtelegram.extension.telegram.misc.SaveDownloads;
+import app.hushtelegram.extension.telegram.misc.SavedPicture;
 import app.hushtelegram.extension.telegram.misc.SpecialContacts;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 import app.hushtelegram.extension.telegram.misc.StorageFolder;
@@ -143,12 +152,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String SUPPORTED_LINKS = "action_supported_links";
     /** The Clear kept messages row's key, which stores nothing. */
     static final String CLEAR_KEPT = "action_clear_kept_messages";
+    /** The Remove kept messages after row's key. The days are saved under {@link Settings#KEEP_DELETED_DAYS}. */
+    static final String KEPT_DAYS_ROW = "action_keep_deleted_days";
     /** The Show hidden messages row's key, which stores nothing. */
     static final String SHOW_HIDDEN = "action_show_hidden_messages";
     /** The Clear edit history row's key, which stores nothing. */
     static final String CLEAR_EDITS = "action_clear_edit_history";
     /** The Sticker size row's key. The size itself is saved under {@link Settings#STICKER_SIZE}. */
     static final String STICKER_SIZE_ROW = "action_sticker_size";
+    /** The Avatar size row's key. The size itself is saved under {@link Settings#CHAT_LIST_AVATAR_SIZE}. */
+    static final String AVATAR_SIZE_ROW = "action_chat_list_avatar_size";
     /** The Gallery folder row's key. The choice itself is saved under {@link Settings#GALLERY_FOLDER}. */
     static final String GALLERY_FOLDER_ROW = "action_gallery_folder";
     /** The What to copy row's key. The kinds left out are saved under {@link Settings#SAVE_KINDS_LEFT_OUT}. */
@@ -161,6 +174,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String GHOST_CHATS_ROW = "action_ghost_chats";
     /** The Calls to record row's key. The choice itself is saved under {@link Settings#RECORD_CALLS_WHICH}. */
     static final String RECORD_WHICH_ROW = "action_record_calls_which";
+    /** The Voice changer row's key. The voice itself is saved under {@link Settings#VOICE_CHANGER}. */
+    static final String VOICE_CHANGER_ROW = "action_voice_changer";
     /** The Chats to record row's key. The chats are kept by {@link RecordChats}. */
     static final String RECORD_CHATS_ROW = "action_record_chats";
     /** The Keep recordings row's key. The days are saved under {@link Settings#RECORD_CALLS_KEEP_DAYS}. */
@@ -169,6 +184,18 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String RECORD_FOLDER_ROW = "action_record_calls_folder";
     /** The folder picker's request, next to the settings file's 7311 and 7312. */
     static final int RECORD_FOLDER_REQUEST = 7313;
+    /** The Background picture row's key. The picture is kept by {@link SavedPicture}, its dim under {@link Settings#LIST_BACKGROUND_DIM}. */
+    static final String LIST_BACKGROUND_ROW = "action_list_background";
+    /** The gallery picker for the picture behind the lists. */
+    static final int LIST_BACKGROUND_REQUEST = 7314;
+    /** The Chat list banner row's key. The choice is saved under {@link Settings#CHAT_LIST_BANNER}, its picture by {@link SavedPicture}. */
+    static final String CHAT_LIST_BANNER_ROW = "action_chat_list_banner";
+    /** The gallery picker for the chat list banner's picture. */
+    static final int CHAT_LIST_BANNER_REQUEST = 7315;
+    /** The Font file row's key. The file is kept by {@link CustomFont}, its name under {@link Settings#CUSTOM_FONT}. */
+    static final String FONT_FILE_ROW = "action_custom_font";
+    /** The file picker for the font file. */
+    static final int FONT_FILE_REQUEST = 7316;
     static final String HIDDEN_ACCOUNTS_ROW = "action_hidden_accounts";
     /** The Delete account row's key. Nothing is saved: a tap asks, then sends the deletion. */
     static final String DELETE_ACCOUNT_ROW = "action_delete_account";
@@ -329,6 +356,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (tree != null) recordFolderChosen(tree);
             return;
         }
+        if (requestCode == LIST_BACKGROUND_REQUEST) {
+            Uri picture = resultCode == Activity.RESULT_OK && data != null ? data.getData() : null;
+            if (picture != null) pictureChosen(picture, SavedPicture.LIST_BACKGROUND);
+            return;
+        }
+        if (requestCode == CHAT_LIST_BANNER_REQUEST) {
+            Uri picture = resultCode == Activity.RESULT_OK && data != null ? data.getData() : null;
+            if (picture != null) pictureChosen(picture, SavedPicture.CHAT_LIST_BANNER);
+            return;
+        }
+        if (requestCode == FONT_FILE_REQUEST) {
+            Uri font = resultCode == Activity.RESULT_OK && data != null ? data.getData() : null;
+            if (font != null) fontChosen(font);
+            return;
+        }
         SettingsBackupPreference.onResult(this, requestCode, resultCode, data);
     }
 
@@ -348,16 +390,26 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (channels != null) channels.setSummary(FilterEditor.summary(Settings.MESSAGE_FILTERS_CHANNELS));
         Preference size = findPreference(STICKER_SIZE_ROW);
         if (size != null) size.setSummary(stickerSizeSummary());
+        Preference avatarSize = findPreference(AVATAR_SIZE_ROW);
+        if (avatarSize != null) avatarSize.setSummary(avatarSizeSummary());
         Preference emoji = findPreference(TitleEmojiEditor.KEY);
         if (emoji != null) emoji.setSummary(TitleEmojiEditor.summary(Settings.TITLE_EMOJI.savedValue()));
+        Preference ownTitle = findPreference(TitleEmojiEditor.TITLE_KEY);
+        if (ownTitle != null) ownTitle.setSummary(TitleEmojiEditor.titleSummary(Settings.CHAT_LIST_TITLE_TEXT.savedValue()));
         Preference proxyOrder = findPreference(ProxyOrderEditor.KEY);
         if (proxyOrder != null) proxyOrder.setSummary(ProxyOrder.summary());
+        Preference previewRules = findPreference(LinkPreviewRulesEditor.KEY);
+        if (previewRules != null) previewRules.setSummary(LinkPreviewRulesEditor.summary());
         Preference gallery = findPreference(GALLERY_FOLDER_ROW);
         if (gallery != null) gallery.setSummary(galleryFolderSummary());
         Preference recordWhich = findPreference(RECORD_WHICH_ROW);
         if (recordWhich != null) recordWhich.setSummary(recordWhichLabel(RecordChats.scope()));
+        Preference voiceChanger = findPreference(VOICE_CHANGER_ROW);
+        if (voiceChanger != null) voiceChanger.setSummary(voiceChangerLabel(Settings.VOICE_CHANGER.get()));
         Preference recordKeep = findPreference(RECORD_KEEP_ROW);
         if (recordKeep != null) recordKeep.setSummary(recordKeepLabel(Settings.RECORD_CALLS_KEEP_DAYS.get()));
+        Preference keptDays = findPreference(KEPT_DAYS_ROW);
+        if (keptDays != null) keptDays.setSummary(keptDaysLabel(Settings.KEEP_DELETED_DAYS.get()));
         Preference kinds = findPreference(SAVE_KINDS_ROW);
         if (kinds != null) kinds.setSummary(saveKindsSummary());
         Preference storageName = findPreference(StorageFolderEditor.KEY);
@@ -366,6 +418,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (icons != null) icons.setSummary(folderIconSummary());
         Preference target = findPreference(TranslateTargetPicker.KEY);
         if (target != null) target.setSummary(TranslateTargetPicker.summary(Settings.TRANSLATE_TARGET.savedValue()));
+        Preference picture = findPreference(LIST_BACKGROUND_ROW);
+        if (picture != null) picture.setSummary(listBackgroundSummary(getContext()));
+        Preference banner = findPreference(CHAT_LIST_BANNER_ROW);
+        if (banner != null) banner.setSummary(chatListBannerSummary(getContext()));
+        Preference font = findPreference(FONT_FILE_ROW);
+        if (font != null) font.setSummary(fontFileSummary(getContext()));
     }
 
     @Override
@@ -671,6 +729,30 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 folderTabs.addPreference(sort);
                 folderTabs.addPreference(oldest);
             }
+            if (PatchFamily.Capability.LOCAL_PINS.installed()) {
+                SwitchPreference pins = toggle(context, Settings.LOCAL_PINS, L10n.t("Pin chats on this phone"),
+                        L10n.t("Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your "
+                                + "pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and "
+                                + "Telegram's pin limit stay as they are."));
+                pins.setOnPreferenceChangeListener((row, value) -> {
+                    // Once the switch is saved, so the chat list sorts by what it says.
+                    Utils.runOnMainThreadDelayed(HiddenChats::refreshAll, 0);
+                    return true;
+                });
+                folderTabs.addPreference(pins);
+            }
+            if (PatchFamily.Capability.CHAT_LIST_AVATAR.installed()) {
+                SwitchPreference avatars = toggle(context, Settings.CHAT_LIST_AVATAR, L10n.t("Change avatar size"),
+                        L10n.t("Chat pictures in the chat list show at the size you pick below. Each row keeps its height, "
+                                + "and the picture stays centered where Telegram puts it."));
+                avatars.setOnPreferenceChangeListener((row, value) -> {
+                    // Once the switch is saved, so the rows on screen take the new size.
+                    Utils.runOnMainThreadDelayed(ChatListAvatar::resizeAll, 0);
+                    return true;
+                });
+                folderTabs.addPreference(avatars);
+                folderTabs.addPreference(avatarSizeRow(context));
+            }
             folderTabs.addPreference(folderIconRow(context));
         }
         if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS)) {
@@ -688,6 +770,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 return true;
             });
             on(pages, PatchFamily.CHAT_TYPE_FOLDERS).addPreference(folders);
+            if (PatchFamily.Capability.ADMIN_FOLDER.installed()) {
+                SwitchPreference admin = toggle(context, Settings.ADMIN_FOLDER, L10n.t("Admin folder"),
+                        L10n.t("Turning this on makes an Admin folder with the groups and channels you own or manage, and keeps "
+                                + "it up to date as that changes. Turning it off removes it, unless you renamed or changed it.") + " "
+                                + L10n.t("Both work on the account you have open."));
+                admin.setOnPreferenceChangeListener((row, value) -> {
+                    // Once the switch is saved, so the folder follows what it says.
+                    Utils.runOnMainThreadDelayed(() -> {
+                        String said = AdminFolder.apply(context);
+                        if (said != null) Utils.showToastLong(said);
+                    }, 0);
+                    return true;
+                });
+                on(pages, PatchFamily.CHAT_TYPE_FOLDERS).addPreference(admin);
+            }
         }
         if (build.contains(PatchFamily.DISABLE_ARCHIVE_PULL)) {
             on(pages, PatchFamily.DISABLE_ARCHIVE_PULL).addPreference(toggle(context, Settings.DISABLE_ARCHIVE_PULL, L10n.t("Disable pull to archive"),
@@ -704,6 +801,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Compact bottom bar"),
                         L10n.t("The bar at the bottom of the main screen gets shorter and only as wide as its tabs need. "
                                 + "The tabs keep their full height, so they're just as easy to tap. Restart Telegram to see the change.")));
+            }
+            if (PatchFamily.Capability.BAR_OUTLINE.installed()) {
+                on(pages, PatchFamily.HIDE_CONTACTS_TAB).addPreference(toggle(context, Settings.BAR_OUTLINE,
+                        L10n.t("Outline the bottom bar"),
+                        L10n.t("Draws a thin Telegram blue line around the bar at the bottom of the main screen, so it stands "
+                                + "out on a black background. Restart Telegram to see the change.")));
             }
             if (PatchFamily.Capability.SIDE_MENU.installed()) {
                 on(pages, PatchFamily.HIDE_CONTACTS_TAB).addPreference(toggle(context, Settings.SIDE_MENU,
@@ -723,6 +826,17 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.PROXY_MENU).addPreference(toggle(context, Settings.PROXY_MENU, L10n.t("Proxy in the chat list menu"),
                     PatchFamily.PROXY_MENU.coverageSummary(L10n.t("The menu at the top of the chat list always has Proxy, so your "
                             + "proxies are one tap away even where Telegram isn't blocked."))));
+            if (PatchFamily.Capability.DO_NOT_DISTURB.installed()) {
+                SwitchPreference dnd = toggle(context, Settings.DND_MENU, L10n.t("Do Not Disturb in the chat list menu"),
+                        L10n.t("Adds Do Not Disturb to the menu at the top of the chat list. While it's on, no message "
+                                + "notification shows or makes a sound, and messages still arrive. Calls ring as usual."));
+                dnd.setOnPreferenceChangeListener((row, value) -> {
+                    // Each change of the switch starts with Do Not Disturb off.
+                    DoNotDisturb.switched();
+                    return true;
+                });
+                on(pages, PatchFamily.PROXY_MENU).addPreference(dnd);
+            }
         }
         if (build.contains(PatchFamily.FREE_PROXIES)) {
             PreferenceGroup proxies = on(pages, PatchFamily.FREE_PROXIES);
@@ -803,6 +917,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.HIDE_TRANSLATE_BAR).addPreference(toggle(context, Settings.HIDE_TRANSLATE_BAR, L10n.t("Hide translate bar"),
                     PatchFamily.HIDE_TRANSLATE_BAR.coverageSummary(L10n.t("Chats in another language stop showing the translate bar at the top. Translate "
                             + "moves to the chat's menu, and a chat you're translating keeps its bar."))));
+            if (PatchFamily.Capability.HIDE_PINNED_BAR.installed()) {
+                on(pages, PatchFamily.HIDE_TRANSLATE_BAR).addPreference(toggle(context, Settings.HIDE_PINNED_BAR,
+                        L10n.t("Hide pinned message bar"), L10n.t("The bar under a chat's top bar that shows pinned messages is gone, "
+                                + "along with its counter and list button. Messages stay pinned and nothing is marked as read.")));
+            }
         }
         if (build.contains(PatchFamily.REVEAL_SPOILERS)) {
             on(pages, PatchFamily.REVEAL_SPOILERS).addPreference(toggle(context, Settings.REVEAL_SPOILERS, L10n.t("Reveal spoilers"),
@@ -823,6 +942,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.MY_MESSAGES).addPreference(toggle(context, Settings.MY_MESSAGES, L10n.t("My messages"),
                     PatchFamily.MY_MESSAGES.coverageSummary(L10n.t("A group's menu at the top gets My messages, which shows the messages "
                             + "you sent there in the chat's search."))));
+            if (PatchFamily.Capability.ADMIN_TOOLS.installed()) {
+                on(pages, PatchFamily.MY_MESSAGES).addPreference(toggle(context, Settings.ADMIN_TOOLS, L10n.t("Admin tools"),
+                        L10n.t("A group or channel you own or manage gets Admin tools in its menu at the top. It opens Recent "
+                                + "Actions, the member lists and Invite Links, as far as your rights there go.")));
+            }
         }
         if (build.contains(PatchFamily.TEXT_DIRECTION)) {
             on(pages, PatchFamily.TEXT_DIRECTION).addPreference(toggle(context, Settings.TEXT_DIRECTION, L10n.t("Text direction"),
@@ -888,7 +1012,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (PatchFamily.Capability.SCREENSHOTS.installed()) {
                 on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS, L10n.t("Allow screenshots in chats that don't allow saving"),
                         PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Screenshots and screen recording work in those chats, their photos, profiles "
-                                + "and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked."))));
+                                + "and stories. Telegram doesn't tell anyone. Secret chats need Also allow screenshots in secret chats. "
+                                + "View-once media and the passcode screen stay blocked."))));
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.SECRET_CHAT_SCREENSHOTS, L10n.t("Also allow screenshots in secret chats"),
+                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Works with Allow screenshots in chats that don't allow saving on. "
+                                + "Secret chats, their photos and profiles can be captured too. Telegram tells the other person when you take one, "
+                                + "unless Suppress screenshot notification is on. Their view-once media stays blocked."))));
             }
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_SAVE_PROTECTED, L10n.t("Add Save to Downloads to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Save to Downloads to a downloaded photo, video, file or song "
@@ -921,6 +1050,25 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                     + "and keeps it on this phone, marked deleted. Clear kept messages removes it here too.")));
                 }
             }
+            if (PatchFamily.Capability.ALSO_DELETE_CHECKED.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.ALSO_DELETE_CHECKED,
+                        L10n.t("Check Also delete for by default"),
+                        L10n.t("When you delete messages in a chat with a person, Telegram's Also delete for box starts checked, "
+                                + "so they're deleted for both of you. Uncheck it to delete them just for you.")));
+            }
+            if (PatchFamily.Capability.BOOKMARKS.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_BOOKMARKS,
+                        L10n.t("Add Bookmark to the message menu"),
+                        L10n.t("Adds Bookmark to any message, post, photo, video or file. Bookmarks stay on this phone only. "
+                                + "Tap one on the Bookmarks page to open its chat at that message.")));
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(bookmarksRow(context));
+            }
+            if (PatchFamily.Capability.PHOTO_EDIT.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_EDIT_COPY,
+                        L10n.t("Add Edit a copy to the message menu"),
+                        L10n.t("Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. "
+                                + "Sending it sends the edited copy to the chat. The photo in the chat stays as it was.")));
+            }
             if (PatchFamily.Capability.SELECT_BETWEEN.installed()) {
                 on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.SELECT_BETWEEN, L10n.t("Select between"),
                         L10n.t("Adds a Select between button to the bar that shows while you pick messages. It selects everything between the first and"
@@ -948,6 +1096,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + " it stands out in the chat. Works with Keep deleted messages on.")));
             }
             on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(clearKeptRow(context));
+            on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(keptDaysRow(context));
+            on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_OWN_DELETED,
+                    L10n.t("Keep my messages too"), L10n.t("When someone deletes a whole chat for both of you, your own messages"
+                            + " stay here along with theirs. So do messages you delete on another of your devices. Works with Keep"
+                            + " deleted messages on.")));
             // The earlier text shows in Message details, which the message menu patch adds.
             if (PatchFamily.Capability.EDIT_HISTORY.installed()) {
                 on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_EDIT_HISTORY,
@@ -961,6 +1114,18 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + " someone sends you stay in the chat after you open them, with no timer. The sender doesn't"
                                 + " see them opened. Secret chats work as usual.")));
             }
+            if (PatchFamily.Capability.SECRET_TIMED.installed()) {
+                on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_SECRET_TIMED,
+                        L10n.t("Keep self-destructing secret chat messages"), L10n.t("Messages, photos and videos in secret chats"
+                                + " stay on this phone when their self-destruct timer runs out. The other person's copy still"
+                                + " disappears on their own timer, and they aren't told.")));
+            }
+            if (PatchFamily.Capability.REMOVED_CHATS.installed()) {
+                on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_REMOVED_CHATS,
+                        L10n.t("Keep chats you're removed from"), L10n.t("When a group or channel removes or bans you, it"
+                                + " stays in your chats with what this phone saved, and you can still open and scroll it."
+                                + " Delete it from the chat list to let it go.")));
+            }
         }
         if (build.contains(PatchFamily.ASK_BEFORE_STICKER)) {
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_STICKER, L10n.t("Ask before sending a sticker"),
@@ -969,12 +1134,25 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_GIF, L10n.t("Ask before sending a GIF"),
                     PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. "
                             + "Scheduled GIFs go out without asking."))));
-            on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_VOICE_VIDEO, L10n.t("Ask before sending a voice or video message"),
-                    PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a voice or video message you recorded goes out. "
+            on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_VOICE_VIDEO, L10n.t("Ask before sending a voice message"),
+                    PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a voice message you recorded goes out. "
                             + "The recording pauses first, and Cancel leaves it paused, ready to play, delete or send."))));
+            on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_ROUND_VIDEO, L10n.t("Ask before sending a round video message"),
+                    PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a round video message you recorded goes out. "
+                            + "The recording pauses first, and Cancel leaves it paused, ready to play, delete or send."))));
+            if (PatchFamily.Capability.ASK_TEXT.installed()) {
+                on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_MESSAGE, L10n.t("Ask before sending a message"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before the send button or the keyboard's send key sends what "
+                                + "you typed. Cancel leaves the text as it was. Scheduled and silent messages, edits and forwards go out without asking."))));
+            }
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before starting a call"),
                     PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Call or Cancel before the call button in a chat or on a profile starts a "
                             + "call."))));
+            if (PatchFamily.Capability.ASK_JOIN.installed()) {
+                on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_JOIN, L10n.t("Ask before joining a voice chat"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Join or Cancel before you join a group's voice chat or a channel's live "
+                                + "stream. Starting a new one doesn't ask."))));
+            }
         }
         if (build.contains(PatchFamily.CROP_GUARD)) {
             on(pages, PatchFamily.CROP_GUARD).addPreference(toggle(context, Settings.CROP_GUARD, L10n.t("Never send an uncropped photo"),
@@ -1015,6 +1193,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Start videos without sound"), L10n.t("A video you open plays muted until you press a"
                                 + " volume key. Round videos keep their sound.")));
             }
+            if (PatchFamily.Capability.VIDEO_TRACKS.installed()) {
+                on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_TRACKS,
+                        L10n.t("Audio track and subtitles"), L10n.t("A video's settings menu gets Audio track when the"
+                                + " video has more than one, and Subtitles when it has any. The subtitles you pick show over"
+                                + " the video.")));
+            }
             if (PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE.installed()) {
                 on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_EITHER_LANDSCAPE,
                         L10n.t("Full screen videos turn either way"), L10n.t("After you tap full screen, a video follows"
@@ -1037,6 +1221,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("While your phone is locked, voice and round video messages don't start, resume or skip to the next one, "
                                 + "whether from headphones, a car, the notification or the lock screen. One that's already playing "
                                 + "finishes. Music and other videos play as usual.")));
+            }
+            if (PatchFamily.Capability.VOICE_CHANGER.installed()) {
+                on(pages, PatchFamily.VOICE_ONE_AT_A_TIME).addPreference(voiceChangerRow(context));
             }
         }
         if (build.contains(PatchFamily.VOICE_MUSIC_PLAYER)) {
@@ -1105,12 +1292,19 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("Also save from chats that don't allow saving"),
                     L10n.t("With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use"
                             + " it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats"
-                            + " still stay in Telegram.")));
+                            + " need Also save from secret chats too.")));
             on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.SAVE_TIMED_MEDIA,
                     L10n.t("Also save view-once and timed media"),
                     L10n.t("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video"
                             + " messages get copied to Download/Telegram when they download. The sender meant them to disappear,"
-                            + " so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.")));
+                            + " so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret"
+                            + " chats too.")));
+            on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.SAVE_SECRET_CHATS,
+                    L10n.t("Also save from secret chats"),
+                    L10n.t("Works with Also save from chats that don't allow saving on. Files, photos and videos from secret chats"
+                            + " get copied too, and the message menu's Save to Downloads shows up there. Their view-once and timed"
+                            + " media also need Also save view-once and timed media. A secret chat is meant to stay on your two"
+                            + " phones, so only use it where the other person is fine with that.")));
             if (PatchFamily.Capability.GALLERY_FOLDER.installed()) {
                 on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(galleryFolderRow(context));
             }
@@ -1124,6 +1318,20 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 });
                 on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(storage);
                 on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(storageFolderNameRow(context));
+            }
+            if (PatchFamily.Capability.FILE_ICONS_CHAT.installed() || PatchFamily.Capability.FILE_ICONS_SHARED.installed()) {
+                on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.FILE_ICONS,
+                        L10n.t("File icons and thumbnails"),
+                        L10n.t("APK and EXE files get their own icon in chats and in Shared media. Once downloaded, a PDF"
+                                + " shows its first page and a video a frame from it. Files with a thumbnail from Telegram"
+                                + " keep it.")));
+            }
+            if (PatchFamily.Capability.KNOWN_FILES.installed()) {
+                on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.KNOWN_FILES,
+                        L10n.t("Recognize files you already have"),
+                        L10n.t("A file Telegram already downloaded, in another account for example, shows as downloaded"
+                                + " here too when its folders hold one with the same name and size. With Keep Telegram's files"
+                                + " in internal storage on, files from before a reinstall count too.")));
             }
         }
     }
@@ -1337,6 +1545,22 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.PROFILE_DATA_CENTER, L10n.t("Show where a profile photo is stored"),
                     L10n.t("A profile's menu also shows which of Telegram's five data centers (its server "
                             + "locations) stores the profile photo. No photo, no number.")));
+            if (PatchFamily.Capability.REGISTRATION_DATE.installed()) {
+                on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.REGISTRATION_DATE, L10n.t("Show when an account was made"),
+                        L10n.t("A person's profile menu also shows about which month they joined Telegram, worked out from their "
+                                + "user ID. It's an estimate, and nothing is asked of Telegram. Bots, groups and channels get none.")));
+            }
+            if (PatchFamily.Capability.MEMBER_JOIN_DATES.installed()) {
+                on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.MEMBER_JOIN_DATES, L10n.t("Show when members joined"),
+                        L10n.t("A group's member lists, on its profile and its Members page, also show when each person joined, "
+                                + "next to their last seen. The date comes with the list, so nothing more is asked of Telegram. "
+                                + "Admins and the owner keep their role.")));
+            }
+            if (PatchFamily.Capability.FORWARD_DATES.installed()) {
+                on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.FORWARD_DATES, L10n.t("Show when forwards were first sent"),
+                        L10n.t("A forwarded message's header also shows the date and time it was first sent, after Forwarded from. "
+                                + "The date comes with the message, so nothing more is asked of Telegram.")));
+            }
             on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(openByIdRow(context));
             if (PatchFamily.Capability.SPECIAL_CONTACTS.installed()) {
                 on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.SPECIAL_CONTACTS, L10n.t("Special contacts"),
@@ -1354,16 +1578,44 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (PatchFamily.Capability.TITLE_EMOJI.installed()) {
                 on(pages, PatchFamily.HOLIDAY_LOOK).addPreference(titleEmojiRow(context));
             }
+            if (PatchFamily.Capability.CHAT_LIST_TITLE.installed()) {
+                on(pages, PatchFamily.HOLIDAY_LOOK).addPreference(toggle(context, Settings.CHAT_LIST_TITLE, L10n.t("Your own chat list title"),
+                        L10n.t("Shows text of your choice in place of Telegram's name at the top of the chat list, in the title's own "
+                                + "font and color. It stays on this phone. Restart Telegram to see the change.")));
+                on(pages, PatchFamily.HOLIDAY_LOOK).addPreference(chatListTitleRow(context));
+            }
+            if (PatchFamily.Capability.CHAT_LIST_BANNER.installed()) {
+                on(pages, PatchFamily.HOLIDAY_LOOK).addPreference(chatListBannerRow(context));
+            }
         }
         if (build.contains(PatchFamily.USE_SYSTEM_FONT)) {
             on(pages, PatchFamily.USE_SYSTEM_FONT).addPreference(toggle(context, Settings.USE_SYSTEM_FONT, L10n.t("Use system font"),
                     PatchFamily.USE_SYSTEM_FONT.coverageSummary(L10n.t("Bold, italic and code text use your phone's font instead of Telegram's built-in "
                             + "one. Restart Telegram to see the change."))));
+            if (PatchFamily.Capability.CUSTOM_FONT.installed()) {
+                on(pages, PatchFamily.USE_SYSTEM_FONT).addPreference(fontFileRow(context));
+            }
         }
         if (build.contains(PatchFamily.AMOLED_BLACK)) {
             on(pages, PatchFamily.AMOLED_BLACK).addPreference(toggle(context, Settings.AMOLED_BLACK, L10n.t("AMOLED black"),
                     PatchFamily.AMOLED_BLACK.coverageSummary(L10n.t("Night and Dark themes use pure black screens. Message bubbles and menus keep "
                             + "their colors. Restart Telegram to see the change."))));
+            // Finding the list pages' colors takes Android 13, so older phones don't get the rows.
+            if (PatchFamily.Capability.LIST_BACKGROUND.installed() && ListBackground.supported()) {
+                SwitchPreference lists = toggle(context, Settings.LIST_BACKGROUND, L10n.t("Picture behind the lists"),
+                        L10n.t("Shows a picture from your gallery behind the chat list, Settings, profiles and the other lists. "
+                                + "Chats keep their wallpaper, and menus and dialogs stay solid. Works with Telegram's built-in themes."));
+                lists.setOnPreferenceChangeListener((row, value) -> {
+                    // Turned on with no picture yet: straight to the gallery, the way the row goes.
+                    if (Boolean.TRUE.equals(value) && !SavedPicture.present(context, SavedPicture.LIST_BACKGROUND)) {
+                        pickPicture(LIST_BACKGROUND_REQUEST);
+                    }
+                    Utils.runOnMainThreadDelayed(ListBackground::changed, 0);
+                    return true;
+                });
+                on(pages, PatchFamily.AMOLED_BLACK).addPreference(lists);
+                on(pages, PatchFamily.AMOLED_BLACK).addPreference(listBackgroundRow(context));
+            }
         }
         if (build.contains(PatchFamily.EXACT_NUMBERS)) {
             on(pages, PatchFamily.EXACT_NUMBERS).addPreference(toggle(context, Settings.EXACT_NUMBERS, L10n.t("Exact numbers"),
@@ -1515,6 +1767,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                             L10n.t("When you sign up a phone number that's new to Telegram, people who have it saved aren't "
                                     + "told you joined. Accounts that already exist aren't affected.")));
                 }
+                if (PatchFamily.Capability.SESSION_DEVICE.installed()) privacy.addPreference(sessionDeviceRow(context));
                 if (PatchFamily.Capability.DELETE_ACCOUNT.installed()) privacy.addPreference(deleteAccountRow(context));
             }
             if (build.contains(PatchFamily.DISABLE_CALL_DEBUG)) {
@@ -1560,6 +1813,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                     + "Chats tab finds your chats and contacts on this phone, plus recent searches, but not "
                                     + "messages or public accounts. Channels, Apps, the media tabs and chat or date filters "
                                     + "don't search for typed text. Search inside a chat still goes to Telegram.")));
+                }
+                if (PatchFamily.Capability.LINK_PREVIEW_RULES.installed()) {
+                    privacy.addPreference(toggle(context, Settings.LINK_PREVIEW_RULES, L10n.t("Fix link previews"),
+                            L10n.t("When you send a link to a site in your rules, its preview comes from the other site "
+                                    + "the rule names, like fixupx.com for x.com. Your message keeps the link you typed.")));
+                    privacy.addPreference(linkPreviewRulesRow(context));
                 }
             }
             if (build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) {
@@ -1757,6 +2016,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 L10n.t("Settings look")));
         if (build.contains(PatchFamily.UNIFIED_PUSH)) leftOut.add(L10n.t("UnifiedPush notifications"));
         if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS)) leftOut.add(L10n.t("Folders by chat type"));
+        if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS) && PatchFamily.Capability.ADMIN_FOLDER.installed()) {
+            leftOut.add(L10n.t("Admin folder"));
+        }
         if (build.contains(PatchFamily.FREE_PROXIES)) leftOut.add(L10n.t("Free proxies"));
         if (build.contains(PatchFamily.FREE_PROXIES) && PatchFamily.Capability.PROXY_ORDER.installed()) {
             leftOut.add(L10n.t("Proxy order"));
@@ -2155,6 +2417,41 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    private Preference linkPreviewRulesRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(LinkPreviewRulesEditor.KEY);
+        row.setTitle(L10n.t("Link preview rules"));
+        row.setPersistent(false);
+        row.setSummary(LinkPreviewRulesEditor.summary());
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(LinkPreviewRulesEditor.open(activity, p));
+            }
+            return true;
+        });
+        return row;
+    }
+
+    /** The Bookmarks page: every bookmarked message, opened or removed from there. */
+    private Preference bookmarksRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(BookmarksPage.KEY);
+        row.setTitle(L10n.t("Bookmarks"));
+        row.setPersistent(false);
+        row.setSummary(L10n.t("Every message you bookmarked, newest first. Tap one to open it, or long-press it to remove it."));
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                AlertDialog page = BookmarksPage.show(activity);
+                if (page != null) own(page);
+            }
+            return true;
+        });
+        return row;
+    }
+
     private Preference openByIdRow(Context context) {
         Row row = new Row(context);
         row.setKey(OpenByIdEditor.KEY);
@@ -2210,6 +2507,62 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             return true;
         });
         return row;
+    }
+
+    /** How long kept deleted messages stay (#91): the row names it, and a tap lists the choices. */
+    private Preference keptDaysRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(KEPT_DAYS_ROW);
+        row.setTitle(L10n.t("Remove kept messages after"));
+        row.setPersistent(false);
+        row.setSummary(keptDaysLabel(Settings.KEEP_DELETED_DAYS.get()));
+        row.setOnPreferenceClickListener(p -> {
+            showKeptDays(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** A pick that saves hands over the messages already past it at once, and says how many go. */
+    void showKeptDays(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        CharSequence[] labels = new CharSequence[KeepDeleted.DAYS.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = keptDaysShort(KeepDeleted.DAYS.get(i));
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Remove kept messages after"))
+                .setSingleChoiceItems(labels, savedKeptDaysChoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.KEEP_DELETED_DAYS.saveCommitted(KeepDeleted.DAYS.get(which)), landed -> {
+                                if (landed) {
+                                    row.setSummary(keptDaysLabel(Settings.KEEP_DELETED_DAYS.get()));
+                                    dialog.dismiss();
+                                    int going = KeepDeleted.sweep();
+                                    if (going > 0) Utils.showToastLong(KeepDeleted.clearedMessage(going));
+                                } else {
+                                    checkSaved((AlertDialog) dialog, savedKeptDaysChoice());
+                                    Utils.showToastLong(L10n.t("Couldn't save the choice. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSaved((AlertDialog) dialog, savedKeptDaysChoice());
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** Where the saved days sit in the list. A number that isn't one of them reads as Never. */
+    static int savedKeptDaysChoice() {
+        return Math.max(0, KeepDeleted.DAYS.indexOf(Settings.KEEP_DELETED_DAYS.get()));
+    }
+
+    static String keptDaysLabel(int days) {
+        if (days <= 0 || !KeepDeleted.DAYS.contains(days)) return L10n.t("Kept messages stay until you clear them.");
+        return L10n.quantity(days, "Kept messages are removed %1$d day after they were deleted.",
+                "Kept messages are removed %1$d days after they were deleted.", days);
+    }
+
+    /** The days as a choice in the list and in a settings file's preview. */
+    static String keptDaysShort(int days) {
+        if (days <= 0 || !KeepDeleted.DAYS.contains(days)) return L10n.t("Never");
+        return L10n.quantity(days, "%1$d day", "%1$d days", days);
     }
 
     /** Brings back every message Hide for me hid, in every account, and says how many. */
@@ -2301,6 +2654,62 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         return L10n.f("%1$s of Telegram's size", percent(StickerSize.percent(Settings.STICKER_SIZE.savedValue())));
     }
 
+    /** The size chat list avatars show at: the row says the one picked, and a tap lists the others. */
+    private Preference avatarSizeRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(AVATAR_SIZE_ROW);
+        row.setTitle(L10n.t("Avatar size"));
+        row.setPersistent(false);
+        row.setSummary(avatarSizeSummary());
+        row.setOnPreferenceClickListener(p -> {
+            showAvatarSizes(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The avatar sizes, picked the way {@link #showStickerSizes} picks a sticker size. */
+    void showAvatarSizes(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        CharSequence[] labels = new CharSequence[ChatListAvatar.CHOICES.length];
+        for (int i = 0; i < labels.length; i++) labels[i] = percent(ChatListAvatar.CHOICES[i]);
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Avatar size"))
+                .setSingleChoiceItems(labels, savedAvatarChoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.CHAT_LIST_AVATAR_SIZE.saveCommitted(ChatListAvatar.CHOICES[which]), landed -> {
+                                if (landed) {
+                                    row.setSummary(avatarSizeSummary());
+                                    dialog.dismiss();
+                                    // The rows on screen take the new size.
+                                    Utils.runOnMainThreadDelayed(ChatListAvatar::resizeAll, 0);
+                                } else {
+                                    checkSavedAvatarSize((AlertDialog) dialog);
+                                    Utils.showToastLong(L10n.t("Couldn't save the size. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSavedAvatarSize((AlertDialog) dialog);
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** Where the saved avatar size sits among the choices. One that's none of them reads as the default. */
+    static int savedAvatarChoice() {
+        int saved = ChatListAvatar.percent(Settings.CHAT_LIST_AVATAR_SIZE.savedValue());
+        for (int i = 0; i < ChatListAvatar.CHOICES.length; i++) {
+            if (ChatListAvatar.CHOICES[i] == saved) return i;
+        }
+        return -1;
+    }
+
+    private static void checkSavedAvatarSize(AlertDialog dialog) {
+        dialog.getListView().setItemChecked(savedAvatarChoice(), true);
+    }
+
+    static String avatarSizeSummary() {
+        return L10n.f("%1$s of Telegram's size", percent(ChatListAvatar.percent(Settings.CHAT_LIST_AVATAR_SIZE.savedValue())));
+    }
+
     /** The folder the storage switch moves Telegram's files to: the row names it, and a tap opens its editor. */
     private Preference storageFolderNameRow(Context context) {
         Row row = new Row(context);
@@ -2317,6 +2726,33 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             return true;
         });
         return row;
+    }
+
+    /** The device the other sessions see: the row says what goes out, and a tap opens its editor (#79). */
+    private Preference sessionDeviceRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(SessionDeviceEditor.KEY);
+        row.setTitle(L10n.t("Device in Active sessions"));
+        row.setPersistent(false);
+        row.setSummary(SessionDeviceEditor.summary(Settings.SESSION_DEVICE_NAME.savedValue(),
+                Settings.SESSION_SYSTEM_VERSION.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(SessionDeviceEditor.open(activity, p, (name, system) -> sessionDeviceSaved(activity, name, system)));
+            }
+            return true;
+        });
+        return row;
+    }
+
+    /** Each account sends its device once per launch, so a change waits for a restart unless it's the one running. */
+    private void sessionDeviceSaved(Context context, String nameBefore, String systemBefore) {
+        boolean name = noteRestartPending(Settings.SESSION_DEVICE_NAME, nameBefore);
+        boolean system = noteRestartPending(Settings.SESSION_SYSTEM_VERSION, systemBefore);
+        if (name || system) showRestartDialog(context);
+        else Utils.showToastShort(L10n.t("Saved."));
     }
 
     /** Telegram reads its folder once, so a new name waits for a restart unless it's the one running. */
@@ -3027,6 +3463,59 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         return L10n.t("Every call");
     }
 
+    /** The voice changer (#79): the row names the voice, and a tap lists them. */
+    private Preference voiceChangerRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(VOICE_CHANGER_ROW);
+        row.setTitle(L10n.t("Voice changer"));
+        row.setPersistent(false);
+        row.setSummary(voiceChangerLabel(Settings.VOICE_CHANGER.get()));
+        row.setOnPreferenceClickListener(p -> {
+            showVoiceChanger(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The voices with the saved one checked, saved and closed the way Calls to record is. */
+    void showVoiceChanger(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        List<String> choices = VoiceChanger.PRESETS;
+        CharSequence[] labels = new CharSequence[choices.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = voiceChangerLabel(choices.get(i));
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Voice changer"))
+                .setSingleChoiceItems(labels, savedVoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.VOICE_CHANGER.saveCommitted(choices.get(which)), landed -> {
+                                if (landed) {
+                                    row.setSummary(voiceChangerLabel(Settings.VOICE_CHANGER.get()));
+                                    dialog.dismiss();
+                                } else {
+                                    checkSaved((AlertDialog) dialog, savedVoice());
+                                    Utils.showToastLong(L10n.t("Couldn't save the choice. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSaved((AlertDialog) dialog, savedVoice());
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    private static int savedVoice() {
+        return Math.max(0, VoiceChanger.PRESETS.indexOf(VoiceChanger.normalized(Settings.VOICE_CHANGER.get())));
+    }
+
+    static String voiceChangerLabel(String preset) {
+        switch (VoiceChanger.normalized(preset)) {
+            case "baby": return L10n.t("Baby");
+            case "woman": return L10n.t("Woman");
+            case "man": return L10n.t("Man");
+            case "horror": return L10n.t("Horror movie");
+            case "robot": return L10n.t("Robot");
+            default: return L10n.t("Off");
+        }
+    }
+
     private static void checkSaved(AlertDialog dialog, int position) {
         dialog.getListView().setItemChecked(position, true);
     }
@@ -3191,6 +3680,340 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 .setPositiveButton(L10n.t("Choose another folder"), (dialog, which) -> pickRecordFolder())
                 .setNeutralButton(L10n.t("Use the usual folder"), (dialog, which) -> recordFolderChosen(null))
                 .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** The picture behind the lists: the row says how dim it is, and a tap picks one or changes it. */
+    private Preference listBackgroundRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(LIST_BACKGROUND_ROW);
+        row.setTitle(L10n.t("Background picture"));
+        row.setPersistent(false);
+        row.setSummary(listBackgroundSummary(context));
+        row.setOnPreferenceClickListener(p -> {
+            showListBackground(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    static String listBackgroundSummary(@Nullable Context context) {
+        if (!SavedPicture.present(context, SavedPicture.LIST_BACKGROUND)) return L10n.t("No picture yet. Tap to pick one.");
+        return L10n.f("Dimmed by %1$s. Tap to change it.", percent(Settings.LIST_BACKGROUND_DIM.savedValue()));
+    }
+
+    /**
+     * With no picture, straight to the gallery. With one, the dims with the saved one checked, and
+     * another picture or none. A dim shows at once; the list closes once it's saved.
+     */
+    void showListBackground(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        if (!SavedPicture.present(context, SavedPicture.LIST_BACKGROUND)) {
+            pickPicture(LIST_BACKGROUND_REQUEST);
+            return;
+        }
+        CharSequence[] labels = new CharSequence[ListBackground.DIM_STEPS.length];
+        for (int i = 0; i < labels.length; i++) labels[i] = percent(ListBackground.DIM_STEPS[i]);
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Dim the picture"))
+                .setSingleChoiceItems(labels, savedDimChoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.LIST_BACKGROUND_DIM.saveCommitted(ListBackground.DIM_STEPS[which]), landed -> {
+                                if (landed) {
+                                    ListBackground.redraw();
+                                    row.setSummary(listBackgroundSummary(context));
+                                    dialog.dismiss();
+                                } else {
+                                    ((AlertDialog) dialog).getListView().setItemChecked(savedDimChoice(), true);
+                                    Utils.showToastLong(L10n.t("Couldn't save the dim. Try again in a moment."));
+                                }
+                            });
+                    if (!started) ((AlertDialog) dialog).getListView().setItemChecked(savedDimChoice(), true);
+                })
+                .setPositiveButton(L10n.t("Choose another picture"), (dialog, which) -> pickPicture(LIST_BACKGROUND_REQUEST))
+                .setNeutralButton(L10n.t("Remove background"), (dialog, which) -> removeListBackground(context))
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** Where the saved dim sits among the choices, or -1 for one that's none of them. */
+    static int savedDimChoice() {
+        int saved = Settings.LIST_BACKGROUND_DIM.savedValue();
+        for (int i = 0; i < ListBackground.DIM_STEPS.length; i++) {
+            if (ListBackground.DIM_STEPS[i] == saved) return i;
+        }
+        return -1;
+    }
+
+    /** Takes the picture away and turns the switch off, so the lists look like Telegram's again at once. */
+    void removeListBackground(Context context) {
+        if (SettingsLock.refuses()) return;
+        SavedPicture.remove(context, SavedPicture.LIST_BACKGROUND);
+        Settings.LIST_BACKGROUND.save(false);
+        ListBackground.changed();
+        Utils.showToastShort(L10n.t("Background removed."));
+        refreshSwitches();
+    }
+
+    /** Android's photo picker, or the gallery on a phone without one, for a picture saved as [requestCode] says. */
+    void pickPicture(int requestCode) {
+        Intent picker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? new Intent(MediaStore.ACTION_PICK_IMAGES).setType("image/*")
+                : new Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(picker, requestCode);
+        } catch (ActivityNotFoundException | IllegalStateException missing) {
+            Logger.printInfo(() -> "No picture picker: " + missing.getClass().getSimpleName());
+            Utils.showToastLong(L10n.t("This phone has no gallery picker."));
+        }
+    }
+
+    /**
+     * Copies [picture], the picker's answer, into Telegram's own files as [name] off the main
+     * thread, then says how it went. The picker's permission to read it lasts as long as the page.
+     */
+    void pictureChosen(Uri picture, String name) {
+        Activity activity = getActivity();
+        Context context = activity != null ? activity.getApplicationContext() : Utils.getContext();
+        if (context == null) return;
+        boolean queued = Utils.runOnBackgroundThread(() -> {
+            SavedPicture.Saved saved = SavedPicture.Saved.FAILED;
+            try {
+                saved = SavedPicture.save(context, picture, name);
+            } finally {
+                SavedPicture.Saved result = saved;
+                Utils.runOnMainThread(() -> pictureSaved(name, result));
+            }
+        });
+        if (!queued) pictureSaved(name, SavedPicture.Saved.FAILED);
+    }
+
+    void pictureSaved(String name, SavedPicture.Saved saved) {
+        if (saved != SavedPicture.Saved.SAVED) {
+            Utils.showToastLong(saved == SavedPicture.Saved.NOT_A_PICTURE ? L10n.t("That file isn't a picture.")
+                    : saved == SavedPicture.Saved.TOO_LARGE ? L10n.t("That picture is too large.")
+                    : L10n.t("Couldn't save the picture. Try again."));
+            return;
+        }
+        if (SavedPicture.LIST_BACKGROUND.equals(name)) {
+            Settings.LIST_BACKGROUND.save(true);
+            ListBackground.changed();
+            Utils.showToastShort(L10n.t("Background picture saved."));
+        }
+        if (SavedPicture.CHAT_LIST_BANNER.equals(name)) {
+            Settings.CHAT_LIST_BANNER.save(ChatListBanner.PICTURE);
+            ChatListBanner.changed();
+            Utils.showToastShort(L10n.t("Banner picture saved."));
+        }
+        if (getPreferenceScreen() != null) refreshSwitches();
+    }
+
+    /** A font file of your own (#79): the row names it, and a tap picks one or changes it. */
+    private Preference fontFileRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(FONT_FILE_ROW);
+        row.setTitle(L10n.t("Font file"));
+        row.setPersistent(false);
+        row.setSummary(fontFileSummary(context));
+        row.setOnPreferenceClickListener(p -> {
+            showFontFile(context);
+            return true;
+        });
+        return row;
+    }
+
+    /** The saved font's name, or what a tap does with none. A name whose file is gone counts as none. */
+    static String fontFileSummary(@Nullable Context context) {
+        String name = Settings.CUSTOM_FONT.savedValue();
+        if (name.isEmpty() || !CustomFont.present(context)) {
+            return L10n.t("No font file yet. Tap to pick a .ttf or .otf file for all of Telegram's text.");
+        }
+        return L10n.f("%1$s, used for all of Telegram's text while Use system font is on. Tap to change it.", L10n.isolate(name));
+    }
+
+    /** With no font, straight to the file picker. With one, another font or none. */
+    void showFontFile(Context context) {
+        if (SettingsLock.refuses()) return;
+        String name = Settings.CUSTOM_FONT.savedValue();
+        if (name.isEmpty() || !CustomFont.present(context)) {
+            pickFont();
+            return;
+        }
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.isolate(name))
+                .setPositiveButton(L10n.t("Choose another font"), (dialog, which) -> pickFont())
+                .setNeutralButton(L10n.t("Remove font"), (dialog, which) -> removeFont(context))
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** The phone's file picker, open to any file: phones don't agree on a type for fonts, and the save checks it. */
+    void pickFont() {
+        Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(picker, FONT_FILE_REQUEST);
+        } catch (ActivityNotFoundException | IllegalStateException missing) {
+            Logger.printInfo(() -> "No file picker: " + missing.getClass().getSimpleName());
+            Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
+        }
+    }
+
+    /** Copies [font], the picker's answer, into Telegram's own files off the main thread, then says how it went. */
+    void fontChosen(Uri font) {
+        Activity activity = getActivity();
+        Context context = activity != null ? activity.getApplicationContext() : Utils.getContext();
+        if (context == null) return;
+        boolean queued = Utils.runOnBackgroundThread(() -> {
+            CustomFont.Saved saved = CustomFont.Saved.FAILED;
+            String name = null;
+            try {
+                name = CustomFont.name(context, font);
+                saved = CustomFont.save(context, font);
+            } finally {
+                CustomFont.Saved result = saved;
+                String named = name;
+                Utils.runOnMainThread(() -> fontSaved(context, named, result));
+            }
+        });
+        if (!queued) fontSaved(context, null, CustomFont.Saved.FAILED);
+    }
+
+    /**
+     * A saved font turns Use system font on too, since it's drawn only while that's on. Telegram
+     * keeps the faces it has, so either way the font shows after a restart.
+     */
+    void fontSaved(Context context, @Nullable String name, CustomFont.Saved saved) {
+        if (saved != CustomFont.Saved.SAVED || name == null) {
+            Utils.showToastLong(saved == CustomFont.Saved.NOT_A_FONT ? L10n.t("That file isn't a font.")
+                    : saved == CustomFont.Saved.TOO_LARGE ? L10n.t("That font file is too large.")
+                    : L10n.t("Couldn't save the font. Try again."));
+            return;
+        }
+        String fontBefore = Settings.CUSTOM_FONT.savedValue();
+        boolean switchBefore = Settings.USE_SYSTEM_FONT.savedValue();
+        // The switch's own row hears this save only once the Setting already holds it, and would
+        // take the new value for the one the process runs with: note the running one first.
+        noteRestartPending(Settings.USE_SYSTEM_FONT, switchBefore);
+        Settings.CUSTOM_FONT.save(name);
+        Settings.USE_SYSTEM_FONT.save(true);
+        noteRestartPending(Settings.CUSTOM_FONT, fontBefore);
+        noteRestartPending(Settings.USE_SYSTEM_FONT, switchBefore);
+        if (getPreferenceScreen() != null) refreshSwitches();
+        Activity activity = getActivity();
+        showRestartDialog(activity != null ? activity : context);
+    }
+
+    /** Deletes the font. Text that already has it keeps it until Telegram restarts. */
+    void removeFont(Context context) {
+        if (SettingsLock.refuses()) return;
+        CustomFont.remove(context);
+        String before = Settings.CUSTOM_FONT.savedValue();
+        Settings.CUSTOM_FONT.save("");
+        refreshSwitches();
+        if (noteRestartPending(Settings.CUSTOM_FONT, before)) showRestartDialog(context);
+        else Utils.showToastShort(L10n.t("Font removed."));
+    }
+
+    /** The chat list banner: the row says which one shows, and a tap offers colors, a picture or none. */
+    private Preference chatListBannerRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(CHAT_LIST_BANNER_ROW);
+        row.setTitle(L10n.t("Chat list banner"));
+        row.setPersistent(false);
+        row.setSummary(chatListBannerSummary(context));
+        row.setOnPreferenceClickListener(p -> {
+            showChatListBanner(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The banner's choices in the order the list shows them: none, each gradient, then the picture. */
+    static String[] chatListBannerChoices() {
+        String[] choices = new String[ChatListBanner.GRADIENTS.length + 2];
+        choices[0] = ChatListBanner.NONE;
+        System.arraycopy(ChatListBanner.GRADIENTS, 0, choices, 1, ChatListBanner.GRADIENTS.length);
+        choices[choices.length - 1] = ChatListBanner.PICTURE;
+        return choices;
+    }
+
+    /** What [saved] is called in the banner's list, the settings file's preview and the row. */
+    static String chatListBannerLabel(@Nullable String saved) {
+        if (ChatListBanner.PICTURE.equals(saved)) return L10n.t("Your picture");
+        switch (ChatListBanner.gradientName(saved)) {
+            case "dusk": return L10n.t("Dusk");
+            case "ocean": return L10n.t("Ocean");
+            case "forest": return L10n.t("Forest");
+            case "ember": return L10n.t("Ember");
+            case "slate": return L10n.t("Slate");
+            default: return L10n.t("None");
+        }
+    }
+
+    static String chatListBannerSummary(@Nullable Context context) {
+        String saved = Settings.CHAT_LIST_BANNER.savedValue();
+        boolean picture = ChatListBanner.PICTURE.equals(saved) && SavedPicture.present(context, SavedPicture.CHAT_LIST_BANNER);
+        if (ChatListBanner.showsSomething(saved, picture)) return chatListBannerLabel(saved);
+        return L10n.t("None. Tap to pick colors or a picture.");
+    }
+
+    /** Where the saved banner sits among the choices; a picture that's gone counts as none. */
+    static int savedBannerChoice(@Nullable Context context) {
+        String saved = Settings.CHAT_LIST_BANNER.savedValue();
+        boolean picture = ChatListBanner.PICTURE.equals(saved) && SavedPicture.present(context, SavedPicture.CHAT_LIST_BANNER);
+        if (!ChatListBanner.showsSomething(saved, picture)) return 0;
+        return Arrays.asList(chatListBannerChoices()).indexOf(saved);
+    }
+
+    /**
+     * None, the gradients and a picture, with the one showing checked. A gradient or a picture
+     * that's already saved shows at once; a picture not picked yet opens the gallery first. None
+     * takes the picture away too.
+     */
+    void showChatListBanner(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        String[] choices = chatListBannerChoices();
+        CharSequence[] labels = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            labels[i] = ChatListBanner.PICTURE.equals(choices[i]) ? L10n.t("Picture from your gallery") : chatListBannerLabel(choices[i]);
+        }
+        boolean hasPicture = SavedPicture.present(context, SavedPicture.CHAT_LIST_BANNER);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Chat list banner"))
+                .setSingleChoiceItems(labels, savedBannerChoice(context), (dialog, which) -> {
+                    String choice = choices[which];
+                    if (ChatListBanner.NONE.equals(choice)) {
+                        dialog.dismiss();
+                        removeChatListBanner(context);
+                        return;
+                    }
+                    if (ChatListBanner.PICTURE.equals(choice) && !SavedPicture.present(context, SavedPicture.CHAT_LIST_BANNER)) {
+                        dialog.dismiss();
+                        pickPicture(CHAT_LIST_BANNER_REQUEST);
+                        return;
+                    }
+                    boolean started = save((AlertDialog) dialog, () -> Settings.CHAT_LIST_BANNER.saveCommitted(choice), landed -> {
+                        if (landed) {
+                            ChatListBanner.changed();
+                            row.setSummary(chatListBannerSummary(context));
+                            dialog.dismiss();
+                        } else {
+                            ((AlertDialog) dialog).getListView().setItemChecked(savedBannerChoice(context), true);
+                            Utils.showToastLong(L10n.t("Couldn't save the choice. Try again in a moment."));
+                        }
+                    });
+                    if (!started) ((AlertDialog) dialog).getListView().setItemChecked(savedBannerChoice(context), true);
+                })
+                .setNegativeButton(L10n.t("Cancel"), null);
+        if (hasPicture) builder.setPositiveButton(L10n.t("Choose another picture"), (dialog, which) -> pickPicture(CHAT_LIST_BANNER_REQUEST));
+        show(builder);
+    }
+
+    /** Takes the banner and its picture away, so the chat list's bar looks like Telegram's again at once. */
+    void removeChatListBanner(Context context) {
+        if (SettingsLock.refuses()) return;
+        SavedPicture.remove(context, SavedPicture.CHAT_LIST_BANNER);
+        Settings.CHAT_LIST_BANNER.save(ChatListBanner.NONE);
+        ChatListBanner.changed();
+        Utils.showToastShort(L10n.t("Banner removed."));
+        refreshSwitches();
     }
 
     /** Android's folder picker, asked for a folder Telegram can keep writing to after a restart. */
@@ -3428,7 +4251,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /** A percent the way this language writes one. */
-    private static String percent(int value) {
+    static String percent(int value) {
         return NumberFormat.getPercentInstance(L10n.locale()).format(value / 100.0);
     }
 
@@ -3469,6 +4292,30 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     /** The chat list builds its title once, so a new text waits for a restart unless it's the one running. */
     private void titleEmojiSaved(Context context, String before) {
         if (noteRestartPending(Settings.TITLE_EMOJI, before)) showRestartDialog(context);
+        else Utils.showToastShort(L10n.t("Saved."));
+    }
+
+    /** The text shown in place of Telegram's name: the row shows it, and a tap opens its editor. */
+    private Preference chatListTitleRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(TitleEmojiEditor.TITLE_KEY);
+        row.setTitle(L10n.t("Text for the chat list title"));
+        row.setPersistent(false);
+        row.setSummary(TitleEmojiEditor.titleSummary(Settings.CHAT_LIST_TITLE_TEXT.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(TitleEmojiEditor.openTitle(activity, p, before -> chatListTitleSaved(activity, before)));
+            }
+            return true;
+        });
+        return row;
+    }
+
+    /** Like the emoji, the title text waits for a restart unless it's the one running. */
+    private void chatListTitleSaved(Context context, String before) {
+        if (noteRestartPending(Settings.CHAT_LIST_TITLE_TEXT, before)) showRestartDialog(context);
         else Utils.showToastShort(L10n.t("Saved."));
     }
 

@@ -7,15 +7,19 @@ package app.morphe.patches.instagram.reels.tapvolume
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.NeutralNativePath
+import app.morphe.patches.instagram.feed.ViewIdFixture
 import app.morphe.patches.instagram.media.taptoplay.CLIPS_PAUSE
-import app.morphe.patches.instagram.media.taptoplay.TOGGLE_PAUSE
-import app.morphe.patches.instagram.reels.speed.MAYBE_RESUME_PLAYER
+import app.morphe.patches.instagram.media.taptoplay.FRAGMENT_ACTIVITY
+import app.morphe.patches.instagram.media.taptoplay.REELS_PLAYER_PAUSE
+import app.morphe.patches.instagram.media.taptoplay.TOUCH as TAP_CLOCK
+import app.morphe.patches.instagram.reels.speed.RESUME_PLAYER_TRACE
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -50,8 +54,6 @@ class ReelTapAndVolumeHookTest {
     private val view = "Landroid/view/View;"
     private val objectType = "Ljava/lang/Object;"
     private val trace = "Lfixture/Trace;->begin(Ljava/lang/String;)V"
-    private val tapMarker = "android_purge_26_q3_$TOGGLE_PAUSE"
-    private val toggleMarker = "android_purge_26_q3_$TOGGLE_AUDIO"
 
     /** The instructions the mute half adds: ask, test, read the controller, call its toggle and return. */
     private val muteLength = 10
@@ -69,6 +71,7 @@ class ReelTapAndVolumeHookTest {
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue("$MUTE_INSTEAD_OF_PAUSE is not in the extension: $declared", MUTE_INSTEAD_OF_PAUSE.substringAfter("->") in declared)
         assertTrue("$KEEP_PLAYING is not in the extension: $declared", KEEP_PLAYING.substringAfter("->") in declared)
+        assertTrue("$PLAY_ICON_TOUCH is not in the extension: $declared", PLAY_ICON_TOUCH.substringAfter("->") in declared)
         // The speaker icon's (#608): the controller handed over, and the two stubs the patch fills.
         val speaker = listOf(SPEAKER_RESUMING.substringAfter("->"), "$TOGGLE_AUDIO_STUB($objectType)V", "$AUDIO_ON_STUB($objectType)I")
         for (signature in speaker) assertTrue("$signature is not in the extension: $declared", signature in declared)
@@ -109,15 +112,17 @@ class ReelTapAndVolumeHookTest {
     /** A build the patch can't read fails at patch time, saying what it found, and nothing is changed. */
     @Test
     fun aBuildThePatchCantReadFailsBeforeAnythingChanges() {
+        val tapFound = "expected one method loading \"$CLIPS_PAUSE\" and pausing through $controller->pause, found"
         val cases = listOf(
-            classes(taps = 0) to "the Reels tap: expected one method marked $TOGGLE_PAUSE, found 0",
-            classes(taps = 2) to "the Reels tap: expected one method marked $TOGGLE_PAUSE, found 2",
-            classes(toggles = 0) to "the Reels audio toggle: expected one method marked $TOGGLE_AUDIO, found 0",
-            classes(toggles = 2) to "the Reels audio toggle: expected one method marked $TOGGLE_AUDIO, found 2",
+            classes(taps = 0) to "the Reels tap: $tapFound 0",
+            classes(taps = 2) to "the Reels tap: $tapFound 2",
+            classes(pauses = 0) to "the Reels tap: expected one method loading \"$REELS_PLAYER_PAUSE\", found 0",
+            classes(toggles = 0) to "the Reels audio toggle: expected one method of $controller flipping the session's sound, found 0",
+            classes(toggles = 2) to "the Reels audio toggle: expected one method of $controller flipping the session's sound, found 2",
             classes(toggleStatic = true) to "the audio toggle, isn't a public instance void (int)",
             classes(toggleTakesBoolean = true) to "the audio toggle, isn't a public instance void (int)",
             classes(controllerPublic = false, controllerType = other) to "isn't public, so $navigator->togglePause can't call its audio toggle",
-            classes(pauseLoads = 0) to "$navigator->togglePause doesn't load \"$CLIPS_PAUSE\" once",
+            classes(pauseLoads = 0) to "the Reels tap: $tapFound 0",
             classes(pauseLoads = 2) to "$navigator->togglePause doesn't load \"$CLIPS_PAUSE\" once",
             classes(branches = 0) to "expected one branch to the pause path of $navigator->togglePause, found 0",
             classes(branches = 2) to "expected one branch to the pause path of $navigator->togglePause, found 2",
@@ -154,7 +159,7 @@ class ReelTapAndVolumeHookTest {
         assertEquals("every 452 build", Fixtures.BUILDS, bundles.size)
         for (bundle in bundles) {
             val name = if (bundle.extension == "apk") bundle.parentFile.name else bundle.name
-            val holders = (FixtureDex.classesHolding(bundle, tapMarker) + FixtureDex.classesHolding(bundle, toggleMarker)).map { it.type }.toSet()
+            val holders = (FixtureDex.classesLoading(bundle, CLIPS_PAUSE) + FixtureDex.classesLoading(bundle, REELS_PLAYER_PAUSE)).map { it.type }.toSet()
             for ((read, classesOf) in listOf("copied" to FixtureDex::classes, "as read" to FixtureDex::classesAsRead)) {
                 val what = "$name ($read)"
                 val classes = classesOf(bundle, holders).values
@@ -200,6 +205,123 @@ class ReelTapAndVolumeHookTest {
         }
     }
 
+    /**
+     * #554: the touch hook goes first in IgFragmentActivity's dispatchTouchEvent, handing over the
+     * activity and the event through the range form, and nothing else changes. With Tap to play's
+     * TapClock already first, it goes right after it, so TapClock stays first.
+     */
+    @Test
+    fun theTouchHookGoesFirstOrRightAfterTapClock() {
+        for (tapClock in listOf(false, true)) {
+            val what = if (tapClock) "after TapClock" else "alone"
+            val classes = listOf(activity(tapClock = tapClock))
+            val context = PatchContexts.of(classes)
+            val original = context.touch().code().map { it.describe() }
+            val touch = context.findPlayIconTouch()
+            assertNotNull(what, touch)
+            context.apply { applyPlayIconTouch(touch!!) }
+
+            val code = context.touch().code()
+            val at = if (tapClock) 1 else 0
+            if (tapClock) assertEquals("$what: TapClock stays first", TAP_CLOCK, code[0].referenceText())
+            assertEquals(what, PLAY_ICON_TOUCH, code[at].referenceText())
+            assertEquals("$what: this and the event", listOf(1, 2), code[at].arguments())
+            assertEquals("$what: only the hook is new", original, code.map { it.describe() }.filterIndexed { index, _ -> index != at })
+        }
+    }
+
+    /** A build without the touch, or one that jumps to its start, leaves the hook out, changing nothing, and the rest still goes in. */
+    @Test
+    fun aTouchThePatchCantHookIsLeftOut() {
+        val cases = listOf(
+            listOf(classDef("Lfixture/Other;", emptyList())) to "no IgFragmentActivity",
+            listOf(activity(withTouch = false)) to "no dispatchTouchEvent of its own",
+            listOf(activity(jumpsToStart = true)) to "a jump to its start",
+        )
+        for ((classes, what) in cases) {
+            val context = PatchContexts.of(classes)
+            assertEquals(what, null, context.findPlayIconTouch())
+            for (original in classes) {
+                val now = context.mutableClassDefBy(original.type).methods.associateBy { it.key() }
+                for (method in original.methods) {
+                    assertEquals("$what: ${original.type}->${method.name} changed", method.code().map { it.describe() }, now.getValue(method.key()).code().map { it.describe() })
+                }
+            }
+        }
+        // The tap's hook still goes in without it.
+        val context = PatchContexts.of(classes())
+        context.apply { applyReelTap(findReelTapSite()) }
+        assertTrue(context.tap().code().any { it.referenceText() == KEEP_PLAYING })
+    }
+
+    /**
+     * In every build IgFragmentActivity has its own dispatchTouchEvent with nothing jumping to its
+     * start, and the hook lands first, or right after TapClock, handing over this and the event.
+     */
+    @Test
+    fun eachDeclaredBuildHoldsItsTouch() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+        assertEquals("every 452 build", Fixtures.BUILDS, bundles.size)
+        for (bundle in bundles) {
+            val name = if (bundle.extension == "apk") bundle.parentFile.name else bundle.name
+            for (tapClock in listOf(false, true)) {
+                val what = "$name (${if (tapClock) "after TapClock" else "alone"})"
+                val context = PatchContexts.of(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY)).values)
+                val touch = context.findPlayIconTouch()
+                assertNotNull("$what: the touch", touch)
+                if (tapClock) context.touch().addInstructions(0, "invoke-static/range { p0 .. p1 }, $TAP_CLOCK")
+                val original = context.touch().code().map { it.describe() }
+                context.apply { applyPlayIconTouch(touch!!) }
+
+                val method = context.touch()
+                val code = method.code()
+                val at = if (tapClock) 1 else 0
+                val self = method.implementation!!.registerCount - 2
+                assertEquals("$what: the hook", PLAY_ICON_TOUCH, code[at].referenceText())
+                assertEquals("$what: this and the event", listOf(self, self + 1), code[at].arguments())
+                assertEquals("$what: only the hook is new", original, code.map { it.describe() }.filterIndexed { index, _ -> index != at })
+            }
+        }
+    }
+
+    /** Every build declares the play icon's view id by the name the extension finds it by. */
+    @Test
+    fun eachBuildDeclaresThePlayIconsId() {
+        val icon = ExtensionDex.stringConstant(REEL_TAP_AND_VOLUME, "PLAY_ICON")
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+        assertEquals("every 452 build", Fixtures.BUILDS, bundles.size)
+        for (bundle in bundles) {
+            val name = if (bundle.extension == "apk") bundle.parentFile.name else bundle.name
+            assertEquals("$name: ids the build doesn't declare", emptyList<String>(), ViewIdFixture.missing(ViewIdFixture.resourceTable(bundle), listOf(icon)))
+        }
+    }
+
+    private fun BytecodePatchContext.touch(): MutableMethod =
+        mutableClassDefBy(FRAGMENT_ACTIVITY).methods.single {
+            it.name == "dispatchTouchEvent" && it.returnType == "Z" && it.parameterTypes.map(Any::toString) == listOf(motionEvent) &&
+                it.implementation != null
+        }
+
+    /** IgFragmentActivity, its dispatchTouchEvent calling the platform's, with TapClock first or a jump back to its start. */
+    private fun activity(withTouch: Boolean = true, tapClock: Boolean = false, jumpsToStart: Boolean = false): ClassDef {
+        val touch = method(FRAGMENT_ACTIVITY, "dispatchTouchEvent", listOf(motionEvent), "Z", 1, body = """
+            ${if (tapClock) "invoke-static/range { p0 .. p1 }, $TAP_CLOCK" else ""}
+            ${if (jumpsToStart) ":start" else ""}
+            invoke-super { p0, p1 }, Landroid/app/Activity;->dispatchTouchEvent($motionEvent)Z
+            move-result v0
+            ${if (jumpsToStart) "if-eqz v0, :start" else ""}
+            return v0
+        """)
+        val other = method(FRAGMENT_ACTIVITY, "onTouchEvent", listOf(motionEvent), "Z", 1, body = "const/4 v0, 0x0\nreturn v0")
+        return classDef(FRAGMENT_ACTIVITY, if (withTouch) listOf(touch, other) else listOf(other))
+    }
+
+    private val motionEvent = "Landroid/view/MotionEvent;"
+
     /** The volume hook is in the extension, public and static, and takes the direction as an int. */
     @Test
     fun theVolumeHookIsInTheExtension() {
@@ -239,7 +361,7 @@ class ReelTapAndVolumeHookTest {
         assertEquals("unknown is -1", -1, unknown.narrowLiteral)
         assertEquals("every step that can be null falls back", 8, code.subList(start, ask).count { it.opcode == Opcode.IF_EQZ })
         assertTrue("after the adjustment", code.indexOfFirst { it.referenceText()?.contains("adjustStreamVolume") == true } < start)
-        assertEquals("the marker's call comes just before the hook", trace, code[start - 1].referenceText())
+        assertEquals("the unmute starts right after the hook", "$volumeController->unmute($volumeController)V", code[ask + 4].referenceText())
         val added = (start until ask + 4).toSet()
         assertEquals("only the hook is new", original, code.map { it.describe() }.filterIndexed { at, _ -> at !in added })
     }
@@ -295,16 +417,17 @@ class ReelTapAndVolumeHookTest {
     @Test
     fun aVolumeRunnableThePatchCantReadFailsBeforeAnythingChanges() {
         val cases = listOf(
-            volumeClasses(runs = 0) to "the volume runnable: expected one method marked $VOLUME_ADJUSTED, found 0",
-            volumeClasses(runs = 2) to "the volume runnable: expected one method marked $VOLUME_ADJUSTED, found 2",
+            volumeClasses(runs = 0) to "the volume runnable: expected one method loading \"$VOLUME_FAILED\", found 0",
+            volumeClasses(runs = 2) to "the volume runnable: expected one method loading \"$VOLUME_FAILED\", found 2",
             volumeClasses(adjusts = 0) to "doesn't call AudioManager.adjustStreamVolume once",
             volumeClasses(adjusts = 2) to "doesn't call AudioManager.adjustStreamVolume once",
             volumeClasses(directionIsConstant = true) to "doesn't take the direction from an int field of its own",
-            volumeClasses(adjustsAfterMarker = true) to "adjusts the volume after the $VOLUME_ADJUSTED marker",
-            volumeClasses(jumpsIntoThePath = true) to "jumps to just past the $VOLUME_ADJUSTED marker",
+            volumeClasses(adjustsAfterMarker = true) to "adjusts the volume after it starts the unmute",
+            volumeClasses(jumpsIntoThePath = true) to "jumps to the start of the unmute",
+            volumeClasses(unmutes = false) to "never starts the unmute with a static of $volumeController taking it",
             volumeClasses(thisOverwritten = true) to "writes over this",
-            volumeClasses(toggles = 0) to "the Reels audio toggle: expected one method marked $TOGGLE_AUDIO, found 0",
-            volumeClasses(flipsByTwo = true) to "expected the audio toggle to read Reels sound state once, found 0",
+            volumeClasses(toggles = 0) to "the Reels audio toggle: expected one method of $volumeController flipping the session's sound, found 0",
+            volumeClasses(flipsByTwo = true) to "the Reels audio toggle: expected one method of $volumeController flipping the session's sound, found 0",
             volumeClasses(stateReachable = false) to "can't reach the audio state from its own class",
         )
         for ((classes, expected) in cases) {
@@ -336,9 +459,9 @@ class ReelTapAndVolumeHookTest {
         assertEquals("every 452 build", Fixtures.BUILDS, bundles.size)
         for (bundle in bundles) {
             val name = if (bundle.extension == "apk") bundle.parentFile.name else bundle.name
-            val holders = FixtureDex.classesHolding(bundle, volumeMarker).map { it.type }.toSet()
+            val holders = FixtureDex.classesLoading(bundle, VOLUME_FAILED).map { it.type }.toSet()
             // The controller that holds the audio toggle, and the audio state class its toggle takes from the session.
-            val controllers = FixtureDex.classesHolding(bundle, toggleMarker)
+            val controllers = FixtureDex.classesLoading(bundle, REELS_PLAYER_PAUSE)
             val states = controllers.flatMap { c -> c.methods.flatMap { m -> m.code().mapNotNull { instruction ->
                 (instruction.reference() as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)
                     ?.takeIf { it.parameterTypes.map(Any::toString) == listOf(userSession) }?.returnType
@@ -384,7 +507,7 @@ class ReelTapAndVolumeHookTest {
                     code.subList(start, ask).mapNotNull { it.referenceText() },
                 )
                 assertEquals("$what: the hook's last instruction", Opcode.RETURN_VOID, code[ask + 3].opcode)
-                assertEquals("$what: the marker's call comes just before", Opcode.INVOKE_STATIC, code[start - 1].opcode)
+                assertEquals("$what: the unmute's start comes right after", Opcode.INVOKE_STATIC, code[ask + 4].opcode)
                 val added = (start until ask + 4).toSet()
                 for ((method, original) in originals) {
                     val mine = method.code().indices.filter { method.name == run.name && method.definingClass == run.definingClass && it in added }.toSet()
@@ -488,7 +611,7 @@ class ReelTapAndVolumeHookTest {
         assertEquals("every 452 build", Fixtures.BUILDS, bundles.size)
         for (bundle in bundles) {
             val name = if (bundle.extension == "apk") bundle.parentFile.name else bundle.name
-            val controllers = FixtureDex.classesHolding(bundle, toggleMarker)
+            val controllers = FixtureDex.classesLoading(bundle, REELS_PLAYER_PAUSE)
             val named = controllers.flatMap { c -> c.methods.flatMap { m -> m.code().flatMap { instruction ->
                 when (val ref = instruction.reference()) {
                     is com.android.tools.smali.dexlib2.iface.reference.MethodReference -> listOf(ref.definingClass, ref.returnType) + ref.parameterTypes.map(Any::toString)
@@ -496,8 +619,8 @@ class ReelTapAndVolumeHookTest {
                     else -> emptyList()
                 }
             } } }.filter { it.startsWith("L") }
-            val wanted = (FixtureDex.classesHolding(bundle, tapMarker) + controllers + FixtureDex.classesHolding(bundle, volumeMarker) +
-                FixtureDex.classesHolding(bundle, resumeMarker)).map { it.type }.toSet() + named
+            val wanted = (FixtureDex.classesLoading(bundle, CLIPS_PAUSE) + controllers + FixtureDex.classesLoading(bundle, VOLUME_FAILED) +
+                FixtureDex.classesLoading(bundle, RESUME_PLAYER_TRACE)).map { it.type }.toSet() + named
             for ((read, classesOf) in listOf("copied" to FixtureDex::classes, "as read" to FixtureDex::classesAsRead)) {
                 val what = "$name ($read)"
                 val context = PatchContexts.of(classesOf(bundle, wanted).values + ExtensionDex.classDef(REEL_TAP_AND_VOLUME))
@@ -567,6 +690,7 @@ class ReelTapAndVolumeHookTest {
      */
     private fun classes(
         taps: Int = 1,
+        pauses: Int = 1,
         toggles: Int = 1,
         toggleStatic: Boolean = false,
         toggleTakesBoolean: Boolean = false,
@@ -581,7 +705,7 @@ class ReelTapAndVolumeHookTest {
         val classes = mutableListOf<ClassDef>()
         val tap = { owner: String ->
             method(owner, "togglePause", listOf(view, objectType, objectType), "V", 6, body = """
-                const-string v0, "$tapMarker"
+                const-string v0, "PauseAndMuteNavigator"
                 invoke-static { v0 }, $trace
                 ${if (thisOverwritten) "const/4 p0, 0x0" else ""}
                 ${(0 until branches).joinToString("\n") { "if-eqz p2, :pause" }}
@@ -596,6 +720,7 @@ class ReelTapAndVolumeHookTest {
                 invoke-interface { v2 }, $function0->invoke()$objectType
                 move-result-object v3
                 check-cast v3, $supplierCastsTo
+                invoke-virtual { v3, v1 }, $controllerType->pause(Ljava/lang/String;)I
                 return-void
             """)
         }
@@ -606,26 +731,38 @@ class ReelTapAndVolumeHookTest {
         val toggle = { type: String, name: String ->
             val parameters = if (toggleTakesBoolean) listOf("Z") else listOf("I")
             method(type, name, parameters, "V", 2, body = """
-                const-string v0, "$toggleMarker"
-                invoke-static { v0 }, $trace
+                const/4 v0, 0x0
+                invoke-static { v0 }, $audioState->of($userSession)$audioState
+                move-result-object v1
+                invoke-virtual { v1 }, $audioState->isOn()Z
+                move-result v0
+                xor-int/lit8 v0, v0, 0x1
+                invoke-virtual { v1, v0 }, $audioState->set(Z)V
                 return-void
             """, static = toggleStatic)
         }
+        val pauseMethods = (0 until pauses).map { pauseOf(controllerType) }
         if (toggles > 0) {
             val methods = (0 until toggles).map { toggle(controllerType, if (it == 0) "toggleAudio" else "toggleAudioAgain") }
-            classes += classDef(controllerType, methods, public = controllerPublic)
+            classes += classDef(controllerType, methods + pauseMethods, public = controllerPublic)
         } else {
-            classes += classDef(controllerType, listOf(method(controllerType, "other", emptyList(), "V", 0, body = "return-void")), public = controllerPublic)
+            classes += classDef(controllerType, listOf(method(controllerType, "other", emptyList(), "V", 0, body = "return-void")) + pauseMethods, public = controllerPublic)
         }
         return classes
     }
+
+    /** The controller's pause, which traces what it pauses for. */
+    private fun pauseOf(owner: String): Method = method(owner, "pause", listOf("Ljava/lang/String;"), "I", 1, body = """
+        const-string v0, "$REELS_PLAYER_PAUSE"
+        invoke-static { v0 }, $trace
+        const/4 v0, 0x0
+        return v0
+    """)
 
     // ---- the volume runnable ------------------------------------------------------------------
 
     private val runnable = "Lfixture/VolumeRunnable;"
     private val audio = "Landroid/media/AudioManager;"
-    private val volumeMarker = "android_purge_26_q3_$VOLUME_ADJUSTED"
-    private val resumeMarker = "android_purge_26_q3_$MAYBE_RESUME_PLAYER"
     private val volumeController = "Lfixture/VolumeController;"
     private val audioState = "Lfixture/AudioState;"
     private val hiddenAudioState = "Lother/pkg/AudioState;"
@@ -649,6 +786,7 @@ class ReelTapAndVolumeHookTest {
         adjustsAfterMarker: Boolean = false,
         jumpsIntoThePath: Boolean = false,
         thisOverwritten: Boolean = false,
+        unmutes: Boolean = true,
         toggles: Int = 1,
         flipsByTwo: Boolean = false,
         stateReachable: Boolean = true,
@@ -678,15 +816,14 @@ class ReelTapAndVolumeHookTest {
         """
         val run = { name: String ->
             method(runnable, name, emptyList(), "V", 6, body = """
-                const-string v0, "android_purge_26_q3_ClipsVideoPlayerController_run"
+                const-string v0, "$VOLUME_FAILED"
                 invoke-static { v0 }, $trace
                 iget-object v4, p0, $runnable->ctl:$volumeController
                 ${if (thisOverwritten) "const/4 p0, 0x0" else ""}
                 ${if (adjustsAfterMarker) "" else (0 until adjusts).joinToString("\n") { adjust }}
                 ${if (jumpsIntoThePath) "if-eqz v1, :inpath" else ""}
-                const-string v0, "$volumeMarker"
-                invoke-static { v0 }, $trace
                 :inpath
+                ${if (unmutes) "invoke-static { v4 }, $volumeController->unmute($volumeController)V" else "invoke-static { v4 }, $volumeController->unmute(Ljava/lang/Object;)V"}
                 ${if (adjustsAfterMarker) adjust else ""}
                 const-string v0, "next"
                 invoke-static { v0 }, $trace
@@ -697,7 +834,7 @@ class ReelTapAndVolumeHookTest {
         val kept = if (runs == 0) listOf(method(runnable, "run", emptyList(), "V", 0, body = "return-void")) else methods
         val toggle = { name: String ->
             method(volumeController, name, listOf("I"), "V", 9, body = """
-                const-string v0, "$toggleMarker"
+                const-string v0, "toggleAudio"
                 invoke-static { v0 }, $trace
                 invoke-virtual { p0 }, $volumeController->list()${if (listCast) vListIntf else vList}
                 move-result-object v1
@@ -727,14 +864,14 @@ class ReelTapAndVolumeHookTest {
         val resume = { name: String ->
             method(resumeOwner, name, listOf("I"), "V", 1, body = """
                 ${if (resumeJumpedTo) ":top" else ""}
-                const-string v0, "$resumeMarker"
+                const-string v0, "$RESUME_PLAYER_TRACE"
                 invoke-static { v0 }, $trace
                 ${if (resumeJumpedTo) "if-eqz p1, :top" else ""}
                 return-void
             """, static = resumeStatic)
         }
         val resumeMethods = (0 until resumes).map { resume(if (it == 0) "maybeResumePlayer" else "maybeResumePlayerAgain") }
-        val controllerMethods = (if (toggles == 0) listOf(method(volumeController, "other", emptyList(), "V", 0, body = "return-void"))
+        val controllerMethods = listOf(pauseOf(volumeController)) + (if (toggles == 0) listOf(method(volumeController, "other", emptyList(), "V", 0, body = "return-void"))
         else (0 until toggles).map { toggle(if (it == 0) "toggleAudio" else "toggleAudioAgain") }) +
             if (resumeOwner == volumeController) resumeMethods else emptyList()
         val stateMethods = listOf(

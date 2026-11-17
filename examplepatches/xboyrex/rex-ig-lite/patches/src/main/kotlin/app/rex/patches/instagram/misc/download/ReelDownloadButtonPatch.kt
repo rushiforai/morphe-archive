@@ -132,10 +132,6 @@ private fun injectReelDownloadButton() {
     val tintField =
         requireOne("ColorFilter field of $componentType", componentClass.fieldsOfType(COLOR_FILTER_DESCRIPTOR))
     val mediaPath = reelMediaPath(componentClass)
-    val itemState = ClipsItemStateToStringFingerprint.originalClassDef
-    val itemStateField = requireOne("reel item state field",
-        classDefBy(mediaPath.state.type).fieldsOfType(itemState.type))
-    val carouselStateField = requireOne("reel carousel state field", itemState.fieldsOfType(CURRENT_MEDIA_FIELD.definingClass))
     val contextPath = reelContextPath(composerType)
 
     val builder = reelSaveBuilderFingerprint(componentType).originalMethod
@@ -156,20 +152,31 @@ private fun injectReelDownloadButton() {
         const/4 v0, 0
         return-object v0
     """)
-    bridge("currentIndex", 2, """
-        check-cast p0, $componentType
-        iget-object v0, p0, ${mediaPath.state}
-        if-eqz v0, :first
-        iget-object v0, v0, $itemStateField
-        if-eqz v0, :first
-        iget-object v0, v0, $carouselStateField
-        if-eqz v0, :first
-        iget v0, v0, $CURRENT_MEDIA_FIELD
-        return v0
-        :first
-        const/4 v0, 0
-        return v0
-    """)
+    runCatching {
+        val itemState = ClipsItemStateToStringFingerprint.originalClassDef
+        val itemStateField = requireOne(
+            "reel item state field",
+            classDefBy(mediaPath.state.type).fieldsOfType(itemState.type),
+        )
+        val carouselStateField = requireOne(
+            "reel carousel state field",
+            itemState.fieldsOfType(CURRENT_MEDIA_FIELD.definingClass),
+        )
+        bridge("currentIndex", 2, """
+            check-cast p0, $componentType
+            iget-object v0, p0, ${mediaPath.state}
+            if-eqz v0, :first
+            iget-object v0, v0, $itemStateField
+            if-eqz v0, :first
+            iget-object v0, v0, $carouselStateField
+            if-eqz v0, :first
+            iget v0, v0, $CURRENT_MEDIA_FIELD
+            return v0
+            :first
+            const/4 v0, 0
+            return v0
+        """)
+    }
     bridge("session", 2, """
         check-cast p0, $componentType
         iget-object v0, p0, $userSessionField
@@ -273,7 +280,7 @@ private fun hookBuilderCallSites(
     val countBuilder = Fingerprint(
         definingClass = builder.definingClass,
         filters = listOf(string("save_count")),
-    ).method
+    ).matchOrNull()?.method
     sites.sortedByDescending { it.index }.forEach { site ->
         val call = instructions[site.index]
         val result = instructions[site.index + 1]
@@ -288,34 +295,37 @@ private fun hookBuilderCallSites(
         val addRegisters = add.registersUsed
         if (add.opcode != Opcode.INVOKE_VIRTUAL || addRegisters.size != 2 ||
             addRegisters[1] != resultRegister || addReference.parameterTypes.size != 1 ||
-            addReference.returnType != "V"
+            (addReference.returnType != "V" && addReference.returnType != "Z")
         ) throw PatchException("Unexpected collector after $builder")
         val collector = addRegisters.first()
-        val countCall = instructions[addIndex + 1]
-        val countResult = instructions[addIndex + 2]
-        val countAdd = instructions[addIndex + 3]
-        if (countCall.getReference<MethodReference>()?.sameSignatureAs(countBuilder) != true ||
-            countCall.registersUsed != call.registersUsed ||
-            countResult.opcode != Opcode.MOVE_RESULT_OBJECT ||
-            countResult.registersUsed != listOf(resultRegister) ||
-            countAdd.getReference<MethodReference>() != addReference ||
-            countAdd.opcode != add.opcode || countAdd.registersUsed != addRegisters
-        ) throw PatchException("Expected the save count immediately after the save icon in $caller")
-
-        // The native save state also creates a separate count component. Hide both, keeping the download copy.
-        val show = mutableCaller.reserveFreeRegisters(
-            addIndex, 1, 255, mutableCaller.parameterBlock() + addRegisters,
-        ).single()
-        mutableCaller.addInstructionsWithLabels(
-            addIndex,
-            """
-                const/16 v$show, 1
-                invoke-static/range {v$show .. v$show}, $PREF_DESCRIPTOR->showReelSaveIcon(Z)Z
-                move-result v$show
-                if-eqz v$show, :after_save_count
-            """.trimIndent(),
-            ExternalLabel("after_save_count", mutableCaller.getInstruction(addIndex + 4)),
-        )
+        runCatching {
+            if (countBuilder != null) {
+                val countCall = instructions[addIndex + 1]
+                val countResult = instructions[addIndex + 2]
+                val countAdd = instructions[addIndex + 3]
+                if (countCall.getReference<MethodReference>()?.sameSignatureAs(countBuilder) == true &&
+                    countCall.registersUsed == call.registersUsed &&
+                    countResult.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                    countResult.registersUsed == listOf(resultRegister) &&
+                    countAdd.getReference<MethodReference>() == addReference &&
+                    countAdd.opcode == add.opcode && countAdd.registersUsed == addRegisters
+                ) {
+                    val show = mutableCaller.reserveFreeRegisters(
+                        addIndex, 1, 255, mutableCaller.parameterBlock() + addRegisters,
+                    ).single()
+                    mutableCaller.addInstructionsWithLabels(
+                        addIndex,
+                        """
+                            const/16 v$show, 1
+                            invoke-static/range {v$show .. v$show}, $PREF_DESCRIPTOR->showReelSaveIcon(Z)Z
+                            move-result v$show
+                            if-eqz v$show, :after_save_count
+                        """.trimIndent(),
+                        ExternalLabel("after_save_count", mutableCaller.getInstruction(addIndex + 4)),
+                    )
+                }
+            }
+        }
 
         val registers = mutableCaller.reserveFreeRegisters(
             site.index, 2, 15,

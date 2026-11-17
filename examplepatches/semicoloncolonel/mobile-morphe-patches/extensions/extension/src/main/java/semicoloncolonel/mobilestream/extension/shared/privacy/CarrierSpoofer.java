@@ -4,9 +4,9 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.TelephonyManager;
 
 /**
- * Answers the app's carrier lookups for the "Spoof carrier" patch.
+ * Answers the app's carrier lookups for the Carrier option of "Hide device identifiers".
  *
- * The patch points every app call to these TelephonyManager and
+ * The option points every app call to these TelephonyManager and
  * SubscriptionInfo methods here, with the receiver as the first argument.
  * carrierName() is overwritten by the patch with the name the user chose.
  * An empty name hides the carrier. The numeric operator code (MCC+MNC) is

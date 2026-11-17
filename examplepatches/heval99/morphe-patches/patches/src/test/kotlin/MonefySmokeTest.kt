@@ -39,7 +39,7 @@ class MonefySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.22.11",
+            version = "1.23.0",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

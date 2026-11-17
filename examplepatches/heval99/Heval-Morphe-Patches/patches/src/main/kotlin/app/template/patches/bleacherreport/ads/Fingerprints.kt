@@ -17,15 +17,12 @@ internal object AdConfigFingerprint : Fingerprint(
 )
 
 // AdContentInserterImpl.insert(content, ads, channelAdUnit, Z, AlertedAdContent, Z)ArrayList
-// (11.12.0.33: ui.common.ads.b.a): mixes the ad slots into a feed. The Kotlin null-check names of
-// its parameters are the anchor, in order.
+// (11.12.0.33: ui.common.ads.b.a): mixes the ad slots into a feed. The anchor is the class's
+// AdContentInserterImpl.kt source name plus the parameter shape: 11.12.0.33 also had the Kotlin
+// null-check names "content" / "ads" / "channelAdUnit", but R8 turned those into getClass() calls
+// in 11.14.0.35 (the only instance method returning ArrayList in that class).
 internal object AdContentInserterFingerprint : Fingerprint(
     returnType = "Ljava/util/ArrayList;",
-    filters = listOf(
-        string("content", StringComparisonType.EQUALS),
-        string("ads", StringComparisonType.EQUALS),
-        string("channelAdUnit", StringComparisonType.EQUALS),
-    ),
     custom = { method, classDef ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && classDef.sourceFile == "AdContentInserterImpl.kt" &&
             method.parameterTypes.map(CharSequence::toString).let { params ->

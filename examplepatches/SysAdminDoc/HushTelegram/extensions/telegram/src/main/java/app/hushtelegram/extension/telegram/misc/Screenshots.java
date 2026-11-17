@@ -14,9 +14,12 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * it shows, in the profile's shared media, the photo viewer, a story whose owner turned saving off
  * and the translate window. Each hook gets
  * Telegram's own "protected" answer only at the spot that decides on blocking capture, so
- * forwarding, saving and copying stay as Telegram has them. Secret chats, view-once and paid media
- * and the passcode lock keep their own checks, which never reach these hooks. Telegram for Android
- * has no screenshot detection outside secret chats, so nobody is told either way.
+ * forwarding, saving and copying stay as Telegram has them. View-once and paid media and the
+ * passcode lock keep their own checks, which never reach these hooks. A secret chat's own check, in
+ * the chat, its profile and the photo viewer, is handed over to {@link #secretChat} and lets capture
+ * through only with a second switch on as well (#82). Telegram for Android has no screenshot
+ * detection outside secret chats, so nobody is told there. In a secret chat Telegram tells the other
+ * person, unless Suppress screenshot notification is on.
  */
 public final class Screenshots {
     private Screenshots() {
@@ -36,5 +39,16 @@ public final class Screenshots {
         if (!MessageMenu.on(Settings.ALLOW_SCREENSHOTS)) return false;
         HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "story screenshot allowed");
         return true;
+    }
+
+    /**
+     * Called with the secret chat Telegram is showing, or null outside one, right where it decides to
+     * block capture for it. Null lets the screen be captured, the same chat keeps it blocked.
+     */
+    public static Object secretChat(Object chat) {
+        if (chat == null) return null;
+        if (!MessageMenu.on(Settings.ALLOW_SCREENSHOTS) || !MessageMenu.on(Settings.SECRET_CHAT_SCREENSHOTS)) return chat;
+        HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "secret chat screenshot allowed");
+        return null;
     }
 }

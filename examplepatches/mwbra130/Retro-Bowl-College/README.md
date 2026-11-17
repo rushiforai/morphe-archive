@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**33 apps · 68 patches** · current bundle: [v1.77.6](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.77.6)
+**43 apps · 94 patches** · current bundle: [v1.79.22](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.79.22)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.77.6. -->
+     block below on purpose. Reflects bundle v1.79.22. -->
 
 <!-- GRID_START -->
 <table>
@@ -31,15 +31,27 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-jamworks-alwaysondisplay"><b>aodNotify</b></a>
 </td>
 <td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/sgVJqaKZ27hD-ez3ZH5kyEk0L0xABLhmLssUrPSDUalao8Y21aiCaFPM0MEXBptNIGIGa68we1K35MiQYz6K=w128-h128" width="72" height="72" alt="App Finder icon">
+<br><a href="#app-scadica-aq"><b>App Finder</b></a>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/qT9Drz6krjycwLb6o0xrvk0Ju0JUQPbORoFX9SHHx1UYO5tA-5Lwy9fKmz15n_Na96TNsftMhaAFYk_iCyAeMY4=w128-h128" width="72" height="72" alt="ContentCam icon">
+<br><a href="#app-app-contentcam-android"><b>ContentCam</b></a>
+</td>
+</tr>
+<tr>
+<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/LX__Y8tKCvkvEgboZtQfDsvYiNFa6kwWSpqObipZI2MLK5rFVd5tEU8xgMNoMj1ICOf9TO7PFoFmiKGeIpf1=w128-h128" width="72" height="72" alt="Crossy Road icon">
 <br><a href="#app-com-yodo1-crossyroad"><b>Crossy Road</b></a>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/TPqLaLJ8Sr30eRUb_24jZ1cc-4JcYZTViVaVB0E2K4rUdCx08AsXEZvDZ5kpmXBRkIJkYRH5jcb_QITrx02CgQ=w128-h128" width="72" height="72" alt="Drapes icon">
+<br><a href="#app-com-codeswitch-drapes"><b>Drapes</b></a>
 </td>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/CTnZKfZowST3s4ZCC-NC21uh05IwUVr4HznYUb-TepWC43fZ3qPlUCxtz5x682PGQ9VqG743zUtGBJGlo5cDcqs=w128-h128" width="72" height="72" alt="DroidCam icon">
 <br><a href="#app-com-dev47apps-obsdroidcam"><b>DroidCam</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/pVUW445uF1ek7vCeJetlNWk6bb4gMBnbSUtMEbzMkNHU6dDwoyO3KiEsSvYoiFByfHfAHXtcKf8nIGrCsu4ueQ=w128-h128" width="72" height="72" alt="Echo icon">
 <br><a href="#app-com-hapibits-soundlift"><b>Echo</b></a>
@@ -48,6 +60,8 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/n-VW4rcGGAZNvcAxpAA6gM64UTXU2iuPuCXBluW83Kd21zGhNgOThvhsYTo25mME4VioiXXbg3oL3S_BIk5QvYQ=w128-h128" width="72" height="72" alt="Games In One - Watch Games icon">
 <br><a href="#app-com-mustbefun-gamesinonewatchgames"><b>Games In One</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/04xiToIui2lD8Co9xPb-_V3JW90vSS8ej7aEAMqzdA9uadnjkGbPFvtkQPxB4okIIkrZquPYnxE3Eg6d6Ik_XQ=w128-h128" width="72" height="72" alt="Gradient Weather icon">
 <br><a href="#app-com-subtlesignals-gradientweather"><b>Gradient Weather</b></a>
@@ -61,16 +75,28 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/SkxvvpzgHvzG3ODTIf3EZA5kbAvFX6ahey_-wQppGxG4X6jxXBHY2LeBQShRLi7RktS02Tl6HlqON22dH62TZQ=w128-h128" width="72" height="72" alt="Hermit icon">
 <br><a href="#app-com-chimbori-hermitcrab"><b>Hermit</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/bOSkPoR8m9Qc_TPwrID8_Db51EL9oO0rq4UzRPAHKN2Zc1mq7gCq_0tySpBp1h6PkV5h7IOr0IvA1MTBiGyQCw=w128-h128" width="72" height="72" alt="ISS Live Now icon">
 <br><a href="#app-com-nicedayapps-iss-free"><b>ISS Live Now</b></a>
 </td>
 <td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/77S-ulWheY_54z8acN5T5tmgJnnXBt01mmNAtBMlE5SvReKz2LfmO1s6UUMTY12lWugDzgWlmPxHp2li2132Ges=w128-h128" width="72" height="72" alt="Luminar icon">
+<br><a href="#app-com-skylum-luminar"><b>Luminar</b></a>
+</td>
+</tr>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/N4P3p5wvAau7_GaIZWi6NhHKPhjzYQfJRU0LZ79Q2_W2nB0p52mqCxa8tci7KqdqY73AOdlpij4lpq2kcyLp2A=w128-h128" width="72" height="72" alt="Moises icon">
+<br><a href="#app-ai-moises"><b>Moises</b></a>
+</td>
+<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/juZBxj0uxtz80RMbyvPxco2O7rD7aU71VvhLsgConfsM4FmtzXTprkGXiEZQHugPU0A17AYnQ_tgF-0Nph9MIQ=w128-h128" width="72" height="72" alt="Notes icon">
 <br><a href="#app-com-inotesapp-inotes"><b>Notes</b></a>
 <br><sub>🧪 experimental</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/6pwBTSQ4miOUb2Bj1043PM71JyzCUAa62TiH95RE2WW168iIT3hy4ANK3jaQZYAWSFHlEg7f7g7g0pSogSfsaA=w128-h128" width="72" height="72" alt="OLX Pakistan icon">
+<br><a href="#app-com-olx-pk"><b>OLX Pakistan</b></a>
 </td>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/-21ASw97RWIu-CnDVbEEtTrfVIDqpfhY4eofgk5aT98q4E8jnrMVxNqI0J7JYgRTkHjoOoWM58ScUzu30cxevQ=w128-h128" width="72" height="72" alt="Poweramp icon">
@@ -80,12 +106,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/DrvO8zMElYMrKfmdRtxwyH_kkvk6MJD87mBaC_38Bw1Pkq0DJB0h-SpfbK5SOAkoJQRJ2TpUU0QvW3bSdUe8=w128-h128" width="72" height="72" alt="Retro Bowl College icon">
 <br><a href="#app-com-newstargames-retrobowlcollege"><b>Retro Bowl College</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/ssy9sm_kmFckXCA5OT-VpT4pYOE_P0dy8oM8mTvvXaD692W14esUS6saR8qaprJcrfMrmPyYG4Dvyr4Mudp3gg=w128-h128" width="72" height="72" alt="Rocket Player icon">
 <br><a href="#app-com-jrtstudio-anothermusicplayer"><b>Rocket Player</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/8Y6RokzLQKhDAFcI5vYbgCd-_Hi8b6pQbrSAYB3a40ZH_NoBOz3U25qcvzOOEOkQrXzraI9DCs1NzJxpgZs2=w128-h128" width="72" height="72" alt="Roku Remote icon">
 <br><a href="#app-com-swiftsofts-rokuremote"><b>Roku Remote</b></a>
@@ -102,12 +128,16 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/G1eIJ3yor1yW20izrYjOfCzHgVkRtewlfPFG9CEFTHzSI2m0Lwds_Y1xYgeg21CFok_UXrol-ox2IwqL4JMrLQ=w128-h128" width="72" height="72" alt="Subway Surfers icon">
 <br><a href="#app-com-kiloo-subwaysurf"><b>Subway Surfers</b></a>
 </td>
+</tr>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/foOfzWD2UQTfnP9gP6aCSRUx-6s4fmm6ZemRW__C3e7_fbjwhyXbBSvZjr1IS31q9PElU6oqLY1HvP3McqMfK_8=w128-h128" width="72" height="72" alt="Timemark icon">
+<br><a href="#app-com-oceangalaxy-camera-new"><b>Timemark</b></a>
+</td>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/5wJZegUK2e_dXD14bp1NqX_Op20rpfnSLAYiuVJR7e32095qA8-yEDlezpbT7r1mx69VzjqWbCyVhHMm1T8O=w128-h128" width="72" height="72" alt="Tuner icon">
 <br><a href="#app-com-studiosol-afinadorlite"><b>Tuner</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/o2AAUlWu7gGP5WwbE7eg0aP3vqNKjna0HbfFP3LIFVAHpUpT3KfLxnGv3R8Nn6z0XUP9hsly0SBR4jniSW08Dw=w128-h128" width="72" height="72" alt="Unified Remote icon">
 <br><a href="#app-com-relmtech-remote"><b>Unified Remote</b></a>
@@ -116,6 +146,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/z74H5YZukP3qJGkbJGUZj39y_1rDADZI_rkRUB04ID1x9WjhpuBA_t_FMdMQ7vFm0MFwLWkMFQPInRq-kC7MXg=w128-h128" width="72" height="72" alt="Video Cutter icon">
 <br><a href="#app-com-losslessvideocutter"><b>Video Cutter</b></a>
 </td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/79Q266gifrq0sHAhSLlPk2Bur1fgWIZJW-B4vWPpoEcvlIOCFIFooR7OV3qXhWMNJbE8MTTmtIoHwWUYj0hLVA=w128-h128" width="72" height="72" alt="VPN Gate icon">
+<br><a href="#app-com-giamping-sevpn"><b>VPN Gate</b></a>
+</td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw=w128-h128" width="72" height="72" alt="YouTube Music (Wear OS) icon">
 <br><a href="#app-com-google-android-apps-youtube-music"><b>YouTube Music (Wear OS)</b></a>
@@ -138,8 +174,18 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><sub>🧪 experimental</sub>
 </td>
 <td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/ldoC6AYZEHze9vFmmXz7nDIFPQK866Cw0oWSL6R7TGH3a5ZUabqplWV5kuJj5fKEBPIwDAxYmTzKII9K-2sC_w=w128-h128" width="72" height="72" alt="Call Recorder icon">
+<br><a href="#app-org-skvalex-cr"><b>Call Recorder</b></a>
+<br><sub>🧪 experimental</sub>
+</td>
+<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/3Q9MNHslRe9p1Zbzn-H7b0OUZkqlvxuaMoPyZ_8mzQmry8tB-FeFPXfbJ7zBxVY6B8zrphBREyZhL-8I9R4r=w128-h128" width="72" height="72" alt="DiskWala icon">
 <br><a href="#app-com-diskwalaapp"><b>DiskWala</b></a>
+<br><sub>🧪 experimental</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://placehold.co/128x128/png?text=F" width="72" height="72" alt="FORScan Lite icon">
+<br><a href="#app-com-astech-forscanlite"><b>FORScan Lite</b></a>
 <br><sub>🧪 experimental</sub>
 </td>
 <td align="center" width="20%">
@@ -147,6 +193,8 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-google-android-apps-messaging"><b>Google Messages</b></a>
 <br><sub>🧪 experimental</sub>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/fgeKZ4Jl9iOyASIdpxVk5VMbmCOJbgZTx00FnNpGun0fxya2jZvvqCsS3btbORv6O9XyXl--tkFwB2r8XiX8=w128-h128" width="72" height="72" alt="Pika Spot icon">
 <br><a href="#app-com-pika-dynamicisland"><b>Pika Spot</b></a>
@@ -157,8 +205,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-lucky-apps-rainviewer"><b>RainViewer</b></a>
 <br><sub>🧪 experimental</sub>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/J4LN2qH2PQkZ3sFQonz-HWYkd7M38BtEO4Grzh1Xn7L2J6NUILHPkhYvPjdhMZQzrdm4BarUj547wfthyMz_vWM=w128-h128" width="72" height="72" alt="Strava icon">
 <br><a href="#app-com-strava"><b>Strava</b></a>
@@ -174,6 +220,8 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-instantbits-cast-webvideo"><b>Web Video Caster</b></a>
 <br><sub>🧪 experimental</sub>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/ANtuOsdWIW2Z58FWqGfpt9u6Tau7HUox1gVDbtfX2-1pu1MpAyuGszSUq5KqY0iZqQi2GxOcAVdoD0ltW2bSow=w128-h128" width="72" height="72" alt="X-plore icon">
 <br><a href="#app-com-lonelycatgames-xplore"><b>X-plore</b></a>
@@ -203,7 +251,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.77.6](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.77.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;68 patches total
+> **[v1.79.22](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.79.22)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;94 patches total
 <a id="app-com-diskwalaapp" name="app-com-diskwalaapp"></a>
 <details>
 <summary>DiskWala&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
@@ -265,6 +313,60 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
+<a id="app-app-contentcam-android" name="app-app-contentcam-android"></a>
+<details>
+<summary>ContentCam: Dual Camera Video&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 2.8.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open. |  |
+| [Enable Premium](#enable-premium) | Turns on Premium permanently (Front/Back, Photos, 4K, 60fps, manual controls, teleprompter, timelapse, unlimited projects, trim in review), as if the one-time Lifetime purchase were bought. |  |
+| [Remove telemetry](#remove-telemetry) | Disables the unused Google datatransport upload services in the manifest. ContentCam ships no analytics or crash-reporting SDKs; this removes the one piece of inert upload plumbing it carries. All features are unaffected. ContentCam 2.8.0 only. |  |
+
+</details>
+
+<a id="app-com-codeswitch-drapes" name="app-com-codeswitch-drapes"></a>
+<details>
+<summary>Drapes - Wallpapers&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 3.9.3 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Lets the patched app run: stubs out PairIP's license check, which otherwise blocks re-signed builds with a license dialog. Drapes 3.9.3 only. |  |
+| [Enable Pro](#enable-pro) | Enables Drapes Pro: no advertisements, image effects (blur, grayscale, dimming), auto wallpapers, and favorites sync. Requires 'Bypass PairIP license check'. Drapes 3.9.3 only. |  |
+| [Remove telemetry](#remove-telemetry) | Disables Firebase Analytics and Crashlytics collection, stops the AppMeasurement upload services, and removes the advertising ID permissions. Sign-in, favorites sync and all other features are unaffected. Drapes 3.9.3 only. |  |
+
+</details>
+
+<a id="app-com-skylum-luminar" name="app-com-skylum-luminar"></a>
+<details>
+<summary>Luminar: Photo Editor&Enhancer&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 4.6 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check at its entry point so the patched app can open. |  |
+| [Enable Lifetime](#enable-lifetime) | Turns on Lifetime permanently: every premium feature unlocks as if the one-time Lifetime purchase (Mobile + Web) were bought, and stays on across restarts. |  |
+| [Remove telemetry](#remove-telemetry) | Stops the app reporting usage: AppsFlyer and the TikTok Business SDK never initialize, Skylum's own stats sender (stats-api.skylum.com) is disabled, Firebase Analytics/Crashlytics/Performance collection is turned off, and Sentry is removed. Editing, purchases and sign-in are unaffected. Luminar 4.6 only. |  |
+
+</details>
+
 <a id="app-com-pika-dynamicisland" name="app-com-pika-dynamicisland"></a>
 <details>
 <summary>Pika! Spot - Dynamic animation&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
@@ -280,6 +382,24 @@ Some apps I patched and other apps that were requested if you would like to requ
 | [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open. |  |
 | [Enable Lifetime VIP](#enable-lifetime-vip) | Turns on the lifetime Life Member (SVIP) state: no ads and every animated theme applies for free, with no expiry — the VIP screen reads Level: SVIP and Status: life member. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
 | [Spoof app signature](#spoof-app-signature) | Fixes the 'Can not connect to server' stop at 30% on launch: the app's first server login carries a token derived from the APK signing certificate, and a re-signed build computes it from the wrong certificate, so the server rejects the login. Recomputes the token with the stock signing certificate. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
+
+</details>
+
+<a id="app-ai-moises" name="app-ai-moises"></a>
+<details>
+<summary>Moises: The Musician's AI App&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 2.141.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Bypass PairIP signature check](#bypass-pairip-signature-check) | Required for re-signed builds: PairIP verifies the app's signing certificate at startup and kills tampered builds. Disables that Java-layer check (its pass state is returning normally). The native PairIP VM layer is untouched. |  |
+| [Enable Pro](#enable-pro) | Turns on the app's Pro plan state (plan-gated features, Hi-Fi and drum-part pickers, advanced creative control, credit checks) as if the Pro plan were active. Note: stem separation itself runs on Moises' servers, which meter the account separately. |  |
+| [Remove telemetry](#remove-telemetry) | Stops the app reporting usage: the Singular attribution SDK never initializes and its events are refused, and Firebase Analytics/Crashlytics collection is turned off in the manifest. Separation jobs, account, purchases and push are unaffected. |  |
 
 </details>
 
@@ -460,6 +580,25 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
+<a id="app-com-oceangalaxy-camera-new" name="app-com-oceangalaxy-camera-new"></a>
+<details>
+<summary>Timemark: Photo Proof for Work&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**Supported versions:**
+
+| v10.0.316 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Business](#enable-business) | Turns on the app's Business plan state locally (everything in Enable Plus, plus the business-plan flag the team-space and paywall gates read). Team storage, team billing, admin control and other server-side business features cannot be created by a local patch. |  |
+| [Enable Plus](#enable-plus) | Turns on the app's Plus premium state: edit and remove watermarks, ultra quality, custom file names, unlimited annotations and saves, exports and the other personal Plus features, as if the Plus plan were bought. |  |
+| [Remove telemetry](#remove-telemetry) | Stops the app reporting usage to SensorsData: both analytics event funnels (the SensorAnalyzeUtil sinks and the framework logger's LogService sinks) are cut, so no clicks, watermark edits, purchase steps or location-page events leave the device. Camera, backup, weather and all other features are unaffected. |  |
+| [Spoof watermark location](#spoof-watermark-location) | Stamps photos with a location you pick on an OpenStreetMap pin-drop map (Timemark settings → Timemark patches) instead of your real GPS location. Off or unpicked means real GPS; change it any time without re-patching. |  |
+
+</details>
+
 <a id="app-com-relmtech-remote" name="app-com-relmtech-remote"></a>
 <details>
 <summary>Unified Remote&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -473,6 +612,23 @@ Some apps I patched and other apps that were requested if you would like to requ
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Enable Full](#enable-full) | Unlocks Unified Remote Full for free, as if the one-time Full purchase were bought: 70+ remotes, no ads, screen mirroring, floating remotes, extended keyboard, widgets and quick actions, voice commands, custom remotes, IR and NFC actions. |  |
+
+</details>
+
+<a id="app-org-skvalex-cr" name="app-org-skvalex-cr"></a>
+<details>
+<summary>Call Recorder - SKVALEX&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 3.6.9 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Lifetime](#enable-lifetime) | Pins the license state to the permanent verified state (the $49.99 Lifetime tier) at its single writer, so the app always runs as a lifetime license. Experimental: the license verdict is computed in the app's native library, so whether every feature honors the Java-side state can only be settled on a device. Call Recorder 3.6.9 only — 3.7.x wraps its native code in an anti-tamper payload that cannot run re-signed. Get the exact 3.6.9 APK from the developer's own release archive: https://github.com/skvalex/callrecorder/releases/tag/3.6.9 |  |
+| [Remove telemetry](#remove-telemetry) | Disables the Bugsnag crash-reporting startup provider so no crash, ANR or session reports are sent. Call Recorder ships no other telemetry SDK. Recording and all other features are unaffected. Call Recorder 3.6.9 only. |  |
 
 </details>
 
@@ -572,6 +728,56 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
+<a id="app-scadica-aq" name="app-scadica-aq"></a>
+<details>
+<summary>App Finder&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 1.5.1 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Professional](#enable-professional) | Turns on the app's Professional plan state (all Advance and Ultimate features, CSV export of up to 20,000 results) as if the lifetime Professional plan were bought. |  |
+| [Remove telemetry](#remove-telemetry) | Stops the app reporting usage to the developer's backend: the persistent install ID is never attached to searches, the settings-change log built into every search query is emptied, and the unused Google datatransport upload services are disabled. Search and all other features are unaffected. |  |
+
+</details>
+
+<a id="app-com-astech-forscanlite" name="app-com-astech-forscanlite"></a>
+<details>
+<summary>FORScan Lite&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 1.5.31 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable license](#enable-license) | Opens the full app without an activation code. FORScan Lite checks your license once at startup against its server; this patch pins that startup check to its licensed outcome, so the activation dialog never appears and no activation request is sent. FORScan Lite 1.5.31 only. |  |
+| [Remove telemetry](#remove-telemetry) | Stops the app from phoning home. FORScan Lite has no analytics or ad SDKs; the only non-essential traffic is a launch-time version check to forscan.org, which this patch disables. Diagnostics and all other features are unaffected. FORScan Lite 1.5.31 only. |  |
+
+</details>
+
+<a id="app-com-giamping-sevpn" name="app-com-giamping-sevpn"></a>
+<details>
+<summary>VPN Gate - Software Ethernet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 20261111 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable premium](#enable-premium) | Enables premium: removes all ads and unlocks unlimited VPN session time (free sessions are capped at 30 to 60 minutes). VPN Gate 20261111 only. |  |
+
+</details>
+
 <a id="app-com-yodo1-crossyroad" name="app-com-yodo1-crossyroad"></a>
 <details>
 <summary>Crossy Road&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
@@ -619,6 +825,24 @@ Some apps I patched and other apps that were requested if you would like to requ
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [OLED black mode](#oled-black-mode) | Turns the dark theme true black (#000000) for OLED screens: backgrounds and surfaces go pure black, raised containers (cards, bubbles, sheets) become near-black steps so they stay visible. Dark theme only — light mode is untouched. Needs the stock APK of the target version (messages.android_20261020_00_RC01.phone_dynamic, the universal APK — not a BUNDLE — from APKMirror: https://www.apkmirror.com/apk/google-inc/messenger-google-inc/); Morphe Manager also suggests that exact version when you don't have the file. A few settings screens on Android 12+ take surfaces from the system palette and stay dark grey. |  |
+
+</details>
+
+<a id="app-com-olx-pk" name="app-com-olx-pk"></a>
+<details>
+<summary>OLX Pakistan - Online Shopping&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 18.13.1 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Plain listings only](#plain-listings-only) | Removes featured, boosted and paid-promo listings and all agency, dealer and store listings from home, search and category feeds, leaving only plain listings from individual sellers. OLX Pakistan 18.13.1 only. |  |
+| [Remove ads](#remove-ads) | Removes the Google Ads banner, featured-agency cards and promo widgets that are interleaved into home, search and category feeds. OLX Pakistan 18.13.1 only. |  |
+| [Remove telemetry](#remove-telemetry) | Turns off Firebase Analytics, Crashlytics and Performance reporting and ad-id collection, disables the Firebase report-upload plumbing, and disables MoEngage in-app campaigns and push-open tracking. Search, chat, sign-in and notifications are unaffected. OLX Pakistan 18.13.1 only. |  |
 
 </details>
 

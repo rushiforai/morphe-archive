@@ -10,7 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
@@ -41,7 +41,7 @@ private object NavPanelSectionBindFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val moreMenuPatch = bytecodePatch(
+val moreMenuPatch = patch(
     name = "More tab",
     description = "Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or list them " +
         "at the bottom of the profile menu.",

@@ -3,7 +3,7 @@ package app.template.patches.lequipe.ads
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_LEQUIPE
 import app.template.patches.shared.misc.ads.neutraliseMobileAdsStatics
 import com.android.tools.smali.dexlib2.Opcode

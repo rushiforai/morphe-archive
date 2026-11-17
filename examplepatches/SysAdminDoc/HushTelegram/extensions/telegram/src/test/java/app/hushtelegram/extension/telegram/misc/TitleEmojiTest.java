@@ -9,6 +9,10 @@ import static org.junit.Assert.*;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import app.hushtelegram.extension.shared.L10nTablesForTests;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
@@ -25,8 +29,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
- * The text beside the chat list's title. Pause is covered here rather than in PausedHooksTest,
- * which turns every switch on and off: this is text, and its paused answer is empty text.
+ * The text beside the chat list's title, and the person's own text in its place. Pause is covered
+ * here for the emoji rather than in PausedHooksTest, which turns every switch on and off: this is
+ * text, and its paused answer is empty text.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -40,10 +45,16 @@ public class TitleEmojiTest {
     @After public void restore() {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.TITLE_EMOJI);
+        SettingReadsForTests.mend(Settings.CHAT_LIST_TITLE);
+        SettingReadsForTests.mend(Settings.CHAT_LIST_TITLE_TEXT);
         Settings.TITLE_EMOJI.resetToDefault();
         Settings.HOLIDAY_LOOK.resetToDefault();
+        Settings.CHAT_LIST_TITLE.resetToDefault();
+        Settings.CHAT_LIST_TITLE_TEXT.resetToDefault();
         HookStatus.clear();
     }
+
+    private static final String MINE = "Mine";
 
     private static String text(int... codePoints) { return new String(codePoints, 0, codePoints.length); }
     private static String report() { return String.join("\n", HookStatus.report()); }
@@ -153,5 +164,104 @@ public class TitleEmojiTest {
         SpannableStringBuilder title = title(new Object());
         TitleEmoji.decorate(title);
         assertEquals("Telegram" + SPACE + TREE, title.toString());
+    }
+
+    @Test public void theOwnTitleTakesTheLogosPlaceAndKeepsTheTitleViewsLook() {
+        assertFalse("off by default", Settings.CHAT_LIST_TITLE.get());
+        assertEquals("", Settings.CHAT_LIST_TITLE_TEXT.get());
+        Settings.CHAT_LIST_TITLE_TEXT.save(MINE);
+        assertUntouched("the switch is off");
+        Settings.CHAT_LIST_TITLE.save(true);
+
+        Object logo = new Object();
+        SpannableStringBuilder title = title(logo);
+        TitleEmoji.decorate(title);
+        assertEquals(MINE, title.toString());
+        // The logo goes with the name it covered, so the title view draws plain text in its own bold face and color.
+        assertEquals(-1, title.getSpanStart(logo));
+        assertEquals(0, title.getSpans(0, title.length(), Object.class).length);
+        assertEquals(MINE.length(), TitleEmoji.titleEnd(title));
+        assertTrue(report().contains("chat list title shown"));
+        // The report counts it but never carries what the person typed.
+        assertFalse(report().contains(MINE));
+
+        // The emoji still goes after it.
+        Settings.TITLE_EMOJI.save(TREE);
+        SpannableStringBuilder both = title(new Object());
+        TitleEmoji.decorate(both);
+        assertEquals(MINE + SPACE + TREE, both.toString());
+        assertEquals(MINE.length(), TitleEmoji.titleEnd(both));
+    }
+
+    @Test public void nothingSavedPausedEarlyOrUnreadableKeepsTelegramsTitle() {
+        Settings.CHAT_LIST_TITLE.save(true);
+        assertUntouched("nothing saved");
+        Settings.CHAT_LIST_TITLE_TEXT.save(MINE);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertUntouched(reason.name());
+            assertEquals(MINE, Settings.CHAT_LIST_TITLE_TEXT.savedValue());
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertUntouched("before the settings are ready"));
+        SettingReadsForTests.breakReads(Settings.CHAT_LIST_TITLE_TEXT);
+        assertUntouched("unreadable text");
+        SettingReadsForTests.mend(Settings.CHAT_LIST_TITLE_TEXT);
+        SettingReadsForTests.breakReads(Settings.CHAT_LIST_TITLE);
+        assertUntouched("unreadable switch");
+        SettingReadsForTests.mend(Settings.CHAT_LIST_TITLE);
+        SpannableStringBuilder title = title(new Object());
+        TitleEmoji.decorate(title);
+        assertEquals(MINE, title.toString());
+    }
+
+    @Test public void onlyCleanShortTitlesCanBeSavedOrShown() {
+        Settings.CHAT_LIST_TITLE.save(true);
+        assertTrue("empty keeps Telegram's name", TitleEmoji.titleAllowed(""));
+        assertFalse(TitleEmoji.titleAllowed(null));
+        assertFalse("not cleaned", TitleEmoji.titleAllowed(" " + MINE));
+        StringBuilder longest = new StringBuilder();
+        for (int i = 0; i < TitleEmoji.MAX_TITLE_CODE_POINTS; i++) longest.append(i % 2 == 0 ? "a" : TREE);
+        assertTrue(TitleEmoji.titleAllowed(longest.toString()));
+        assertFalse(TitleEmoji.titleAllowed(longest + "a"));
+        // Longer than the emoji may be: the title is a name, not a couple of emoji.
+        assertTrue(TitleEmoji.MAX_TITLE_CODE_POINTS > TitleEmoji.MAX_CODE_POINTS);
+        // A stored value the editor wouldn't take shows Telegram's title rather than part of it.
+        Settings.CHAT_LIST_TITLE_TEXT.save(longest + "a");
+        assertUntouched("too long");
+        // One that only needs cleaning shows cleaned.
+        Settings.CHAT_LIST_TITLE_TEXT.save("  My" + text(0x202e) + "\n chats ");
+        SpannableStringBuilder title = title(new Object());
+        TitleEmoji.decorate(title);
+        assertEquals("My chats", title.toString());
+    }
+
+    @Test public void theTitleEditorsToastsFitTwoLinesInEveryLanguage() {
+        for (String toast : new String[]{"That's too long. Try a shorter name.", "Couldn't save the title. Try again in a moment."}) {
+            assertFitsATwoLineToast("en", toast);
+            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+                String row = L10nTablesForTests.of(language).get(toast);
+                assertNotNull(language + ": " + toast, row);
+                assertFitsATwoLineToast(language, row);
+            }
+        }
+    }
+
+    /** A toast line holds about 34 characters on a small phone; 28 leaves room for wider letters. */
+    private static void assertFitsATwoLineToast(String language, String text) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > 28) {
+                lines.add(line.toString());
+                line.setLength(0);
+            }
+            if (line.length() > 0) line.append(' ');
+            line.append(word);
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        assertTrue(language + ": " + text, lines.size() <= 2);
+        for (String each : lines) assertTrue(language + ": " + each, each.length() <= 28);
     }
 }

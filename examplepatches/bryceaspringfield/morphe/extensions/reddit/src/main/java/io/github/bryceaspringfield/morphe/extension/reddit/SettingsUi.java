@@ -157,6 +157,9 @@ final class SettingsUi {
             toggle(context, filter, "Hide duplicate posts", () -> getBoolean(HIDE_DUPLICATES),
                     on -> putBoolean(HIDE_DUPLICATES, on))
                     .setSummary(t("Hides a post with the same title, text, or media as one already shown since Reddit started, such as the same post shared to several communities."));
+            toggle(context, filter, "Return-to-top button", () -> !getBoolean(TopButton.OFF),
+                    on -> putBoolean(TopButton.OFF, !on))
+                    .setSummary(t("Shows a round button over any scrolled list (a profile's tabs, a community, Home) which scrolls it back to the top."));
             addTopics(context, manager, filter);
             addChecks(context, manager, filter, "Where post filters apply", PLACES, PLACE_KEYS, PLACE_LABELS,
                     FilterSettings::places, "Nowhere");

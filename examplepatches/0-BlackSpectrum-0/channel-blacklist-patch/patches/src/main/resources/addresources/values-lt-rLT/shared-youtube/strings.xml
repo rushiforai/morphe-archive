@@ -28,6 +28,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_new_indicator_days_title">Paryškinti naujus nustatymus</string>
   <string name="morphe_settings_new_indicator_days_summary">Kelių dienų laikotarpiu šalia nustatymų ir parinkčių, pridėtų atnaujinimo metu, bus rodomas taškas</string>
   <string name="morphe_settings_new_indicator_days_off">Išjungta</string>
+  <string name="morphe_settings_new_indicator_clear_title">Pažymėti visus nustatymus kaip peržiūrėtus</string>
+  <string name="morphe_settings_new_indicator_clear_summary">Pašalinti tašką iš visų naujų nustatymų ir parinkčių</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_title">Pažymėti visus nustatymus kaip peržiūrėtus?</string>
+  <string name="morphe_settings_new_indicator_clear_dialog_message">Taškas pašalintas iš visų naujų nustatymų ir parinkčių. Ateities atnaujinimais pridėti nustatymai vis tiek bus išryškinti.</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">Paleiskite iš naujo, kad užbaigtumėte sąranką</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -67,6 +71,13 @@ Second \"item\" text"</string>
 
 Patikrinkite, ar paketo pavadinimas teisingas ir ar programa įdiegta"</string>
   <string name="morphe_external_downloader_empty_warning">Paketo pavadinimas negali būti tuščias</string>
+  <string name="morphe_export_download_folder_dialog_title">Eksportavimo aplankas</string>
+  <string name="morphe_export_download_folder_change">Pakeisti aplanką</string>
+  <string name="morphe_export_download_folder_changed">Eksportavimo aplankas pakeistas</string>
+  <string name="morphe_export_download_folder_reset">Eksportavimo aplankas nustatytas iš naujo</string>
+  <string name="morphe_export_download_folder_missing">Nepavyko rasti eksportavimo aplanko %s</string>
+  <string name="morphe_export_download_flyout_title">Eksportuoti į įrenginį</string>
+  <string name="morphe_export_download_canceled">Eksportavimas atšauktas</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Pasirinktinis</string>
   <string name="morphe_custom_branding_icon_title">Programos piktograma</string>
@@ -109,14 +120,28 @@ Jei esate „YouTube Premium“ vartotojas, šis nustatymas gali būti nereikali
 
 Padaryti %2$s numatytuoju klientu?"</string>
   <string name="morphe_spoof_video_streams_client_failing_dialog_switch">Perjungti</string>
-  <string name="morphe_spoof_video_streams_user_dialog_message">Šio nustatymo išjungimas gali cause atkūrimo problemų</string>
+  <string name="morphe_spoof_video_streams_user_dialog_message">Šio nustatymo išjungimas gali sukelti atkūrimo problemų</string>
+  <!-- "Android System WebView" is the name of the Android app and should not be translated. -->
+  <string name="morphe_spoof_video_streams_webview_dialog_title">Android System WebView</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_missing">"\"Android System WebView\" išjungta arba neįdiegta.
+
+Vaizdo įrašų atkūrimui reikia \"Android System WebView\". Įjunkite ją ir atnaujinkite iki naujausios versijos.
+
+Bakstelėkite „OK“, kad atidarytumėte \"Android System WebView\"."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_message_outdated">"\"Android System WebView\" versija (%s) yra pasenusi.
+
+Vaizdo įrašų atkūrimas gali neveikti, kol \"Android System WebView\" nebus atnaujinta iki naujausios versijos.
+
+Bakstelėkite „OK“, kad atidarytumėte \"Android System WebView\"."</string>
+  <string name="morphe_spoof_video_streams_webview_dialog_ignore">Rodyti daugiau nerodyti</string>
+  <string name="morphe_spoof_video_streams_webview_toast_not_installed">\"Android System WebView\" neįdiegta. Įdiegkite ją, kad sutvarkytumėte vaizdo įrašų atkūrimą</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title.
          "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
   <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Bandykite įjungti: Maskuoti vaizdo įrašų srautus &gt; Prisijungti prie Android VR</string>
   <string name="morphe_spoof_video_streams_client_type_title">Numatytasis klientas</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">„Android VR“ prisijungimas</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Nesate prisijungę prie Android VR. Bakstelėkite čia, kad prisijungtumėte</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">„Android VR“ reikalaujama atskira prisijungimo procedūra. Bakstelėkite čia, kad tęstumėte</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Šiuo metu prisijungta prie Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Norėdami naudoti šią funkciją, pakeiskite „Numatytasis klientas“ į Android VR</string>
@@ -142,12 +167,34 @@ Norėdami prisijungti, žemiau bakstelėkite „Tęsti“"</string>
 • Jūsų „Morphe“ nustatymai neimportuos ir neeksportuos „Android VR“ autentifikavimo
 • Jei ši programa nenaudojama 6 mėnesius, „Google“ pašalins šį autentifikavimą
 • Turėsite prisijungti iš naujo, jei pakeisite „Google“ slaptažodį arba išregistruosite šį įrenginį „Google“ nustatymuose"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_title">Prisijungimas per mobiliąją naršyklę</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary">Neprivaloma: prisijunkite prie „YouTube“ svetainės, kad galėtumėte žiūrėti vaizdo įrašus su savo paskyra. Norėdami tęsti, bakstelėkite čia</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_signed_in">Šiuo metu prisijungta per mobiliąją naršyklę</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_mweb_about_summary_disabled">Norėdami naudotis šia funkcija, pakeiskite „Pagrindinį klientą“ į „Mobiliąją interneto versiją“</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_title">Prisijungti prie mobiliosios interneto versijos</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_dialog_not_signed_in_message">"Mobilioji interneto versija leidžia žiūrėti vaizdo įrašus neprisijungus arba prisijungus prie „YouTube“ svetainės
+
+• Prisijungus galima žiūrėti vaizdo įrašus, kuriems reikia paskyros, pavyzdžiui, vaizdo įrašus su amžiaus apribojimu
+• „Google“ prisijungimo puslapis atsidaro šioje programėlėje
+• Prisijungimas naudojamas tik norint gauti vaizdo įrašus, kuriuos peržiūrite
+• Prisijungimas išsaugomas tik šioje įrenginyje
+
+Norėdami prisijungti, paspauskite žemiau esantį mygtuką „Tęsti“"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_success_dialog_message">"Prisijungimas išsaugotas
+
+• Jūsų „Morphe“ nustatymai neimportuos ir neeksportuos prisijungimo prie mobiliosios interneto versijos
+• Jei „Google“ nutrauks sesiją, vaizdo įrašai bus leidžiami neprisijungus, kol prisijungsite vėl
+• Atsijungus bus atjungta ir ši įrenginio paskyra iš „YouTube“ svetainės"</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_expired">Mobiliojo tinklo prisijungimas baigėsi, pabandykite prisijungti prie mobiliojo tinklo dar kartą</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_signed_out">Atsijungta nuo mobiliojo tinklo</string>
+  <string name="morphe_spoof_video_streams_sign_in_mweb_toast_webview_missing">„Android System WebView“ neprie galima. Norėdami prisijungti, įsidinkite arba įjunkite jį</string>
   <string name="morphe_oauth2_connection_failure_timeout">OAuth2 laikinai nepasiekiamas (API laikas baigėsi)</string>
   <string name="morphe_oauth2_connection_failure_status_400">Android VR prisijungimas baigė galioti. Bandykite prisijungti prie VR dar kartą</string>
   <string name="morphe_oauth2_connection_failure_status">OAuth2 laikinai nepasiekiamas (būsena %s)</string>
   <string name="morphe_oauth2_connection_failure_generic">OAuth2 laikinai nepasiekiamas</string>
   <string name="morphe_oauth2_connection_failure_auth_not_approved">Nepavyko prisijungti prie VR, nes svetainės autentifikavimas nebuvo patvirtintas</string>
-  <string name="morphe_oauth2_connection_failure_auth_error">Nepavyksta prisijungti prie VR: %s</string>
+  <string name="morphe_oauth2_connection_failure_auth_error">Nepavyko prisijungti prie VR: %s</string>
   <string name="morphe_oauth2_toast_reset">Atsijungta nuo Android VR</string>
   <string name="morphe_oauth2_toast_invalid">Neteisingas VR prisijungimo prieigos raktas. Bandykite prisijungti prie VR dar kartą</string>
   <!-- misc.medianotification.mediaNotificationControlsPatch -->
@@ -157,13 +204,13 @@ Norėdami prisijungti, žemiau bakstelėkite „Tęsti“"</string>
   <string name="morphe_hide_notification_media_prev_next_summary">Slėpia „Ankstesnis“ ir „Kitas“ mygtukus medijos pranešime, užrakintame ekrane ir ausinių valdikliuose</string>
   <string name="morphe_disable_notification_media_seekbar_title">Išjungti slankiklį</string>
   <string name="morphe_disable_notification_media_seekbar_summary">Neleidžia vilkti slankiklio užrakintame ekrane ir pranešimų skydelyje</string>
-  <string name="morphe_seek_notification_media_prev_next_title">Ieškoti su mygtukais „Ankstesnis“ ir „Kitas”</string>
-  <string name="morphe_seek_notification_media_prev_next_summary">Perjungia medijos pranešimo, užrakto ekrano ir ausinių valdymą: vietoj vaizdo įrašų keitimo bus atliekama paieška</string>
+  <string name="morphe_seek_notification_media_prev_next_title">Ieškoti su mygtukais „Ankstesnis“ ir „Kitas“</string>
+  <string name="morphe_seek_notification_media_prev_next_summary">Medijos pranešimo, užrakinto ekrano ir ausinių valdikliai vietoj vaizdo įrašų keitimo atlieka paiešką</string>
   <string name="morphe_seek_notification_media_rewind_length_title">Gręžimo ilgis</string>
   <string name="morphe_seek_notification_media_rewind_length_summary">Ankstesnio mygtuko gręžimo sekundžių skaičius</string>
-  <string name="morphe_seek_notification_media_fast_forward_length_title">Greitėjimo ilgis</string>
-  <string name="morphe_seek_notification_media_fast_forward_length_summary">Kitu mygtuku greitėjimo sekundžių skaičius</string>
-  <string name="morphe_seek_notification_media_length_invalid">Paieškos ilgis turi būti nuo 1 iki %s sekundžių. Naudos numatytąjį</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_title">Persukimo į priekį ilgis</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_summary">Sekundžių skaičius, per kurį persukama į priekį mygtuku „Kitas“</string>
+  <string name="morphe_seek_notification_media_length_invalid">Paieškos ilgis turi būti nuo 1 iki %s sekundžių. Bus naudojama numatytoji reikšmė</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
   <string name="morphe_disable_quic_protocol_title">Išjungti QUIC protokolą</string>
   <!-- misc.audio.drc.disableDRCAudioPatch  -->
@@ -207,14 +254,30 @@ Norėdami prisijungti, žemiau bakstelėkite „Tęsti“"</string>
   <string name="morphe_replace_music_with_youtube_summary">Bendrinamose nuorodose pakeičia music.youtube.com į youtube.com</string>
   <string name="morphe_replace_links_with_shortener_title">Keisti bendrinimo nuorodas į youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Priverčia vaizdo įrašus naudoti sutrumpintą youtu.be URL formatą</string>
+  <!-- video.quality.rememberVideoQualityPatch -->
+  <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
+  <string name="morphe_video_quality_default_entry_1">Automatiniai</string>
+  <string name="morphe_remember_video_quality_last_selected_title">Įsiminti vaizdo kokybę</string>
+  <string name="morphe_remember_video_quality_last_selected_summary">Jūsų rankenai pasirinkta kokybė bus taikoma visiems būsimiems vaizdo įrašams</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_title">Pranešimai apie kokybės pakeitimą</string>
+  <string name="morphe_remember_video_quality_last_selected_toast_summary">Rodo pranešimą, kai yra išsaugota nauja numatytinė kokybė</string>
+  <string name="morphe_video_quality_default_wifi_title">Numatytinė vaizdo kokybė naudojant Wi-Fi tinklą</string>
+  <string name="morphe_video_quality_default_mobile_title">Numatytinė vaizdo kokybė naudojant mobilųjį tinklą</string>
+  <string name="morphe_remember_video_quality_toast_mobile">Numatytinė mobiliojo tinklo kokybė pakeista į: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">Numatytinė Wi-Fi kokybė pakeista į: %s</string>
+  <!-- misc.sharesheet.openSystemShareSheetPatch -->
+  <string name="morphe_open_system_share_sheet_title">Atidaryti sistemos bendrinimo langą</string>
+  <string name="morphe_open_system_share_sheet_summary">Bendrinant turinį, atidaro sistemos bendrinimo langą vietoj programėlės lango</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Derinimo žurnalo protobuf</string>
-  <string name="morphe_debug_protobuffer_summary">Prideda papildomos registravimo informacijos, kad kūrėjai galėtų nustatyti programos komponentus</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Įgalinus šį nustatymą bus fiksuojami papildomi išdėstymo duomenys, įskaitant ekrane rodomą tekstą kai kuriems UI komponentams.
+  <string name="morphe_debug_litho_title">Litho žurnalo įrašai</string>
+  <string name="morphe_debug_litho_entry_disabled">Išjungta</string>
+  <string name="morphe_debug_litho_entry_path">Kelias</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">Kelias ir buferis</string>
+  <string name="morphe_debug_litho_user_dialog_message">"„Litho“ žurnalo įrašai registruoja programėlės maketo komponentus, įskaitant ekrano tekstą kai kuriems vartotojo sąsajos komponentams.
 
-Tai gali padėti identifikuoti komponentus kuriant individualius filtrus.
+Tai gali padėti identifikuoti komponentus kuriant specialius filtrus.
 
-Tačiau įgalinus šį nustatymą taip pat bus fiksuojami kai kurie vartotojo duomenys, pvz., jūsų IP adresas"</string>
+Tačiau taip pat bus užregistruoti kai kurie vartotojo duomenys, pavyzdžiui, jūsų IP adresas"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">Tinkintas filtras</string>
   <string name="morphe_custom_filter_screen_summary">Konfigūruokite tinkintus filtrus, kad paslėptumėte bet kurį komponentą</string>
@@ -250,7 +313,7 @@ Bakstelėkite čia, kad atsisiųstumėte PotHelper"</string>
   <!-- 'Spoof video streams' must use the same translation as morphe_spoof_video_streams_title -->
   <string name="morphe_external_potoken_provider_expired_dialog_message">"Šioje PotHelper versijoje įtaisytas tokenas nebeveikia
 
-Įjunkite „Klastoti vaizdo srautus“, kad pataisytumėte atkūrimą"</string>
+Įjunkite „Maskuoti vaizdo įrašų srautus“, kad pataisytumėte atkūrimą"</string>
   <string name="morphe_external_potoken_provider_expired_dialog_turn_on">Įjungti</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Maskuoti programos versiją</string>

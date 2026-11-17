@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-16
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -41,11 +42,13 @@
 
 package app.morphe.patches.music.general.spoofappversion
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.returnEarly
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.Constants.GENERAL_CLASS_DESCRIPTOR
 import app.morphe.patches.music.utils.extension.Constants.PATCH_STATUS_CLASS_DESCRIPTOR
@@ -73,6 +76,29 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
+private const val LEGACY_BROWSE_VERSION = "8.04.51"
+
+internal fun supportsSpoofAppVersion(versionName: String) = versionName < "8.03.00"
+
+internal fun spoofAppVersionTarget(versionName: String) =
+    if (versionName < "7.17.00") LEGACY_BROWSE_VERSION else "8.05.50"
+
+internal fun MutableMethod.useLegacyBrowseVersion(version: String) {
+    // Preserve lyrics overrides, but do not let saved general preferences restore an unsupported
+    // native client or the incompatible 8.05 browse theme on these old clients.
+    addInstructions(
+        0,
+        """
+            invoke-static {p0}, $GENERAL_CLASS_DESCRIPTOR->getLyricsVersionOverride(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p0
+            if-nez p0, :legacy_browse_version
+            const-string p0, "$version"
+            :legacy_browse_version
+            return-object p0
+        """,
+    )
+}
+
 private val spoofAppVersionBytecodePatch = bytecodePatch(
     description = "spoofAppVersionBytecodePatch"
 ) {
@@ -80,10 +106,11 @@ private val spoofAppVersionBytecodePatch = bytecodePatch(
         sharedExtensionPatch,
         spoofClientBrowseEndpointPatch,
         versionCheckPatch,
+        legacyBrowseThemePatch,
     )
 
     execute {
-        if (is_8_03_or_greater) {
+        if (!supportsSpoofAppVersion(packageMetadata.versionName)) {
             return@execute
         }
 
@@ -115,7 +142,7 @@ private val spoofAppVersionBytecodePatch = bytecodePatch(
             insertLast = false
         )
 
-        val defaultVersionString = "8.05.50"
+        val defaultVersionString = spoofAppVersionTarget(packageMetadata.versionName)
 
         findMethodOrThrow(PATCH_STATUS_CLASS_DESCRIPTOR) {
             name == "SpoofAppVersionDefaultString"
@@ -124,6 +151,12 @@ private val spoofAppVersionBytecodePatch = bytecodePatch(
         findMethodOrThrow(PATCH_STATUS_CLASS_DESCRIPTOR) {
             name == "SpoofAppVersionDefaultBoolean"
         }.returnEarly(true)
+
+        if (packageMetadata.versionName < "7.17.00") {
+            findMethodOrThrow(GENERAL_CLASS_DESCRIPTOR) {
+                name == "getBrowseVersionOverride"
+            }.useLegacyBrowseVersion(defaultVersionString)
+        }
     }
 }
 
@@ -145,6 +178,15 @@ val spoofAppVersionPatch = resourcePatch(
             printWarn("\"${SPOOF_APP_VERSION.title}\" is not supported in this version. Use YouTube Music versions up to 8.03.")
             return@execute
         }
+        if (packageMetadata.versionName < "7.17.00") {
+            printWarn(
+                "Music below 7.17 requires browse version $LEGACY_BROWSE_VERSION to avoid the server's " +
+                        "update block. Keeping this compatibility override fixed; skipping general spoof controls."
+            )
+            updatePatchStatus(SPOOF_APP_VERSION)
+            return@execute
+        }
+
         appendAppVersion("8.05.50")
         if (is_7_25_or_greater) {
             appendAppVersion("7.17.52")

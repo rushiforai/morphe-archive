@@ -92,8 +92,8 @@ public final class MaterialYouTweaks {
     public static void bindPost(Object holder) {
         if(!CommentsChromeTweaks.materialYouEnabled())return;
         Haptics.tap(CommentsChromeTweaks.field(holder,"voteUpButton"));Haptics.tap(CommentsChromeTweaks.field(holder,"voteDownButton"));
-        if(Boolean.TRUE.equals(CommentsChromeTweaks.field(holder,"Q"))) { CommentsScreenTweaks.bindPost(holder);return; }
-        Object nativeType=CommentsChromeTweaks.field(holder,"P");
+        if(Boolean.TRUE.equals(CommentsChromeTweaks.field(holder,"W"))) { CommentsScreenTweaks.bindPost(holder);return; }
+        Object nativeType=CommentsChromeTweaks.field(holder,"O");
         if(!(nativeType instanceof Enum) || !"MiniCards".equals(((Enum<?>)nativeType).name()))return;
         Object value=CommentsChromeTweaks.field(holder,"a");
         if(!(value instanceof View))return;
@@ -180,6 +180,15 @@ public final class MaterialYouTweaks {
                 }
                 int visibility=visible ? View.VISIBLE:View.GONE;
                 if(badges.getVisibility()!=visibility)badges.setVisibility(visibility);
+                // The first visible badge starts at the edge; the rest keep a small gap.
+                boolean first=true;
+                for(int i=0;i<badges.getChildCount();i++){
+                    View child=badges.getChildAt(i);
+                    if(!hasBadge(child) || !(child.getLayoutParams() instanceof ViewGroup.MarginLayoutParams))continue;
+                    ViewGroup.MarginLayoutParams params=(ViewGroup.MarginLayoutParams)child.getLayoutParams();
+                    int start=first ? 0:dp(child,6);first=false;
+                    if(params.getMarginStart()!=start || params.leftMargin!=start){params.setMarginStart(start);params.leftMargin=start;child.setLayoutParams(params);}
+                }
             }
         }
         boolean hasBadge(View child) {
@@ -228,13 +237,21 @@ public final class MaterialYouTweaks {
             if(info instanceof TextView && info.getParent() instanceof View && ((View)info.getParent()).getParent() instanceof LinearLayout) {
                 LinearLayout main=(LinearLayout)((View)info.getParent()).getParent();
                 TextView chip=new TextView(row.getContext());chip.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,((TextView)info).getTextSize());chip.setTypeface(((TextView)info).getTypeface());
-                chip.setVisibility(View.GONE);chip.setPadding(0,dp(row,2),0,dp(row,2));main.addView(chip,main.indexOfChild((View)info.getParent())+1,wrap());flair=new WeakReference<>(chip);
+                chip.setVisibility(View.GONE);chip.setPadding(0,dp(row,6),0,dp(row,2));main.addView(chip,main.indexOfChild((View)info.getParent())+1,wrap());flair=new WeakReference<>(chip);
             }
             if(score!=null && score.getParent() instanceof ViewGroup) {
                 ViewGroup original=(ViewGroup)score.getParent();badgeRow=new WeakReference<>(original);
                 if(original.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                     ViewGroup.MarginLayoutParams margins=(ViewGroup.MarginLayoutParams)original.getLayoutParams();
                     margins.topMargin=0;margins.bottomMargin=0;original.setLayoutParams(margins);
+                }
+                // Flairs share the badge line, after NSFW and spoiler tags.
+                TextView chip=flair==null ? null:flair.get();
+                if(chip!=null && original instanceof LinearLayout && ((LinearLayout)original).getOrientation()==LinearLayout.HORIZONTAL && chip.getParent() instanceof ViewGroup){
+                    ((ViewGroup)chip.getParent()).removeView(chip);chip.setPadding(0,0,0,0);
+                    LinearLayout.LayoutParams place=new LinearLayout.LayoutParams(-2,-2);place.gravity=android.view.Gravity.CENTER_VERTICAL;
+                    original.addView(chip,place);
+                    original.setPadding(original.getPaddingLeft(),dp(row,6),original.getPaddingRight(),dp(row,2));
                 }
             }
             // Move existing bound views, retaining listeners, vote state and accessibility labels.
@@ -306,14 +323,22 @@ public final class MaterialYouTweaks {
         if(spans.length==0) {if(target!=null && target.getVisibility()!=View.GONE){target.setVisibility(View.GONE);return true;}return false;}
         android.text.SpannableStringBuilder metadata=new android.text.SpannableStringBuilder(content),chips=new android.text.SpannableStringBuilder();
         java.util.Arrays.sort(spans,(a,b)->Integer.compare(old.getSpanStart(a),old.getSpanStart(b)));
+        boolean redditColours=SurfaceSettingsActivity.enabled(view.getContext(),"flair_colours",true);
         for(BackgroundColorSpan span:spans) {
             int start=old.getSpanStart(span),end=old.getSpanEnd(span);if(start<0 || end<=start)continue;
             if(chips.length()>0)chips.append(" ");int offset=chips.length();
-            // Long flairs would push the whole line onto a second row.
-            chips.append(end-start>24 ? new android.text.SpannableStringBuilder(old.subSequence(start,start+22)).append('\u2026'):old.subSequence(start,end));
+            // Flairs get their own line, but a very long one is still cut short.
+            chips.append(end-start>40 ? new android.text.SpannableStringBuilder(old.subSequence(start,start+38)).append('\u2026'):old.subSequence(start,end));
+            int fill=color(view.getContext(),"colorSecondaryContainer",android.R.attr.colorAccent),ink=color(view.getContext(),"colorOnSecondaryContainer",android.R.attr.textColorPrimary);
+            // Reddit's own flair colours, when the community set one and the option is on.
+            if(redditColours && android.graphics.Color.alpha(span.getBackgroundColor())>0){
+                fill=span.getBackgroundColor()|0xff000000;
+                ForegroundColorSpan[] text=old.getSpans(start,end,ForegroundColorSpan.class);
+                ink=text.length>0 && android.graphics.Color.alpha(text[0].getForegroundColor())>0 ? text[0].getForegroundColor()|0xff000000:readableOn(fill);
+            }
             for(BackgroundColorSpan bg:chips.getSpans(offset,chips.length(),BackgroundColorSpan.class))chips.removeSpan(bg);
             for(ForegroundColorSpan fg:chips.getSpans(offset,chips.length(),ForegroundColorSpan.class))chips.removeSpan(fg);
-            chips.setSpan(new Pill(color(view.getContext(),"colorSecondaryContainer",android.R.attr.colorAccent),color(view.getContext(),"colorOnSecondaryContainer",android.R.attr.textColorPrimary),dp(view,6)),offset,chips.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            chips.setSpan(new Pill(fill,ink,dp(view,6)),offset,chips.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         if(target==null) return false;
         for(int i=spans.length-1;i>=0;i--){int start=old.getSpanStart(spans[i]),end=old.getSpanEnd(spans[i]);if(start>=0 && end>start){
@@ -322,16 +347,22 @@ public final class MaterialYouTweaks {
             if(from>0 && (metadata.charAt(from-1)=='·' || metadata.charAt(from-1)=='•'))from--;
             metadata.delete(from,end);
         }}
-        // Flairs lead the line: an inline label reads as part of the post, and saves a row.
+        // Flairs sit on their own line under the post details, so the details stay on one line.
         while(metadata.length()>0 && Character.isWhitespace(metadata.charAt(0)))metadata.delete(0,1);
-        if(chips.length()>0)metadata.insert(0,chips.append(" "));
-        view.setText(metadata);target.setVisibility(View.GONE);return true;
+        view.setText(metadata);
+        target.setText(chips);target.setVisibility(chips.length()>0 ? View.VISIBLE:View.GONE);return true;
+    }
+    /** Black or white text, whichever reads better on the flair's colour. */
+    static int readableOn(int background){
+        double luminance=(0.299*android.graphics.Color.red(background)+0.587*android.graphics.Color.green(background)+0.114*android.graphics.Color.blue(background))/255;
+        return luminance>0.6 ? 0xff1c1b1f:0xffffffff;
     }
     public static final class Pill extends ReplacementSpan {
         final int background,foreground,pad;
         Pill(int bg,int fg,int padding){background=bg;foreground=fg;pad=padding;}
         android.text.StaticLayout cachedLayout;
         final Paint cachedPaint=new Paint();
+        final android.graphics.Rect capital=new android.graphics.Rect();
         WeakReference<CharSequence> cachedText;
         int cachedStart,cachedEnd;
         android.text.style.CharacterStyle[] cachedSpans;
@@ -401,7 +432,12 @@ public final class MaterialYouTweaks {
         @Override public void draw(Canvas canvas,CharSequence text,int start,int end,float x,int top,int y,int bottom,Paint paint){
             android.text.StaticLayout layout=label(paint,text,start,end);
             int old=paint.getColor();paint.setColor(background);
-            canvas.drawRoundRect(x,top,x+layout.getWidth()+pad*2,bottom,pad*2,pad*2,paint);paint.setColor(old);
+            // The line box has more room above the text than below, which leaves the label low.
+            // Keep the bottom and bring the top down, so the gap above the capitals matches the gap
+            // below the baseline.
+            layout.getPaint().getTextBounds("H",0,1,capital);
+            float pillTop=Math.max(top,y+capital.top-(bottom-y));
+            canvas.drawRoundRect(x,pillTop,x+layout.getWidth()+pad*2,bottom,pad*2,pad*2,paint);paint.setColor(old);
             canvas.save();canvas.translate(x+pad,y-layout.getLineBaseline(0));layout.draw(canvas);canvas.restore();
         }
     }

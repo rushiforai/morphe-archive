@@ -7,7 +7,7 @@ import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -19,7 +19,7 @@ private const val EXTENSION_METHOD =
     "$EXTENSION_CLASS->copyWithoutSponsored(Ljava/lang/Object;Ljava/util/List;)Ljava/lang/Object;"
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Removes promoted (sponsored) posts from the feed.",
     default = true

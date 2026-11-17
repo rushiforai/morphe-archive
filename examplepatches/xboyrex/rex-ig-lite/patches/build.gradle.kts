@@ -2,8 +2,8 @@ group = "app.rex"
 
 patches {
     about {
-        name = "xboyrex"
-        description = "Unified Liquid Glass Morphe Patch Suite for Instagram & X by Mayank (@xboyrex)"
+        name = "Rex IG Lite"
+        description = "Rex IG Lite AMOLED Morphe Patch Suite for Instagram & X by xboyrex"
         source = "git@github.com:xboyrex/rex-ig-lite.git"
         author = "xboyrex (Mayank)"
         contact = "https://t.me/MayankDroid7"
@@ -19,6 +19,21 @@ dependencies {
 }
 
 tasks {
+    register<JavaExec>("runRexPatchManifestTest") {
+        description = "Runs Rex IG Lite patch manifest and architectural verification tests"
+
+        dependsOn("testClasses")
+
+        workingDir = rootProject.projectDir
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("app.rex.patches.instagram.RexPatchManifestTest")
+    }
+
+    withType<Test>().configureEach {
+        failOnNoDiscoveredTests = false
+        dependsOn("runRexPatchManifestTest")
+    }
+
     register<JavaExec>("checkStringResources") {
         description = "Checks resource strings for invalid formatting"
 

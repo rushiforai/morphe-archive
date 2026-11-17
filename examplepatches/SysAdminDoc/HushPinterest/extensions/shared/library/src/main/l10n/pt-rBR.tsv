@@ -220,6 +220,25 @@ Hide comment previews	Ocultar prévias de comentários
 Hide topic suggestions	Ocultar sugestões de temas
 Quiet email reminders	Ocultar lembretes de e-mail
 Hide survey prompts	Ocultar convites de pesquisa
+Hide pop-up banners	Ocultar banners pop-up
+Hide related pins	Ocultar pins relacionados
+Hide creator name on pins	Ocultar nome do criador nos pins
+Custom save sound	Som próprio ao salvar
+Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound picked, Pinterest's plays.	Toca o som que você escolher abaixo quando salva um pin, em vez do som do Pinterest. Sem um som escolhido, toca o do Pinterest.
+Pick a save sound	Escolher um som ao salvar
+Pick a sound file for Custom save sound to play when you save a pin.	Escolha um arquivo de som para o Som próprio ao salvar tocar quando você salva um pin.
+A sound is picked, but Custom save sound is off, so Pinterest's sound plays.	Há um som escolhido, mas Som próprio ao salvar está desativado, então toca o som do Pinterest.
+%s is picked, but Custom save sound is off, so Pinterest's sound plays.	%s está escolhido, mas Som próprio ao salvar está desativado, então toca o som do Pinterest.
+Saving a pin plays the sound you picked. Tap to pick another sound or use Pinterest's again.	Salvar um pin toca o som que você escolheu. Toque para escolher outro som ou voltar ao do Pinterest.
+Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Salvar um pin toca %s. Toque para escolher outro som ou voltar ao do Pinterest.
+Pick another sound	Escolher outro som
+Use Pinterest's sound again	Voltar a usar o som do Pinterest
+That app won't let Pinterest keep the sound. Pick one saved on the phone.	Esse app não deixa o Pinterest manter o som. Escolha um salvo no celular.
+Saving a pin will play the sound you picked.	Salvar um pin vai tocar o som que você escolheu.
+Saving a pin will play %s.	Salvar um pin vai tocar %s.
+Saving a pin will play Pinterest's sound again.	Salvar um pin vai tocar o som do Pinterest de novo.
+Custom splash logo	Logo de abertura personalizado
+Shows the logo picked when patching on the screen you see while Pinterest starts, instead of Pinterest's. Android 13 and newer. It shows from the next start.	Mostra o logo escolhido ao aplicar o patch na tela que você vê enquanto o Pinterest abre, no lugar do logo do Pinterest. Android 13 ou mais recente. Aparece a partir da próxima abertura.
 Disable update nag	Ocultar aviso de atualização
 Download pin	Baixar Pin
 Share pin	Compartilhar Pin
@@ -343,6 +362,9 @@ Hide comments is on and already hides the whole comments section, previews inclu
 Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Oculta a linha "Ideias que você pode amar" com bolhas de temas abaixo dos Pins na próxima vez que o Pinterest a mostrar. Os comentários e os Pins relacionados continuam.
 Dismisses the optional reminder to confirm your email. A reminder that's already open stays. Account checks and sign-in still work as usual.	Dispensa o lembrete opcional para confirmar seu e-mail. Um lembrete já aberto continua. As verificações da conta e o login funcionam como de costume.
 Turns down Pinterest's "Got a minute?" survey invite before it pops up, the way Maybe later does, so that survey doesn't come back. Advertiser-sponsored polls don't pop up either. An invite that's already open stays.	Recusa o convite de pesquisa "Tem um minuto?" do Pinterest antes que ele apareça, como faz o "Talvez mais tarde", para que essa pesquisa não volte. Enquetes patrocinadas por anunciantes também não aparecem. Um convite que já está aberto continua.
+Closes the banners Pinterest pops up over your feed, such as "Shop recommended merchants", the way their X does, so that one doesn't come back. A banner that's already open stays.	Fecha os banners que o Pinterest mostra sobre o seu feed, como "Compre em lojas recomendadas", como faz o X deles, para que esse banner não volte. Um banner que já está aberto continua.
+Leaves the grid of more pins out from under a pin you open, so it doesn't load. The change shows on the next pin you open.	Tira a grade de mais pins de baixo de um pin que você abre, então ela não carrega. A mudança aparece no próximo pin que você abrir.
+Hides the creator's name and badge under a pin you open. Their picture stays and still opens their profile. The change shows on the next pin you open.	Oculta o nome e o selo do criador embaixo de um pin que você abre. A foto continua e ainda abre o perfil. A mudança aparece no próximo pin que você abrir.
 Hide save toasts	Ocultar avisos ao salvar
 Saving a pin no longer shows the "Saved to" message or a suggestion to follow its creator. The pin is still saved.	Salvar um Pin não mostra mais a mensagem "Salvo em" nem a sugestão de seguir quem o criou. O Pin continua salvo.
 Original-quality images	Imagens em qualidade original
@@ -414,10 +436,18 @@ Hide Save in the long-press menu	Ocultar Salvar no menu de toque longo
 Takes Pinterest's Save button out of a grid pin's long-press menu. Saving from the pin itself still works.	Tira o botão Salvar do Pinterest do menu ao manter um pin da grade pressionado. Salvar pelo próprio pin continua funcionando.
 Hide Send in the long-press menu	Ocultar Enviar no menu de toque longo
 Takes Pinterest's Send button out of a grid pin's long-press menu. Sharing from the pin itself still works.	Tira o botão Enviar do Pinterest do menu ao manter um pin da grade pressionado. Compartilhar pelo próprio pin continua funcionando.
+Hide Send with an app in the long-press menu	Ocultar Enviar com um app no menu de toque longo
+Takes the button that sends a pin straight to WhatsApp or the app you last shared with out of a grid pin's long-press menu. Send still lists every app.	Tira do menu ao manter um pin da grade pressionado o botão que envia o pin direto para o WhatsApp ou para o último app com que você compartilhou. Enviar continua mostrando todos os apps.
 Hide Search image in the long-press menu	Ocultar Pesquisar imagem no menu de toque longo
 Takes Pinterest's Search image button out of a grid pin's long-press menu. The lens on a pin you open still searches.	Tira o botão Pesquisar imagem do Pinterest do menu ao manter um pin da grade pressionado. A lente de um pin que você abre continua pesquisando.
 With nothing left in it, the menu keeps Pinterest's buttons.	Sem outros botões, o menu mantém os do Pinterest.
 hiding Pinterest's long-press buttons	ocultar os botões de toque longo do Pinterest
+# context: Long-press view, a View button added after Download in the round menu a held grid pin opens (Pinterest's own word for it in that menu: Ver), and its switch on the Pin actions page. It shows the pin's picture full screen. The toasts show when the picture can't be opened. The third line names this part of the patch in a coverage summary.
+Long-press view	Ver com toque longo
+Adds View to a grid pin's long-press menu. It shows the picture full screen without opening the pin. Pinch or double-tap to zoom.	Adiciona Ver ao menu de toque longo de um pin da grade. Mostra a imagem em tela cheia sem abrir o pin. Faça pinça ou toque duas vezes para dar zoom.
+View in the long-press menu	Ver no menu de toque longo
+That image is too big to open.	Essa imagem é grande demais para abrir.
+Couldn't open the image. Check your connection and try again.	Imagem não aberta. Verifique a conexão e tente de novo.
 # context: Hide ads coverage in a partial build: each list holder or ad-only view the patch did or didn't hook, named in the Feed page summary. The last row adds how many of a target's hooks went in.
 promoted pins in feed pages	pins promovidos nas páginas do feed
 promoted pins in paged results	pins promovidos nos resultados paginados
@@ -518,6 +548,10 @@ Black pin menu	Menu do pin em preto
 In dark mode, paints a pin's menu pure black. Light mode stays as it is. The change shows the next time you open the menu.	No modo escuro, pinta de preto puro o menu de um pin. O modo claro continua como está. A mudança aparece na próxima vez que você abrir o menu.
 Black Save to sheet	Tela de Salvar em preto
 In dark mode, paints the sheet that lists your boards when you save a pin pure black. Light mode stays as it is. The change shows the next time you save a pin.	No modo escuro, pinta de preto puro a tela com as suas pastas que abre quando você salva um pin. O modo claro continua como está. A mudança aparece na próxima vez que você salvar um pin.
+Black menus and sheets	Menus e telas em preto
+In dark mode, paints the other menus and sheets that slide up pure black, such as Create and a board's sort and options menus. Light mode stays as it is. The change shows the next time you open one.	No modo escuro, pinta de preto puro os outros menus e telas que sobem de baixo, como Criar e os menus de ordenar e de opções de uma pasta. O modo claro continua como está. A mudança aparece na próxima vez que você abrir um deles.
+Black board and profile buttons	Botões de pastas e do perfil em preto
+In dark mode, paints the gray bar that floats over a board and the filter buttons on your profile pure black, along with the empty cover on Edit board. Light mode stays as it is. The change shows the next time you open a board or your profile.	No modo escuro, pinta de preto puro a barra cinza que flutua sobre uma pasta e os botões de filtro do seu perfil, além da capa vazia em Editar pasta. O modo claro continua como está. A mudança aparece na próxima vez que você abrir uma pasta ou o seu perfil.
 # context: the two Hide closeup buttons switches on the Interface page. Pinterest calls the lens button's menu entry Search image.
 Hide back arrow on pins	Ocultar seta de voltar nos pins
 Hides the back arrow that floats over a pin you open. Your phone's back gesture or button still leaves the pin. The change shows on the next pin you open.	Oculta a seta de voltar que flutua sobre um pin que você abre. O gesto ou botão de voltar do seu celular ainda tira você do pin. A mudança aparece no próximo pin que você abrir.
@@ -704,9 +738,12 @@ Save and download	Salvar e baixar
 # context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
 Hide Assistant	Ocultar Assistente
 Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Tira o Assistente de IA do Pinterest da busca, das pastas e dos Pins. A busca funciona normalmente. A mudança aparece na próxima vez que a tela atualizar.
-# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards still show them, and the switch under it covers search. The title is also the name of that part of the patch in the build report.
 Hide pins you've already saved	Ocultar pins que você já salvou
-Takes pins you've saved out of your home feed. Your boards and search still show them.	Remove do seu feed inicial os pins que você salvou. Suas pastas e a busca continuam mostrando.
+Takes pins you've saved out of your home feed. Your boards still show them.	Remove do seu feed inicial os pins que você salvou. Suas pastas continuam mostrando.
+# context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes pins the person has already saved out of search results and out of the "More to explore" pins Pinterest shows under a pin they open. "More to explore" is Pinterest's own name for that section, so use the app's translation of it. The title is also the name of that part of the patch in the build report.
+Hide saved pins in search and More to explore	Ocultar pins salvos na busca e em "Mais para explorar"
+Takes pins you've saved out of search results and the More to explore pins under a pin you open. Your boards still show them.	Remove os pins que você salvou dos resultados da busca e de "Mais para explorar" abaixo do pin que você abre. Suas pastas continuam mostrando.
 # context: toast when Download pin can't save a streamed video on the current network
 Your download settings block this network. Try again on Wi-Fi.	Suas configurações de download bloqueiam esta rede. Tente de novo no Wi-Fi.
 # context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.
@@ -717,3 +754,8 @@ See more like this? bubble	Balão "Ver mais conteúdo como este Pin?"
 # context: a Notifications switch from the Hide Inbox updates patch. It leaves the Updates section (Pinterest's activity and pin suggestions) out of the Inbox screen, and messages stay. "Updates" and "Inbox" are the names Pinterest gives them, so use the app's own translations.
 Hide Inbox updates	Ocultar Atualizações da caixa de entrada
 Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages stay. The change shows the next time you open the Inbox.	Deixa a seção Atualizações fora da sua caixa de entrada, e o Pinterest não a carrega. Suas mensagens continuam. A mudança aparece na próxima vez que você abrir a caixa de entrada.
+saved pins in search	pins salvos na busca
+saved pins in More to explore	pins salvos em "Mais para explorar"
+Shop the look under pins	Shop the look abaixo dos pins
+Back leaves Home right away	Voltar sai do Início na hora
+When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Quando você rolou o Início para baixo, Voltar sai do Pinterest em vez de pular para o topo e carregar pins novos primeiro.

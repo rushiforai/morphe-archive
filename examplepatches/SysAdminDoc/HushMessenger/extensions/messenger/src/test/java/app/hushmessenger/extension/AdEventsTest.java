@@ -52,7 +52,7 @@ public class AdEventsTest {
         assertTrue(Settings.installed.contains("ad_events"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("ad_events")).findFirst().orElseThrow();
         assertEquals("Stop inbox and ad link logging", row[1]);
-        assertEquals("privacy", row[3]);
+        assertEquals("tracking", row[3]);
         assertFalse(Settings.preferences.contains("ad_events"));
         assertFalse(Settings.wouldUse("ad_events"));
     }

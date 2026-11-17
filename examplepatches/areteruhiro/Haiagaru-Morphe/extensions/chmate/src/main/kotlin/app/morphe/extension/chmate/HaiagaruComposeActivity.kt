@@ -2,6 +2,7 @@ package app.morphe.extension.chmate
 
 import android.content.res.AssetManager
 import android.content.res.Resources
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
@@ -16,6 +17,13 @@ open class HaiagaruComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         uiResources = resourcesFor(this)
         super.onCreate(savedInstanceState)
+    }
+    @Suppress("DEPRECATION")
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        // Our separate resource table must follow rotation too; retaining the launch
+        // configuration left the video viewer believing it was still in portrait.
+        uiResources?.updateConfiguration(newConfig, super.getResources().displayMetrics)
+        super.onConfigurationChanged(newConfig)
     }
 
     companion object {

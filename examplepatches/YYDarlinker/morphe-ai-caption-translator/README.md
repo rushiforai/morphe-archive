@@ -74,15 +74,15 @@ Use a chat-completion endpoint compatible with the request protocol, and compare
 The section below is generated from the latest published patch metadata.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.1](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.6.2](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.6.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;21.43.523 | 🧪&nbsp;21.42.241 | 🧪&nbsp;21.41.525 | 21.30.216 | 21.28.208 | 21.23.492 | 21.20.405 | 21.16.256 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🧪&nbsp;21.45.82 | 🧪&nbsp;21.44.528 | 🧪&nbsp;21.43.523 | 🧪&nbsp;21.42.241 | 🧪&nbsp;21.41.525 | 21.30.216 | 21.28.208 | 21.23.492 | 21.20.405 | 21.16.256 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

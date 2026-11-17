@@ -21,7 +21,7 @@ import app.morphe.extension.rex.RexUtils;
 public class FilterStory {
 
     public static List<Object> filter(List<Object> items) {
-        if (items == null || items.isEmpty()) return items;
+        if (items == null || items.isEmpty() || !Pref.storyFiltersMaster()) return items;
 
         Set<String> reelTypes = Pref.filterStoryByType();
         Set<String> userTypes = Pref.filterStoryByUserType();

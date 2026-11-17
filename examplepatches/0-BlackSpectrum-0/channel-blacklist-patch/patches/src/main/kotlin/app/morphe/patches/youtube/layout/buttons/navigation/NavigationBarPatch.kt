@@ -19,17 +19,17 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.resourceXml
-import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceXml
 import app.morphe.patcher.util.addFreeRegisters
+import app.morphe.patcher.util.addPatchInterface
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.matchAllMethodIndicesForEach
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.misc.bridge.addBridge
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.immutableMethodRef
@@ -72,7 +72,6 @@ import app.morphe.util.insertLiteralOverride
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -81,7 +80,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.util.MethodUtil
 
 internal const val EXTENSION_CLASS =
@@ -261,12 +259,13 @@ val navigationBarPatch = patch(
                 key = "morphe_navigation_bar_glass_opacity",
                 tag = "app.morphe.extension.shared.settings.preference.SeekBarPreference"
             ),
+            SwitchPreference("morphe_navigation_bar_glass_round", summary = true),
             // Height, width and button spacing, with a preview.
             NonInteractivePreference(
                 key = "morphe_navigation_bar_glass_height",
                 titleKey = "morphe_navigation_bar_glass_size_title",
                 summaryKey = "morphe_navigation_bar_glass_size_summary",
-                tag = "app.morphe.extension.youtube.settings.preference.GlassNavigationBarPreference",
+                tag = "app.morphe.extension.youtube.settings.preference.YouTubeGlassNavigationBarPreference",
                 selectable = true
             )
         )
@@ -339,8 +338,8 @@ val navigationBarPatch = patch(
         // so the fixes do nothing if the flags are left to the account, as with the default navigation bar style.
 
         // The blurred background of the translucent navigation bar is drawn only if the canvas is
-        // hardware accelerated. The transparent and opaque styles leave it out, as it can crash
-        // the app on Android 12 and 13.
+        // hardware accelerated. It's always left out on Android 12 and 13, where it can crash the app
+        // while the player moves, and the transparent and opaque styles always leave it out.
         NavigationBarBlurDrawFingerprint.let {
             it.method.apply {
                 val index = it.instructionMatches[1].index
@@ -366,17 +365,18 @@ val navigationBarPatch = patch(
             val updateHeightMethod = matches[1].getMethodCalled()
 
             mutableClassDefBy(PIVOT_BAR_CLASS).apply {
-                interfaces.add(PIVOT_BAR_ACCESS_INTERFACE)
-                addBridge(
-                    "patch_setSystemButtonsRoom", listOf("I"), "V", 2,
+                addPatchInterface(
+                    PIVOT_BAR_ACCESS_INTERFACE,
+                    "patch_setSystemButtonsRoom",
                     """
                         iput p1, p0, $roomField
                         invoke-virtual { p0 }, $updateHeightMethod
                         return-void
                     """
                 )
-                addBridge(
-                    "patch_getSystemButtonsRoom", listOf(), "I", 2,
+                addPatchInterface(
+                    PIVOT_BAR_ACCESS_INTERFACE,
+                    "patch_getSystemButtonsRoom",
                     """
                         iget v0, p0, $roomField
                         return v0
@@ -670,32 +670,19 @@ val navigationBarPatch = patch(
             ).forEach { (methodName, checkCastMatch) ->
                 val rendererType = checkCastMatch.instruction.getReference<TypeReference>()!!.type
 
-                methods.add(
-                    ImmutableMethod(
-                        type,
-                        methodName,
-                        listOf(),
-                        "Lcom/google/protobuf/MessageLite;",
-                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                        null,
-                        null,
-                        MutableMethodImplementation(3),
-                    ).toMutable().apply {
-                        addInstructionsWithLabels(
-                            0,
-                            """
-                                iget-object v0, p0, $messageLiteField
-                                instance-of v1, v0, $rendererType
-                                if-nez v1, :return
-                                const/4 v0, 0x0
-                                :return
-                                return-object v0
-                            """
-                        )
-                    }
+                addPatchInterface(
+                    EXTENSION_PIVOT_BAR_ITEM_INTERFACE,
+                    methodName,
+                    """
+                        iget-object v0, p0, $messageLiteField
+                        instance-of v1, v0, $rendererType
+                        if-nez v1, :return
+                        const/4 v0, 0x0
+                        :return
+                        return-object v0
+                    """
                 )
             }
-            interfaces.add(EXTENSION_PIVOT_BAR_ITEM_INTERFACE)
         }
 
         //
@@ -804,7 +791,7 @@ val navigationBarPatch = patch(
             )
         )
 
-        // Some pages have their own toolbar, such as the You tab and the channel pages, which the swap
+        // Some pages have their own toolbar, such as the 'You' tab and the channel pages, which the swap
         // of the create button and the fix of its upload button do not change in the toolbar of the guide.
         // The toolbar buttons of all pages are created with their renderer.
         ToolBarButtonFingerprint.let {
@@ -910,38 +897,22 @@ val navigationBarPatch = patch(
 
         SettingIntentFingerprint.let {
             it.classDef.apply {
-                // Add interface and helper methods to allow extension code to call obfuscated methods.
-                interfaces.add(EXTENSION_SETTING_INTERFACE)
-
-                // Internal method to open YouTube settings.
-                val helperMethod = ImmutableMethod(
-                    type,
-                    "patch_openYouTubeSettings",
-                    listOf(),
-                    "V",
-                    AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                    null,
-                    null,
-                    MutableMethodImplementation(2),
-                ).toMutable().apply {
-                    // 21.25+ has an ignored MenuItem parameter.
-                    val parameters = when (it.method.parameters.size) {
-                        0 -> ""
-                        1 -> ", v0"
-                        else -> throw PatchException("Unpexpected number of parameters")
-                    }
-
-                    addInstructions(
-                        0,
-                        """
-                            const/4 v0, 0x0
-                            invoke-virtual { p0 $parameters }, ${it.method}
-                            return-void
-                        """
-                    )
+                // Add interface and helper method to allow extension code to open YouTube settings.
+                // 21.25+ has an ignored MenuItem parameter.
+                val parameters = when (it.method.parameters.size) {
+                    0 -> ""
+                    1 -> ", v0"
+                    else -> throw PatchException("Unpexpected number of parameters")
                 }
-
-                methods.add(helperMethod)
+                addPatchInterface(
+                    EXTENSION_SETTING_INTERFACE,
+                    "patch_openYouTubeSettings",
+                    """
+                        const/4 v0, 0x0
+                        invoke-virtual { p0 $parameters }, ${it.method}
+                        return-void
+                    """
+                )
 
                 methods.first { method ->
                     MethodUtil.isConstructor(method)

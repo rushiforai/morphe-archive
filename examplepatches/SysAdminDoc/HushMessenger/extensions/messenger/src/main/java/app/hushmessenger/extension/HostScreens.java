@@ -485,6 +485,9 @@ public final class HostScreens {
         // Converted copies of picked videos go a day after their last use, switch on or off, without another pick.
         if (started && !failed && Settings.installed.contains(XheAudio.KEY)
                 && context.getPackageName().equals(Application.getProcessName())) XheAudio.pruneLater(context);
+        // After CrashGuard as well, so Pause and safe mode give encrypted chats Messenger's own mute check back.
+        if (started && !failed && Settings.installed.contains(MessageLog.KEY)
+                && context.getPackageName().equals(Application.getProcessName())) MuteQuery.follow(context);
         // A failed start can't follow the switch, so entries an earlier run left on come out. Settings.installed may
         // never have loaded here, and TextStyleActivity checks the manifest itself.
         if (failed && context.getPackageName().equals(Application.getProcessName())) TextStyleActivity.turnOff(context);

@@ -41,8 +41,8 @@ def runtime_classes(apk):
                 offset+=1
                 end=dex.index(b'\0',offset)
                 name=dex[offset:end].decode('utf-8',errors='replace')
-                if any(name.startswith('Lapp/morphe/extension/boost/'+family) for family in
-                       ['CommentsChromeTweaks','GalleryBottomActionsTweaks','CommentSwipeActions','PredictiveBackTweaks','MediaPreviewTweaks','CommentLayoutTweaks','ViewerPolishTweaks','MaterialYouTweaks','CommentsScreenTweaks','ThreadPositionTweaks','FeedPillBlur','GlassRefraction','HeaderGradient','UnifiedChromeTweaks','MaterialLoading','HomeAvatarTweaks','Surface']):
+                # Every extension class, so new helpers are verified without updating a list.
+                if name.startswith('Lapp/morphe/extension/boost/'):
                     names.add(name[1:-1].replace('/','.'))
     return sorted(names)
 
@@ -64,7 +64,7 @@ try:
     checks=work/'checks.jar'
     run([sdk/'build-tools/36.0.0/d8','--min-api','24','--lib',sdk/'platforms/android-36/android.jar',
          '--output',checks]+list(classes.glob('*.class')))
-    apks=[ROOT/'output/boost-1.14.3-chrome-unsigned.apk']+[path.resolve() for path in args.fixture]
+    apks=[ROOT/'output/boost-1.14.4-chrome-unsigned.apk']+[path.resolve() for path in args.fixture]
     if not all(path.is_file() for path in apks): raise RuntimeError('An APK fixture is missing; build it first.')
     remote='/data/local/tmp/boost-media-'+datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
     shell(['mkdir','-p',remote+'/cache'])

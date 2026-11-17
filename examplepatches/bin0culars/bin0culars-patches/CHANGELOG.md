@@ -1,3 +1,15 @@
+## [1.7.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.6.0...v1.7.0) (2026-11-16)
+
+### ✨ New Features
+
+* **reddit:** share post content instead of the link ([#31](https://github.com/bin0culars/bin0culars-patches/issues/31)) ([9c6b584](https://github.com/bin0culars/bin0culars-patches/commit/9c6b58450c743f3bfb4c91ac732dc87fb44b68fe))
+
+## [1.7.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-11-16)
+
+### ✨ New Features
+
+* **reddit:** share post content instead of the link ([#31](https://github.com/bin0culars/bin0culars-patches/issues/31)) ([9c6b584](https://github.com/bin0culars/bin0culars-patches/commit/9c6b58450c743f3bfb4c91ac732dc87fb44b68fe))
+
 ## [1.6.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.5.1...v1.6.0) (2026-11-16)
 
 ### ✨ New Features

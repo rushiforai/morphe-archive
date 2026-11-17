@@ -1,7 +1,6 @@
 package app.morphe.extension.shared.utils;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 
@@ -79,8 +78,7 @@ public class StringRef extends Utils {
     // Dynamic string
     public static int dstr(@NonNull String resName) {
         try {
-            Activity mActivity = getActivity();
-            Context context = mActivity != null ? mActivity : getContext();
+            Context context = ResourceUtils.getActivityOrContext();
 
             if (context != null) {
                 return context.getResources().getIdentifier(resName, "string", context.getPackageName());
@@ -125,10 +123,7 @@ public class StringRef extends Utils {
     public String toString() {
         if (!resolved) {
             try {
-                Activity mActivity = getActivity();
-                Context context = mActivity != null
-                        ? mActivity
-                        : getContext();
+                Context context = ResourceUtils.getActivityOrContext();
                 if (resources == null) {
                     resources = context.getResources();
                 }

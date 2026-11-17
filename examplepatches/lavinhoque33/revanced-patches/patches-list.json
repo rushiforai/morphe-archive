@@ -1,5 +1,5 @@
 {
-  "version": "v1.36.0",
+  "version": "v1.37.1",
   "patches": [
     {
       "name": "Add to queue",
@@ -3346,6 +3346,29 @@
           "21.45.90",
           "21.13.164",
           "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Smart Shuffle",
+      "description": "Long press playlist-header Shuffle to mix suggested songs into shuffled playlist playback. Suggestions can be kept or dismissed from the queue.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.45.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
         ]
       },
       "options": []

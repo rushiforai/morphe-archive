@@ -4,7 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.firefox.shared.concreteMethod
 import app.template.patches.firefox.shared.fieldRef
 import app.template.patches.firefox.shared.firefoxClass
@@ -107,33 +107,37 @@ val hidePromotionalPromptsPatch = bytecodePatch(
         onCreate.addInstructionChecked(isDefaultCall + 2, "const/16 v$isDefaultRegister, 0x1")
 
         // ── 5. Onboarding: no "Set as default" card and no Sync sign-in page ────────────────
-        //  toPageUiData filters the Nimbus cards through an R8 lambda capturing (showDefaultBrowser,
-        //  showNotification, showAddWidget, showToolbar), found by shape: the only Function1 in
-        //  OnboardingMapperKt with an <init>(ZZZZ)V. Its first flag is forced false. The Sync
+        //  toPageUiData filters the Nimbus cards through an R8 lambda capturing boolean flags
+        //  (showDefaultBrowser, showNotification, showAddWidget, showToolbar up to 159.0.1; only
+        //  showDefaultBrowser in 160.0), found by shape: the only Function1 in OnboardingMapperKt
+        //  whose <init> takes nothing but booleans. Its first flag is forced false. The Sync
         //  sign-in card has no flag (it only checks the card's enabled), so the filter answers
-        //  false for SYNC_SIGN_IN. Terms of service, notifications, widget, toolbar and marketing
-        //  pages stay; sign-in in the menu and settings is untouched.
+        //  false for SYNC_SIGN_IN. Terms of service and marketing pages stay (and any
+        //  notification, widget or toolbar card an older build has); sign-in in the menu and
+        //  settings is untouched.
         val lambdas = mutableListOf<String>()
         classDefForEach { classDef ->
             if (classDef.type.startsWith(ONBOARDING_MAPPER_LAMBDA_PREFIX) &&
                 "Lkotlin/jvm/functions/Function1;" in classDef.interfaces &&
-                classDef.methods.any { it.name == "<init>" && it.params() == listOf("Z", "Z", "Z", "Z") }
+                classDef.methods.any { m -> m.name == "<init>" && m.params().let { it.isNotEmpty() && it.all { p -> p == "Z" } } }
             ) {
                 lambdas += classDef.type
             }
         }
         val lambda = firefoxClass(
-            lambdas.singleOrNull() ?: throw PatchException("Expected one OnboardingMapperKt (ZZZZ) Function1, found $lambdas"),
+            lambdas.singleOrNull() ?: throw PatchException("Expected one OnboardingMapperKt Function1 with an all-boolean <init>, found $lambdas"),
         )
-        val lambdaInit = concreteMethod(lambda.type, "<init>", listOf("Z", "Z", "Z", "Z"))
+        val flags = lambda.methods.single { it.name == "<init>" }.params().size
+        val lambdaInit = concreteMethod(lambda.type, "<init>", List(flags) { "Z" })
         val filter = concreteMethod(lambda.type, "invoke", listOf("Ljava/lang/Object;"))
         // Proves p1 is the DEFAULT_BROWSER flag (158.0: f$0, WhenMappings case 1 = ordinal 1)
         // before anything is edited; a reordered capture list fails here instead of hiding
-        // another card. p1 = v(registers - 4): this plus four booleans.
+        // another card. p1 = v(registers - flags): this plus the boolean flags (four up to 159.0.1,
+        // one in 160.0 once the notification, widget and toolbar cards left the enum).
         proveOnboardingCardFlag(
             lambdaType = lambda.type,
             init = lambdaInit,
-            initRegister = lambdaInit.implementation!!.registerCount - 4,
+            initRegister = lambdaInit.implementation!!.registerCount - flags,
             filter = filter,
             enumType = ONBOARDING_CARD_TYPE,
             constant = "DEFAULT_BROWSER",

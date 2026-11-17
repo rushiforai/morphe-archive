@@ -7,8 +7,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.document
 import org.w3c.dom.Element
 
 private const val WEB_ADS = "Lapp/fakh/extension/detik/WebAds;"
@@ -59,7 +59,7 @@ private object MobileAdsInitFingerprint : Fingerprint(
 )
 
 /** The Google Mobile Ads SDK starts itself from this provider, before Application.onCreate. */
-private val adsProviderPatch = resourcePatch {
+private val adsProviderPatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val providers = document.getElementsByTagName("provider")
@@ -72,7 +72,7 @@ private val adsProviderPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Removes the ad banners, native ads, full-screen ads and video ads, and the ads on detik.com pages opened in the app.",
     default = true,

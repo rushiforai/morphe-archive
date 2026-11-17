@@ -29,7 +29,7 @@ public final class FeedCardChecks {
         h.scoreTv=(TextView)StyleChecks.find(row,"submission_header_score");h.commentsTv=StyleChecks.find(row,"submission_header_comment_count");
         h.voteUpButton=StyleChecks.find(row,"submission_header_upvote");h.voteDownButton=StyleChecks.find(row,"submission_header_downvote");h.overFlowButton=StyleChecks.find(row,"submission_header_overflow");
         ((TextView)h.title).setText("A hand-painted GameCube, and the details that made it worth the effort");h.scoreTv.setText("500");((TextView)h.commentsTv).setText("41 comments");
-        SpannableString info=new SpannableString("Metroid · neodido · 1h · Art");int start=info.toString().indexOf("Art");info.setSpan(new BackgroundColorSpan(Color.RED),start,info.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);((TextView)h.infoTop).setText(info);
+        SpannableString info=new SpannableString("Metroid · sample_user · 1h · Art");int start=info.toString().indexOf("Art");info.setSpan(new BackgroundColorSpan(Color.RED),start,info.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);((TextView)h.infoTop).setText(info);
         h.thumbnailIv.setVisibility(View.VISIBLE);((ImageView)h.thumbnailIv).setImageDrawable(new ColorDrawable(StyleChecks.role("colorPrimaryContainer")));
         for(View button:new View[]{h.voteUpButton,h.voteDownButton})button.getClass().getMethod("c",boolean.class,boolean.class).invoke(button,false,false);
         for(String name:new String[]{"submission_header_spoiler","submission_header_nsfw","awards_view"}){View view=StyleChecks.find(row,name);if(view!=null)view.setVisibility(View.GONE);}
@@ -63,7 +63,7 @@ public final class FeedCardChecks {
             nsfw.setVisibility(View.GONE);bound(h);check(badges.getVisibility()==View.GONE,"Clearing native warnings removes only the empty badge row");
             int viewCount=size(h.a);Object owner=controller(h);
             for(int i=0;i<100;i++){
-                h.scoreTv.setText(String.valueOf(i));((TextView)h.commentsTv).setText((i+1)+" comments");((TextView)h.infoTop).setText("Metroid · neodido · 2h");
+                h.scoreTv.setText(String.valueOf(i));((TextView)h.commentsTv).setText((i+1)+" comments");((TextView)h.infoTop).setText("Metroid · sample_user · 2h");
                 skin.getMethod("bindPost",Object.class).invoke(null,h);bound(h);StyleChecks.measure(h.a,px(420));
                 if(!listener.onPreDraw() || h.a.isLayoutRequested())throw new AssertionError("Rebind requested another frame at "+i);
             }
@@ -75,7 +75,7 @@ public final class FeedCardChecks {
             if(args.length>2 && layout.equals("row_submission_minimal_cardview"))StyleChecks.save(h.a,args[2]+"/feed-narrow-preview.png");
             h.scoreTv.setTextSize(14);((TextView)h.commentsTv).setTextSize(14);h.scoreTv.setText("500");((TextView)h.commentsTv).setText("41 comments");bound(h);counts.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);StyleChecks.measure(h.a,px(640));
             check((Boolean)field(counts,"stacked") && h.scoreTv.getRight()==h.commentsTv.getRight() && h.commentsTv.getTop()>=h.scoreTv.getBottom(),"Stacked counts share the logical right edge in RTL without overlap");counts.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-            ((TextView)h.infoTop).setText("Metroid · neodido · 1h");bound(h);StyleChecks.measure(h.a,px(360));
+            ((TextView)h.infoTop).setText("Metroid · sample_user · 1h");bound(h);StyleChecks.measure(h.a,px(360));
             if(args.length>2 && layout.equals("row_submission_minimal_cardview"))StyleChecks.save(h.a,args[2]+"/feed-card-preview.png");
         }
         int vetoes=0,extraLayouts=0;

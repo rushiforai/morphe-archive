@@ -48,6 +48,7 @@ import app.morphe.extension.instagram.settings.preference.Helper;
 import app.morphe.extension.instagram.settings.preference.ScreenBuilder;
 import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
 import app.morphe.extension.instagram.settings.preference.widgets.InstagramSearchStyle;
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
 import app.morphe.extension.instagram.settings.preference.widgets.SearchResultPreference;
 import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
 import app.morphe.extension.instagram.theme.MaterialYouTheme;
@@ -57,7 +58,6 @@ import android.text.style.ForegroundColorSpan;
 import app.morphe.extension.instagram.settings.preference.fragments.FragmentHook;
 import app.morphe.extension.instagram.settings.preference.widgets.RexAboutView;
 import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
-import app.morphe.extension.instagram.settings.preference.widgets.RexRuntimeFeatures;
 import app.morphe.extension.instagram.settings.preference.widgets.RexVectorIcons;
 import app.morphe.extension.shared.Logger;
 
@@ -263,6 +263,48 @@ public final class SettingsActivity {
             }
         }
 
+        private static String resolveSubpageDescription(String fragment) {
+            if (fragment == null || Constants.REX_FRAGMENT_ABOUT.equals(fragment)) return "";
+            if (Constants.REX_FRAGMENT_GHOST.equals(fragment) || Constants.REX_FRAGMENT_DM.equals(fragment)) {
+                return "Enable ghost mode to hide your activity from others";
+            }
+            if (Constants.REX_FRAGMENT_NOTIFICATION.equals(fragment)) {
+                return "Silence push alerts and configure per-channel notification filters";
+            }
+            if (Constants.REX_FRAGMENT_PRIVACY.equals(fragment)
+                    || Constants.REX_FRAGMENT_ADS.equals(fragment)
+                    || Constants.REX_FRAGMENT_LINKS.equals(fragment)) {
+                return "Extra options to customize your Instagram experience";
+            }
+            if (Constants.REX_FRAGMENT_GESTURES.equals(fragment)) {
+                return "Customize double-tap, swipe, long-press, and zoom gestures";
+            }
+            if (Constants.REX_FRAGMENT_FEED_AND_STORIES.equals(fragment)
+                    || Constants.REX_FRAGMENT_STORY.equals(fragment)) {
+                return "Configure feed playback, story behavior, and high-quality media uploads";
+            }
+            if (Constants.REX_FRAGMENT_UI_TWEAKS.equals(fragment)
+                    || Constants.REX_FRAGMENT_FONT.equals(fragment)) {
+                return "Customize your app appearance with fonts and emojis";
+            }
+            if (Constants.REX_FRAGMENT_DISTRACTION_FREE.equals(fragment)
+                    || Constants.REX_FRAGMENT_FOCUS_LOCK.equals(fragment)) {
+                return "Block distracting content to focus on what matters";
+            }
+            if (Constants.REX_FRAGMENT_MISC.equals(fragment)
+                    || Constants.REX_FRAGMENT_INSTANTS.equals(fragment)) {
+                return "Additional features and settings";
+            }
+            if (Constants.REX_FRAGMENT_DOWNLOAD_MEDIA.equals(fragment)) {
+                return "Save media in separate folders and customize download behavior";
+            }
+            if (Constants.REX_FRAGMENT_DEV_OPTIONS.equals(fragment)
+                    || Constants.REX_FRAGMENT_REC_FLAGS.equals(fragment)) {
+                return "Manage MetaConfig overrides, experiment mappings, and backup files";
+            }
+            return "Configure Rex IG Lite preferences and runtime hooks";
+        }
+
         private Bundle createFragmentArguments() {
             Bundle arguments = new Bundle();
             arguments.putString(Constants.REX_FRAGMENT_NAME, fragmentName);
@@ -303,16 +345,11 @@ public final class SettingsActivity {
 
             int iconSize = InstagramPreferenceStyle.dp(activity, 44);
 
-            View backSpacer = new View(activity);
-            LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(iconSize, iconSize);
-            backParams.gravity = android.view.Gravity.CENTER_VERTICAL;
-            backSpacer.setLayoutParams(backParams);
-
             titleTextView = new TextView(activity);
-            titleTextView.setText(displayTitle); // Dynamically bound from intent data
-            int titleTextSize = isRootSettings ? 25 : 20;
+            titleTextView.setText(isRootSettings ? "" : displayTitle);
+            int titleTextSize = isRootSettings ? 25 : 24;
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleTextSize);
-            titleTextView.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            titleTextView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             titleTextView.setIncludeFontPadding(false);
             titleTextView.setMaxLines(1);
             titleTextView.setTextDirection(View.TEXT_DIRECTION_LOCALE);
@@ -320,7 +357,7 @@ public final class SettingsActivity {
             if (!isRootSettings) {
                 titleTextView.setAutoSizeTextTypeUniformWithConfiguration(
                         18,
-                        20,
+                        24,
                         1,
                         TypedValue.COMPLEX_UNIT_SP
                 );
@@ -331,28 +368,29 @@ public final class SettingsActivity {
                     1.0f
             );
             titleParams.gravity = android.view.Gravity.CENTER_VERTICAL;
-            titleParams.setMarginStart(InstagramPreferenceStyle.dp(activity, 7));
+            titleParams.setMarginStart(InstagramPreferenceStyle.dp(activity, 4));
             titleTextView.setLayoutParams(titleParams);
             titleTextView.setTextColor(InstagramPreferenceStyle.primaryTextColor());
 
-            toolbar.addView(backSpacer);
             toolbar.addView(titleTextView);
 
-            if (isRootSettings) {
-                titleTextView.setText("");
-                ImageView langBtn = new ImageView(activity);
-                langBtn.setImageDrawable(RexVectorIcons.create(activity, "rex_vec_translate", InstagramPreferenceStyle.primaryTextColor(), 24));
-                langBtn.setScaleType(ImageView.ScaleType.CENTER);
-                int pad = InstagramPreferenceStyle.dp(activity, 8);
-                langBtn.setPadding(pad, pad, pad, pad);
-                langBtn.setOnClickListener(v -> RexDialogs.showAppLanguagePicker(activity));
-                LinearLayout.LayoutParams langLp = new LinearLayout.LayoutParams(
-                        InstagramPreferenceStyle.dp(activity, 42),
-                        InstagramPreferenceStyle.dp(activity, 42)
-                );
-                langLp.gravity = android.view.Gravity.CENTER_VERTICAL;
-                toolbar.addView(langBtn, langLp);
-            }
+            int pad = InstagramPreferenceStyle.dp(activity, 8);
+            ImageView langBtn = new ImageView(activity);
+            langBtn.setImageDrawable(RexVectorIcons.create(activity, "rex_vec_globe", InstagramPreferenceStyle.primaryTextColor(), 24));
+            langBtn.setScaleType(ImageView.ScaleType.CENTER);
+            langBtn.setPadding(pad, pad, pad, pad);
+            langBtn.setContentDescription("App Language & Translator");
+            langBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                app.morphe.extension.instagram.settings.preference.widgets.RexIcon.pulseIcon(langBtn);
+                RexDialogs.showAppLanguagePicker(activity);
+            });
+            LinearLayout.LayoutParams langLp = new LinearLayout.LayoutParams(
+                    InstagramPreferenceStyle.dp(activity, 48),
+                    InstagramPreferenceStyle.dp(activity, 48)
+            );
+            langLp.gravity = android.view.Gravity.CENTER_VERTICAL;
+            toolbar.addView(langBtn, langLp);
 
             customContainer = new LinearLayout(activity);
             customContainer.setOrientation(LinearLayout.VERTICAL);
@@ -370,30 +408,65 @@ public final class SettingsActivity {
                 );
 
                 TextView brandTitle = new TextView(activity);
-                SpannableStringBuilder ssb = new SpannableStringBuilder("xboyrex");
-                int firstPartColor = UI.isDarkMode() ? 0xFFFFFFFF : 0xFF111517;
-                ssb.setSpan(new ForegroundColorSpan(firstPartColor), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                ssb.setSpan(new ForegroundColorSpan(0xFF88C2CE), 4, 7, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                SpannableStringBuilder ssb = new SpannableStringBuilder("Rex IG Lite");
+                ssb.setSpan(new ForegroundColorSpan(0xFFFFFFFF), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ssb.setSpan(new ForegroundColorSpan(0xFF23C6D8), 4, 11, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 brandTitle.setText(ssb);
                 brandTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
                 brandTitle.setTypeface(Typeface.create("sans-serif-black", Typeface.BOLD));
                 brandTitle.setGravity(android.view.Gravity.CENTER);
+                brandTitle.setOnLongClickListener(v -> {
+                    RexHaptics.longPress(v);
+                    RexDialogs.showHomeQuickMenu(activity);
+                    return true;
+                });
                 heroBox.addView(brandTitle);
 
                 TextView brandSub = new TextView(activity);
-                brandSub.setText("Made with \u26A1 By \u3164\u13DE\u1D00\u1D22\u028F\u3164\u13B7\uA6DD\u028F\u1D00\u0274\u043A \u307E\u3084\u3093\u304F");
-                brandSub.setTextColor(0xFF88C2CE);
-                brandSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
-                brandSub.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                brandSub.setText("by xboyrex");
+                brandSub.setTextColor(0xFF23C6D8);
+                brandSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                brandSub.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
                 brandSub.setGravity(android.view.Gravity.CENTER);
                 brandSub.setPadding(0, InstagramPreferenceStyle.dp(activity, 4), 0, 0);
-                brandSub.setOnClickListener(v -> FragmentHook.startFragment(Constants.REX_FRAGMENT_ABOUT));
+                brandSub.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    FragmentHook.startFragment(Constants.REX_FRAGMENT_ABOUT);
+                });
                 heroBox.addView(brandSub);
+
+                TextView versionBadge = new TextView(activity);
+                String rawVer = app.morphe.extension.shared.Utils.getPatchesReleaseVersion();
+                String verStr = (rawVer == null || rawVer.isEmpty() ? "v3.14.0" : (rawVer.startsWith("v") ? rawVer : "v" + rawVer)) + " • AMOLED Suite";
+                versionBadge.setText(verStr);
+                versionBadge.setTextColor(0xFF9AA3AE);
+                versionBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+                versionBadge.setGravity(android.view.Gravity.CENTER);
+                versionBadge.setPadding(0, InstagramPreferenceStyle.dp(activity, 2), 0, 0);
+                heroBox.addView(versionBadge);
 
                 customContainer.addView(heroBox, new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 ));
+            } else {
+                String subpageDescription = resolveSubpageDescription(fragmentName);
+                if (subpageDescription != null && !subpageDescription.isEmpty()) {
+                    TextView subpageDescView = new TextView(activity);
+                    subpageDescView.setText(subpageDescription);
+                    subpageDescView.setTextColor(InstagramPreferenceStyle.TEXT_SECONDARY_GREY);
+                    subpageDescView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+                    subpageDescView.setPadding(
+                            InstagramPreferenceStyle.dp(activity, 19),
+                            InstagramPreferenceStyle.dp(activity, 2),
+                            InstagramPreferenceStyle.dp(activity, 19),
+                            InstagramPreferenceStyle.dp(activity, 10)
+                    );
+                    customContainer.addView(subpageDescView, new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    ));
+                }
             }
 
             page.addView(toolbar, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, InstagramPreferenceStyle.dp(activity, 64)));
@@ -402,10 +475,12 @@ public final class SettingsActivity {
             // ---------- Content ----------
             contentFrame = new FrameLayout(activity);
             contentFrame.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+            contentFrame.setClipToPadding(false);
 
             FrameLayout fragmentContainer = new FrameLayout(activity);
             fragmentContainer.setId(FRAGMENT_CONTAINER_ID);
             fragmentContainer.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+            fragmentContainer.setClipToPadding(false);
             contentFrame.addView(fragmentContainer, new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT
@@ -431,7 +506,7 @@ public final class SettingsActivity {
             ));
 
             backButton = new ImageView(activity);
-            UI.setThemedIcon(backButton, UI.DRAWABLE_ARROW_BACK);
+            backButton.setImageDrawable(RexVectorIcons.create(activity, "rex_vec_arrow-left", InstagramPreferenceStyle.primaryTextColor(), 24));
             backButton.setScaleType(ImageView.ScaleType.CENTER);
             backButton.setPaddingRelative(
                     0,
@@ -442,6 +517,7 @@ public final class SettingsActivity {
             backButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    RexHaptics.tap(view);
                     if (exitSearchIfActive()) {
                         return;
                     }
@@ -451,6 +527,7 @@ public final class SettingsActivity {
                     activity.finish();
                 }
             });
+            backButton.setVisibility(View.GONE);
             FrameLayout.LayoutParams overlayBackParams = new FrameLayout.LayoutParams(
                     iconSize,
                     iconSize
@@ -466,12 +543,16 @@ public final class SettingsActivity {
 
                 v.setPadding(0, topInset, 0, 0);
 
-                contentFrame.setPadding(
-                        contentFrame.getPaddingLeft(),
-                        contentFrame.getPaddingTop(),
-                        contentFrame.getPaddingRight(),
-                        bottomInset
-                );
+                if (rootFragment != null && rootFragment.listView != null) {
+                    rootFragment.applyBottomInset(bottomInset);
+                } else {
+                    android.app.Fragment f = activity.getFragmentManager().findFragmentById(FRAGMENT_CONTAINER_ID);
+                    if (f instanceof SettingsFragment) {
+                        ((SettingsFragment) f).applyBottomInset(bottomInset);
+                    } else {
+                        contentFrame.setPadding(0, 0, 0, bottomInset);
+                    }
+                }
 
                 return insets;
             });
@@ -582,8 +663,11 @@ public final class SettingsActivity {
             if (customContainer != null) {
                 customContainer.setVisibility(inToolbar ? View.GONE : View.VISIBLE);
             }
-            if (chromeOverlay != null && backButton != null) {
-                chromeOverlay.bringChildToFront(backButton);
+            if (backButton != null) {
+                backButton.setVisibility(inToolbar ? View.VISIBLE : View.GONE);
+                if (chromeOverlay != null && inToolbar) {
+                    chromeOverlay.bringChildToFront(backButton);
+                }
             }
         }
 
@@ -603,7 +687,6 @@ public final class SettingsActivity {
             );
             outState.putString(STATE_TARGET_PREFERENCE_KEY, targetPreferenceKey);
 
-            // Instagram removes android:fragments during host creation, so keep our state under a xboyrex key.
             android.app.Fragment fragment = activity.getFragmentManager()
                     .findFragmentById(FRAGMENT_CONTAINER_ID);
             if (fragment instanceof SettingsFragment) {
@@ -726,8 +809,25 @@ public final class SettingsActivity {
         private ListView listView;
         private View searchEntryView;
         private boolean searchEntryAdded;
+        private int lastBottomInset;
         private final SharedPreferences.OnSharedPreferenceChangeListener dependencyListener =
-                (preferences, key) -> helper.updateDependencies(getPreferenceScreen());
+                (preferences, key) -> {
+                    helper.updateDependencies(getPreferenceScreen());
+                    ScreenBuilder.assignCardGroupPositions(getPreferenceScreen(), fragmentName);
+                };
+
+        void applyBottomInset(int bottomInset) {
+            this.lastBottomInset = bottomInset;
+            if (listView != null && context != null) {
+                listView.setClipToPadding(false);
+                listView.setPadding(
+                        0,
+                        listView.getPaddingTop(),
+                        0,
+                        bottomInset + InstagramPreferenceStyle.dp(context, 28)
+                );
+            }
+        }
 
         void updateNavigationArguments(String fragmentName, String targetPreferenceKey) {
             this.fragmentName = fragmentName == null
@@ -765,6 +865,7 @@ public final class SettingsActivity {
             preferenceManager.getSharedPreferences()
                     .registerOnSharedPreferenceChangeListener(dependencyListener);
             helper.updateDependencies(getPreferenceScreen());
+            ScreenBuilder.assignCardGroupPositions(getPreferenceScreen(), fragmentName);
             refreshPreferenceSummary(
                     "rex_download_set_path",
                     StorageUtils::getCustomPathForDisplay
@@ -828,15 +929,7 @@ public final class SettingsActivity {
                     listView = (ListView) list;
                 }
             }
-            if (listView != null) {
-                listView.setPadding(0, InstagramPreferenceStyle.dp(context, 10), 0, InstagramPreferenceStyle.dp(context, 10));
-                listView.setClipToPadding(false);
-                listView.setDivider(null);
-                listView.setDividerHeight(0);
-                listView.setSelector(new ColorDrawable(Color.TRANSPARENT));
-                listView.setCacheColorHint(Color.TRANSPARENT);
-                listView.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
-            }
+            styleListView();
 
             if (rootView != null) {
                 rootView.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
@@ -855,8 +948,24 @@ public final class SettingsActivity {
                 scrollToPreference(listView, targetPreferenceKey);
             }
 
-            // Build the search screen before binding so a queued rebind cannot reset restored scroll state.
             super.onActivityCreated(savedInstanceState);
+            styleListView();
+        }
+
+        private void styleListView() {
+            if (listView == null) return;
+            listView.setPadding(
+                    0,
+                    InstagramPreferenceStyle.dp(context, 8),
+                    0,
+                    lastBottomInset + InstagramPreferenceStyle.dp(context, 18)
+            );
+            listView.setClipToPadding(false);
+            listView.setDivider(null);
+            listView.setDividerHeight(0);
+            listView.setSelector(new ColorDrawable(Color.TRANSPARENT));
+            listView.setCacheColorHint(Color.TRANSPARENT);
+            listView.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
         }
 
         private PreferenceScreen buildScreen(String fragmentName) {
@@ -864,6 +973,7 @@ public final class SettingsActivity {
             helper = new Helper(context);
             new ScreenBuilder(context, screen, helper).buildFragment(fragmentName);
             helper.updateDependencies(screen);
+            ScreenBuilder.assignCardGroupPositions(screen, fragmentName);
             return screen;
         }
 
@@ -883,10 +993,13 @@ public final class SettingsActivity {
                         .buildFragment(Constants.REX_FRAGMENT_SETTINGS);
             } else {
                 for (SettingsSearchIndex.Result result : state.results) {
-                    screen.addPreference(new SearchResultPreference(
+                    SearchResultPreference pref = new SearchResultPreference(
                             context,
                             result
-                    ));
+                    );
+                    pref.getExtras().putBoolean(InstagramPreferenceStyle.EXTRA_CARD_FIRST, true);
+                    pref.getExtras().putBoolean(InstagramPreferenceStyle.EXTRA_CARD_LAST, true);
+                    screen.addPreference(pref);
                 }
             }
             setPreferenceScreen(screen);
@@ -899,11 +1012,17 @@ public final class SettingsActivity {
                         listView.addHeaderView(searchEntryView, null, false);
                         searchEntryAdded = true;
                     }
-                    listView.setPadding(0,
-                            InstagramPreferenceStyle.dp(context, state.searchMode ? 10 : 0),
-                            0, InstagramPreferenceStyle.dp(context, 10));
                 }
                 screen.bind(listView);
+                listView.setDivider(null);
+                listView.setDividerHeight(0);
+                listView.setClipToPadding(false);
+                listView.setPadding(
+                        0,
+                        InstagramPreferenceStyle.dp(context, state.searchMode ? 10 : 2),
+                        0,
+                        lastBottomInset + InstagramPreferenceStyle.dp(context, 18)
+                );
             }
         }
 

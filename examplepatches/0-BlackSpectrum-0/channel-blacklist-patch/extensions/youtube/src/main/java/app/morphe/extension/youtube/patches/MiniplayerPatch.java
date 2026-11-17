@@ -222,25 +222,10 @@ public final class MiniplayerPatch {
         }
     }
 
-    public static final class MiniplayerHorizontalDragPlaybackAvailability implements Setting.Availability {
-        @Override
-        public boolean isAvailable() {
-            return isDraggableMiniplayer()
-                    && !Settings.MINIPLAYER_DISABLE_DRAG_AND_DROP.get()
-                    && !Settings.MINIPLAYER_DISABLE_HORIZONTAL_DRAG.get();
-        }
-
-        @Override
-        public List<Setting<?>> getParentSettings() {
-            return List.of(
-                    Settings.MINIPLAYER_TYPE,
-                    Settings.MINIPLAYER_DISABLE_DRAG_AND_DROP,
-                    Settings.MINIPLAYER_DISABLE_HORIZONTAL_DRAG
-            );
-        }
-    }
-
-    public static final class MiniplayerHorizontalRepositioningAvailability implements Setting.Availability {
+    /**
+     * Horizontal drag playback and horizontal repositioning both need the horizontal drag.
+     */
+    public static final class MiniplayerHorizontalDragOptionsAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
             return isDraggableMiniplayer()
@@ -285,6 +270,23 @@ public final class MiniplayerPatch {
         @Override
         public List<Setting<?>> getParentSettings() {
             return List.of(Settings.MINIPLAYER_TYPE);
+        }
+    }
+
+    /**
+     * The glass look of the minimal bar follows the glass navigation bar.
+     */
+    public static final class MiniplayerGlassAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            MiniplayerType type = Settings.MINIPLAYER_TYPE.get();
+            return (type == MINIMAL_BAR || type == MINIMAL_BAR_2)
+                    && Settings.NAVIGATION_BAR_GLASS.get();
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(Settings.MINIPLAYER_TYPE, Settings.NAVIGATION_BAR_GLASS);
         }
     }
 
@@ -359,9 +361,15 @@ public final class MiniplayerPatch {
      * Injection point.
      */
     public static boolean getModernMiniplayerOverride(boolean original) {
-        return CURRENT_TYPE == DEFAULT
-                ? original
-                : CURRENT_TYPE.isModern();
+        if (CURRENT_TYPE == DEFAULT) {
+            return original;
+        }
+
+        final boolean modern = CURRENT_TYPE.isModern();
+        if (modern != original) {
+            Logger.printVerbose(() -> "getModernMiniplayerOverride: " + modern + " (app: " + original + ")");
+        }
+        return modern;
     }
 
     /**
@@ -375,9 +383,14 @@ public final class MiniplayerPatch {
         }
 
         Integer modernValue = CURRENT_TYPE.modernPlayerType;
-        return modernValue == null
-                ? original
-                : modernValue;
+        if (modernValue == null) {
+            return original;
+        }
+
+        if (modernValue != original) {
+            Logger.printVerbose(() -> "getModernMiniplayerOverrideType: " + modernValue + " (app: " + original + ")");
+        }
+        return modernValue;
     }
 
     /**
@@ -401,7 +414,11 @@ public final class MiniplayerPatch {
             return original;
         }
 
-        return CURRENT_TYPE.isModern();
+        final boolean modern = CURRENT_TYPE.isModern();
+        if (modern != original) {
+            Logger.printVerbose(() -> "getModernFeatureFlagsActiveOverride: " + modern + " (app: " + original + ")");
+        }
+        return modern;
     }
 
     /**
@@ -441,14 +458,22 @@ public final class MiniplayerPatch {
             return original;
         }
 
-        return MINIPLAYER_ROUNDED_CORNERS_ENABLED;
+        return roundedCornersEnabled();
     }
 
     /**
      * Injection point.
      */
     public static boolean getRoundedCorners() {
-        return !MINIPLAYER_ROUNDED_CORNERS_ENABLED;
+        return !roundedCornersEnabled();
+    }
+
+    /**
+     * The glass minimal bar rounds the bar and the video itself, to the corners of the glass.
+     */
+    private static boolean roundedCornersEnabled() {
+        return MINIPLAYER_ROUNDED_CORNERS_ENABLED
+                && !(MINIMAL_BAR_SELECTED && MinimalMiniplayerPatch.isGlass());
     }
 
     /**

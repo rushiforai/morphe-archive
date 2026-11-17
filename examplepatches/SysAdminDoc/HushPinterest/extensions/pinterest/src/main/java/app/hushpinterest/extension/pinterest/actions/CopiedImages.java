@@ -18,7 +18,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * The cache folders Copy image and Share image keep their pictures in, one each, so a new copy never
+ * The cache folders Copy image, Share image and long-press View keep their pictures in, one each, so a new copy never
  * sweeps away a picture an app is still reading from a share. Every file here is one these features
  * made, named by a random id and the picture's type, so the provider that serves them and the sweeps
  * that delete them both recognize their own files by name and touch nothing else in the cache.
@@ -28,6 +28,8 @@ final class CopiedImages {
 
     static final String FOLDER = "hushpinterest-copied-images";
     static final String SHARED_FOLDER = "hushpinterest-shared-images";
+    /** Long-press View's: a picture stays here only while it's decoded, then goes. */
+    static final String VIEW_FOLDER = "hushpinterest-viewed-images";
 
     /** A finished picture: a random id, then the type the bytes showed. */
     private static final Pattern PICTURE = Pattern.compile("[0-9a-f]{32}\\.(jpg|png|webp|gif)");
@@ -45,6 +47,12 @@ final class CopiedImages {
     @Nullable
     static File sharedDir(Context context) {
         return dir(context, SHARED_FOLDER);
+    }
+
+    /** Long-press View's folder, the same way. */
+    @Nullable
+    static File viewDir(Context context) {
+        return dir(context, VIEW_FOLDER);
     }
 
     @Nullable

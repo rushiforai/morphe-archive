@@ -3,7 +3,7 @@ package app.template.patches.truecaller.misc.privacy
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.findFreeRegister
+import app.morphe.patcher.util.findFreeRegister
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.requireNoBranchTargetAt
 import com.android.tools.smali.dexlib2.AccessFlags

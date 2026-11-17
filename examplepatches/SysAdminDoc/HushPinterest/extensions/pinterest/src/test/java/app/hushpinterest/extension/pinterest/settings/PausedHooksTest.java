@@ -26,7 +26,10 @@ import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
@@ -35,6 +38,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -145,6 +149,7 @@ public class PausedHooksTest {
         @Json("grid_title") String gridTitle;
         @Json("is_video") Boolean video;
         @Json("created_at") Date createdAt;
+        @Json("is_owned_by_viewer") Boolean owned;
     }
 
     /** 14.44.0's "More ideas for your board" card: a board's name and header over its images. */
@@ -210,6 +215,38 @@ public class PausedHooksTest {
 
     /** The id Pinterest's resources give the title row's chevron, which the test app doesn't have. */
     private static final int TITLE_CHEVRON_ID = 0x7f0b1234;
+
+    /** A pop-up banner whose X, the one id its resources know, closes it the way Pinterest's dismissal does. */
+    private static boolean closesPopupBanner() {
+        Context app = RuntimeEnvironment.getApplication();
+        Resources base = app.getResources();
+        Resources named = new Resources(base.getAssets(), base.getDisplayMetrics(), base.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) {
+                return "bannerOverlay_dismiss_icon_button".equals(name) && "id".equals(type) ? TITLE_CHEVRON_ID : 0;
+            }
+        };
+        FrameLayout banner = new FrameLayout(app) {
+            @Override public Resources getResources() { return named; }
+        };
+        View dismiss = new View(app);
+        dismiss.setId(TITLE_CHEVRON_ID);
+        dismiss.setOnClickListener(clicked -> banner.setVisibility(View.GONE));
+        banner.addView(dismiss);
+        UiHooks.popupBanner(banner);
+        return banner.getVisibility() != View.VISIBLE;
+    }
+
+    /** A creator row with an avatar and a name: true when the name was hidden. */
+    private static boolean hidesCreatorName() {
+        Context app = RuntimeEnvironment.getApplication();
+        LinearLayout row = new LinearLayout(app);
+        View avatar = new View(app);
+        TextView name = new TextView(app);
+        row.addView(avatar);
+        row.addView(name);
+        UiHooks.creatorName(avatar);
+        return name.getVisibility() != View.VISIBLE;
+    }
 
     /** A closeup title module taking a pin with a date: true when a line was added under its row. */
     private static boolean addsPostedDate() {
@@ -320,11 +357,12 @@ public class PausedHooksTest {
             says.gridTitle = "AI art";
             return filtersOut(says);
         }));
-        probes.put(Settings.HIDE_SHOPPING, Collections.singletonList(() -> {
+        probes.put(Settings.HIDE_SHOPPING, Arrays.asList(() -> {
             ProbePin product = new ProbePin();
             product.shoppable = true;
             return filtersOut(product);
-        }));
+        }, () -> UiHooks.closeupShoppingVisibility(View.INVISIBLE) != View.INVISIBLE,
+                () -> UiHooks.closeupShoppingMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         // A pin Pinterest marks as a video leaves the page.
         probes.put(Settings.HIDE_VIDEO_PINS, Collections.singletonList(() -> {
             ProbePin video = new ProbePin();
@@ -335,6 +373,21 @@ public class PausedHooksTest {
         // Home's request asks whether each pin is saved, which is what its pages are judged by.
         probes.put(Settings.HIDE_SAVED_PINS, Collections.singletonList(
                 () -> !"pin.{id}".equals(SavedPins.homeFields("pin.{id}"))));
+        // Search's and More to explore's requests ask the same, a saved pin leaves a search page, and More
+        // to explore's filter is told to drop one.
+        probes.put(Settings.HIDE_SAVED_PINS_ELSEWHERE, Arrays.asList(
+                () -> !"pin.{id}".equals(SavedPins.elsewhereFields("pin.{id}")),
+                () -> {
+                    ProbePin mine = new ProbePin();
+                    mine.owned = true;
+                    List<Object> page = Arrays.asList(mine, new ProbePin());
+                    return SavedPins.searchPage(page) != page;
+                },
+                () -> {
+                    ProbePin mine = new ProbePin();
+                    mine.owned = true;
+                    return SavedPins.dropRelated(mine);
+                }));
         // Home's board ideas card leaves the page, and a pin's "See more like this?" bubble is turned down.
         probes.put(Settings.HIDE_HOME_SUGGESTIONS, Arrays.asList(() -> {
             List<Object> page = new ArrayList<>(Arrays.asList(new ProbeBoardIdeas(), new ProbePin()));
@@ -342,6 +395,8 @@ public class PausedHooksTest {
         }, () -> UiHooks.feedbackFlyout(Boolean.TRUE) != Boolean.TRUE));
         probes.put(Settings.KEEP_HOME_FEED, Arrays.asList(() -> HomeFeed.holdResumeRefresh(10 * 60 * 1000L),
                 () -> HomeFeed.holdHomeRefresh(null, 1)));
+        // Back on a scrolled-down Home goes on out instead of jumping to the top.
+        probes.put(Settings.BACK_LEAVES_HOME, Arrays.asList(HomeFeed::leave));
         probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
                 () -> Analytics.blockTask(Task.TAG_APPSFLYER_INIT), PausedHooksTest::quietsSdkConnection));
         probes.put(Settings.STRIP_LINK_TRACKING, Arrays.asList(
@@ -384,9 +439,11 @@ public class PausedHooksTest {
         probes.put(Settings.DOWNLOAD_SAVED_PINS, Collections.singletonList(() -> withDownloadPins(() -> SaveAndDownloadForTests.downloadsASave(PIN))));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
+        probes.put(Settings.LONG_PRESS_VIEW, Collections.singletonList(LongPressDownloadForTests::addsViewButton));
         probes.put(Settings.LONG_PRESS_HIDE_SAVE, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SAVE)));
         probes.put(Settings.LONG_PRESS_HIDE_SEND, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SEND)));
         probes.put(Settings.LONG_PRESS_HIDE_SEARCH, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SEARCH)));
+        probes.put(Settings.LONG_PRESS_HIDE_SEND_APP, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SEND_APP)));
         probes.put(Settings.EXTERNAL_BROWSER, Collections.singletonList(() -> withActivity(activity -> {
             ResolveInfo browser = new ResolveInfo();
             browser.activityInfo = new ActivityInfo();
@@ -436,6 +493,9 @@ public class PausedHooksTest {
         probes.put(Settings.BLACK_COMMENTS, Collections.singletonList(() -> paintsSheetBlack("comment_bottom_bar")));
         probes.put(Settings.BLACK_PIN_MENU, Arrays.asList(() -> paintsSheetBlack("modal_container"), PausedHooksTest::paintsMenuCardBlack));
         probes.put(Settings.BLACK_SAVE_SHEET, Collections.singletonList(() -> paintsSheetBlack("draggable_sheet")));
+        probes.put(Settings.BLACK_SHEETS, Arrays.asList(() -> paintsSheetBlack("gestalt_sheet_footer"), () -> paintsSheetBlack("lego_modal_container")));
+        probes.put(Settings.BLACK_BOARDS, Arrays.asList(PausedHooksTest::paintsBoardBarBlack,
+                PausedHooksTest::paintsBoardHeaderBlack, PausedHooksTest::tintsProfileFilters));
         probes.put(Settings.HIDE_CLOSEUP_BACK, Arrays.asList(() -> hidesCloseupButton(true), () -> keepsCloseupButtonHidden(true)));
         probes.put(Settings.HIDE_CLOSEUP_LENS, Arrays.asList(() -> hidesCloseupButton(false), () -> keepsCloseupButtonHidden(false)));
         probes.put(Settings.HIDE_CLOSEUP_SEARCH_LABEL, Collections.singletonList(() -> !CloseupButtons.searchLabel(true)));
@@ -470,6 +530,11 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_INBOX_UPDATES, Collections.singletonList(UiHooks::hideInboxUpdates));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));
+        probes.put(Settings.HIDE_POPUP_BANNERS, Collections.singletonList(PausedHooksTest::closesPopupBanner));
+        probes.put(Settings.HIDE_RELATED_PINS, Collections.singletonList(UiHooks::hideRelatedPins));
+        probes.put(Settings.HIDE_CREATOR_NAME, Collections.singletonList(PausedHooksTest::hidesCreatorName));
+        probes.put(Settings.CUSTOM_SAVE_SOUND, Collections.singletonList(UiHooksForTests::playsPickedSaveSound));
+        probes.put(Settings.CUSTOM_SPLASH_LOGO, Collections.singletonList(UiHooksForTests::nextStartShowsPickedLogo));
         probes.put(Settings.HIDE_SAVE_TOASTS, Arrays.asList(PausedHooksTest::dropsSaveToast, UiHooksForTests::quietsSavedToast));
         probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
             Set<String> sizes = new HashSet<>();
@@ -691,10 +756,67 @@ public class PausedHooksTest {
         sheet.addView(holder);
         if ("comment_bottom_bar".equals(named)) AmoledBlack.comments(sheet);
         else if (save) AmoledBlack.saveSheet(sheet);
+        else if ("gestalt_sheet_footer".equals(named)) AmoledBlack.gestaltSheet(sheet);
+        else if ("lego_modal_container".equals(named)) AmoledBlack.legoModal(sheet);
         else AmoledBlack.pinMenu(sheet);
         // Painting a transition mutates it, which rebuilds its layers, so the gray is read back from the view.
         GradientDrawable painted = save ? (GradientDrawable) ((LayerDrawable) holder.getBackground()).getDrawable(0) : fill;
         return painted.getColor().getDefaultColor() == Color.BLACK;
+    }
+
+    private static Context dark() {
+        Context context = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(context.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        return context.createConfigurationContext(night);
+    }
+
+    /** A dark-mode bar over a board, a card in its gray: true when its tint turned black. */
+    private static boolean paintsBoardBarBlack() {
+        View bar = new View(dark());
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(0xFF33332E);
+        bar.setBackground(fill);
+        AmoledBlack.boardToolBar(bar);
+        ColorStateList tint = bar.getBackgroundTintList();
+        return tint != null && tint.getDefaultColor() == Color.BLACK;
+    }
+
+    /**
+     * A dark-mode board header with no image picked, its view holding the secondary gray as the
+     * rounded bitmap Pinterest's image view makes of it: true when it turned black.
+     */
+    private static boolean paintsBoardHeaderBlack() {
+        Context dark = dark();
+        Resources original = dark.getResources();
+        Resources resources = new Resources(dark.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) { return name.startsWith("board_header_image") ? 1 : 0; }
+        };
+        LinearLayout header = new LinearLayout(dark) {
+            @Override public Resources getResources() { return resources; }
+        };
+        View image = new View(dark);
+        image.setId(1);
+        Bitmap gray = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+        gray.eraseColor(0x4D72727E);
+        image.setBackground(new BitmapDrawable(original, gray));
+        header.addView(image);
+        AmoledBlack.boardHeader(header);
+        Drawable now = image.getBackground();
+        return now instanceof ColorDrawable && ((ColorDrawable) now).getColor() == Color.BLACK;
+    }
+
+    /** A dark-mode row of profile filter buttons, one in Pinterest's gray: true when its tint turned black. */
+    private static boolean tintsProfileFilters() {
+        Context dark = dark();
+        FrameLayout row = new FrameLayout(dark);
+        View button = new View(dark);
+        button.setBackground(new GradientDrawable());
+        button.setBackgroundTintList(ColorStateList.valueOf(0xFF222226));
+        row.addView(button);
+        AmoledBlack.profileFilters(row);
+        ColorStateList tint = button.getBackgroundTintList();
+        return tint != null && tint.getDefaultColor() == Color.BLACK;
     }
 
     /** A dark-mode See more card from a pin's menu, its gray shape under a ripple: true when it turned black. */

@@ -113,4 +113,8 @@ public final class ReelsPlayback {
     public static synchronized void discardReattach(Object player) {
         pending.remove(player);
     }
+
+    public static boolean shouldLoopReel(boolean defaultLoop) {
+        return !Pref.disableReelsLooping() && defaultLoop;
+    }
 }

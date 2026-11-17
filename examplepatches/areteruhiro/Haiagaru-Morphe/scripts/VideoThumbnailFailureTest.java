@@ -10,7 +10,8 @@ public final class VideoThumbnailFailureTest {
   ok(VideoThumbnailFailure.from(new java.io.IOException()).kind==VideoThumbnailFailure.NETWORK);
   ok(VideoThumbnailFailure.from(new IllegalArgumentException()).kind==VideoThumbnailFailure.DECODE);
   VideoThumbnailFailure http=new VideoThumbnailFailure(VideoThumbnailFailure.HTTP,403);ok(VideoThumbnailFailure.from(new RuntimeException(http))==http);ok(http.label().contains("403"));
-  for(int kind=1;kind<=10;kind++){VideoThumbnailFailure failure=new VideoThumbnailFailure(kind,403);ok(!failure.label().isEmpty());ok(!failure.hint().isEmpty());ok(!failure.label().contains("secret"));ok(!failure.hint().contains("secret"));}
+  for(int kind=1;kind<=11;kind++){VideoThumbnailFailure failure=new VideoThumbnailFailure(kind,403);ok(!failure.label().isEmpty());ok(!failure.hint().isEmpty());ok(!failure.label().contains("secret"));ok(!failure.hint().contains("secret"));}
+  ok(new VideoThumbnailFailure(VideoThumbnailFailure.ACCESS_CHECK).label().contains("確認ページ"));
   System.out.println("PASS "+checks+" thumbnail failure classification/public-message checks");
  }
 }

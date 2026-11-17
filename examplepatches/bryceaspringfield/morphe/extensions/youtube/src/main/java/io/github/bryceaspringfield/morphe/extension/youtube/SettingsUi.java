@@ -53,12 +53,12 @@ public final class SettingsUi {
             PreferenceScreen root = fragment.getPreferenceScreen();
             if (root == null || root.findPreference("yx_channel_filters") != null) return;
             Context ctx = fragment.getContext();
-            PreferenceGroup feed = screenOf(root, "morphe_settings_screen_03_feed_sort_by_title");
-            PreferenceGroup player = screenOf(root, "morphe_settings_screen_05_player_sort_by_title");
-            PreferenceGroup video = screenOf(root, "morphe_settings_screen_12_video_sort_by_key");
+            PreferenceGroup feed = screenOf(root, "morphe_settings_screen_03_feed");
+            PreferenceGroup player = screenOf(root, "morphe_settings_screen_05_player");
+            PreferenceGroup video = screenOf(root, "morphe_settings_screen_12_video");
             PreferenceGroup dearrow = screenOf(root, "morphe_settings_screen_02_dearrow");
             PreferenceGroup ryd = screenOf(root, "morphe_settings_screen_09_return_youtube_dislike");
-            PreferenceGroup misc = screenOf(root, "morphe_settings_screen_11_misc_sort_by_title");
+            PreferenceGroup misc = screenOf(root, "morphe_settings_screen_11_misc");
 
             PreferenceCategory filters = category(ctx, feed, "cat_filters");
             Preference channels = new Preference(ctx);
@@ -73,6 +73,7 @@ public final class SettingsUi {
             text(ctx, filters, XSettings.MIN_LENGTH, "min_length", "length_summary", false);
             text(ctx, filters, XSettings.MAX_LENGTH, "max_length", "length_summary", false);
             text(ctx, filters, XSettings.MIN_VIEWS, "min_views", "min_views_summary", false);
+            toggle(ctx, filters, XSettings.VIEWS_KEEP_NEW, "views_keep_new", "views_keep_new_summary");
             text(ctx, filters, XSettings.MAX_AGE, "max_age", "max_age_summary", false);
             toggle(ctx, filters, XSettings.HIDE_MEMBERS_ONLY, "members_only", "members_only_summary");
             toggle(ctx, filters, XSettings.HIDE_UPCOMING, "upcoming", "upcoming_summary");
@@ -103,6 +104,12 @@ public final class SettingsUi {
             watched.setValue(XSettings.AUTO_WATCHED.get());
             watched.setSummary(Strings.get("auto_watched_summary"));
             auto.addPreference(watched);
+            PreferenceCategory watchedWhere = category(ctx, feed, "cat_watched_where");
+            toggle(ctx, watchedWhere, XSettings.WATCHED_HOME, "apply_home", null);
+            toggle(ctx, watchedWhere, XSettings.WATCHED_SUBSCRIPTIONS, "apply_subscriptions", null);
+            toggle(ctx, watchedWhere, XSettings.WATCHED_CHANNEL, "apply_channel", null);
+            toggle(ctx, watchedWhere, XSettings.WATCHED_SEARCH, "apply_search", null);
+            toggle(ctx, watchedWhere, XSettings.WATCHED_RELATED, "apply_related", null);
             // A typed number, as Morphe's custom playback speeds are typed.
             EditTextPreference resuggested = new EditTextPreference(ctx);
             resuggested.setKey(XSettings.RESUGGESTED_LIMIT.key);
@@ -125,9 +132,12 @@ public final class SettingsUi {
                 return false;
             });
             auto.addPreference(resuggested);
+            toggle(ctx, auto, XSettings.RESUGGESTED_RELATED, "resuggested_related", "resuggested_related_summary");
             toggle(ctx, auto, XSettings.AUTO_LIKE, "auto_like", "auto_like_summary");
+            text(ctx, auto, XSettings.DISLIKE_CHANNELS, "dislike_channels", "dislike_channels_summary", true);
             toggle(ctx, video, XSettings.LIVE_CATCH_UP, "live_catch_up", "live_catch_up_summary");
             text(ctx, video, XSettings.LIVE_CATCH_UP_SPEED, "live_catch_up_speed", "live_catch_up_speed_summary", false);
+            text(ctx, video, XSettings.LIVE_CATCH_UP_DELAY, "live_catch_up_delay", "live_catch_up_delay_summary", false);
 
             text(ctx, video, XSettings.SLEEP_MINUTES, "sleep_timer", "sleep_timer_summary", false);
 
@@ -136,6 +146,8 @@ public final class SettingsUi {
             toggle(ctx, playback, XSettings.AUDIO_ONLY, "audio_only", "audio_only_summary");
             toggle(ctx, playback, XSettings.AUDIO_ONLY_ROW, "audio_only_row", "audio_only_row_summary");
             toggle(ctx, playback, XSettings.AUDIO_ONLY_SCREEN_OFF, "audio_only_off", "audio_only_off_summary");
+            toggle(ctx, playback, XSettings.AUDIO_ONLY_LOW_DATA, "audio_only_low", "audio_only_low_summary");
+            toggle(ctx, playback, XSettings.AUTO_PIP, "auto_pip", "auto_pip_summary");
 
             toggle(ctx, player, XSettings.SAVE_OPENS_CHOOSER, "save_chooser", "save_chooser_summary");
             ListPreference saveStyle = new ListPreference(ctx);
@@ -173,12 +185,29 @@ public final class SettingsUi {
         }
     }
 
-    /** Morphe's own screen by key (found at any depth), or the root screen when this Morphe version lacks it. */
-    private static PreferenceGroup screenOf(PreferenceScreen root, String key) {
-        Preference p = root.findPreference(key);
-        if (p instanceof PreferenceGroup g) return g;
-        Logger.printDebug(() -> "YouTube Extras: Morphe screen " + key + " not found, using the root");
+    /**
+     * Morphe's own screen, found at any depth by the start of its key. Morphe adds a suffix to each screen's key by how
+     * its patch sorts the screen (_sort_by_title, _sort_by_key, or _sort_by_unsorted), and the suffix differs with the
+     * patch options and the Morphe version, so an exact key left the Player options loose on the main screen (seen
+     * 2026-11-15). The root screen is the last resort.
+     */
+    private static PreferenceGroup screenOf(PreferenceScreen root, String prefix) {
+        PreferenceGroup g = find(root, prefix);
+        if (g != null) return g;
+        Logger.printDebug(() -> "YouTube Extras: Morphe screen " + prefix + " not found, using the root");
         return root;
+    }
+
+    private static PreferenceGroup find(PreferenceGroup group, String prefix) {
+        for (int i = 0; i < group.getPreferenceCount(); i++) {
+            Preference p = group.getPreference(i);
+            if (p instanceof PreferenceGroup g) {
+                if (g.getKey() != null && g.getKey().startsWith(prefix)) return g;
+                PreferenceGroup inner = find(g, prefix);
+                if (inner != null) return inner;
+            }
+        }
+        return null;
     }
 
     /** "3 channels: Name, @handle, ..." or the editor's description when there are none. */

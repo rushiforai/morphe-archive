@@ -16,7 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 
-// Verified against the developer-signed 1.14.3 APK. See docs/VALIDATION.md.
+// Verified against the developer-signed 1.14.4 APK. See docs/VALIDATION.md.
 private const val SWIPE_EXTENSION = "Lapp/morphe/extension/boost/CommentSwipeActions;"
 private const val COMMENTS_ACTIVITY = "Lcom/rubenmayayo/reddit/ui/comments/CommentsActivity;"
 private const val COMMENTS_FRAGMENT = "Lcom/rubenmayayo/reddit/ui/comments/CommentsFragment;"
@@ -26,10 +26,19 @@ private const val VIDEO_ACTIVITY = "Lcom/rubenmayayo/reddit/ui/activities/MediaV
 private const val GALLERY_ACTIVITY = "Lcom/rubenmayayo/reddit/ui/activities/GalleryActivity;"
 private const val COMMENTS_EXTENSION = "Lapp/morphe/extension/boost/CommentsChromeTweaks;"
 private const val GALLERY_EXTENSION = "Lapp/morphe/extension/boost/GalleryBottomActionsTweaks;"
+/** Headers in Morphe Manager's patch list. Patches without one appear above every header. */
+private object ShikifyCategory {
+    const val APPEARANCE = "Appearance"
+    const val COMMENTS = "Comments"
+    const val MEDIA = "Media"
+    const val NAVIGATION = "Navigation"
+    const val PERFORMANCE = "Performance"
+}
+
 private val boostCompatibility = Compatibility(
     name = "Boost for Reddit",
     packageName = "com.rubenmayayo.reddit",
-    targets = listOf(AppTarget(version = "1.14.3")),
+    targets = listOf(AppTarget(version = "1.14.4")),
 )
 
 // Unnamed dependencies are internal. The Manager shows thirteen user-facing patches.
@@ -43,7 +52,7 @@ private val boostChromeExtensionPatch = bytecodePatch {
         val bind = Fingerprint(
             definingClass = holder, name = "w", returnType = "V", isStatic = false,
             parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/$model;",
-                "Z", "Z", "Z", "Lhg2;"),
+                "Z", "Z", "Z", "Lpg2;"),
         ).method
         val instructions = bind.implementation!!.instructions
         if (instructions.any { it.methodReference()?.name == "getExtraEmoji" } &&
@@ -67,6 +76,16 @@ private val boostChromeExtensionPatch = bytecodePatch {
             for ((index, instruction) in guards) {
                 val branch = instruction as BuilderInstruction21t
                 bind.replaceInstruction(index, BuilderInstruction21t(branch.opcode, branch.registerA, returnLabel))
+            }
+            val undeleteSettingIndex = instructions.indexOfFirst { it.methodReference()?.name ==
+                "isEnabled_morphe_boost_reddit_undelete_enabled" }
+            if (undeleteSettingIndex >= 0) {
+                val guardIndex = undeleteSettingIndex + 2
+                check(instructions[undeleteSettingIndex + 1].opcode == Opcode.MOVE_RESULT &&
+                    instructions[guardIndex].opcode == Opcode.IF_EQZ)
+                val branch = instructions[guardIndex] as BuilderInstruction21t
+                bind.replaceInstruction(guardIndex, BuilderInstruction21t(branch.opcode,
+                    branch.registerA, returnLabel))
             }
             if (model == "SubmissionModel") {
                 val third = instructions.withIndex().single { (index, instruction) ->
@@ -98,7 +117,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.enableCommentFeature(n
         parameters = emptyList(), isStatic = true).method.replaceInstruction(0, "const/4 v0, 0x1")
     val bind = Fingerprint(
         definingClass = COMMENT_HOLDER, name = "w", returnType = "V", isStatic = false,
-        parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/CommentModel;", "Z", "Z", "Z", "Lhg2;"),
+        parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/CommentModel;", "Z", "Z", "Z", "Lpg2;"),
     ).method
     // Both comment features share this single prefix. Never add a second hook to the wrapper.
     val oldHooks = bind.implementation!!.instructions.withIndex().filter { (_, instruction) ->
@@ -137,10 +156,10 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.enableRowCompletion() 
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.enableFeedCompletion() {
     val extension = "Lapp/morphe/extension/boost/MaterialYouTweaks;"
-    // Exact 1.14.3 binding dispatchers: regular subreddit/search feeds, grid, front feed,
+    // Exact 1.14.4 binding dispatchers: regular subreddit/search feeds, grid, front feed,
     // and profile submissions. Keep the shared native post/emoji binder prefix unchanged.
-    for (owner in listOf("Lcom/rubenmayayo/reddit/ui/fragments/k\$a;",
-        "Lcom/rubenmayayo/reddit/ui/fragments/m\$a;", "Lft0;",
+    for (owner in listOf("Lcom/rubenmayayo/reddit/ui/fragments/j\$a;",
+        "Lcom/rubenmayayo/reddit/ui/fragments/l\$a;", "Ljt0;",
         "Lcom/rubenmayayo/reddit/ui/profile/UserContributionListFragment\$f;")) {
         val method = Fingerprint(definingClass = owner, name = "onBindViewHolder", returnType = "V", isStatic = false,
             parameters = listOf("Landroidx/recyclerview/widget/RecyclerView\$a0;", "I")).method
@@ -188,6 +207,7 @@ val boostDynamicCommentsHeaderPatch = bytecodePatch(
     description = "Show r/subreddit and the post title throughout the comments screen, preserving native menu and search actions.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.COMMENTS)
     dependsOn(boostChromeExtensionPatch)
     execute {
         Fingerprint(definingClass = COMMENTS_EXTENSION, name = "dynamicHeaderEnabled", returnType = "Z",
@@ -202,6 +222,7 @@ val boostHideHorizontalCommentDividersPatch = bytecodePatch(
     description = "Make horizontal comment and load-more dividers transparent while retaining spacing and vertical thread indicators.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.COMMENTS)
     dependsOn(boostChromeExtensionPatch)
     execute {
         enableCommentFeature("hideDividersEnabled")
@@ -220,6 +241,7 @@ val boostBottomGalleryActionsPatch = bytecodePatch(
     description = "Compact image and gallery action pills with navigation insets; move video download beside the other actions.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.MEDIA)
     dependsOn(boostChromeExtensionPatch)
     execute {
         val create = Fingerprint(
@@ -269,6 +291,7 @@ val boostCommentSwipeActionsPatch = bytecodePatch(
     description = "Swipe left by distance: short upvotes, medium downvotes, long replies. Preview the selected icon and release to act.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.COMMENTS)
     dependsOn(boostChromeExtensionPatch)
     execute {
         enableCommentFeature("swipeActionsEnabled")
@@ -338,6 +361,7 @@ val boostPredictiveBackPatch = bytecodePatch(
     description = "Enable Android's predictive Back animations across supported screens, preserving draft prompts, drawers and browser history.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.NAVIGATION)
     dependsOn(boostChromeExtensionPatch, boostPredictiveBackManifestPatch)
     execute {
         val extension = "Lapp/morphe/extension/boost/PredictiveBackTweaks;"
@@ -346,10 +370,10 @@ val boostPredictiveBackPatch = bytecodePatch(
         if (!application.hasHook(extension, "install")) application.addInstruction(0,
             "invoke-static/range {p0 .. p0}, $extension->install(Ljava/lang/Object;)V")
 
-        // il is BoostSwipeBackActivity, verified in the original 1.14.3 APK. Its setup makes
+        // kl is BoostSwipeBackActivity, verified in the original 1.14.4 APK. Its setup makes
         // comments translucent and installs a competing content-wide swipe panel. On Android 13+
         // keep the original opaque Activity window and let the system own the edge gesture.
-        val setup = Fingerprint(definingClass = "Lil;", name = "a1", returnType = "V",
+        val setup = Fingerprint(definingClass = "Lkl;", name = "a1", returnType = "V",
             parameters = emptyList(), isStatic = false).method
         if (!setup.hasHook(extension, "isSupported")) {
             check(setup.implementation!!.registerCount >= 2) { "No safe local in legacy swipe setup" }
@@ -361,7 +385,7 @@ val boostPredictiveBackPatch = bytecodePatch(
                 return-void
             """.trimIndent(), ExternalLabel("boost_legacy_swipe", original))
         }
-        val finish = Fingerprint(definingClass = "Lil;", name = "finish", returnType = "V",
+        val finish = Fingerprint(definingClass = "Lkl;", name = "finish", returnType = "V",
             parameters = emptyList(), isStatic = false).method
         if (!finish.hasHook(extension, "legacyTransition")) {
             val transition = finish.implementation!!.instructions.withIndex().single { (_, instruction) ->
@@ -384,6 +408,7 @@ val boostPostSwipeActionsPatch = bytecodePatch(
     description = "Swipe posts left through upvote, downvote, save and hide; rows follow your finger.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.NAVIGATION)
     dependsOn(boostChromeExtensionPatch)
     execute {
         Fingerprint(definingClass = SWIPE_EXTENSION, name = "postSwipesEnabled", returnType = "Z",
@@ -412,7 +437,7 @@ val boostPostSwipeActionsPatch = bytecodePatch(
 private fun app.morphe.patcher.patch.BytecodePatchContext.enablePostMediaBinder() {
         val binder = Fingerprint(definingClass = "Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;",
             name = "w", returnType = "V", isStatic = false,
-            parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/SubmissionModel;", "Z", "Z", "Z", "Lhg2;")).method
+            parameters = listOf("Lcom/rubenmayayo/reddit/models/reddit/SubmissionModel;", "Z", "Z", "Z", "Lpg2;")).method
         if (!binder.hasHook(SWIPE_EXTENSION, "bindPost")) binder.addInstruction(0,
             "invoke-static/range {p0 .. p0}, $SWIPE_EXTENSION->bindPost(Ljava/lang/Object;)V")
  }
@@ -423,6 +448,7 @@ val boostMediaPeekPatch = bytecodePatch(
     description = "Hold a loaded post image or inline comment image/GIF to preview it; release to dismiss.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.MEDIA)
     dependsOn(boostChromeExtensionPatch)
     execute {
         enableCommentFeature("mediaPeekEnabled")
@@ -436,6 +462,7 @@ val boostInlineMediaExpansionPatch = bytecodePatch(
     description = "Double tap an existing inline image/GIF to expand it in place; single tap retains Boost's viewer.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.COMMENTS)
     dependsOn(boostChromeExtensionPatch)
     execute { enableCommentFeature("inlineMediaEnabled") }
 }
@@ -446,6 +473,7 @@ val boostCommentLayoutPatch = bytecodePatch(
     description = "Group avatar, username, points, time and awards in a compact flowing header; retain native actions and flair.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.COMMENTS)
     dependsOn(boostChromeExtensionPatch)
     execute { enableCommentFeature("commentLayoutEnabled"); enableRowCompletion() }
 }
@@ -472,8 +500,21 @@ val boostViewerPolishPatch = bytecodePatch(
     description = "Restore native media rendering and close the viewer as soon as a swipe passes its threshold.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.MEDIA)
     dependsOn(boostChromeExtensionPatch, shikifyVideoSurfaceResourcesPatch)
     execute {
+        // A closing gallery is destroyed after the next one opens, and both use the same file for
+        // the same image. Deleting it blacks out the reopened page. Boost trims media_cache itself.
+        val closing=Fingerprint(definingClass="Lcom/rubenmayayo/reddit/ui/fragments/imagemodel/ImageModelFragment;",name="onDestroy",returnType="V",parameters=emptyList(),isStatic=false).method
+        val delete=closing.implementation!!.instructions.withIndex().single { (_,instruction)->instruction.methodReference()?.let { it.definingClass=="Lnu0;" && it.name=="d" }==true }.index
+        closing.removeInstruction(delete)
+        // The video viewer pauses only when it is not finishing, and leaves closing to onDestroy, which
+        // Android can run seconds later. Pause in both cases so backing out stops the sound at once.
+        val pause=Fingerprint(definingClass=VIDEO_ACTIVITY,name="onPause",returnType="V",parameters=emptyList(),isStatic=false).method
+        val pauseBody=pause.implementation!!.instructions.toList()
+        val finishing=pauseBody.withIndex().single { (_,instruction)->instruction.methodReference()?.let { it.definingClass=="Landroid/app/Activity;" && it.name=="isFinishing" }==true }.index
+        check(pauseBody[finishing+1].opcode==Opcode.MOVE_RESULT && pauseBody[finishing+2].opcode==Opcode.IF_NEZ) { "Video viewer pause check changed" }
+        for(index in listOf(finishing+2,finishing+1,finishing))pause.removeInstruction(index)
         val method = Fingerprint(definingClass = "Lcom/rubenmayayo/reddit/ui/fragments/imagemodel/ImageModelFragment;",
             name = "onResume", returnType = "V", parameters = emptyList(), isStatic = false).method
         if (!method.hasHook("Lapp/morphe/extension/boost/ViewerPolishTweaks;", "onResume"))
@@ -486,7 +527,7 @@ val boostViewerPolishPatch = bytecodePatch(
             parameters = listOf("Landroid/view/View;", "F", "F"), isStatic = false).method
         if (!release.hasHook("Lapp/morphe/extension/boost/ViewerPolishTweaks;", "settle")) {
             val settles = release.implementation!!.instructions.withIndex().filter { (_, instruction) ->
-                instruction.methodReference()?.let { it.definingClass == "Ljm3;" && it.name == "s" } == true
+                instruction.methodReference()?.let { it.definingClass == "Lgn3;" && it.name == "s" } == true
             }.toList()
             check(settles.size == 4) { "Unrecognized SwipeBackLayout release" }
             // Same width and same boolean result. p0 already holds the SwipeBackLayout here.
@@ -855,10 +896,11 @@ val shikifySystemFontPatch = bytecodePatch(
     description = "Use your phone's system font for posts, comments, names and the rest of the app. Boost's own font settings stop applying.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(shikifySystemFontResourcesPatch)
     execute {
         // Every Boost font preference resolves through this one lookup.
-        val lookup=Fingerprint(definingClass="Lps2;",name="e0",returnType="Landroid/graphics/Typeface;",isStatic=true,
+        val lookup=Fingerprint(definingClass="Lxs2;",name="e0",returnType="Landroid/graphics/Typeface;",isStatic=true,
             parameters=listOf("Landroid/content/Context;","Ljava/lang/String;")).method
         lookup.addInstruction(0,"return-object v0")
         lookup.addInstruction(0,"sget-object v0, Landroid/graphics/Typeface;->DEFAULT:Landroid/graphics/Typeface;")
@@ -1026,7 +1068,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.reuseSavedLogin() {
     authenticate.addInstruction(permitted+2,"move-result v$answer")
     authenticate.addInstruction(permitted+2,"invoke-static {v$answer}, $tweaks->accountCheck(Z)Z")
     authenticate.addInstruction(0,"invoke-static {}, $tweaks->clearAccount()V")
-    val login=Fingerprint(definingClass="Lpd2;",name="M",returnType="V",parameters=emptyList(),isStatic=false).method
+    val login=Fingerprint(definingClass="Lxd2;",name="M",returnType="V",parameters=emptyList(),isStatic=false).method
     val body=login.implementation!!.instructions.toList()
     val read=body.withIndex().single { reads(it.value) }.index
     check(body[read+1].opcode==Opcode.MOVE_RESULT_OBJECT)
@@ -1113,6 +1155,7 @@ val boostMaterialYouPatch = bytecodePatch(
     description = "Wallpaper-based themes, cards, side panel, empty screens, compact metadata and glass surfaces.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostChromeExtensionPatch, boostMaterialYouResourcesPatch, shikifySurfaceResourcesPatch)
     execute {
         val tags="Lapp/morphe/extension/boost/MaterialYouTweaks;->tagColor(Ljava/lang/String;)I"
@@ -1150,15 +1193,74 @@ val boostMaterialYouPatch = bytecodePatch(
     }
 }
 
+private val shikifyMaterialLoadingResourcesPatch = resourcePatch {
+    execute {
+        val android = "http://schemas.android.com/apk/res/android"
+        get("res/drawable/shikify_loading_indicator.xml").apply {
+            parentFile.mkdirs()
+            writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<drawable xmlns:android=\"$android\" " +
+                "class=\"app.morphe.extension.boost.MaterialLoadingDrawable\" />\n")
+        }
+        for (layout in listOf("activity_search_subreddit", "activity_album", "exo_player_view")) {
+            document("res/layout/$layout.xml").use { doc ->
+                val bars = doc.getElementsByTagName("ProgressBar")
+                check(bars.length == 1) { "Expected one circular loading indicator in $layout" }
+                (bars.item(0) as org.w3c.dom.Element).setAttributeNS(android,
+                    "android:indeterminateDrawable", "@drawable/shikify_loading_indicator")
+            }
+        }
+        document("res/layout/progressbar.xml").use { doc ->
+            val view = doc.documentElement
+            view.setAttributeNS(android, "android:layout_height", "48dp")
+            view.setAttributeNS(android, "android:layout_gravity", "center")
+            view.setAttributeNS(android, "android:layout_centerInParent", "true")
+            view.setAttributeNS(android, "android:visibility", "gone")
+        }
+        for (layout in listOf("activity_drafts", "activity_thread", "fragment_feed")) {
+            document("res/layout/$layout.xml").use { doc ->
+                val includes = doc.getElementsByTagName("include")
+                val progress = (0 until includes.length).map { includes.item(it) as org.w3c.dom.Element }
+                    .single { it.getAttribute("layout") == "@layout/progressbar" }
+                val parent = progress.parentNode
+                check(parent.nodeName == "com.google.android.material.appbar.AppBarLayout")
+                parent.parentNode.appendChild(progress)
+            }
+        }
+    }
+}
+
 @Suppress("unused")
 val shikifyMaterialLoadingPatch = bytecodePatch(
     name = "Material loading animation",
     description = "Wallpaper-coloured Material 3 Expressive shapes for pull-to-refresh and indeterminate loading wheels; retain native refresh actions.",
 ) {
     compatibleWith(boostCompatibility)
-    dependsOn(boostChromeExtensionPatch)
+    category(ShikifyCategory.APPEARANCE)
+    dependsOn(boostChromeExtensionPatch, shikifyMaterialLoadingResourcesPatch)
     execute {
         val extension = "Lapp/morphe/extension/boost/MaterialLoadingTweaks;"
+        val progress = "Lcom/rubenmayayo/reddit/ui/customviews/progress/ProgressView;"
+        val progressCreate = Fingerprint(definingClass = progress, name = "<init>", returnType = "V",
+            parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;"), isStatic = false).method
+        val progressEnd = progressCreate.implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        progressCreate.replaceInstruction(progressEnd,
+            "invoke-static/range {p0 .. p0}, $extension->onProgressCreated(Ljava/lang/Object;)V")
+        progressCreate.addInstruction(progressEnd + 1, "return-void")
+        for ((method, hook) in listOf("a" to "startProgress", "b" to "stopProgress")) {
+            Fingerprint(definingClass = progress, name = method, returnType = "V",
+                parameters = emptyList(), isStatic = false).method.addInstructionsWithLabels(0, """
+                invoke-static/range {p0 .. p0}, $extension->$hook(Ljava/lang/Object;)V
+                return-void
+            """.trimIndent())
+        }
+        val dialog = Fingerprint(definingClass = "Lip1;", name = "show", returnType = "V",
+            parameters = emptyList(), isStatic = false).method
+        if (!dialog.hasHook(extension, "onDialogShown")) {
+            val end = dialog.implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+            dialog.addInstruction(end,
+                "invoke-static/range {p0 .. p0}, $extension->onDialogShown(Ljava/lang/Object;)V")
+        }
         val refresh = "Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;"
         val create = Fingerprint(definingClass = refresh, name = "<init>", returnType = "V", isStatic = false,
             parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;")).method
@@ -1171,11 +1273,11 @@ val shikifyMaterialLoadingPatch = bytecodePatch(
             parameters = listOf("F")).method
         if(!pull.hasHook(extension,"onPull"))pull.addInstruction(0,
                 "invoke-static/range {p0 .. p1}, $extension->onPull(Ljava/lang/Object;F)V")
-        val stop=Fingerprint(definingClass = "Lrs;", name = "stop", returnType = "V", isStatic = false,
+        val stop=Fingerprint(definingClass = "Lts;", name = "stop", returnType = "V", isStatic = false,
             parameters = emptyList()).method
         if(!stop.hasHook(extension,"onRefreshStopped"))stop.addInstruction(0,
                 "invoke-static/range {p0 .. p0}, $extension->onRefreshStopped(Ljava/lang/Object;)V")
-        for ((owner, name, hook) in listOf(Triple("Lrs;","draw","drawRefresh"),
+        for ((owner, name, hook) in listOf(Triple("Lts;","draw","drawRefresh"),
             Triple("Lcom/pnikosis/materialishprogress/ProgressWheel;","onDraw","drawWheel"))) {
             val draw = Fingerprint(definingClass = owner,name = name,returnType = "V",isStatic = false,
                 parameters = listOf("Landroid/graphics/Canvas;")).method
@@ -1197,9 +1299,10 @@ val shikifyMaterialLoadingPatch = bytecodePatch(
 @Suppress("unused")
 val shikifyHomeAvatarPatch = bytecodePatch(
     name = "Home account avatar",
-    description = "Show the account avatar beside Home and in the bottom pill, with subreddit icons beside community titles; retain sorting and navigation.",
+    description = "Show the account avatar beside Home, with subreddit icons beside community titles; retain sorting and navigation.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostChromeExtensionPatch)
     execute {
         val title = Fingerprint(definingClass = "Lcom/rubenmayayo/reddit/ui/submissions/subreddit/MainActivity\$d;",
@@ -1210,7 +1313,7 @@ val shikifyHomeAvatarPatch = bytecodePatch(
         if(title.hasHook("Lapp/morphe/extension/boost/HomeAvatarTweaks;","onTitleBind"))return@execute
         val instructions=title.implementation!!.instructions
         val index=instructions.withIndex().single { (_,instruction) -> instruction.methodReference()?.let {
-            it.definingClass=="Lkk3;" && it.name=="b0" && it.parameterTypes.map { p -> p.toString() }==
+            it.definingClass=="Lal3;" && it.name=="d0" && it.parameterTypes.map { p -> p.toString() }==
                 listOf("Landroid/content/Context;","Lcom/rubenmayayo/reddit/models/reddit/SubscriptionViewModel;")
         }==true }.index
         val cast=instructions[index-1] as? com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -1243,7 +1346,7 @@ private val shikifyTokenLockPatch = bytecodePatch {
     dependsOn(shikifyNetworkSettingsPatch)
     execute {
         // Dex has no runtime synchronized flag for ordinary methods, so the lock lives in the extension.
-        val token=Fingerprint(definingClass="Lpd2;",name="b",returnType="V",parameters=emptyList(),isStatic=false).method
+        val token=Fingerprint(definingClass="Lxd2;",name="b",returnType="V",parameters=emptyList(),isStatic=false).method
         token.addInstructionsWithLabels(0,"""
             invoke-static {p0}, Lapp/morphe/extension/boost/NetworkTweaks;->token(Ljava/lang/Object;)Z
             move-result v0
@@ -1259,6 +1362,7 @@ val shikifyHttp2Patch = bytecodePatch(
     description = "Connect to Reddit over HTTP/2, with HTTP/1.1 as a fallback.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     execute { enableModernRedditTransport() }
 }
 
@@ -1268,6 +1372,7 @@ val shikifyParallelLoadingPatch = bytecodePatch(
     description = "Load feeds, comments and posts in parallel instead of one background task at a time.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     dependsOn(shikifyTokenLockPatch)
     execute { parallelContentLoaders();enableFeature("parallelLoading") }
 }
@@ -1278,6 +1383,7 @@ val shikifyRequestQueuePatch = bytecodePatch(
     description = "Stop spacing Reddit requests a second apart, and pace them again when Reddit reports a low budget.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     dependsOn(shikifyNetworkSettingsPatch)
     execute { removeRequestQueue();enableFeature("requestQueue") }
 }
@@ -1288,6 +1394,7 @@ val shikifyInstantLoginPatch = bytecodePatch(
     description = "Use a saved login that is still valid straight away, and renew it in the background.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     dependsOn(shikifyTokenLockPatch)
     execute { reuseSavedLogin();enableFeature("instantLogin") }
 }
@@ -1298,6 +1405,7 @@ val shikifyFirstPagePatch = bytecodePatch(
     description = "Ask for 25 posts on the first page of a feed. Later pages keep their size.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     dependsOn(shikifyNetworkSettingsPatch)
     execute { smallerFirstPage();enableFeature("firstPage") }
 }
@@ -1308,9 +1416,10 @@ val shikifyOnlineCheckPatch = bytecodePatch(
     description = "Let requests run when Android reports a restricted app's network as blocked.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.PERFORMANCE)
     dependsOn(shikifyNetworkSettingsPatch)
     execute {
-        val online=Fingerprint(definingClass="Lkk3;",name="D",returnType="Z",isStatic=true,parameters=listOf("Landroid/content/Context;")).method
+        val online=Fingerprint(definingClass="Lal3;",name="F",returnType="Z",isStatic=true,parameters=listOf("Landroid/content/Context;")).method
         online.addInstruction(0,"return p0")
         online.addInstruction(0,"move-result p0")
         online.addInstruction(0,"invoke-static/range {p0 .. p0}, Lapp/morphe/extension/boost/NetworkTweaks;->online(Landroid/content/Context;)Z")
@@ -1324,6 +1433,7 @@ val shikifyNoticesPatch = bytecodePatch(
     description = "Show Boost's toasts as Material 3 notices above the bottom bar.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostChromeExtensionPatch)
     execute { replaceToasts();enableFeature("notices") }
 }
@@ -1334,9 +1444,10 @@ val shikifyDialogsPatch = bytecodePatch(
     description = "Float option menus above the bottom edge like the bottom bar.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostMaterialYouPatch)
     execute {
-        val dialog=Fingerprint(definingClass="Ldp1;",name="show",returnType="V",parameters=emptyList(),isStatic=false).method
+        val dialog=Fingerprint(definingClass="Lip1;",name="show",returnType="V",parameters=emptyList(),isStatic=false).method
         if(!dialog.hasHook("Lapp/morphe/extension/boost/DialogTweaks;","onShow"))dialog.addInstruction(0,
             "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/boost/DialogTweaks;->onShow(Ljava/lang/Object;)V")
         enableFeature("dialogs")
@@ -1349,6 +1460,7 @@ val shikifyFlairsPatch = bytecodePatch(
     description = "Move post flairs in line with the post details, and keep flair text readable.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostMaterialYouPatch)
     execute {
         val flair=Fingerprint(definingClass="Lcom/rubenmayayo/reddit/models/reddit/RichFlairView;",name="c",returnType="V",isStatic=false,
@@ -1398,13 +1510,14 @@ val shikifySearchPatch = bytecodePatch(
     description = "Fill the empty search page with your feeds and subscriptions in collapsible Material 3 sections.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     dependsOn(boostMaterialYouPatch, shikifySearchResourcesPatch)
     execute {
         val searchPage="Lcom/rubenmayayo/reddit/ui/search/SearchGenericActivity;"
         val searchTweaks="Lapp/morphe/extension/boost/SearchTweaks;"
         val searchList=Fingerprint(definingClass=searchPage,name="s1",returnType="V",parameters=emptyList(),isStatic=false).method
         if(!searchList.hasHook(searchTweaks,"onList"))searchList.addInstruction(0,"invoke-static/range {p0 .. p0}, $searchTweaks->onList(Ljava/lang/Object;)V")
-        val searchHeader=Fingerprint(definingClass=searchPage,name="e0",returnType="V",parameters=listOf("Lbn2;"),isStatic=false).method
+        val searchHeader=Fingerprint(definingClass=searchPage,name="e0",returnType="V",parameters=listOf("Ljn2;"),isStatic=false).method
         if(!searchHeader.hasHook(searchTweaks,"onHeader")){
             check(searchHeader.implementation!!.registerCount>=3) { "No free register in search header" }
             searchHeader.addInstructionsWithLabels(0,"""
@@ -1424,6 +1537,7 @@ val shikifyTransitionsPatch = resourcePatch(
     description = "New screens slide over the one below, which drifts back slightly.",
 ) {
     compatibleWith(boostCompatibility)
+    category(ShikifyCategory.APPEARANCE)
     execute {
         fun motion(name:String,body:String){get("res/anim/$name.xml").apply {parentFile.mkdirs();writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n$body\n")}}
         val ns="xmlns:android=\"http://schemas.android.com/apk/res/android\""

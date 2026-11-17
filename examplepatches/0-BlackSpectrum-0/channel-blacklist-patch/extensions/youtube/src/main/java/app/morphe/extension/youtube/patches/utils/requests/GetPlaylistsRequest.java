@@ -31,7 +31,6 @@ import java.util.concurrent.TimeoutException;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
-import app.morphe.extension.shared.settings.BaseSettings;
 
 public class GetPlaylistsRequest {
     private static final int MAX_MILLISECONDS_TO_WAIT_FOR_FETCH = 20 * 1000;
@@ -39,18 +38,18 @@ public class GetPlaylistsRequest {
     public static final Map<String, GetPlaylistsRequest> cache = Collections.synchronizedMap(
             Utils.createSizeRestrictedMap(50));
 
-    private final Future<Pair<String, String>[]> future;
+    private final Future<List<Pair<String, String>>> future;
 
     private GetPlaylistsRequest(String playlistId, Map<String, String> requestHeader) {
         this.future = Utils.submitOnBackgroundThread(() -> fetch(playlistId, requestHeader));
     }
 
     @Nullable
-    public Pair<String, String>[] getPlaylists() {
+    public List<Pair<String, String>> getPlaylists() {
         try {
-            if (BaseSettings.DEBUG.get() && !future.isDone() && Utils.isCurrentlyOnMainThread()) {
-                Logger.printException(() -> "Debug: Blocking main thread");
-            }
+            Logger.printExceptionIfDebug(() -> !future.isDone() && Utils.isCurrentlyOnMainThread()
+                    ? "Debug: Blocking main thread"
+                    : null);
             return future.get(MAX_MILLISECONDS_TO_WAIT_FOR_FETCH, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ex) {
             Logger.printInfo(() -> "getPlaylists timed out", ex);
@@ -68,17 +67,10 @@ public class GetPlaylistsRequest {
     }
 
     public static GetPlaylistsRequest fetchRequestIfNeeded(String playlistId, Map<String, String> requestHeader) {
-        cache.computeIfAbsent(
+        return cache.computeIfAbsent(
                 Objects.requireNonNull(playlistId),
                 k -> new GetPlaylistsRequest(playlistId, requestHeader)
         );
-        return cache.get(playlistId);
-    }
-
-    @SuppressWarnings("unused")
-    @Nullable
-    public static GetPlaylistsRequest getRequestForPlaylistId(String playlistId) {
-        return cache.get(playlistId);
     }
 
     private static void handleConnectionError(String toastMessage, @Nullable Exception ex) {
@@ -116,8 +108,7 @@ public class GetPlaylistsRequest {
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
-    private static Pair<String, String>[] parseResponse(JSONObject json) {
+    private static List<Pair<String, String>> parseResponse(JSONObject json) {
         try {
             Object addToPlaylistRendererElement = json.getJSONArray("contents").get(0);
             if (addToPlaylistRendererElement instanceof JSONObject addToPlaylistRendererObj) {
@@ -142,7 +133,7 @@ public class GetPlaylistsRequest {
                 }
 
                 if (!playlists.isEmpty()) {
-                    return playlists.toArray(new Pair[0]);
+                    return playlists;
                 }
             }
         } catch (JSONException e) {
@@ -152,7 +143,7 @@ public class GetPlaylistsRequest {
     }
 
     @Nullable
-    private static Pair<String, String>[] fetch(String playlistId, Map<String, String> requestHeader) {
+    private static List<Pair<String, String>> fetch(String playlistId, Map<String, String> requestHeader) {
         JSONObject json = sendRequest(playlistId, requestHeader);
         if (json != null) {
             return parseResponse(json);

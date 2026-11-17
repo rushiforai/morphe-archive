@@ -26,7 +26,9 @@ import org.json.JSONObject;
 /**
  * Answers a message that matches one of your replies, through the Reply action on the notification Messenger shows for
  * it, so it goes out the same way as a reply typed into the notification shade, encrypted chats included. A message
- * that never raised a notification (its chat was open, say) gets no answer. Each chat gets at most one automatic reply
+ * that never raised a notification (its chat was open, say) gets no answer, and one whose notification is slow to
+ * arrive is looked at again on a short beat until it does, so the reply goes out as soon as it can. Each chat gets at
+ * most one automatic reply
  * every five minutes, and a message that repeats one of your own replies is never answered, so two phones running
  * auto replies can't keep answering each other.
  */
@@ -36,9 +38,16 @@ public final class AutoReply {
     static final String KEY = "auto_reply";
     static final String RULES = "auto_reply_rules";
     static final String GROUPS = "auto_reply_groups";
-    /** Messenger posts the notification a moment after the hook sees the message. */
-    static final long WAIT_MS = 1_500;
-    static final long RETRY_MS = 3_000;
+    /**
+     * The reply goes out through the chat's notification, which Messenger posts a moment after the hook sees the
+     * message. Rather than sit out a fixed wait, the answer looks for that notification almost at once and then keeps
+     * looking, so it lands as soon as there's something to reply through (#182).
+     */
+    static final long FIRST_MS = 150;
+    /** How long between looks while the chat's notification still isn't up. */
+    static final long RECHECK_MS = 250;
+    /** How long a message waits for its notification before it's dropped. */
+    static final long GIVE_UP_MS = 4_500;
     static final long COOLDOWN_MS = 5L * 60 * 1000;
     /** A reply's picture follows its text after this long, so the text shows first in the chat. */
     static final long PICTURE_DELAY_MS = 2_000;
@@ -160,7 +169,8 @@ public final class AutoReply {
             }
             long generation = GENERATION.get();
             try {
-                scheduler.schedule(() -> run(kept, thread, id, generation, true), WAIT_MS);
+                long deadline = now + GIVE_UP_MS;
+                scheduler.schedule(() -> run(kept, thread, id, generation, deadline), FIRST_MS);
             } catch (RuntimeException rejected) {
                 PENDING.decrementAndGet();
                 Settings.hookFailedPrivately(KEY, "Can't queue the auto reply", rejected);
@@ -182,13 +192,16 @@ public final class AutoReply {
         return !echoesAReply(rules, text) && match(rules, text) != null;
     }
 
-    /** One queued message. Dropped when anything changed since it was queued, and its slot is freed once it's done. */
-    private static void run(String text, String thread, String id, long generation, boolean retry) {
+    /**
+     * One queued message, looked at again every [RECHECK_MS] until its notification is up or [deadline] passes.
+     * Dropped when anything changed since it was queued, and its slot is freed once it's done.
+     */
+    private static void run(String text, String thread, String id, long generation, long deadline) {
         boolean waiting = false;
         try {
             if (generation != GENERATION.get()) return;
-            if (attempt(text, thread, id, generation) == Outcome.NO_NOTIFICATION && retry) {
-                scheduler.schedule(() -> run(text, thread, id, generation, false), RETRY_MS);
+            if (attempt(text, thread, id, generation) == Outcome.NO_NOTIFICATION && clock.getAsLong() < deadline) {
+                scheduler.schedule(() -> run(text, thread, id, generation, deadline), RECHECK_MS);
                 waiting = true;
             }
         } catch (RuntimeException rejected) {

@@ -14,6 +14,8 @@ object Constants {
         targets = listOf(
             AppTarget(version = "26.42.2"),
             AppTarget(version = "26.42.1"),
+            AppTarget("26.42", versionCode = 26420013),
+            AppTarget("26.38", versionCode = 26380016),
         )
     )
 }

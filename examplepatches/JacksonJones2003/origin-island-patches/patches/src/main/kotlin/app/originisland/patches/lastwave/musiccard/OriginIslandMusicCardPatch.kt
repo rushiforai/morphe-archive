@@ -14,6 +14,7 @@ import app.originisland.patches.shared.mediasession.MediaBrowserServiceOnLoadChi
 import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnCustomActionFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnPlayFromMediaIdFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionConstructorFingerprint
+import app.originisland.patches.shared.mediasession.MediaSessionSetExtrasFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionSetMetadataFingerprint
 import app.originisland.patches.shared.mediasession.addMusicCardHook
 import app.originisland.patches.shared.mediasession.indicesOfCalls
@@ -117,6 +118,27 @@ val lastWaveMusicCardPatch = bytecodePatch(
                         index,
                         """
                             invoke-static { v${instruction.registerC}, v${instruction.registerD} }, $EXTENSION_CLASS->onSetMetadata(Landroid/media/session/MediaSession;Landroid/media/MediaMetadata;)Landroid/media/MediaMetadata;
+                            move-result-object v${instruction.registerD}
+                        """
+                    )
+                }
+            }
+        }
+
+        // Since version 5.2, LastWave sends the card lyrics itself, from its playback service, under
+        // a media id of its own. They are kept as the lyrics of the song, and sent under the media
+        // id of the metadata, which the card checks them against.
+        MediaSessionSetExtrasFingerprint.matchAll().forEach { match ->
+            match.method.apply {
+                if (isExtension(definingClass)) return@forEach
+
+                indicesOfCalls(MEDIA_SESSION_CLASS, "setExtras").reversed().forEach { index ->
+                    val instruction = getInstruction<FiveRegisterInstruction>(index)
+
+                    addInstructions(
+                        index,
+                        """
+                            invoke-static { v${instruction.registerC}, v${instruction.registerD} }, $EXTENSION_CLASS->onSetExtras(Landroid/media/session/MediaSession;Landroid/os/Bundle;)Landroid/os/Bundle;
                             move-result-object v${instruction.registerD}
                         """
                     )

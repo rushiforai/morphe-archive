@@ -2024,6 +2024,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	أبق شاشة نظيفة في LIVE التالي
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	يعود LIVE الذي تنتقل إليه بالتمرير مع ظهور المحادثة والهدايا والأزرار. هذا يحافظ على الشاشة نظيفة من غرفة إلى غرفة حتى توقفه.
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	عرض ملء الشاشة في المزيد من بث LIVE
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	يعرض TikTok زر ملء الشاشة فقط في بث LIVE من كمبيوتر أو من شاشة مشتركة. هذا يعرضه في كل بث LIVE آخر بفيديو عريض.
 Dark LIVE panels in dark mode	لوحات LIVE داكنة في الوضع الداكن
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	عندما يكون TikTok في الوضع الداكن، لا تزال غرفة LIVE تفتح قائمة المشاركة ونادي المعجبين ولوحات أخرى بألوان فاتحة. هذا يفتحها داكنة.
 Keep watching in a small window	مواصلة المشاهدة في نافذة صغيرة
@@ -2692,6 +2696,8 @@ search suggestions	اقتراحات البحث
 AI chat	دردشة AI
 AI Tako	AI Tako
 save photos	حفظ الصور
+download button	زر التنزيل تنزيل
+It's in %1$s, under %2$s. Tap to go there.	تجده في %1$s ضمن %2$s. اضغط للانتقال إليه.
 Lock the feed at set times	اقفل الخلاصة في أوقات محددة
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	تقفل الخلاصة تلقائيًا خلال هذه الساعات، حسب ساعة هاتفك. اكتب الأيام والساعات مثل Mon-Fri 21:00-07:00؛ Sat Sun 13:00-15:00. اترك الأيام فارغة ليعمل كل يوم. الوقت الذي ينتهي قبل أن يبدأ يتجاوز منتصف الليل.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	تعذرت قراءة %1$s. اكتب الأيام والساعات مثل Mon-Fri 21:00-07:00.
@@ -3108,3 +3114,50 @@ Account country on profiles	بلد الحساب في الملفات الشخصي
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	تحصل ورقة المشاركة في الملف الشخصي على زر بلد الحساب. يسأل TikTok عن مكان هذا الحساب، أو من أين نُشرت أحدث فيديوهاته.
 Account country	بلد الحساب
 Videos posted from %1$s	الفيديوهات منشورة من %1$s
+Long-press Profile for Activity center	اضغط باستمرار على «الملف الشخصي» لمركز النشاط
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	اضغط باستمرار على تبويب «الملف الشخصي» لفتح مركز النشاط في TikTok. النقر على «الملف الشخصي» يعمل كما كان. أثناء تفعيل اضغط باستمرار على «الملف الشخصي» لسجل المشاهدة، تتولى تلك الميزة الضغطة.
+Share the video after a save	مشاركة الفيديو بعد حفظه
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	يفتح نافذة المشاركة في أندرويد مع الملف فور حفظ الفيديو، بما في ذلك قصص الفيديو، لتتمكن من إرساله مباشرة إلى واتساب أو تيليجرام أو أي تطبيق آخر. الفيديوهات المختارة التي تُحفظ معًا تحصل على الإشعار المعتاد.
+Caption spot in Clear display	موضع التسميات التوضيحية في عرض نظيف
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	حيث يعرضها TikTok
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	أدنى، قرب الأسفل
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	قصّ ومدّ الفيديو ليملأ الشاشة
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	يغطي النافذة بأكملها بنصف قص خيار الملء ونصف مدّ خيار المد، فلا يكاد يُلاحظ أيٌّ منهما. الفيديو الذي يختلف شكله كثيرًا عن شكل الشاشة يحتفظ بحجم TikTok.
+Watch LIVEs unseen	مشاهدة LIVE دون أن يراك أحد
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	لن تظهر في قائمة مشاهدي LIVE التي تفتحها. اضغط على العين داخل LIVE ليراك مضيفه. يتطلب تفعيل وضع الشبح.
+The host can see you	يمكن للمضيف رؤيتك
+Let the host see you	اسمح للمضيف برؤيتك
+Couldn't tell which LIVE this is. Open it again.	تعذّر معرفة أي LIVE هذا. افتحه مرة أخرى.
+The host can already see you in this LIVE	يمكن للمضيف رؤيتك بالفعل في هذا LIVE
+Letting the host see you	جارٍ السماح للمضيف برؤيتك
+The host can see you now	يمكن للمضيف رؤيتك الآن
+The host sees you next time you open it	سيراك المضيف في المرة القادمة التي تفتحه فيها
+Couldn't reach TikTok. Open this LIVE again.	تعذّر الوصول إلى TikTok. افتح هذا LIVE مرة أخرى.
+LIVE name alerts	تنبيهات الاسم في LIVE
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	يخبرك عندما يُذكر اسمك في LIVE، في الدردشة أو بصوت عالٍ في غرفة فيها الترجمة النصية مفعّلة. يصلك إشعار عندما تكون إشعارات TikTok مفعّلة، ولافتة في الغرفة عندما تكون متوقفة.
+Names to listen for	أسماء للاستماع إليها
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	اسم المستخدم واسمك على TikTok في القائمة بالفعل. أضف أسماء أخرى يناديك بها الناس، مفصولة بفواصل.
+Your name came up in a LIVE	ذُكر اسمك في LIVE
+Listen for your name	استمع إلى اسمك
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	يستمع أيضًا إلى صوت LIVE، فيُحتسب اسمك عندما يُقال بصوت عالٍ في الغرف التي لا ترجمة نصية فيها. يتولى الاستماع التعرّف على الكلام في هاتفك نفسه، بإذن الميكروفون الخاص بـ TikTok. لا يسمع إلا صوت LIVE، مع أن Android يُظهر نقطة الميكروفون، ويستهلك بيانات أكثر قليلًا.
+Needs Android 13 or newer.	يتطلب Android 13 أو أحدث.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	متوقف: التعرّف على الكلام في هذا الهاتف لا يسمع إلا الميكروفون. أوقف هذا الخيار ثم شغّله لتحاول مجددًا.
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	لا يوجد في هذا الهاتف تعرّف على الكلام. اختر واحدًا من إعدادات الإدخال الصوتي في Android، ثم افتح LIVE مجددًا.
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	يحتاج TikTok إلى إذن الميكروفون للتعرّف على الكلام. اسمح به من إعدادات التطبيقات في Android، ثم افتح LIVE مجددًا.
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	لا يتوفر نموذج للتعرّف على الكلام بلغة هاتفك. نزّل واحدًا من إعدادات الكلام في Android، ثم افتح LIVE مجددًا.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	استمر فشل التعرّف على الكلام في آخر LIVE. افتح LIVE مجددًا لتحاول من جديد.
+Save the photo posts as one video?	حفظ منشورات الصور كفيديو واحد؟
+One video	فيديو واحد
+One per post	واحد لكل منشور
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	أبقِ وسط الفيديو دون مدّ
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	يغطي النافذة بأكملها ويُبقي وسط الفيديو على شكله الأصلي. يُقصّ قليل من الجانبين، ولا يُمدّ إلا الجزآن العلوي والسفلي. الفيديو الذي يختلف شكله كثيرًا عن شكل الشاشة يحتفظ بحجم TikTok.
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	البحث المرئي في الفيديوهات المتوقفة مؤقتًا

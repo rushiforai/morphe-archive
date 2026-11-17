@@ -14,6 +14,7 @@ import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
+import app.hushtelegram.extension.telegram.settings.BookmarksPage;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import app.hushtelegram.extension.telegram.settings.SettingsEntry;
@@ -44,10 +45,10 @@ public final class SideMenu {
 
     /**
      * The rows under the name, in the order {@link #labels()} gives Telegram's words for the first six.
-     * Archived Chats only shows while Hide All Chats has taken the archive's usual way in, and
-     * Administrators while its switch is on.
+     * Archived Chats only shows while Hide All Chats has taken the archive's usual way in,
+     * Administrators while its switch is on, and Bookmarks while the message menu offers Bookmark.
      */
-    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, ARCHIVE, ADMINS, HUSH, DOWNLOADS }
+    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, ARCHIVE, ADMINS, HUSH, DOWNLOADS, BOOKMARKS }
 
     /** English for the rows when Telegram's words aren't there, which is only outside a patched app. */
     static final String[] FALLBACK = {"My Profile", "New Message", "Contacts", "Calls", "Saved Messages", "Settings"};
@@ -63,6 +64,8 @@ public final class SideMenu {
         default void hushSettings(Activity activity) { SettingsEntry.openFromNative(activity); }
 
         default void downloads(Activity activity) { DownloadManager.show(activity); }
+
+        default void bookmarks(Activity activity) { BookmarksPage.show(activity); }
     }
 
     static volatile Opener opener = Activity::startActivity;
@@ -165,6 +168,7 @@ public final class SideMenu {
         words[Row.ADMINS.ordinal()] = AdminChats.rowLabel();
         words[Row.HUSH.ordinal()] = SettingsEntry.nativeSettingsTitle();
         words[Row.DOWNLOADS.ordinal()] = L10n.t("Downloads");
+        words[Row.BOOKMARKS.ordinal()] = L10n.t("Bookmarks");
         return words;
     }
 
@@ -204,6 +208,9 @@ public final class SideMenu {
                 break;
             case DOWNLOADS:
                 opener.downloads(activity);
+                break;
+            case BOOKMARKS:
+                opener.bookmarks(activity);
                 break;
         }
         HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "side menu opened " + row.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' '));

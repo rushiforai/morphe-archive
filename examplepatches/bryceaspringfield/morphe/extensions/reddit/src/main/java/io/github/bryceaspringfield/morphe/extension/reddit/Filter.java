@@ -115,6 +115,7 @@ final class Filter {
      * The reason a post is hidden, or null to show it.
      */
     static String hidePost(PostInfo post, String place) {
+        TopButton.start();
         if (PLACE_PROFILE.equals(place) && Accounts.ownsAny(post.authors)) place = PLACE_PROFILE_OWN;
         if (!post.isPost || place == null) return null;
         // The master switch hides 18+ posts in every place, whatever the places chosen for the other filters.

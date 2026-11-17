@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -39,6 +39,16 @@ internal object GetMentionSetExtensionFingerprint : Fingerprint(
 internal object GetImageVariantsExtensionFingerprint : Fingerprint(
     definingClass = EXTENSION_CLASS_DESCRIPTOR,
     name = "getImageVariants",
+)
+
+internal object GetImageInfoByMethodExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getImageInfoByMethod",
+)
+
+internal object ResolveImageInfoObjectExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "resolveImageInfoObject",
 )
 
 internal object GetAdditionalImageCandidatesExtensionFingerprint : Fingerprint(
@@ -193,6 +203,8 @@ internal fun mediaDictGetterFingerprint(key: String, type: String) = Fingerprint
 internal val VideoVersionsGetterFingerprint = mediaDictGetterFingerprint("video_versions", "Ljava/util/List;")
 
 internal val VideoDashManifestGetterFingerprint = mediaDictGetterFingerprint("video_dash_manifest", "Ljava/lang/String;")
+
+internal val CarouselMediaGetterFingerprint = mediaDictGetterFingerprint("carousel_media", "Ljava/util/List;")
 
 /** Media's has_audio getter: the same shape, except its key is loaded after the two reads. */
 internal object HasAudioGetterFingerprint : Fingerprint(

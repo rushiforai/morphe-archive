@@ -110,6 +110,27 @@ public class ToastLengthTest {
         assertTrue(texts.contains("Asking Telegram to make your folders."));
         // The settings lock's refusal, built by SettingsLock.note and shown by refuses().
         assertTrue(texts.contains("Settings are locked. Tap Start unlock, then wait 24 hours."));
+        // The background picture's texts, each branch of the save's answer included.
+        assertTrue(texts.contains("Background picture saved."));
+        assertTrue(texts.contains("Background removed."));
+        assertTrue(texts.contains("That file isn't a picture."));
+        assertTrue(texts.contains("That picture is too large."));
+        assertTrue(texts.contains("Couldn't save the picture. Try again."));
+        assertTrue(texts.contains("Couldn't save the dim. Try again in a moment."));
+        assertTrue(texts.contains("This phone has no gallery picker."));
+        // The chat list banner's texts.
+        assertTrue(texts.contains("Banner picture saved."));
+        assertTrue(texts.contains("Banner removed."));
+        assertTrue(texts.contains("Couldn't save the choice. Try again in a moment."));
+        // Bookmarks: each answer of the menu's save, and why a bookmark on the page can't open.
+        assertTrue(texts.contains("Bookmarked."));
+        assertTrue(texts.contains("Bookmark removed."));
+        assertTrue(texts.contains("Couldn't save the bookmark. Try again."));
+        assertTrue(texts.contains("You can keep up to %1$d bookmarks."));
+        assertTrue(texts.contains("That account isn't signed in here."));
+        assertTrue(texts.contains("That chat isn't on this phone anymore."));
+        assertTrue(texts.contains("You're not in that chat anymore."));
+        assertTrue(texts.contains("That message isn't on this phone anymore."));
     }
 
     private static int fixedLength(String text) {

@@ -95,10 +95,44 @@ public final class UnifiedChromeTweaks {
             row.setLayoutParams(params);
         }
     }
+    /** Material 3 tabs: the selected tab sits in a filled tonal pill instead of over an underline. */
+    private static void pillTabs(View tabs){
+        Context context=tabs.getContext();
+        try{
+            android.graphics.drawable.GradientDrawable pill=new android.graphics.drawable.GradientDrawable();
+            pill.setCornerRadius(dp(tabs,20));pill.setColor(0xffffffff);
+            Class<?> type=tabs.getClass();
+            type.getMethod("setSelectedTabIndicator",Drawable.class).invoke(tabs,pill);
+            type.getMethod("setSelectedTabIndicatorGravity",int.class).invoke(tabs,3);
+            type.getMethod("setTabIndicatorFullWidth",boolean.class).invoke(tabs,true);
+            type.getMethod("setSelectedTabIndicatorColor",int.class).invoke(tabs,MaterialYouTweaks.color(context,"colorSecondaryContainer",android.R.attr.colorAccent));
+            int selected=MaterialYouTweaks.color(context,"colorOnSecondaryContainer",android.R.attr.textColorPrimary),normal=MaterialYouTweaks.color(context,"colorOnSurfaceVariant",android.R.attr.textColorSecondary);
+            type.getMethod("setTabTextColors",android.content.res.ColorStateList.class).invoke(tabs,new android.content.res.ColorStateList(new int[][]{{android.R.attr.state_selected},{}},new int[]{selected,normal}));
+            type.getMethod("setUnboundedRipple",boolean.class).invoke(tabs,false);
+        }catch(ReflectiveOperationException | RuntimeException ignored){
+        }
+    }
+    /** Inbox cards: the message type in the accent colour, and unread messages on a tonal card. */
+    private static void message(View row){
+        View subject=SurfaceAppearanceTweaks.find(row,"item_message_subject"),read=SurfaceAppearanceTweaks.find(row,"item_message_mark_read");
+        Context context=row.getContext();
+        if(subject instanceof TextView && subject.getTag(MESSAGE_TAG)==null){
+            subject.setTag(MESSAGE_TAG,Boolean.TRUE);
+            int accent=MaterialYouTweaks.color(context,"colorPrimary",android.R.attr.colorAccent);
+            ((TextView)subject).setTextColor(accent);((TextView)subject).setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(accent));
+            ((TextView)subject).setTypeface(android.graphics.Typeface.create("sans-serif-medium",android.graphics.Typeface.NORMAL));
+        }
+        boolean unread=read!=null && read.getVisibility()==View.VISIBLE;
+        Object shown=row.getTag(MESSAGE_TAG);
+        if(shown!=null && (Boolean)shown==unread)return;
+        row.setTag(MESSAGE_TAG,unread);
+        row.setBackground(unread ? SurfaceAppearanceTweaks.pillBackground(context,MaterialYouTweaks.color(context,"colorSecondaryContainer",android.R.attr.colorBackground),16):surface(context,16));
+    }
+    private static final int MESSAGE_TAG=0x7f5f0006;
     static final class Screen {
         final WeakReference<View> root;final boolean profile,reply,messages,search,settings;final int background;
         WeakReference<View> settingsList;
-        Groups settingsGroups;final WeakHashMap<View,Boolean> styled=new WeakHashMap<>();
+        Groups settingsGroups,searchGroups;WeakReference<View> searchList;final WeakHashMap<View,Boolean> styled=new WeakHashMap<>();
         Screen(Activity activity,View root){
             this.root=new WeakReference<>(root);
             messages=activity.getClass().getName().startsWith("com.rubenmayayo.reddit.ui.messages.");
@@ -130,7 +164,12 @@ public final class UnifiedChromeTweaks {
                 Activity activity=CommentsChromeTweaks.activity(input.getContext());
                 Context palette=activity==null ? input.getContext():activity;
                 edit.setBackgroundTintList(null);
-                edit.setBackground(surface(palette,28));
+                // With glass on, the search pill blurs the results that scroll under the header.
+                View results=SurfaceAppearanceTweaks.find(decor,"recyclerview");
+                if(android.os.Build.VERSION.SDK_INT>=31 && results!=null && android.preference.PreferenceManager.getDefaultSharedPreferences(palette).getBoolean("shikify_feed_pill_blur",true)){
+                    FeedPillBlur glass=new FeedPillBlur(results,edit,SurfaceAppearanceTweaks.role(palette,false),false,24,true,0,1);
+                    edit.setBackground(glass);glass.start();
+                }else edit.setBackground(surface(palette,28));
                 edit.setPaddingRelative(dp(edit,16),0,dp(edit,48),0);
                 edit.setMinHeight(dp(edit,48));
                 int text=SurfaceAppearanceTweaks.foreground(palette,false),support=MaterialYouTweaks.color(palette,"colorOnSurfaceVariant",android.R.attr.textColorSecondary);
@@ -154,11 +193,14 @@ public final class UnifiedChromeTweaks {
                 View tabs=SurfaceAppearanceTweaks.find(decor,"tabs");
                 if(tabs!=null && !styled.containsKey(tabs)){
                     styled.put(tabs,true);
-                    tabs.setBackground(surface(tabs.getContext(),24));
+                    // A brighter tone than the cards below, with the selected tab in a filled pill.
+                    tabs.setBackground(SurfaceAppearanceTweaks.pillBackground(tabs.getContext(),MaterialYouTweaks.color(tabs.getContext(),"colorSurfaceContainerHighest",android.R.attr.colorBackground),24));
+                    tabs.setPadding(dp(tabs,4),dp(tabs,4),dp(tabs,4),dp(tabs,4));
+                    pillTabs(tabs);
                     if(tabs.getLayoutParams() instanceof ViewGroup.MarginLayoutParams){
                         ViewGroup.MarginLayoutParams p=(ViewGroup.MarginLayoutParams)tabs.getLayoutParams();
                         p.leftMargin=p.rightMargin=dp(tabs,12);
-                        p.topMargin=p.bottomMargin=dp(tabs,6);
+                        p.topMargin=dp(tabs,6);p.bottomMargin=dp(tabs,10);
                         tabs.setLayoutParams(p);
                     }
                 }
@@ -197,10 +239,21 @@ public final class UnifiedChromeTweaks {
                 action.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(MaterialYouTweaks.color(context,"colorOnSurfaceVariant",android.R.attr.textColorSecondary)));
             }
         }
+        /** Search rows sit on rounded surfaces between their section titles, like the side panel. */
+        private void groupSearch(View decor){
+            View list=SurfaceAppearanceTweaks.find(decor,"recyclerview");if(!(list instanceof ViewGroup))return;
+            if(searchList==null || searchList.get()!=list){
+                searchList=new WeakReference<>(list);searchGroups=new Groups(list);
+                int side=dp(list,12);list.setPaddingRelative(side,list.getPaddingTop(),side,list.getPaddingBottom());
+                ((ViewGroup)list).setClipToPadding(false);
+            }
+            searchGroups.collect((ViewGroup)list,row->SurfaceAppearanceTweaks.find(row,"item_search_header_button")==null);
+        }
         /** Settings categories sit on rounded surfaces; a category title has no widget frame. */
         void frame(){
             View host=root.get();
             if(search && host!=null && Features.search() && SurfaceSettingsActivity.enabled(host.getContext(),"search_page"))searchHeaders();
+            if(search && host!=null)groupSearch(host);
             if(!settings)return;
             View decor=root.get(),list=decor==null ? null:SurfaceAppearanceTweaks.find(decor,"recycler_view");if(!(list instanceof ViewGroup))return;
             if(settingsList==null || settingsList.get()!=list){settingsList=new WeakReference<>(list);settingsGroups=new Groups(list);}
@@ -265,7 +318,7 @@ public final class UnifiedChromeTweaks {
                         if(profile){
                             if(SurfaceAppearanceTweaks.find(row,"submission_header_title")!=null)card(row);
                         }else if(messages && SurfaceAppearanceTweaks.find(row,"item_message_container")!=null){
-                            card(row);
+                            card(row);message(row);
                         }else if(SurfaceAppearanceTweaks.find(row,"item_search_text")!=null || SurfaceAppearanceTweaks.find(row,"item_subreddit_name")!=null || SurfaceAppearanceTweaks.find(row,"item_subreddit_view")!=null){
                             if(!styled.containsKey(row)){
                                 styled.put(row,true);
@@ -288,12 +341,12 @@ public final class UnifiedChromeTweaks {
             if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int index=0;index<group.getChildCount();index++)lists(group.getChildAt(index));}
         }
         private void removeListDividers(View list){
-            Object value=CommentsChromeTweaks.field(list,"K");
+            Object value=CommentsChromeTweaks.field(list,"J");
             if(!(value instanceof java.util.List))return;
             java.util.List<?> decorations=(java.util.List<?>)value;
             for(int index=decorations.size()-1;index>=0;index--){
                 Object decoration=decorations.get(index);
-                if(!decoration.getClass().getName().equals("fp1"))continue;
+                if(!decoration.getClass().getName().equals("kp1"))continue;
                 try{
                     Class<?> type=Class.forName("androidx.recyclerview.widget.RecyclerView$l",false,list.getContext().getClassLoader());
                     list.getClass().getMethod("a0",type).invoke(list,decoration);
@@ -402,6 +455,8 @@ public final class UnifiedChromeTweaks {
             }catch(ReflectiveOperationException | RuntimeException error){}
         }
         /** 0 when closed, 1 when fully open. */
+        /** Where the drawer's visible edge is, in pixels from the left; zero while it is closed. */
+        int edge(){View view=slider.get();return view==null || !view.isShown() ? 0:Math.max(0,view.getRight());}
         float open(){View view=slider.get();return view==null || view.getWidth()==0 ? 0:Math.max(0,Math.min(1,view.getRight()/(float)view.getWidth()));}
     }
     /** Draw behind the native Material FAB: its listeners, icon and menu animation remain native. */

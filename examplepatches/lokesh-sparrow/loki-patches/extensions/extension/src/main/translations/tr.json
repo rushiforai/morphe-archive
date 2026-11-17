@@ -140,5 +140,8 @@
   "Hide games": "Oyunları gizle",
   "LinkedIn's daily puzzle games in the Me panel, search and feed.": "LinkedIn'in Ben paneli, arama ve akıştaki günlük bulmaca oyunları.",
   "AMOLED black": "AMOLED siyahı",
-  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Karanlık modda koyu gri yerine gerçek siyah. AMOLED ekranlar siyah pikselleri kapatarak pil tasarrufu sağlar. Uygulamak için LinkedIn'i yeniden başlatın."
+  "Real black instead of dark grey in dark mode. AMOLED screens switch black pixels off, which saves battery. Restart LinkedIn to apply.": "Karanlık modda koyu gri yerine gerçek siyah. AMOLED ekranlar siyah pikselleri kapatarak pil tasarrufu sağlar. Uygulamak için LinkedIn'i yeniden başlatın.",
+  "Don't remind me": "Bir daha hatırlatma",
+  "microG RE battery reminder": "microG RE pil hatırlatıcısı",
+  "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in go through microG RE, so they can arrive late or fail while it is limited.": "Android microG RE'yi arka planda kısıtladığında seni uyarır. Bildirimler ve Google ile giriş microG RE üzerinden geçtiği için kısıtlıyken gecikebilir veya başarısız olabilir."
 }

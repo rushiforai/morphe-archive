@@ -8,6 +8,7 @@ for tool in python3 git java; do
   command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 1; }
 done
 [[ -f "$PROJECT/gradlew" ]] || { echo "Missing Gradle project: $PROJECT" >&2; exit 1; }
+[[ -z "${BOOST_APK:-}" || -f "$BOOST_APK" ]] || { echo "BOOST_APK file not found: $BOOST_APK" >&2; exit 1; }
 python3 "$HERE/tools/bootstrap.py"
 export JAVA_HOME="$HERE/.work/toolchain/jdk-21.0.13+9"
 export PATH="$JAVA_HOME/bin:$PATH"
@@ -23,7 +24,7 @@ if [[ -z "$GRADLE_COMMAND" ]]; then
     -path '*/gradle-9.8.2/bin/gradle' -type f -print -quit 2>/dev/null || true)"
 fi
 GRADLE_COMMAND="${GRADLE_COMMAND:-$PROJECT/gradlew}"
-APK="${BOOST_APK:-$HERE/inputs/boost-for-reddit-1.14.3.apk}"
+APK="${BOOST_APK:-$HERE/inputs/boost-for-reddit-1.14.4.apk}"
 TASKS=(buildAndroid :patches:generatePatchesList)
 if [[ -f "$APK" ]]; then TASKS=(:patches:validateBundle :patches:validateWrapper :patches:validatePostWrapper :patches:generatePatchesList); fi
 "$GRADLE_COMMAND" -p "$PROJECT" "${TASKS[@]}" \
@@ -41,5 +42,5 @@ cp "$BUNDLE" "$HERE/output/shikify-$VERSION.mpp"
 (cd "$HERE/output" && sha256sum shikify-$VERSION.mpp > shikify-$VERSION.mpp.sha256)
 printf '\nBundle: %s\n' "$HERE/output/shikify-$VERSION.mpp"
 if [[ "${TASKS[0]}" == buildAndroid ]]; then
-  printf 'APK application validation skipped: supply BOOST_APK=/path/to/original-1.14.3.apk and rebuild.\n'
+  printf 'APK application validation skipped: supply BOOST_APK=/path/to/original-1.14.4.apk and rebuild.\n'
 fi

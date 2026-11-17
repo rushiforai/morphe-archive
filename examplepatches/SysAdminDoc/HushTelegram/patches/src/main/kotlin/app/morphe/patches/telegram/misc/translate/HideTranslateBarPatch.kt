@@ -13,7 +13,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -52,12 +54,30 @@ val hideTranslateBarPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val sites = resolveTranslateBar()
+        val pinned = resolvePinnedBar(sites.first().method.definingClass)
         // Assembled on copies first, so a refusal leaves the app untouched.
         sites.forEach { it.replace(MutableMethod(ImmutableMethod.of(it.method))) }
+        val pinnedMissing = pinned.rehearse()
+        val resume = if (pinnedMissing == null) resolvePinnedResume(pinned.method!!) else null
+        val resumeMissing = resume?.rehearse()
         writeStub(TRANSLATE_BAR, "stockHidden", 3, bridge(BAR_HIDDEN))
         writeStub(TRANSLATE_BAR, "translating", 3, bridge(TRANSLATING))
         sites.forEach { it.replace(it.method) }
         enableStatus("hideTranslateBar")
+        // The pinned message bar is a switch of its own: a chat screen shaped another way keeps its
+        // bar and the translate bar switch still works.
+        if (pinnedMissing == null) {
+            pinned.apply(pinned.method!!)
+            // Without it the switch still works, from the next time a chat is opened.
+            if (resumeMissing == null) {
+                resume!!.apply(resume.method!!)
+            } else {
+                patchLog.warning("Hide translate bar: $resumeMissing. A chat left open keeps its pinned message bar until it's opened again.")
+            }
+            enableCapability("hidePinnedBar")
+        } else {
+            patchLog.warning("Hide translate bar: $pinnedMissing. The patch goes on without the pinned message bar switch.")
+        }
     }
 }
 

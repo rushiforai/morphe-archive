@@ -1,3 +1,18 @@
+## 1.6.0-dev.6 (2026-11-16)
+
+- Rename the Ultimea Profile entry and settings-page title to BadFella Patches. Bluetooth/device-control behavior is unchanged from dev.5.
+
+## 1.6.0-dev.5 (2026-11-16)
+
+- Add hxreborn-derived Accent color, Disable tracking, Remove distractions and Remove popups for Ultimea 1.4.4 build 495 (ARM64).
+- Apply removal edits during patching and prepare accent colors on launch. Preserve Bluetooth/device-control implementations and Flutter library loading.
+- The existing Feedback contrast issue is unchanged. Physical startup, appearance and soundbar reconnection still require testing.
+
+## 1.6.0-dev.4 (2026-11-16)
+
+- Replace the incomplete Ultimea theme and Explorer edits with the scoped hxreborn-derived port for Ultimea 1.4.4 build 495 (ARM64 only).
+- Keep Bluetooth connection methods, device controls and Flutter engine libraries unchanged. Physical startup and soundbar reconnection remain unverified.
+
 ## 1.5.0 (2026-11-16)
 
 ### 🐛 Bug Fixes

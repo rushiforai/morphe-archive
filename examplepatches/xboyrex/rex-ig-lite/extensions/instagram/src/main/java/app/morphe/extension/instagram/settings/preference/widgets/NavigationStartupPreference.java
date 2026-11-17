@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -9,6 +9,7 @@ package app.morphe.extension.instagram.settings.preference.widgets;
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.view.View;
@@ -23,6 +24,7 @@ import java.util.List;
 
 public class NavigationStartupPreference extends ListPreference {
     private Config config;
+    private View rowView;
 
     public NavigationStartupPreference(Context context) {
         super(InstagramPreferenceStyle.dialogContext(context));
@@ -33,9 +35,19 @@ public class NavigationStartupPreference extends ListPreference {
 
     @Override
     protected void onClick() {
+        if (rowView != null) {
+            RexHaptics.tap(rowView);
+            InstagramPreferenceStyle.pulseRowIcon(rowView);
+        }
         refreshChoices();
         if (getEntries().length == 0) return;
         super.onClick();
+    }
+
+    @Override
+    protected void showDialog(Bundle state) {
+        super.showDialog(state);
+        RexDialogs.styleSystemPreferenceDialog(getDialog(), getContext());
     }
 
     private void refreshChoices() {
@@ -67,14 +79,19 @@ public class NavigationStartupPreference extends ListPreference {
 
     @Override
     protected View onCreateView(ViewGroup parent) {
-        return InstagramPreferenceStyle.createPreferenceView(
+        View view = InstagramPreferenceStyle.createPreferenceView(
                 getContext(),
-                InstagramPreferenceStyle.TRAILING_CHEVRON
+                InstagramPreferenceStyle.TRAILING_CHEVRON,
+                ButtonPref.iconResourceNameForKey(getKey())
         );
+        rowView = view;
+        return view;
     }
 
     @Override
     protected void onBindView(View view) {
+        rowView = view;
         InstagramPreferenceStyle.bindText(this, view);
+        InstagramPreferenceStyle.bindIcon(view, ButtonPref.iconResourceNameForKey(getKey()));
     }
 }

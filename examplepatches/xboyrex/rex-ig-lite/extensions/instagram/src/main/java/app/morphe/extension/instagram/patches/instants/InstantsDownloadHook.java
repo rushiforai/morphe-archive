@@ -12,6 +12,7 @@ import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.instagram.db.RexInstantsDb;
 import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.settings.Settings;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
@@ -29,7 +30,7 @@ public class InstantsDownloadHook {
     public static void noteInstantMedia(Object media) {
         try {
             if (media == null) return;
-            if (!SharedPref.getBooleanPref(Settings.INSTANTS_DOWNLOAD)) return;
+            if (!SharedPref.getBooleanPref(Settings.INSTANTS_DOWNLOAD) && !Pref.ghostInstants()) return;
 
             captureMedia(media);
         } catch (Throwable t) {
@@ -89,5 +90,9 @@ public class InstantsDownloadHook {
 
     private static boolean safeBool(BoolCall c) {
         try { return c.get(); } catch (Throwable t) { return false; }
+    }
+
+    public static boolean shouldSuppressInstantSeen() {
+        return Pref.ghostInstants();
     }
 }

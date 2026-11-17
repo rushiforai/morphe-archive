@@ -32,6 +32,12 @@ public final class InitProvider extends ContentProvider {
             if (context == null || !AppContext.isMainProcess(context)) return true;
             final long start = SystemClock.uptimeMillis();
             HevalSettings.init(context);
+            if (!HevalSettings.isReady()) {
+                // Direct boot: the user is not unlocked yet, so nothing can be read. Hooks answer the
+                // registered defaults and the engine starts on the first hook after unlock.
+                Log.i(TAG, "Patch settings waits for the first unlock");
+                return true;
+            }
             CrashGuard.onProcessStart(context);
             Log.i(TAG, "Patch settings started in " + (SystemClock.uptimeMillis() - start) + " ms (paused="
                     + HevalSettings.isPaused() + ", safeMode=" + HevalSettings.isSafeMode()

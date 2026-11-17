@@ -47,6 +47,22 @@ internal object ReferralContextGateFingerprint : Fingerprint(
     ),
 )
 
+// The Search history card pickers on FeedbackItemView.DisplaySource (kept, non-obfuscated names):
+// "Share Truecaller with your friends" (shouldShowShare) and the invite card (shouldShowInviteFriends).
+// Plain public enum methods reading SharedPreferences; the enum constants have no bodies of their own.
+internal object FeedbackShareCardFingerprint : Fingerprint(
+    definingClass = "Lcom/truecaller/ui/components/FeedbackItemView${'$'}DisplaySource;",
+    name = "shouldShowShare",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+internal object FeedbackInviteCardFingerprint : Fingerprint(
+    definingClass = "Lcom/truecaller/ui/components/FeedbackItemView${'$'}DisplaySource;",
+    name = "shouldShowInviteFriends",
+    returnType = "Z",
+    parameters = listOf(),
+)
 internal const val FAMILY_MEMBER_ROLE = "Lcom/truecaller/familyprotect/api/model/Family\$MemberRole;"
 
 // The bottom bar builder (xm6.g(SparseIntArray) in 26.39.6, cp6.g in 26.40.5, mr6.i in 26.44.6):
@@ -239,6 +255,29 @@ internal object CallLogRowMapperFingerprint : Fingerprint(
     ),
 )
 
+// toString() of the revamped call log's row tap event (ItemClick, czm in 26.44.6), a Kotlin data class
+// (id). Its sibling events (LongClick, DeleteClick, PrimaryActionClick, AvatarClick) go through the
+// same R8-merged Function1 dispatcher; the patch finds that dispatcher by the instance-of of this type.
+internal object CallLogItemClickToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("ItemClick(id=", StringComparisonType.STARTS_WITH)),
+)
+
+internal const val CALL_LOG_ACTION = "Lcom/truecaller/calllog/api/internal/analytics/model/CallLogAction;"
+
+// The call log view model's call method (um8.D(String id, boolean video) in 26.44.6): looks the row up
+// by id, reports the CALLBACK analytics action for voicemail rows and starts the call through
+// InitiateCallHelper (no fixed SIM, so the SIM choice is the same as the call button's). The only
+// (String, Z)V method that reads CallLogAction.CALLBACK; the enum's own <clinit> and $values have other
+// signatures.
+internal object CallLogCallMethodFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Z"),
+    filters = listOf(fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = CALL_LOG_ACTION, name = "CALLBACK")),
+)
+
 // The revamped call log's LazyColumn builder (an R8-merged Function1 lambda, qh8.invoke in 26.41.5):
 // banners, the header ad, then the frequently called contacts row as the item "frequent_contacts_id"
 // (only when its show flag is set), the "call_log_filters" item, the history rows and the footers.
@@ -269,6 +308,26 @@ internal object BusinessHomeScreenStateToStringFingerprint : Fingerprint(
     parameters = listOf(),
     filters = listOf(string("BusinessHomeScreenState(", StringComparisonType.STARTS_WITH)),
     strings = listOf(string(", importantSenders=", StringComparisonType.CONTAINS)),
+)
+
+internal const val BANNER_ITEM = "Lcom/truecaller/messaging/messaginglist/v2/model/BannerItem;"
+
+// The Messages inbox's LazyColumn builder (an R8-merged Function1 lambda, e7d.invoke in 26.44.6;
+// another lambda in the same packed switch also holds "filteringMessagesBanner", so the banner
+// filter is part of the match): the fraud onboarding, override category and filtering messages
+// banners, then the card carousel, whose guard filters the banner list by the current filter type
+// and isCleared() into an ArrayList and checks isEmpty() (the last filter, matched at the call),
+// then the sync state and mark-all-as-read banners and the conversations.
+internal object InboxCardCarouselFingerprint : Fingerprint(
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    filters = listOf(
+        string("filteringMessagesBanner"),
+        methodCall(definingClass = BANNER_ITEM, name = "getFilterType"),
+        methodCall(definingClass = BANNER_ITEM, name = "isCleared", parameters = listOf(), returnType = "Z"),
+        methodCall(definingClass = "Ljava/util/ArrayList;", name = "isEmpty", parameters = listOf(), returnType = "Z"),
+    ),
 )
 
 internal const val PROFILE_MENU_ITEM = "Lcom/truecaller/usershome/presentaion/ui/components/menuitems/MenuItem;"

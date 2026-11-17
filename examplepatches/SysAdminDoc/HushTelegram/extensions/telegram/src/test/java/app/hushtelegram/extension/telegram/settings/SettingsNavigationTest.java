@@ -283,18 +283,30 @@ public class SettingsNavigationTest {
             assertEquals(expected, headings);
         }
         page.navigation.navigate(PatchFamily.Page.CONVERSATIONS.title);
-        assertEquals(position(Settings.HIDE_TRANSLATE_BAR.key) + 1, position(Settings.OUTSIDE_TRANSLATE.key));
+        assertEquals(position(Settings.HIDE_TRANSLATE_BAR.key) + 1, position(Settings.HIDE_PINNED_BAR.key));
+        assertEquals(position(Settings.HIDE_PINNED_BAR.key) + 1, position(Settings.OUTSIDE_TRANSLATE.key));
         assertEquals(position(Settings.HIDE_BY_KEYWORD.key) + 1, position(FilterEditor.GROUPS));
         assertEquals(position(FilterEditor.GROUPS) + 1, position(FilterEditor.CHANNELS));
         assertEquals(position(Settings.KEEP_DELETED_MESSAGES.key) + 1, position(Settings.RED_DELETED_LABEL.key));
         assertEquals(position(Settings.RED_DELETED_LABEL.key) + 1, position(HushTelegramPreferenceFragment.CLEAR_KEPT));
-        assertEquals(position(HushTelegramPreferenceFragment.CLEAR_KEPT) + 1, position(Settings.KEEP_EDIT_HISTORY.key));
+        assertEquals(position(HushTelegramPreferenceFragment.CLEAR_KEPT) + 1, position(HushTelegramPreferenceFragment.KEPT_DAYS_ROW));
+        assertEquals(position(HushTelegramPreferenceFragment.KEPT_DAYS_ROW) + 1, position(Settings.KEEP_OWN_DELETED.key));
+        assertEquals(position(Settings.KEEP_OWN_DELETED.key) + 1, position(Settings.KEEP_EDIT_HISTORY.key));
         assertEquals(position(Settings.KEEP_EDIT_HISTORY.key) + 1, position(HushTelegramPreferenceFragment.CLEAR_EDITS));
         assertEquals(position(HushTelegramPreferenceFragment.CLEAR_EDITS) + 1, position(Settings.KEEP_TIMED_MEDIA.key));
+        assertEquals(position(Settings.KEEP_TIMED_MEDIA.key) + 1, position(Settings.KEEP_SECRET_TIMED.key));
+        assertEquals(position(Settings.KEEP_SECRET_TIMED.key) + 1, position(Settings.KEEP_REMOVED_CHATS.key));
         page.navigation.navigate(PatchFamily.Page.LOOK.title);
         assertEquals(position(Settings.CHANGE_STICKER_SIZE.key) + 1, position(HushTelegramPreferenceFragment.STICKER_SIZE_ROW));
         assertEquals(position(Settings.HOLIDAY_LOOK.key) + 1, position(TitleEmojiEditor.KEY));
+        assertEquals(position(TitleEmojiEditor.KEY) + 1, position(Settings.CHAT_LIST_TITLE.key));
+        assertEquals(position(Settings.CHAT_LIST_TITLE.key) + 1, position(TitleEmojiEditor.TITLE_KEY));
+        assertEquals(position(TitleEmojiEditor.TITLE_KEY) + 1, position(HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW));
         assertEquals(position(Settings.AMOLED_BLACK.key) - 1, titles().indexOf("Theme"));
+        // The two background picture rows take Android 13, so this phone doesn't list them.
+        assertEquals(-1, position(Settings.LIST_BACKGROUND.key));
+        assertEquals(-1, position(HushTelegramPreferenceFragment.LIST_BACKGROUND_ROW));
+        assertEquals(position(Settings.USE_SYSTEM_FONT.key) + 1, position(HushTelegramPreferenceFragment.FONT_FILE_ROW));
         assertTrue(page.navigation.open(page.findPreference(Settings.HIDE_TRANSLATE_BAR.key)));
         layout(dialog.getView());
         assertEquals("Translation", String.valueOf(((Preference) list().getItemAtPosition(list().getFirstVisiblePosition())).getTitle()));
@@ -1814,11 +1826,15 @@ public class SettingsNavigationTest {
             assertEquals(android.content.Intent.ACTION_CREATE_DOCUMENT, export.intent.getAction());
             while (page.navigation.back()) { }
 
-            // Every chooser: sticker size, both filter lists, the title emoji, the translation service and language,
-            // the push app, Open a chat by ID and the proxy lists.
-            for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, FilterEditor.GROUPS,
-                    FilterEditor.CHANNELS, TitleEmojiEditor.KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
-                    UnifiedPushPicker.KEY, OpenByIdEditor.KEY, ProxyListsEditor.KEY)) {
+            // Every chooser: sticker and avatar size, the chat list banner, the font file, both filter lists, the title
+            // emoji and title text, the translation service and language, the push app, Open a chat by ID, the proxy
+            // lists, the device in Active sessions and the link preview rules. The background picture row takes
+            // Android 13, so HushTelegramPreferenceFragmentTest tries it locked there.
+            for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, HushTelegramPreferenceFragment.AVATAR_SIZE_ROW,
+                    HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW,
+                    HushTelegramPreferenceFragment.FONT_FILE_ROW, FilterEditor.GROUPS,
+                    FilterEditor.CHANNELS, TitleEmojiEditor.KEY, TitleEmojiEditor.TITLE_KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
+                    UnifiedPushPicker.KEY, OpenByIdEditor.KEY, ProxyListsEditor.KEY, SessionDeviceEditor.KEY, LinkPreviewRulesEditor.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);
                 shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -1830,6 +1846,8 @@ public class SettingsNavigationTest {
             }
             page.showStickerSizes(controller.get(), page.findPreference(HushTelegramPreferenceFragment.STICKER_SIZE_ROW));
             assertSame("sticker sizes opened while locked", shown, org.robolectric.shadows.ShadowDialog.getLatestDialog());
+            page.showAvatarSizes(controller.get(), page.findPreference(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW));
+            assertSame("avatar sizes opened while locked", shown, org.robolectric.shadows.ShadowDialog.getLatestDialog());
             // Every setting that was loaded when the lock went on holds what it held then.
             Map<String, Object> after = savedValues();
             after.keySet().retainAll(before.keySet());

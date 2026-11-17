@@ -69,6 +69,7 @@ class UiFixtureTest {
         "amoledBlack" to "blackBottomBar", "hideInboxUpdates" to "inboxUpdates",
         // Capabilities past here have no patch of their own at the same index.
         "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu", "amoledBlack" to "blackSaveSheet",
+        "amoledBlack" to "blackSheets", "amoledBlack" to "blackBoards",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
         "hideComments" to "suggestedReplies", "hideComments" to "commentPreviews",
     )
@@ -88,6 +89,8 @@ class UiFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val inbox = context.inboxUpdates()
             val saveSheet = PatchContexts.of(ExtensionDex.classes() + classes).boardPickerViewCreated("test")
+            val unpatched = PatchContexts.of(ExtensionDex.classes() + classes)
+            val sheetSetup = unpatched.gestaltSheetSetup()
             val warnings = PatchLogCapture.warnings { patches.forEach { it.execute(context) } }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             for ((family, capability) in flags) {
@@ -103,6 +106,42 @@ class UiFixtureTest {
             assertEquals("${build.name}: the sheet's view", created.registerCount - 2, (handOver as RegisterRangeInstruction).startRegister)
             assertEquals(build.name, 1, handOver.registerCount)
             assertEquals(build.name, saveSheet.instructions().map { it.opcode }, created.instructions.drop(1).map { it.opcode })
+            // Every Gestalt sheet is handed over whole before Pinterest sets it up: the view is the
+            // setup's only parameter.
+            val setUp = context.mutable(sheetSetup).implementation!!
+            val sheetHandOver = setUp.instructions.first()
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, sheetHandOver.opcode)
+            assertEquals(build.name, SHEET_HOOK, (sheetHandOver as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the sheet's view", setUp.registerCount - 1, (sheetHandOver as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 1, sheetHandOver.registerCount)
+            // A NOP that only aligns an array payload comes and goes as the hand-over moves the payload.
+            assertEquals(build.name, sheetSetup.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                setUp.instructions.drop(1).map { it.opcode }.filter { it != Opcode.NOP })
+            // The lego menus and the board and profile views are handed over from their constructors,
+            // right after the one of the class each is built on, which for the menus is its
+            // grandparent's. A constructor that hands over to its own class's gets nothing.
+            val built = listOf(unpatched.legoMenu() to MENU_HOOK, listOf(BOARD_TOOL_BAR) to BOARD_TOOL_BAR_HOOK,
+                listOf(PROFILE_PILL, PROFILE_FILTER_BAR) to PROFILE_FILTERS_HOOK, listOf(BOARD_HEADER_IMAGE) to BOARD_HEADER_HOOK)
+            for ((types, hook) in built) for (type in types) {
+                var handed = 0
+                for (constructor in unpatched.classDefBy(type).methods.filter { it.name == "<init>" && it.implementation != null }) {
+                    val call = unpatched.builtOnCall(constructor)
+                    val patched = context.mutable(constructor)
+                    val body = patched.instructions()
+                    val sites = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() == hook }
+                    if (call == null) {
+                        assertEquals("${build.name}: $type constructor that hands over to its own", emptyList<Int>(), sites)
+                        continue
+                    }
+                    assertEquals("${build.name}: $type hook right after the constructor it's built on", listOf(call + 1), sites)
+                    val self = patched.implementation!!.registerCount - 1 -
+                        constructor.parameterTypes.map { if (it.toString() in setOf("J", "D")) 2 else 1 }.sum()
+                    assertEquals("${build.name}: $type hands over this", self, (body[call + 1] as RegisterRangeInstruction).startRegister)
+                    assertEquals(build.name, constructor.instructions().size + 1, body.size)
+                    handed++
+                }
+                assertTrue("${build.name}: $type is handed over", handed > 0)
+            }
             // The Inbox asks the hook right before it adds Updates, and a yes jumps past that one call.
             val sections = context.mutable(inbox.presenter).instructions()
             val inboxAsked = sections.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == INBOX_UPDATES_HOOK }
@@ -681,7 +720,8 @@ class UiFixtureTest {
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED)
         val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_IMAGES + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
-            BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
+            BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;" +
+            BOARD_TOOL_BAR + PROFILE_PILL + PROFILE_FILTER_BAR + BOARD_HEADER_IMAGE).toSet()
         val found = mutableMapOf<String, ClassDef>()
         // Every class with a section adder, kept below only when it holds the Updates feed.
         val adders = mutableListOf<ClassDef>()
@@ -696,7 +736,8 @@ class UiFixtureTest {
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
                             it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID ||
-                            it.name == PIN_MENU_CARD || it.name == GREETING_ROW } }
+                            it.name == PIN_MENU_CARD || it.name == GREETING_ROW ||
+                            it.name == GESTALT_SHEET_COORDINATOR || it.name == LEGO_CLOSE_STICKY } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }

@@ -7,6 +7,7 @@ package app.morphe.extension.suite.instagram.feed;
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.suite.instagram.settings.FamilyNames;
+import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.suite.instagram.settings.Settings;
 import app.morphe.extension.suite.instagram.settings.SettingsStatus;
 import app.morphe.extension.suite.shared.Utils;
@@ -92,6 +93,6 @@ public final class FeedHoldSpeed {
     }
 
     private static boolean on() {
-        return Utils.settingsReady() && Settings.HOLD_FEED_VIDEO_FAST.get();
+        return Pref.holdVideoFastForward() || (Utils.settingsReady() && Settings.HOLD_FEED_VIDEO_FAST.get());
     }
 }

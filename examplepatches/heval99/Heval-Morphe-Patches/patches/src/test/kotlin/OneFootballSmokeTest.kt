@@ -56,7 +56,7 @@ class OneFootballSmokeTest {
     lateinit var workDir: File
 
     @Test
-    fun `Disable ads patch neuters GMA init, loads, the Flutter plugin loads and feed ad components`() {
+    fun `Disable ads, Disable telemetry and Hide betting content change the intended code`() {
         val root = repoRoot()
         val apk = File(root, "apks/onefootball/base.apk")
 
@@ -69,7 +69,7 @@ class OneFootballSmokeTest {
             workDir = workDir,
             pkg = PKG,
             version = "15.150.0",
-            patchNames = setOf("Disable ads"),
+            patchNames = setOf("Disable ads", "Disable telemetry", "Hide betting content"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
 
@@ -155,5 +155,199 @@ class OneFootballSmokeTest {
                     "(equals=$equals, blocked=$blocked, error=$error, return=$firstReturn)"
             )
         }
+
+        assertTelemetry(classes)
+        assertBetting(classes)
+    }
+
+    private fun Instruction.ref(): Any? = (this as? ReferenceInstruction)?.reference
+
+    private fun Instruction.refString(): String? = ref()?.toString()
+
+    private fun Method.referencesString(value: String) = instructions().any { it.refString() == value }
+
+    private fun Method.params() = parameterTypes.map(CharSequence::toString)
+
+    /** True when the instruction is `sget-object <reg>, Ljava/lang/Boolean;-><field>`. */
+    private fun Instruction.isBooleanField(field: String) =
+        opcode == Opcode.SGET_OBJECT && refString() == "Ljava/lang/Boolean;->$field:Ljava/lang/Boolean;"
+
+    private fun assertTelemetry(classes: List<ClassDef>) {
+        val byType = classes.associateBy { it.type }
+        fun klass(type: String) = byType[type] ?: error("$type not found in emitted dexes")
+        val allMethods = classes.flatMap { it.methods }
+
+        // 1. The tracking opt-out reads true (const/4 + return, found by class and name).
+        assertForcedBoolean(
+            klass("Lcom/onefootball/repository/preferences/PreferencesImpl;").method("isTrackingOptedOut", emptyList()),
+            expected = true,
+            label = "PreferencesImpl.isTrackingOptedOut",
+        )
+
+        // 2. Adjust: the sending statics return at once, the listener-taking ones keep their bodies,
+        // and initSdk starts by calling Adjust.disable().
+        val adjust = klass("Lcom/adjust/sdk/Adjust;")
+        val adjustNoOps = mapOf(
+            "trackEvent" to listOf("Lcom/adjust/sdk/AdjustEvent;"),
+            "trackAdRevenue" to listOf("Lcom/adjust/sdk/AdjustAdRevenue;"),
+            "trackPlayStoreSubscription" to listOf("Lcom/adjust/sdk/AdjustPlayStoreSubscription;"),
+            "trackThirdPartySharing" to listOf("Lcom/adjust/sdk/AdjustThirdPartySharing;"),
+            "trackMeasurementConsent" to listOf("Z"),
+            "onResume" to emptyList(),
+            "onPause" to emptyList(),
+            "setPushToken" to listOf("Ljava/lang/String;", "Landroid/content/Context;"),
+            "setReferrer" to listOf("Ljava/lang/String;", "Landroid/content/Context;"),
+            "processDeeplink" to listOf("Lcom/adjust/sdk/AdjustDeeplink;", "Landroid/content/Context;"),
+            "enable" to emptyList(),
+        )
+        for ((name, parameters) in adjustNoOps) {
+            assertReturnsEarlyVoid(adjust.method(name, parameters), label = "Adjust.$name")
+        }
+        val initSdk = adjust.method("initSdk", listOf("Lcom/adjust/sdk/AdjustConfig;")).instructions()
+        assertTrue(
+            initSdk.first().opcode == Opcode.INVOKE_STATIC &&
+                initSdk.first().refString() == "Lcom/adjust/sdk/Adjust;->disable()V" &&
+                initSdk.any { it.refString()?.startsWith("Lcom/adjust/sdk/AdjustInstance;->initSdk") == true },
+            "Adjust.initSdk does not call disable() before the stock body",
+        )
+        for ((name, parameters) in listOf(
+            "getAdid" to listOf("Lcom/adjust/sdk/OnAdidReadListener;"),
+            "getAttribution" to listOf("Lcom/adjust/sdk/OnAttributionReadListener;"),
+            "isEnabled" to listOf("Landroid/content/Context;", "Lcom/adjust/sdk/OnIsEnabledListener;"),
+        )) {
+            assertTrue(
+                adjust.method(name, parameters).instructions().first().opcode != Opcode.RETURN_VOID,
+                "Adjust.$name (callback path) was neutered",
+            )
+        }
+
+        // 3. comScore Analytics.start(Context) returns at once.
+        assertReturnsEarlyVoid(
+            klass("Lcom/comscore/Analytics;").method("start", listOf("Landroid/content/Context;")),
+            label = "comScore Analytics.start",
+        )
+
+        // 4. Firebase switches. Analytics: every read of the deactivated flag is followed by a
+        // Boolean.TRUE overwrite and every adid read by Boolean.FALSE; Crashlytics: the arbiter's
+        // synchronized getter returns false; Sessions and Performance: Boolean.FALSE first.
+        for ((key, field) in listOf(
+            "firebase_analytics_collection_deactivated" to "TRUE",
+            "google_analytics_adid_collection_enabled" to "FALSE",
+        )) {
+            val readers = allMethods.filter { it.referencesString(key) }
+            assertTrue(readers.isNotEmpty(), "no reader of $key found")
+            for (reader in readers) {
+                val insns = reader.instructions()
+                val at = insns.indexOfFirst { it.refString() == key }
+                val forced = insns.drop(at).any { it.isBooleanField(field) }
+                assertTrue(forced, "${reader.definingClass}->${reader.name} does not overwrite $key with Boolean.$field")
+            }
+        }
+        val crashlytics = allMethods.filter { it.referencesString("firebase_crashlytics_collection_enabled") }
+            .map { it.definingClass }.distinct()
+            .flatMap { klass(it).methods }
+            .filter {
+                AccessFlags.DECLARED_SYNCHRONIZED.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) &&
+                    it.returnType == "Z" && it.parameterTypes.isEmpty() && it.implementation != null
+            }
+        assertTrue(crashlytics.size == 1, "expected one Crashlytics collection getter, found ${crashlytics.size}")
+        assertForcedBoolean(crashlytics.single(), expected = false, label = "Crashlytics data collection getter")
+        val sessions = allMethods.filter {
+            it.returnType == "Ljava/lang/Boolean;" && it.parameterTypes.isEmpty() && it.referencesString("firebase_sessions_enabled")
+        }
+        assertTrue(sessions.size == 1, "expected one Sessions override, found ${sessions.size}")
+        assertTrue(sessions.single().instructions().first().isBooleanField("FALSE"), "Sessions override does not return Boolean.FALSE")
+        val flagTypes = listOf("firebase_performance_collection_deactivated", "firebase_performance_collection_enabled").map { key ->
+            allMethods.single { m ->
+                m.returnType == "Ljava/lang/String;" && m.parameterTypes.isEmpty() && m.instructions().let {
+                    it.size == 2 && it[0].refString() == key
+                }
+            }.definingClass
+        }
+        val performance = allMethods.filter { m ->
+            m.returnType == "Ljava/lang/Boolean;" && m.parameterTypes.isEmpty() &&
+                flagTypes.all { type -> m.instructions().any { it.refString()?.contains(type) == true } }
+        }
+        assertTrue(performance.size == 1, "expected one Performance collection reader, found ${performance.size}")
+        assertTrue(performance.single().instructions().first().isBooleanField("FALSE"), "Performance reader does not return Boolean.FALSE")
+
+        // 5. The Flutter tracking handlers reply success(Integer 0) on their own method name before
+        // the stock body, and still chain: the stock getNext().handle(...) call is intact.
+        val bridgeParams = listOf("Lio/flutter/plugin/common/MethodCall;", "Lio/flutter/plugin/common/MethodChannel\$Result;")
+        for ((handlerClass, channelMethod) in listOf(
+            "LogEventMethodHandler" to "logEvent",
+            "TrackXpaEventMethodHandler" to "trackXpaEvent",
+            "TrackMatchesStreamFilterEventMethodHandler" to "trackMatchesStreamFilterEvent",
+        )) {
+            val type = "Lcom/onefootball/core/flutter/methodhandlers/$handlerClass;"
+            val handle = klass(type).method("handle", bridgeParams)
+            val insns = handle.instructions()
+            val named = insns.indexOfFirst { it.opcode == Opcode.CONST_STRING && it.refString() == channelMethod }
+            val equals = insns.indexOfFirst { it.methodRefOrNull()?.let { r -> r.definingClass == "Ljava/lang/String;" && r.name == "equals" } == true }
+            val valueOf = insns.indexOfFirst { it.methodRefOrNull()?.let { r -> r.definingClass == "Ljava/lang/Integer;" && r.name == "valueOf" } == true }
+            val success = insns.indexOfFirst { it.methodRefOrNull()?.let { r -> r.definingClass == bridgeParams[1] && r.name == "success" } == true }
+            val firstReturn = insns.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
+            assertTrue(
+                named == 0 && equals in 1 until valueOf && valueOf in 1 until success && success < firstReturn && firstReturn <= 12,
+                "$handlerClass does not reply success(0) first (named=$named, equals=$equals, valueOf=$valueOf, success=$success, return=$firstReturn)",
+            )
+            assertTrue(
+                insns.any { it.methodRefOrNull()?.let { r -> r.name == "getNext" && r.definingClass == type } == true } &&
+                    insns.any { it.methodRefOrNull()?.let { r -> r.definingClass == "Lcom/onefootball/core/flutter/methodhandlers/MethodHandler;" && r.name == "handle" } == true },
+                "$handlerClass no longer chains to getNext().handle",
+            )
+        }
+
+        // 6. Facebook App Events: logEvent (shape plus the kill-switch string) and the App Events enqueue.
+        val facebookLog = allMethods.filter {
+            it.returnType == "V" && it.referencesString("app_events_killswitch") &&
+                it.params() == listOf("Ljava/lang/String;", "Ljava/lang/Double;", "Landroid/os/Bundle;", "Z", "Ljava/util/UUID;")
+        }
+        assertTrue(facebookLog.size == 1, "expected one Facebook logEvent, found ${facebookLog.size}")
+        assertReturnsEarlyVoid(facebookLog.single(), label = "Facebook logEvent")
+        val enqueue = allMethods.filter {
+            it.returnType == "V" && it.referencesString("fb_mobile_activate_app") && it.params().size == 2 &&
+                it.params().all { p -> p.startsWith("L") }
+        }
+        assertTrue(enqueue.size == 1, "expected one Facebook App Events enqueue, found ${enqueue.size}")
+        assertReturnsEarlyVoid(enqueue.single(), label = "Facebook App Events enqueue")
+    }
+
+    private fun Instruction.methodRefOrNull() = methodRef()
+
+    private fun assertBetting(classes: List<ClassDef>) {
+        val byType = classes.associateBy { it.type }
+        fun klass(type: String) = byType[type] ?: error("$type not found in emitted dexes")
+
+        // The registry's key lookup (Flutter) answers "false" for both betting flags first and keeps
+        // the stock switch body behind the :stock label.
+        val lookup = klass("Lcom/onefootball/opt/featureflag/generated/AllRemoteFeatureFlags;")
+            .method("getFeatureFlagValueByFeatureFlagKeyAsString", listOf("Ljava/lang/String;")).instructions()
+        val strings = lookup.take(14).mapNotNull { if (it.opcode == Opcode.CONST_STRING) it.refString() else null }
+        assertTrue(
+            strings == listOf("betting_card_enabled", "legacy_betting_card_enabled", "false"),
+            "key lookup does not start with the betting flag check: $strings",
+        )
+        assertTrue(
+            lookup.take(14).any { it.opcode == Opcode.RETURN_OBJECT } &&
+                lookup.any { it.methodRef()?.name == "hashCode" },
+            "key lookup lost its return or its stock body",
+        )
+
+        // The native flags all read through AbstractFeatureFlag.getValue(); it answers
+        // Boolean.FALSE for betting_card_enabled and "false" for the legacy key, then the stock body.
+        val getValue = klass("Lcom/onefootball/opt/featureflag/AbstractFeatureFlag;").method("getValue", emptyList()).instructions()
+        val head = getValue.take(16)
+        assertTrue(
+            head.first().methodRef()?.name == "getKey" &&
+                head.mapNotNull { if (it.opcode == Opcode.CONST_STRING) it.refString() else null } ==
+                listOf("betting_card_enabled", "legacy_betting_card_enabled", "false") &&
+                head.any { it.isBooleanField("FALSE") } && head.count { it.opcode == Opcode.RETURN_OBJECT } == 2,
+            "AbstractFeatureFlag.getValue does not force the betting flags first",
+        )
+        assertTrue(
+            getValue.any { it.methodRef()?.name == "invoke" },
+            "AbstractFeatureFlag.getValue lost its stock body",
+        )
     }
 }

@@ -6,14 +6,17 @@ package app.morphe.patches.telegram.misc.theme
 
 import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.parameterRegister
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
@@ -80,6 +83,20 @@ val amoledBlackPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveBlackTheme()
+        // The picture behind the lists stands on its own: a build without its targets keeps black themes.
+        val lists = try {
+            resolveListBackground(site.method).also { it.rehearse() }
+        } catch (unfit: PatchException) {
+            patchLog.warning("AMOLED black: ${unfit.message}. The patch goes on without the picture behind the lists.")
+            null
+        }
+        // Without the bar fade the picture still shows, with a band where a fade crosses a card.
+        val fade = if (lists == null) null else try {
+            resolveBarFade().also { it.rehearse() }
+        } catch (unfit: PatchException) {
+            patchLog.warning("AMOLED black: ${unfit.message}. The picture behind the lists shows with Telegram's bar fades.")
+            null
+        }
         // Assembled on a copy first, so a refusal leaves the app untouched.
         site.insert(MutableMethod(ImmutableMethod.of(site.method)))
         site.insertPattern(MutableMethod(ImmutableMethod.of(site.wallpaper)))
@@ -90,6 +107,11 @@ val amoledBlackPatch = bytecodePatch(
         """)
         site.insert(site.method)
         site.insertPattern(site.wallpaper)
+        if (lists != null) {
+            lists.apply(this)
+            fade?.insert()
+            enableCapability("listBackground")
+        }
         enableStatus("amoledBlack")
     }
 }

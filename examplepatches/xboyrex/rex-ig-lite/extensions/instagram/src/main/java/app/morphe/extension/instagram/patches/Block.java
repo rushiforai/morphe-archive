@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
-
 
 package app.morphe.extension.instagram.patches;
 
@@ -16,24 +15,42 @@ import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 
 public class Block {
-    private static boolean DISABLE_SUGGESTED_CONTENT;
-    // Checked against every JSON key parsed for every feed item (see replaceJsonParserKey below),
-    // so a hash lookup is used instead of the linear scan a List.contains() would do here.
-    private static final Set<String> SUGGESTED_CONTENT_KEY = new HashSet<>(Arrays.asList("clips_netego", "stories_netego", "in_feed_survey", "bloks_netego", "suggested_igd_channels", "suggested_top_accounts", "suggested_users"));
+    private static final Set<String> SUGGESTED_CONTENT_KEY = new HashSet<>(Arrays.asList(
+            "clips_netego", "stories_netego", "in_feed_survey", "bloks_netego",
+            "suggested_igd_channels", "suggested_top_accounts", "suggested_users"
+    ));
 
-    static {
-        DISABLE_SUGGESTED_CONTENT = Pref.hideSuggestedContent() && SettingsStatus.hideSuggestedContent;
-    }
+    private static final Set<String> AD_POD_KEYS = new HashSet<>(Arrays.asList(
+            "ad_pod", "clips_ad_pod", "stories_ad_pod", "intent_aware_ad_pivot",
+            "stand_alone_multi_ad_pivot", "multi_ads_info", "reels_multi_ads", "netego_ad4ad"
+    ));
 
-    // Returns an invalid string, such that json parsing fails for the key.
+    private static final Set<String> ANALYTICS_KEYS = new HashSet<>(Arrays.asList(
+            "pigeon_reserved_keyword_module", "client_event", "marauder_tier",
+            "falco_data_quality_stream", "igs_analytics", "logging_info_token", "ad_tracking_token"
+    ));
+
+    private static final Set<String> VOICE_SEEN_KEYS = new HashSet<>(Arrays.asList(
+            "voice_media_seen", "audio_seen", "voice_note_seen_state"
+    ));
+
+    // Returns an invalid string, such that json parsing fails for the blocked key.
     public static String replaceJsonParserKey(String key) {
-        boolean condition = false;
+        if (key == null) return null;
 
-        if (DISABLE_SUGGESTED_CONTENT) {
-            if (SUGGESTED_CONTENT_KEY.contains(key)) condition = true;
+        if (Pref.hideSuggestedContent() && SettingsStatus.hideSuggestedContent && SUGGESTED_CONTENT_KEY.contains(key)) {
+            return Constants.REX;
+        }
+        if (Pref.hideReelsAndStoriesAdPods() && AD_POD_KEYS.contains(key)) {
+            return Constants.REX;
+        }
+        if (Pref.disableAnalytics() && ANALYTICS_KEYS.contains(key)) {
+            return Constants.REX;
+        }
+        if (Pref.hideAudioSeen() && VOICE_SEEN_KEYS.contains(key)) {
+            return Constants.REX;
         }
 
-        return condition ? Constants.REX : key;
+        return key;
     }
-
 }

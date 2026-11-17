@@ -75,9 +75,9 @@ class TargetCapabilitiesTest {
                 } else execute(context)
             }
             // These synthetic builds have no ConnectionsManager, no passcode checks, no sign-up request and no
-            // delete request, so Ghost mode, the account guard, Instant lock, Don't notify contacts and Delete
-            // account each stay out and say so.
-            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 5 else 0
+            // delete request, so Ghost mode, the account guard, Instant lock, Don't notify contacts, the device
+            // in Active sessions and Delete account each stay out and say so.
+            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 6 else 0
             assertEquals("$family subset $present warnings", if (present.isEmpty()) 0 else targetCount - present.size + ghost, warnings.size)
             for (premium in premiumTargets) {
                 assertFlag(context, premium.capability, false)
@@ -89,10 +89,12 @@ class TargetCapabilitiesTest {
                 assertFlag(context, "powerOff", false)
                 assertFlag(context, "instantLock", false)
                 assertFlag(context, "quietSignUp", false)
+                assertFlag(context, "sessionDevice", false)
                 assertFlag(context, "deleteAccount", false)
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Ghost mode" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Instant lock" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Don't notify contacts" in it })
+                if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without the device in Active sessions" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Delete account" in it })
             }
             assertFlag(context, family, present.isNotEmpty())

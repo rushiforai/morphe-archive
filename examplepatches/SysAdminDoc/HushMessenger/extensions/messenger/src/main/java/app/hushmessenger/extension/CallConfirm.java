@@ -17,7 +17,8 @@ import java.util.List;
  * anyone. Both top bars hand their buttons over through {@link MarkReadButton}, and the two call button builders hand
  * over each button they build (#172), which also covers the bars neither top bar seam walks. Each call button keeps its
  * tap listener in a field typed as an interface with one onClick(View) method, and that listener is wrapped in place,
- * so the button looks and sits as it did. Call runs Messenger's own tap, Cancel drops it.
+ * so the button looks and sits as it did. Call runs Messenger's own tap, Cancel drops it. A chat head's call button
+ * is wrapped the same way, and the question there goes up in a window of its own, since a chat head has no activity.
  */
 public final class CallConfirm {
     static final String KEY = "call_confirm";
@@ -101,14 +102,16 @@ public final class CallConfirm {
     }
 
     /** Puts the question up over the chat. Call runs [call], Cancel and a tap outside leave it. */
-    private static void showQuestion(View view, boolean video, Runnable call) {
+    static void showQuestion(View view, boolean video, Runnable call) {
         Context context = view.getContext();
         SettingsText text = new SettingsText(context);
-        new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
+        AlertDialog dialog = new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
             .setMessage(text.get(video ? "call_confirm_video" : "call_confirm_audio"))
-            .setPositiveButton(text.get("call_confirm_call"), (dialog, which) -> call.run())
+            .setPositiveButton(text.get("call_confirm_call"), (shown, which) -> call.run())
             .setNegativeButton(text.get("call_confirm_cancel"), null)
-            .show();
+            .create();
+        // In a chat head the question never reached the screen while the call went ahead regardless (#172).
+        ChatJump.showOverChat(dialog, context);
     }
 
     /** Stands in for a call button's tap listener: a tap asks first while the switch is on, everything else passes through. */

@@ -8,7 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
@@ -16,7 +16,7 @@ private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
 // The filtering itself lives in the extension's SduiComponentFilter; these patches switch it on.
 
 @Suppress("unused")
-val hideSuggestedPostsPatch = bytecodePatch(
+val hideSuggestedPostsPatch = patch(
     name = "Hide suggested posts",
     description = "Removes \"Suggested\" posts from outside your network from the feed.",
     default = true
@@ -28,7 +28,7 @@ val hideSuggestedPostsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hidePromotedJobsPatch = bytecodePatch(
+val hidePromotedJobsPatch = patch(
     name = "Hide promoted jobs",
     description = "Removes promoted job listings from the Jobs tab and job search.",
     default = true
@@ -40,7 +40,7 @@ val hidePromotedJobsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val expandPostsPatch = bytecodePatch(
+val expandPostsPatch = patch(
     name = "Expand posts",
     description = "Adds an option in Fakh Patches (off by default) to show posts expanded by default. Tapping the text collapses them.",
     default = true
@@ -52,7 +52,7 @@ val expandPostsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val feedFiltersPatch = bytecodePatch(
+val feedFiltersPatch = patch(
     name = "Feed filters",
     description = "Adds optional filters in Fakh Patches (off by default): engagement counts, " +
         "celebrations, job cards, network activity (likes, comments, reposts), video posts, \"Recommended for you\", puzzle games, the \"New posts\" pill and \"Show translation\".",
@@ -81,7 +81,7 @@ private object NavPanelPremiumFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val hidePremiumUpsellsPatch = bytecodePatch(
+val hidePremiumUpsellsPatch = patch(
     name = "Hide Premium upsells",
     description = "Removes Premium and AI upsell cards and banners, including on profiles and the profile menu.",
     default = true

@@ -5,17 +5,23 @@
 package app.morphe.patches.instagram.stories.ring
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesLoading
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -24,6 +30,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 
 private const val PATCH = "Story ring size"
 internal const val RING_SIZE = "$EXTENSION_PACKAGE/stories/StoryRing;->size(F)F"
+internal const val RING_HIDES = "$EXTENSION_PACKAGE/stories/StoryRing;->hides(Landroid/view/View;)I"
+
+/** The ring view's own draw, which the platform calls by this name and shape. */
+internal const val RING_DRAW = "onDraw"
+internal val RING_DRAW_PARAMETERS = listOf("Landroid/graphics/Canvas;")
 
 /**
  * What Instagram works a stories row item's size out from: no smaller than 66dp, no larger than
@@ -37,17 +48,23 @@ internal val ITEMS_A_SCREEN = 3.75.toRawBits()
 internal const val SETTLED_PER_METHOD = 3
 
 /**
- * Draws the rings in the stories row at the top of Home at a share of their size, and the ring of
- * a story that hasn't been watched in a chosen color. Included in the default selection. Its
- * switch starts on and the size and the color start as Instagram's own, so nothing changes until
- * one is chosen.
+ * Draws the rings in the stories row at the top of Home at a share of their size, the ring of a
+ * story that hasn't been watched in a chosen color, and the rings at a share of their thickness.
+ * Included in the default selection. Its switch starts on and the size, the color and the
+ * thickness start as Instagram's own, so nothing changes until one is chosen.
+ *
+ * The color reaches the ring view's gradients ([colorRingGradients]) and, on Compose screens, the
+ * default ring's colors ([colorComposeRing], #528). The thickness reaches every width the ring view
+ * reads ([thickenRings], #528).
  */
 @Suppress("unused")
 val storyRingSizePatch = bytecodePatch(
     name = "Story ring size",
     description = "Draws the rings in the stories row at the top of Home smaller, so more fit on screen, or " +
-        "larger, and the ring of a story you haven't watched in a color you pick. Nothing changes until you " +
-        "pick a size or a color. On by default. Turn it off in HushGram settings > Stories.",
+        "larger, the ring of a story you haven't watched in a color you pick, and story rings thinner or thicker. " +
+        "Another switch takes the rings off profile pictures everywhere else, like posts, comments, reels and " +
+        "profiles. Nothing changes until you pick a size, a color or a thickness or turn that switch on. On by " +
+        "default. Turn it off in HushGram settings > Stories.",
     default = true,
 ) {
     category("Stories")
@@ -56,11 +73,19 @@ val storyRingSizePatch = bytecodePatch(
 
     execute {
         requireStatusMethod("storyRingSize")
-        // Both are found before either is changed, so a build missing one is left as it was.
+        // Everything is found before anything is changed, so a build missing one is left as it was.
         val sizings = findRingSizes()
         val gradients = findRingGradients()
+        val draw = findRingDraw()
+        val composeRing = findComposeRing()
+        val widths = findRingWidthReads()
         scaleRingSizes(sizings)
+        // The widths go in by index, before the color hook moves the builder's code along and
+        // before the early return goes in at the top of the ring's draw.
+        thickenRings(widths)
         colorRingGradients(gradients)
+        colorComposeRing(composeRing, RING_DEFAULT_COLORS)
+        hideRingsOutsideTheRow(draw)
         enableStatus("storyRingSize")
     }
 }
@@ -120,6 +145,44 @@ private fun Method.ringSizing(type: String): RingSizing? {
 
 private val NARROW_CONSTS = setOf(Opcode.CONST, Opcode.CONST_HIGH16)
 private val WIDE_CONSTS = setOf(Opcode.CONST_WIDE, Opcode.CONST_WIDE_HIGH16)
+
+/**
+ * The ring view's own `onDraw(Canvas)`, where Hide rings outside the stories row returns before
+ * anything is drawn (#719). Every ring around a profile picture is that view, in the stories row,
+ * on a post's header, in comments, on reels and on profiles, and the picture is a view of its own.
+ * Proved before anything changes: the ring declares its own draw, returning nothing, with a local
+ * for the answer, and nothing jumps back to its first instruction, where the early return goes.
+ */
+internal fun BytecodePatchContext.findRingDraw(): Method {
+    val spinner = classDefByOrNull(GRADIENT_SPINNER) ?: refuse("the build has no $GRADIENT_SPINNER")
+    val draws = spinner.methods.filter {
+        it.name == RING_DRAW && it.parameterTypes.map(CharSequence::toString) == RING_DRAW_PARAMETERS
+    }
+    val draw = draws.singleOrNull() ?: refuse("expected one $RING_DRAW(Canvas) in $GRADIENT_SPINNER, found ${draws.size}")
+    val where = "$GRADIENT_SPINNER->$RING_DRAW"
+    if (AccessFlags.STATIC.isSet(draw.accessFlags) || draw.returnType != "V") refuse("$where isn't the view's own draw")
+    if (draw.implementation == null) refuse("$where has no body")
+    if (draw.localRegisterCount() < 1) refuse("$where has no local register for the answer")
+    if (0 in draw.jumpTargets()) refuse("something jumps back to the first instruction of $where")
+    return draw
+}
+
+/** The ring's draw returns first thing while [RING_HIDES] answers yes for that ring, so nothing of it is drawn. */
+internal fun BytecodePatchContext.hideRingsOutsideTheRow(draw: Method) {
+    val method = mutableClassDefBy(GRADIENT_SPINNER).methods.single {
+        it.name == draw.name && it.parameterTypes.map(CharSequence::toString) == RING_DRAW_PARAMETERS
+    }
+    method.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p0 .. p0 }, $RING_HIDES
+            move-result v0
+            if-eqz v0, :draw
+            return-void
+        """,
+        ExternalLabel("draw", method.getInstruction(0)),
+    )
+}
 
 /**
  * Right after each place a method settles the size, passes it through [RING_SIZE]. Each hook goes

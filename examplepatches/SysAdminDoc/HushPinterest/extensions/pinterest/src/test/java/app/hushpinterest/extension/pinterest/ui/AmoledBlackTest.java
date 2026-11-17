@@ -7,6 +7,7 @@
 package app.hushpinterest.extension.pinterest.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import android.app.Activity;
@@ -19,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -73,11 +75,15 @@ public class AmoledBlackTest {
         Settings.BLACK_COMMENTS.resetToDefault();
         Settings.BLACK_PIN_MENU.resetToDefault();
         Settings.BLACK_SAVE_SHEET.resetToDefault();
+        Settings.BLACK_SHEETS.resetToDefault();
+        Settings.BLACK_BOARDS.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
         AmoledBlack.searchText = -1;
         AmoledBlack.searchContainer = -1;
         AmoledBlack.gestureStrip = -1;
+        AmoledBlack.headerImage = -1;
+        AmoledBlack.headerBlur = -1;
     }
 
     @Test public void separateTabsTintedGrayTurnBlackAndOffGivesTheTintBack() {
@@ -461,6 +467,225 @@ public class AmoledBlackTest {
     /** The color of [view]'s background layer [index], a solid shape. */
     private static int layer(View view, int index) {
         return ((GradientDrawable) ((LayerDrawable) view.getBackground()).getDrawable(index)).getColor().getDefaultColor();
+    }
+
+    /** The views of a Gestalt sheet as 14.44.0 builds them, in the order gestaltSheet reads them. */
+    private static FrameLayout gestalt(boolean night) {
+        return sheet(night, "draggable_sheet", "gestalt_sheet_header", "gestalt_sheet_container", "sheet_overlay_container",
+                "sheet_scroll_view", "sheet_scroll_inner_layout", "gestalt_sheet_footer", "footer_container");
+    }
+
+    /** The views of a lego menu as 14.44.0 builds them, in the order legoModal reads them. */
+    private static FrameLayout lego(boolean night) {
+        return sheet(night, "modal_header", "modal_container", "lego_modal_scroll_view", "lego_modal_container",
+                "lego_modal_content_container", "lego_close_container", "lego_close_container_sticky");
+    }
+
+    /** A sheet inside [outer] that finds the same ids. */
+    private static FrameLayout inside(FrameLayout outer) {
+        Resources resources = outer.getResources();
+        FrameLayout inner = new FrameLayout(outer.getContext()) {
+            @Override public Resources getResources() { return resources; }
+        };
+        outer.addView(inner);
+        return inner;
+    }
+
+    /** Pinterest's #3a3a41 buttons and Create's tiles, which keep their gray. */
+    private static final int BUTTON = 0xFF3A3A41;
+
+    @Test public void theOtherSheetsTurnBlackOnTheirOwnSwitchAndKeepTheirButtonsGray() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout create = gestalt(true);
+        View card = fill(create, 1, card());
+        View footer = fill(create, 7, new ColorDrawable(REACTIONS));
+        View tile = fill(create, View.NO_ID, new ColorDrawable(BUTTON));
+        AmoledBlack.gestaltSheet(create);
+        assertEquals(Color.BLACK, cardColor(card.getBackground()));
+        assertEquals("the row holding its buttons", Color.BLACK, color(footer));
+        assertEquals("Create's tiles keep their gray", BUTTON, color(tile));
+        Settings.BLACK_SHEETS.save(false);
+        create.layout(0, 0, 320, 480);
+        assertEquals(ELEVATION, cardColor(card.getBackground()));
+        assertEquals(REACTIONS, color(footer));
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout light = gestalt(false);
+        View lightCard = fill(light, 1, card());
+        AmoledBlack.gestaltSheet(light);
+        light.layout(0, 0, 320, 480);
+        assertEquals("light mode stays as it is", ELEVATION, cardColor(lightCard.getBackground()));
+    }
+
+    /**
+     * Seen on a Galaxy S25 (14.44.0): Add collaborators showed its board as a #222226 card on the
+     * black sheet. The card is Pinterest's see-through secondary gray, set as a plain color once the
+     * board is in, and it read as the sheet's own gray before.
+     */
+    @Test public void addCollaboratorsBoardCardTurnsBlackWithItsSheetAndOffGivesItsGrayBack() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout collaborators = sheet(true, "draggable_sheet", "gestalt_sheet_header", "gestalt_sheet_container",
+                "sheet_overlay_container", "sheet_scroll_view", "sheet_scroll_inner_layout", "gestalt_sheet_footer",
+                "footer_container", "collab_board_rep");
+        AmoledBlack.gestaltSheet(collaborators);
+        View board = fill(collaborators, 9, new ColorDrawable(0x4D72727E));
+        View other = fill(collaborators, View.NO_ID, new ColorDrawable(0x4D72727E));
+        collaborators.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, color(board));
+        assertEquals("other see-through grays keep theirs", 0x4D72727E, color(other));
+        Settings.BLACK_SHEETS.save(false);
+        collaborators.layout(0, 0, 320, 490);
+        assertEquals(0x4D72727E, color(board));
+    }
+
+    @Test public void aSheetWithASwitchOfItsOwnKeepsItWhicheverIsHandedOverFirst() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout save = gestalt(true);
+        View saveCard = fill(save, 1, card());
+        AmoledBlack.saveSheet(save);
+        AmoledBlack.gestaltSheet(save);
+        save.layout(0, 0, 320, 480);
+        assertEquals("Black Save to sheet is off", ELEVATION, cardColor(saveCard.getBackground()));
+        Settings.BLACK_SHEETS.save(false);
+        Settings.BLACK_SAVE_SHEET.save(true);
+        save.layout(0, 0, 320, 520);
+        assertEquals(Color.BLACK, cardColor(saveCard.getBackground()));
+
+        Settings.BLACK_SAVE_SHEET.save(false);
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout menu = lego(true);
+        GradientDrawable rounded = new GradientDrawable();
+        rounded.setColor(REACTIONS);
+        menu.setBackground(rounded);
+        AmoledBlack.legoModal(menu);
+        assertEquals(Color.BLACK, rounded.getColor().getDefaultColor());
+        FrameLayout pin = inside(menu);
+        View list = fill(pin, 2, new ColorDrawable(ELEVATION));
+        AmoledBlack.pinMenu(pin);
+        menu.layout(0, 0, 320, 480);
+        assertEquals("Black pin menu is off, so the menu around it is gray again", REACTIONS, rounded.getColor().getDefaultColor());
+        assertEquals(ELEVATION, color(list));
+        Settings.BLACK_SHEETS.save(false);
+        Settings.BLACK_PIN_MENU.save(true);
+        menu.layout(0, 0, 320, 520);
+        assertEquals(Color.BLACK, rounded.getColor().getDefaultColor());
+        assertEquals(Color.BLACK, color(list));
+    }
+
+    @Test public void aLegoMenuTurnsBlackWithItsOwnCardOnceItsViewsAreInAndKeepsCloseGray() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout menu = lego(true);
+        GradientDrawable rounded = new GradientDrawable();
+        rounded.setColor(REACTIONS);
+        rounded.setCornerRadius(32f);
+        menu.setBackground(rounded);
+        AmoledBlack.legoModal(menu);
+        View sticky = fill(menu, 7, new ColorDrawable(REACTIONS));
+        View scroll = fill(menu, 3, new ColorDrawable(REACTIONS));
+        View close = fill(menu, View.NO_ID, new ColorDrawable(BUTTON));
+        menu.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, rounded.getColor().getDefaultColor());
+        assertEquals("still rounded", 32f, rounded.getCornerRadius(), 0f);
+        assertEquals(Color.BLACK, color(sticky));
+        assertEquals(Color.BLACK, color(scroll));
+        assertEquals("Close keeps its gray", BUTTON, color(close));
+        Settings.BLACK_SHEETS.save(false);
+        menu.layout(0, 0, 320, 520);
+        assertEquals(REACTIONS, rounded.getColor().getDefaultColor());
+        assertEquals(REACTIONS, color(sticky));
+        assertEquals(REACTIONS, color(scroll));
+    }
+
+    @Test public void theBarOverABoardTurnsBlackThroughItsTintAndOffGivesBackTheTintItHad() {
+        Settings.BLACK_BOARDS.save(true);
+        View bar = fill(sheet(true), View.NO_ID, solid());
+        AmoledBlack.boardToolBar(bar);
+        assertEquals(Color.BLACK, bar.getBackgroundTintList().getDefaultColor());
+        Settings.BLACK_BOARDS.save(false);
+        bar.layout(0, 0, 320, 64);
+        assertNull("it had none", bar.getBackgroundTintList());
+        Settings.BLACK_BOARDS.save(true);
+        View light = fill(sheet(false), View.NO_ID, solid());
+        AmoledBlack.boardToolBar(light);
+        assertNull("light mode stays as it is", light.getBackgroundTintList());
+    }
+
+    /**
+     * Seen on a Galaxy S22 (14.44.0): a hardware layer with a color filter on the row left the
+     * buttons gray, so each button's own tint is what changes. The row is handed over before
+     * Compose puts its buttons in, and Pinterest tints a button again when it's picked.
+     */
+    @Test public void theProfileFilterButtonsTurnBlackThroughTheirTintAndThePickedOneStaysWhite() {
+        Settings.BLACK_BOARDS.save(true);
+        FrameLayout row = sheet(true);
+        AmoledBlack.profileFilters(row);
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setContentView(row);
+        ColorStateList gray = toggleTint();
+        View button = filterButton(row, gray);
+        row.layout(0, 0, 320, 48);
+        ColorStateList tint = button.getBackgroundTintList();
+        assertEquals("the buttons' gray", Color.BLACK, tint.getDefaultColor());
+        assertEquals("a picked button", Color.WHITE, tint.getColorForState(PICKED, Color.TRANSPARENT));
+        // Picking a button: Pinterest hands it its tint again.
+        button.setBackgroundTintList(gray);
+        row.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("black again by the next frame", Color.BLACK, button.getBackgroundTintList().getDefaultColor());
+        Settings.BLACK_BOARDS.save(false);
+        row.getViewTreeObserver().dispatchOnPreDraw();
+        assertSame("off gives back Pinterest's tint", gray, button.getBackgroundTintList());
+        Settings.BLACK_BOARDS.save(true);
+        FrameLayout light = sheet(false);
+        AmoledBlack.profileFilters(light);
+        View lightButton = filterButton(light, gray);
+        light.layout(0, 0, 320, 48);
+        assertSame("light mode stays as it is", gray, lightButton.getBackgroundTintList());
+    }
+
+    private static final int[] PICKED = {android.R.attr.state_selected};
+
+    /**
+     * A filter button's tint the way Pinterest's default button toggle gives it at night (14.44.0):
+     * white when picked, otherwise base_color_grayscale_translucent_400, a light gray at 30% that
+     * reads #333339 over the page.
+     */
+    private static ColorStateList toggleTint() {
+        return new ColorStateList(new int[][] {PICKED, new int[0]}, new int[] {Color.WHITE, 0x4D72727E});
+    }
+
+    /** One of the row's buttons, a rounded fill under a tint, added after the row was handed over. */
+    private static View filterButton(FrameLayout row, ColorStateList tint) {
+        View button = fill(row, View.NO_ID, solid());
+        button.setBackgroundTintList(tint);
+        return button;
+    }
+
+    /**
+     * Seen on a Galaxy S25 (14.44.0): the empty header on Edit board stayed #333339. Its gray is
+     * sema_color_background_secondary, a light gray at 30% at night that reads #333339 over the page,
+     * and Pinterest's rounded image view keeps it as a small bitmap, not as a color.
+     */
+    @Test public void theEmptyBoardHeaderTurnsBlackOnceItsViewsAreInAndOffGivesTheGrayBack() {
+        Bitmap gray = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+        gray.eraseColor(0x4D72727E);
+        Drawable rounded = new BitmapDrawable(null, gray);
+        Drawable roundedBlur = new BitmapDrawable(null, gray);
+        // Another test class in this sandbox may have read the ids from resources of its own.
+        AmoledBlack.headerImage = -1;
+        AmoledBlack.headerBlur = -1;
+        Settings.BLACK_BOARDS.save(true);
+        FrameLayout header = sheet(true, "board_header_image", "board_header_image_blur");
+        AmoledBlack.boardHeader(header);
+        View image = fill(header, 1, rounded);
+        View blur = fill(header, 2, roundedBlur);
+        header.layout(0, 0, 320, 180);
+        assertEquals(Color.BLACK, color(image));
+        assertEquals("its blurred copy", Color.BLACK, color(blur));
+        header.layout(0, 0, 320, 190);
+        assertEquals("a second pass keeps it black", Color.BLACK, color(image));
+        Settings.BLACK_BOARDS.save(false);
+        header.layout(0, 0, 320, 200);
+        assertSame(rounded, image.getBackground());
+        assertSame(roundedBlur, blur.getBackground());
     }
 
     @Test public void eachSheetFollowsItsOwnSwitchAndLightModeIsLeftAlone() {

@@ -70,3 +70,7 @@ additional Trakt 3.28.0 support.
 
 The Trakt `Fix sign-in` patch (patches/src/main/kotlin/dev/hyzor/patches/trakt/auth) is original
 to this bundle.
+
+The Sparkle TV patch (patches/src/main/kotlin/dev/hyzor/patches/sparkle) is derived from
+HSlightsteel/slight-patches (https://github.com/HSlightsteel/slight-patches), GPLv3, with
+additional Sparkle TV 2.4.0 support.

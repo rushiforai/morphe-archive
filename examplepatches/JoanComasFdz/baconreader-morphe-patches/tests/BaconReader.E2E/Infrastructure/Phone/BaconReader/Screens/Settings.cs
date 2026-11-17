@@ -31,6 +31,21 @@ public sealed class Settings(AndroidDriver driver)
     /// <summary>Taps <paramref name="setting"/> in the open section, which ticks or unticks its checkbox.</summary>
     public Task TickAsync(BaconReaderSetting setting) => OnScreen.PressAsync(driver, Locate.AppIdWithText("text", setting.ToShownText()));
 
+    /// <summary>
+    /// Whether <paramref name="setting"/>'s checkbox, in the open section, is ticked: the checkbox on its row, at the
+    /// right end, level with its title.
+    /// </summary>
+    public Task<BaconReaderCheckboxSnapshot> ReadCheckboxAsync(BaconReaderSetting setting) =>
+        OnScreen.ReadAsync(driver, () =>
+        {
+            var screen = ScreenSnapshot.Take(driver);
+            var title = screen.WithAppId("text").First(found => found.Displayed && found.Text.Trim() == setting.ToShownText());
+            var middle = title.Center.Y;
+            var checkbox = screen.Root.Descendants()
+                .First(found => found.ClassName == "android.widget.CheckBox" && found.Bounds.Top <= middle && found.Bounds.Bottom >= middle);
+            return new BaconReaderCheckboxSnapshot(setting, checkbox.Checked);
+        });
+
     /// <summary>What the settings menu lists: its sections, top to bottom.</summary>
     public Task<SettingsMenuSnapshot> ReadMenuAsync() =>
         OnScreen.ReadAsync(driver, () => new SettingsMenuSnapshot(
@@ -47,3 +62,6 @@ public sealed record SettingsMenuSnapshot(System.Collections.Immutable.Immutable
 
 /// <summary>What a section of BaconReader's settings offers: its settings and headers, top to bottom.</summary>
 public sealed record SettingsSectionSnapshot(System.Collections.Immutable.ImmutableArray<BaconReaderSetting> Settings);
+
+/// <summary>Whether a setting's checkbox, in a section of BaconReader's settings, is ticked.</summary>
+public sealed record BaconReaderCheckboxSnapshot(BaconReaderSetting Setting, bool Ticked);

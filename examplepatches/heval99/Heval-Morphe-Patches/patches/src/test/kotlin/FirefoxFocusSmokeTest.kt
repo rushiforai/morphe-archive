@@ -82,7 +82,7 @@ class FirefoxFocusSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "159.0.1",
+            version = "160.0",
             patchNames = setOf(
                 "Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts",
                 "Move address bar to the bottom", DNS_FILTER,
@@ -205,7 +205,7 @@ class FirefoxFocusSmokeTest {
         // DNS filter: GeckoView is pinned to the default resolver in TRR-only mode (3), and with
         // the other options to the chosen resolver in TRR-first mode (2).
         assertGeckoViewDnsForced(classes, DEFAULT_DOH_URL, trrMode = 3)
-        assertGeckoViewDnsForced(applyDnsFilterFallback(apk, workDir, PKG, "159.0.1"), OTHER_DOH_URL, trrMode = 2)
+        assertGeckoViewDnsForced(applyDnsFilterFallback(apk, workDir, PKG, "160.0"), OTHER_DOH_URL, trrMode = 2)
 
         // Move address bar to the bottom: the browser toolbar's gravity is bottom in the decoded
         // layout.

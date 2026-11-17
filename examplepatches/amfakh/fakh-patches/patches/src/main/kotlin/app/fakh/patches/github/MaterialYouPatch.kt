@@ -4,11 +4,12 @@ import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.literal
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -158,7 +159,7 @@ private val AMOLED_SURFACES = listOf("appBackground", "backgroundPrimary", "back
  * The Material You colors live under the round qualifier, which the extension forces on only while the setting is
  * on, so GitHub's own colors come back when it is off.
  */
-private val materialYouResourcePatch = resourcePatch {
+private val materialYouResourcePatch = patch {
     execute {
         writeColors("values-round-v31", LIGHT_ACCENTS + LIGHT_SURFACES_V31 + LIGHT_DIVIDERS + LIGHT_DIFF)
         writeColors("values-round-v34", LIGHT_SURFACES_V34)
@@ -172,8 +173,8 @@ private val materialYouResourcePatch = resourcePatch {
  * Sets [colors] (resource name to framework color, or a #AARRGGBB value) in the directory's colors.xml, creating it when GitHub has
  * none. Entries are merged into the existing file, so its other colors stay and no name is defined twice.
  */
-private fun ResourcePatchContext.writeColors(directory: String, colors: Map<String, String>) {
-    val file = get("res").resolve(directory).resolve("colors.xml")
+private fun writeColors(directory: String, colors: Map<String, String>) {
+    val file = resourceFile("res").resolve(directory).resolve("colors.xml")
     if (!file.exists()) {
         file.parentFile.mkdirs()
         file.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n")
@@ -197,7 +198,7 @@ private fun ResourcePatchContext.writeColors(directory: String, colors: Map<Stri
  * GitHub's Compose color schemes (Primer colors and app colors), which hold 80 and more colors and are built in
  * the static initializers of their holder classes: holder to its scheme fields, light scheme first.
  */
-private fun BytecodePatchContext.composeSchemeHolders(): Map<MutableClass, List<String>> {
+private fun composeSchemeHolders(): Map<MutableClass, List<String>> {
     val schemes = mutableSetOf<String>()
     classDefForEach { classDef ->
         if (classDef.methods.any { method -> method.name == "<init>" && method.parameterTypes.count { it.toString() == "J" } >= 80 }) {
@@ -222,7 +223,7 @@ private fun BytecodePatchContext.composeSchemeHolders(): Map<MutableClass, List<
  * GitHub's Compose palettes: the classes whose static colors the scheme holders read while building the schemes.
  * Components such as switch tracks read them directly too.
  */
-private fun BytecodePatchContext.composePalettes(holders: Collection<MutableClass>): List<MutableClass> {
+private fun composePalettes(holders: Collection<MutableClass>): List<MutableClass> {
     val holderTypes = holders.map { it.type }.toSet()
     val palettes = holders.flatMap { holder ->
         holder.methods.first { it.name == "<clinit>" }.body
@@ -234,7 +235,7 @@ private fun BytecodePatchContext.composePalettes(holders: Collection<MutableClas
 }
 
 /** AppCompatActivity, which R8 renamed: the class overriding both attachBaseContext and getMenuInflater. */
-internal fun BytecodePatchContext.appCompatActivity(): MutableClass {
+internal fun appCompatActivity(): MutableClass {
     var found: MutableClass? = null
     classDefForEach { classDef ->
         if (classDef.methods.none { it.name == "attachBaseContext" } ||
@@ -257,7 +258,7 @@ private fun Instruction.isColorLiteral() =
 
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch = patch(
     name = "Material You",
     description = "Uses your wallpaper's colors (Android 12+): the accent color instead of GitHub blue and tinted " +
         "surfaces in light and dark mode. Adds a Fakh Patches section to Settings with a Material You switch and an " +

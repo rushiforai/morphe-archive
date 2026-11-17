@@ -27,7 +27,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "2.0.0"
+    id("app.morphe.patches") version "2.1.0"
 }
 
 // The app.morphe.patches settings plugin adds the build's dependency repositories (mavenLocal,

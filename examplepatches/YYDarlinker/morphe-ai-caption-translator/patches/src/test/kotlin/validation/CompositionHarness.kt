@@ -19,16 +19,17 @@ fun main(args:Array<String>){
     val output=file("output");check(!output.exists()){ "Use a new output directory" };output.mkdirs()
     val scratch=Files.createTempDirectory(output.toPath(),"session-").toFile()
     var failure:Throwable?=null
-    Patcher(PatcherConfig(apkFile=file("input"),temporaryFilesPath=scratch.resolve("patcher"),fileWorkspacePath=scratch.resolve("workspace"))).use { patcher ->
+    Patcher(PatcherConfig(apkFile=file("input"),temporaryFilesPath=scratch.resolve("patcher"))).use { patcher ->
         val ai=names.contains("AI caption translator")
         // APKMirror's SECONDARY builds append a suffix to the version name; the compatibility
         // targets name the plain version.
         val versionName=patcher.context.packageMetadata.versionName.substringBefore('-')
-        fun supports(patch: Patch<*>) = patch.compatibility?.any { pkg ->
+        fun supports(compatibility: List<Compatibility>?) = compatibility?.any { pkg ->
             (pkg.packageName==null || pkg.packageName==patcher.context.packageMetadata.packageName) &&
                 pkg.targets.any { it.version==null || it.version==versionName }
         } ?: true
-        check(roots.all { supports(it) }) { "Addon metadata does not declare the actual APK version: $versionName" }
+        check(roots.all { supports(it.compatibility) }) { "Addon metadata does not declare the actual APK version: $versionName" }
+        val missingTargets = mutableSetOf<String>()
         if(ai) {
             val captionTargets=official.single { it.name=="Captions" }.compatibility.orEmpty()
                 .filter { it.packageName==patcher.context.packageMetadata.packageName }.flatMap { it.targets }.mapNotNull { it.version }
@@ -40,7 +41,7 @@ fun main(args:Array<String>){
                 val declared=root.compatibility.orEmpty().filter { it.packageName==patcher.context.packageMetadata.packageName }
                     .flatMap { it.targets }.mapNotNull { it.version }.toSet()
                 output.resolve("compatibility.txt").writeText("official_caption_targets=$captionTargets\nrequired_21_30_and_newer=$required\naddon_declared=$declared\ninput=$versionName\n")
-                check(declared.containsAll(required)) { "Addon metadata is missing official caption targets: ${required-declared}" }
+                missingTargets.addAll(required - declared)
             }
         }
         // Native-only addons are intentionally exercised without selecting any official patch.
@@ -55,10 +56,15 @@ fun main(args:Array<String>){
         check(selected.none {it.name=="Spoof signature"}) {"A default=false Spoof signature must not be enabled"}
         selected.addAll(roots)
         val fault=values["fault"]
-        if(fault in listOf("menu_unknown","menu_duplicate","shorts_unknown","clock_unknown")) {
+        if(fault in listOf("menu_unknown","menu_duplicate","menu_info_unknown","shorts_unknown","clock_unknown")) {
             val faultPatch=bytecodePatch(name="N29 controlled $fault",default=false) {
                 dependsOn(*selected.toTypedArray())
                 execute {
+                    if(fault=="menu_info_unknown") {
+                        val cls=mutableClassDefBy("Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;")
+                        cls.methods.remove(cls.methods.single { it.name=="getFlyoutMenuInfo" })
+                        return@execute
+                    }
                     if(fault=="clock_unknown") {
                         val cls=mutableClassDefBy("Lapp/morphe/extension/youtube/addon/AddOnApi;")
                         cls.methods.remove(cls.methods.single { it.name=="videoTimeChanged" && it.parameterTypes.map { type -> type.toString() }==listOf("J") })
@@ -126,6 +132,7 @@ fun main(args:Array<String>){
             }
             throw IllegalStateException("Patch failed; real partial state preserved",failure)
         }
+        check(missingTargets.isEmpty()) { "Addon metadata is missing official caption targets: $missingTargets" }
         check(fault==null) { "Controlled incompatible host unexpectedly passed: $fault" }
         check(((hooks["suppressNativeDraw"]?:0)>0)==ai)
         check((hooks["initialize"]?:0)==1){"Duplicate shared initialization"}

@@ -63,4 +63,20 @@ public class ClientAdsPatchTest {
 
         assertTrue(reasons.isEmpty());
     }
+
+    @Test
+    public void adTriggersAreDeclinedWhileTheAdBlockerIsOn() {
+        app.morphed.extension.twitch.settings.PatchSettings.setForTest(true, false);
+        assertTrue("a display ad beside the stream is declined", ClientAdsPatch.declineAdTrigger());
+    }
+
+    @Test
+    public void adTriggersGoThroughWhenTheAdBlockerIsOff() {
+        app.morphed.extension.twitch.settings.PatchSettings.setForTest(false, false);
+        try {
+            assertFalse(ClientAdsPatch.declineAdTrigger());
+        } finally {
+            app.morphed.extension.twitch.settings.PatchSettings.setForTest(true, false);
+        }
+    }
 }

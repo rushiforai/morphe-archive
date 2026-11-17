@@ -167,6 +167,18 @@ public final class AccentTheme {
     /** What's counted each time one of the Compose palettes' dark grays takes an accent background's shade. */
     static final String SURFACES = "Compose surfaces given accent backgrounds";
 
+    /** What's counted each time a color of Meta's own menus, the account switcher's among them, takes an accent shade (#187). */
+    static final String DSP = "Meta menu colors given the accent";
+
+    /** What's counted each time a gray secondary button, Edit profile and Share profile among them, takes an accent background's shade (#187). */
+    static final String SECONDARY_BUTTONS = "Secondary buttons given accent backgrounds";
+
+    /** The theme attribute Instagram's other secondary buttons read their fill from, the first of the patch's SECONDARY_BUTTONS. */
+    static final String SECONDARY_BUTTON_ATTRIBUTE = "igds_color_secondary_button_panavision";
+
+    /** The start of the names of the colors the patch adds, the backgrounds' shades among them. */
+    static final String OWN_COLORS = "hushgram_";
+
     /** The theme attributes holding the page, raised and top background shades, the patch's BACKGROUND_ATTRIBUTES steps. */
     private static final String[] SURFACE_ATTRIBUTES = {
             BACKGROUND_ATTRIBUTE, "igds_color_elevated_background", "igds_color_secondary_background",
@@ -338,6 +350,8 @@ public final class AccentTheme {
             } else {
                 theme.applyStyle(rings, true);
                 HookStatus.counted(FamilyNames.ACCENT_COLOR, RINGS);
+                // Most rings take their colors from Instagram's default ring, not the theme (#528).
+                AccentRings.remember(resources, theme, app);
             }
         }
         if (Settings.ACCENT_BACKGROUNDS.get()) {
@@ -419,6 +433,80 @@ public final class AccentTheme {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ACCENT_COLOR, "Compose surface", failure);
             return value;
+        }
+    }
+
+    /**
+     * Injected at the start of the constructor of Meta's design system color, with the color it keeps
+     * for a light screen. Meta's own menus in Instagram, the account switcher among them, build their
+     * colors from tables in the code and not from Instagram's theme, so they kept Meta's blue (#187).
+     * Answers Meta's blues as the picked color's fill, and with Classic colors on, Meta's white page
+     * and gray wash as the shades Instagram's light theme holds. Keeps the alpha. Answers [color] for
+     * any other color, with the switches off, HushGram paused or anything thrown.
+     */
+    public static int dspLight(int color) {
+        return dspColor(color, false);
+    }
+
+    /**
+     * The same as {@link #dspLight} for the color kept for a dark screen. With Classic colors or
+     * Backgrounds in the accent color on, Meta's dark grays (the menu's #1f1f20 and the raised ones)
+     * take the shades Instagram's dark theme holds, as {@link #composeSurface} gives Compose's.
+     */
+    public static int dspDark(int color) {
+        return dspColor(color, true);
+    }
+
+    private static int dspColor(int color, boolean dark) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            int rgb = color & 0xffffff;
+            if (rgb == META_BLUE_ON_LIGHT || rgb == META_BLUE_ON_DARK) {
+                AccentHue hue = AccentColor.picked();
+                if (hue == null) return color;
+                HookStatus.counted(FamilyNames.ACCENT_COLOR, DSP);
+                return color & 0xff000000 | AccentColor.swap(FILL, hue) & 0xffffff;
+            }
+            int step = dark ? dspDarkStep(rgb) : dspLightStep(rgb);
+            int[] surfaces = dark ? paintedSurfaces() : paintedLightSurfaces();
+            if (step < 0 || surfaces == null) return color;
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, DSP);
+            return color & 0xff000000 | surfaces[step] & 0xffffff;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Meta menu color", failure);
+            return color;
+        }
+    }
+
+    /** Meta's blue on a light screen and on a dark one. */
+    private static final int META_BLUE_ON_LIGHT = 0x0064e0, META_BLUE_ON_DARK = 0x0082fb;
+
+    /**
+     * Which of {@link #SURFACE_ATTRIBUTES} a dark gray of Meta's stands for, or -1: its menus' surface
+     * raised like Instagram's sheets, and the raised and wash grays over it. The light grays it writes
+     * text with aren't among them.
+     */
+    private static int dspDarkStep(int rgb) {
+        switch (rgb) {
+            case 0x1f1f20:
+                return 1;
+            case 0x323435:
+            case 0x28292b:
+                return 2;
+            default:
+                return -1;
+        }
+    }
+
+    /** Which of {@link #SURFACE_ATTRIBUTES} a light fill of Meta's stands for, or -1: the white page and the gray wash. */
+    private static int dspLightStep(int rgb) {
+        switch (rgb) {
+            case 0xffffff:
+                return 0;
+            case 0xf3f4f5:
+                return 2;
+            default:
+                return -1;
         }
     }
 
@@ -564,6 +652,34 @@ public final class AccentTheme {
     }
 
     /**
+     * Injected right after each load of the fill Instagram's button styles give its default secondary
+     * button, [fill], a color resource's number, in light and in dark (#187). That fill is a color of Instagram's own rather than a theme
+     * attribute, so Edit profile and Share profile kept Prism's gray over the backgrounds in the accent
+     * color. Answers the color [context]'s theme points {@link #SECONDARY_BUTTON_ATTRIBUTE} at once
+     * Backgrounds in the accent color or Classic colors have pointed it at one of the patch's shades, the
+     * top step the other secondary buttons already take. Answers [fill] while the theme holds
+     * Instagram's own color there, with no context or anything thrown.
+     */
+    public static int secondaryButtonFill(Context context, int fill) {
+        try {
+            if (context == null) return fill;
+            Resources resources = context.getResources();
+            int attr = id(resources, SECONDARY_BUTTON_ATTRIBUTE, "attr", Utils.resourcePackage(context));
+            TypedValue value = new TypedValue();
+            if (attr == 0 || !context.getTheme().resolveAttribute(attr, value, false)
+                    || value.type != TypedValue.TYPE_REFERENCE || value.data == 0 || value.data == fill
+                    || !resources.getResourceEntryName(value.data).startsWith(OWN_COLORS)) {
+                return fill;
+            }
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, SECONDARY_BUTTONS);
+            return value.data;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "secondary buttons", failure);
+            return fill;
+        }
+    }
+
+    /**
      * Injected at the start of the method each of Instagram's tab buttons recolors its icon with, for
      * the color it's told to use, [color] (#663). Opening Reels tells every tab a white for the black
      * bar and leaving it tells them the theme's text color, and neither is the icon color the theme
@@ -697,7 +813,7 @@ public final class AccentTheme {
         return 299 * red + 587 * green + 114 * blue > 127_500;
     }
 
-    private static int id(Resources resources, String name, String type, String app) {
+    static int id(Resources resources, String name, String type, String app) {
         String key = type + "/" + app + ":" + name;
         synchronized (IDS) {
             Integer known = IDS.get(key);

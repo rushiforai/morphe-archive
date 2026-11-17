@@ -27,7 +27,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *      "DEFAULT_BROWSER" name to the enum constructor, then stored into DEFAULT_BROWSER).
  *   2. The filter's invoke maps cardType.ordinal() through WhenMappings.$EnumSwitchMapping$N;
  *      WhenMappings.<clinit> gives the case key stored at that ordinal.
- *   3. The branch invoke takes for that key (if-eq chain or switch payload) must read exactly
+ *   3. The branch invoke takes for that key (if-eq chain, switch payload, or the fall-through of
+ *      a lone if-ne) must read exactly
  *      one lambda flag before it leaves the block, and that flag is the field <init> fills from
  *      the parameter being zeroed.
  * Linear constant tracking is enough for these straight-line R8 shapes; anything it can't
@@ -186,6 +187,16 @@ internal fun BytecodePatchContext.proveOnboardingCardFlag(
                     else -> return@flatMap emptyList()
                 }
                 if (constants[i][other] == caseKey) listOf(indexAt(address[i] + (insn as OffsetInstruction).codeOffset)) else emptyList()
+            }
+            // One mapped case left (160.0): `if-ne key, caseKey, :other` falls through into the case.
+            Opcode.IF_NE -> {
+                val compare = insn as TwoRegisterInstruction
+                val other = when (keyRegister) {
+                    compare.registerA -> compare.registerB
+                    compare.registerB -> compare.registerA
+                    else -> return@flatMap emptyList()
+                }
+                if (constants[i][other] == caseKey) listOf(i + 1) else emptyList()
             }
             Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH -> {
                 if ((insn as OneRegisterInstruction).registerA != keyRegister) return@flatMap emptyList()

@@ -10,10 +10,13 @@
 
 package app.morphe.extension.shared.settings.preference;
 
+import static app.morphe.extension.shared.StringRef.str;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.Gravity;
@@ -29,12 +32,14 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.function.IntConsumer;
 
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
@@ -44,7 +49,7 @@ import app.morphe.extension.shared.ui.Dim;
  * supports a static summary and highlighted entries for search functionality.
  */
 @SuppressWarnings({"unused", "deprecation"})
-public class CustomDialogListPreference extends ListPreference {
+public class CustomDialogListPreference extends ListPreference implements SettingPreference {
 
     public static final int ID_MORPHE_CHECK_ICON = View.generateViewId();
     public static final int ID_MORPHE_CHECK_ICON_PLACEHOLDER = View.generateViewId();
@@ -54,38 +59,19 @@ public class CustomDialogListPreference extends ListPreference {
     public static final int DRAWABLE_CHECKMARK_BOLD = ResourceUtils.getIdentifierOrThrow(
             ResourceType.DRAWABLE, "morphe_settings_custom_checkmark_bold");
 
-    private String staticSummary = null;
+    @Nullable
+    private Setting<?> setting;
+
+    /**
+     * If this preference saves the setting, which it leaves to a subclass that turned off persisting.
+     */
+    private boolean savesSetting;
+
     private CharSequence[] highlightedEntriesForDialog = null;
     @Nullable
     private Set<String> newEntryValues;
     @ColorInt
     private int newEntryColor;
-
-    /**
-     * Set a static summary that will not be overwritten by value changes.
-     */
-    public void setStaticSummary(String summary) {
-        this.staticSummary = summary;
-    }
-
-    /**
-     * Returns the static summary if set, otherwise null.
-     */
-    @Nullable
-    public String getStaticSummary() {
-        return staticSummary;
-    }
-
-    /**
-     * Always return static summary if set.
-     */
-    @Override
-    public CharSequence getSummary() {
-        if (staticSummary != null) {
-            return staticSummary;
-        }
-        return super.getSummary();
-    }
 
     /**
      * Sets highlighted entries for display in the dialog.
@@ -130,7 +116,8 @@ public class CustomDialogListPreference extends ListPreference {
             return entries;
         }
 
-        CharSequence[] marked = entries.clone();
+        // Entries can be a String[], which cannot hold the spans added here.
+        CharSequence[] marked = Arrays.copyOf(entries, entries.length, CharSequence[].class);
         for (int i = 0, length = Math.min(entries.length, entryValues.length); i < length; i++) {
             if (newEntryValues.contains(entryValues[i].toString())) {
                 marked[i] = NewIndicatorSpan.addTo(entries[i], newEntryColor);
@@ -222,13 +209,13 @@ public class CustomDialogListPreference extends ListPreference {
 
             CharSequence itemText = getItem(position);
             holder.itemText.setText(itemText);
-            holder.itemText.setTextColor(ThemeUtils.getAppForegroundColor());
+            holder.itemText.setTextColor(ThemeUtils.getDialogTextColor());
 
             // Show or hide checkmark and placeholder.
             String currentValue = entryValues[position].toString();
             boolean isSelected = currentValue.equals(selectedValue);
             holder.checkIcon.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-            holder.checkIcon.setColorFilter(ThemeUtils.getAppForegroundColor());
+            holder.checkIcon.setColorFilter(ThemeUtils.getDialogTextColor());
             holder.placeholder.setVisibility(isSelected ? View.GONE : View.VISIBLE);
 
             return view;
@@ -241,18 +228,88 @@ public class CustomDialogListPreference extends ListPreference {
 
     public CustomDialogListPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        PreferenceTranslations.translateEntries(this, attrs);
     }
 
     public CustomDialogListPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        PreferenceTranslations.translateEntries(this, attrs);
     }
 
     public CustomDialogListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
+        PreferenceTranslations.translateEntries(this, attrs);
     }
 
     public CustomDialogListPreference(Context context) {
         super(context);
+    }
+
+    /**
+     * Uses the title and entry arrays declared for the setting key.
+     */
+    public CustomDialogListPreference(Context context, Setting<?> setting) {
+        this(context);
+
+        String key = setting.key;
+        setKey(key);
+        this.setting = setting;
+        setTitle(str(key + "_title"));
+        setEntries(ResourceUtils.getStringArray(key + "_entries"));
+        setEntryValues(ResourceUtils.getStringArray(key + "_entry_values"));
+    }
+
+    @Nullable
+    public Setting<?> getSetting() {
+        return setting;
+    }
+
+    @Override
+    protected void onAttachedToHierarchy(PreferenceManager preferenceManager) {
+        if (setting == null) {
+            setting = SettingChange.findSetting(this, Setting.class);
+        }
+        savesSetting = setting != null && isPersistent();
+        if (savesSetting) {
+            // Before attaching, which would read the value from the shared preferences.
+            setPersistent(false);
+        }
+
+        super.onAttachedToHierarchy(preferenceManager);
+        updateFromSetting();
+    }
+
+    @Override
+    protected boolean persistString(String value) {
+        if (!savesSetting) {
+            return super.persistString(value);
+        }
+
+        SettingChange.save(this, setting, value);
+        return true;
+    }
+
+    /**
+     * Shows the value of the setting, with its entry as the summary.
+     */
+    @Override
+    public void updateFromSetting() {
+        if (setting == null) {
+            return;
+        }
+
+        String value = setting.get().toString();
+        setValue(value);
+        final int entryIndex = findIndexOfValue(value);
+        if (entryIndex >= 0) {
+            setSummary(getEntries()[entryIndex]);
+        } else {
+            // Value is not an available option.
+            // User manually edited import data, or options changed and current selection is no longer available.
+            // Still show the value in the summary, so it's clear that something is selected.
+            setSummary(value);
+        }
+        setEnabled(setting.isAvailable());
     }
 
     /**
@@ -359,11 +416,9 @@ public class CustomDialogListPreference extends ListPreference {
                         setValue(selectedValue);
 
                         // Update summaries from the original entries (without highlighting).
-                        if (staticSummary == null) {
-                            CharSequence[] originalEntries = getEntries();
-                            if (originalEntries != null && position < originalEntries.length) {
-                                setSummary(originalEntries[position]);
-                            }
+                        CharSequence[] originalEntries = getEntries();
+                        if (originalEntries != null && position < originalEntries.length) {
+                            setSummary(originalEntries[position]);
                         }
                     }
                 }

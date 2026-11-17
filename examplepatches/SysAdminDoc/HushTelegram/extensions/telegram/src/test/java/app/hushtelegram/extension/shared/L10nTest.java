@@ -48,7 +48,7 @@ public class L10nTest {
 
     @Test
     public void everyLanguageTheBundleCarriesHasATableWithTheKey() {
-        assertEquals(Arrays.asList("bg", "de", "es", "in", "pt-rbr", "tr"), Arrays.asList(L10nTranslations.LANGUAGES));
+        assertEquals(Arrays.asList("bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"), Arrays.asList(L10nTranslations.LANGUAGES));
         for (String language : L10nTranslations.LANGUAGES) {
             Map<String, String> table = L10nTranslations.of(language);
             assertNotNull(language, table);
@@ -89,6 +89,35 @@ public class L10nTest {
         assertEquals(KEY, L10n.t(in(new Locale("pt", "PT")), KEY));
         assertEquals("a language with its own table gains no region", Arrays.asList("de"),
                 L10n.tags(in(new Locale("de"))));
+    }
+
+    /**
+     * Chinese goes by script (#80). Simplified reads the zh-Hans table whether the phone says
+     * zh-Hans-CN, zh-CN, zh-SG or plain zh, and Traditional, by script or by Taiwan, Hong Kong or
+     * Macau, keeps English rather than read Simplified characters.
+     */
+    @Test
+    public void simplifiedChineseReadsItsScriptTableAndTraditionalKeepsEnglish() {
+        String simplified = table("zh-hans").get(KEY);
+        assertEquals("隐藏广告", simplified);
+        Context script = in(Locale.forLanguageTag("zh-Hans-CN"));
+        assertEquals(Arrays.asList("zh-hans-rcn", "zh-hans"), L10n.tags(script));
+        assertEquals(simplified, L10n.t(script, KEY));
+        assertEquals("zh-Hans", L10n.textLocale(script).toLanguageTag());
+        assertEquals(simplified, L10n.t(in(Locale.forLanguageTag("zh-CN")), KEY));
+        assertEquals(simplified, L10n.t(in(Locale.forLanguageTag("zh-SG")), KEY));
+        assertEquals(Arrays.asList("zh-hans"), L10n.tags(in(new Locale("zh"))));
+        assertEquals(simplified, L10n.t(in(new Locale("zh")), KEY));
+
+        assertEquals(Arrays.asList("zh-hant-rtw", "zh-hant"), L10n.tags(in(Locale.forLanguageTag("zh-Hant-TW"))));
+        assertEquals(KEY, L10n.t(in(Locale.forLanguageTag("zh-Hant-TW")), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.forLanguageTag("zh-TW")), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.forLanguageTag("zh-HK")), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.forLanguageTag("zh-MO")), KEY));
+        assertEquals("a Hans script in Hong Kong is still Simplified", simplified,
+                L10n.t(in(Locale.forLanguageTag("zh-Hans-HK")), KEY));
+        assertEquals("Traditional first, the next language answers", table("de").get(KEY),
+                L10n.t(in(Locale.forLanguageTag("zh-TW"), Locale.GERMANY), KEY));
     }
 
     @Test
@@ -166,7 +195,7 @@ public class L10nTest {
     public void englishAndEveryLanguageWithNoTableReadTheEnglish() {
         assertEquals(KEY, L10n.t(in(Locale.US), KEY));
         assertEquals(KEY, L10n.t(in(Locale.FRANCE), KEY));
-        assertEquals(KEY, L10n.t(in(Locale.JAPAN, Locale.CHINA), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.JAPAN, Locale.KOREA), KEY));
         // A string nobody translated is its own English, never an empty label.
         assertEquals("Not a key of any table", L10n.t(in(Locale.GERMANY), "Not a key of any table"));
         assertEquals("", L10n.t(in(Locale.GERMANY), ""));
@@ -364,6 +393,8 @@ public class L10nTest {
                 return new Locale("pt", "BR");
             case "in":
                 return new Locale("in", "ID");
+            case "zh-hans":
+                return Locale.forLanguageTag("zh-Hans-CN");
             default:
                 return new Locale(tag);
         }

@@ -34,6 +34,7 @@ public final class MaterialLoadingIndicator {
     private boolean wasLoading;
 
     public MaterialLoadingIndicator(int color) { paint.setColor(color);paint.setStyle(Paint.Style.FILL); }
+    public void setColorFilter(android.graphics.ColorFilter filter) { paint.setColorFilter(filter); }
     public void reset() { wasLoading=false;startNanos=lastNanos=springFrameNanos=0;morphFactor=rotationDegrees=0;morphVelocity=0; }
     public void draw(Canvas canvas,float cx,float cy,float size,int alpha,boolean loading,float progress,float durationScale,long now) {
         float fraction,rotation;float[] morph;

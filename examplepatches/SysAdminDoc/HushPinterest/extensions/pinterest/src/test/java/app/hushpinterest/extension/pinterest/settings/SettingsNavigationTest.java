@@ -644,19 +644,19 @@ public class SettingsNavigationTest {
         assertTrue(String.valueOf(cards.getItem(1)).startsWith("Privacy\n"));
         assertTrue(String.valueOf(cards.getItem(2)).startsWith("Back to defaults\n"));
         try {
-            // Hide ads starts on, so Quiet turns on the other six.
+            // Hide ads starts on, so Quiet turns on the other seven.
             choices.getListView().performItemClick(null, 0, 0);
             ShadowLooper.idleMainLooper();
             for (app.hushpinterest.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.QUIET) {
                 assertTrue(setting.key, setting.savedValue());
             }
-            assertEquals("Changed 6 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 7 settings", ShadowToast.getTextOfLatestToast());
             // No screenshot share menu waits for a restart, so the row is up under the status card.
             assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
 
             assertEquals(0, page.applyQuickSetup(QuickSetupKeys.quiet()));
             assertEquals("Changed 0 settings", ShadowToast.getTextOfLatestToast());
-            assertEquals(6, page.applyQuickSetup(QuickSetupKeys.defaults()));
+            assertEquals(7, page.applyQuickSetup(QuickSetupKeys.defaults()));
             for (app.hushpinterest.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.DEFAULTS) {
                 assertEquals(setting.key, setting.defaultValue, setting.savedValue());
             }
@@ -671,8 +671,8 @@ public class SettingsNavigationTest {
     /** What a Quick setups choice says it changed is what the rows, the settings and the store hold, reopened too. */
     @Test public void aQuickSetupThatLandsAgreesWithTheRowsTheSettingsAndTheStore() {
         try {
-            assertEquals(6, page.applyQuickSetup(QuickSetupKeys.quiet()));
-            assertEquals("Changed 6 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals(7, page.applyQuickSetup(QuickSetupKeys.quiet()));
+            assertEquals("Changed 7 settings", ShadowToast.getTextOfLatestToast());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, true);
             recreate();
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, true);
@@ -695,9 +695,9 @@ public class SettingsNavigationTest {
         BooleanSetting refused = Settings.HIDE_TOPIC_SUGGESTIONS;
         try {
             try (AutoCloseable ignored = unreadableOnce(refused.key)) {
-                assertEquals(5, page.applyQuickSetup(QuickSetupKeys.quiet()));
+                assertEquals(6, page.applyQuickSetup(QuickSetupKeys.quiet()));
             }
-            assertEquals("5 changed. 1 setting is still on its saved value.", ShadowToast.getTextOfLatestToast());
+            assertEquals("6 changed. 1 setting is still on its saved value.", ShadowToast.getTextOfLatestToast());
             assertEquals("the switch showed a toast of its own as well", 1, ShadowToast.shownToastCount());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting != refused);
             recreate();
@@ -721,8 +721,8 @@ public class SettingsNavigationTest {
         BooleanSetting lost = Settings.HIDE_SAVE_TOASTS;
         try {
             dropWritesTo(lost.key);
-            assertEquals(5, page.applyQuickSetup(QuickSetupKeys.quiet()));
-            assertEquals("5 changed. 1 setting didn't. Reopen settings and try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals(6, page.applyQuickSetup(QuickSetupKeys.quiet()));
+            assertEquals("6 changed. 1 setting didn't. Reopen settings and try again.", ShadowToast.getTextOfLatestToast());
             assertEquals(1, ShadowToast.shownToastCount());
             // A change the listener had heard of and recovered would have its row back on the saved value.
             assertTrue("the control: the row doesn't show the value that was lost",
@@ -743,15 +743,15 @@ public class SettingsNavigationTest {
      */
     @Test public void aChangeTheListenerRecoveredIsCountedWhenItsValueLanded() {
         try {
-            assertEquals(6, page.applyQuickSetup(QuickSetupKeys.quiet()));
+            assertEquals(7, page.applyQuickSetup(QuickSetupKeys.quiet()));
             ShadowToast.reset();
             // Going back to a default has the setting clear its stored value, and the first of those writes is lost.
             try (FailingStore store = FailingStore.install(FailingStore.Fault.LOST)) {
-                assertEquals(6, page.applyQuickSetup(QuickSetupKeys.defaults()));
+                assertEquals(7, page.applyQuickSetup(QuickSetupKeys.defaults()));
                 // The lost write is the setting's own, and only the listener's recovery catches its failure.
                 assertTrue("the control: no write met the fault", store.editors.get() > 0);
             }
-            assertEquals("Changed 6 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 7 settings", ShadowToast.getTextOfLatestToast());
             assertEquals("the recovered switch showed a toast of its own as well", 1, ShadowToast.shownToastCount());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting.defaultValue);
             recreate();
@@ -772,9 +772,9 @@ public class SettingsNavigationTest {
         BooleanSetting second = Settings.HIDE_SAVE_TOASTS;
         try {
             try (AutoCloseable ignored = unreadableOnce(first.key, second.key)) {
-                assertEquals(4, page.applyQuickSetup(QuickSetupKeys.quiet()));
+                assertEquals(5, page.applyQuickSetup(QuickSetupKeys.quiet()));
             }
-            assertEquals("4 changed. 2 settings are still on their saved values.", ShadowToast.getTextOfLatestToast());
+            assertEquals("5 changed. 2 settings are still on their saved values.", ShadowToast.getTextOfLatestToast());
             assertEquals("each switch that failed showed a toast of its own", 1, ShadowToast.shownToastCount());
             for (BooleanSetting setting : QuickSetupKeys.QUIET) assertHolds(setting, setting != first && setting != second);
 
@@ -1246,6 +1246,8 @@ public class SettingsNavigationTest {
         summaryContains(Settings.BLACK_COMMENTS.key, "In dark mode", "comments sheet and its reply bar pure black", "Light mode stays", "next time you open comments");
         summaryContains(Settings.BLACK_PIN_MENU.key, "In dark mode", "a pin's menu pure black", "Light mode stays", "next time you open the menu");
         summaryContains(Settings.BLACK_SAVE_SHEET.key, "In dark mode", "lists your boards when you save a pin pure black", "Light mode stays", "next time you save a pin");
+        summaryContains(Settings.BLACK_SHEETS.key, "In dark mode", "menus and sheets that slide up pure black", "Light mode stays", "next time you open one");
+        summaryContains(Settings.BLACK_BOARDS.key, "In dark mode", "floats over a board", "Light mode stays", "next time you open a board or your profile");
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key, "Search image label", "first pins each day", "Tapping the lens still searches", "next pin you open");
@@ -1265,16 +1267,32 @@ public class SettingsNavigationTest {
         summaryContains(Settings.DOWNLOAD_SAVED_PINS.key, "also downloads it", "from any screen", "Needs Download pins on");
         summaryContains(Settings.LONG_PRESS_HIDE_SAVE.key, "Pinterest's Save button", "long-press menu", "Saving from the pin itself still works");
         summaryContains(Settings.LONG_PRESS_HIDE_SEND.key, "Pinterest's Send button", "long-press menu", "Sharing from the pin itself still works");
+        summaryContains(Settings.LONG_PRESS_HIDE_SEND_APP.key, "straight to WhatsApp or the app you last shared with", "long-press menu", "Send still lists every app");
         summaryContains(Settings.LONG_PRESS_HIDE_SEARCH.key, "Pinterest's Search image button", "long-press menu", "The lens on a pin you open still searches");
+        summaryContains(Settings.LONG_PRESS_VIEW.key, "View to a grid pin's long-press menu", "full screen without opening the pin", "Pinch or double-tap to zoom");
         summaryContains(Settings.HIDE_COMMENTS.key, "comments and comment previews under pins", "next time the screen updates", "doesn't change who can comment");
         summaryContains(Settings.HIDE_SUGGESTED_REPLIES.key, "suggested replies next to the comment box", "write and post your own comment", "next time you open comments");
         summaryContains(Settings.HIDE_COMMENT_PREVIEWS.key, "comment photos shown under a pin", "comment box and the way into all comments stay", "next time the screen updates");
         summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");
         summaryContains(Settings.HIDE_INBOX_UPDATES.key, "Updates section out of your Inbox", "Pinterest doesn't load it", "Your messages stay");
         summaryContains(Settings.HIDE_HOME_SUGGESTIONS.key, "\"More ideas for your board\"", "\"See more like this?\" bubble off pins", "next time Home loads");
+        summaryContains(Settings.HIDE_SAVED_PINS.key, "out of your home feed", "Your boards still show them");
+        summaryContains(Settings.BACK_LEAVES_HOME.key, "scrolled down Home", "Back leaves Pinterest",
+                "instead of jumping to the top");
+        summaryContains(Settings.HIDE_SAVED_PINS_ELSEWHERE.key, "out of search results", "More to explore pins under a pin you open",
+                "Your boards still show them");
         summaryContains(Settings.QUIET_EMAIL_REMINDER.key, "optional reminder to confirm your email", "already open stays", "sign-in still work as usual");
         summaryContains(Settings.HIDE_SURVEY_PROMPTS.key, "\"Got a minute?\" survey invite", "the way Maybe later does",
                 "sponsored polls don't pop up", "already open stays");
+        summaryContains(Settings.HIDE_POPUP_BANNERS.key, "banners Pinterest pops up over your feed",
+                "\"Shop recommended merchants\"", "the way their X does", "already open stays");
+        summaryContains(Settings.HIDE_RELATED_PINS.key, "grid of more pins", "doesn't load", "next pin you open");
+        summaryContains(Settings.HIDE_CREATOR_NAME.key, "creator's name and badge", "picture stays",
+                "still opens their profile", "next pin you open");
+        summaryContains(Settings.CUSTOM_SAVE_SOUND.key, "sound you pick below", "when you save a pin",
+                "With no sound picked, Pinterest's plays");
+        summaryContains(Settings.CUSTOM_SPLASH_LOGO.key, "logo picked when patching", "Android 13 and newer",
+                "from the next start");
     }
 
     @Test public void aliasesKeepAccentMatchingGroupingAndTheSpokenResultCount() {
@@ -1319,6 +1337,8 @@ public class SettingsNavigationTest {
         assertTrue(contains(Settings.BLACK_COMMENTS.key));
         assertTrue(contains(Settings.BLACK_PIN_MENU.key));
         assertTrue(contains(Settings.BLACK_SAVE_SHEET.key));
+        assertTrue(contains(Settings.BLACK_SHEETS.key));
+        assertTrue(contains(Settings.BLACK_BOARDS.key));
         assertFalse(contains(Settings.BLACK_BOTTOM_BAR.key));
     }
 

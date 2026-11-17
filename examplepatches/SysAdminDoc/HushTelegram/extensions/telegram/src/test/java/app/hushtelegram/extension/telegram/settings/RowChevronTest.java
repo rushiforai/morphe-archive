@@ -54,6 +54,7 @@ import java.util.Set;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
+import app.hushtelegram.extension.telegram.misc.ListBackground;
 
 /**
  * A row a tap opens something from wears a chevron, so it reads as one by its shape and not only by
@@ -71,8 +72,15 @@ public class RowChevronTest {
 
     /** Every row on the screen whose tap opens a dialog, a file picker, the browser, Android's settings or another page. */
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
-            "Jump to a section", "Folder to open", "Chats to hide", "Accounts to hide", "Folder icons", "Your proxy lists", "Proxy order", "Filters for groups", "Filters for channels", "Translation service", "Translate into", "What to copy", "Gallery folder", "Folder in internal storage", "Notification status on this phone", "Push app", "Open a chat by ID", "Tracked people", "Emoji next to the chat list title", "Sticker size", "Exception chats", "Delete account", "Calls to record", "Chats to record", "Keep recordings", "Recordings folder", "Forwarding rules", "Supported links", "Export settings", "Import settings",
+            "Jump to a section", "Folder to open", "Chats to hide", "Accounts to hide", "Folder icons", "Avatar size", "Your proxy lists", "Proxy order", "Link preview rules", "Filters for groups", "Filters for channels", "Translation service", "Translate into", "What to copy", "Gallery folder", "Folder in internal storage", "Notification status on this phone", "Push app", "Open a chat by ID", "Bookmarks", "Remove kept messages after", "Tracked people", "Emoji next to the chat list title", "Text for the chat list title", "Chat list banner", "Background picture", "Font file", "Sticker size", "Voice changer", "Exception chats", "Device in Active sessions", "Delete account", "Calls to record", "Chats to record", "Keep recordings", "Recordings folder", "Forwarding rules", "Supported links", "Export settings", "Import settings",
             "Quick setups", "Export diagnostic report", "Source code and issues", "Licenses"));
+
+    /** What this phone shows of {@link #OPENS_SOMETHING}: the Background picture row takes Android 13. */
+    private static Set<String> opensSomething() {
+        Set<String> shown = new LinkedHashSet<>(OPENS_SOMETHING);
+        if (!ListBackground.supported()) shown.remove("Background picture");
+        return shown;
+    }
 
     /** Built by the first show(), after a test has set the text size it wants. */
     private ActivityController<Activity> controller;
@@ -116,7 +124,7 @@ public class RowChevronTest {
             assertTrue(title + " wears a chevron and has nothing to open", preference instanceof DialogPreference
                     || preference.getOnPreferenceClickListener() != null);
         }
-        assertEquals(OPENS_SOMETHING, wearing);
+        assertEquals(opensSomething(), wearing);
         assertTrue("Licenses and Version still look alike", wearing.contains("Licenses") && !wearing.contains("Version"));
         // Hide ads, the two privacy switches, the release check, Pause and Debug logging.
         assertTrue("only " + switches + " switch rows", switches >= 6);
@@ -248,7 +256,7 @@ public class RowChevronTest {
             float[] at = ((ScreenColors.Chevron) chevron.getDrawable()).points();
             assertEquals(name + " points the wrong way", rightToLeft, at[2] < at[0]);
         }
-        assertEquals("rows with a chevron: " + placed, OPENS_SOMETHING.size(), placed.size());
+        assertEquals("rows with a chevron: " + placed, opensSomething().size(), placed.size());
         // At twice the text size the rows have to wrap, or this proves nothing about wrapping.
         for (View row : rows) {
             if (!"action_export_diagnostic_report".equals(item(row).getKey())) continue;

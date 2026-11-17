@@ -326,6 +326,8 @@ TESTING_PACKAGES = {
     "com.lonelycatgames.Xplore",    # X-plore
     "com.yinyang.launcher",         # Yin Yang Launcher
     "com.pika.dynamicisland",       # Pika Spot: walled on-device (server rejects re-signed builds)
+    "org.skvalex.cr",               # Call Recorder: very unstable — 3.6.9 set not yet confirmed on-device (Matsen 2026-11-16)
+    "com.astech.forscanlite",       # FORScan Lite: native core verifies the signer cert at init — re-signed builds cannot initialize (Matsen 2026-11-16)
 }
 
 # README-display experimental overrides (owner decision 2026-11-09):

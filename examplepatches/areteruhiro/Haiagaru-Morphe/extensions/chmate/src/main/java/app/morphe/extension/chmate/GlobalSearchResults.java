@@ -26,7 +26,9 @@ final class GlobalSearchResults {
     }
     private static synchronized Database db(Context c){if(database==null)database=new Database(c.getApplicationContext());return database;}
     static String key(String query){
-        try{byte[] digest=MessageDigest.getInstance("SHA-256").digest(query.trim().getBytes(StandardCharsets.UTF_8));StringBuilder b=new StringBuilder();for(byte n:digest)b.append(String.format(Locale.ROOT,"%02x",n));return b.toString();}
+        try{byte[] digest=MessageDigest.getInstance("SHA-256").digest(query.trim().getBytes(StandardCharsets.UTF_8));
+            char[] hex="0123456789abcdef".toCharArray(),out=new char[digest.length*2];
+            for(int i=0;i<digest.length;i++){int value=digest[i]&255;out[i*2]=hex[value>>>4];out[i*2+1]=hex[value&15];}return new String(out);}
         catch(Exception e){throw new IllegalStateException(e);}
     }
     static SharedPreferences metadata(Context c){return c.getSharedPreferences("haiagaru-global-search-results",0);}

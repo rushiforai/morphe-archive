@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 /** Display-time epochs only. Stable native thread IDs, URLs and stored records are untouched. */
 internal fun BytecodePatchContext.patchSiteThreadMetadata(version:String){
     val old=version.contains("191");val middle=version.contains("226")
+    patchSiteMomentumSort(old,middle)
     patchSitePropertyPopup(old,middle)
     patchSiteBoardListName(old,middle)
     val owner=mutableClassDefBy(if(old)"Lo/m8a;" else if(middle)"Lo/getWriteBytesTotal;" else "Lo/zzavb;")
@@ -86,6 +87,49 @@ internal fun BytecodePatchContext.patchSiteThreadMetadata(version:String){
         update.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_VOID}.map{it.index}.asReversed().forEach{update.addInstructionsWithLabels(it,"invoke-static {}, $runtime->end()V")}
     }
     println("Native site creation date/momentum: $version, fixed display/calculation anchors")
+}
+
+/** Patch only the momentum comparator; other native sort keys keep their own implementation. */
+private fun BytecodePatchContext.patchSiteMomentumSort(old:Boolean,middle:Boolean){
+    val runtime="Lapp/morphe/extension/chmate/SiteMomentumSort;"
+    val comparator=mutableClassDefBy(if(old)"Lo/MaxAdViewImplb\$RemoteActionCompatParcelizer;" else if(middle)"Lo/asciiToLowercase\$read;" else "Lo/zzavd\$RemoteActionCompatParcelizer;")
+    val compare=comparator.methods.single{it.name=="compare"&&it.parameterTypes==listOf("Ljava/lang/Object;","Ljava/lang/Object;")&&it.returnType=="I"}
+    check(compare.implementation!!.registerCount>=5)
+    compare.addInstructionsWithLabels(0,"""
+        invoke-static {p1, p2}, $runtime->compare(Ljava/lang/Object;Ljava/lang/Object;)I
+        move-result v0
+        const v1, -0x80000000
+        if-eq v0, v1, :native
+        return v0
+        :native
+        nop
+    """.trimIndent())
+    val model=if(old)"Lo/MaxAdViewImplExternalSyntheticLambda2;" else if(middle)"Lo/verifyHostname;" else "Lo/zzauw;"
+    val subject=if(old)"Lo/MaxAdViewImplExternalSyntheticLambda1;" else if(middle)"Lo/CertificateChainCleaner;" else "Lo/setSkipText;"
+    var count=0
+    // Scan first, then mutate. Only methods using the exact board-list row types qualify.
+    val classes=mutableMapOf<String,com.android.tools.smali.dexlib2.iface.ClassDef>()
+    boundClassForEach("SiteMomentumSort") { classes[it.type]=it }
+    val targets=classes.values.flatMap{type->type.methods.filter{method->
+        val code=method.implementation?.instructions?:return@filter false
+        code.any{insn->val ref=(insn as? ReferenceInstruction)?.reference
+            (ref is FieldReference&&(ref.definingClass==model||ref.definingClass==subject))||
+                (ref is MethodReference&&ref.definingClass==comparator.type)}&&
+            code.any{insn->((insn as? ReferenceInstruction)?.reference as? MethodReference)?.toString()=="Ljava/util/Collections;->sort(Ljava/util/List;Ljava/util/Comparator;)V"}
+    }.map{type.type to it.name}}
+    for((owner,name) in targets){
+        val type=mutableClassDefBy(owner)
+        for(method in type.methods.filter{it.name==name}){
+            val sites=method.implementation?.instructions?.withIndex()?.filter{(_,insn)->((insn as? ReferenceInstruction)?.reference as? MethodReference)?.toString()=="Ljava/util/Collections;->sort(Ljava/util/List;Ljava/util/Comparator;)V"}.orEmpty()
+            for((index,insn) in sites){
+                if(insn is FiveRegisterInstruction)method.replaceInstruction(index,"invoke-static {v${insn.registerC}, v${insn.registerD}}, $runtime->sort(Ljava/util/List;Ljava/util/Comparator;)V")
+                else error("Unexpected native board sort instruction")
+                count++
+            }
+        }
+    }
+    check(count==2){"Native board momentum sort entries changed: $count (primary list and filter must both be scoped)"}
+    println("Site momentum sort: $count stable-snapshot sort entries")
 }
 
 /** Edit display strings and the board button only; never replace the saved thread/board IDs. */

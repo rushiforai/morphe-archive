@@ -3,6 +3,7 @@ package app.morphe.patches.youtube.layout.hide.ambientmode
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterLast
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
@@ -149,6 +150,22 @@ internal fun cinematicContainerRendererLoadedStateFingerprint(stateType: String)
     )
 )
 
+/**
+ * Receives the Ambient mode toggle of the player flyout menu when the app resumes and whenever
+ * it changes, and saves it as the state of the menu item.
+ */
+internal object AmbientModeToggleFingerprint : Fingerprint(
+    filters = listOf(
+        checkCast("Ljava/lang/Boolean;"),
+        string("menu_item_cinematic_lighting", location = MatchAfterWithin(8)),
+        methodCall(
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/Boolean;"),
+            returnType = "V",
+            location = MatchAfterImmediately()
+        ),
+    )
+)
+
 internal object IntentActionBroadcastReceiverFingerprint : Fingerprint(
     superclass = "Landroid/content/BroadcastReceiver;",
     name = "onReceive",
@@ -284,6 +301,19 @@ internal object PowerSaveModeSyntheticFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
         methodCall(smali = IS_POWER_SAVE_MODE_METHOD_CALL)
+    )
+)
+
+/**
+ * Draws the background of a view, such as a row of the playlist, and the touch feedback over it.
+ */
+internal object TouchFeedbackDrawableDrawFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/spec/motion/TouchFeedbackDrawable;",
+    name = "draw",
+    returnType = "V",
+    parameters = listOf("Landroid/graphics/Canvas;"),
+    filters = listOf(
+        methodCall(smali = "Landroid/graphics/drawable/Drawable;->draw(Landroid/graphics/Canvas;)V")
     )
 )
 

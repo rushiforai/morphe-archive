@@ -49,6 +49,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:buildAndroid
 
+      # The phone and Android TV bundles of the planned split must keep
+      # compiling. See shared/misc/BundleFlavor.kt.
+      - name: Compile the split bundles
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:compileKotlin -Pflavor=phone
+          ./gradlew :patches:compileKotlin -Pflavor=tv
+
   scripts:
     name: Scripts and issue forms
     permissions:
@@ -68,3 +77,6 @@ jobs:
 
       - name: Check the issue forms list every app
         run: python .github/scripts/check_issue_forms.py
+
+      - name: Check the TV repository files are up to date
+        run: python .github/scripts/build_tv_repo.py --check

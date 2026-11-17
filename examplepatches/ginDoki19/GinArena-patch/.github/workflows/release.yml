@@ -34,6 +34,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # GitHub intermittently rejects semantic-release's push of
+      # refs/notes/semantic-release-<tag>. That push happens AFTER the tag and commit are
+      # already on the remote, and semantic-release treats the rejection as fatal, so the run
+      # dies before the "publish" step: tag exists, GitHub Release does not, and a plain
+      # re-run finds the tag and publishes nothing. v2.11.0 was lost that way on 2026-11-14.
+      #
+      # The wrapper below retries only that one push and ignores its final failure (the notes
+      # merely record which channel a release belongs to). Every other git command is passed
+      # through untouched.
+      - name: Install git notes-push retry shim
+        run: |
+          mkdir -p "$RUNNER_TEMP/git-shim"
+          cp .github/scripts/git-notes-retry/git "$RUNNER_TEMP/git-shim/git"
+          chmod +x "$RUNNER_TEMP/git-shim/git"
+          echo "--- smoke test ---"
+          "$RUNNER_TEMP/git-shim/git" --version
+          echo "$RUNNER_TEMP/git-shim" >> "$GITHUB_PATH"
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
@@ -48,6 +66,50 @@ jobs:
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
+
+      # The README carries a direct download link, written by generate_patches_readme.py in
+      # semantic-release's prepareCmd. If @semantic-release/github fails to attach the asset,
+      # or attaches it under a different name, the release still goes out — with a link that
+      # 404s for every reader. Nothing looks at that link after it is written, so this does:
+      # it reads the link out of the README and fetches it.
+      #
+      # The link is read rather than rebuilt so this checks where a reader is actually sent,
+      # and the asset name is not forced to match a template — only the repository and the
+      # version are, which is what a stale or copied link gets wrong.
+      - name: The download link in README resolves
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          prefix="https://github.com/${REPO}/releases/download/v${VERSION}/"
+          link="$(grep -o 'https://github.com/[^)]*/releases/download/[^)]*\.mpp' README.md | head -1 || true)"
+          echo "README link: ${link:-<none>}"
+          echo "Must start: ${prefix}"
+          if [ -z "${link}" ]; then
+            echo "::error::README.md has no download link."
+            exit 1
+          fi
+          case "${link}" in
+            "${prefix}"*) ;;
+            *)
+              echo "::error::README.md links ${link}, which is not an asset of v${VERSION}."
+              exit 1
+              ;;
+          esac
+          # GitHub can take a moment to serve a freshly attached asset.
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' -L "${link}" || echo 000)"
+            echo "attempt ${attempt}: HTTP ${code} for ${link}"
+            if [ "${code}" = "200" ]; then
+              echo "::notice::The README download link resolves (${link})."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::${link} did not return HTTP 200."
+          exit 1
 
       # Always verify compilation when semantic-release did not publish a release.
       # This covers non-main/dev branches, chore commits, docs commits, etc.

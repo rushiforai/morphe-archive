@@ -97,6 +97,37 @@ public class ProfileHistorySettingsTest {
         }
     }
 
+    /** #715: Save changed pictures sits right under Keep profile history, starts off and waits for it. */
+    @Test public void theGallerySwitchSitsUnderKeepProfileHistoryAndWaitsForIt() throws Exception {
+        assertFalse(Settings.PROFILE_HISTORY_SAVE_PICTURES.get());
+        assertTrue(PatchFamily.PROFILE_PICTURE.switches.contains(Settings.PROFILE_HISTORY_SAVE_PICTURES));
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PROFILE_PICTURE);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.PROFILE_HISTORY_SAVE_PICTURES.key));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(controller);
+            SwitchPreference keep = (SwitchPreference) page.findPreference(Settings.PROFILE_HISTORY.key);
+            Preference save = page.findPreference(Settings.PROFILE_HISTORY_SAVE_PICTURES.key);
+            assertTrue(save instanceof SwitchPreference);
+            assertEquals("Save changed pictures to the gallery", String.valueOf(save.getTitle()));
+            assertEquals("When a profile you open has a new picture, puts the old picture and the new one in your "
+                    + "gallery, each once. Needs Keep profile history.", String.valueOf(save.getSummary()));
+            assertFalse(((SwitchPreference) save).isChecked());
+            android.preference.PreferenceGroup profiles = StoryTimeSettingsTest.sectionOf(page.getPreferenceScreen(), save);
+            assertEquals("Profiles", String.valueOf(profiles.getTitle()));
+            int at = -1;
+            for (int row = 0; row < profiles.getPreferenceCount(); row++) {
+                if (profiles.getPreference(row) == keep) at = row;
+            }
+            assertTrue("right under Keep profile history", at >= 0 && profiles.getPreference(at + 1) == save);
+            assertFalse("it waits for Keep profile history", save.isEnabled());
+            keep.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(save.isEnabled());
+        } finally {
+            Settings.PROFILE_HISTORY_SAVE_PICTURES.resetToDefault();
+        }
+    }
+
     @Test public void theRowReadsTheNewestChangesFirstAndNothingWhenEmpty() {
         long now = 10_000_000L;
         assertEquals("Nothing here yet. With Keep profile history on, the old usernames, bios and pictures "
@@ -214,12 +245,40 @@ public class ProfileHistorySettingsTest {
             assertTrue(person.getPaddingLeft() > 0);
             assertEquals(ProfileHistoryPage.PICTURE_DP * context.getResources().getDisplayMetrics().density,
                     picture.getChildAt(0).getLayoutParams().width, 1f);
+
+            // #611: tapping the old picture's circle opens it full screen. A username's person isn't a button.
+            assertTrue(kept.isClickable());
+            assertEquals("View picture", String.valueOf(kept.getContentDescription()));
+            assertFalse(person.isClickable());
+            assertEquals(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, person.getImportantForAccessibility());
+            kept.performClick();
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            android.app.Dialog viewer = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertTrue("the picture opened over the page", viewer != page.dialog && viewer.isShowing());
+            viewer.dismiss();
+            page.dialog.dismiss();
         } finally {
             restore.run();
         }
     }
 
-    /** A long press copies the old username or the old bio. A picture has nothing to copy. */
+    /** #611: each change says the dates its old value was seen between, or the one date. */
+    @Test public void aChangeSaysTheDatesItsOldValueWasSeen() {
+        Context context = RuntimeEnvironment.getApplication();
+        // Noon UTC, the same date in every US time zone.
+        long january5 = 1_767_614_400_000L, march9 = 1_773_057_600_000L;
+        ProfileHistoryRows.visit(context, "1", "amy", "first", "", january5);
+        ProfileHistoryRows.visit(context, "1", "amy", "second", "", march9);
+        ProfileHistoryRows.visit(context, "2", "zed", null, "", january5);
+        ProfileHistoryRows.visit(context, "2", "zed2", null, "", january5 + 60_000L);
+        List<ProfileHistory.Past> past = ProfileHistory.past(context);
+        assertEquals(2, past.size());
+        assertEquals("Seen from Jan 5, 2026 to Mar 9, 2026", ProfileHistoryPage.Rows.dates(context, past.get(0)));
+        assertEquals("Seen on Jan 5, 2026", ProfileHistoryPage.Rows.dates(context, past.get(1)));
+    }
+
+    /** A long press copies the old username or the old bio, and views or saves an old picture (#611). */
     @Test public void aLongPressCopiesTheOldUsernameOrBio() throws Exception {
         long now = System.currentTimeMillis();
         Context context = RuntimeEnvironment.getApplication();
@@ -238,10 +297,12 @@ public class ProfileHistorySettingsTest {
             for (ProfileHistory.Past change : past) {
                 android.view.Menu menu = new android.widget.PopupMenu(context, new android.view.View(context)).getMenu();
                 ProfileHistoryPage.fill(menu, change);
-                offered.add(change.entry.field + "=" + (menu.size() == 0 ? "" : String.valueOf(menu.getItem(0).getTitle())));
+                List<String> titles = new ArrayList<>();
+                for (int at = 0; at < menu.size(); at++) titles.add(String.valueOf(menu.getItem(at).getTitle()));
+                offered.add(change.entry.field + "=" + String.join("|", titles));
             }
             Collections.sort(offered);
-            assertEquals(Arrays.asList("BIO=Copy bio", "PICTURE=", "USERNAME=Copy username"), offered);
+            assertEquals(Arrays.asList("BIO=Copy bio", "PICTURE=View picture|Save picture", "USERNAME=Copy username"), offered);
 
             HushgramPreferenceFragment settings = DownloadSettingsTest.pageIn(controller);
             ProfileHistoryPage page = ProfileHistoryPage.open(controller.get(),

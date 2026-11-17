@@ -1,7 +1,14 @@
-# KakaoMap scan scope for scan_smali.py --scope (source file name patterns; every obfuscated package that holds a
-# matching class is scanned, so new files in those packages are scanned too). 'pkg:' = package prefix.
+# KakaoMap scan scope for scan_smali.py --scope.
+#   <pattern>      source file name (fnmatch); every obfuscated package holding a matching class is scanned
+#                  (6.32+ flattens obfuscated classes into the default package: then class by class)
+#   module:<re>    every source file with a class naming a Kotlin internal member '$<module>' (whole SDK modules,
+#                  including files whose names are new in a version)
+#   pkg:<prefix>   package prefix
 # KNSDK (car navigation engine + UI)
 KN*
+module:app_knsdk_\w+Release
+# Kakao Mobility Location SDK (Kotlin module 'library')
+module:library_release
 # Kakao Mobility Location SDK (KM path: data sources, validity checks, Kalman filter, indoor) - seed names from 5.17.8
 KM*
 LocationSDK.kt
@@ -19,6 +26,13 @@ ValidityModel.kt
 KalmanFilter2D.kt
 AlgorithmVehicle.kt
 ValidCheckerVehicle.kt
+# 6.32.0 names of the rewritten location SDK
+ValidChecker.kt
+Kalman*.kt
+GpsDataSource.kt
+FlpDataSource.kt
+SharedRepository.kt
+LocationSDK*.kt
 GatewayApiProvider.kt
 FinData.kt
 ErrorHandler.kt

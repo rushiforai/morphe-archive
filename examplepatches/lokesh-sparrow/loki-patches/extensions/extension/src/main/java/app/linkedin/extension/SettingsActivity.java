@@ -57,7 +57,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 
@@ -449,6 +451,12 @@ public class SettingsActivity extends Activity {
                 }
             });
         }
+        if (linkedIn && Settings.isGmsCoreSupportIncluded()) {
+            page.sw(Settings.GMS_CORE_BATTERY_REMINDER, true, "microG RE battery reminder",
+                    "Reminds you when Android limits microG RE in the background. Notifications and Google sign-in "
+                            + "go through microG RE, so they can arrive late or fail while it is limited.");
+            page.rows.get(page.rows.size() - 1).restart = false;
+        }
         if (linkedIn) {
             page.shown("Language", () -> languageNames()[languageIndex()], this::chooseLanguage, YES);
         }
@@ -477,6 +485,26 @@ public class SettingsActivity extends Activity {
     private ImageButton searchButton;
     private LinearLayout content;
     private ScrollView scroll;
+
+    // Where each screen was left scrolled. Acrobat, LinkedIn and the rest share this screen, and every visit
+    // used to start at the top: going back from a page (or About) threw away the position the user had
+    // scrolled to. Keyed by screen (see screenKey), so a page also reopens where it was left.
+    private final Map<String, Integer> scrollOffsets = new HashMap<>();
+
+    /** The screen currently drawn: the page list, one page, About, Credits or the search results. */
+    private String screenKey() {
+        if (searching) return "search";
+        if (cardPage != null) return "card:" + cardPage;
+        if (openPage != null) return "page:" + openPage.title;
+        return "home";
+    }
+
+    /** State change to another screen: remember this one's position, draw the next, restore its own. */
+    private void navigate(Runnable change) {
+        scrollOffsets.put(screenKey(), scroll.getScrollY());
+        change.run();
+        render();
+    }
     private View restartBanner;
 
     // region Called from other classes
@@ -617,7 +645,42 @@ public class SettingsActivity extends Activity {
 
         pages = pages();
         setContentView(buildLayout());
+        if (savedInstanceState != null) restoreScreen(savedInstanceState);
         render();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        scrollOffsets.put(screenKey(), scroll.getScrollY());
+        String[] keys = scrollOffsets.keySet().toArray(new String[0]);
+        int[] values = new int[keys.length];
+        for (int i = 0; i < keys.length; i++) values[i] = scrollOffsets.get(keys[i]);
+        out.putString("loki.screen", screenKey());
+        out.putStringArray("loki.scroll.keys", keys);
+        out.putIntArray("loki.scroll.values", values);
+    }
+
+    /** Rebuild the remembered positions, and reopen the page that was open before the screen was recreated. */
+    private void restoreScreen(Bundle saved) {
+        String[] keys = saved.getStringArray("loki.scroll.keys");
+        int[] values = saved.getIntArray("loki.scroll.values");
+        if (keys != null && values != null) {
+            for (int i = 0; i < keys.length && i < values.length; i++) scrollOffsets.put(keys[i], values[i]);
+        }
+        String screen = saved.getString("loki.screen");
+        if (screen == null) return;
+        if (screen.startsWith("page:")) {
+            String title = screen.substring("page:".length());
+            for (Page page : pages) {
+                if (page.title.equals(title)) {
+                    openPage = page;
+                    return;
+                }
+            }
+        } else if (screen.startsWith("card:")) {
+            cardPage = screen.substring("card:".length());
+        }
     }
 
     private View buildLayout() {
@@ -643,14 +706,11 @@ public class SettingsActivity extends Activity {
         if (searching) {
             setSearching(false);
         } else if ("Credits".equals(cardPage)) {
-            cardPage = "About";
-            render();
+            navigate(() -> cardPage = "About");
         } else if (cardPage != null) {
-            cardPage = null;
-            render();
+            navigate(() -> cardPage = null);
         } else if (openPage != null) {
-            openPage = null;
-            render();
+            navigate(() -> openPage = null);
         } else {
             super.onBackPressed();
         }
@@ -690,7 +750,16 @@ public class SettingsActivity extends Activity {
         // Search covers the settings rows; About and Credits have none, so the button goes.
         searchButton.setVisibility(cardPage != null ? View.GONE : View.VISIBLE);
         fill();
-        scroll.scrollTo(0, 0);
+        restoreScroll(scrollOffsets.getOrDefault(screenKey(), 0));
+    }
+
+    /**
+     * Scroll back to a remembered offset. The rows were just rebuilt, so the new range only exists after the next
+     * layout pass; the second post re-applies the offset if the first ran before the content was measured.
+     */
+    private void restoreScroll(int offset) {
+        scroll.post(() -> scroll.scrollTo(0, offset));
+        scroll.post(() -> scroll.scrollTo(0, offset));
     }
 
     /** Redraw in place and stay at the same scroll offset, after a change made on this page. */
@@ -720,10 +789,7 @@ public class SettingsActivity extends Activity {
         for (int i = 0; i < pages.size(); i++) {
             Page page = pages.get(i);
             if (i == firstStandardPage && i > 0) content.addView(sectionGap());
-            content.addView(navRow(page.icon, page.title, v -> {
-                openPage = page;
-                render();
-            }));
+            content.addView(navRow(page.icon, page.title, v -> navigate(() -> openPage = page)));
         }
         content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
     }
@@ -857,6 +923,8 @@ public class SettingsActivity extends Activity {
     }
 
     private void setSearching(boolean on) {
+        // Leaving or entering search is a screen change too: keep the list's position for when search closes.
+        scrollOffsets.put(screenKey(), scroll.getScrollY());
         searching = on;
         searchButton.setImageDrawable(new IconDrawable(on ? IconDrawable.CLOSE : IconDrawable.SEARCH, ink));
         InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -953,8 +1021,7 @@ public class SettingsActivity extends Activity {
     // region About and its dialogs
 
     private void showAbout() {
-        cardPage = "About";
-        render();
+        navigate(() -> cardPage = "About");
     }
 
     private void drawAbout() {
@@ -1013,10 +1080,7 @@ public class SettingsActivity extends Activity {
         link(links, IconDrawable.CODE, "GitHub", () -> openUrl(repo));
         link(links, IconDrawable.HISTORY, "Changelog", () -> openUrl(repo + "/releases"));
         link(links, IconDrawable.BUG, "Report a bug", () -> openUrl(repo + "/issues/new/choose"));
-        link(links, IconDrawable.PEOPLE, "Credits", () -> {
-            cardPage = "Credits";
-            render();
-        });
+        link(links, IconDrawable.PEOPLE, "Credits", () -> navigate(() -> cardPage = "Credits"));
         card.addView(links, wide());
 
         card.addView(placed(label(f("%1$s is not made by %2$s and is not part of the Morphe project.",

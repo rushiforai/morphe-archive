@@ -73,6 +73,12 @@ public final class ThreadCommands {
             if(fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6")&&!thread)
                 PostAutoReload191.editor(root,url);
             EditText body = (EditText) field(binding, bodyName);
+            try{
+                EditText title=(EditText)field(binding,versionTitleField(fragment));
+                String version=body.getContext().getPackageManager().getPackageInfo(body.getContext().getPackageName(),0).versionName;
+                String limitsBoard=(String)target.getClass().getMethod(boardUrlMethod).invoke(target);
+                PostEditorLimits.bind(root,body,title,model,version,limitsBoard,thread);
+            }catch(Exception unavailable){android.util.Log.w("Haiagaru","Posting-limit binding unavailable",unavailable);}
             attachSiteImage(root,body,url);
             ExternalBoardAuth.target(fragment, url, body);
             // 191's authentication target is a board URL even for replies. Handoff
@@ -104,6 +110,9 @@ public final class ThreadCommands {
         } catch (Exception e) {
             android.util.Log.w("Haiagaru", "Thread command UI unavailable", e);
         }
+    }
+    private static String versionTitleField(Object fragment){
+        return fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6")?"u":"q";
     }
     private static void attachSiteImage(View root,EditText body,String url){
         if(url==null||root.findViewWithTag("haiagaru.site.image")!=null)return;

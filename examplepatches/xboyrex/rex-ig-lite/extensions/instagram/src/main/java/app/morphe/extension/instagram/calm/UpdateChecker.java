@@ -201,7 +201,7 @@ public final class UpdateChecker implements Runnable {
     public static void checkNow(Context context) {
         if (context == null) return;
         if (!isOfficialBuild(context)) {
-            Toast.makeText(context, "You patched this build yourself: update it from Morphe Manager.",
+            Toast.makeText(context, "Check GitHub releases for the latest Rex IG Lite update.",
                     Toast.LENGTH_LONG).show();
             return;
         }

@@ -3,7 +3,7 @@ package app.template.patches.truecaller.ads
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.truecaller.shared.overrideFeatureToggle

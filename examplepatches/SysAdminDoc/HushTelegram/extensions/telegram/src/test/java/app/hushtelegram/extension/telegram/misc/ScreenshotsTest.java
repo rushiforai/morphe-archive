@@ -29,6 +29,8 @@ public class ScreenshotsTest {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.ALLOW_SCREENSHOTS);
         Settings.ALLOW_SCREENSHOTS.resetToDefault();
+        SettingReadsForTests.mend(Settings.SECRET_CHAT_SCREENSHOTS);
+        Settings.SECRET_CHAT_SCREENSHOTS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -62,6 +64,34 @@ public class ScreenshotsTest {
         SettingReadsForTests.breakReads(Settings.ALLOW_SCREENSHOTS);
         assertTrue(Screenshots.protectedContent(1));
         assertFalse(Screenshots.storyAllowed(0));
+        assertFalse(HookStatus.missing(FamilyNames.MESSAGE_MENU_REPEAT).isEmpty());
+    }
+
+    @Test public void aSecretChatIsLetThroughOnlyWithBothSwitchesOn() {
+        // #82: the secret chat Telegram reads goes back unchanged, so capture stays blocked.
+        Object chat = new Object();
+        assertSame(chat, Screenshots.secretChat(chat));
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        assertSame("the first switch alone keeps secret chats blocked", chat, Screenshots.secretChat(chat));
+        Settings.ALLOW_SCREENSHOTS.save(false);
+        Settings.SECRET_CHAT_SCREENSHOTS.save(true);
+        assertSame("the second needs the first", chat, Screenshots.secretChat(chat));
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        assertNull(Screenshots.secretChat(chat));
+        assertTrue(String.join("\n", HookStatus.report()).contains("secret chat screenshot allowed"));
+        // Outside a secret chat there's nothing to let through.
+        assertNull(Screenshots.secretChat(null));
+    }
+
+    @Test public void aSecretChatStaysBlockedWhenPausedOrBroken() {
+        Object chat = new Object();
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.SECRET_CHAT_SCREENSHOTS.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertSame(chat, Screenshots.secretChat(chat));
+        PauseForTests.resume();
+        SettingReadsForTests.breakReads(Settings.SECRET_CHAT_SCREENSHOTS);
+        assertSame(chat, Screenshots.secretChat(chat));
         assertFalse(HookStatus.missing(FamilyNames.MESSAGE_MENU_REPEAT).isEmpty());
     }
 }

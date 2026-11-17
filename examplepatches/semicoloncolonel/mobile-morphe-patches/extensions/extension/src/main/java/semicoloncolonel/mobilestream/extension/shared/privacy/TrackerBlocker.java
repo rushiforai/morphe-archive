@@ -75,6 +75,20 @@ public final class TrackerBlocker {
             "litix.io", // Mux Data
             "nmrodam.com", // Nielsen SDK config
             "datadoghq.com", "datadoghq.eu", // Datadog session monitoring
+            // AB Tasty Flagship hit tracking (Reuters). decision.flagship.io serves
+            // the feature flags themselves and is left alone.
+            "events.flagship.io",
+            // Datadog's browser and mobile intake hosts are separate domains, not
+            // subdomains of datadoghq.com. NYT 12.0.0 sends RUM views, logs and
+            // spans through browser-intake-datadoghq.com.
+            "browser-intake-datadoghq.com", "browser-intake-datadoghq.eu",
+            "browser-intake-us3-datadoghq.com", "browser-intake-us5-datadoghq.com",
+            "browser-intake-ap1-datadoghq.com", "browser-intake-ddog-gov.com",
+            // App log shipping. WaPo 7.19.0 sends its app logs, including paywall
+            // and metrics logs, to Splunk; its Sumo Logic logger is switched off.
+            "splunkcloud.com", "sumologic.com",
+            // WaPo's ad-tech platform: article metadata for contextual ad targeting.
+            "ads-metadata-prod.zeustechnology.com",
             // Pluto TV phone (17.2.0)
             "kochava.com", // attribution
             "segment.io", "segment.com", // Segment / Twilio Segment
@@ -188,6 +202,23 @@ public final class TrackerBlocker {
             "prod.cm.publishers.advertising.a2z.com", // Amazon ad metrics
             // Kanopy (6.32.0)
             "sentry-tmp.kanopy.com", // Kanopy's Sentry server, which receives screenshots
+            // Malware served through compromised Optimizely Web snippets on 16 November
+            // 2026 (report-uri.com, "World's largest brands infected with malware via
+            // Optimizely"). It swapped crypto wallet addresses, skimmed card forms, and
+            // stole cookies. Not trackers, but blocked here so a web page an app shows
+            // cannot load it again.
+            "1688360.cc", // the skimmer's script and data collector
+            "webshell.lol", // the injector
+            "linkforge.cc", // a script that carried the injector
+            "5vobauua3ojpklx.icu", // the rest are the kit's iOS routers and fallback servers
+            "eil786npto9u5bq.icu",
+            "l7bcsnwc7nzr3uo.icu",
+            "je4ft3gn8vxudum.icu",
+            "q1ls1ho9x7wsxlu.icu",
+            "ios-hack.icu",
+            "p55abnw2pnsz0bo.icu",
+            "1y69gy2mdzaltz1.icu",
+            "gm38duxoihbmy5o.icu",
     };
 
     /**
@@ -213,6 +244,42 @@ public final class TrackerBlocker {
             {"sesame.dealseek.com", "/s/"},
             {"sesame.dealseek.com", "/capture"},
     };
+
+    /**
+     * "Incognito reading" (news apps): the publisher's own services that record
+     * which articles you read, blocked only when an app's Incognito reading
+     * patch turns on {@link #incognitoReading()}. Article loading, sign-in, the
+     * paywall's own decision and push delivery are not on this list.
+     */
+    private static final String[] INCOGNITO_DOMAINS = {
+            // The New York Times: its own event trackers (ET2 page views and
+            // EventGate), and the ad-targeting lookup that receives each
+            // article's URL with the reader's cookie.
+            "a.et.nytimes.com", "eg.nytimes.com", "egb.nytimes.com", "als-svc.nytimes.com",
+            // The Washington Post: the user history service (page views, scroll
+            // depth, listens, push opens).
+            "rte.washingtonpost.com",
+    };
+
+    private static final String[][] INCOGNITO_PATHS = {
+            // NYT: event logging through its Statsig proxy. /statsig/initialize
+            // (the feature flags) is left alone.
+            {"www.nytimes.com", "/statsig/log_event"},
+            // WaPo: the meter uploads every article read since the last sync, each
+            // with a timestamp, with the reader's login cookie and device ID. With
+            // it blocked, the app decides on the phone: subscribers read as usual,
+            // and other readers still meet the paywall through the app's own meter.
+            {"subscribe.washingtonpost.com", "/metering/apps/evaluate"},
+            {"subscribe.washingtonpost.com", "/proxy/apps/evaluate"},
+            // WaPo: related-article recirculation, which sends the current article,
+            // the reader's ID and their read list.
+            {"data-ai.washingtonpost.com", "/collections/api/v1/articles"},
+    };
+
+    /** Overwritten to return true by a news app's Incognito reading patch. */
+    public static boolean incognitoReading() {
+        return false;
+    }
 
     /** Tubi's first-party analytics: analytics-ingestion*.tubi.io / *.tubitv.com. */
     private static final String FIRST_PARTY_PREFIX = "analytics-ingestion";
@@ -272,6 +339,13 @@ public final class TrackerBlocker {
                 }
             }
         }
+        if (incognitoReading()) {
+            for (String domain : INCOGNITO_DOMAINS) {
+                if (matches(h, domain)) {
+                    return true;
+                }
+            }
+        }
         if (h.startsWith(FIRST_PARTY_PREFIX)) {
             for (String domain : FIRST_PARTY_DOMAINS) {
                 if (matches(h, domain)) {
@@ -294,6 +368,13 @@ public final class TrackerBlocker {
         for (String[] rule : BLOCKED_PATHS) {
             if (matches(h, rule[0]) && path.contains(rule[1])) {
                 return true;
+            }
+        }
+        if (incognitoReading()) {
+            for (String[] rule : INCOGNITO_PATHS) {
+                if (matches(h, rule[0]) && path.contains(rule[1])) {
+                    return true;
+                }
             }
         }
         return false;

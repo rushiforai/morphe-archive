@@ -44,9 +44,18 @@ import app.hushtelegram.extension.shared.settings.IntegerSetting;
 import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.SettingsJson;
 import app.hushtelegram.extension.shared.settings.StringSetting;
+import app.hushtelegram.extension.telegram.misc.ChatListAvatar;
+import app.hushtelegram.extension.telegram.misc.Bookmarks;
+import app.hushtelegram.extension.telegram.misc.ChatListBanner;
+import app.hushtelegram.extension.telegram.misc.KeepDeleted;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.FolderIcons;
 import app.hushtelegram.extension.telegram.misc.GalleryFolder;
+import app.hushtelegram.extension.telegram.misc.KeepRemoved;
+import app.hushtelegram.extension.telegram.misc.VoiceChanger;
+import app.hushtelegram.extension.telegram.misc.LinkPreviewRules;
+import app.hushtelegram.extension.telegram.misc.ListBackground;
+import app.hushtelegram.extension.telegram.misc.LocalPins;
 import app.hushtelegram.extension.telegram.misc.SaveDownloads;
 import app.hushtelegram.extension.telegram.misc.StorageFolder;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
@@ -73,7 +82,8 @@ import app.hushtelegram.extension.telegram.misc.TranslateTarget;
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
  * from the phone's own screen, never by a file. Free proxies stays out for the same reason, and
  * it connects Telegram through strangers' proxies besides. So does Folders by chat type: flipping it makes or
- * removes folders on your account, and an import would flip it without doing either.
+ * removes folders on your account, and an import would flip it without doing either. The Admin
+ * folder's switch stays out the same way.
  * The chats picked under Hide picked chats stay out too, though the switch goes in: they name the
  * account and the chats someone chose to hide, and settings files get passed around to help others.
  * Ghost mode's exception chats stay out the same way, with their switch going in.
@@ -123,6 +133,9 @@ public final class SettingsBackup {
             Settings.MENTION_BY_ID,
             Settings.SHOW_LOCAL_IDS,
             Settings.PROFILE_DATA_CENTER,
+            Settings.REGISTRATION_DATE,
+            Settings.MEMBER_JOIN_DATES,
+            Settings.FORWARD_DATES,
             Settings.SPECIAL_CONTACTS,
             Settings.DISABLE_DOUBLE_TAP_REACTIONS,
             Settings.HIDE_REACTION_ROWS,
@@ -130,9 +143,12 @@ public final class SettingsBackup {
             Settings.HIDE_EMOJI_PACK_NOTE,
             Settings.QUIET_CONTACTS_NAG,
             Settings.HOLIDAY_LOOK,
+            Settings.CHAT_LIST_TITLE,
             Settings.USE_SYSTEM_FONT,
             Settings.AMOLED_BLACK,
+            Settings.LIST_BACKGROUND,
             Settings.HIDE_TRANSLATE_BAR,
+            Settings.HIDE_PINNED_BAR,
             Settings.EXACT_NUMBERS,
             Settings.REVEAL_SPOILERS,
             Settings.REVEAL_MENU,
@@ -142,6 +158,7 @@ public final class SettingsBackup {
             Settings.VIDEO_EITHER_LANDSCAPE,
             Settings.VIDEO_ONLY_FROM_BUTTON,
             Settings.VIDEO_STARTS_SILENT,
+            Settings.VIDEO_TRACKS,
             Settings.SWIPE_BACK_ON_PROFILES,
             Settings.HIDE_PHONE_NUMBER,
             Settings.SHARE_NUMBER_UNTICKED,
@@ -158,12 +175,14 @@ public final class SettingsBackup {
             Settings.HIDDEN_CHATS,
             Settings.SORT_BY_DATE,
             Settings.SORT_OLDEST_FIRST,
+            Settings.LOCAL_PINS,
             Settings.HIDDEN_CHATS_PASSCODE,
             Settings.ADMIN_CHATS,
             Settings.HIDE_ACCOUNTS,
             Settings.HIDDEN_ACCOUNTS_LOCK,
             Settings.FIT_ALL_TABS,
             Settings.FOLDER_TAB_ICONS,
+            Settings.CHAT_LIST_AVATAR,
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.PLAYBACK_POSITION,
@@ -188,8 +207,11 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_REPEAT,
             Settings.KEEP_DELETED_MESSAGES,
             Settings.RED_DELETED_LABEL,
+            Settings.KEEP_OWN_DELETED,
             Settings.KEEP_EDIT_HISTORY,
             Settings.KEEP_TIMED_MEDIA,
+            Settings.KEEP_SECRET_TIMED,
+            Settings.KEEP_REMOVED_CHATS,
             Settings.ASK_BEFORE_STICKER,
             Settings.OUTSIDE_TRANSLATE,
             Settings.HIDE_CHANNEL_BUTTONS,
@@ -200,6 +222,7 @@ public final class SettingsBackup {
             Settings.COMPACT_TAB_BAR,
             Settings.SIDE_MENU,
             Settings.HIDE_NEW_MESSAGE,
+            Settings.BAR_OUTLINE,
             Settings.TEST_SERVER_SIGN_IN,
             Settings.BOT_TOKEN_SIGN_IN,
             SettingsRoutes.SETTINGS_ROW,
@@ -214,10 +237,16 @@ public final class SettingsBackup {
             Settings.SAVE_DOWNLOADS,
             Settings.SAVE_RESTRICTED_DOWNLOADS,
             Settings.SAVE_TIMED_MEDIA,
+            Settings.SAVE_SECRET_CHATS,
             Settings.STORAGE_FOLDER,
+            Settings.FILE_ICONS,
+            Settings.KNOWN_FILES,
             Settings.ASK_BEFORE_GIF,
             Settings.ASK_BEFORE_VOICE_VIDEO,
+            Settings.ASK_BEFORE_ROUND_VIDEO,
+            Settings.ASK_BEFORE_MESSAGE,
             Settings.ASK_BEFORE_CALL,
+            Settings.ASK_BEFORE_JOIN,
             Settings.MESSAGE_MENU_COPY_PHOTO,
             Settings.MESSAGE_MENU_DETAILS,
             Settings.MESSAGE_MENU_QUICK_FORWARD,
@@ -226,6 +255,7 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_FORWARD_COPY,
             Settings.STORY_SAVE_BUTTON,
             Settings.ALLOW_SCREENSHOTS,
+            Settings.SECRET_CHAT_SCREENSHOTS,
             Settings.MESSAGE_MENU_FAST_FORWARD,
             Settings.MESSAGE_MENU_FORWARD_SAVED,
             Settings.MESSAGE_MENU_SAVE_COVER,
@@ -234,6 +264,9 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_HIDE,
             Settings.MESSAGE_MENU_PLAIN_FORWARD,
             Settings.MESSAGE_MENU_DELETE_FOR_THEM,
+            Settings.MESSAGE_MENU_BOOKMARKS,
+            Settings.MESSAGE_MENU_EDIT_COPY,
+            Settings.ALSO_DELETE_CHECKED,
             Settings.DISABLE_ANALYTICS,
             Settings.GHOST_MODE,
             Settings.GHOST_READS,
@@ -257,6 +290,7 @@ public final class SettingsBackup {
             Settings.DISABLE_DRAFT_PREVIEWS,
             Settings.LOCAL_DRAFTS,
             Settings.LOCAL_SEARCH,
+            Settings.LINK_PREVIEW_RULES,
             Settings.GALLERY_CAMERA_ON_TAP,
             Settings.OPEN_EXTERNAL_LINKS,
             Settings.MINI_APP_LOCATION_OFF,
@@ -275,8 +309,10 @@ public final class SettingsBackup {
             Settings.CROP_GUARD,
             Settings.CAPTION_ORDER,
             Settings.PROXY_MENU,
+            Settings.DND_MENU,
             Settings.SIGN_IN_PROXY,
             Settings.MY_MESSAGES,
+            Settings.ADMIN_TOOLS,
             Settings.TEXT_DIRECTION));
 
     /**
@@ -288,20 +324,26 @@ public final class SettingsBackup {
             Settings.MESSAGE_FILTERS_CHANNELS));
 
     /**
-     * The numbers a file carries, each one of a few choices: the sticker size and how many days
-     * call recordings stay. A build from before them counts the name as unknown and leaves it out.
+     * The numbers a file carries, each one of a few choices: the sticker size, how many days call
+     * recordings stay, the chat list's avatar size, how much the picture behind the lists is
+     * dimmed and how many days kept deleted messages stay. A build from before them counts the name
+     * as unknown and leaves it out.
      */
-    static final List<IntegerSetting> NUMBERS = Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS);
+    static final List<IntegerSetting> NUMBERS = Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS,
+            Settings.CHAT_LIST_AVATAR_SIZE, Settings.LIST_BACKGROUND_DIM, Settings.KEEP_DELETED_DAYS);
 
     /**
      * The short texts a file carries as they're saved: the emoji beside the chat list's title, the
      * gallery folder choice, the translation language, the folder icon pack, the name of Telegram's
-     * own folder, the kinds What to copy leaves out and which calls Record calls saves. A build from
-     * before them counts the name as unknown and leaves it out.
+     * own folder, the kinds What to copy leaves out, which calls Record calls saves, the text shown
+     * in place of Telegram's name, the chats pinned on this phone, the link preview rules, the chats
+     * kept after you were removed from them and the chat list banner's choice (never its picture). A
+     * build from before them counts the name as unknown and leaves it out.
      */
     static final List<StringSetting> TEXTS = Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER,
             Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME, Settings.SAVE_KINDS_LEFT_OUT,
-            Settings.RECORD_CALLS_WHICH);
+            Settings.RECORD_CALLS_WHICH, Settings.CHAT_LIST_TITLE_TEXT, Settings.LOCAL_PINNED_CHATS, Settings.LINK_PREVIEW_RULE_LIST, Settings.KEPT_REMOVED_CHATS,
+            Settings.CHAT_LIST_BANNER, Settings.VOICE_CHANGER);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -369,6 +411,7 @@ public final class SettingsBackup {
         private static final String NUMBER_VALUES = "numbers";
         private static final String TEXT_VALUES = "texts";
         private static final String UNKNOWN = "unknown";
+        private static final String BOOKMARK_VALUES = "bookmarks";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -380,14 +423,23 @@ public final class SettingsBackup {
         final Map<StringSetting, String> texts;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
+        /** The file's bookmarks as the list saves them, or null when it carries none. They join the phone's own. */
+        @Nullable final String bookmarks;
 
         Snapshot(Map<BooleanSetting, Boolean> values, Map<StringSetting, String> lists,
                  Map<IntegerSetting, Integer> numbers, Map<StringSetting, String> texts, int unknown) {
+            this(values, lists, numbers, texts, unknown, null);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, Map<StringSetting, String> lists,
+                 Map<IntegerSetting, Integer> numbers, Map<StringSetting, String> texts, int unknown,
+                 @Nullable String bookmarks) {
             this.values = Collections.unmodifiableMap(values);
             this.lists = Collections.unmodifiableMap(lists);
             this.numbers = Collections.unmodifiableMap(numbers);
             this.texts = Collections.unmodifiableMap(texts);
             this.unknown = unknown;
+            this.bookmarks = bookmarks;
         }
 
         /**
@@ -415,6 +467,12 @@ public final class SettingsBackup {
                 if (!entry.getValue().equals(entry.getKey().savedValue())) {
                     changes.put(entry.getKey(), entry.getValue());
                 }
+            }
+            if (bookmarks != null) {
+                // Added to the phone's bookmarks, never in place of them.
+                String saved = Settings.BOOKMARKS.savedValue();
+                String merged = Bookmarks.merged(saved, bookmarks);
+                if (!merged.equals(saved)) changes.put(Settings.BOOKMARKS, merged);
             }
             keepAWayIn(changes);
             return changes;
@@ -497,6 +555,7 @@ public final class SettingsBackup {
             state.putBundle(NUMBER_VALUES, sizes);
             state.putBundle(TEXT_VALUES, shortTexts);
             state.putInt(UNKNOWN, unknown);
+            if (bookmarks != null) state.putString(BOOKMARK_VALUES, bookmarks);
             return state;
         }
 
@@ -542,7 +601,9 @@ public final class SettingsBackup {
                     if (value instanceof String && allowed(setting, (String) value)) written.put(setting, (String) value);
                 }
             }
-            return new Snapshot(values, lists, numbers, written, unknown);
+            Object marks = state.get(BOOKMARK_VALUES);
+            String bookmarks = marks instanceof String ? Bookmarks.fromLines(Bookmarks.lines((String) marks)) : null;
+            return new Snapshot(values, lists, numbers, written, unknown, bookmarks);
         }
     }
 
@@ -566,11 +627,20 @@ public final class SettingsBackup {
             List<String> lines = MessageFilters.lines(setting.savedValue());
             if (usable(lines)) switches.put(setting.key, new JSONArray(lines));
         }
-        return new JSONObject()
+        JSONObject root = new JSONObject()
                 .put(FORMAT_NAME, FORMAT)
                 .put(SCHEMA_NAME, SCHEMA)
-                .put(SETTINGS_NAME, switches)
-                .toString(2);
+                .put(SETTINGS_NAME, switches);
+        String file = root.toString(2);
+        List<String> marks = Bookmarks.lines(Settings.BOOKMARKS.savedValue());
+        while (!marks.isEmpty()) {
+            switches.put(Settings.BOOKMARKS.key, new JSONArray(marks));
+            String withMarks = root.toString(2);
+            // The oldest bookmarks stay behind before the file grows past what the import reads.
+            if (withMarks.getBytes(StandardCharsets.UTF_8).length <= MAX_BYTES) return withMarks;
+            marks = marks.subList(0, marks.size() - 1);
+        }
+        return file;
     }
 
     /**
@@ -659,9 +729,14 @@ public final class SettingsBackup {
         Map<StringSetting, String> foundLists = new HashMap<>();
         Map<IntegerSetting, Integer> foundNumbers = new HashMap<>();
         Map<StringSetting, String> foundTexts = new HashMap<>();
+        String bookmarks = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
+            if (Settings.BOOKMARKS.key.equals(name)) {
+                bookmarks = bookmarkList(values.opt(name));
+                continue;
+            }
             StringSetting list = knownLists.get(name);
             if (list != null) {
                 foundLists.put(list, filterList(name, values.opt(name)));
@@ -718,12 +793,32 @@ public final class SettingsBackup {
             String value = foundTexts.get(setting);
             if (value != null) orderedTexts.put(setting, value);
         }
-        return new Snapshot(ordered, orderedLists, orderedNumbers, orderedTexts, unknown);
+        return new Snapshot(ordered, orderedLists, orderedNumbers, orderedTexts, unknown, bookmarks);
+    }
+
+    /** A file's bookmarks as the list saves them, from its array of lines; anything else is refused. */
+    private static String bookmarkList(Object value) throws Rejected {
+        if (!(value instanceof JSONArray) || ((JSONArray) value).length() > Bookmarks.MAX) {
+            throw new Rejected(Reason.VALUE, "Not a list of bookmarks");
+        }
+        JSONArray array = (JSONArray) value;
+        List<String> lines = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            Object line = array.opt(i);
+            if (!(line instanceof String)) throw new Rejected(Reason.VALUE, "Not a list of bookmarks");
+            lines.add((String) line);
+        }
+        String saved = Bookmarks.fromLines(lines);
+        if (saved == null) throw new Rejected(Reason.VALUE, "Not a list of bookmarks");
+        return saved;
     }
 
     /** Whether a number is one of its setting's choices. */
     static boolean allowed(IntegerSetting setting, int value) {
         if (setting == Settings.RECORD_CALLS_KEEP_DAYS) return HushTelegramPreferenceFragment.RECORD_KEEP_DAYS.contains(value);
+        if (setting == Settings.KEEP_DELETED_DAYS) return KeepDeleted.DAYS.contains(value);
+        if (setting == Settings.CHAT_LIST_AVATAR_SIZE) return ChatListAvatar.percent(value) == value;
+        if (setting == Settings.LIST_BACKGROUND_DIM) return ListBackground.dimOffered(value);
         return setting == Settings.STICKER_SIZE && StickerSize.percent(value) == value;
     }
 
@@ -735,6 +830,12 @@ public final class SettingsBackup {
         if (setting == Settings.FOLDER_ICON_PACK) return FolderIcons.allowed(value);
         if (setting == Settings.SAVE_KINDS_LEFT_OUT) return SaveDownloads.allowedLeftOut(value);
         if (setting == Settings.RECORD_CALLS_WHICH) return HushTelegramPreferenceFragment.recordScopes().contains(value);
+        if (setting == Settings.CHAT_LIST_TITLE_TEXT) return TitleEmoji.titleAllowed(value);
+        if (setting == Settings.LOCAL_PINNED_CHATS) return LocalPins.allowed(value);
+        if (setting == Settings.LINK_PREVIEW_RULE_LIST) return LinkPreviewRules.allowed(value);
+        if (setting == Settings.KEPT_REMOVED_CHATS) return KeepRemoved.allowed(value);
+        if (setting == Settings.CHAT_LIST_BANNER) return ChatListBanner.allowed(value);
+        if (setting == Settings.VOICE_CHANGER) return VoiceChanger.PRESETS.contains(value);
         return setting == Settings.TITLE_EMOJI && TitleEmoji.allowed(value);
     }
 

@@ -48,6 +48,11 @@ public final class YttvDaiDisabler {
         return false;
     }
 
+    /** Overwritten by the patch: the class name of the app's lambda that calls the DAI switch. */
+    public static String daiLambdaClass() {
+        return null;
+    }
+
     /** Overwritten by Skip ads: the controller's playback field. */
     public static String playbackField() {
         return null;
@@ -107,7 +112,9 @@ public final class YttvDaiDisabler {
     // The app's own lambda checks that the provider is not released before it
     // calls the native switch, on the provider's executor thread.
     private static Runnable appLambda(Class<?> wrapper, Object provider) throws Exception {
-        Class<?> lambda = Class.forName(WRAPPER + "$$ExternalSyntheticLambda0", false, wrapper.getClassLoader());
+        String name = daiLambdaClass();
+        if (name == null) name = WRAPPER + "$$ExternalSyntheticLambda0";
+        Class<?> lambda = Class.forName(name, false, wrapper.getClassLoader());
         Constructor<?> constructor = lambda.getDeclaredConstructor(wrapper);
         constructor.setAccessible(true);
         return (Runnable) constructor.newInstance(provider);

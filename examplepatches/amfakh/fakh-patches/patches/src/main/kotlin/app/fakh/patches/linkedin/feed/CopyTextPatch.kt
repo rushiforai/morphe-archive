@@ -6,13 +6,13 @@ import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.settingsPatch
 import app.fakh.patches.shared.gms.mutableClass
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 /** LinkedIn's Application. */
 private const val APPLICATION = "Lcom/linkedin/android/app/FlagshipApplication;"
 
 @Suppress("unused")
-val copyTextPatch = bytecodePatch(
+val copyTextPatch = patch(
     name = "Copy text",
     description = "Press and hold a post, comment or any other text to open it in a sheet where it can be " +
         "selected and copied.",

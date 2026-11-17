@@ -4,7 +4,7 @@ import app.fakh.patches.detik.shared.Constants.COMPATIBILITY_DETIK
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -16,7 +16,7 @@ private object ArticleContentFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val stopAutoplayPatch = bytecodePatch(
+val stopAutoplayPatch = patch(
     name = "Stop autoplay",
     description = "Stops the videos and live streams embedded in articles from playing on their own. They play when tapped.",
     default = true,

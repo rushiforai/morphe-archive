@@ -9,6 +9,7 @@ package app.hushpinterest.extension.pinterest.actions;
 import static org.junit.Assert.*;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.os.Looper;
@@ -27,8 +28,10 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowDownloadManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,15 +69,24 @@ public class LongPressDownloadTest {
         Utils.setActivity(activity);
         PauseForTests.resume();
         PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.LONG_PRESS_MENU,
-                PatchFamily.Capability.LONG_PRESS_CHOICES));
+                PatchFamily.Capability.LONG_PRESS_CHOICES, PatchFamily.Capability.LONG_PRESS_VIEW));
         Settings.DOWNLOAD_PINS.save(true);
         Settings.LONG_PRESS_DOWNLOAD.save(true);
+        NativeMenu.label = android.R.string.ok;
+        NativeMenu.builtWith = 0;
+        // A View tap fetches the picture: here every fetch fails at once, without the network.
+        CopyImage.connection = uri -> { throw new IOException("offline"); };
     }
 
     @After public void reset() {
+        for (Dialog shown : ShadowDialog.getShownDialogs()) shown.dismiss();
+        drain();
         for (BooleanSetting hide : hides()) hide.save(false);
+        Settings.LONG_PRESS_HIDE_SEND_APP.save(false);
         Settings.LONG_PRESS_DOWNLOAD.save(false);
+        Settings.LONG_PRESS_VIEW.save(false);
         Settings.DOWNLOAD_PINS.save(false);
+        CopyImage.connection = PinTransfer.NETWORK;
         PatchFamilyForTests.capabilities(null);
         PauseForTests.resume();
         Utils.setActivity(null);
@@ -218,6 +230,35 @@ public class LongPressDownloadTest {
         assertEquals(List.of(other), menu.items.subList(1, menu.items.size()));
     }
 
+    /**
+     * The button that sends straight to WhatsApp or the app last shared with (#35) has a switch of its
+     * own: Hide Send leaves it, and its switch takes out only it.
+     */
+    @Test public void sendWithAnAppHasItsOwnSwitch() {
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        Settings.LONG_PRESS_HIDE_SEND.save(true);
+        Button send = new Button(activity, LongPressDownload.SEND), app = new Button(activity, LongPressDownload.SEND_APP);
+        assertEquals(List.of(app), shown(send, app));
+
+        Settings.LONG_PRESS_HIDE_SEND.save(false);
+        Settings.LONG_PRESS_HIDE_SEND_APP.save(true);
+        send = new Button(activity, LongPressDownload.SEND);
+        app = new Button(activity, LongPressDownload.SEND_APP);
+        Button search = new Button(activity, LongPressDownload.SEARCH);
+        assertEquals(List.of(send, search), shown(send, app, search));
+        assertNull(app.getParent());
+    }
+
+    /** Pinterest's buttons a long-pressed pin's menu of [buttons] shows. */
+    private List<Object> shown(Button... buttons) {
+        Menu menu = new Menu(activity);
+        activity.setContentView(menu);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        menu.layout(List.of(buttons));
+        menu.show(new Event(pin("7")));
+        return new ArrayList<>(menu.items.subList(1, menu.items.size()));
+    }
+
     /** Off, paused, or on a build whose button ids weren't found, the hide switches leave the menu alone. */
     @Test public void withoutTheirHookOrPausedTheHideSwitchesHideNothing() {
         Runnable[] offs = {
@@ -251,6 +292,99 @@ public class LongPressDownloadTest {
         settle();
         assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
+    }
+
+    /**
+     * View (#37) comes after Download, with Pinterest's own "View" label, and releasing on it opens the
+     * picture full screen over the grid instead of saving anything.
+     */
+    @Test public void aLongPressedPictureGetsViewAfterDownloadAndReleasingOnItOpensThePicture() throws Exception {
+        Settings.LONG_PRESS_VIEW.save(true);
+        Menu menu = menu(3);
+        List<Object> pinterest = new ArrayList<>(menu.items.subList(1, 4));
+        menu.show(new Event(pin("7")));
+        assertEquals(6, menu.items.size());
+        assertEquals(6, menu.getChildCount());
+        assertEquals(pinterest, menu.items.subList(1, 4));
+        assertEquals(LongPressDownload.ITEM_TAG, ((View) menu.items.get(4)).getTag());
+        View view = (View) menu.items.get(5);
+        assertEquals(LongPressDownload.VIEW_TAG, view.getTag());
+        assertEquals("built with the app's own View label", android.R.string.ok, NativeMenu.builtWith);
+        assertEquals(pinterest, NativeMenu.reattached);
+        assertEquals(2, menu.layouts);
+
+        assertTrue(view.performClick());
+        assertEquals(1, ShadowDialog.getShownDialogs().size());
+        assertTrue(ShadowDialog.getLatestDialog() instanceof PinViewer.Screen);
+        assertTrue(ShadowDialog.getLatestDialog().isShowing());
+        settle();
+        assertEquals("View saves nothing", 0,
+                Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+    }
+
+    /** View doesn't need Download pins or Long-press download: with both off it's the one button added. */
+    @Test public void viewWorksWithDownloadPinsOff() {
+        Settings.DOWNLOAD_PINS.save(false);
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        Settings.LONG_PRESS_VIEW.save(true);
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.LONG_PRESS_MENU, PatchFamily.Capability.LONG_PRESS_VIEW));
+        Menu menu = menu(3);
+        List<Object> pinterest = new ArrayList<>(menu.items.subList(1, 4));
+        menu.show(new Event(pin("7")));
+        assertEquals(pinterest, menu.items.subList(1, 4));
+        assertEquals(5, menu.items.size());
+        View view = (View) menu.items.get(4);
+        assertEquals(LongPressDownload.VIEW_TAG, view.getTag());
+        assertTrue(view.performClick());
+        assertTrue(ShadowDialog.getLatestDialog() instanceof PinViewer.Screen);
+    }
+
+    /** A video has no picture to show, so its menu gets Download only. */
+    @Test public void aVideoPinGetsNoView() {
+        Settings.LONG_PRESS_VIEW.save(true);
+        Menu menu = menu(3);
+        menu.show(new Event(video("9")));
+        assertEquals(5, menu.items.size());
+        assertEquals(LongPressDownload.ITEM_TAG, ((View) menu.items.get(4)).getTag());
+        for (Object item : menu.items) assertNotEquals(LongPressDownload.VIEW_TAG, ((View) item).getTag());
+    }
+
+    /** Switched off, on a build without the hook, paused, or with no View label in the app: no View. */
+    @Test public void withoutItsSwitchHookOrLabelThereIsNoView() {
+        Runnable[] offs = {
+                () -> Settings.LONG_PRESS_VIEW.save(false),
+                () -> PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS, PatchFamily.Capability.LONG_PRESS_MENU)),
+                () -> PauseForTests.pause(HushPinterestPause.Reason.SWITCH),
+                () -> NativeMenu.label = 0,
+        };
+        for (Runnable off : offs) {
+            Settings.LONG_PRESS_DOWNLOAD.save(false);
+            Settings.LONG_PRESS_VIEW.save(true);
+            off.run();
+            Menu menu = menu(3);
+            List<Object> before = new ArrayList<>(menu.items);
+            menu.show(new Event(pin("7")));
+            assertUntouched(menu, before);
+            reset();
+            prepare();
+        }
+    }
+
+    @Test public void aViewReleaseAfterTheMenuMovedOnOrClosedOpensNothing() throws Exception {
+        Settings.LONG_PRESS_VIEW.save(true);
+        Menu menu = menu(2);
+        menu.show(new Event(pin("7")));
+        View view = (View) menu.items.get(4);
+        assertEquals(LongPressDownload.VIEW_TAG, view.getTag());
+        menu.shown = null;
+        assertTrue(view.performClick());
+        menu.shown = "8";
+        assertTrue(view.performClick());
+        menu.shown = "7";
+        Settings.LONG_PRESS_VIEW.save(false);
+        assertTrue(view.performClick());
+        settle();
+        assertTrue(ShadowDialog.getShownDialogs().isEmpty());
     }
 
     /** The list accounts in android_longpress_menu_v2 get in place of the round menu (#16, #18). */
@@ -359,6 +493,56 @@ public class LongPressDownloadTest {
         }
     }
 
+    @Test public void theNewerListGetsViewAfterDownloadAndTappingItOpensThePicture() throws Exception {
+        Settings.LONG_PRESS_VIEW.save(true);
+        ArrayList<Object> pinterest = options();
+        ArrayList<Object> shown = LongPressDownload.composeItems(pinterest, new Event(pin("7")));
+        assertEquals(5, shown.size());
+        assertEquals(pinterest, shown.subList(0, 3));
+        assertEquals("download", ((ComposeOption) shown.get(3)).getAnalyticsName());
+        ComposeOption view = (ComposeOption) shown.get(4);
+        assertSame(NativeMenu.VIEW_ICON, view.iconAndLabel());
+        assertEquals("view", view.getAnalyticsName());
+        assertEquals(android.R.string.ok, NativeMenu.builtWith);
+        assertNotEquals(view, shown.get(3));
+
+        assertTrue(LongPressDownload.composeClick(view, pin("7")));
+        assertTrue(ShadowDialog.getLatestDialog() instanceof PinViewer.Screen);
+        settle();
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+    }
+
+    /** With Download off, or Download pins off altogether, the newer list gets View alone. */
+    @Test public void theNewerListGetsViewWithDownloadOff() {
+        Settings.LONG_PRESS_VIEW.save(true);
+        Settings.DOWNLOAD_PINS.save(false);
+        ArrayList<Object> pinterest = options();
+        ArrayList<Object> shown = LongPressDownload.composeItems(pinterest, new Event(pin("7")));
+        assertEquals(4, shown.size());
+        assertEquals(pinterest, shown.subList(0, 3));
+        assertEquals("view", ((ComposeOption) shown.get(3)).getAnalyticsName());
+
+        ArrayList<Object> clip = options();
+        assertEquals("a video gets no View", 3, LongPressDownload.composeItems(clip, new Event(video("9"))).size());
+        NativeMenu.label = 0;
+        ArrayList<Object> unlabeled = options();
+        assertSame(unlabeled, LongPressDownload.composeItems(unlabeled, new Event(pin("7"))));
+    }
+
+    /** Another pin, no pin or View switched off in between: the tap is ours and nothing opens. */
+    @Test public void aStaleViewTapInTheNewerListOpensNothing() throws Exception {
+        Settings.LONG_PRESS_VIEW.save(true);
+        Object otherPin = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(4);
+        assertTrue(LongPressDownload.composeClick(otherPin, pin("8")));
+        Object noPin = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(4);
+        assertTrue(LongPressDownload.composeClick(noPin, null));
+        Object off = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(4);
+        Settings.LONG_PRESS_VIEW.save(false);
+        assertTrue(LongPressDownload.composeClick(off, pin("7")));
+        settle();
+        assertTrue(ShadowDialog.getShownDialogs().isEmpty());
+    }
+
     /** Pinterest's own options in the newer list, in the order its builder adds them. */
     private static ArrayList<Object> options() {
         return new ArrayList<>(List.of(NativeOption.SAVE, NativeOption.SEND, NativeOption.SEARCH));
@@ -424,12 +608,24 @@ public class LongPressDownloadTest {
                 Map.of("orig", Map.of("url", "https://i.pinimg.com/originals/" + id + ".jpg")));
     }
 
+    private static Object video(String id) {
+        return Map.of("id", id, "title", "Clip " + id, "videos", Map.of("video_list", Map.of("V_720P",
+                Map.of("url", "https://v.pinimg.com/videos/720p/" + id + ".mp4", "width", 720, "height", 1280))));
+    }
+
     private void settle() throws Exception {
-        java.lang.reflect.Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
-        await.setAccessible(true);
         for (int i = 0; i < 5; i++) {
-            await.invoke(null);
+            Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
+        }
+    }
+
+    /** {@link #settle} for the reset, so a viewer a test left loading lets go before the next one. */
+    private void drain() {
+        try {
+            settle();
+        } catch (Exception failure) {
+            throw new AssertionError(failure);
         }
     }
 
@@ -493,6 +689,20 @@ public class LongPressDownloadTest {
         @Implementation protected static Object composeIconAndLabel() { return ICON; }
         @Implementation protected static int composeKind(Object option) {
             return option instanceof NativeOption ? LongPressDownload.SAVE + ((NativeOption) option).ordinal() : LongPressDownload.OTHER;
+        }
+        /** The app's View string resource, or 0 for a build without one. */
+        static int label;
+        /** The label the last View button or option was built with. */
+        static int builtWith;
+        static final Object VIEW_ICON = new Object();
+        @Implementation protected static int viewLabel(Context context) { return label; }
+        @Implementation protected static View viewItem(Context context, int label) {
+            builtWith = label;
+            return new View(context);
+        }
+        @Implementation protected static Object composeViewIconAndLabel(int label) {
+            builtWith = label;
+            return VIEW_ICON;
         }
     }
 }

@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
-*/
-
+ */
 
 package app.morphe.extension.instagram.settings.preference.widgets;
 
@@ -17,7 +16,7 @@ import android.widget.CompoundButton;
 import app.morphe.extension.instagram.settings.preference.Helper;
 
 public class SwitchPref extends SwitchPreference {
-    private static Helper helper;
+    private final Helper helper;
     private View rowView;
     private CompoundButton switchView;
     private boolean clickInProgress;
@@ -33,23 +32,21 @@ public class SwitchPref extends SwitchPreference {
 
     public SwitchPref(Context context, AttributeSet attrs) {
         super(context, attrs);
-        helper = new Helper(context);
+        this.helper = new Helper(context);
         init();
     }
 
     public SwitchPref(Context context, AttributeSet attrs, int defStyleAttr) {
-
         super(context, attrs, defStyleAttr);
-        helper = new Helper(context);
+        this.helper = new Helper(context);
         init();
     }
 
     private void init() {
-        // Set the OnPreferenceChangeListener
         setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return helper.setValue(preference,newValue);
+                return helper.setValue(preference, newValue);
             }
         });
     }
@@ -78,7 +75,11 @@ public class SwitchPref extends SwitchPreference {
 
     @Override
     protected View onCreateView(ViewGroup parent) {
-        View view = InstagramPreferenceStyle.createPreferenceView(getContext(), InstagramPreferenceStyle.TRAILING_SWITCH);
+        View view = InstagramPreferenceStyle.createPreferenceView(
+                getContext(),
+                InstagramPreferenceStyle.TRAILING_SWITCH,
+                ButtonPref.iconResourceNameForKey(getKey())
+        );
         rowView = view;
         switchView = InstagramPreferenceStyle.findSwitch(view);
         return view;
@@ -88,6 +89,12 @@ public class SwitchPref extends SwitchPreference {
     protected void onBindView(View view) {
         rowView = view;
         InstagramPreferenceStyle.bindText(this, view);
+        InstagramPreferenceStyle.bindIconState(
+                view,
+                ButtonPref.iconResourceNameForKey(getKey()),
+                isChecked(),
+                false
+        );
         InstagramPreferenceStyle.bindSwitchAccessibility(view, isChecked());
         CompoundButton currentSwitch = InstagramPreferenceStyle.findSwitch(view);
         if (currentSwitch != null) {
@@ -103,6 +110,7 @@ public class SwitchPref extends SwitchPreference {
                         false
                 );
             }
+            InstagramPreferenceStyle.applySwitchTint(currentSwitch, isChecked());
             switchView = currentSwitch;
         }
     }
@@ -112,6 +120,12 @@ public class SwitchPref extends SwitchPreference {
         if (!InstagramPreferenceStyle.consumeSwitchClickAllowed(rowView)
                 || !switchInteractionEnabled) {
             return;
+        }
+
+        if (rowView != null) {
+            RexHaptics.toggle(rowView);
+        } else {
+            RexHaptics.toggle(getContext());
         }
 
         boolean wasChecked = isChecked();
@@ -130,6 +144,12 @@ public class SwitchPref extends SwitchPreference {
 
         if (rowView != null) {
             InstagramPreferenceStyle.bindSwitchAccessibility(rowView, isChecked());
+            InstagramPreferenceStyle.bindIconState(
+                    rowView,
+                    ButtonPref.iconResourceNameForKey(getKey()),
+                    isChecked(),
+                    true
+            );
         }
 
         if (switchView != null) {
@@ -138,7 +158,7 @@ public class SwitchPref extends SwitchPreference {
                     isChecked(),
                     switchView.isChecked() == wasChecked
             );
+            InstagramPreferenceStyle.applySwitchTint(switchView, isChecked());
         }
     }
-
 }

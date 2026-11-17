@@ -7,6 +7,7 @@ import java.util.List;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 
+@SuppressWarnings("unused")
 public class ScriptUtils {
     public static class ScriptLoaderError extends Exception {
         public ScriptLoaderError(String message, Exception cause) {
@@ -18,7 +19,7 @@ public class ScriptUtils {
         Context context = Utils.getContext();
         if (context == null) {
             throw new ScriptLoaderError(
-                    formatError(errorMsg, "Context isn't available"),
+                    errorMsg != null ? errorMsg + ": Context isn't available" : "Context isn't available",
                     null
             );
         }
@@ -36,9 +37,5 @@ public class ScriptUtils {
             sb.append(loadScript(filename, errorMsg));
         }
         return sb.toString();
-    }
-
-    public static String formatError(String firstMsg, String secondMsg) {
-        return (firstMsg != null) ? firstMsg + ": " + secondMsg : secondMsg;
     }
 }

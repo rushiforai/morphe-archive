@@ -117,7 +117,7 @@ public class TabBarTest {
 
     @Test public void theRowSaysTheChangeWaitsForARestart() {
         assertFalse(Settings.tabBarOverlay(0));
-        OpenSections.only("navigation");
+        OpenSections.only("tab_bar");
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             root.findViewWithTag("tab_controls").performClick();
@@ -132,12 +132,12 @@ public class TabBarTest {
         }
     }
 
-    @Test public void bothSwitchesSitUnderNavigationAndStartOff() {
+    @Test public void bothSwitchesSitUnderTheTabBarGroupAndStartOff() {
         for (String key : new String[] {Settings.TAB_BAR_SCROLL_AWAY, Settings.FLOATING_TAB_BAR}) {
             String[] spec = null;
             for (String[] control : SettingsActivity.CONTROLS) if (control[0].equals(key)) spec = control;
             assertNotNull(key, spec);
-            assertEquals(key, "navigation", spec[3]);
+            assertEquals(key, "tab_bar", spec[3]);
             assertTrue(key, Settings.installed.contains(key));
             assertFalse(key, Settings.preferences.getBoolean(key, false));
             assertTrue("Not yet checked on a phone: " + key, SettingsActivity.EXPERIMENTAL.contains(key));

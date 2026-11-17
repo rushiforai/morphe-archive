@@ -35,6 +35,9 @@ val changeAppNamePatch = resourcePatch(
         values = mapOf(
             DEFAULT_NAME to DEFAULT_NAME,
             "YT TV Plus" to "YT TV Plus",
+            "Live TV" to "Live TV",
+            "TV+" to "TV+",
+            "YTTV+" to "YTTV+",
             "YouTube TV" to "YouTube TV",
             "YTTV" to "YTTV",
         ),

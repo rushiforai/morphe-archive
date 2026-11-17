@@ -16,4 +16,11 @@ public final class MainTabsForTests {
         MainTabs.newMessageButton(button);
         return button.getVisibility() == View.GONE;
     }
+
+    /** Whether the main screen's bar glass, registered as Telegram builds it, gets an outline. */
+    public static boolean outlinesBar() {
+        Object colors = new Object();
+        MainTabs.barGlass(colors);
+        return MainTabs.barOutlineColor(colors) != 0 && MainTabs.barOutlineWidth(colors) > 0f;
+    }
 }

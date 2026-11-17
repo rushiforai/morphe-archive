@@ -24,6 +24,7 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.StringSetting;
+import io.github.joancomasfdz.extension.baconreader.backup.SettingsBackupPatch;
 import io.github.joancomasfdz.extension.baconreader.errors.ErrorDialog;
 
 /**
@@ -106,6 +107,14 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
                 accountColors.addPreference(switchPreference(context, Settings.ACCOUNT_COLORS));
             }
 
+            PreferenceCategory backup = category(screen, "revanced_settings_baconreader_screen_6_backup_title");
+            if (IncludedPatches.exportAndImportSettings()) {
+                backup.addPreference(actionPreference(context, "revanced_baconreader_export_settings",
+                        () -> SettingsBackupPatch.exportSettings(getActivity())));
+                backup.addPreference(actionPreference(context, "revanced_baconreader_import_settings",
+                        () -> SettingsBackupPatch.importSettings(getActivity())));
+            }
+
             PreferenceCategory about = category(screen, "revanced_settings_baconreader_screen_0_about_title");
             Preference version = new Preference(context);
             version.setTitle("BaconReader Patches");
@@ -114,7 +123,7 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
             about.addPreference(version);
 
             // Sections without settings, because their patches were not applied.
-            for (PreferenceCategory category : new PreferenceCategory[]{images, links, comments, chat, accountColors}) {
+            for (PreferenceCategory category : new PreferenceCategory[]{images, links, comments, chat, accountColors, backup}) {
                 if (category.getPreferenceCount() == 0) screen.removePreference(category);
             }
 
@@ -198,6 +207,20 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
         preference.setTitle(str(key + "_title"));
         preference.setSummary(str(key + "_summary"));
         preference.setSelectable(false);
+        return preference;
+    }
+
+    /** A preference that runs {@code action} when tapped, with the title "_title" and the summary "_summary". */
+    private static Preference actionPreference(Context context, String key, Runnable action) {
+        Preference preference = new Preference(context);
+        preference.setKey(key);
+        preference.setPersistent(false);
+        preference.setTitle(str(key + "_title"));
+        preference.setSummary(str(key + "_summary"));
+        preference.setOnPreferenceClickListener(pref -> {
+            action.run();
+            return true;
+        });
         return preference;
     }
 

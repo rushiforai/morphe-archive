@@ -53,7 +53,6 @@ public final class ReadingPosition {
             Session session = new Session(fragment, activity, list);
             SESSIONS.put(fragment, session);
             list.getViewTreeObserver().addOnPreDrawListener(session);
-            list.getViewTreeObserver().addOnGlobalLayoutListener(session);
             list.getViewTreeObserver().addOnScrollChangedListener(session);
             list.addOnAttachStateChangeListener(session);
         } catch (Exception error) { Log.w("HaiagaruPosition", "Cannot attach reading-position observer", error); }
@@ -75,22 +74,22 @@ public final class ReadingPosition {
     }
 
     static void beforeMediaRefresh(View list) {
-        for (Session session : SESSIONS.values()) {
-            if (session.list != list || !list.canScrollVertically(-1)) continue;
-            try {
-                if (XPostPreviewPosition.interacting(list)) { session.mediaAnchor=null; return; }
-                long now=android.os.SystemClock.uptimeMillis();
-                // The list can draw unchanged while the thumbnail is still loading.
-                // Keep the original logical anchor across coalesced thumbnail updates.
-                if(session.mediaAnchor==null||now>session.mediaUntil){
-                    session.mediaAnchor=session.anchor();
-                    session.mediaCorrections=0;
-                }
-                session.mediaLayout=true;
-                session.mediaUntil=now+2800;
-            } catch (Exception ignored) {}
+        for(Session session:SESSIONS.values())if(session.list==list){
+            XPostPreviewPosition.beforeListChange(list);
             return;
         }
+    }
+
+    static boolean mediaPending(View list) { return XPostPreviewPosition.pending(list); }
+    static boolean nativeRestoring(View list) {
+        for(Session session:SESSIONS.values())if(session.list==list)return session.restoring||session.openingRebuild;
+        return false;
+    }
+    static void previewCaptured(View list) {
+        for(Session session:SESSIONS.values())if(session.list==list){session.openingAnchor=null;session.openingRebuild=false;session.coldPreview=null;}
+    }
+    static void afterMediaRefresh(View list) {
+        for(Session session:SESSIONS.values())if(session.list==list)session.onScrollChanged();
     }
 
     public static void save(Object fragment) {
@@ -179,7 +178,7 @@ public final class ReadingPosition {
     }
 
     private static final class Session implements ViewTreeObserver.OnPreDrawListener,
-            ViewTreeObserver.OnScrollChangedListener, ViewTreeObserver.OnGlobalLayoutListener, View.OnAttachStateChangeListener {
+            ViewTreeObserver.OnScrollChangedListener, View.OnAttachStateChangeListener {
         final WeakReference<Object> fragment;
         final Activity activity;
         final View list;
@@ -192,10 +191,7 @@ public final class ReadingPosition {
         final Runnable delayedSave = this::save;
         String inspectedKey, written;
         boolean closed, restoring;
-        Anchor coldPreview, openingAnchor, mediaAnchor;
-        long mediaUntil;
-        int mediaCorrections;
-        boolean mediaLayout;
+        Anchor coldPreview, openingAnchor;
         boolean openingRebuild;
         long coldPreviewUntil;
         final long opened=android.os.SystemClock.uptimeMillis();
@@ -261,38 +257,22 @@ public final class ReadingPosition {
         }
 
         @Override public boolean onPreDraw() {
-            if (closed) return true;
-            if (restoring) { restoring = false; onScrollChanged(); return true; }
+            if (closed || !list.isShown()) return true;
+            if (restoring) {
+                // setSelectionFromTop schedules another layout. Drawing the old children
+                // here exposes the displaced frame between two corrections.
+                if (list.isLayoutRequested()) return false;
+                restoring = false;
+                onScrollChanged();
+            }
             // ViewTreeObserver belongs to the whole window. Retained tablet
             // fragments also receive callbacks while adjacent pages animate.
             // Never perform reflective anchor discovery on every 120 Hz frame.
             long now = android.os.SystemClock.uptimeMillis();
             if (!list.isShown()) return true;
-            if (mediaAnchor != null) {
-                if (now > mediaUntil || XPostPreviewPosition.interacting(list)) mediaAnchor = null;
-                else if (mediaLayout && !list.isLayoutRequested()) {
-                    Anchor previous = mediaAnchor;
-                    mediaLayout = false;
-                    try {
-                        Anchor current = anchor();
-                        Object owner = fragment.get();
-                        if(owner==null||current==null||current.adapter!=previous.adapter||!current.key.equals(previous.key)){
-                            mediaAnchor=null;
-                        }else if(current.number!=previous.number||Math.abs(current.offset-previous.offset)>2){
-                            if(mediaCorrections>=3||!FilterPosition.jumpToResponse(owner,previous.number,previous.offset)){
-                                mediaAnchor=null;
-                            }else{
-                                mediaCorrections++;
-                                restoring=true;
-                                return false;
-                            }
-                        }
-                    } catch (Exception ignored) {mediaAnchor=null;}
-                }
-            }
             // Capture the displayed unread viewport, not an adapter index. The
             // saved position is relevant only during the initial 191 load.
-            if(version.contains("191")&&now-opened<12000&&!XPostPreviewPosition.hasUserInteraction(list)){
+            if(!XPostPreviewPosition.pending(list)&&version.contains("191")&&now-opened<12000&&!XPostPreviewPosition.hasUserInteraction(list)){
                 try{
                     if(openingRebuild&&!list.isLayoutRequested()){
                         openingRebuild=false;
@@ -317,8 +297,9 @@ public final class ReadingPosition {
             try {
                 Anchor current = anchor();
                 if(current==null)return true;
-                if(version.contains("191")&&now-opened<12000&&current.number>1
+                if(!XPostPreviewPosition.pending(list)&&version.contains("191")&&now-opened<12000&&current.number>1
                         &&!openingRebuild&&!XPostPreviewPosition.hasUserInteraction(list))openingAnchor=current;
+                if(XPostPreviewPosition.pending(list))return true;
                 if(coldPreview!=null){
                     if(now>coldPreviewUntil||XPostPreviewPosition.hasUserInteraction(list)){coldPreview=null;onScrollChanged();}
                     else if(current.key.equals(coldPreview.key)){
@@ -386,10 +367,6 @@ public final class ReadingPosition {
             return true;
         }
 
-        @Override public void onGlobalLayout() {
-            if(mediaAnchor!=null)mediaLayout=true;
-        }
-
         @Override public void onScrollChanged() {
             if (closed || restoring || coldPreview!=null || !list.isShown()) return;
             lastScroll = android.os.SystemClock.uptimeMillis();
@@ -399,8 +376,7 @@ public final class ReadingPosition {
 
         void save() {
             if (closed || restoring || coldPreview!=null) return;
-            if (mediaAnchor!=null&&android.os.SystemClock.uptimeMillis()<mediaUntil
-                    &&!XPostPreviewPosition.interacting(list)&&mediaLayout)return;
+            if (XPostPreviewPosition.pending(list))return;
             MAIN.removeCallbacks(delayedSave);
             try {
                 Anchor current = anchor();
@@ -431,7 +407,6 @@ public final class ReadingPosition {
             save(); closed = true; MAIN.removeCallbacks(delayedSave);
             if (list.getViewTreeObserver().isAlive()) {
                 list.getViewTreeObserver().removeOnPreDrawListener(this);
-                list.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 list.getViewTreeObserver().removeOnScrollChangedListener(this);
             }
             list.removeOnAttachStateChangeListener(this);

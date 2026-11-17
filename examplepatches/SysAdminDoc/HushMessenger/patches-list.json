@@ -402,6 +402,63 @@
             "options": []
         },
         {
+            "name": "Block screenshots in chats",
+            "description": "Stops a screenshot or a screen recording of a chat you have open, on this phone, and leaves the chat out of the app switcher's preview. Android refuses the screenshot itself, so it works in every chat and not only the disappearing ones. A chat that was already open needs opening again. The person you're chatting with still has their own phone to screenshot on. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Privacy",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: secure_chat",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Blur behind menus",
             "description": "Blurs the screen behind the menu you get when you press and hold a chat or a message, and behind Messenger's other pop-up menus and sheets, like on an iPhone. Needs Android 12 or newer. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -742,7 +799,7 @@
         },
         {
             "name": "Fix videos in chat heads",
-            "description": "Draws videos in a chat head like the rest of the chat instead of on a separate layer, which some phones showed as a black box that stayed on screen after the chat head closed. Videos in the app itself are left as they are.",
+            "description": "Draws videos in a chat head like the rest of the chat instead of on a separate layer, which some phones showed as a black box that stayed on screen after the chat head closed. On the Huawei and Honor phones where that layer also leaves a box behind in the chat itself, every video is drawn this way.",
             "default": true,
             "category": "Fixes",
             "dependencies": [
@@ -845,7 +902,7 @@
             "name": "Floating tab bar",
             "description": "Switches the tab bar at the bottom to the floating style Messenger is trying out, which sits over your chats instead of below them. Messenger may keep its usual bar on some screens. Restart Messenger to see the change. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -1244,7 +1301,7 @@
             "name": "Hide Notifications tab",
             "description": "Hides the Notifications tab in the bar at the bottom. Restart Messenger to see the tab go. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -1358,7 +1415,7 @@
             "name": "Hide People tab",
             "description": "Hides the People tab in the bar at the bottom. Restart Messenger to see the tab go. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -1472,7 +1529,7 @@
             "name": "Hide Stories tab",
             "description": "Hides the Stories tab in the bar at the bottom. Restart Messenger to see the tab go. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -2439,7 +2496,7 @@
         },
         {
             "name": "Hide read receipts",
-            "description": "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself or replying in it marks it read and shows Seen, like Messenger does. Group chats aren't tested. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself or replying in it marks it read and shows Seen, like Messenger does. Group chats aren't tested. Hide Delivered, under it, also holds back the Delivered tick in ordinary chats. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Privacy",
             "dependencies": [
@@ -2555,7 +2612,7 @@
             "name": "Hide tab badges",
             "description": "Hides the red dots and counts on the tabs at the bottom and on the Facebook button at the top. Turn on Keep for any you still want. Restart Messenger to see the change. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -2574,6 +2631,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_badges",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Hide tab labels",
+            "description": "Takes the words off the tabs at the bottom and leaves the icons on their own. Screen readers still name every tab. Restart Messenger to see the change. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Tab bar",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: hide_tab_labels",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -2726,7 +2840,7 @@
             "name": "Hide the tab bar while scrolling",
             "description": "Slides the tab bar at the bottom out of the way as you scroll down your chats and brings it back when you scroll up. Restart Messenger to see the change. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -2995,8 +3109,65 @@
             "options": []
         },
         {
+            "name": "Invisible buttons",
+            "description": "Picks buttons in a chat to draw at nothing while they keep their place, their size and what they do, so a tap still lands. Good for a button you keep hitting by mistake or one you'd rather not look at. Pick them in HushMessenger settings, where every button a chat has shown you is listed by the name a screen reader says for it. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Theme",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: invisible_buttons",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Jump to the first message or a date",
-            "description": "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. An arrow at the bottom left of a chat goes to its first message, and a long press on the arrow asks for a day. Tapping one of the dates between the messages opens the same day picker on that day. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Conversations",
             "dependencies": [
@@ -3074,6 +3245,50 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: message_log",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Keep a renamed copy working",
+            "description": "Keeps a copy of Messenger working when another patch gives it a new package name. Without it the copy stops at its loading screen, and its attachments and muted chats go to the Messenger it was copied from. HushMessenger's own Clone install already does this for the copies it makes. Works as soon as you patch it in, with no switch.",
+            "default": true,
+            "category": "Fixes",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -3438,6 +3653,63 @@
             "options": []
         },
         {
+            "name": "Mark chats read on this phone",
+            "description": "Clears the unread look of a chat you've opened while Hide read receipts is on, so the chat list stops showing it bold with a count. Nothing goes to Messenger, so the other person still isn't told you read it. A new message in the chat brings the unread look back. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Privacy",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: read_chats_locally",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Material You theme",
             "description": "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Turn on dark mode in Messenger first. Light mode keeps its colors unless you turn on Light mode accent. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -3498,7 +3770,7 @@
             "name": "Notify for restricted chats",
             "description": "Chats with people you've restricted notify you like your other chats. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Notifications",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -3723,6 +3995,63 @@
             "options": []
         },
         {
+            "name": "Paste a photo into the chat",
+            "description": "A photo you paste into a chat goes into the chat's message box the way a pick from your gallery does, instead of going out on its own. Nothing is sent until you tap Send, so you can add a caption or change your mind. Pasted text and the keyboard's GIFs work as they did. Open the chat again after turning this on. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Photos and videos",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: paste_photo",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Pin more chats",
             "description": "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -3745,6 +4074,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: pinned_chats",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Play video links in the chat",
+            "description": "Plays a shared YouTube, TikTok, Instagram or Facebook video in a window over the chat instead of sending you to the app or the browser. The video comes from the site's own player, so nothing is downloaded and the window keeps no cookies. Shortened links (youtu.be aside), Facebook stories and anything that isn't a video page open the way they always did. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Links and bubbles",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: link_player",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -3916,6 +4302,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: quiet_calls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Quiet mode",
+            "description": "A break from Messenger. Pick 15 minutes, an hour, two hours, eight hours or until you end it yourself, and nothing from Messenger makes a sound or vibrates for that long. Messages and calls still arrive and wait in the notification shade, so nothing goes missing. Every night, under it, does the same between two times you pick. Anyone on your Special contacts list still comes through. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Notifications",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: quiet_mode",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -4511,7 +4954,7 @@
             "name": "Show People tab",
             "description": "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Restart Messenger to see the tab. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Navigation",
+            "category": "Tab bar",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -4530,6 +4973,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_people_show",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Show settings tab",
+            "description": "Puts Messenger's own settings tab at the end of the bar at the bottom, with your picture on it, so your account settings are one tap away. Restart Messenger to see the tab. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Tab bar",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: tab_settings_show",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -4800,7 +5300,7 @@
             "name": "Stop ad attribution uploads",
             "description": "Stops the job that reads your phone's advertising ID and sends it to Meta with your ad tracking setting. The ID itself doesn't change. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -4857,7 +5357,7 @@
             "name": "Stop analytics uploads",
             "description": "Stops the background services Messenger uses to upload usage statistics. It still records them on your phone, and they can upload after you turn this off. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -4914,7 +5414,7 @@
             "name": "Stop app list and device ID sharing",
             "description": "Stops Messenger from going through the apps on your phone to find other Meta apps, and from asking them for the device ID Meta uses to link the apps on one phone. Messenger keeps the ID it already has. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -4968,10 +5468,67 @@
             "options": []
         },
         {
+            "name": "Stop attention time logging",
+            "description": "Stops the report Messenger files when you leave a screen, which says how long you looked at each thing on it, in what order, and how often you came back. It also stops the copy of those timings that goes onto Messenger's journey log. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Tracking",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: dwell_tracking",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Stop inbox and ad link logging",
             "description": "Stops two reports Messenger logs. One says which part of your chat list was on screen, which Messenger files under inbox ads. The other says which ad brought you in when a link from an ad opens a chat. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -5028,7 +5585,7 @@
             "name": "Stop live connection logging",
             "description": "Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages, calls and active status keep working. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -5085,7 +5642,7 @@
             "name": "Stop nearby scans",
             "description": "Stops Messenger from reading the list of Wi-Fi networks around you, and hides the name and hardware address of the one you're connected to, the way Android does when Messenger can't see your location. Also stops the timer it can run while it's open to check your location and scan for Wi-Fi networks and Bluetooth devices. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
-            "category": "Privacy",
+            "category": "Tracking",
             "dependencies": [
                 {
                     "type": "BytecodePatch",
@@ -5503,6 +6060,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: home_header",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "587.0.0.54.96",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347415262, 347415267, 347415268, 347415280, 347415281, 347415284, 347415285, 347415295, 347415299, 347415301, 347415302, 347415333, 347415337, 347415348, 347415350, 347415351, 347415352, 347415354 and 347415355; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Your own tab icons",
+            "description": "Swaps the icons in the bar at the bottom for plain outlined ones, and lets you put your own picture on any tab. Restart Messenger to see the change. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Tab bar",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: tab_icons",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",

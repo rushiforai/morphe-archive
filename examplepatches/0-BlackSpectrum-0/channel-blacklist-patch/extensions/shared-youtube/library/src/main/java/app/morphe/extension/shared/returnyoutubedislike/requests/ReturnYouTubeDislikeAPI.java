@@ -52,7 +52,7 @@ public class ReturnYouTubeDislikeAPI {
 
     /**
      * Default connection and response timeout for voting and registration.
-     *
+     * <p>
      * Voting and user registration runs in the background and has no urgency
      * so this can be a larger value.
      */
@@ -62,7 +62,7 @@ public class ReturnYouTubeDislikeAPI {
      * RYD API sometimes returns 401 (authorization error), even though the user ID is valid.
      * There is no known fix for this (resetting to a different user ID does not fix it),
      * so instead just quietly ignore the error.
-     *
+     * <p>
      * See <a href="https://github.com/Anarios/return-youtube-dislike/issues/1153">RYD bug report</a>.
      */
     private static final int HTTP_STATUS_CODE_UNAUTHORIZED = 401;
@@ -156,18 +156,6 @@ public class ReturnYouTubeDislikeAPI {
     } // utility class
 
     /**
-     * Clears any backoff rate limits in effect.
-     * Should be called if RYD is turned on/off.
-     */
-    public static void resetRateLimits() {
-        if (lastApiCallFailed || timeToResumeAPICalls != 0) {
-            Logger.printDebug(() -> "Reset rate limit");
-        }
-        lastApiCallFailed = false;
-        timeToResumeAPICalls = 0;
-    }
-
-    /**
      * @return True, if api rate limit is in effect.
      */
     private static boolean checkIfRateLimitInEffect(String apiEndPointName) {
@@ -200,7 +188,8 @@ public class ReturnYouTubeDislikeAPI {
         return httpResponseCode == HTTP_STATUS_CODE_RATE_LIMIT;
     }
 
-    @SuppressWarnings("NonAtomicOperationOnVolatileField") // Don't care, fields are only estimates.
+    @SuppressWarnings("NonAtomicOperationOnVolatileField")
+    // Don't care, fields are only estimates.
     private static void updateRateLimitAndStats(long timeNetworkCallStarted, boolean connectionError, boolean rateLimitHit) {
         if (connectionError && rateLimitHit) {
             throw new IllegalArgumentException();
@@ -443,6 +432,7 @@ public class ReturnYouTubeDislikeAPI {
         return userID;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean sendVote(String videoId, ReturnYouTubeDislike.Vote vote) {
         Utils.verifyOffMainThread();
         Objects.requireNonNull(videoId);
@@ -594,6 +584,7 @@ public class ReturnYouTubeDislikeAPI {
     }
 
     // https://stackoverflow.com/a/157202
+    @SuppressWarnings("SameParameterValue")
     private static String randomString(int len) {
         String AB = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         SecureRandom rnd = new SecureRandom();

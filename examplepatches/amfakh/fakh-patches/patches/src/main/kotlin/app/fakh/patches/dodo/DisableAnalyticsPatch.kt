@@ -4,7 +4,9 @@ import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
 import app.fakh.patches.shared.firebase.firebaseManifestPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.mutableClassDefBy
 
 /** Static SDK entry points that MainApp.onCreate calls directly, so disabling their providers is not enough. */
 private val TRACKER_INITS = mapOf(
@@ -13,7 +15,7 @@ private val TRACKER_INITS = mapOf(
 )
 
 @Suppress("unused")
-val disableAnalyticsPatch = bytecodePatch(
+val disableAnalyticsPatch = patch(
     name = "Disable analytics",
     description = "Stops Adjust and TikTok from tracking installs and in-app events, and turns off Firebase " +
         "Analytics, Crashlytics, Performance and Sessions, which get every action you take in the app.",

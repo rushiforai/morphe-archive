@@ -181,8 +181,11 @@ public class CompatReport {
         PATCHES.put("Hide Reels badge", List.of("reels_badge"));
         PATCHES.put("Hide People tab", List.of("tab_people", "tab_config"));
         PATCHES.put("Show People tab", List.of("tab_config"));
+        PATCHES.put("Show settings tab", List.of("tab_config"));
         PATCHES.put("Hide Notifications tab", List.of("tab_notifications", "tab_config"));
         PATCHES.put("Hide Stories tab", List.of("tab_config"));
+        PATCHES.put("Hide tab labels", List.of("tab_labels"));
+        PATCHES.put("Your own tab icons", List.of("tab_icons"));
         PATCHES.put("Hide tab badges", List.of("tab_badges", "facebook_badge"));
         PATCHES.put("Hide the tab bar while scrolling", List.of("tab_bar_scroll_away", "tab_bar_overlay"));
         PATCHES.put("Floating tab bar", List.of("floating_tab_bar"));
@@ -215,11 +218,14 @@ public class CompatReport {
         PATCHES.put("Use the phone's camera app", List.of("system_camera"));
         PATCHES.put("Open your gallery app", List.of("external_gallery", "gallery_temp_file"));
         PATCHES.put("Put gallery picks in the chat", List.of("gallery_to_chat"));
+        PATCHES.put("Paste a photo into the chat", List.of("paste_photo"));
         PATCHES.put("Send Instants from your gallery", List.of("instant_gallery"));
         PATCHES.put("Special contacts", List.of("special_contacts", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
+        PATCHES.put("Play video links in the chat", List.of("link_player"));
         PATCHES.put("Stop analytics uploads", List.of("analytics_uploads"));
         PATCHES.put("Stop ad attribution uploads", List.of("attribution_uploads"));
         PATCHES.put("Stop inbox and ad link logging", List.of("ad_events"));
+        PATCHES.put("Stop attention time logging", List.of("dwell_tracking"));
         PATCHES.put("Stop live connection logging", List.of("mqtt_telemetry"));
         PATCHES.put("Stop nearby scans", List.of("nearby_scans", "wifi_identity"));
         PATCHES.put("Stop app list and device ID sharing", List.of("phone_id_sync"));
@@ -227,6 +233,7 @@ public class CompatReport {
             "quiet_log_check", "quiet_log_drop", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Auto reply", List.of("auto_reply"));
         PATCHES.put("Quiet incoming calls", List.of("quiet_call_ring", "quiet_call_notification"));
+        PATCHES.put("Quiet mode", List.of("quiet_mode", "quiet_call_ring", "quiet_call_notification"));
         PATCHES.put("Android Auto messages", List.of("car_messages", "car_extension_gate"));
         PATCHES.put("Search saved messages", List.of("local_chat_search"));
         PATCHES.put("Jump to the first message or a date", List.of("chat_jump"));
@@ -236,7 +243,10 @@ public class CompatReport {
         PATCHES.put("Hide call buttons", List.of("hide_call_bar", "hide_call_lists"));
         PATCHES.put("Ask before a call", List.of("hide_call_bar", "call_button_built"));
         PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
-        PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read"));
+        PATCHES.put("Block screenshots in chats", List.of("secure_chat"));
+        PATCHES.put("Invisible buttons", List.of("invisible_buttons"));
+        PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read", "delivery_receipt"));
+        PATCHES.put("Mark chats read on this phone", List.of("local_read"));
         PATCHES.put("Mark as read button", List.of("mark_read_bar", "mark_read_click"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent", "unsent_recall", "unsent_clear"));
         PATCHES.put("Unlock app icons", List.of("app_icons"));
@@ -949,7 +959,7 @@ public class CompatReport {
      */
     static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
         "ai_search_chip", "ai_summary", "allow_screenshot", "analytics_uploads", "app_icons", "app_themes", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
-        "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent",
+        "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent", "link_player",
         "mqtt_telemetry", "nearby_scans", "original_photo", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
         "tab_badges", "typing", "unsent_indicator", "unsent_recall");
 

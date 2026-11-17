@@ -22,6 +22,7 @@ import java.util.Locale;
 final class RegisteredImageSafStore {
     static final String DIRECTORY_NAME = "Haiagaru-画像NG";
     private static final String TREE = "saf_tree", FOLDER_ID = "saf_folder_id";
+    private static final String DELETED="deleted_reference_digests";
     private static final String[] COLUMNS = {
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -61,6 +62,28 @@ final class RegisteredImageSafStore {
     }
 
     private RegisteredImageSafStore() { }
+
+    /** Original private references were intentionally retained during SAF migration. */
+    static int recoverLegacy(Context context,int maximum,BytesReader reader)throws Exception{
+        if(!configured(context))return 0;
+        File[] originals=legacyDirectory(context).listFiles((dir,name)->name.endsWith(".img"));if(originals==null)return 0;
+        Uri tree=Uri.parse(RegisteredImageNg.prefs(context).getString(TREE,""));String folderId=RegisteredImageNg.prefs(context).getString(FOLDER_ID,"");
+        List<Entry> active=children(context,tree,folderId,false);java.util.Set<String> removed=RegisteredImageNg.prefs(context).getStringSet(DELETED,Collections.emptySet());
+        Uri destination=DocumentsContract.buildDocumentUriUsingTree(tree,folderId);int restored=0;
+        java.util.Set<String> digests=new java.util.HashSet<>();
+        for(Entry entry:active)try(InputStream input=entry.open(context)){byte[] bytes=reader.read(input);if(bytes!=null)digests.add(reader.digest(bytes));}catch(Exception unreadable){/* Retain unreadable entries unchanged. */}
+        for(File original:originals){
+            if(active.size()>=maximum)break;
+            try(InputStream input=new FileInputStream(original)){
+                byte[] bytes=reader.read(input);if(bytes==null)continue;String digest=reader.digest(bytes);
+                if(removed.contains(digest)||digests.contains(digest)||hasDigest(active,digest))continue;
+                if(putSaf(context,destination,active,bytes,digest)){restored++;digests.add(digest);}
+            }
+        }
+        return restored;
+    }
+    static void deleted(Context context,String digest){java.util.Set<String> removed=new java.util.HashSet<>(RegisteredImageNg.prefs(context).getStringSet(DELETED,Collections.emptySet()));removed.add(digest);RegisteredImageNg.prefs(context).edit().putStringSet(DELETED,removed).apply();}
+    private static void registered(Context context,String digest){java.util.Set<String> removed=new java.util.HashSet<>(RegisteredImageNg.prefs(context).getStringSet(DELETED,Collections.emptySet()));if(removed.remove(digest))RegisteredImageNg.prefs(context).edit().putStringSet(DELETED,removed).apply();}
 
     static boolean configured(Context context) {
         return RegisteredImageNg.prefs(context).contains(TREE)
@@ -177,11 +200,12 @@ final class RegisteredImageSafStore {
             if (!root.isDirectory() && !root.mkdirs()) throw new IOException("専用フォルダを作成できません");
             File target = new File(root, digest + ".img");
             try (OutputStream output = new FileOutputStream(target)) { output.write(bytes); }
+            registered(context,digest);
             return true;
         }
         Uri tree = Uri.parse(RegisteredImageNg.prefs(context).getString(TREE, ""));
         String folderId = RegisteredImageNg.prefs(context).getString(FOLDER_ID, "");
-        return putSaf(context, DocumentsContract.buildDocumentUriUsingTree(tree, folderId), existing, bytes, digest);
+        boolean added=putSaf(context, DocumentsContract.buildDocumentUriUsingTree(tree, folderId), existing, bytes, digest);if(added)registered(context,digest);return added;
     }
 
     private static boolean hasDigest(List<Entry> existing, String digest) {

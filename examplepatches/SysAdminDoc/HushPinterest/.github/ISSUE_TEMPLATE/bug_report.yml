@@ -71,6 +71,8 @@ body:
       options:
         - AMOLED black
         - Change package name
+        - Custom save sound
+        - Custom splash logo
         - Disable analytics
         - Disable update nag
         - Download board
@@ -86,9 +88,12 @@ body:
         - Hide Assistant
         - Hide closeup buttons
         - Hide comments
+        - Hide creator name on pins
         - Hide header buttons
         - Hide Inbox updates
         - Hide navigation buttons
+        - Hide pop-up banners
+        - Hide related pins
         - Hide save toasts
         - Hide search history
         - Hide shopping and product pins

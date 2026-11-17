@@ -143,35 +143,37 @@ class SyncUpstreamTests(unittest.TestCase):
             with self.subTest(invalid=invalid[:60]), self.assertRaises(sync_upstream.SyncError):
                 sync_upstream.merge_streaming_data_request_dev230(invalid)
 
-    def test_dev230_resolver_rejects_unknown_blob_at_every_stage(self):
+    def test_dev230_and_stable230_resolvers_reject_unknown_blob_at_every_stage(self):
         conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev230-conflicts.txt").read_text(
             encoding="utf-8"
         )
         path = sync_upstream.STREAMING_DATA_REQUEST_PATH
-        destination, root = mock.Mock(), mock.Mock()
-        destination.read_text.return_value = conflict
-        root.__truediv__ = mock.Mock(return_value=destination)
-        blobs = sync_upstream.STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS
-        with (mock.patch.object(sync_upstream, "ROOT", root),
-              mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
-              mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
-              mock.patch.object(sync_upstream, "run") as run):
-            sync_upstream.resolve_streaming_data_request_conflict()
-            destination.write_text.assert_called_once_with(
-                sync_upstream.merge_streaming_data_request_dev230(conflict), encoding="utf-8", newline="")
-            run.assert_called_once_with("git", "add", "--", path)
-        for stage in range(3):
-            unknown = list(blobs)
-            unknown[stage] = "unknown"
-            destination.reset_mock()
-            with (self.subTest(stage=stage + 1),
+        for blobs in (sync_upstream.STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS,
+                      sync_upstream.STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS):
+            destination, root = mock.Mock(), mock.Mock()
+            destination.read_text.return_value = conflict
+            root.__truediv__ = mock.Mock(return_value=destination)
+            with (self.subTest(blobs=blobs),
                   mock.patch.object(sync_upstream, "ROOT", root),
                   mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
-                  mock.patch.object(sync_upstream, "output_of", side_effect=unknown),
+                  mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
                   mock.patch.object(sync_upstream, "run") as run):
                 sync_upstream.resolve_streaming_data_request_conflict()
-                destination.write_text.assert_not_called()
-                run.assert_not_called()
+                destination.write_text.assert_called_once_with(
+                    sync_upstream.merge_streaming_data_request_dev230(conflict), encoding="utf-8", newline="")
+                run.assert_called_once_with("git", "add", "--", path)
+            for stage in range(3):
+                unknown = list(blobs)
+                unknown[stage] = "unknown"
+                destination.reset_mock()
+                with (self.subTest(blobs=blobs, stage=stage + 1),
+                      mock.patch.object(sync_upstream, "ROOT", root),
+                      mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+                      mock.patch.object(sync_upstream, "output_of", side_effect=unknown),
+                      mock.patch.object(sync_upstream, "run") as run):
+                    sync_upstream.resolve_streaming_data_request_conflict()
+                    destination.write_text.assert_not_called()
+                    run.assert_not_called()
 
     def test_morphe220_arrays_keep_seekbar_scaling_and_all_dual_choices(self):
         names = ('target_language_entries', 'target_language_entry_values',

@@ -50,8 +50,8 @@ public final class SpecialContacts {
     private static volatile long nextCheck;
     private static volatile long nextNames;
     private static volatile Field userId;
-    /** Guarded by the class. Null until an account is read. */
-    private static SpecialContactsStore store;
+    /** Written under the class lock. Null until an account is read, and read without the lock by {@link #names()}. */
+    private static volatile SpecialContactsStore store;
 
     private SpecialContacts() {}
 
@@ -196,6 +196,15 @@ public final class SpecialContacts {
         }
     }
 
+    /**
+     * The names of everyone tracked under the account last read, lowercased. Quiet mode asks this on the thread a
+     * notification goes up on, so it never waits on the store or on a lock: an account not read yet has no names.
+     */
+    static Set<String> names() {
+        SpecialContactsStore people = store;
+        return people == null ? Collections.emptySet() : people.names();
+    }
+
     /** Settings' list of everyone tracked under the account in use. */
     static List<SpecialContactsStore.Person> list() {
         SpecialContactsStore people = current();
@@ -319,7 +328,7 @@ public final class SpecialContacts {
     }
 
     /** Every so often the hooks look at which account is in use, off their own thread. */
-    private static void checkSoon() {
+    static void checkSoon() {
         long now = SystemClock.uptimeMillis();
         if (now < nextCheck) return;
         nextCheck = now + ACCOUNT_CHECK_MILLIS;

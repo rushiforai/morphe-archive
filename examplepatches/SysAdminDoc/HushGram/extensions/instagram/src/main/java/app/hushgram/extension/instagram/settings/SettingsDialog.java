@@ -13,8 +13,14 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -68,6 +74,14 @@ public final class SettingsDialog extends DialogFragment {
     /** The picked font's check on this dialog's window while it's started. */
     private Window fontWindow;
     private FontDraw fontDraw;
+    /** The audio focus this screen holds while it's started, so the feed behind it goes quiet. */
+    private AudioManager quietAudio;
+    private AudioFocusRequest quietFocus;
+    private long quietSince;
+    private int quietRetakes;
+    static final long QUIET_RETAKE_WINDOW_MS = 6000;
+    static final long QUIET_RETAKE_DELAY_MS = 300;
+    static final int QUIET_RETAKES = 2;
 
     /**
      * The screen, expanding the section whose row has the key [page]. Null or a key no row
@@ -356,6 +370,7 @@ public final class SettingsDialog extends DialogFragment {
         super.onStart();
         watchLock();
         watchFont();
+        quietFeed();
         ShortcutCover.offOnceDrawn(getDialog());
     }
 
@@ -363,7 +378,79 @@ public final class SettingsDialog extends DialogFragment {
     public void onStop() {
         unwatchLock();
         unwatchFont();
+        unquietFeed();
         super.onStop();
+    }
+
+    /**
+     * A feed video kept playing its sound under this screen (#725): it's a dialog, so the feed
+     * behind it never pauses. Holding the audio focus while the screen shows quiets Instagram's
+     * players the way a call or another app does, and their sound comes back when it closes.
+     */
+    private void quietFeed() {
+        if (quietFocus != null) return;
+        try {
+            Activity activity = getActivity();
+            AudioManager audio = activity == null ? null
+                    : activity.getApplicationContext().getSystemService(AudioManager.class);
+            if (audio == null) return;
+            AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                            .build())
+                    .setOnAudioFocusChangeListener(this::quietFocusChanged, new Handler(Looper.getMainLooper()))
+                    .build();
+            if (audio.requestAudioFocus(request) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) return;
+            quietAudio = audio;
+            quietFocus = request;
+            quietSince = SystemClock.uptimeMillis();
+            quietRetakes = 0;
+        } catch (Exception ex) {
+            Logger.printException(() -> "Settings: could not quiet the feed", ex);
+        }
+    }
+
+    /**
+     * When the page opens through an intent (the restart button lands back here), Instagram's
+     * activity pauses and resumes under it, and the feed starts its video again about a second and a
+     * half later, asking for the focus back with sound on. Taking it back once more right after quiets
+     * that video too. Only in the first seconds and only twice, so a music app the user starts while
+     * the page is open keeps playing.
+     */
+    private void quietFocusChanged(int change) {
+        if (change >= 0) return;
+        AudioManager audio = quietAudio;
+        AudioFocusRequest request = quietFocus;
+        if (audio == null || request == null) return;
+        if (!retakesQuiet(SystemClock.uptimeMillis() - quietSince, quietRetakes)) return;
+        quietRetakes++;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (quietFocus != request) return;
+            try {
+                audio.requestAudioFocus(request);
+            } catch (Exception ex) {
+                Logger.printException(() -> "Settings: could not quiet the feed again", ex);
+            }
+        }, QUIET_RETAKE_DELAY_MS);
+    }
+
+    /** Whether a focus lost {@code sinceOpen} ms after the page took it, {@code retaken} times already, is taken back. */
+    static boolean retakesQuiet(long sinceOpen, int retaken) {
+        return sinceOpen >= 0 && sinceOpen <= QUIET_RETAKE_WINDOW_MS && retaken < QUIET_RETAKES;
+    }
+
+    private void unquietFeed() {
+        AudioManager audio = quietAudio;
+        AudioFocusRequest request = quietFocus;
+        quietAudio = null;
+        quietFocus = null;
+        if (audio == null || request == null) return;
+        try {
+            audio.abandonAudioFocusRequest(request);
+        } catch (Exception ex) {
+            Logger.printException(() -> "Settings: could not give the sound back", ex);
+        }
     }
 
     /**

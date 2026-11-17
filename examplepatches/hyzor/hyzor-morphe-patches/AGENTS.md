@@ -8,7 +8,7 @@ conventions the repository follows.
 
 ## What this repository is
 
-- A **Morphe patch bundle** for eleven Android apps. It contains Kotlin patches that edit
+- A **Morphe patch bundle** for twelve Android apps. It contains Kotlin patches that edit
   Dalvik bytecode and decoded resources, plus one Java extension that is merged into the
   patched app as extra classes.
 - **Not an app, and not a fork of the apps.** The build output is `patches/build/libs/patches-<version>.mpp`
@@ -34,6 +34,7 @@ conventions the repository follows.
 | Solid Explorer | `pl.solidexplorer2` | `3.6.4` | `patches/.../solidexplorer/` |
 | nzb360 | `com.kevinforeman.nzb360` | `25.3` | `patches/.../nzb360/` |
 | Trakt | `tv.trakt.trakt` | `3.28.0` | `patches/.../trakt/` |
+| Sparkle TV | `se.hedekonsult.sparkle` | `2.4.0` | `patches/.../sparkle/` |
 
 ## Repository map
 
@@ -59,8 +60,8 @@ docs/apps/                            per-app technical write-ups
 patched outputs, decompiles, harnesses and logs. Keep one folder per app, named after the app
 (`.tmp/chess_com/`, `.tmp/duolingo/`, `.tmp/foldersync/`, `.tmp/nova_launcher/`,
 `.tmp/nyt_games/`, `.tmp/nzb360/`, `.tmp/projectivy_launcher/`, `.tmp/sleep_as_android/`,
-`.tmp/snorelab/`, `.tmp/solid_explorer/`, `.tmp/trakt/`), instead of dropping files at the top
-of `.tmp/` or in the repository root.
+`.tmp/snorelab/`, `.tmp/solid_explorer/`, `.tmp/sparkle_tv/`, `.tmp/trakt/`), instead of dropping
+files at the top of `.tmp/` or in the repository root.
 It is gitignored: nothing the build needs may live there, and it is never committed.
 
 ## Toolchain
@@ -270,8 +271,32 @@ Morphe signs the output with its own key. Consequences you will meet:
 6. Fail with an actionable `PatchException` (name the class/method/resource and the likely
    fix), not a bare cast error.
 7. Build, apply with `--validate`, and test on a phone (below).
-8. If the change is user-visible, update the app's page under `docs/apps/`, and the
-   supported-versions table at the top of the README when a version changes.
+8. If the change is user-visible, update the app's page under `docs/apps/`, the matching
+   `## 📱 <App>` section in the root `README.md`, and the supported-versions table at the top
+   of the README when a version changes.
+
+### Adding a new app
+
+Adding an app is not just the patch package: if it is missing from the root README's app
+section, `docs/apps/` or this file, it is only half-added. Work through all of:
+
+1. Add `<app>/shared/Constants.kt` with a `Compatibility` (package, target(s), `apkFileType`,
+   `formFactor`) and the patch/fingerprint package, following the layout above.
+2. Add the app to `tools/verify_fingerprints.py`: `MARKERS`, `TARGETS` and, for any method
+   name that can be overloaded, `REQUIRED_PARAMS`.
+3. Attribute the port in the source header, `NOTICE`, and the "Licence and credits" section
+   of the root `README.md`.
+4. Add `docs/apps/<app>.md` with the licence model, hook map, verification record and port
+   notes.
+5. Update the root `README.md` in **two** places: the supported-versions table at the top and
+   a per-app `## 📱 <App>` section (supported target, patch table, how the licence works, and
+   the link to `docs/apps/<app>.md`). The table row alone is not enough.
+6. Update this file (`AGENTS.md`): the app count in the intro, the app table, the `.tmp/`
+   folder list, the conventional-commit scope list and the per-app checks table under
+   "Testing on a phone".
+7. Build, apply with `--validate`, run the device checks, and record what was not exercised.
+
+Keep this list current: if a new app needs another file or step, add it here in the same PR.
 
 ### Supporting a new app version
 
@@ -290,8 +315,9 @@ jumping to a beta or alpha build, where keeping the last stable target gives use
 4. Update the `TARGETS` in `tools/verify_fingerprints.py` so the next check covers the new
    version.
 5. Build, apply to the new APK, and run the device checks.
-6. Update the supported-versions table at the top of the README and the app page in
-   `docs/apps/`.
+6. Update the supported-versions table at the top of the README, the `## 📱 <App>` section in
+   the README (supported target), the app page in `docs/apps/`, and the target in the app
+   table at the top of this file (`AGENTS.md`).
 7. Commit with `bump(<app>): support <version>` — `bump:` maps to the release's
    “Updated App Support” section. Drop the previous target unless the exception above applies.
 
@@ -358,6 +384,7 @@ claim in the PR.
 | Solid Explorer | The drawer header shows the **Pro** badge, Settings → Icon set → **Paper** applies instead of opening the Pro paywall, and no ads appear. |
 | nzb360 | The side-menu header reads `nzb360 │ All ∞ Access`, Settings → Upgrade Center reads `Everything unlocked`, and every module in the Upgrade Center reads `Unlocked via ∞`. |
 | Trakt | Sign-in completes through a regular Custom Tab and returns to `MainActivity`; the profile shows the VIP badge; Discover → Filters opens the advanced VIP panel. |
+| Sparkle TV | Setup wizard is not locked (with and without Play installed); multiple XMLTV EPG sources can be added; timeshift works; the setup screens stay unlocked after a billing error; Movies and Series open and render on a 4K/640 dpi display (the background artwork cap). |
 
 Record what was **not** exercised (e.g. “MAX variant applied but not installed”, “RampUp
 verified in the patched DEX, account has no challenge”). Be explicit about static-only
@@ -396,6 +423,10 @@ force-stop the app so the next test starts cold.
   block between `<!-- PATCHES_START … -->` and `<!-- PATCHES_END -->`, or `CHANGELOG.md`
   (all produced by the release CI).
 - The README table of supported apps *is* hand-maintained; update it when versions change.
+- Keep the docs in sync in the same change: a new app needs the root README's per-app section
+  **and** the app count/table/scopes/`.tmp` list in this file (see
+  [Adding a new app](#adding-a-new-app)); a version bump needs the README tables, the app page
+  and the target in this file's app table.
 - Support one version per app by default: port the patches forward when a new build lands and
   drop the old target, unless there is a specific reason to keep both (see
   [Supporting a new app version](#supporting-a-new-app-version)).
@@ -412,7 +443,7 @@ force-stop the app so the next test starts cold.
   `fix` → patch, `feat` → minor, `perf` → patch, `bump` → “Updated App Support”,
   `build` with scope `Needs bump` → patch, `chore`/`docs`/`ci` → no release.
 - Scopes used here: `chesscom`, `duolingo`, `foldersync`, `nova`, `nytgames`, `nzb360`,
-  `projectivy`, `sleep`, `snorelab`, `solidexplorer`, `trakt`.
+  `projectivy`, `sleep`, `snorelab`, `solidexplorer`, `sparkle`, `trakt`.
 - Pushing a release-triggering commit (`fix`, `feat`, `bump`, `perf`, or `build` with scope
   `Needs bump`) to `dev` publishes a pre-release (`vX.Y.Z-dev.N`); the same on `main` publishes
   a stable release. `chore`, `docs` and `ci` commits never publish. Merge `dev` into `main`

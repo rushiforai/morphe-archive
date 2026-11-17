@@ -7,6 +7,8 @@
 package app.hushpinterest.extension.pinterest.ui;
 
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -15,7 +17,9 @@ import android.widget.Toast;
 import java.util.Locale;
 
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.shadows.ShadowMediaPlayer;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.shadows.util.DataSource;
 
 /**
  * Lets tests in other packages name the class the save toast hook treats as a save toast, and hand
@@ -26,6 +30,31 @@ public final class UiHooksForTests {
 
     /** Like, comment, share and more, in the order the row under a pin's picture shows them. */
     public static final int LIKE = 0, COMMENTS = 1, SHARE = 2, MORE = 3;
+
+    /**
+     * A sound file picked for Custom save sound, and Pinterest making the player for its save
+     * chime: true when the picked file got the player.
+     */
+    public static boolean playsPickedSaveSound() {
+        Context context = RuntimeEnvironment.getApplication();
+        Uri sound = Uri.parse("content://com.android.providers.media.documents/document/audio%3A7");
+        ShadowMediaPlayer.addMediaInfo(DataSource.toDataSource(context, sound), new ShadowMediaPlayer.MediaInfo(500, 0));
+        String before = SaveSound.PICKED.get();
+        SaveSound.PICKED.save(sound.toString());
+        try {
+            MediaPlayer player = UiHooks.pickedSaveSound(context);
+            if (player == null) return false;
+            player.release();
+            return true;
+        } finally {
+            SaveSound.PICKED.save(before);
+        }
+    }
+
+    /** Custom splash logo's answer for the next start: true when Android would be handed the picked logo. */
+    public static boolean nextStartShowsPickedLogo() {
+        return SplashLogo.wanted(RuntimeEnvironment.getApplication());
+    }
 
     public static void saveToast(Class<?> type) {
         UiHooks.saveToastForTests = type;

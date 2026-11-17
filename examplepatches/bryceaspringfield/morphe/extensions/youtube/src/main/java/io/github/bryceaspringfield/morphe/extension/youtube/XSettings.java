@@ -23,6 +23,8 @@ public final class XSettings {
     public static final StringSetting MIN_VIEWS = new StringSetting("yx_min_views", "");
     /** Hide videos older than this (30 days, 8w, 6m, 2y); blank is no bound. */
     public static final StringSetting MAX_AGE = new StringSetting("yx_max_age", "");
+    /** Whether the views filter also hides videos under a day old (it does not by default; they have had little time to gain views). */
+    public static final BooleanSetting VIEWS_KEEP_NEW = new BooleanSetting("yx_views_keep_new", FALSE);
     public static final BooleanSetting HIDE_MEMBERS_ONLY = new BooleanSetting("yx_hide_members_only", FALSE);
     public static final BooleanSetting HIDE_UPCOMING = new BooleanSetting("yx_hide_upcoming", FALSE);
 
@@ -31,6 +33,13 @@ public final class XSettings {
     public static final BooleanSetting APPLY_SUBSCRIPTIONS = new BooleanSetting("yx_apply_subscriptions", true);
     public static final BooleanSetting APPLY_SEARCH = new BooleanSetting("yx_apply_search", true);
     public static final BooleanSetting APPLY_RELATED = new BooleanSetting("yx_apply_related", true);
+
+    // Where Mark watched videos applies (2026-11-16): Home and the videos under the player, as before, by default.
+    public static final BooleanSetting WATCHED_HOME = new BooleanSetting("yx_watched_home", true);
+    public static final BooleanSetting WATCHED_SUBSCRIPTIONS = new BooleanSetting("yx_watched_subscriptions", false);
+    public static final BooleanSetting WATCHED_CHANNEL = new BooleanSetting("yx_watched_channel", false);
+    public static final BooleanSetting WATCHED_SEARCH = new BooleanSetting("yx_watched_search", false);
+    public static final BooleanSetting WATCHED_RELATED = new BooleanSetting("yx_watched_related", true);
 
     // Playlists (not mixes) in the home feed.
     public static final BooleanSetting HIDE_HOME_PLAYLISTS = new BooleanSetting("yx_hide_home_playlists", FALSE);
@@ -63,6 +72,10 @@ public final class XSettings {
     /** Off, partly (any progress bar), or fully (a progress bar of at least 90%). */
     public static final StringSetting AUTO_WATCHED = new StringSetting("yx_auto_watched", "off");
     public static final BooleanSetting AUTO_LIKE = new BooleanSetting("yx_auto_like", FALSE);
+    /** Channels (one a line: name, @handle, or channel ID) whose every opened video is disliked. */
+    public static final StringSetting DISLIKE_CHANNELS = new StringSetting("yx_dislike_channels", "");
+    /** Home's repeated-suggestion count also runs on the videos under the player. */
+    public static final BooleanSetting RESUGGESTED_RELATED = new BooleanSetting("yx_resuggested_related", true);
 
     // The Save button opens the playlist chooser.
     public static final BooleanSetting SAVE_OPENS_CHOOSER = new BooleanSetting("yx_save_opens_chooser", FALSE);
@@ -80,6 +93,8 @@ public final class XSettings {
     // Live streams play faster while behind their live edge, until caught up.
     public static final BooleanSetting LIVE_CATCH_UP = new BooleanSetting("yx_live_catch_up", FALSE);
     public static final StringSetting LIVE_CATCH_UP_SPEED = new StringSetting("yx_live_catch_up_speed", "2");
+    /** Seconds behind the live edge before the catch-up speed starts (0 to 15); 0 keeps it on at the edge too. */
+    public static final StringSetting LIVE_CATCH_UP_DELAY = new StringSetting("yx_live_catch_up_delay", "5");
 
     /** Minutes of playback before a pause (0.5, 30, 90); blank is no timer. */
     public static final StringSetting SLEEP_MINUTES = new StringSetting("yx_sleep_minutes", "");
@@ -89,6 +104,10 @@ public final class XSettings {
     public static final BooleanSetting AUDIO_ONLY = new BooleanSetting("yx_audio_only", FALSE);
     /** An "Audio only" row at the top of the video quality sheet. */
     public static final BooleanSetting AUDIO_ONLY_ROW = new BooleanSetting("yx_audio_only_row", true);
+    /** Audio only also asks for the lowest video quality, so the player fetches the least video it can. */
+    public static final BooleanSetting AUDIO_ONLY_LOW_DATA = new BooleanSetting("yx_audio_only_low_data", true);
+    /** Leaving the app with a video playing opens picture in picture. */
+    public static final BooleanSetting AUTO_PIP = new BooleanSetting("yx_auto_pip", FALSE);
     public static final BooleanSetting AUDIO_ONLY_SCREEN_OFF = new BooleanSetting("yx_audio_only_screen_off", FALSE);
 
     /** Like and dislike counts: count, percent, or both. */

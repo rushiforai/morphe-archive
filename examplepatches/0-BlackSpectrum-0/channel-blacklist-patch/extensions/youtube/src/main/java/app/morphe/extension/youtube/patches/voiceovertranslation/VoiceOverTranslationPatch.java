@@ -8,7 +8,6 @@
 package app.morphe.extension.youtube.patches.voiceovertranslation;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.settings.BaseSettings.DEBUG;
 import static app.morphe.extension.youtube.patches.voiceovertranslation.TranscriptTranslator.TRANSLATION_SERVICE_MY_MEMORY;
 import static app.morphe.extension.youtube.patches.voiceovertranslation.TranscriptTranslator.TRANSLATION_SERVICE_OPENROUTER;
 
@@ -59,7 +58,7 @@ import app.morphe.extension.youtube.shared.VideoState;
  *
  * <p>State is touched only on the main thread; the few cross-thread reads use volatile fields.
  */
-@SuppressWarnings({"unused", "deprecation", "RedundantSuppression"})
+@SuppressWarnings("unused")
 public class VoiceOverTranslationPatch {
 
     public static final Setting.ImportExportCallback VOT_IMPORT_EXPORT_CALLBACK = new Setting.ImportExportCallback() {
@@ -373,12 +372,6 @@ public class VoiceOverTranslationPatch {
         }
     }
 
-    /** @return true when VoT is enabled, the session is on, and a transcript is loaded. */
-    public static boolean isTranslationActive() {
-        Utils.verifyOnMainThread();
-        return Settings.VOT_ENABLED.get() && sessionEnabled && !segments.isEmpty();
-    }
-
     /** @return Per-session enabled flag (toggleable via the player button) - not the global setting. */
     public static boolean isSessionEnabled() {
         return sessionEnabled;
@@ -596,6 +589,7 @@ public class VoiceOverTranslationPatch {
                     });
                 }
 
+                @Deprecated
                 @Override
                 public void onError(String utteranceId) {
                     onDone(utteranceId);
@@ -1065,7 +1059,7 @@ public class VoiceOverTranslationPatch {
     }
 
     static void logError(Logger.LogMessage message, @Nullable Exception ex) {
-        if (DEBUG.get()) Logger.printException(message, ex);
+        if (Logger.isDebugEnabled()) Logger.printException(message, ex);
         else Logger.printInfo(message, ex);
     }
 }

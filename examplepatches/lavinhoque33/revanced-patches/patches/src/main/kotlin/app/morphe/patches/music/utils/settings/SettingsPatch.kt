@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-16.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -400,6 +400,7 @@ val settingsPatch = resourcePatch(
             ResourceGroup(
                 "drawable",
                 "revanced_settings_toolbar_arrow_left.xml",
+                "revanced_toolbar_settings_shortcut_icon.xml",
             ),
             ResourceGroup(
                 "xml",

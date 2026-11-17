@@ -201,7 +201,9 @@ public class DexDiff {
      *       call reads the registers, in their order, that the clean build's one call to the
      *       second method there read. For a hook that takes one call's place: left out or left
      *       beside the call it stands in for, the call it replaces still happens, and on other
-     *       registers the hook gets the wrong values.
+     *       registers the hook gets the wrong values. With "sites each" it calls the first method
+     *       once in place of each of the clean build's calls to the second there, one or more,
+     *       each call reading what the one it stands in for read, in their order.
      *   <li>"once-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding &lt;string&gt;
      *       [&lt;string&gt; ...]": exactly one method outside the bundle's own code loads every one of
      *       the strings and has the shape, as for start-call. That method calls the method reference
@@ -262,7 +264,9 @@ public class DexDiff {
      *       each of several reads in one method, as Hide the home feed does on both helper reads in
      *       the read of Home's store. "sites returns" holds it to once right before each
      *       return-object instead, for a hook on a method's result whose count of returns differs
-     *       between builds.
+     *       between builds. A sole-call rule takes "sites each" in the same place, for a hook that
+     *       stands in for a call a method makes once in some builds and on each of two branches in
+     *       others, as the speed lock toast's show is in 455's 386113970.
      *   <li>Any of those five with "pooled" right before "holding" or "class-holding": a method
      *       also loads a string when it asks a static (int)String pool of shared strings for it, the
      *       number put in the call's one register by the instruction just before the invoke-static.
@@ -331,6 +335,7 @@ public class DexDiff {
         /**
          * once-call and shared-call: how many times its method calls the callee, 1 unless the rule says
          * "sites", or {@link #SITES_RETURNS} for once right before each of its return-object instructions.
+         * sole-call: 1, or {@link #SITES_EACH} for once in place of each call the clean build makes there.
          */
         final int sites;
         /** The same rules: whether asking a string pool for one of its strings counts as loading it ("pooled"). */
@@ -397,6 +402,7 @@ public class DexDiff {
                 b.append(lack);
             }
             if (sites == SITES_RETURNS) b.append(" sites returns");
+            else if (sites == SITES_EACH) b.append(" sites each");
             else if (sites != 1) b.append(" sites ").append(sites);
             if (pooled) b.append(" pooled");
             List<String> written = new ArrayList<>();
@@ -496,8 +502,8 @@ public class DexDiff {
      * "after &lt;method reference&gt;" or the sole-call's "replacing &lt;method reference&gt;", then "[in
      * [static|instance] &lt;shape&gt;] [calling [static|instance] &lt;method reference&gt;] [sites
      * &lt;n&gt;] [pooled] holding &lt;string&gt; [&lt;string&gt; ...]", with "class-holding" in place of "holding"
-     * for strings its method's class holds. Only once-call and shared-call take sites, and n is 2 or
-     * more. Null when it isn't one.
+     * for strings its method's class holds. Only once-call and shared-call take sites with n, 2 or
+     * more, or returns; only sole-call takes "sites each". Null when it isn't one.
      */
     private static Contract readPicked(String[] parts) {
         String kind = parts[0];
@@ -548,8 +554,13 @@ public class DexDiff {
         int sites = 1;
         if (at < parts.length && parts[at].equals("sites")) {
             at++;
-            if (!kind.equals("once-call") && !kind.equals("shared-call")) return null;
-            if (at < parts.length && parts[at].equals("returns")) {
+            if (kind.equals("sole-call")) {
+                if (at >= parts.length || !parts[at].equals("each")) return null;
+                sites = SITES_EACH;
+                at++;
+            } else if (!kind.equals("once-call") && !kind.equals("shared-call")) {
+                return null;
+            } else if (at < parts.length && parts[at].equals("returns")) {
                 sites = SITES_RETURNS;
                 at++;
             } else {
@@ -585,7 +596,8 @@ public class DexDiff {
                 if (picked == null) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": expected " + form
                             + " [in [static|instance] <(parameters)return>] [calling [static|instance] <method reference>] [lacking [static|instance] <method reference>]"
-                            + (form.startsWith("once-call") || form.startsWith("shared-call") ? " [sites <2 or more>|returns]" : "")
+                            + (form.startsWith("once-call") || form.startsWith("shared-call") ? " [sites <2 or more>|returns]"
+                                    : form.startsWith("sole-call") ? " [sites each]" : "")
                             + " [pooled] holding or class-holding <string> [<string> ...]");
                 }
                 contracts.add(picked);
@@ -612,7 +624,8 @@ public class DexDiff {
                         + " sole-call <method reference> replacing <method reference>,"
                         + " once-call <method reference> or shared-call <method reference>, each then"
                         + " [in [static|instance] <(parameters)return>] [calling [static|instance] <method reference>] [lacking [static|instance] <method reference>]"
-                        + " [sites <2 or more>|returns, once-call and shared-call only] [pooled] holding or class-holding <string> [<string> ...]");
+                        + " [sites <2 or more>|returns, once-call and shared-call only] [sites each, sole-call only]"
+                        + " [pooled] holding or class-holding <string> [<string> ...]");
             }
             String kind = firstCallTyped ? TYPED_FIRST_CALL : firstCallOutside ? OUTSIDE_FIRST_CALL : parts[0];
             contracts.add(new Contract(kind, parts[1], parts[3]));
@@ -1986,7 +1999,8 @@ public class DexDiff {
      * once-call that no other host method calls it, leaving out the claimed ones, and that the method calls it once there, or as
      * many times as sites says; next-call that it's the method's one call there, right after the call it pairs
      * with and on the same register; sole-call that it's the method's one call, that the call it
-     * stands in for is gone, and that it reads what that call read in [clean]. A class-holding rule
+     * stands in for is gone, and that it reads what that call read in [clean], or with sites each
+     * that it's called once for each such call there, each reading what its own read. A class-holding rule
      * is asked the same once its method is picked.
      */
     private static void checkPicked(Contract contract, List<Holder> holders, List<String> callers, Set<String> claimed,
@@ -2067,7 +2081,7 @@ public class DexDiff {
             } else {
                 System.out.println("[diff] " + rule + ": before each of " + sites.size() + " return-object in " + only.method);
             }
-        } else if (sites.size() != contract.sites) {
+        } else if (contract.sites != SITES_EACH && sites.size() != contract.sites) {
             System.out.println("[diff] " + rule + ": " + sites.size() + " call sites in " + only.method);
             findings.add("contract: " + contract.callee + " has " + sites.size() + (sites.size() == 1 ? " call site" : " call sites")
                     + " in " + only.method + ", and must have exactly " + (contract.sites == 1 ? "one" : String.valueOf(contract.sites)));
@@ -2103,6 +2117,27 @@ public class DexDiff {
             System.out.println("[diff] " + rule + ": " + only.method + " still calls " + contract.replaced);
             findings.add("contract: " + only.method + " still calls " + contract.replaced + ", which "
                     + contract.callee + " stands in for");
+        } else if (contract.sites == SITES_EACH) {
+            // Each call the hook makes, in order, against the clean build's calls it took the place
+            // of there, in theirs: as many, each on the same registers in the same order.
+            List<List<Integer>> hooks = new ArrayList<>();
+            for (int at : sites) hooks.add(callRegisters(body.get(at)));
+            List<List<Integer>> was = cleanCallRegisters(clean, only.method, contract.replaced);
+            List<String> hookText = new ArrayList<>();
+            for (List<Integer> registers : hooks) hookText.add(registerList(registers));
+            List<String> wasText = new ArrayList<>();
+            for (List<Integer> registers : was) wasText.add(registerList(registers));
+            if (was.equals(hooks)) {
+                System.out.println("[diff] " + rule + ": in place of each of " + was.size() + " on "
+                        + String.join("; ", hookText) + " in " + only.method);
+            } else {
+                String there = was.isEmpty() ? "not at all" : was.size() + " times, on " + String.join("; ", wasText);
+                System.out.println("[diff] " + rule + ": " + hooks.size() + " times on " + String.join("; ", hookText)
+                        + " in " + only.method + ", where the clean build calls it " + there);
+                findings.add("contract: " + contract.callee + " is called in " + only.method + " " + hooks.size()
+                        + " times, on " + String.join("; ", hookText) + ", but the clean build calls "
+                        + contract.replaced + " there " + there);
+            }
         } else {
             // What the hook reads, against what the call it took the place of read in the clean
             // build: the one such call there, on the same registers in the same order.
@@ -2234,13 +2269,19 @@ public class DexDiff {
      * A once-call or shared-call rule's "sites returns": the hook goes in once right before each
      * return-object of its method, however many Redex leaves there. Save in the post menu's settle
      * call sits before the one return of 454 arm64's feed menu builder, and before each of 9 to 22
-     * where the other ABIs merged that builder into a switch.
+     * where the other ABIs merged that builder into a switch. Other hooks a later patch puts at the
+     * same returns may come between, as long as each is a static call into the extension answering
+     * nothing: Leave out menu items' feedRows follows settle there.
      */
     static final int SITES_RETURNS = -1;
 
+    /** A sole-call rule's "sites each": the hook once in place of each call the clean build makes there. */
+    static final int SITES_EACH = -2;
+
     /**
      * Why the calls at [sites] aren't each right before a return-object of [body], one per return,
-     * or null when they are.
+     * or null when they are. A run of the extension's void static calls between one and its return
+     * still counts as right before.
      */
     static String beforeEachReturn(List<Instruction> body, List<Integer> sites) {
         int returns = 0;
@@ -2248,12 +2289,22 @@ public class DexDiff {
         for (int k = 0; k < body.size(); k++) {
             if (body.get(k).getOpcode() != Opcode.RETURN_OBJECT) continue;
             returns++;
-            if (!sites.contains(k - 1)) bare.add(k);
+            int before = k - 1;
+            while (before >= 0 && !sites.contains(before) && isExtensionVoidCall(body.get(before))) before--;
+            if (!sites.contains(before)) bare.add(k);
         }
         if (returns == 0) return "it has no return-object";
         if (!bare.isEmpty()) return bare.size() + " of its " + returns + " return-object without the call right before, at " + bare;
         if (sites.size() != returns) return sites.size() - returns + " more than its " + returns + " return-object";
         return null;
+    }
+
+    /** Whether [i] is an invoke-static of a HushGram extension method answering nothing. */
+    private static boolean isExtensionVoidCall(Instruction i) {
+        if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE) return false;
+        if (!(i instanceof ReferenceInstruction) || !(((ReferenceInstruction) i).getReference() instanceof MethodReference)) return false;
+        MethodReference callee = (MethodReference) ((ReferenceInstruction) i).getReference();
+        return callee.getDefiningClass().startsWith("Lapp/hushgram/extension/") && callee.getReturnType().equals("V");
     }
 
     /** The index in [body] of each invoke of [callee]. */

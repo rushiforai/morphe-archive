@@ -8,7 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -43,7 +43,7 @@ private val redirects = listOf(
 )
 
 @Suppress("unused")
-val sanitizeShareLinksPatch = bytecodePatch(
+val sanitizeShareLinksPatch = patch(
     name = "Sanitize share links",
     description = "Removes tracking parameters from LinkedIn links when they are copied or shared.",
     default = true

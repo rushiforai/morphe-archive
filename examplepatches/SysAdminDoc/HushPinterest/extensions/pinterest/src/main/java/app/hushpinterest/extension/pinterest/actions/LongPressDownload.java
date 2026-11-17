@@ -50,14 +50,20 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * switches work on those: {@link #composeItems} adds an option of ours and drops the hidden ones
  * before the list is shown, and {@link #composeClick} takes the tap on ours ahead of Pinterest's
  * own actions.
+ *
+ * <p>Long-press View (#37) adds one more button after Download, built the same way with Pinterest's
+ * full-screen icon and its own localized "View" string. Releasing on it opens the pin's picture full
+ * screen in {@link PinViewer}. It has its own switch and needs neither Download pins nor Download,
+ * and a video pin, which has no picture to show, never gets it.
  */
 public final class LongPressDownload {
     private LongPressDownload() {}
 
     static final String ITEM_TAG = "hushpinterest_long_press_download";
+    static final String VIEW_TAG = "hushpinterest_long_press_view";
 
     /** What {@link #buttonKind} answers: one of Pinterest's buttons the switches can hide, or anything else. */
-    static final int OTHER = 0, SAVE = 1, SEND = 2, SEARCH = 3;
+    static final int OTHER = 0, SAVE = 1, SEND = 2, SEARCH = 3, SEND_APP = 4;
 
     /** Rewritten to return the long-pressed model the show event carries when it's a pin, else null. */
     private static Object eventPin(Object event) { return null; }
@@ -89,9 +95,31 @@ public final class LongPressDownload {
     private static View downloadItem(Context context) { return null; }
 
     /**
+     * Rewritten to build the same menu button with Pinterest's full-screen icon and the string
+     * resource [label], {@link #viewLabel}'s answer.
+     */
+    private static View viewItem(Context context, int label) { return null; }
+
+    /** Rewritten to Pinterest's Pair of its full-screen icon and the string resource [label]. */
+    private static Object composeViewIconAndLabel(int label) { return null; }
+
+    private static volatile int foundViewLabel;
+
+    /** Pinterest's own "View" string, translated in every language it ships, or 0 in a build without it. */
+    static int viewLabel(Context context) {
+        int known = foundViewLabel;
+        if (known != 0 || context == null) return known;
+        int found = context.getResources().getIdentifier("view", "string", context.getPackageName());
+        if (found == 0) found = context.getResources().getIdentifier("view", "string", "com.pinterest");
+        foundViewLabel = found;
+        return found;
+    }
+
+    /**
      * Rewritten to read the id Pinterest's builder gave a menu button, the one the menu's hover test
-     * compares, and answer {@link #SAVE}, {@link #SEND} or {@link #SEARCH} for those three buttons.
-     * Everything else is {@link #OTHER}: Download, and the buttons Pinterest builds without an id.
+     * compares, and answer {@link #SAVE}, {@link #SEND}, {@link #SEARCH} or {@link #SEND_APP} (the button
+     * that sends straight to WhatsApp or the app last shared with) for those buttons. Everything else
+     * is {@link #OTHER}: Download, and the buttons Pinterest builds without an id.
      */
     private static int buttonKind(Object button) { return OTHER; }
 
@@ -119,11 +147,27 @@ public final class LongPressDownload {
         try {
             return Utils.settingsReady() && PatchFamily.Capability.LONG_PRESS_CHOICES.installed()
                     && (Settings.LONG_PRESS_HIDE_SAVE.get() || Settings.LONG_PRESS_HIDE_SEND.get()
-                        || Settings.LONG_PRESS_HIDE_SEARCH.get());
+                        || Settings.LONG_PRESS_HIDE_SEARCH.get() || Settings.LONG_PRESS_HIDE_SEND_APP.get());
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "hide switch read", failure);
             return false;
         }
+    }
+
+    /** Whether View goes in. It needs its switch and its hook, and nothing of Download. */
+    static boolean viewing() {
+        try {
+            return Utils.settingsReady() && PatchFamily.Capability.LONG_PRESS_VIEW.installed()
+                    && Settings.LONG_PRESS_VIEW.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "view switch read", failure);
+            return false;
+        }
+    }
+
+    /** True when the pin carries a picture View can show. */
+    private static boolean viewable(Object pin) {
+        return PinViewer.offered(PinMedia.resolve(pin));
     }
 
     private static boolean hidden(Object button) {
@@ -135,6 +179,7 @@ public final class LongPressDownload {
             case SAVE: return Settings.LONG_PRESS_HIDE_SAVE.get();
             case SEND: return Settings.LONG_PRESS_HIDE_SEND.get();
             case SEARCH: return Settings.LONG_PRESS_HIDE_SEARCH.get();
+            case SEND_APP: return Settings.LONG_PRESS_HIDE_SEND_APP.get();
             default: return false;
         }
     }
@@ -142,8 +187,8 @@ public final class LongPressDownload {
     /** Extend the newer native menu's options. Its separate app shortcuts stay native. */
     public static ArrayList<Object> composeItems(ArrayList<Object> nativeItems, Object event) {
         HookStatus.invoked(FamilyNames.LONG_PRESS_DOWNLOAD);
-        boolean download = active(), choosing = choosing();
-        if (!(download || choosing) || nativeItems == null) return nativeItems;
+        boolean download = active(), choosing = choosing(), viewing = viewing();
+        if (!(download || choosing || viewing) || nativeItems == null) return nativeItems;
         try {
             Object pin = eventPin(event);
             if (pin == null) return nativeItems;
@@ -151,15 +196,26 @@ public final class LongPressDownload {
             ArrayList<Object> items = new ArrayList<>();
             for (Object item : nativeItems) if (!choosing || !hidden(composeKind(item))) items.add(item);
             String id = modelId(pin);
+            int added = 0;
             if (download && id != null) {
                 Class<?> face = composeOptionType();
                 Object icon = composeIconAndLabel();
                 if (face == null || icon == null) return nativeItems;
-                items.add(Proxy.newProxyInstance(face.getClassLoader(), new Class<?>[]{face}, new DownloadOption(id, icon)));
+                items.add(Proxy.newProxyInstance(face.getClassLoader(), new Class<?>[]{face}, new MenuOption(id, icon, false)));
+                added++;
                 HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "download added to newer long-press menu");
             }
+            int label = viewing && id != null && viewable(pin) ? viewLabel(Utils.getContext()) : 0;
+            if (label != 0) {
+                Class<?> face = composeOptionType();
+                Object icon = composeViewIconAndLabel(label);
+                if (face == null || icon == null) return nativeItems;
+                items.add(Proxy.newProxyInstance(face.getClassLoader(), new Class<?>[]{face}, new MenuOption(id, icon, true)));
+                added++;
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "view added to newer long-press menu");
+            }
             if (items.isEmpty() || items.equals(nativeItems)) return nativeItems;
-            if (choosing && items.size() < nativeItems.size() + (download && id != null ? 1 : 0)) {
+            if (choosing && items.size() < nativeItems.size() + added) {
                 HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "native options hidden in newer long-press menu");
             }
             return items;
@@ -171,11 +227,24 @@ public final class LongPressDownload {
 
     /** Consume only our own option. The native caller still handles the menu's dismissal. */
     public static boolean composeClick(Object item, Object selectedPin) {
-        DownloadOption download = owned(item);
-        if (download == null) return false;
+        MenuOption option = owned(item);
+        if (option == null) return false;
+        if (option.view) {
+            try {
+                if (!option.used.compareAndSet(false, true) || !viewing() || selectedPin == null
+                        || !option.id.equals(modelId(selectedPin))) {
+                    HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "stale newer menu view refused");
+                } else if (PinViewer.open(selectedPin, Utils.getActivity())) {
+                    HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "newer long-press view opened");
+                }
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "newer long-press view", failure);
+            }
+            return true;
+        }
         try {
-            if (!download.used.compareAndSet(false, true) || !active() || selectedPin == null
-                    || !download.id.equals(modelId(selectedPin))) {
+            if (!option.used.compareAndSet(false, true) || !active() || selectedPin == null
+                    || !option.id.equals(modelId(selectedPin))) {
                 HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "stale newer menu download refused");
             } else if (PinDownloads.start(selectedPin, Utils.getContext())) {
                 HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "newer long-press download started");
@@ -186,29 +255,32 @@ public final class LongPressDownload {
         return true;
     }
 
-    private static DownloadOption owned(Object item) {
+    private static MenuOption owned(Object item) {
         if (item == null || !Proxy.isProxyClass(item.getClass())) return null;
         InvocationHandler handler = Proxy.getInvocationHandler(item);
-        return handler instanceof DownloadOption ? (DownloadOption) handler : null;
+        return handler instanceof MenuOption ? (MenuOption) handler : null;
     }
 
-    private static final class DownloadOption implements InvocationHandler {
+    /** Our Download option, or with [view] our View option, in the newer list. */
+    private static final class MenuOption implements InvocationHandler {
         final String id;
         final Object icon;
+        final boolean view;
         final AtomicBoolean used = new AtomicBoolean();
 
-        DownloadOption(String id, Object icon) {
+        MenuOption(String id, Object icon, boolean view) {
             this.id = id;
             this.icon = icon;
+            this.view = view;
         }
 
         @Override public Object invoke(Object proxy, Method method, Object[] args) {
             switch (method.getName()) {
                 case "iconAndLabel": return icon;
-                case "getAnalyticsName": return "download";
+                case "getAnalyticsName": return view ? "view" : "download";
                 case "equals": return args != null && args.length == 1 && proxy == args[0];
                 case "hashCode": return System.identityHashCode(proxy);
-                case "toString": return "Download pin option";
+                case "toString": return view ? "View pin option" : "Download pin option";
                 default: throw new UnsupportedOperationException("Unknown menu option method");
             }
         }
@@ -221,8 +293,8 @@ public final class LongPressDownload {
      */
     public static void show(Object menu, Object event) {
         HookStatus.invoked(FamilyNames.LONG_PRESS_DOWNLOAD);
-        boolean download = active(), choosing = choosing();
-        if (!(download || choosing) || !(menu instanceof ViewGroup)) return;
+        boolean download = active(), choosing = choosing(), viewing = viewing();
+        if (!(download || choosing || viewing) || !(menu instanceof ViewGroup)) return;
         try {
             Object pin = eventPin(event);
             if (pin == null) return;
@@ -233,7 +305,9 @@ public final class LongPressDownload {
                     + ", " + group.getChildCount() + " children");
             if (laidOut == null || laidOut.isEmpty()) return;
             for (Object laid : laidOut) {
-                if (!(laid instanceof View) || ITEM_TAG.equals(((View) laid).getTag())) return;
+                if (!(laid instanceof View)) return;
+                Object tag = ((View) laid).getTag();
+                if (ITEM_TAG.equals(tag) || VIEW_TAG.equals(tag)) return;
             }
             List<Object> buttons = new ArrayList<>();
             int dropped = 0;
@@ -250,7 +324,16 @@ public final class LongPressDownload {
                 item.setOnClickListener(clicked -> download(clicked, heldMenu, heldPin, id));
                 buttons.add(item);
             }
-            if (item == null && dropped == 0) return;
+            int label = viewing && id != null && viewable(pin) ? viewLabel(group.getContext()) : 0;
+            View view = label != 0 ? viewItem(group.getContext(), label) : null;
+            if (view != null) {
+                view.setTag(VIEW_TAG);
+                WeakReference<Object> heldMenu = new WeakReference<>(menu);
+                WeakReference<Object> heldPin = new WeakReference<>(pin);
+                view.setOnClickListener(clicked -> openView(clicked, heldMenu, heldPin, id));
+                buttons.add(view);
+            }
+            if (item == null && view == null && dropped == 0) return;
             if (buttons.isEmpty()) {
                 // A menu with no button would open on nothing, so this pin keeps Pinterest's.
                 HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "long-press menu kept whole, every button was hidden");
@@ -262,10 +345,11 @@ public final class LongPressDownload {
             laidOut.clear();
             layoutItems(menu, buttons);
             // Pinterest's buttons went out of the menu and back in, so they get their springs back
-            // before the show method springs them in. Download was never out.
+            // before the show method springs them in. Download and View were never out.
             for (int at = 0; at < kept; at++) springsReattached(buttons.get(at));
             Logger.printDebug(() -> "Long-press menu after changes: " + laidOut.size() + " laid out, " + group.getChildCount() + " children");
             if (item != null) HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "download button added to long-press menu");
+            if (view != null) HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "view button added to long-press menu");
             if (dropped > 0) HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "Pinterest buttons hidden in long-press menu");
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "change long-press menu", failure);
@@ -287,6 +371,24 @@ public final class LongPressDownload {
             }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "long-press download", failure);
+        }
+    }
+
+    /** The finger let go on View: the pin's picture opens full screen over the grid. */
+    private static void openView(View clicked, WeakReference<Object> heldMenu, WeakReference<Object> heldPin, String id) {
+        try {
+            if (!viewing()) return;
+            Object menu = heldMenu.get();
+            Object pin = heldPin.get();
+            if (menu == null || pin == null || !id.equals(menuModel(menu))) {
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "closed menu view refused");
+                return;
+            }
+            if (PinViewer.open(pin, clicked.getContext())) {
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "long-press view opened");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "long-press view", failure);
         }
     }
 }

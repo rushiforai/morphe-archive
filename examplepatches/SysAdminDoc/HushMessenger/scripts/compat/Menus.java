@@ -749,6 +749,26 @@ final class Menus {
         return stores == 1 && direct;
     }
 
+    /**
+     * delivery_receipt: the batch manager that publishes Delivered, an instance (FbUserSession, payload, Optional,
+     * String)V naming its op, its own tag and its topic. The patch proves the batch has left its holder; this is the
+     * outline, so a moved sender shows up here. Mirrors ReadReceipts.kt.
+     */
+    static List<Method> deliveryReceiptSends(List<ClassDef> classes) {
+        var sends = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) ||
+                !"V".equals(method.getReturnType()) || method.getParameterTypes().size() != 4 ||
+                !"Lcom/facebook/auth/usersession/FbUserSession;".contentEquals(method.getParameterTypes().get(0))) continue;
+            var strings = new HashSet<String>();
+            for (var i : method.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr) strings.add(sr.getString());
+            if (strings.contains("send_delivery_receipt_batch") && strings.contains("DefaultSendDeliveryReceiptManager") &&
+                strings.contains("/t_dr_batch")) sends.add(method);
+        }
+        return sends;
+    }
+
     static List<Method> replyReadDispatches(List<ClassDef> classes) {
         var events = new ArrayList<Method>();
         for (var cls : classes) {
@@ -894,6 +914,24 @@ final class Menus {
                 visibility && strings.contains("inbox2_vr") && strings.contains("InboxCustomizedImpressionTracker")) events.add(method);
         }
         return events;
+    }
+
+    /**
+     * dwell_tracking: the dwell session manager's own end-of-session method, static (manager, session id, time)V, named
+     * by the two reports it files, fb_ads_fine_grained_dwell and fine_grained_dwell_timestamps. Mirrors DwellTracking.kt.
+     */
+    static List<Method> dwellTracking(List<ClassDef> classes) {
+        var reports = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null || !"V".equals(method.getReturnType())) continue;
+            if (!AccessFlags.STATIC.isSet(method.getAccessFlags())) continue;
+            var params = new ArrayList<String>();
+            for (var t : method.getParameterTypes()) params.add(t.toString());
+            if (!params.equals(List.of(method.getDefiningClass(), "Ljava/lang/String;", "J"))) continue;
+            var strings = literals(method);
+            if (strings.contains("fb_ads_fine_grained_dwell") && strings.contains("fine_grained_dwell_timestamps")) reports.add(method);
+        }
+        return reports;
     }
 
     static Set<String> literals(Method method) {

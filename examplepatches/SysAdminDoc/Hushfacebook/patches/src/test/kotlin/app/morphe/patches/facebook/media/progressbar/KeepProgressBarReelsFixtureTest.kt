@@ -9,10 +9,12 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
+import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -25,6 +27,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -1323,6 +1326,189 @@ class KeepProgressBarReelsFixtureTest {
             listOf(call.registerCount, call.registerC, call.registerD))
         assertTrue("$where: the hook writes past the locals", maxOf(read.registerA, barRead.registerA) < method.localRegisterCount())
         extensionHas(where, BAR_RELEASED)
+    }
+
+    private fun List<Instruction>.kinds() = filter { it.opcode != Opcode.NOP }.map {
+        if (it.opcode == Opcode.GOTO_16 || it.opcode == Opcode.GOTO_32) Opcode.GOTO else it.opcode
+    }
+
+    private fun seekRequestOf(bundle: File) =
+        seekRequest(FixtureDex.classesHolding(bundle, SEEK_REQUEST_FORMAT).filterNot { it.type.startsWith(EXTENSION_CLASSES) })
+
+    private fun ClassDef.own(call: MethodReference): Method = methods.single {
+        it.name == call.name && it.returnType == call.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
+    }
+
+    /**
+     * #482: the bar's release builds the player's seek request, with false for the flag the seek
+     * handler skips a seek on, and right after it the extension gets the request, so the handler's
+     * live check can tell this bar's seek from any other.
+     */
+    @Test
+    fun `each declared build tells the extension of the reel bar's seek request`() = bundles { bundle ->
+        val name = bundle.name
+        val base = scrubber(bundle).progress.base
+        val listeners = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex -> dex.classes.filterTo(listeners) { SEEK_BAR_LISTENER in it.interfaces } }
+        val release = barRelease(listeners, base.type)
+        val request = seekRequestOf(bundle)
+        val owner = release.method.definingClass
+        val where = "$name: $owner->${release.method.name}"
+        assertEquals("$where: the request's trigger", "${request.type}->${request.trigger.name}:${request.trigger.type}", request.trigger.toString())
+        val original = release.method.code()
+        val (at, register) = scrubberSeekSite(release.method, request)
+        val init = original[at] as FiveRegisterInstruction
+        assertEquals("$where: the request takes the trigger, the position and the flag", listOf(4, register), listOf(init.registerCount, init.registerC))
+        val flags = release.method.writersReaching(at, init.registerF)
+        assertTrue("$where: the request's flag, which the handler skips a seek on, isn't always false", flags.isNotEmpty() && flags.all {
+            it >= 0 && original[it].opcode == Opcode.CONST_4 && (original[it] as NarrowLiteralInstruction).narrowLiteral == 0
+        })
+
+        val context = PatchContexts.of(listeners.filter { it.type == owner })
+        val method = context.mutableClassDefBy(owner).methods.single { it.sameAs(release.method) }
+        method.reportsBarRelease(release)
+        method.reportsScrubberSeek(request)
+        val patched = method.code().drop(4)
+        assertEquals("$where: the hook follows the request's constructor", request.init, patched[at].reference())
+        assertEquals("$where: the hook's code", Opcode.INVOKE_STATIC_RANGE, patched[at + 1].opcode)
+        assertEquals("$where: the extension hears of the request", SCRUBBER_SEEK, patched[at + 1].reference())
+        val call = patched[at + 1] as RegisterRangeInstruction
+        assertEquals("$where: on the request just built", listOf(1, register), listOf(call.registerCount, call.startRegister))
+        assertEquals("$where: Facebook's code stays", original.kinds(), patched.filterIndexed { index, _ -> index != at + 1 }.kinds())
+        extensionHas(where, SCRUBBER_SEEK)
+    }
+
+    /**
+     * #482: the seek handler skips a seek on a live video unless the player was marked rewound, which
+     * the reel bar never does. In front of the skip the extension gets the check's answer, the request
+     * and the player, and its answer takes the check's place. The player's live latency setter is the
+     * one that marks it, writing what the player's own seek checks on a live video.
+     */
+    @Test
+    fun `each declared build lets the reel bar seek a live video`() = bundles { bundle ->
+        val name = bundle.name
+        val request = seekRequestOf(bundle)
+        val checks = mutableListOf<LiveSeekCheck>()
+        val holders = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            if (dex.stringSection.none { it == request.type }) return@forEach
+            for (classDef in dex.classes) {
+                if (classDef.type.startsWith(EXTENSION_CLASSES) || liveSeekChecks(classDef, request).isEmpty()) continue
+                val copy = ImmutableClassDef.of(classDef)
+                holders += copy
+                checks += liveSeekChecks(copy, request)
+            }
+        }
+        assertEquals("$name: the seek handlers skipping a live video's ${request.type}", 1, checks.size)
+        val check = checks.single()
+        val where = "$name: ${check.method.definingClass}->${check.method.name}"
+        checkLiveSeekThrough(check)
+        val code = check.method.code()
+        assertEquals("$where: the seek is the player's", check.live.definingClass, check.seek.definingClass)
+        assertEquals("$where: the seek reads the request the hook is handed", check.request, (code[check.at + 1] as TwoRegisterInstruction).registerB)
+
+        val classes = FixtureDex.classes(bundle, setOf(check.live.definingClass, VIDEO_PLAYER_PARAMS))
+        val player = classes.getValue(check.live.definingClass)
+        val liveNow = liveNowField(classes.getValue(VIDEO_PLAYER_PARAMS))
+        val rewind = liveRewind(player, check, liveNow)
+        // The player's seek skips a live video too, unless a check of its own reads what the setter writes.
+        val seek = player.own(check.seek)
+        val gate = player.own(seek.code().mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .single { it.definingClass == player.type })
+        val gateCode = gate.code()
+        assertTrue("$where: the player's seek no longer reads $liveNow", gateCode.any { it.opcode == Opcode.IGET_BOOLEAN && it.reference() == liveNow.toString() })
+        val rewound = player.own(gateCode.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .single { it.definingClass == player.type && it.returnType == "Z" && it.parameterTypes.isEmpty() })
+        val flag = rewound.code().mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
+            .single { it.definingClass == player.type }
+        assertTrue("$where: ${player.type}->${rewind.setter.name} doesn't write $flag, which the player's seek checks",
+            rewind.setter.code().any { it.opcode == Opcode.IGET_OBJECT && it.reference() == flag.toString() })
+
+        val holder = holders.single { it.type == check.method.definingClass }
+        val context = PatchContexts.of(listOf(holder))
+        val method = context.mutableClassDefBy(holder.type).methods.single { it.sameAs(check.method) }
+        method.letsLiveSeekThrough(check)
+        val patched = method.code()
+        assertEquals("$where: the hook's code", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ),
+            patched.subList(check.at, check.at + 3).map { it.opcode })
+        assertEquals("$where: the extension answers", LIVE_SEEK_REFUSED, patched[check.at].reference())
+        val call = patched[check.at] as FiveRegisterInstruction
+        assertEquals("$where: with the check's answer, the request and the player", listOf(3, check.refused, check.request, check.player),
+            listOf(call.registerCount, call.registerC, call.registerD, call.registerE))
+        assertEquals("$where: in place of the check's", check.refused, (patched[check.at + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$where: Facebook's code stays", code.kinds(), (patched.take(check.at) + patched.drop(check.at + 2)).kinds())
+
+        val stubs = PatchContexts.of(listOf(ExtensionDex.classDef(PROGRESS_BAR)))
+        stubs.fillLiveRewound(rewind)
+        val stub = stubs.mutableClassDefBy(PROGRESS_BAR).methods.single(::isLiveRewoundStub).code()
+        assertEquals("$where: the stub's code", listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID), stub.map { it.opcode })
+        assertEquals("$where: the player is cast to its class", player.type, stub[0].reference())
+        assertEquals("$where: the stub runs the setter", "${player.type}->${rewind.setter.name}(Z)V", stub[1].reference())
+        val set = stub[1] as FiveRegisterInstruction
+        assertEquals("$where: on the player and the flag it's handed", listOf(2, 0, 1), listOf(set.registerCount, set.registerC, set.registerD))
+        extensionHas(where, LIVE_SEEK_REFUSED)
+        extensionHas(where, "$PROGRESS_BAR->$LIVE_REWOUND_STUB(Ljava/lang/Object;Z)V")
+
+        // The scrubber search results open a live video with sends its bar's seek straight to the gate
+        // the player's seek hands on to, past the handler, so the hook goes in front of the gate's ask.
+        val liveGate = liveGate(player, check, liveNow, rewind)
+        val atGate = "$name: ${player.type}->${liveGate.method.name}"
+        assertEquals("$atGate: the gate is the player's seek's own", gate.name, liveGate.method.name)
+        val gateStock = liveGate.method.code()
+        assertEquals("$atGate: a no to the ask returns without the seek",
+            listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID),
+            gateStock.subList(liveGate.at, liveGate.at + 4).map { it.opcode })
+        assertEquals("$atGate: the ask is the rewound check", rewound.name, ((gateStock[liveGate.at] as ReferenceInstruction).reference as MethodReference).name)
+        val players = PatchContexts.of(listOf(ImmutableClassDef.of(player)))
+        val gateMethod = players.mutableClassDefBy(player.type).methods.single { it.sameAs(liveGate.method) }
+        gateMethod.rewindsForTheBar(liveGate)
+        val gatePatched = gateMethod.code()
+        assertEquals("$atGate: the extension hears of the seek", LIVE_BAR_SEEK, gatePatched[liveGate.at].reference())
+        val heard = gatePatched[liveGate.at] as FiveRegisterInstruction
+        val self = liveGate.method.implementation!!.registerCount - 4
+        assertEquals("$atGate: with the trigger and the player", listOf(2, self + 1, self),
+            listOf(heard.registerCount, heard.registerC, heard.registerD))
+        assertEquals("$atGate: right in front of the ask", gateStock[liveGate.at].reference(), gatePatched[liveGate.at + 1].reference())
+        assertEquals("$atGate: Facebook's code stays", gateStock.kinds(), gatePatched.filterIndexed { index, _ -> index != liveGate.at }.kinds())
+        extensionHas(atGate, LIVE_BAR_SEEK)
+
+        // Search results open some live videos with settings that say they aren't live, so the player's
+        // conversion of the seek position skips the engine's live offset unless its flag is set.
+        val shift = liveShift(player, check) { type -> FixtureDex.classes(bundle, setOf(type))[type] }
+        val conversion = player.methods.single {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "I" && it.code().any { op ->
+                (op as? ReferenceInstruction)?.reference is StringReference && op.reference() == NEGATIVE_SEEK_LOG
+            }
+        }
+        val atShift = "$name: ${player.type}->${conversion.name}"
+        val converted = conversion.code()
+        val asked = converted.indexOfFirst { it.opcode == Opcode.INVOKE_VIRTUAL && it.reference() == check.live.toString() }
+        val flagRead = converted.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && it.reference() == shift.shift.toString() }
+        assertTrue("$atShift: the flag is asked after the live check", asked in 0 until flagRead)
+        assertEquals("$atShift: the flag is the one whose set adds the offset",
+            "Ljava/util/concurrent/atomic/AtomicBoolean;->get()Z", converted[flagRead + 1].reference())
+        val engineAt = converted.indexOfFirst { it.reference() == shift.engine.toString() }
+        val offsetAt = converted.indexOfFirst { it.reference() == shift.offset.toString() }
+        assertTrue("$atShift: the offset is asked of the engine the getter returns", engineAt in 0 until offsetAt)
+        assertEquals("$atShift: the getter takes the player", listOf(player.type), shift.engine.parameterTypes.map(CharSequence::toString))
+        assertEquals("$atShift: the offset is the engine's", shift.engine.returnType, shift.offset.definingClass)
+
+        stubs.fillLiveShift(shift)
+        val offsetStub = stubs.mutableClassDefBy(PROGRESS_BAR).methods.single(::isLiveOffsetStub).code()
+        assertEquals("$atShift: the offset stub's code",
+            listOf(Opcode.CHECK_CAST, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE,
+                Opcode.MOVE_RESULT_WIDE, Opcode.RETURN_WIDE, Opcode.CONST_WIDE_16, Opcode.RETURN_WIDE),
+            offsetStub.map { it.opcode })
+        assertEquals("$atShift: the player is cast to its class", player.type, offsetStub[0].reference())
+        assertEquals("$atShift: the engine comes from the getter", shift.engine.toString(), offsetStub[1].reference())
+        assertEquals("$atShift: the offset is the engine's", shift.offset.toString(), offsetStub[4].reference())
+        val shiftStub = stubs.mutableClassDefBy(PROGRESS_BAR).methods.single(::isLiveSeekShiftStub).code()
+        assertEquals("$atShift: the flag stub's code, then the stub's own null",
+            listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT), shiftStub.map { it.opcode })
+        assertEquals("$atShift: the flag stub reads the flag", shift.shift.toString(), shiftStub[1].reference())
+        extensionHas(atShift, "$PROGRESS_BAR->$LIVE_OFFSET_STUB(Ljava/lang/Object;)J")
+        extensionHas(atShift, "$PROGRESS_BAR->$LIVE_SEEK_SHIFT_STUB(Ljava/lang/Object;)Ljava/lang/Object;")
     }
 
     /**

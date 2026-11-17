@@ -10,23 +10,20 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.cnn.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CNN 26.21.0 and 26.23.0 — Faster launch.
+// CNN 26.21.0 — Faster launch.
 //
-// CNN's splash screen waits for Optimizely (its feature-flag service) to
-// start, and OptimizelyClientFactory starts it with the SDK's asynchronous
-// initialize, which downloads a fresh datafile first. When cdn.optimizely.com
-// is blocked or slow, the SDK retries with waits of 2, 4 and 8 seconds, so the
-// splash stays up for about 14 seconds.
+// The splash screen waits for Optimizely (CNN's feature-flag service) to start,
+// and OptimizelyClientFactory starts it with the SDK's asynchronous initialize,
+// which downloads a fresh datafile first. When cdn.optimizely.com is blocked or
+// slow, the SDK retries with waits of 2, 4 and 8 seconds, so the splash stays
+// up for about 14 seconds. The initialize call is redirected to
+// OptimizelyQuickStart, which starts the client at once from the datafile
+// already on the phone and refreshes in the background.
 //
-// That initialize call now goes to OptimizelyQuickStart, which starts the
-// client at once from the datafile already on the phone (Optimizely's cached
-// copy, or the one bundled in the app). Optimizely's background updates keep
-// the cached copy current.
-//
-// 26.23.0 rewrote OptimizelyClientFactory to start the client from the local
-// datafile itself and refresh in the background, which is what this patch did,
-// so the asynchronous initialize call is gone. The patch then has nothing to
-// replace and leaves the already-fast build untouched.
+// 26.23.0 starts Optimizely from the local datafile itself, so this patch does
+// not target it. An earlier version also forced the 26.23.0 splash's wait on
+// StartupManager.isReady to pass at once. That opened the app before its
+// startup config was ready, and the app then stayed on the splash screen.
 // ─────────────────────────────────────────────────────────────────────────────
 
 private const val FACTORY = "Lcom/cnn/mobile/android/phone/features/featurestateprovider/optimizely/OptimizelyClientFactory;"
@@ -38,7 +35,7 @@ val fasterLaunchPatch = bytecodePatch(
     description = "Opens the app without waiting to download its feature settings.",
 ) {
     category("Setup")
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.FASTER_LAUNCH_COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 
@@ -65,8 +62,6 @@ val fasterLaunchPatch = bytecodePatch(
                 replaced++
             }
         }
-        // 26.21.0 has one asynchronous initialize call to replace. 26.23.0 and
-        // later start from the local datafile already, so finding none is fine.
-        if (replaced > 1) throw PatchException("Optimizely initialize call: expected 0 or 1, found $replaced")
+        if (replaced != 1) throw PatchException("Optimizely initialize call: expected 1, found $replaced")
     }
 }

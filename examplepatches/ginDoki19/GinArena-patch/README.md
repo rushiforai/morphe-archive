@@ -21,7 +21,7 @@ github.com/ginDoki19/GinArena-patch
 The table below reflects the last published release and is refreshed automatically by the release workflow.
 
 <!-- PATCHES_START -->
-> **[v2.11.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.11.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
+> **[v2.12.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total&nbsp;&nbsp;•&nbsp;&nbsp;**[⬇️ Download patches-2.12.0.mpp](https://github.com/ginDoki19/GinArena-patch/releases/download/v2.12.0/patches-2.12.0.mpp)**
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -34,7 +34,7 @@ The table below reflects the last published release and is refreshed automatical
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [AdBlocker turbo & userscript bundle](#adblocker-turbo-userscript-bundle) | Updates the built-in ad blocker automatically in seconds instead of minutes, and can add a shortlink bypass userscript. | • AdBlocker engine mode<br>• Bundle Bypass All Shortlinks userscript |
+| [AdBlocker turbo & userscript bundle](#adblocker-turbo--userscript-bundle) | Updates the built-in ad blocker automatically in seconds instead of minutes, and can add a shortlink bypass userscript. | • AdBlocker engine mode<br>• Bundle Bypass All Shortlinks userscript |
 | [Browser setup prompts only once](#browser-setup-prompts-only-once) | Shows the one-time browser setup prompts only once, even if you close the browser early. |  |
 | [Optimize cold start and battery](#optimize-cold-start-and-battery) | Makes the app open faster, use less battery in the background, and stay in Recents when you press Back. |  |
 | [Preset browser settings](#preset-browser-settings) | Sets Brave as the default search engine on fresh installs. You can change it anytime in 1DM. | • Search engine<br>• Search suggestions<br>• Search by image |
@@ -56,24 +56,27 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Clean Me page](#clean-me-page) | Removes Status Saver, Legal, and Help from the Me page. |  |
 | [Custom codec](#custom-codec) | Bundles an MX Player custom codec; official v3.1.0_r1 codecs are verified. | • Custom codec file<br>• Allow unverified codecs |
-| [Remove ads & bloat](#remove-ads-bloat) | Removes ads and online extras like Live TV, Tube, Shorts, and Games for a clean local player. |  |
+| [Remove ads & bloat](#remove-ads--bloat) | Removes ads and online extras like Live TV, Tube, Shorts, and Games for a clean local player. |  |
 | [Remove bottom navigation bar](#remove-bottom-navigation-bar) | Removes the bottom navigation bar and moves Me to the top-right corner. |  |
 
 </details>
 
 <details>
-<summary>📦 Daylio&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Daylio&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.71.1 |
+| 1.72.0 |
 | :---: |
-| APKM (arm64-v8a / armeabi-v7a / x86 / x86_64, 480-640 dpi, Android 8.0+), build 289 |
+| APKM (arm64-v8a / armeabi-v7a / x86 / x86_64, 480-640 dpi, Android 8.0+), build 291 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Enable premium](#enable-premium) | Enables local premium status in Daylio 1.71.1. Account- or server-dependent features may not work; this is not a purchase. |  |
+| [Enable premium](#enable-premium) | Unlocks Daylio's local premium state. Account- or server-dependent features (restore purchase, cloud entitlements) still behave as they do on a free account; this is not a purchase. |  |
+| [Google Drive backup via MicroG RE](#google-drive-backup-via-microg-re) | Makes the Google Drive backup sign-in work on a re-signed Daylio by signing in as the original app, and stops the "won't run without Google Play services" dialog. Needs MicroG RE installed with a Google account added. Daylio's local journal and every other feature are unaffected. | • Sign in as the original app<br>• Send Google calls to MicroG<br>• Let the app find Google and MicroG |
+| [Remove promos & partner ads](#remove-promos--partner-ads) | Removes Daylio's built-in advertising: the BetterHelp partner offer, the cross-promotion cards for the developer's other apps, and the "More Great Apps" row that opens a screen of their app catalogue. Daylio has no ad network; the journal, statistics and backups are untouched. | • Hide the BetterHelp partner banner<br>• Hide the "try our other app" cards |
+| [Remove tracking & marketing](#remove-tracking--marketing) | Daylio ships no ad SDK - this build has none to block. It does ship Firebase Analytics, Tag Manager, Crashlytics and the advertising-ID permissions; this turns those off. Every part is switchable. | • Turn off analytics<br>• Turn off crash reporting<br>• Remove advertising-ID and install-referrer access<br>• Remove discount notifications |
 
 </details>
 
@@ -83,16 +86,16 @@ The table below reflects the last published release and is refreshed automatical
 
 **🎯 Supported versions:**
 
-| 7.4 |
+| 7.5 |
 | :---: |
-| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 54 |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 55 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Fix search keyboard focus](#fix-search-keyboard-focus) | Opens search on Android TV and helps keep the keyboard connected during category searches on TV and phones. Clears TV search on navigation or close. |  |
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar when controls open and helps retain focus when live-source tabs auto-focus. Seeking depends on the stream. |  |
-| [Remove ads, proxy & restrictions](#remove-ads-proxy-restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.4. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip proxy & ad native libraries |
+| [Remove ads, proxy & restrictions](#remove-ads-proxy--restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.5. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip proxy & ad native libraries |
 
 </details>
 
@@ -145,7 +148,7 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
-| [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, promo popups, and tracking, and keeps channels working after patching. | • Hide promo announcement bar<br>• Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat |
+| [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads, promo popups, and tracking, and keeps channels working after patching. | • Hide promo announcement bar<br>• Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat |
 
 </details>
 
@@ -163,7 +166,7 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar over play/pause when controls open. Seeking depends on the stream. |  |
-| [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads and tracking, and hides the player app logo. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass sniffer-app check<br>• Strip native & telemetry bloat |
+| [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads and tracking, and hides the player app logo. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass sniffer-app check<br>• Strip native & telemetry bloat |
 
 </details>
 
@@ -181,7 +184,7 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
-| [Remove ads, popups & restrictions](#remove-ads-popups-restrictions) | Removes ads and promo popups, and keeps channels working after patching. |  |
+| [Remove ads, popups & restrictions](#remove-ads-popups--restrictions) | Removes ads and promo popups, and keeps channels working after patching. |  |
 
 </details>
 
@@ -199,7 +202,7 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
-| [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
+| [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
 
 </details>
 
@@ -245,13 +248,39 @@ The table below reflects the last published release and is refreshed automatical
 
 *On by default* for CricZ TV 7.3, PlayZ TV 2.3.1, CrexiFy TV 4.5, and SK Tech TV 2.7. Helps the remote's OK/center button reveal the native player controls and restores player focus when switching between embedded and fullscreen. Existing player actions, channel keys and stream behavior remain in place; it does not add new seek controls or change PiP.
 
-*On by default* for CRICFy TV 7.4 and Playfy TV 1.7 as well. When controls open on Android TV, these app-specific patches prefer the existing seekbar over the play/pause button. For CRICFy Live with multiple sources, the patch also helps keep the seekbar selected when the app automatically focuses a source tab. You can still navigate to source tabs to switch streams.
+*On by default* for CRICFy TV 7.5 and Playfy TV 1.7 as well. When controls open on Android TV, these app-specific patches prefer the existing seekbar over the play/pause button. For CRICFy Live with multiple sources, the patch also helps keep the seekbar selected when the app automatically focuses a source tab. You can still navigate to source tabs to switch streams.
 
 This patch depends on **Hide playback controls at stream open**: selecting it also selects that patch. On TV it may move focus from Share (or, in SK Tech, the message card) to the player at a player-opening or fullscreen transition; those views remain available through navigation. The first remote press may only reveal the controls; subsequent left/right uses the native seekbar when it is available. A live stream may not be seekable. The CricZ, PlayZ and CrexiFy changes were reported working on TV; the SK Tech adaptation still needs a real-device playback and remote test.
 
 ### Fix search keyboard focus
 
-*On by default* for CRICFy TV 7.4 (build 54). Helps open search on Android TV and prevent category labels from disrupting keyboard input on TVs and phones. On TV, the shared search is cleared when the app reports a navigation destination or the search bar is explicitly closed; hiding only the keyboard preserves the query. Repeated destination callbacks or restoration may also clear the query. This does not clear the keyboard's own suggestion history.
+*On by default* for CRICFy TV 7.5 (build 55). Helps open search on Android TV and prevent category labels from disrupting keyboard input on TVs and phones. On TV, the shared search is cleared when the app reports a navigation destination or the search bar is explicitly closed; hiding only the keyboard preserves the query. Repeated destination callbacks or restoration may also clear the query. This does not clear the keyboard's own suggestion history.
+
+### Remove ads, telemetry & restrictions
+
+*On by default* for **CricZ TV 7.3**, **SK Tech TV 2.7**, and **Playfy TV 1.7**. One patch
+name, three app-specific builds: each one removes that app's ads and promo popups, blocks
+push notifications and telemetry, and keeps the channels working after patching. The exact
+switch set differs slightly per app:
+
+| Option | CricZ TV | SK Tech TV | Playfy TV |
+|---|:---:|:---:|:---:|
+| Hide promo announcement bar | **on** | — | — |
+| Remove push notifications | on | on | on |
+| Bypass update & force-update screen | on | on | on |
+| Bypass root & sniffer checks | off | off | — |
+| Bypass sniffer-app check | — | — | off |
+| Strip native & telemetry bloat | off | off | off |
+| Disable WebActivity (potential ad surface) | — | off | — |
+
+Two switches are worth knowing about before you turn them on:
+
+* **Bypass root & sniffer checks** only exists for devices where the stock app refuses to run.
+  Leave it off otherwise.
+* **Disable WebActivity** closes the in-app web view so ad landing pages cannot open — but
+  pages that legitimately use it, such as score pages, will close too.
+
+What each app looks like afterwards is described in its own section below.
 
 ---
 
@@ -372,19 +401,22 @@ Download links and hashes live in the table above because Morphe has no field fo
 
 ---
 
-## 📦 CRICFy TV (7.4 build 54)
+## 📦 CRICFy TV (7.5 build 55)
 
 <details>
 <summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
 
 ### What it does
 
-**Remove ads, proxy & restrictions** (on by default) makes **CRICFy TV 7.4** clean and safe on phones, tablets, and Android TV:
+#### Remove ads, proxy & restrictions
+
+*On by default.* Makes **CRICFy TV 7.5** clean and safe on phones, tablets, and Android TV:
 
 - **Stops background bandwidth sharing** — the CashRaven proxy is disabled, so your internet connection is never rented out.
+- **No consent prompt** — the "allow bandwidth sharing" dialog that stock 7.5 shows on launch, including a clean install, is suppressed. Nothing is stored and no preference is faked; the app simply never gets to ask.
 - **No ads or sponsor gates** — channels open immediately, with no countdowns or browser redirects.
 - **No startup Telegram popup** — manual links in the drawer still work.
-- **No player app logo** on CRICFy TV 7.4; broadcaster logos remain unchanged.
+- **No player app logo** on CRICFy TV 7.5; broadcaster logos remain unchanged.
 - **Channels keep working** after patching, including live server configs.
 
 Options (on by default): hide the promo ticker, skip forced updates, block promo push notifications. Off by default: bypass clone/sniffer checks, and strip unused libraries to save ~7.7 MB.
@@ -394,12 +426,12 @@ Options (on by default): hide the promo ticker, skip forced updates, block promo
 | Field | Value |
 | --- | --- |
 | Package | `com.cricfytv.sports` |
-| Version | **7.4** (versionCode 54). Universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
+| Version | **7.5** (versionCode 55). Universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
 | Stock download | Official [cricfyapk.io/download/](https://cricfyapk.io/download/) page or the developer's official Telegram channel |
 | Signing certificate SHA-256 | `f2cd86fcbc92461a3300cec47b6f74d20f0c89dd7162ecc333b3dd2c16e79841` |
-| APK SHA-256 (7.4) | `d37c0c70200981a9558d32abd16ffb7966ae83a2fc84157b82e6869c4e16ae6f` |
+| APK SHA-256 (7.5) | `a6c12f1c5bdc1eff9da78788b27560c9c6fed7527b32e267f207eb746f0a23b7` |
 
-> **Version safety:** only **7.4 (54)** is supported. Other versions are refused
+> **Version safety:** only **7.5 (55)** is supported. Other versions are refused
 > by design until audited — do not force-patch them in Expert Mode.
 
 </details>
@@ -477,7 +509,9 @@ The patch adapts the signer-bound decoder for re-signed builds and disables its 
 
 ### What it does
 
-**Remove ads, popups & restrictions** (on by default) makes **PlayZ TV 2.3.1** clean and fast on phones, tablets, and Android TV:
+#### Remove ads, popups & restrictions
+
+*On by default.* Makes **PlayZ TV 2.3.1** clean and fast on phones, tablets, and Android TV:
 
 - **No ads or popups**, including timed popunder pages.
 - **No automatic Telegram popup** (manual links are untouched).
@@ -610,23 +644,71 @@ Enables local premium tools and cleans up VIP labels and buttons.
 
 ---
 
-## 📦 Daylio (1.71.1, build 289)
+## 📦 Daylio (1.72.0, build 291)
 
 <details>
-<summary><b>📖 App details</b> — patch and target version</summary>
+<summary><b>📖 App details</b> — what each patch does, target version and notes</summary>
 
 ### Enable premium
 
-*On by default.* Enables local premium status while preserving the app's completion callbacks. This is not a Google Play purchase; account- or server-controlled features may not work. It was reported working in a local test, but individual features may behave differently.
+*On by default.* Unlocks the app's **local** premium state. Daylio decides premium from two values it
+reads from its own preferences; this patch answers "purchased" to the first and "not expired" to the
+second, at the single reader and the single writer the whole app goes through. Nothing is sent
+anywhere and no purchase is faked. Restore-purchase and cloud-entitlement features still behave
+exactly as they do on a free account, because those answers come from Google, not from the device.
+
+### Google Drive backup via MicroG RE
+
+**Off by default — tick it when you patch.** Makes the Google Drive backup work on a re-signed
+Daylio by signing in as the *original* app, and stops the *"Daylio won't run without Google Play
+services"* dialog. Needs **MicroG RE 7.3.1** installed as `app.revanced.android.gms`, with a Google
+account added. On a device with real Play Services, leave it off.
+
+| Option | Default | What it does |
+|---|:---:|---|
+| Sign in as the original app | **on** | Tells MicroG Daylio's original package name and signing-certificate SHA-1, which is what makes Google accept the sign-in on a re-signed APK. |
+| Send Google calls to MicroG | **on** | Points Daylio's Play-services sign-in and account lookups at MicroG. **This switch also carries the two answers that remove the "won't run without Google Play services" dialog** — the signature check and the availability check. Turn it off and Daylio goes back to talking to whatever Play services the device has, which is correct on a phone with real Play Services and brings the dialog back on a MicroG-only one. |
+| Let the app find Google and MicroG | **on** | Makes both Play-services packages visible on Android 11+. Stock Daylio declares neither. |
+
+> Leave all three on. They are not three independent features: routing is what patches the two
+> Play-services answers, and the visibility entry is what lets the app find MicroG at all.
+
+### Remove promos & partner ads
+
+*On by default.* Daylio gets on fine without this — it is cosmetics, so both halves are switchable.
+
+| Option | Default | What it does |
+|---|:---:|---|
+| Hide the BetterHelp partner banner | **on** | Removes the BetterHelp icon from the main screen's top bar and makes the partner offer screen behind it unreachable. |
+| Hide the "try our other app" cards | **on** | Removes the cross-promotion cards for the developer's other apps from the More screen, and hides the "More Great Apps" row that opens their catalogue. |
+
+### Remove tracking & marketing
+
+*On by default.* Daylio has **no ad SDK** in this build — there is nothing to block. What it does
+ship is Firebase Analytics, Tag Manager, Crashlytics and the advertising-ID permissions.
+
+| Option | Default | What it does |
+|---|:---:|---|
+| Turn off analytics | **on** | Firebase Analytics and Tag Manager never start. |
+| Turn off crash reporting | **on** | Crashlytics never starts. |
+| Remove advertising-ID and install-referrer access | **on** | Drops the AD_ID, ad-services and install-referrer permissions, so the app cannot read your advertising ID or the attribution that came with it. |
+| Remove discount notifications | **off** | Removes the three receivers that schedule Daylio's discount / special-offer notifications. Off by default because you can see the difference: you stop being notified when a discount is running. |
+
+> **Nothing here is an advertisement blocker for the journal itself.** Every switch above changes
+> only measurement and promotion; entries, statistics, reminders and local backups are untouched.
 
 | | |
 |---|---|
 | Package | `net.daylio` |
-| Version | **1.71.1** (build 289), Android 8.0+ |
+| Version | **1.72.0** (build 291), Android 8.0+ |
 | Tested input | APKM, four ABIs, 480–640 dpi |
-| Stock download | [APKMirror — Daylio 1.71.1](https://www.apkmirror.com/apk/habitics/daylio-diary-journal-mood-tracker/daylio-journal-mood-tracker-1-71-1-release/) — choose the exact build and verify its hash |
-| APKM SHA-256 | `25feb6336e054245e159e163b6f6d1e95be3a5395b66955884b68c5460172660` |
+| Stock download | [APKMirror — Daylio 1.72.0](https://www.apkmirror.com/apk/habitics/daylio-diary-journal-mood-tracker/daylio-journal-mood-tracker-1-72-0-release/) — choose the exact build and verify its hash |
+| APKM SHA-256 | `65dfbb7892e7cd7e1fef76e05fd036c7d1327d61402e3b573af3762d3b879074` |
 | Signing certificate SHA-256 | `6afb7e4100413a77e13b6a1e4f8ac1f9e3421862b3678fb9abe6aa531e859a9d` |
+
+> **Only 1.72.0 is supported.** The fingerprints were re-derived from this build; 1.71.1 shifted the
+> obfuscated names (`Lt38;` → `Lq48;` for preferences, `Ls38;` → `Lp48;` for the keys) and everything
+> here would fail its structural check against it. An older version is refused, not half-patched.
 
 > **Protect your journal:** make a verified backup before testing, ideally on a spare device or profile. An existing install can update in place only when its signing key matches. Do not uninstall to resolve a signature conflict without first verifying a restorable backup; uninstalling can delete entries and attachments. Keep exports private.
 
@@ -776,6 +858,46 @@ anything, and there is no second gate to work around.
 > first. Export your custom filter lists and settings beforehand — uninstalling removes them. Point
 > Morphe at the APK exactly as downloaded; do not pre-sign or re-zip it.
 
+### Certificate & HTTPS filtering
+
+AdGuard asks you to install a certificate when you turn on **HTTPS filtering**. That surprises
+people, so here is exactly what it is.
+
+**This patch does not create, replace or weaken that certificate.** Applying it changes 3 of
+29,311 classes and leaves every one of AdGuard's 32 native libraries byte-identical, so the
+certificate comes from the same code as stock AdGuard.
+
+| | |
+|---|---|
+| What it is | "Adguard Personal CA" — the certificate that lets AdGuard decrypt HTTPS so it can filter inside encrypted pages |
+| Where it comes from | **Made on your own device by AdGuard**, the first time HTTPS filtering needs it |
+| Where it is kept | The app's private storage, as `cert_key_pair_in_pem` |
+| Shared with anyone? | **No.** No copy leaves your device, and the patch cannot change that |
+| Does patching affect it? | No. The code that generates it is untouched |
+
+**Switching from stock AdGuard loses it.** Uninstalling deletes the app's private storage,
+including that key, so the patched app generates a **new** certificate. A saved copy of the old
+one cannot be installed — it has no matching private key any more, so AdGuard keeps asking.
+
+To get past that, once:
+
+1. Uninstall stock AdGuard (export anything you want to keep first).
+2. Remove the old **"Adguard Personal CA"** from *Settings → Security → Encryption &
+   credentials → User credentials*, if it is still listed.
+3. Install the patched build and turn on HTTPS filtering.
+4. Install the certificate **the patched app offers you**. It sticks.
+
+Updating the patch bundle later does not repeat this: the signing key stays the same, so the
+certificate and its trust stay too.
+
+**If you would rather not install it at all**, leave HTTPS filtering off and use DNS filtering
+plus filter lists. Nothing is decrypted, and the premium unlock is unaffected — these are
+independent settings.
+
+> There is no patch that makes the app reuse the original certificate, and there should not be:
+> the only way to do that would be to hardcode one private key into the bundle, which would let
+> anyone holding it read HTTPS traffic from any device running it.
+
 </details>
 
 ---
@@ -783,9 +905,9 @@ anything, and there is no second gate to work around.
 ## Usage (Morphe Manager)
 
 1. Add this repository as a remote patch source using the link at the top of this README.
-2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
+2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.5 APK**, **CricZ TV 7.3 APK**,
    **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 or 3.4.3 APK**,
-   **APK Decompiler 4.12.0 APK**, **Daylio 1.71.1 APKM**, **WPS Office 26.11.0 XAPK**, or
+   **APK Decompiler 4.12.0 APK**, **Daylio 1.72.0 APKM**, **WPS Office 26.11.0 XAPK**, or
    **AdGuard 4.15.2 APK** above onto your device.
 3. Updates require a compatible signing key. If Android reports a signature conflict, stop: uninstalling the existing app can permanently erase its data. Back up what you can and your Morphe signing key first.
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
@@ -828,7 +950,7 @@ bash gradlew :patches:buildAndroid
 
 ## Credits
 
-- [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch for 1.69.2; adapted for 1.71.1.
+- [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch for 1.69.2; re-derived for 1.71.1 and again for 1.72.0.
 - [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patch ideas.
 - [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — the earlier WPS Office "Enable Pro" idea; its anti-tamper dependency no longer exists in 26.11.0, so the WPS patch here is written from scratch against the current privilege layer.
 - [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — inspiration and initial CRICFy TV patch idea.
