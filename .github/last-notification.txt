@@ -1,5 +1,6 @@
-# Repos reported by the last notification (4)
-ComoEstaisAmigos/morphe-patches
-RizkLee/morphe-bilibili-danmaku
-inxomnyaa/tiktok-tweaks
-kveld9/brave-patches
+# Repos reported by the last notification (5)
+Mlkem/Morphe
+MojiRS/morphe-rif-patches
+edbfi/apk-patches
+lamphung-phuc/nmax-patches
+v4inwald/wispr-flow-patches
