@@ -51,6 +51,12 @@ jobs:
         run: |
           python scripts/fetch_org_repos.py
 
+      - name: Import Catalog Sources (GitHub and GitLab)
+        env:
+          OUTPUT_FILE: ${{ env.OUTPUT_FILE }}
+        run: |
+          python scripts/fetch_catalog_repos.py
+
       - name: Discover More Repos (GitHub-wide search)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

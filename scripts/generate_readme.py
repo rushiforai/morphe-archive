@@ -94,7 +94,7 @@ def build_readme(repos, invalid_repos=None):
     lines.append("")
     lines.append("## How this list is built")
     lines.append("")
-    lines.append("This repo list is kept in [`repos.txt`](./repos.txt) and assembled from three sources:")
+    lines.append("This repo list is kept in [`repos.txt`](./repos.txt) and assembled from four sources:")
     lines.append("")
     lines.append(
         "1. **Registry scan** - crawling [`Jman-Github/ReVanced-Patch-Bundles`]"
@@ -102,11 +102,15 @@ def build_readme(repos, invalid_repos=None):
         "behind every bundle that passes the Morphe (`.mpp`) filter."
     )
     lines.append(
-        "2. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files "
+        "2. **Catalog scan** - reading the Morphe catalog and importing every GitHub or GitLab "
+        "repo behind a listed bundle."
+    )
+    lines.append(
+        "3. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files "
         "and verifying each candidate bundle JSON has an actual `.mpp` reference."
     )
     lines.append(
-        "3. **Manual additions** - anything listed in [`custom_repos.txt`](./custom_repos.txt)."
+        "4. **Manual additions** - anything listed in [`custom_repos.txt`](./custom_repos.txt)."
     )
     lines.append("")
     lines.append(
