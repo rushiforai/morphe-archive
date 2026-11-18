@@ -256,8 +256,6 @@ Sabrina-Moonlight/gracie-patches
 SailHighSea/sailhighsea-patches
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
-SatanMerde/D-moniakPatches
-SatanMerde/D-moniakPatches-dev
 Satwik-Miyyapuram/morphe-patches
 Saurabh825/morphe-patches
 Sayan201/TheFit
